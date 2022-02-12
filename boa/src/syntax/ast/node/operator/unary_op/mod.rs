@@ -1,19 +1,11 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::{node::Node, op},
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
-
-#[cfg(feature = "vm")]
-use crate::{
-    profiler::BoaProfiler,
-    vm::{compilation::CodeGen, Compiler, Instruction},
-};
 
 /// A unary operation is an operation with only one operand.
 ///
@@ -53,108 +45,14 @@ impl UnaryOp {
     }
 }
 
-impl Executable for UnaryOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        Ok(match self.op() {
-            op::UnaryOp::Minus => self.target().run(context)?.neg(context)?,
-            op::UnaryOp::Plus => Value::from(self.target().run(context)?.to_number(context)?),
-            op::UnaryOp::IncrementPost => {
-                let x = self.target().run(context)?;
-                let ret = x.clone();
-                let result = x.to_number(context)? + 1.0;
-                context.set_value(self.target(), result.into())?;
-                ret
-            }
-            op::UnaryOp::IncrementPre => {
-                let result = self.target().run(context)?.to_number(context)? + 1.0;
-                context.set_value(self.target(), result.into())?
-            }
-            op::UnaryOp::DecrementPost => {
-                let x = self.target().run(context)?;
-                let ret = x.clone();
-                let result = x.to_number(context)? - 1.0;
-                context.set_value(self.target(), result.into())?;
-                ret
-            }
-            op::UnaryOp::DecrementPre => {
-                let result = self.target().run(context)?.to_number(context)? - 1.0;
-                context.set_value(self.target(), result.into())?
-            }
-            op::UnaryOp::Not => self.target().run(context)?.not(context)?.into(),
-            op::UnaryOp::Tilde => {
-                let num_v_a = self.target().run(context)?.to_number(context)?;
-                Value::from(if num_v_a.is_nan() {
-                    -1
-                } else {
-                    // TODO: this is not spec compliant.
-                    !(num_v_a as i32)
-                })
-            }
-            op::UnaryOp::Void => {
-                self.target().run(context)?;
-                Value::undefined()
-            }
-            op::UnaryOp::Delete => match *self.target() {
-                Node::GetConstField(ref get_const_field) => Value::boolean(
-                    get_const_field
-                        .obj()
-                        .run(context)?
-                        .to_object(context)?
-                        .delete(&get_const_field.field().into()),
-                ),
-                Node::GetField(ref get_field) => {
-                    let obj = get_field.obj().run(context)?;
-                    let field = &get_field.field().run(context)?;
-                    let res = obj
-                        .to_object(context)?
-                        .delete(&field.to_property_key(context)?);
-                    return Ok(Value::boolean(res));
-                }
-                Node::Identifier(_) => Value::boolean(false),
-                Node::ArrayDecl(_)
-                | Node::Block(_)
-                | Node::Const(_)
-                | Node::FunctionDecl(_)
-                | Node::FunctionExpr(_)
-                | Node::New(_)
-                | Node::Object(_)
-                | Node::UnaryOp(_) => Value::boolean(true),
-                _ => return context.throw_syntax_error(format!("wrong delete argument {}", self)),
-            },
-            op::UnaryOp::TypeOf => Value::from(self.target().run(context)?.get_type().as_str()),
-        })
-    }
-}
-
-impl fmt::Display for UnaryOp {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}{}", self.op, self.target)
+impl ToInternedString for UnaryOp {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("{}{}", self.op, self.target.to_interned_string(interner))
     }
 }
 
 impl From<UnaryOp> for Node {
     fn from(op: UnaryOp) -> Self {
         Self::UnaryOp(op)
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for UnaryOp {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("UnaryOp", "codeGen");
-        self.target().compile(compiler);
-        match self.op {
-            op::UnaryOp::Void => compiler.add_instruction(Instruction::Void),
-            op::UnaryOp::Plus => compiler.add_instruction(Instruction::Pos),
-            op::UnaryOp::Minus => compiler.add_instruction(Instruction::Neg),
-            op::UnaryOp::TypeOf => compiler.add_instruction(Instruction::TypeOf),
-            op::UnaryOp::Not => compiler.add_instruction(Instruction::Not),
-            op::UnaryOp::Tilde => compiler.add_instruction(Instruction::BitNot),
-            op::UnaryOp::IncrementPost => {}
-            op::UnaryOp::IncrementPre => {}
-            op::UnaryOp::DecrementPost => {}
-            op::UnaryOp::DecrementPre => {}
-            op::UnaryOp::Delete => {}
-        }
     }
 }

@@ -1,11 +1,8 @@
 use crate::{
-    environment::lexical_environment::VariableScope,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -52,43 +49,13 @@ impl Assign {
     }
 }
 
-impl Executable for Assign {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("Assign", "exec");
-        let val = self.rhs().run(context)?;
-        match self.lhs() {
-            Node::Identifier(ref name) => {
-                if context.has_binding(name.as_ref()) {
-                    // Binding already exists
-                    context.set_mutable_binding(name.as_ref(), val.clone(), true)?;
-                } else {
-                    context.create_mutable_binding(
-                        name.as_ref().to_owned(),
-                        true,
-                        VariableScope::Function,
-                    )?;
-                    context.initialize_binding(name.as_ref(), val.clone())?;
-                }
-            }
-            Node::GetConstField(ref get_const_field) => {
-                let val_obj = get_const_field.obj().run(context)?;
-                val_obj.set_field(get_const_field.field(), val.clone(), context)?;
-            }
-            Node::GetField(ref get_field) => {
-                let object = get_field.obj().run(context)?;
-                let field = get_field.field().run(context)?;
-                let key = field.to_property_key(context)?;
-                object.set_field(key, val.clone(), context)?;
-            }
-            _ => (),
-        }
-        Ok(val)
-    }
-}
-
-impl fmt::Display for Assign {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} = {}", self.lhs, self.rhs)
+impl ToInternedString for Assign {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
+            "{} = {}",
+            self.lhs.to_interned_string(interner),
+            self.rhs.to_interned_string(interner)
+        )
     }
 }
 

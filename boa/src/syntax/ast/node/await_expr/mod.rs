@@ -1,12 +1,14 @@
 //! Await expression node.
 
 use super::Node;
-use crate::{exec::Executable, BoaProfiler, Context, Result, Value};
-use gc::{Finalize, Trace};
-use std::fmt;
+use crate::gc::{Finalize, Trace};
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// An await expression is used within an async function to pause execution and wait for a
 /// promise to resolve.
@@ -23,22 +25,6 @@ pub struct AwaitExpr {
     expr: Box<Node>,
 }
 
-impl Executable for AwaitExpr {
-    fn run(&self, _: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("AwaitExpression", "exec");
-        // TODO: Implement AwaitExpr
-        Ok(Value::Undefined)
-    }
-}
-
-impl AwaitExpr {
-    /// Implements the display formatting with indentation.
-    pub(super) fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        writeln!(f, "await ")?;
-        self.expr.display(f, indentation)
-    }
-}
-
 impl<T> From<T> for AwaitExpr
 where
     T: Into<Box<Node>>,
@@ -48,9 +34,9 @@ where
     }
 }
 
-impl fmt::Display for AwaitExpr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for AwaitExpr {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("await {}", self.expr.to_indented_string(interner, 0))
     }
 }
 

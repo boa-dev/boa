@@ -1,12 +1,9 @@
 //! Declaration nodes
 use crate::{
-    environment::lexical_environment::VariableScope,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, Identifier, Node},
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -14,14 +11,21 @@ use serde::{Deserialize, Serialize};
 pub mod arrow_function_decl;
 pub mod async_function_decl;
 pub mod async_function_expr;
+pub mod async_generator_decl;
+pub mod async_generator_expr;
 pub mod function_decl;
 pub mod function_expr;
+pub mod generator_decl;
+pub mod generator_expr;
 
 pub use self::{
     arrow_function_decl::ArrowFunctionDecl, async_function_decl::AsyncFunctionDecl,
-    async_function_expr::AsyncFunctionExpr, function_decl::FunctionDecl,
+    async_function_expr::AsyncFunctionExpr, async_generator_decl::AsyncGeneratorDecl,
+    async_generator_expr::AsyncGeneratorExpr, function_decl::FunctionDecl,
     function_expr::FunctionExpr,
 };
+
+use super::StatementList;
 
 #[cfg(test)]
 mod tests;
@@ -89,95 +93,41 @@ pub enum DeclarationList {
     Var(Box<[Declaration]>),
 }
 
-impl Executable for DeclarationList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        for decl in self.as_ref() {
-            use DeclarationList::*;
-            let val = match decl.init() {
-                None if self.is_const() => {
-                    return context.throw_syntax_error("missing = in const declaration")
-                }
-                Some(init) => init.run(context)?,
-                None => Value::undefined(),
-            };
-
-            if self.is_var() && context.has_binding(decl.name()) {
-                if decl.init().is_some() {
-                    context.set_mutable_binding(decl.name(), val, true)?;
-                }
-                continue;
-            }
-
-            match &self {
-                Const(_) => context.create_immutable_binding(
-                    decl.name().to_owned(),
-                    false,
-                    VariableScope::Block,
-                )?,
-                Let(_) => context.create_mutable_binding(
-                    decl.name().to_owned(),
-                    false,
-                    VariableScope::Block,
-                )?,
-                Var(_) => context.create_mutable_binding(
-                    decl.name().to_owned(),
-                    false,
-                    VariableScope::Function,
-                )?,
-            }
-
-            context.initialize_binding(decl.name(), val)?;
-        }
-
-        Ok(Value::undefined())
-    }
-}
-
-impl DeclarationList {
-    #[allow(dead_code)]
-    pub(in crate::syntax) fn is_let(&self) -> bool {
-        matches!(self, Self::Let(_))
-    }
-    pub(in crate::syntax) fn is_const(&self) -> bool {
-        matches!(self, Self::Const(_))
-    }
-    pub(in crate::syntax) fn is_var(&self) -> bool {
-        matches!(self, Self::Var(_))
-    }
-}
-
 impl AsRef<[Declaration]> for DeclarationList {
     fn as_ref(&self) -> &[Declaration] {
-        use DeclarationList::*;
+        use DeclarationList::{Const, Let, Var};
         match self {
             Var(list) | Const(list) | Let(list) => list,
         }
     }
 }
 
-impl fmt::Display for DeclarationList {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if !self.as_ref().is_empty() {
-            use DeclarationList::*;
-            match &self {
-                Let(_) => write!(f, "let ")?,
-                Const(_) => write!(f, "const ")?,
-                Var(_) => write!(f, "var ")?,
-            }
-            join_nodes(f, self.as_ref())
+impl ToInternedString for DeclarationList {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        if self.as_ref().is_empty() {
+            String::new()
         } else {
-            Ok(())
+            use DeclarationList::{Const, Let, Var};
+            format!(
+                "{} {}",
+                match &self {
+                    Let(_) => "let",
+                    Const(_) => "const",
+                    Var(_) => "var",
+                },
+                join_nodes(interner, self.as_ref())
+            )
         }
     }
 }
 
 impl From<DeclarationList> for Node {
     fn from(list: DeclarationList) -> Self {
-        use DeclarationList::*;
+        use DeclarationList::{Const, Let, Var};
         match &list {
-            Let(_) => Node::LetDeclList(list),
-            Const(_) => Node::ConstDeclList(list),
-            Var(_) => Node::VarDeclList(list),
+            Let(_) => Self::LetDeclList(list),
+            Const(_) => Self::ConstDeclList(list),
+            Var(_) => Self::VarDeclList(list),
         }
     }
 }
@@ -188,44 +138,547 @@ impl From<Declaration> for Box<[Declaration]> {
     }
 }
 
-/// Individual declaration.
+/// Declaration represents either an individual binding or a binding pattern.
+///
+/// For `let` and `const` declarations this type represents a [`LexicalBinding`][spec1]
+///
+/// For `var` declarations this type represents a [`VariableDeclaration`][spec2]
+///
+/// More information:
+///  - [ECMAScript reference: 14.3 Declarations and the Variable Statement][spec3]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-LexicalBinding
+/// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration
+/// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
-pub struct Declaration {
-    name: Identifier,
-    init: Option<Node>,
+pub enum Declaration {
+    Identifier {
+        ident: Identifier,
+        init: Option<Node>,
+    },
+    Pattern(DeclarationPattern),
 }
 
-impl fmt::Display for Declaration {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.name, f)?;
-        if let Some(ref init) = self.init {
-            write!(f, " = {}", init)?;
+impl ToInternedString for Declaration {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match &self {
+            Self::Identifier { ident, init } => {
+                let mut buf = ident.to_interned_string(interner);
+                if let Some(ref init) = &init {
+                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                }
+                buf
+            }
+            Self::Pattern(pattern) => pattern.to_interned_string(interner),
         }
-        Ok(())
     }
 }
 
 impl Declaration {
-    /// Creates a new variable declaration.
-    pub(in crate::syntax) fn new<N, I>(name: N, init: I) -> Self
+    /// Creates a new variable declaration with a `BindingIdentifier`.
+    #[inline]
+    pub(in crate::syntax) fn new_with_identifier<N, I>(ident: N, init: I) -> Self
     where
         N: Into<Identifier>,
         I: Into<Option<Node>>,
     {
-        Self {
-            name: name.into(),
+        Self::Identifier {
+            ident: ident.into(),
             init: init.into(),
         }
     }
 
-    /// Gets the name of the variable.
-    pub fn name(&self) -> &str {
-        self.name.as_ref()
+    /// Creates a new variable declaration with an `ObjectBindingPattern`.
+    #[inline]
+    pub(in crate::syntax) fn new_with_object_pattern<I>(
+        bindings: Vec<BindingPatternTypeObject>,
+        init: I,
+    ) -> Self
+    where
+        I: Into<Option<Node>>,
+    {
+        Self::Pattern(DeclarationPattern::Object(DeclarationPatternObject::new(
+            bindings,
+            init.into(),
+        )))
     }
 
-    /// Gets the initialization node for the variable, if any.
+    /// Creates a new variable declaration with an `ArrayBindingPattern`.
+    #[inline]
+    pub(in crate::syntax) fn new_with_array_pattern<I>(
+        bindings: Vec<BindingPatternTypeArray>,
+        init: I,
+    ) -> Self
+    where
+        I: Into<Option<Node>>,
+    {
+        Self::Pattern(DeclarationPattern::Array(DeclarationPatternArray::new(
+            bindings,
+            init.into(),
+        )))
+    }
+
+    /// Gets the initialization node for the declaration, if any.
+    #[inline]
+    pub(crate) fn init(&self) -> Option<&Node> {
+        match &self {
+            Self::Identifier { init, .. } => init.as_ref(),
+            Self::Pattern(pattern) => pattern.init(),
+        }
+    }
+}
+
+/// `DeclarationPattern` represents an object or array binding pattern.
+///
+/// This enum mostly wraps the functionality of the specific binding pattern types.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `BindingPattern`][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum DeclarationPattern {
+    Object(DeclarationPatternObject),
+    Array(DeclarationPatternArray),
+}
+
+impl ToInternedString for DeclarationPattern {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match &self {
+            DeclarationPattern::Object(o) => o.to_interned_string(interner),
+            DeclarationPattern::Array(a) => a.to_interned_string(interner),
+        }
+    }
+}
+
+impl DeclarationPattern {
+    /// Gets the list of identifiers declared by the binding pattern.
+    ///
+    /// A single binding pattern may declare 0 to n identifiers.
+    #[inline]
+    pub fn idents(&self) -> Vec<Sym> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.idents(),
+            DeclarationPattern::Array(pattern) => pattern.idents(),
+        }
+    }
+
+    /// Gets the initialization node for the binding pattern, if any.
+    #[inline]
     pub fn init(&self) -> Option<&Node> {
+        match &self {
+            DeclarationPattern::Object(pattern) => pattern.init(),
+            DeclarationPattern::Array(pattern) => pattern.init(),
+        }
+    }
+}
+
+/// `DeclarationPatternObject` represents an object binding pattern.
+///
+/// This struct holds a list of bindings, and an optional initializer for the binding pattern.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct DeclarationPatternObject {
+    bindings: Vec<BindingPatternTypeObject>,
+    init: Option<Node>,
+}
+
+impl ToInternedString for DeclarationPatternObject {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = "{".to_owned();
+        for (i, binding) in self.bindings.iter().enumerate() {
+            let binding = binding.to_interned_string(interner);
+            let str = if i == self.bindings.len() - 1 {
+                format!("{} ", binding)
+            } else {
+                format!("{},", binding)
+            };
+
+            buf.push_str(&str);
+        }
+        buf.push('}');
+        if let Some(ref init) = self.init {
+            buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+        }
+        buf
+    }
+}
+
+impl DeclarationPatternObject {
+    /// Create a new object binding pattern.
+    #[inline]
+    pub(in crate::syntax) fn new(
+        bindings: Vec<BindingPatternTypeObject>,
+        init: Option<Node>,
+    ) -> Self {
+        Self { bindings, init }
+    }
+
+    /// Gets the initialization node for the object binding pattern, if any.
+    #[inline]
+    pub(crate) fn init(&self) -> Option<&Node> {
         self.init.as_ref()
+    }
+
+    /// Gets the bindings for the object binding pattern.
+    #[inline]
+    pub(crate) fn bindings(&self) -> &Vec<BindingPatternTypeObject> {
+        &self.bindings
+    }
+
+    /// Gets the list of identifiers declared by the object binding pattern.
+    #[inline]
+    pub(crate) fn idents(&self) -> Vec<Sym> {
+        let mut idents = Vec::new();
+
+        for binding in &self.bindings {
+            use BindingPatternTypeObject::{BindingPattern, Empty, RestProperty, SingleName};
+
+            match binding {
+                Empty => {}
+                SingleName {
+                    ident,
+                    property_name: _,
+                    default_init: _,
+                } => {
+                    idents.push(*ident);
+                }
+                RestProperty {
+                    ident: property_name,
+                    excluded_keys: _,
+                } => {
+                    idents.push(*property_name);
+                }
+                BindingPattern {
+                    ident: _,
+                    pattern,
+                    default_init: _,
+                } => {
+                    for ident in pattern.idents() {
+                        idents.push(ident);
+                    }
+                }
+            }
+        }
+
+        idents
+    }
+}
+
+/// `DeclarationPatternArray` represents an array binding pattern.
+///
+/// This struct holds a list of bindings, and an optional initializer for the binding pattern.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub struct DeclarationPatternArray {
+    bindings: Vec<BindingPatternTypeArray>,
+    init: Option<Node>,
+}
+
+impl ToInternedString for DeclarationPatternArray {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = "[".to_owned();
+        for (i, binding) in self.bindings.iter().enumerate() {
+            if i == self.bindings.len() - 1 {
+                match binding {
+                    BindingPatternTypeArray::Elision => {
+                        buf.push_str(&format!("{}, ", binding.to_interned_string(interner)));
+                    }
+                    _ => buf.push_str(&format!("{} ", binding.to_interned_string(interner))),
+                }
+            } else {
+                buf.push_str(&format!("{},", binding.to_interned_string(interner)));
+            }
+        }
+        buf.push(']');
+        if let Some(ref init) = self.init {
+            buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+        }
+        buf
+    }
+}
+
+impl DeclarationPatternArray {
+    /// Create a new array binding pattern.
+    #[inline]
+    pub(in crate::syntax) fn new(
+        bindings: Vec<BindingPatternTypeArray>,
+        init: Option<Node>,
+    ) -> Self {
+        Self { bindings, init }
+    }
+
+    /// Gets the initialization node for the array binding pattern, if any.
+    #[inline]
+    pub(crate) fn init(&self) -> Option<&Node> {
+        self.init.as_ref()
+    }
+
+    /// Gets the bindings for the array binding pattern.
+    #[inline]
+    pub(crate) fn bindings(&self) -> &Vec<BindingPatternTypeArray> {
+        &self.bindings
+    }
+
+    /// Gets the list of identifiers declared by the array binding pattern.
+    #[inline]
+    pub(crate) fn idents(&self) -> Vec<Sym> {
+        let mut idents = Vec::new();
+
+        for binding in &self.bindings {
+            use BindingPatternTypeArray::{
+                BindingPattern, BindingPatternRest, Elision, Empty, SingleName, SingleNameRest,
+            };
+
+            match binding {
+                Empty | Elision => {}
+                SingleName {
+                    ident,
+                    default_init: _,
+                } => {
+                    idents.push(*ident);
+                }
+                BindingPattern { pattern } | BindingPatternRest { pattern } => {
+                    let mut i = pattern.idents();
+                    idents.append(&mut i);
+                }
+                SingleNameRest { ident } => idents.push(*ident),
+            }
+        }
+
+        idents
+    }
+}
+
+/// `BindingPatternTypeObject` represents the different types of bindings that an object binding pattern may contain.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum BindingPatternTypeObject {
+    /// Empty represents an empty object binding pattern e.g. `{ }`.
+    Empty,
+
+    /// SingleName represents one of the following properties:
+    ///
+    /// - `SingleNameBinding` with an identifier and an optional default initializer.
+    /// - `BindingProperty` with an property name and a `SingleNameBinding` as  the `BindingElement`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - SingleNameBinding][spec1]
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingProperty][spec2]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding
+    /// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty
+    SingleName {
+        ident: Sym,
+        property_name: Sym,
+        default_init: Option<Node>,
+    },
+
+    /// RestProperty represents a `BindingRestProperty` with an identifier.
+    ///
+    /// It also includes a list of the property keys that should be excluded from the rest,
+    /// because they where already assigned.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestProperty][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestProperty
+    RestProperty { ident: Sym, excluded_keys: Vec<Sym> },
+
+    /// BindingPattern represents a `BindingProperty` with a `BindingPattern` as the `BindingElement`.
+    ///
+    /// Additionally to the identifier of the new property and the nested binding pattern,
+    /// this may also include an optional default initializer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingProperty][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
+    BindingPattern {
+        ident: Sym,
+        pattern: DeclarationPattern,
+        default_init: Option<Node>,
+    },
+}
+
+impl ToInternedString for BindingPatternTypeObject {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match self {
+            BindingPatternTypeObject::Empty => String::new(),
+            BindingPatternTypeObject::SingleName {
+                ident,
+                property_name,
+                default_init,
+            } => {
+                let mut buf = if ident == property_name {
+                    format!(" {}", interner.resolve_expect(*ident))
+                } else {
+                    format!(
+                        " {} : {}",
+                        interner.resolve_expect(*property_name),
+                        interner.resolve_expect(*ident)
+                    )
+                };
+                if let Some(ref init) = default_init {
+                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                }
+                buf
+            }
+            BindingPatternTypeObject::RestProperty {
+                ident: property_name,
+                excluded_keys: _,
+            } => {
+                format!(" ... {}", interner.resolve_expect(*property_name))
+            }
+            BindingPatternTypeObject::BindingPattern {
+                ident: property_name,
+                pattern,
+                default_init,
+            } => {
+                let mut buf = format!(
+                    " {} : {}",
+                    interner.resolve_expect(*property_name),
+                    pattern.to_interned_string(interner)
+                );
+                if let Some(ref init) = default_init {
+                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                }
+                buf
+            }
+        }
+    }
+}
+
+/// `BindingPatternTypeArray` represents the different types of bindings that an array binding pattern may contain.
+///
+/// More information:
+///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]
+///
+/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum BindingPatternTypeArray {
+    /// Empty represents an empty array binding pattern e.g. `[ ]`.
+    ///
+    /// This may occur because the `Elision` and `BindingRestElement` in the first type of
+    /// array binding pattern are both optional.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
+    Empty,
+
+    /// Elision represents the elision of an item in the array binding pattern.
+    ///
+    /// An `Elision` may occur at multiple points in the pattern and may be multiple elisions.
+    /// This variant strictly represents one elision. If there are multiple, this should be used multiple times.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 13.2.4 Array Initializer - Elision][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-Elision
+    Elision,
+
+    /// SingleName represents a `SingleNameBinding` with an identifier and an optional default initializer.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - SingleNameBinding][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding
+    SingleName {
+        ident: Sym,
+        default_init: Option<Node>,
+    },
+
+    /// BindingPattern represents a `BindingPattern` in a `BindingElement` of an array binding pattern.
+    ///
+    /// The pattern and the optional default initializer are both stored in the DeclarationPattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingElement][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
+    BindingPattern { pattern: DeclarationPattern },
+
+    /// SingleNameRest represents a `BindingIdentifier` in a `BindingRestElement` of an array binding pattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
+    SingleNameRest { ident: Sym },
+
+    /// SingleNameRest represents a `BindingPattern` in a `BindingRestElement` of an array binding pattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
+    ///
+    /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
+    BindingPatternRest { pattern: DeclarationPattern },
+}
+
+impl ToInternedString for BindingPatternTypeArray {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match self {
+            BindingPatternTypeArray::Empty => String::new(),
+            BindingPatternTypeArray::Elision => " ".to_owned(),
+            BindingPatternTypeArray::SingleName {
+                ident,
+                default_init,
+            } => {
+                let mut buf = format!(" {}", interner.resolve_expect(*ident));
+                if let Some(ref init) = default_init {
+                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                }
+                buf
+            }
+            BindingPatternTypeArray::BindingPattern { pattern } => {
+                format!(" {}", pattern.to_interned_string(interner))
+            }
+            BindingPatternTypeArray::SingleNameRest { ident } => {
+                format!(" ... {}", interner.resolve_expect(*ident))
+            }
+            BindingPatternTypeArray::BindingPatternRest { pattern } => {
+                format!(" ... {}", pattern.to_interned_string(interner))
+            }
+        }
+    }
+}
+
+/// Displays the body of a block or statement list.
+///
+/// This includes the curly braces at the start and end. This will not indent the first brace,
+/// but will indent the last brace.
+pub(in crate::syntax::ast::node) fn block_to_string(
+    body: &StatementList,
+    interner: &Interner,
+    indentation: usize,
+) -> String {
+    if body.items().is_empty() {
+        "{}".to_owned()
+    } else {
+        format!(
+            "{{\n{}{}}}",
+            body.to_indented_string(interner, indentation + 1),
+            "    ".repeat(indentation)
+        )
     }
 }

@@ -6,31 +6,29 @@
 //! Property keys that are not strings in the form of an `IdentifierName` are not included in the set of bound identifiers.
 //! More info:  [Object Records](https://tc39.es/ecma262/#sec-object-environment-records)
 
-use gc::Gc;
-
 use crate::{
     environment::{
         environment_record_trait::EnvironmentRecordTrait,
         lexical_environment::{Environment, EnvironmentType},
     },
-    gc::{Finalize, Trace},
-    object::GcObject,
+    gc::{Finalize, Gc, Trace},
+    object::JsObject,
     property::PropertyDescriptor,
-    property::{Attribute, DataDescriptor},
-    Context, Result, Value,
+    symbol::WellKnownSymbols,
+    Context, JsResult, JsValue,
 };
+use boa_interner::Sym;
 
 #[derive(Debug, Trace, Finalize, Clone)]
 pub struct ObjectEnvironmentRecord {
-    // TODO: bindings should be an object.
-    pub bindings: Value,
+    pub bindings: JsObject,
     pub with_environment: bool,
     pub outer_env: Option<Environment>,
 }
 
 impl ObjectEnvironmentRecord {
-    pub fn new(object: Value, environment: Option<Environment>) -> ObjectEnvironmentRecord {
-        ObjectEnvironmentRecord {
+    pub fn new(object: JsObject, environment: Option<Environment>) -> Self {
+        Self {
             bindings: object,
             outer_env: environment,
             /// Object Environment Records created for with statements (13.11)
@@ -44,109 +42,223 @@ impl ObjectEnvironmentRecord {
 }
 
 impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
-    fn has_binding(&self, name: &str) -> bool {
-        if self.bindings.has_field(name) {
-            if self.with_environment {
-                // TODO: implement unscopables
-            }
-            true
-        } else {
-            false
+    /// `9.1.1.2.1 HasBinding ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-hasbinding-n
+    fn has_binding(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
+        // 1. Let bindingObject be envRec.[[BindingObject]].
+        // 2. Let foundBinding be ? HasProperty(bindingObject, N).
+        // 3. If foundBinding is false, return false.
+        if !self
+            .bindings
+            .has_property(context.interner().resolve_expect(name).to_owned(), context)?
+        {
+            return Ok(false);
         }
+
+        // 4. If envRec.[[IsWithEnvironment]] is false, return true.
+        if !self.with_environment {
+            return Ok(true);
+        }
+
+        // 5. Let unscopables be ? Get(bindingObject, @@unscopables).
+        // 6. If Type(unscopables) is Object, then
+        if let Some(unscopables) = self
+            .bindings
+            .get(WellKnownSymbols::unscopables(), context)?
+            .as_object()
+        {
+            // a. Let blocked be ! ToBoolean(? Get(unscopables, N)).
+            // b. If blocked is true, return false.
+            if unscopables
+                .get(context.interner().resolve_expect(name).to_owned(), context)?
+                .to_boolean()
+            {
+                return Ok(false);
+            }
+        }
+
+        // 7. Return true.
+        Ok(true)
     }
 
+    /// `9.1.1.2.2 CreateMutableBinding ( N, D )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-createmutablebinding-n-d
     fn create_mutable_binding(
         &self,
-        name: String,
+        name: Sym,
         deletion: bool,
         _allow_name_reuse: bool,
-        _context: &mut Context,
-    ) -> Result<()> {
-        // TODO: could save time here and not bother generating a new undefined object,
-        // only for it to be replace with the real value later. We could just add the name to a Vector instead
-        let bindings = &self.bindings;
-        let mut prop = DataDescriptor::new(
-            Value::undefined(),
-            Attribute::WRITABLE | Attribute::ENUMERABLE,
-        );
-        prop.set_configurable(deletion);
-
-        bindings.set_property(name, prop);
+        context: &mut Context,
+    ) -> JsResult<()> {
+        // 1. Let bindingObject be envRec.[[BindingObject]].
+        // 2. Return ? DefinePropertyOrThrow(bindingObject, N, PropertyDescriptor { [[Value]]: undefined, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: D }).
+        self.bindings.define_property_or_throw(
+            context.interner().resolve_expect(name).to_owned(),
+            PropertyDescriptor::builder()
+                .value(JsValue::undefined())
+                .writable(true)
+                .enumerable(true)
+                .configurable(deletion),
+            context,
+        )?;
         Ok(())
     }
 
+    /// `9.1.1.2.3 CreateImmutableBinding ( N, S )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-createimmutablebinding-n-s
     fn create_immutable_binding(
         &self,
-        _name: String,
+        _name: Sym,
         _strict: bool,
         _context: &mut Context,
-    ) -> Result<()> {
+    ) -> JsResult<()> {
         Ok(())
     }
 
-    fn initialize_binding(&self, name: &str, value: Value, context: &mut Context) -> Result<()> {
-        // We should never need to check if a binding has been created,
-        // As all calls to create_mutable_binding are followed by initialized binding
-        // The below is just a check.
-        debug_assert!(self.has_binding(&name));
+    /// `9.1.1.2.4 InitializeBinding ( N, V )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-initializebinding-n-v
+    fn initialize_binding(&self, name: Sym, value: JsValue, context: &mut Context) -> JsResult<()> {
+        // 1. Return ? envRec.SetMutableBinding(N, V, false).
         self.set_mutable_binding(name, value, false, context)
     }
 
+    /// `9.1.1.2.5 SetMutableBinding ( N, V, S )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-setmutablebinding-n-v-s
     fn set_mutable_binding(
         &self,
-        name: &str,
-        value: Value,
+        name: Sym,
+        value: JsValue,
         strict: bool,
-        _context: &mut Context,
-    ) -> Result<()> {
-        debug_assert!(value.is_object() || value.is_function());
-        let mut property = DataDescriptor::new(value, Attribute::ENUMERABLE);
-        property.set_configurable(strict);
-        self.bindings
-            .as_object()
-            .expect("binding object")
-            .insert(name, property);
+        context: &mut Context,
+    ) -> JsResult<()> {
+        // 1. Let bindingObject be envRec.[[BindingObject]].
+        // 2. Let stillExists be ? HasProperty(bindingObject, N).
+        let still_exists = self
+            .bindings
+            .has_property(context.interner().resolve_expect(name).to_owned(), context)?;
+
+        // 3. If stillExists is false and S is true, throw a ReferenceError exception.
+        if !still_exists && strict {
+            return context.throw_reference_error("Binding already exists");
+        }
+
+        // 4. Return ? Set(bindingObject, N, V, S).
+        self.bindings.set(
+            context.interner().resolve_expect(name).to_owned(),
+            value,
+            strict,
+            context,
+        )?;
         Ok(())
     }
 
-    fn get_binding_value(&self, name: &str, strict: bool, context: &mut Context) -> Result<Value> {
-        if self.bindings.has_field(name) {
-            match self.bindings.get_property(name) {
-                Some(PropertyDescriptor::Data(ref d)) => Ok(d.value()),
-                _ => Ok(Value::undefined()),
+    /// `9.1.1.2.6 GetBindingValue ( N, S )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-getbindingvalue-n-s
+    fn get_binding_value(
+        &self,
+        name: Sym,
+        strict: bool,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let bindingObject be envRec.[[BindingObject]].
+        // 2. Let value be ? HasProperty(bindingObject, N).
+        // 3. If value is false, then
+        if !self
+            .bindings
+            .__has_property__(&context.interner().resolve_expect(name).into(), context)?
+        {
+            // a. If S is false, return the value undefined; otherwise throw a ReferenceError exception.
+            if !strict {
+                return Ok(JsValue::undefined());
             }
-        } else if strict {
-            context.throw_reference_error(format!("{} has no binding", name))
-        } else {
-            Ok(Value::undefined())
+            return context.throw_reference_error(format!(
+                "{} has no binding",
+                context.interner().resolve_expect(name)
+            ));
         }
+
+        // 4. Return ? Get(bindingObject, N).
+        self.bindings
+            .get(context.interner().resolve_expect(name).to_owned(), context)
     }
 
-    fn delete_binding(&self, name: &str) -> bool {
-        self.bindings.remove_property(name);
-        true
+    /// `9.1.1.2.7 DeleteBinding ( N )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-deletebinding-n
+    fn delete_binding(&self, name: Sym, context: &mut Context) -> JsResult<bool> {
+        // 1. Let bindingObject be envRec.[[BindingObject]].
+        // 2. Return ? bindingObject.[[Delete]](N).
+        self.bindings
+            .__delete__(&context.interner().resolve_expect(name).into(), context)
     }
 
+    /// `9.1.1.2.8 HasThisBinding ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-hasthisbinding
     fn has_this_binding(&self) -> bool {
+        // 1. Return false.
         false
     }
 
-    fn get_this_binding(&self, _context: &mut Context) -> Result<Value> {
-        Ok(Value::undefined())
-    }
-
+    /// `9.1.1.2.9 HasSuperBinding ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-hassuperbinding
     fn has_super_binding(&self) -> bool {
+        // 1. Return false.
         false
     }
 
-    fn with_base_object(&self) -> Option<GcObject> {
-        // Object Environment Records return undefined as their
-        // WithBaseObject unless their withEnvironment flag is true.
+    /// `9.1.1.2.10 WithBaseObject ( )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object-environment-records-hassuperbinding
+    fn with_base_object(&self) -> Option<JsObject> {
+        // 1. If envRec.[[IsWithEnvironment]] is true, return envRec.[[BindingObject]].
+        // 2. Otherwise, return undefined.
         if self.with_environment {
-            return Some(self.bindings.as_object().unwrap());
+            Some(self.bindings.clone())
+        } else {
+            None
         }
+    }
 
-        None
+    fn get_this_binding(&self, _context: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::undefined())
     }
 
     fn get_outer_environment_ref(&self) -> Option<&Environment> {
@@ -163,7 +275,7 @@ impl EnvironmentRecordTrait for ObjectEnvironmentRecord {
 }
 
 impl From<ObjectEnvironmentRecord> for Environment {
-    fn from(env: ObjectEnvironmentRecord) -> Environment {
+    fn from(env: ObjectEnvironmentRecord) -> Self {
         Gc::new(Box::new(env))
     }
 }

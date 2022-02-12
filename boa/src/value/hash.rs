@@ -1,15 +1,14 @@
-use super::*;
-
+use super::JsValue;
 use crate::builtins::Number;
 use std::hash::{Hash, Hasher};
 
-impl PartialEq for Value {
+impl PartialEq for JsValue {
     fn eq(&self, other: &Self) -> bool {
         Self::same_value_zero(self, other)
     }
 }
 
-impl Eq for Value {}
+impl Eq for JsValue {}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct UndefinedHashable;
@@ -36,7 +35,7 @@ impl Hash for RationalHashable {
     }
 }
 
-impl Hash for Value {
+impl Hash for JsValue {
     fn hash<H: Hasher>(&self, state: &mut H) {
         match self {
             Self::Undefined => UndefinedHashable.hash(state),

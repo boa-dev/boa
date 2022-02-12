@@ -12,14 +12,14 @@ when the feature flag is not enabled, you have an empty dummy implementation tha
 
 ## Prerequesites
 
-- [Crox](https://github.com/rust-lang/measureme/blob/master/crox/Readme.md)
-- [summarize (Optional)](https://github.com/rust-lang/measureme/blob/master/summarize/Readme.md)
+- [Crox](https://github.com/rust-lang/measureme/blob/master/crox/README.md)
+- [summarize (Optional)](https://github.com/rust-lang/measureme/blob/master/summarize/README.md)
 
 ## How To Use
 
 You can run boa using the "profiler" feature flag to enable profiling. Seeing as you'll most likely be using boa_cli you can pass this through, like so:
 
-`cargo run --features Boa/profiler ../tests/js/test.js`
+`cargo run --release --features Boa/profiler ../tests/js/test.js`
 
 Once finished you should see some trace files left in the directory (boa_cli in this case).  
 In the same directory as the `.events, string_data, string_index` files run `crox my_trace` or whatever the name of the files are. This will generate a chrome_profiler.json file, you can load this into Chrome Dev tools.
@@ -61,4 +61,4 @@ This is the same as above except instead of calling `$ crox my_trace` you call `
 
 - https://blog.rust-lang.org/inside-rust/2020/02/25/intro-rustc-self-profile.html
 - https://github.com/rust-lang/measureme
-- https://github.com/rust-lang/measureme/blob/master/crox/Readme.md
+- https://github.com/rust-lang/measureme/blob/master/crox/README.md

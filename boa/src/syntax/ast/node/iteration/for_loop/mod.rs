@@ -1,11 +1,8 @@
 use crate::{
-    environment::declarative_environment_record::DeclarativeEnvironmentRecord,
-    exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -26,7 +23,7 @@ use serde::{Deserialize, Serialize};
 pub struct ForLoop {
     #[cfg_attr(feature = "deser", serde(flatten))]
     inner: Box<InnerForLoop>,
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl ForLoop {
@@ -64,92 +61,49 @@ impl ForLoop {
         self.inner.body()
     }
 
-    pub(in crate::syntax::ast::node) fn display(
+    /// Converts the for loop to a string with the given indentation.
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        f.write_str("for (")?;
+    ) -> String {
+        let mut buf = if let Some(label) = self.label {
+            format!("{}: ", interner.resolve_expect(label))
+        } else {
+            String::new()
+        };
+        buf.push_str("for (");
         if let Some(init) = self.init() {
-            fmt::Display::fmt(init, f)?;
+            buf.push_str(&init.to_interned_string(interner));
         }
-        f.write_str(";")?;
+        buf.push_str("; ");
         if let Some(condition) = self.condition() {
-            fmt::Display::fmt(condition, f)?;
+            buf.push_str(&condition.to_interned_string(interner));
         }
-        f.write_str(";")?;
+        buf.push_str("; ");
         if let Some(final_expr) = self.final_expr() {
-            fmt::Display::fmt(final_expr, f)?;
+            buf.push_str(&final_expr.to_interned_string(interner));
         }
-        writeln!(f, ") {{")?;
+        buf.push_str(&format!(
+            ") {}",
+            self.inner.body().to_indented_string(interner, indentation)
+        ));
 
-        self.inner.body().display(f, indentation + 1)?;
-
-        write!(f, "}}")
+        buf
     }
 
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 
-    pub fn set_label(&mut self, label: Box<str>) {
+    pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
     }
 }
 
-impl Executable for ForLoop {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        // Create the block environment.
-        let _timer = BoaProfiler::global().start_event("ForLoop", "exec");
-        {
-            let env = context.get_current_environment();
-            context.push_environment(DeclarativeEnvironmentRecord::new(Some(env)));
-        }
-
-        if let Some(init) = self.init() {
-            init.run(context)?;
-        }
-
-        while self
-            .condition()
-            .map(|cond| cond.run(context).map(|v| v.to_boolean()))
-            .transpose()?
-            .unwrap_or(true)
-        {
-            let result = self.body().run(context)?;
-
-            match context.executor().get_current_state() {
-                InterpreterState::Break(label) => {
-                    handle_state_with_labels!(self, label, context, break);
-                    break;
-                }
-                InterpreterState::Continue(label) => {
-                    handle_state_with_labels!(self, label, context, continue);
-                }
-
-                InterpreterState::Return => {
-                    return Ok(result);
-                }
-                InterpreterState::Executing => {
-                    // Continue execution.
-                }
-            }
-
-            if let Some(final_expr) = self.final_expr() {
-                final_expr.run(context)?;
-            }
-        }
-
-        // pop the block env
-        let _ = context.pop_environment();
-
-        Ok(Value::undefined())
-    }
-}
-
-impl fmt::Display for ForLoop {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for ForLoop {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

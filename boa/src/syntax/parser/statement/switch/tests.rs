@@ -1,12 +1,15 @@
-use crate::syntax::{
-    ast::{
-        node::{
-            Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
-            Switch,
+use crate::{
+    syntax::{
+        ast::{
+            node::{
+                Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
+                Switch,
+            },
+            Const,
         },
-        Const,
+        parser::tests::{check_invalid, check_parser},
     },
-    parser::tests::{check_invalid, check_parser},
+    Interner,
 };
 
 /// Checks parsing malformed switch with no closeblock.
@@ -107,7 +110,7 @@ fn check_switch_seperated_defaults() {
     );
 }
 
-/// Example of JS code https://jsfiddle.net/zq6jx47h/4/.
+/// Example of JS code <https://jsfiddle.net/zq6jx47h/4/>.
 #[test]
 fn check_seperated_switch() {
     let s = r#"
@@ -148,44 +151,58 @@ fn check_seperated_switch() {
         }
         "#;
 
+    let mut interner = Interner::default();
+    let log = interner.get_or_intern_static("log");
+    let console = interner.get_or_intern_static("console");
+    let a = interner.get_or_intern_static("a");
+
     check_parser(
         s,
         vec![
-            DeclarationList::Let(vec![Declaration::new("a", Node::from(Const::from(10)))].into())
+            DeclarationList::Let(
+                vec![Declaration::new_with_identifier(
+                    a,
+                    Node::from(Const::from(10)),
+                )]
                 .into(),
+            )
+            .into(),
             Switch::new(
-                Identifier::from("a"),
+                Identifier::new(a),
                 vec![
                     Case::new(
                         Const::from(5),
                         vec![
                             Call::new(
-                                GetConstField::new(Identifier::from("console"), "log"),
+                                GetConstField::new(Identifier::new(console), log),
                                 vec![Node::from(Const::from(5))],
                             )
                             .into(),
-                            Break::new::<_, Box<str>>(None).into(),
+                            Break::new(None).into(),
                         ],
                     ),
                     Case::new(
                         Const::from(10),
                         vec![
                             Call::new(
-                                GetConstField::new(Identifier::from("console"), "log"),
+                                GetConstField::new(Identifier::new(console), log),
                                 vec![Node::from(Const::from(10))],
                             )
                             .into(),
-                            Break::new::<_, Box<str>>(None).into(),
+                            Break::new(None).into(),
                         ],
                     ),
                 ],
                 Some(vec![Call::new(
-                    GetConstField::new(Identifier::from("console"), "log"),
-                    vec![Node::from(Const::from("Default"))],
+                    GetConstField::new(Identifier::new(console), log),
+                    vec![Node::from(Const::from(
+                        interner.get_or_intern_static("Default"),
+                    ))],
                 )
                 .into()]),
             )
             .into(),
         ],
+        &mut interner,
     );
 }

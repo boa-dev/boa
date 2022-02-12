@@ -1,16 +1,13 @@
 //! Local identifier node.
 
 use crate::{
-    exec::Executable,
-    gc::{Finalize, Trace},
+    gc::{empty_trace, Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
-
 /// An `identifier` is a sequence of characters in the code that identifies a variable,
 /// function, or property.
 ///
@@ -29,35 +26,36 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Debug, Clone, Copy, Finalize, PartialEq)]
 pub struct Identifier {
-    ident: Box<str>,
+    ident: Sym,
 }
 
-impl Executable for Identifier {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        context.get_binding_value(self.as_ref())
+impl Identifier {
+    /// Creates a new identifier AST node.
+    pub fn new(ident: Sym) -> Self {
+        Self { ident }
+    }
+
+    /// Retrieves the identifier's string symbol in the interner.
+    pub fn sym(self) -> Sym {
+        self.ident
     }
 }
 
-impl fmt::Display for Identifier {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(&self.ident, f)
+impl ToInternedString for Identifier {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        interner.resolve_expect(self.ident).to_owned()
     }
 }
 
-impl AsRef<str> for Identifier {
-    fn as_ref(&self) -> &str {
-        &self.ident
-    }
+unsafe impl Trace for Identifier {
+    empty_trace!();
 }
 
-impl<T> From<T> for Identifier
-where
-    T: Into<Box<str>>,
-{
-    fn from(stm: T) -> Self {
-        Self { ident: stm.into() }
+impl From<Sym> for Identifier {
+    fn from(sym: Sym) -> Self {
+        Self { ident: sym }
     }
 }
 

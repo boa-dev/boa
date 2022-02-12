@@ -6,6 +6,9 @@ const webpack = require("webpack");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 
 module.exports = {
+  experiments: {
+    asyncWebAssembly: true,
+  },
   entry: {
     app: "./index.js",
     "editor.worker": "monaco-editor/esm/vs/editor/editor.worker.js",
@@ -24,6 +27,7 @@ module.exports = {
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, "./boa_wasm/"),
       outDir: path.resolve(__dirname, "./boa_wasm/pkg/"),
+      forceMode: "production",
     }),
     new CopyWebpackPlugin({
       patterns: [

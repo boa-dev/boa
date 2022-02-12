@@ -1,114 +1,51 @@
 on:
   pull_request:
     branches:
-      - master
+      - main
   push:
     branches:
-      - master
+      - main
 
 name: Continuous integration
 
 jobs:
-  check_on_linux:
-    name: Check on Linux
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2.3.4
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - name: Cache cargo
-        uses: actions/cache@v2.1.6
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: -v
-
-  check_on_windows:
-    name: Check on Windows
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v2.3.4
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - name: Cache cargo build
-        uses: actions/cache@v2.1.6
-        with:
-          path: target
-          key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: -v
-
-  check_on_macos:
-    name: Check on MacOS
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v2.3.4
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-          args: -v
-
   test_on_linux:
-    name: Test Suite on Linux
+    name: Tests on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: |
             target
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
         with:
-          command: test
-          args: -v
-      # Waiting for https://github.com/rust-lang/cargo/pull/9229 to land
-      # - name: Run cargo-tarpaulin
-      #   uses: actions-rs/tarpaulin@v0.1
-      #   with:
-      #     args: --ignore-tests
-      # - name: Upload to codecov.io
-      #   uses: codecov/codecov-action@v1
+          args: --ignore-tests
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v2.1.0
 
   test_on_windows:
-    name: Test Suite on Windows
+    name: Tests on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: target
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
@@ -118,10 +55,10 @@ jobs:
           args: -v
 
   test_on_macos:
-    name: Test Suite on MacOS
+    name: Tests on MacOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -136,7 +73,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -152,7 +89,7 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -160,7 +97,7 @@ jobs:
           profile: minimal
           components: clippy
       - name: Cache cargo
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: |
             target
@@ -176,37 +113,43 @@ jobs:
     name: Examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: |
             target
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-examples-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
+      - name: Build examples
+        uses: actions-rs/cargo@v1
         with:
           command: build
           args: --examples -v
+      - name: Run example classes
+        uses: actions-rs/cargo@v1
+        with:
+          command: run
+          args: --example classes
 
   doc:
-    name: Documentation check
+    name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: |
             target

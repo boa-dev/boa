@@ -1,16 +1,18 @@
 //! Object node.
 
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
-    property::{AccessorDescriptor, Attribute, DataDescriptor, PropertyDescriptor},
-    syntax::ast::node::{MethodDefinitionKind, Node, PropertyDefinition},
-    Context, Result, Value,
+    syntax::ast::node::{
+        declaration::block_to_string, join_nodes, MethodDefinitionKind, Node, PropertyDefinition,
+    },
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
@@ -44,105 +46,57 @@ impl Object {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
-        indent: usize,
-    ) -> fmt::Result {
-        f.write_str("{\n")?;
+        interner: &Interner,
+        indent_n: usize,
+    ) -> String {
+        let mut buf = "{\n".to_owned();
+        let indentation = "    ".repeat(indent_n + 1);
         for property in self.properties().iter() {
-            match property {
-                PropertyDefinition::IdentifierReference(key) => {
-                    write!(f, "{}    {},", indent, key)?;
+            buf.push_str(&match property {
+                PropertyDefinition::IdentifierReference(ident) => {
+                    format!("{}{},\n", indentation, interner.resolve_expect(*ident))
                 }
                 PropertyDefinition::Property(key, value) => {
-                    write!(f, "{}    {}: {},", indent, key, value)?;
+                    format!(
+                        "{}{}: {},\n",
+                        indentation,
+                        key.to_interned_string(interner),
+                        value.to_no_indent_string(interner, indent_n + 1)
+                    )
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    write!(f, "{}    ...{},", indent, key)?;
+                    format!("{}...{},\n", indentation, key.to_interned_string(interner))
                 }
-                PropertyDefinition::MethodDefinition(_kind, _key, _node) => {
-                    // TODO: Implement display for PropertyDefinition::MethodDefinition.
-                    unimplemented!("Display for PropertyDefinition::MethodDefinition");
+                PropertyDefinition::MethodDefinition(kind, key, node) => {
+                    format!(
+                        "{}{}{}({}) {},\n",
+                        indentation,
+                        match &kind {
+                            MethodDefinitionKind::Get => "get ",
+                            MethodDefinitionKind::Set => "set ",
+                            MethodDefinitionKind::Ordinary
+                            | MethodDefinitionKind::Generator
+                            | MethodDefinitionKind::Async
+                            | MethodDefinitionKind::AsyncGenerator => "",
+                        },
+                        key.to_interned_string(interner),
+                        join_nodes(interner, node.parameters()),
+                        block_to_string(node.body(), interner, indent_n + 1)
+                    )
                 }
-            }
+            });
         }
-        f.write_str("}")
+        buf.push_str(&format!("{}}}", "    ".repeat(indent_n)));
+
+        buf
     }
 }
 
-impl Executable for Object {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let obj = Value::new_object(context);
-
-        // TODO: Implement the rest of the property types.
-        for property in self.properties().iter() {
-            match property {
-                PropertyDefinition::Property(key, value) => {
-                    obj.set_property(
-                        key.clone(),
-                        PropertyDescriptor::Data(DataDescriptor::new(
-                            value.run(context)?,
-                            Attribute::all(),
-                        )),
-                    );
-                }
-                PropertyDefinition::MethodDefinition(kind, name, func) => match kind {
-                    MethodDefinitionKind::Ordinary => {
-                        obj.set_property(
-                            name.clone(),
-                            PropertyDescriptor::Data(DataDescriptor::new(
-                                func.run(context)?,
-                                Attribute::all(),
-                            )),
-                        );
-                    }
-                    MethodDefinitionKind::Get => {
-                        let set = obj
-                            .get_property(name.clone())
-                            .as_ref()
-                            .and_then(|p| p.as_accessor_descriptor())
-                            .and_then(|a| a.setter().cloned());
-                        obj.set_property(
-                            name.clone(),
-                            PropertyDescriptor::Accessor(AccessorDescriptor {
-                                get: func.run(context)?.as_object(),
-                                set,
-                                attributes: Attribute::WRITABLE
-                                    | Attribute::ENUMERABLE
-                                    | Attribute::CONFIGURABLE,
-                            }),
-                        )
-                    }
-                    MethodDefinitionKind::Set => {
-                        let get = obj
-                            .get_property(name.clone())
-                            .as_ref()
-                            .and_then(|p| p.as_accessor_descriptor())
-                            .and_then(|a| a.getter().cloned());
-                        obj.set_property(
-                            name.clone(),
-                            PropertyDescriptor::Accessor(AccessorDescriptor {
-                                get,
-                                set: func.run(context)?.as_object(),
-                                attributes: Attribute::WRITABLE
-                                    | Attribute::ENUMERABLE
-                                    | Attribute::CONFIGURABLE,
-                            }),
-                        )
-                    }
-                },
-                _ => {} //unimplemented!("{:?} type of property", i),
-            }
-        }
-
-        Ok(obj)
-    }
-}
-
-impl fmt::Display for Object {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for Object {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

@@ -9,7 +9,10 @@ mod statement;
 mod tests;
 
 pub use self::error::{ParseError, ParseResult};
-use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
+use crate::{
+    syntax::{ast::node::StatementList, lexer::TokenKind},
+    Interner,
+};
 
 use cursor::Cursor;
 
@@ -28,7 +31,11 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError>;
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError>;
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -98,11 +105,11 @@ impl<R> Parser<R> {
         Self { cursor }
     }
 
-    pub fn parse_all(&mut self) -> Result<StatementList, ParseError>
+    pub fn parse_all(&mut self, interner: &mut Interner) -> Result<StatementList, ParseError>
     where
         R: Read,
     {
-        Script.parse(&mut self.cursor)
+        Script.parse(&mut self.cursor, interner)
     }
 }
 
@@ -121,16 +128,27 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        match cursor.peek(0)? {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        match cursor.peek(0, interner)? {
             Some(tok) => {
+                let mut strict = false;
                 match tok.kind() {
-                    TokenKind::StringLiteral(string) if string.as_ref() == "use strict" => {
+                    // Set the strict mode
+                    TokenKind::StringLiteral(string)
+                        if interner.resolve_expect(*string) == "use strict" =>
+                    {
                         cursor.set_strict_mode(true);
+                        strict = true;
                     }
                     _ => {}
                 }
-                ScriptBody.parse(cursor)
+                let mut statement_list = ScriptBody.parse(cursor, interner)?;
+                statement_list.set_strict(strict);
+                Ok(statement_list)
             }
             None => Ok(StatementList::from(Vec::new())),
         }
@@ -152,7 +170,11 @@ where
 {
     type Output = StatementList;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, true, &[]).parse(cursor)
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        self::statement::StatementList::new(false, false, false, false, &[]).parse(cursor, interner)
     }
 }

@@ -11,45 +11,47 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
 use crate::{
-    builtins::{iterable::get_iterator, BuiltIn},
-    object::{ConstructorBuilder, FunctionBuilder, ObjectData, PROTOTYPE},
-    property::Attribute,
+    builtins::BuiltIn,
+    context::StandardObjects,
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, ObjectData,
+    },
+    property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result, Value,
+    BoaProfiler, Context, JsResult, JsValue,
 };
 use ordered_set::OrderedSet;
 
 pub mod set_iterator;
-use set_iterator::{SetIterationKind, SetIterator};
+use set_iterator::SetIterator;
+
+use super::JsArgs;
 
 pub mod ordered_set;
 #[cfg(test)]
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Set(OrderedSet<Value>);
+pub(crate) struct Set(OrderedSet<JsValue>);
 
 impl BuiltIn for Set {
     const NAME: &'static str = "Set";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
-        let species = WellKnownSymbols::species();
-
-        let species_getter = FunctionBuilder::new(context, Self::species_getter)
-            .callable(true)
-            .constructable(false)
+        let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
+            .constructor(false)
             .build();
 
-        let size_getter = FunctionBuilder::new(context, Self::size_getter)
-            .callable(true)
-            .constructable(false)
+        let size_getter = FunctionBuilder::native(context, Self::size_getter)
+            .constructor(false)
             .name("get size")
             .build();
 
@@ -57,11 +59,10 @@ impl BuiltIn for Set {
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
 
-        let values_function = FunctionBuilder::new(context, Self::values)
+        let values_function = FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
-            .callable(true)
-            .constructable(false)
+            .constructor(false)
             .build();
 
         let set_object = ConstructorBuilder::with_standard_object(
@@ -71,7 +72,12 @@ impl BuiltIn for Set {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .static_accessor(species, Some(species_getter), None, Attribute::CONFIGURABLE)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .method(Self::add, "add", 1)
         .method(Self::clear, "clear", 0)
         .method(Self::delete, "delete", 1)
@@ -101,7 +107,7 @@ impl BuiltIn for Set {
         )
         .build();
 
-        (Self::NAME, set_object.into(), Self::attribute())
+        set_object.into()
     }
 }
 
@@ -110,10 +116,10 @@ impl Set {
 
     /// Create a new set
     pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
+        new_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         // 1
         if new_target.is_undefined() {
             return context
@@ -121,70 +127,61 @@ impl Set {
         }
 
         // 2
-        let set_prototype = context.standard_objects().set_object().prototype();
-        let prototype = new_target
-            .as_object()
-            .and_then(|obj| {
-                obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
-                    .map(|o| o.as_object())
-                    .transpose()
-            })
-            .transpose()?
-            .unwrap_or(set_prototype);
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardObjects::set_object, context)?;
 
-        let mut obj = context.construct_object();
-        obj.set_prototype_instance(prototype.into());
+        let obj = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::default()));
 
-        let set = Value::from(obj);
-        // 3
-        set.set_data(ObjectData::Set(OrderedSet::default()));
-
-        let iterable = args.get(0).cloned().unwrap_or_default();
+        let iterable = args.get_or_undefined(0);
         // 4
         if iterable.is_null_or_undefined() {
-            return Ok(set);
+            return Ok(obj.into());
         }
 
         // 5
-        let adder = set.get_field("add", context)?;
+        let adder = obj.get("add", context)?;
 
         // 6
-        if !adder.is_function() {
-            return context.throw_type_error("'add' of 'newTarget' is not a function");
-        }
+        let adder = adder.as_callable().ok_or_else(|| {
+            context.construct_type_error("'add' of 'newTarget' is not a function")
+        })?;
 
         // 7
-        let iterator_record = get_iterator(context, iterable)?;
+        let iterator_record = iterable.clone().get_iterator(context, None, None)?;
 
         // 8.a
         let mut next = iterator_record.next(context)?;
 
         // 8
-        while !next.is_done() {
+        while !next.done {
             // c
-            let next_value = next.value();
+            let next_value = next.value;
 
             // d, e
-            if let Err(status) = context.call(&adder, &set, &[next_value]) {
+            if let Err(status) = adder.call(&obj.clone().into(), &[next_value], context) {
                 return iterator_record.close(Err(status), context);
             }
 
-            next = iterator_record.next(context)?
+            next = iterator_record.next(context)?;
         }
 
         // 8.b
-        Ok(set)
+        Ok(obj.into())
     }
 
     /// `get Set [ @@species ]`
     ///
-    /// get accessor for the @@species property of Set
+    /// The Set[Symbol.species] accessor property returns the Set constructor.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-set-@@species
-    fn species_getter(this: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/@@species
+    #[allow(clippy::unnecessary_wraps)]
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // 1. Return the this value.
         Ok(this.clone())
     }
 
@@ -198,15 +195,20 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
-    pub(crate) fn add(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let mut value = args.get(0).cloned().unwrap_or_default();
+    pub(crate) fn add(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let value = args.get_or_undefined(0);
 
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
-                if value.as_number().map(|n| n == -0f64).unwrap_or(false) {
-                    value = Value::Integer(0);
-                }
-                set.add(value);
+                set.add(if value.as_number().map_or(false, |n| n == -0f64) {
+                    JsValue::Integer(0)
+                } else {
+                    value.clone()
+                });
             } else {
                 return context.throw_type_error("'this' is not a Set");
             }
@@ -227,11 +229,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
-    pub(crate) fn clear(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
-            if object.borrow_mut().is_set() {
-                this.set_data(ObjectData::Set(OrderedSet::new()));
-                Ok(Value::Undefined)
+            if object.borrow().is_set() {
+                this.set_data(ObjectData::set(OrderedSet::new()));
+                Ok(JsValue::undefined())
             } else {
                 context.throw_type_error("'this' is not a Set")
             }
@@ -251,12 +253,16 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/delete
-    pub(crate) fn delete(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let value = args.get(0).cloned().unwrap_or_default();
+    pub(crate) fn delete(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let value = args.get_or_undefined(0);
 
         let res = if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
-                set.delete(&value)
+                set.delete(value)
             } else {
                 return context.throw_type_error("'this' is not a Set");
             }
@@ -277,7 +283,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/entries
-    pub(crate) fn entries(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn entries(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             let object = object.borrow();
             if !object.is_set() {
@@ -291,9 +301,9 @@ impl Set {
         }
 
         Ok(SetIterator::create_set_iterator(
-            context,
             this.clone(),
-            SetIterationKind::KeyAndValue,
+            PropertyNameKind::KeyAndValue,
+            context,
         ))
     }
 
@@ -307,34 +317,36 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/foreach
-    pub(crate) fn for_each(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn for_each(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if args.is_empty() {
-            return Err(Value::from("Missing argument for Set.prototype.forEach"));
+            return Err(JsValue::new("Missing argument for Set.prototype.forEach"));
         }
 
         let callback_arg = &args[0];
-        let this_arg = args.get(1).cloned().unwrap_or_else(Value::undefined);
+        let this_arg = args.get_or_undefined(1);
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
-            Value::Object(context.global_object())
+            JsValue::Object(context.global_object())
         } else {
-            this_arg
+            this_arg.clone()
         };
 
         let mut index = 0;
 
-        while index < Set::get_size(this, context)? {
-            let arguments = if let Value::Object(ref object) = this {
-                let object = object.borrow();
-                if let Some(set) = object.as_set_ref() {
-                    set.get_index(index)
-                        .map(|value| [value.clone(), value.clone(), this.clone()])
-                } else {
-                    return context.throw_type_error("'this' is not a Set");
-                }
-            } else {
-                return context.throw_type_error("'this' is not a Set");
-            };
+        while index < Self::get_size(this, context)? {
+            let arguments = this
+                .as_object()
+                .and_then(|obj| {
+                    obj.borrow().as_set_ref().map(|set| {
+                        set.get_index(index)
+                            .map(|value| [value.clone(), value.clone(), this.clone()])
+                    })
+                })
+                .ok_or_else(|| context.construct_type_error("'this' is not a Set"))?;
 
             if let Some(arguments) = arguments {
                 context.call(callback_arg, &this_arg, &arguments)?;
@@ -343,7 +355,7 @@ impl Set {
             index += 1;
         }
 
-        Ok(Value::Undefined)
+        Ok(JsValue::Undefined)
     }
 
     /// `Map.prototype.has( key )`
@@ -356,21 +368,20 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-        let undefined = Value::Undefined;
-        let value = match args.len() {
-            0 => &undefined,
-            _ => &args[0],
-        };
+    pub(crate) fn has(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let value = args.get_or_undefined(0);
 
-        if let Value::Object(ref object) = this {
-            let object = object.borrow();
-            if let Some(set) = object.as_set_ref() {
-                return Ok(set.contains(value).into());
-            }
-        }
-
-        Err(context.construct_type_error("'this' is not a Set"))
+        this.as_object()
+            .and_then(|obj| {
+                obj.borrow()
+                    .as_set_ref()
+                    .map(|set| set.contains(value).into())
+            })
+            .ok_or_else(|| context.construct_type_error("'this' is not a Set"))
     }
 
     /// `Set.prototype.values( )`
@@ -383,7 +394,11 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/values
-    pub(crate) fn values(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn values(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             let object = object.borrow();
             if !object.is_set() {
@@ -397,27 +412,20 @@ impl Set {
         }
 
         Ok(SetIterator::create_set_iterator(
-            context,
             this.clone(),
-            SetIterationKind::Value,
+            PropertyNameKind::Value,
+            context,
         ))
     }
 
-    fn size_getter(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        Set::get_size(this, context).map(Value::from)
+    fn size_getter(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        Self::get_size(this, context).map(JsValue::from)
     }
 
     /// Helper function to get the size of the set.
-    fn get_size(set: &Value, context: &mut Context) -> Result<usize> {
-        if let Value::Object(ref object) = set {
-            let object = object.borrow();
-            if let Some(set) = object.as_set_ref() {
-                Ok(set.size())
-            } else {
-                Err(context.construct_type_error("'this' is not a Set"))
-            }
-        } else {
-            Err(context.construct_type_error("'this' is not a Set"))
-        }
+    fn get_size(set: &JsValue, context: &mut Context) -> JsResult<usize> {
+        set.as_object()
+            .and_then(|obj| obj.borrow().as_set_ref().map(OrderedSet::size))
+            .ok_or_else(|| context.construct_type_error("'this' is not a Set"))
     }
 }

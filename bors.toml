@@ -1,0 +1,24 @@
+# docs https://bors.tech/documentation/
+status = [
+	"Tests on Linux",
+	"Tests on Windows",
+	"Tests on MacOS",
+	"Rustfmt",
+	"Clippy",
+	"Examples",
+	"Documentation",
+]
+pr_status = [
+	"Tests on Linux",
+	"Tests on Windows",
+	"Tests on MacOS",
+	"Rustfmt",
+	"Clippy",
+	"Examples",
+	"Documentation",
+]
+block_labels = [ "blocked" ]
+required_approvals = 2
+delete_merged_branches = true
+use_squash_merge = true
+update_base_for_deletes = true

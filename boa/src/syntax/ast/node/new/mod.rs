@@ -1,15 +1,14 @@
 use crate::{
-    builtins::iterable,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{Call, Node},
-    value::Value,
-    BoaProfiler, Context, Result,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// The `new` operator lets developers create an instance of a user-defined object type or of
 /// one of the built-in object types that has a constructor function.
@@ -35,44 +34,17 @@ pub struct New {
 impl New {
     /// Gets the name of the function call.
     pub fn expr(&self) -> &Node {
-        &self.call.expr()
+        self.call.expr()
     }
 
     /// Retrieves the arguments passed to the function.
     pub fn args(&self) -> &[Node] {
-        &self.call.args()
+        self.call.args()
     }
-}
 
-impl Executable for New {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("New", "exec");
-
-        let func_object = self.expr().run(context)?;
-        let mut v_args = Vec::with_capacity(self.args().len());
-        for arg in self.args() {
-            if let Node::Spread(ref x) = arg {
-                let val = x.run(context)?;
-                let iterator_record = iterable::get_iterator(context, val)?;
-                loop {
-                    let next = iterator_record.next(context)?;
-                    if next.is_done() {
-                        break;
-                    }
-                    let next_value = next.value();
-                    v_args.push(next_value.clone());
-                }
-                break; // after spread we don't accept any new arguments
-            } else {
-                v_args.push(arg.run(context)?);
-            }
-        }
-
-        match func_object {
-            Value::Object(ref object) => object.construct(&v_args, &object.clone().into(), context),
-            _ => context
-                .throw_type_error(format!("{} is not a constructor", self.expr().to_string(),)),
-        }
+    /// Returns the inner call
+    pub(crate) fn call(&self) -> &Call {
+        &self.call
     }
 }
 
@@ -82,9 +54,9 @@ impl From<Call> for New {
     }
 }
 
-impl fmt::Display for New {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "new {}", self.call)
+impl ToInternedString for New {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("new {}", self.call.to_interned_string(interner))
     }
 }
 

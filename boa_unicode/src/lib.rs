@@ -6,6 +6,66 @@
 //!
 //! [uax31]: http://unicode.org/reports/tr31
 
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+)]
+#![warn(
+    clippy::perf,
+    clippy::single_match_else,
+    clippy::dbg_macro,
+    clippy::doc_markdown,
+    clippy::wildcard_imports,
+    clippy::struct_excessive_bools,
+    clippy::doc_markdown,
+    clippy::semicolon_if_nothing_returned,
+    clippy::pedantic
+)]
+#![deny(
+    clippy::all,
+    clippy::cast_lossless,
+    clippy::redundant_closure_for_method_calls,
+    clippy::use_self,
+    clippy::unnested_or_patterns,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    clippy::match_wildcard_for_single_variants,
+    clippy::map_unwrap_or,
+    unused_qualifications,
+    unused_import_braces,
+    unused_lifetimes,
+    unreachable_pub,
+    trivial_numeric_casts,
+    // rustdoc,
+    missing_debug_implementations,
+    missing_copy_implementations,
+    deprecated_in_future,
+    meta_variable_misuse,
+    non_ascii_idents,
+    rust_2018_compatibility,
+    rust_2018_idioms,
+    future_incompatible,
+    nonstandard_style,
+)]
+#![allow(
+    clippy::module_name_repetitions,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_ptr_alignment,
+    clippy::missing_panics_doc,
+    clippy::too_many_lines,
+    clippy::unreadable_literal,
+    clippy::missing_inline_in_public_items,
+    clippy::cognitive_complexity,
+    clippy::must_use_candidate,
+    clippy::missing_errors_doc,
+    clippy::as_conversions,
+    clippy::let_unit_value,
+    rustdoc::missing_doc_code_examples
+)]
+
 mod tables;
 #[cfg(test)]
 mod tests;
@@ -13,7 +73,7 @@ mod tests;
 use unicode_general_category::{get_general_category, GeneralCategory};
 
 /// The version of Unicode.
-pub const UNICODE_VERSION: (u64, u64, u64) = (13, 0, 0);
+pub const UNICODE_VERSION: (u64, u64, u64) = (14, 0, 0);
 
 /// Extend a type of code point to query if a value belongs to a particular Unicode property.
 ///
@@ -26,22 +86,22 @@ pub const UNICODE_VERSION: (u64, u64, u64) = (13, 0, 0);
 ///
 /// [uax31]: http://unicode.org/reports/tr31
 pub trait UnicodeProperties: Sized + Copy {
-    /// Returns `true` if this value is a member of "ID_Start".
+    /// Returns `true` if this value is a member of `ID_Start`.
     fn is_id_start(self) -> bool;
 
-    /// Returns `true` if this value is a member of "ID_Continue".
+    /// Returns `true` if this value is a member of `ID_Continue`.
     fn is_id_continue(self) -> bool;
 
-    /// Returns `true` if this value is a member of "Other_ID_Start".
+    /// Returns `true` if this value is a member of `Other_ID_Start`.
     fn is_other_id_start(self) -> bool;
 
-    /// Returns `true` if this value is a member of "Other_ID_Continue".
+    /// Returns `true` if this value is a member of `Other_ID_Continue`.
     fn is_other_id_continue(self) -> bool;
 
-    /// Returns `true` if this value is a member of "Pattern_Syntax".
+    /// Returns `true` if this value is a member of `Pattern_Syntax`.
     fn is_pattern_syntax(self) -> bool;
 
-    /// Returns `true` if this value is a member of "Pattern_White_Space".
+    /// Returns `true` if this value is a member of `Pattern_White_Space`.
     fn is_pattern_whitespace(self) -> bool;
 }
 

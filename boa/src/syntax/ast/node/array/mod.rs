@@ -1,16 +1,14 @@
 //! Array declaration node.
 
 use super::{join_nodes, Node};
-use crate::{
-    builtins::{iterable, Array},
-    exec::Executable,
-    gc::{Finalize, Trace},
-    BoaProfiler, Context, Result, Value,
-};
-use std::fmt;
+use crate::gc::{Finalize, Trace};
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// An array is an ordered collection of data (either primitive or object depending upon the
 /// language).
@@ -35,37 +33,6 @@ pub struct ArrayDecl {
     arr: Box<[Node]>,
 }
 
-impl Executable for ArrayDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("ArrayDecl", "exec");
-        let array = Array::new_array(context);
-        let mut elements = Vec::new();
-        for elem in self.as_ref() {
-            if let Node::Spread(ref x) = elem {
-                let val = x.run(context)?;
-                let iterator_record = iterable::get_iterator(context, val)?;
-                // TODO after proper internal Array representation as per https://github.com/boa-dev/boa/pull/811#discussion_r502460858
-                // next_index variable should be utilized here as per https://tc39.es/ecma262/#sec-runtime-semantics-arrayaccumulation
-                // let mut next_index = 0;
-                loop {
-                    let next = iterator_record.next(context)?;
-                    if next.is_done() {
-                        break;
-                    }
-                    let next_value = next.value();
-                    //next_index += 1;
-                    elements.push(next_value.clone());
-                }
-            } else {
-                elements.push(elem.run(context)?);
-            }
-        }
-
-        Array::add_to_array_object(&array, &elements, context)?;
-        Ok(array)
-    }
-}
-
 impl AsRef<[Node]> for ArrayDecl {
     fn as_ref(&self) -> &[Node] {
         &self.arr
@@ -81,11 +48,9 @@ where
     }
 }
 
-impl fmt::Display for ArrayDecl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("[")?;
-        join_nodes(f, &self.arr)?;
-        f.write_str("]")
+impl ToInternedString for ArrayDecl {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("[{}]", join_nodes(interner, &self.arr))
     }
 }
 

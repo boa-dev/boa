@@ -7,6 +7,7 @@ use crate::{
         ast::{Keyword, Position, Span},
         lexer::{StringLiteral, Token, TokenKind},
     },
+    Interner,
 };
 use boa_unicode::UnicodeProperties;
 use core::convert::TryFrom;
@@ -46,7 +47,7 @@ impl Identifier {
         Self { init }
     }
 
-    /// Checks if a character is IdentifierStart as per ECMAScript standards.
+    /// Checks if a character is `IdentifierStart` as per ECMAScript standards.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -61,7 +62,7 @@ impl Identifier {
             }
     }
 
-    /// Checks if a character is IdentifierPart as per ECMAScript standards.
+    /// Checks if a character is `IdentifierPart` as per ECMAScript standards.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -80,7 +81,12 @@ impl Identifier {
 }
 
 impl<R> Tokenizer<R> for Identifier {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -123,7 +129,7 @@ impl<R> Tokenizer<R> for Identifier {
                     start_pos,
                 ));
             }
-            TokenKind::identifier(identifier_name.into_boxed_str())
+            TokenKind::identifier(interner.get_or_intern(identifier_name))
         };
 
         Ok(Token::new(token_kind, Span::new(start_pos, cursor.pos())))
@@ -140,6 +146,9 @@ impl Identifier {
     where
         R: Read,
     {
+        let _timer =
+            BoaProfiler::global().start_event("Identifier::take_identifier_name", "Lexing");
+
         let mut contains_escaped_chars = false;
         let mut identifier_name = if init == '\\' && cursor.next_is(b'u')? {
             let ch = StringLiteral::take_unicode_escape_sequence(cursor, start_pos)?;
@@ -159,8 +168,8 @@ impl Identifier {
             let ch = match cursor.peek_char()? {
                 Some(0x005C /* \ */) if cursor.peek_n(2)? >> 8 == 0x0075 /* u */ => {
                     let pos = cursor.pos();
-                    let _ = cursor.next_byte();
-                    let _ = cursor.next_byte();
+                    let _next = cursor.next_byte();
+                    let _next = cursor.next_byte();
                     let ch = StringLiteral::take_unicode_escape_sequence(cursor, pos)?;
 
                     if Self::is_identifier_part(ch) {

@@ -1,6 +1,6 @@
 [package]
 name = "Boa"
-version = "0.11.0"
+version = "0.13.0"
 authors = ["boa-dev"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 repository = "https://github.com/boa-dev/boa"
@@ -8,42 +8,46 @@ keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["parser-implementations", "wasm"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.57"
 
 [features]
-profiler = ["measureme", "once_cell"]
-deser = []
-
-# Enable Bytecode generation & execution instead of tree walking
-vm = []
+profiler = ["measureme"]
+deser = ["boa_interner/serde"]
 
 # Enable Boa's WHATWG console object implementation.
 console = []
 
 [dependencies]
-boa_unicode = { path = "../boa_unicode", version = "0.11.0" }
+boa_unicode = { path = "../boa_unicode", version = "0.13.0" }
+boa_interner = { path = "../boa_interner", version = "0.13.0" }
 gc = { version = "0.4.1", features = ["derive"] }
-serde = { version = "1.0.126", features = ["derive"] }
-serde_json = "1.0.64"
-rand = "0.8.3"
+serde = { version = "1.0.136", features = ["derive", "rc"] }
+serde_json = "1.0.78"
+rand = "0.8.4"
 num-traits = "0.2.14"
-regress = "0.3.0"
+regress = "0.4.1"
 rustc-hash = "1.1.0"
-num-bigint = { version = "0.4.0", features = ["serde"] }
+num-bigint = { version = "0.4.3", features = ["serde"] }
 num-integer = "0.1.44"
-bitflags = "1.2.1"
-indexmap = "1.6.2"
-ryu-js = "0.2.1"
+bitflags = "1.3.2"
+indexmap = "1.8.0"
+ryu-js = "0.2.2"
 chrono = "0.4.19"
 fast-float = "0.2.0"
+unicode-normalization = "0.1.19"
+dyn-clone = "1.0.4"
+once_cell = "1.9.0"
 
 # Optional Dependencies
-measureme = { version = "9.1.2", optional = true }
-once_cell = { version = "1.7.2", optional = true }
+measureme = { version = "10.0.0", optional = true }
+
+[target.wasm32-unknown-unknown.dependencies]
+getrandom = { version = "0.2.4", features = ["js"] }
 
 [dev-dependencies]
-criterion = "0.3.4"
-float-cmp = "0.8.0"
+criterion = "0.3.5"
+float-cmp = "0.9.0"
 
 [target.x86_64-unknown-linux-gnu.dev-dependencies]
 jemallocator = "0.3.2"
@@ -52,14 +56,6 @@ jemallocator = "0.3.2"
 crate-type = ["cdylib", "lib"]
 name = "boa"
 bench = false
-
-[[bench]]
-name = "parser"
-harness = false
-
-[[bench]]
-name = "exec"
-harness = false
 
 [[bench]]
 name = "full"

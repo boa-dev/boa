@@ -3,18 +3,14 @@ flag:module
 flag:async
 
 // Non-implemented features:
-feature:TypedArray
 feature:json-modules
+feature:SharedArrayBuffer
+feature:resizable-arraybuffer
+feature:Temporal
+feature:tail-call-optimization
 //feature:generators
 //feature:async-iteration
 //feature:class
-
-// These seem to run forever:
-arg-length-exceeding-integer-limit
-15.4.4.19-8-c-ii-1
-fill-string-empty
-length-boundaries
-throws-if-integer-limit-exceeded
 
 // These generate a stack overflow
 tco-call

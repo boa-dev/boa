@@ -1,9 +1,14 @@
-use crate::{forward, forward_val, Context};
+use crate::{
+    forward, forward_val,
+    object::FunctionBuilder,
+    property::{Attribute, PropertyDescriptor},
+    Context, JsString,
+};
 
 #[allow(clippy::float_cmp)]
 #[test]
 fn arguments_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     let init = r#"
         function jason(a, b) {
@@ -15,7 +20,7 @@ fn arguments_object() {
     eprintln!("{}", forward(&mut context, init));
 
     let return_val = forward_val(&mut context, "val").expect("value expected");
-    assert_eq!(return_val.is_integer(), true);
+    assert!(return_val.is_integer());
     assert_eq!(
         return_val
             .to_i32(&mut context)
@@ -26,7 +31,7 @@ fn arguments_object() {
 
 #[test]
 fn self_mutating_function_when_calling() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         function x() {
 	        x.y = 3;
@@ -35,7 +40,7 @@ fn self_mutating_function_when_calling() {
         "#;
     eprintln!("{}", forward(&mut context, func));
     let y = forward_val(&mut context, "x.y").expect("value expected");
-    assert_eq!(y.is_integer(), true);
+    assert!(y.is_integer());
     assert_eq!(
         y.to_i32(&mut context)
             .expect("Could not convert value to i32"),
@@ -45,7 +50,7 @@ fn self_mutating_function_when_calling() {
 
 #[test]
 fn self_mutating_function_when_constructing() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         function x() {
             x.y = 3;
@@ -54,7 +59,7 @@ fn self_mutating_function_when_constructing() {
         "#;
     eprintln!("{}", forward(&mut context, func));
     let y = forward_val(&mut context, "x.y").expect("value expected");
-    assert_eq!(y.is_integer(), true);
+    assert!(y.is_integer());
     assert_eq!(
         y.to_i32(&mut context)
             .expect("Could not convert value to i32"),
@@ -64,7 +69,7 @@ fn self_mutating_function_when_constructing() {
 
 #[test]
 fn call_function_prototype() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype()
         "#;
@@ -74,7 +79,7 @@ fn call_function_prototype() {
 
 #[test]
 fn call_function_prototype_with_arguments() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype(1, "", new String(""))
         "#;
@@ -84,7 +89,7 @@ fn call_function_prototype_with_arguments() {
 
 #[test]
 fn call_function_prototype_with_new() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         new Function.prototype()
         "#;
@@ -94,7 +99,7 @@ fn call_function_prototype_with_new() {
 
 #[test]
 fn function_prototype_name() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype.name
         "#;
@@ -106,7 +111,7 @@ fn function_prototype_name() {
 #[test]
 #[allow(clippy::float_cmp)]
 fn function_prototype_length() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         Function.prototype.length
         "#;
@@ -117,7 +122,7 @@ fn function_prototype_length() {
 
 #[test]
 fn function_prototype_call() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let func = r#"
         let e = new Error()
         Object.prototype.toString.call(e)
@@ -129,7 +134,7 @@ fn function_prototype_call() {
 
 #[test]
 fn function_prototype_call_throw() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let throw = r#"
         let call = Function.prototype.call;
         call(call)
@@ -137,12 +142,12 @@ fn function_prototype_call_throw() {
     let value = forward_val(&mut context, throw).unwrap_err();
     assert!(value.is_object());
     let string = value.to_string(&mut context).unwrap();
-    assert!(string.starts_with("TypeError"))
+    assert!(string.starts_with("TypeError"));
 }
 
 #[test]
 fn function_prototype_call_multiple_args() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         function f(a, b) {
             this.a = a;
@@ -166,7 +171,7 @@ fn function_prototype_call_multiple_args() {
 
 #[test]
 fn function_prototype_apply() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         const numbers = [6, 7, 3, 4, 2];
         const max = Math.max.apply(null, numbers);
@@ -189,7 +194,7 @@ fn function_prototype_apply() {
 
 #[test]
 fn function_prototype_apply_on_object() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         function f(a, b) {
             this.a = a;
@@ -211,4 +216,47 @@ fn function_prototype_apply_on_object() {
         .as_boolean()
         .unwrap();
     assert!(boolean);
+}
+
+#[test]
+fn closure_capture_clone() {
+    let mut context = Context::default();
+
+    let string = JsString::from("Hello");
+    let object = context.construct_object();
+    object
+        .define_property_or_throw(
+            "key",
+            PropertyDescriptor::builder()
+                .value(" world!")
+                .writable(false)
+                .enumerable(false)
+                .configurable(false),
+            &mut context,
+        )
+        .unwrap();
+
+    let func = FunctionBuilder::closure_with_captures(
+        &mut context,
+        |_, _, captures, context| {
+            let (string, object) = &captures;
+
+            let hw = JsString::concat(
+                string,
+                object
+                    .__get_own_property__(&"key".into(), context)?
+                    .and_then(|prop| prop.value().cloned())
+                    .and_then(|val| val.as_string().cloned())
+                    .ok_or_else(|| context.construct_type_error("invalid `key` property"))?,
+            );
+            Ok(hw.into())
+        },
+        (string, object),
+    )
+    .name("closure")
+    .build();
+
+    context.register_global_property("closure", func, Attribute::default());
+
+    assert_eq!(forward(&mut context, "closure()"), "\"Hello world!\"");
 }

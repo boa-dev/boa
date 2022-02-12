@@ -8,17 +8,17 @@ use crate::{
     environment::{
         global_environment_record::GlobalEnvironmentRecord, lexical_environment::LexicalEnvironment,
     },
-    object::{GcObject, Object, ObjectData},
+    gc::Gc,
+    object::{JsObject, ObjectData},
     BoaProfiler,
 };
-use gc::Gc;
 
 /// Representation of a Realm.
 ///
 /// In the specification these are called Realm Records.
 #[derive(Debug)]
 pub struct Realm {
-    pub global_object: GcObject,
+    pub global_object: JsObject,
     pub global_env: Gc<GlobalEnvironmentRecord>,
     pub environment: LexicalEnvironment,
 }
@@ -29,12 +29,8 @@ impl Realm {
         let _timer = BoaProfiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
-        let mut global = Object::default();
-
         // Allow identification of the global object easily
-        global.data = ObjectData::Global;
-
-        let gc_global = GcObject::new(global);
+        let gc_global = JsObject::from_proto_and_data(None, ObjectData::global());
 
         // We need to clone the global here because its referenced from separate places (only pointer is cloned)
         let global_env = GlobalEnvironmentRecord::new(gc_global.clone(), gc_global.clone());

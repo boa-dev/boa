@@ -1,34 +1,67 @@
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+)]
+#![warn(
+    clippy::perf,
+    clippy::single_match_else,
+    clippy::dbg_macro,
+    clippy::doc_markdown,
+    clippy::wildcard_imports,
+    clippy::struct_excessive_bools,
+    clippy::doc_markdown,
+    clippy::semicolon_if_nothing_returned,
+    clippy::pedantic
+)]
 #![deny(
-    unused_qualifications,
     clippy::all,
+    clippy::cast_lossless,
+    clippy::redundant_closure_for_method_calls,
+    clippy::use_self,
+    clippy::unnested_or_patterns,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    clippy::match_wildcard_for_single_variants,
+    clippy::map_unwrap_or,
     unused_qualifications,
     unused_import_braces,
     unused_lifetimes,
     unreachable_pub,
     trivial_numeric_casts,
-    rustdoc::all,
+    // rustdoc,
     missing_debug_implementations,
     missing_copy_implementations,
     deprecated_in_future,
+    meta_variable_misuse,
     non_ascii_idents,
     rust_2018_compatibility,
     rust_2018_idioms,
     future_incompatible,
-    nonstandard_style
+    nonstandard_style,
 )]
-#![warn(clippy::perf, clippy::single_match_else, clippy::dbg_macro)]
 #![allow(
+    clippy::module_name_repetitions,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_precision_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_ptr_alignment,
+    clippy::missing_panics_doc,
+    clippy::too_many_lines,
+    clippy::unreadable_literal,
     clippy::missing_inline_in_public_items,
     clippy::cognitive_complexity,
     clippy::must_use_candidate,
     clippy::missing_errors_doc,
-    clippy::as_conversions
+    clippy::as_conversions,
+    clippy::let_unit_value,
+    rustdoc::missing_doc_code_examples
 )]
 
-use boa::{syntax::ast::node::StatementList, Context};
-use colored::*;
+use boa::{syntax::ast::node::StatementList, Context, Interner};
+use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{fs::read, path::PathBuf};
+use std::{fs::read, io, path::PathBuf};
 use structopt::{clap::arg_enum, StructOpt};
 
 mod helper;
@@ -67,7 +100,6 @@ struct Opt {
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
-    #[cfg(feature = "vm")]
     #[structopt(long = "trace", short = "t")]
     trace: bool,
 
@@ -109,12 +141,15 @@ arg_enum! {
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens<T: AsRef<[u8]>>(src: T) -> Result<StatementList, String> {
+fn parse_tokens<S>(src: S, interner: &mut Interner) -> Result<StatementList, String>
+where
+    S: AsRef<[u8]>,
+{
     use boa::syntax::parser::Parser;
 
-    let src_bytes: &[u8] = src.as_ref();
+    let src_bytes = src.as_ref();
     Parser::new(src_bytes, false)
-        .parse_all()
+        .parse_all(interner)
         .map_err(|e| format!("ParsingError: {}", e))
 }
 
@@ -122,17 +157,20 @@ fn parse_tokens<T: AsRef<[u8]>>(src: T) -> Result<StatementList, String> {
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<T: AsRef<[u8]>>(src: T, args: &Opt) -> Result<(), String> {
-    let src_bytes: &[u8] = src.as_ref();
+fn dump<S>(src: S, args: &Opt) -> Result<(), String>
+where
+    S: AsRef<[u8]>,
+{
     if let Some(ref arg) = args.dump_ast {
-        let ast = parse_tokens(src_bytes)?;
+        let mut interner = Interner::default();
+        let ast = parse_tokens(src, &mut interner)?;
 
         match arg {
             Some(format) => match format {
                 DumpFormat::Debug => println!("{:#?}", ast),
                 DumpFormat::Json => println!("{}", serde_json::to_string(&ast).unwrap()),
                 DumpFormat::JsonPretty => {
-                    println!("{}", serde_json::to_string_pretty(&ast).unwrap())
+                    println!("{}", serde_json::to_string_pretty(&ast).unwrap());
                 }
             },
             // Default ast dumping format.
@@ -146,10 +184,9 @@ fn dump<T: AsRef<[u8]>>(src: T, args: &Opt) -> Result<(), String> {
 pub fn main() -> Result<(), std::io::Error> {
     let args = Opt::from_args();
 
-    let mut context = Context::new();
+    let mut context = Context::default();
 
     // Trace Output
-    #[cfg(feature = "vm")]
     context.set_trace(args.trace);
 
     for file in &args.files {
@@ -178,7 +215,10 @@ pub fn main() -> Result<(), std::io::Error> {
             .build();
 
         let mut editor = Editor::with_config(config);
-        let _ = editor.load_history(CLI_HISTORY);
+        editor.load_history(CLI_HISTORY).map_err(|err| match err {
+            ReadlineError::Io(e) => e,
+            e => io::Error::new(io::ErrorKind::Other, e),
+        })?;
         editor.set_helper(Some(helper::RLHelper::new()));
 
         let readline = ">> ".color(READLINE_COLOR).bold().to_string();
@@ -186,7 +226,7 @@ pub fn main() -> Result<(), std::io::Error> {
         loop {
             match editor.readline(&readline) {
                 Ok(line) if line == ".exit" => break,
-                Err(ReadlineError::Interrupted) | Err(ReadlineError::Eof) => break,
+                Err(ReadlineError::Interrupted | ReadlineError::Eof) => break,
 
                 Ok(line) => {
                     editor.add_history_entry(&line);
@@ -199,7 +239,11 @@ pub fn main() -> Result<(), std::io::Error> {
                         match context.eval(line.trim_end()) {
                             Ok(v) => println!("{}", v.display()),
                             Err(v) => {
-                                eprintln!("{}: {}", "Uncaught".red(), v.display().to_string().red())
+                                eprintln!(
+                                    "{}: {}",
+                                    "Uncaught".red(),
+                                    v.display().to_string().red()
+                                );
                             }
                         }
                     }

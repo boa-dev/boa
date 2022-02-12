@@ -2,7 +2,7 @@ use crate::{forward, Context};
 
 #[test]
 fn error_to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     let init = r#"
         let e = new Error('1');
         let name = new Error();
@@ -37,19 +37,19 @@ fn error_to_string() {
 
 #[test]
 fn eval_error_name() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(forward(&mut context, "EvalError.name"), "\"EvalError\"");
 }
 
 #[test]
 fn eval_error_length() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(forward(&mut context, "EvalError.length"), "1");
 }
 
 #[test]
 fn eval_error_to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(
         forward(&mut context, "new EvalError('hello').toString()"),
         "\"EvalError: hello\""
@@ -62,19 +62,19 @@ fn eval_error_to_string() {
 
 #[test]
 fn uri_error_name() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(forward(&mut context, "URIError.name"), "\"URIError\"");
 }
 
 #[test]
 fn uri_error_length() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(forward(&mut context, "URIError.length"), "1");
 }
 
 #[test]
 fn uri_error_to_string() {
-    let mut context = Context::new();
+    let mut context = Context::default();
     assert_eq!(
         forward(&mut context, "new URIError('hello').toString()"),
         "\"URIError: hello\""

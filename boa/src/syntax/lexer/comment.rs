@@ -7,7 +7,9 @@ use crate::{
         ast::{Position, Span},
         lexer::{Token, TokenKind},
     },
+    Interner,
 };
+use core::convert::TryFrom;
 use std::io::Read;
 
 /// Lexes a single line comment.
@@ -23,7 +25,12 @@ use std::io::Read;
 pub(super) struct SingleLineComment;
 
 impl<R> Tokenizer<R> for SingleLineComment {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -33,10 +40,9 @@ impl<R> Tokenizer<R> for SingleLineComment {
         while let Some(ch) = cursor.peek()? {
             if ch == b'\n' || ch == b'\r' {
                 break;
-            } else {
-                // Consume char.
-                cursor.next_byte()?.expect("Comment character vanished");
             }
+            // Consume char.
+            cursor.next_byte()?.expect("Comment character vanished");
         }
         Ok(Token::new(
             TokenKind::Comment,
@@ -58,34 +64,76 @@ impl<R> Tokenizer<R> for SingleLineComment {
 pub(super) struct MultiLineComment;
 
 impl<R> Tokenizer<R> for MultiLineComment {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
         let _timer = BoaProfiler::global().start_event("MultiLineComment", "Lexing");
 
         let mut new_line = false;
-        loop {
-            if let Some(ch) = cursor.next_byte()? {
-                if ch == b'*' && cursor.next_is(b'/')? {
-                    break;
-                } else if ch == b'\n' {
+        while let Some(ch) = cursor.next_char()? {
+            let tried_ch = char::try_from(ch);
+            match tried_ch {
+                Ok(c) if c == '*' && cursor.next_is(b'/')? => {
+                    return Ok(Token::new(
+                        if new_line {
+                            TokenKind::LineTerminator
+                        } else {
+                            TokenKind::Comment
+                        },
+                        Span::new(start_pos, cursor.pos()),
+                    ))
+                }
+                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
                     new_line = true;
                 }
-            } else {
-                return Err(Error::syntax(
-                    "unterminated multiline comment",
-                    cursor.pos(),
-                ));
-            }
+                _ => {}
+            };
+        }
+
+        Err(Error::syntax(
+            "unterminated multiline comment",
+            cursor.pos(),
+        ))
+    }
+}
+
+///Lexes a first line Hashbang comment
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-lexical-grammar
+
+pub(super) struct HashbangComment;
+
+impl<R> Tokenizer<R> for HashbangComment {
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
+    where
+        R: Read,
+    {
+        let _timer = BoaProfiler::global().start_event("Hashbang", "Lexing");
+
+        while let Some(ch) = cursor.next_char()? {
+            let tried_ch = char::try_from(ch);
+            match tried_ch {
+                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => break,
+                _ => {}
+            };
         }
 
         Ok(Token::new(
-            if new_line {
-                TokenKind::LineTerminator
-            } else {
-                TokenKind::Comment
-            },
+            TokenKind::Comment,
             Span::new(start_pos, cursor.pos()),
         ))
     }

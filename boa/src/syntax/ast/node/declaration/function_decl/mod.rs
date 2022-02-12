@@ -1,12 +1,8 @@
 use crate::{
-    builtins::function::FunctionFlags,
-    environment::lexical_environment::VariableScope,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -32,29 +28,28 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionDecl {
-    name: Box<str>,
+    name: Sym,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
 
 impl FunctionDecl {
     /// Creates a new function declaration.
-    pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
+    pub(in crate::syntax) fn new<P, B>(name: Sym, parameters: P, body: B) -> Self
     where
-        N: Into<Box<str>>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
         Self {
-            name: name.into(),
+            name,
             parameters: parameters.into(),
             body: body.into(),
         }
     }
 
     /// Gets the name of the function declaration.
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn name(&self) -> Sym {
+        self.name
     }
 
     /// Gets the list of parameters of the function declaration.
@@ -63,50 +58,32 @@ impl FunctionDecl {
     }
 
     /// Gets the body of the function declaration.
-    pub fn body(&self) -> &[Node] {
-        self.body.items()
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        write!(f, "function {}(", self.name)?;
-        join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
-
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
-    }
-}
-
-impl Executable for FunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("FunctionDecl", "exec");
-        let val = context.create_function(
-            self.parameters().to_vec(),
-            self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        )?;
-
-        // Set the name and assign it in the current environment
-        val.set_field("name", self.name(), context)?;
-
-        if context.has_binding(self.name()) {
-            context.set_mutable_binding(self.name(), val, true)?;
+    ) -> String {
+        let mut buf = format!(
+            "function {}({}",
+            interner.resolve_expect(self.name),
+            join_nodes(interner, &self.parameters)
+        );
+        if self.body().items().is_empty() {
+            buf.push_str(") {}");
         } else {
-            context.create_mutable_binding(
-                self.name().to_owned(),
-                false,
-                VariableScope::Function,
-            )?;
-
-            context.initialize_binding(self.name(), val)?;
+            buf.push_str(&format!(
+                ") {{\n{}{}}}",
+                self.body.to_indented_string(interner, indentation + 1),
+                "    ".repeat(indentation)
+            ));
         }
-        Ok(Value::undefined())
+
+        buf
     }
 }
 
@@ -116,8 +93,8 @@ impl From<FunctionDecl> for Node {
     }
 }
 
-impl fmt::Display for FunctionDecl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for FunctionDecl {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }

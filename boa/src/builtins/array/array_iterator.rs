@@ -1,18 +1,11 @@
 use crate::{
-    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, Value},
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
     gc::{Finalize, Trace},
-    object::{GcObject, ObjectData},
-    property::{Attribute, DataDescriptor},
+    object::{JsObject, ObjectData},
+    property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    BoaProfiler, Context, Result,
+    BoaProfiler, Context, JsResult,
 };
-
-#[derive(Debug, Clone, Finalize, Trace)]
-pub enum ArrayIterationKind {
-    Key,
-    Value,
-    KeyAndValue,
-}
 
 /// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
 ///
@@ -22,23 +15,25 @@ pub enum ArrayIterationKind {
 /// [spec]: https://tc39.es/ecma262/#sec-array-iterator-objects
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ArrayIterator {
-    array: Value,
-    next_index: u32,
-    kind: ArrayIterationKind,
+    array: JsObject,
+    next_index: usize,
+    kind: PropertyNameKind,
+    done: bool,
 }
 
 impl ArrayIterator {
     pub(crate) const NAME: &'static str = "ArrayIterator";
 
-    fn new(array: Value, kind: ArrayIterationKind) -> Self {
-        ArrayIterator {
+    fn new(array: JsObject, kind: PropertyNameKind) -> Self {
+        Self {
             array,
             kind,
             next_index: 0,
+            done: false,
         }
     }
 
-    /// CreateArrayIterator( array, kind )
+    /// `CreateArrayIterator( array, kind )`
     ///
     /// Creates a new iterator over the given array.
     ///
@@ -47,17 +42,15 @@ impl ArrayIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createarrayiterator
     pub(crate) fn create_array_iterator(
+        array: JsObject,
+        kind: PropertyNameKind,
         context: &Context,
-        array: Value,
-        kind: ArrayIterationKind,
-    ) -> Value {
-        let array_iterator = Value::new_object(context);
-        array_iterator.set_data(ObjectData::ArrayIterator(Self::new(array, kind)));
-        array_iterator
-            .as_object()
-            .expect("array iterator object")
-            .set_prototype_instance(context.iterator_prototypes().array_iterator().into());
-        array_iterator
+    ) -> JsValue {
+        let array_iterator = JsObject::from_proto_and_data(
+            context.iterator_prototypes().array_iterator(),
+            ObjectData::array_iterator(Self::new(array, kind)),
+        );
+        array_iterator.into()
     }
 
     /// %ArrayIteratorPrototype%.next( )
@@ -68,70 +61,79 @@ impl ArrayIterator {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%.next
-    pub(crate) fn next(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-        if let Value::Object(ref object) = this {
-            let mut object = object.borrow_mut();
-            if let Some(array_iterator) = object.as_array_iterator_mut() {
-                let index = array_iterator.next_index;
-                if array_iterator.array.is_undefined() {
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
-                }
-                let len = array_iterator
-                    .array
-                    .get_field("length", context)?
-                    .as_number()
-                    .ok_or_else(|| context.construct_type_error("Not an array"))?
-                    as u32;
-                if array_iterator.next_index >= len {
-                    array_iterator.array = Value::undefined();
-                    return Ok(create_iter_result_object(context, Value::undefined(), true));
-                }
-                array_iterator.next_index = index + 1;
-                match array_iterator.kind {
-                    ArrayIterationKind::Key => {
-                        Ok(create_iter_result_object(context, index.into(), false))
-                    }
-                    ArrayIterationKind::Value => {
-                        let element_value = array_iterator.array.get_field(index, context)?;
-                        Ok(create_iter_result_object(context, element_value, false))
-                    }
-                    ArrayIterationKind::KeyAndValue => {
-                        let element_value = array_iterator.array.get_field(index, context)?;
-                        let result = Array::constructor(
-                            &Value::new_object(context),
-                            &[index.into(), element_value],
-                            context,
-                        )?;
-                        Ok(create_iter_result_object(context, result, false))
-                    }
-                }
-            } else {
-                context.throw_type_error("`this` is not an ArrayIterator")
+    pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let mut array_iterator = this.as_object().map(JsObject::borrow_mut);
+        let array_iterator = array_iterator
+            .as_mut()
+            .and_then(|obj| obj.as_array_iterator_mut())
+            .ok_or_else(|| context.construct_type_error("`this` is not an ArrayIterator"))?;
+        let index = array_iterator.next_index;
+        if array_iterator.done {
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
+        }
+
+        let len = if let Some(f) = array_iterator.array.borrow().as_typed_array() {
+            if f.is_detached() {
+                return context.throw_type_error(
+                    "Cannot get value from typed array that has a detached array buffer",
+                );
             }
+
+            f.array_length()
         } else {
-            context.throw_type_error("`this` is not an ArrayIterator")
+            array_iterator.array.length_of_array_like(context)?
+        };
+
+        if index >= len {
+            array_iterator.done = true;
+            return Ok(create_iter_result_object(
+                JsValue::undefined(),
+                true,
+                context,
+            ));
+        }
+        array_iterator.next_index = index + 1;
+        match array_iterator.kind {
+            PropertyNameKind::Key => Ok(create_iter_result_object(index.into(), false, context)),
+            PropertyNameKind::Value => {
+                let element_value = array_iterator.array.get(index, context)?;
+                Ok(create_iter_result_object(element_value, false, context))
+            }
+            PropertyNameKind::KeyAndValue => {
+                let element_value = array_iterator.array.get(index, context)?;
+                let result = Array::create_array_from_list([index.into(), element_value], context);
+                Ok(create_iter_result_object(result.into(), false, context))
+            }
         }
     }
 
-    /// Create the %ArrayIteratorPrototype% object
+    /// Create the `%ArrayIteratorPrototype%` object
     ///
     /// More information:
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%arrayiteratorprototype%-object
-    pub(crate) fn create_prototype(context: &mut Context, iterator_prototype: Value) -> GcObject {
+    pub(crate) fn create_prototype(
+        iterator_prototype: JsObject,
+        context: &mut Context,
+    ) -> JsObject {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         // Create prototype
-        let mut array_iterator = context.construct_object();
+        let array_iterator =
+            JsObject::from_proto_and_data(iterator_prototype, ObjectData::ordinary());
         make_builtin_fn(Self::next, "next", &array_iterator, 0, context);
-        array_iterator.set_prototype_instance(iterator_prototype);
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
-        let to_string_tag_property = DataDescriptor::new(
-            "Array Iterator",
-            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
+        let to_string_tag_property = PropertyDescriptor::builder()
+            .value("Array Iterator")
+            .writable(false)
+            .enumerable(false)
+            .configurable(true);
         array_iterator.insert(to_string_tag, to_string_tag_property);
         array_iterator
     }

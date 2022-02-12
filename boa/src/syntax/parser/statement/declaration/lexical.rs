@@ -7,7 +7,6 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
-use crate::syntax::lexer::TokenKind;
 use crate::{
     syntax::{
         ast::{
@@ -17,14 +16,15 @@ use crate::{
             },
             Keyword, Punctuator,
         },
+        lexer::TokenKind,
         parser::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
-            statement::BindingIdentifier,
+            statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
             AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 
 use std::io::Read;
@@ -71,9 +71,9 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("LexicalDeclaration", "Parsing");
-        let tok = cursor.next()?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
             TokenKind::Keyword(Keyword::Const) => BindingList::new(
@@ -83,7 +83,7 @@ where
                 true,
                 self.const_init_required,
             )
-            .parse(cursor),
+            .parse(cursor, interner),
             TokenKind::Keyword(Keyword::Let) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
@@ -91,7 +91,7 @@ where
                 false,
                 self.const_init_required,
             )
-            .parse(cursor),
+            .parse(cursor, interner),
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }
@@ -145,7 +145,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("BindingList", "Parsing");
 
         // Create vectors to store the variable declarations
@@ -154,29 +154,36 @@ where
         let mut const_decls = Vec::new();
 
         loop {
-            let (ident, init) =
-                LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
-                    .parse(cursor)?;
+            let decl = LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
 
             if self.is_const {
                 if self.const_init_required {
-                    if init.is_some() {
-                        const_decls.push(Declaration::new(ident, init));
+                    let init_is_some = match &decl {
+                        Declaration::Identifier { init, .. } if init.is_some() => true,
+                        Declaration::Pattern(p) if p.init().is_some() => true,
+                        _ => false,
+                    };
+
+                    if init_is_some {
+                        const_decls.push(decl);
                     } else {
+                        let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
                         return Err(ParseError::expected(
-                            vec![TokenKind::Punctuator(Punctuator::Assign)],
-                            cursor.next()?.ok_or(ParseError::AbruptEnd)?,
+                            ["=".to_owned()],
+                            next.to_string(interner),
+                            next.span(),
                             "const declaration",
                         ));
                     }
                 } else {
-                    const_decls.push(Declaration::new(ident, init))
+                    const_decls.push(decl);
                 }
             } else {
-                let_decls.push(Declaration::new(ident, init));
+                let_decls.push(decl);
             }
 
-            match cursor.peek_semicolon()? {
+            match cursor.peek_semicolon(interner)? {
                 SemicolonResult::Found(_) => break,
                 SemicolonResult::NotFound(tk)
                     if tk.kind() == &TokenKind::Keyword(Keyword::Of)
@@ -188,17 +195,16 @@ where
                     if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
                 {
                     // We discard the comma
-                    let _ = cursor.next()?;
+                    let _comma = cursor.next(interner)?;
                 }
-                _ => {
+                SemicolonResult::NotFound(_) => {
+                    let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
                     return Err(ParseError::expected(
-                        vec![
-                            TokenKind::Punctuator(Punctuator::Semicolon),
-                            TokenKind::LineTerminator,
-                        ],
-                        cursor.next()?.ok_or(ParseError::AbruptEnd)?,
+                        [";".to_owned(), "line terminator".to_owned()],
+                        next.to_string(interner),
+                        next.span(),
                         "lexical declaration binding list",
-                    ))
+                    ));
                 }
             }
         }
@@ -243,26 +249,78 @@ impl<R> TokenParser<R> for LexicalBinding
 where
     R: Read,
 {
-    type Output = (Box<str>, Option<Node>);
+    type Output = Declaration;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
 
-        let ident = BindingIdentifier::new(self.allow_yield, self.allow_await).parse(cursor)?;
+        let peek_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
-        let init = if let Some(t) = cursor.peek(0)? {
-            if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
-                Some(
-                    Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor)?,
-                )
-            } else {
-                None
+        match peek_token.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                let bindings =
+                    ObjectBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
+
+                let init = if let Some(t) = cursor.peek(0, interner)? {
+                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                        Some(
+                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?,
+                        )
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                Ok(Declaration::new_with_object_pattern(bindings, init))
             }
-        } else {
-            None
-        };
+            TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                let bindings =
+                    ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
 
-        Ok((ident, init))
+                let init = if let Some(t) = cursor.peek(0, interner)? {
+                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                        Some(
+                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?,
+                        )
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                Ok(Declaration::new_with_array_pattern(bindings, init))
+            }
+
+            _ => {
+                let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+
+                let init = if let Some(t) = cursor.peek(0, interner)? {
+                    if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
+                        Some(
+                            Initializer::new(true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?,
+                        )
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
+
+                Ok(Declaration::new_with_identifier(ident, init))
+            }
+        }
     }
 }

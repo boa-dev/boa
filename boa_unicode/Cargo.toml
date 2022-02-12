@@ -1,6 +1,6 @@
 [package]
 name = "boa_unicode"
-version = "0.11.0"
+version = "0.13.0"
 authors = ["boa-dev"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 repository = "https://github.com/boa-dev/boa"
@@ -8,7 +8,8 @@ keywords = ["javascript", "compiler", "lexer", "parser", "unicode"]
 categories = ["parsing"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2018"
+edition = "2021"
+rust-version = "1.56"
 
 [dependencies]
-unicode-general-category = "0.4.0"
+unicode-general-category = "0.5.1"

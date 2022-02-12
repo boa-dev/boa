@@ -8,6 +8,7 @@ use self::catch::Catch;
 use self::finally::Finally;
 use super::block::Block;
 use crate::syntax::lexer::TokenKind;
+use crate::Interner;
 use crate::{
     syntax::{
         ast::{node::Try, Keyword},
@@ -55,41 +56,46 @@ where
 {
     type Output = Try;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Try, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("TryStatement", "Parsing");
         // TRY
-        cursor.expect(Keyword::Try, "try statement")?;
+        cursor.expect(Keyword::Try, "try statement", interner)?;
 
-        let try_clause =
-            Block::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let try_clause = Block::new(self.allow_yield, self.allow_await, self.allow_return)
+            .parse(cursor, interner)?;
 
-        let next_token = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         if next_token.kind() != &TokenKind::Keyword(Keyword::Catch)
             && next_token.kind() != &TokenKind::Keyword(Keyword::Finally)
         {
             return Err(ParseError::expected(
-                vec![
-                    TokenKind::Keyword(Keyword::Catch),
-                    TokenKind::Keyword(Keyword::Finally),
-                ],
-                next_token.clone(),
+                ["catch".to_owned(), "finally".to_owned()],
+                next_token.to_string(interner),
+                next_token.span(),
                 "try statement",
             ));
         }
 
         let catch = if next_token.kind() == &TokenKind::Keyword(Keyword::Catch) {
-            Some(Catch::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?)
+            Some(
+                Catch::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor, interner)?,
+            )
         } else {
             None
         };
 
-        let next_token = cursor.peek(0)?;
+        let next_token = cursor.peek(0, interner)?;
         let finally_block = if let Some(token) = next_token {
             match token.kind() {
                 TokenKind::Keyword(Keyword::Finally) => Some(
                     Finally::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor)?,
+                        .parse(cursor, interner)?,
                 ),
                 _ => None,
             }

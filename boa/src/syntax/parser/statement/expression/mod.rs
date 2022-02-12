@@ -1,10 +1,11 @@
 use super::super::{expression::Expression, ParseResult};
 use crate::{
     syntax::{
-        ast::node::Node,
-        parser::{AllowAwait, AllowYield, Cursor, TokenParser},
+        ast::{node::Node, Keyword, Punctuator},
+        lexer::TokenKind,
+        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 use std::io::Read;
 
@@ -40,12 +41,42 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("ExpressionStatement", "Parsing");
-        // TODO: lookahead
-        let expr = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
 
-        cursor.expect_semicolon("expression statement")?;
+        let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        match next_token.kind() {
+            TokenKind::Keyword(Keyword::Function | Keyword::Class) => {
+                return Err(ParseError::general(
+                    "expected statement",
+                    next_token.span().start(),
+                ));
+            }
+            TokenKind::Keyword(Keyword::Async) => {
+                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                if next_token.kind() == &TokenKind::Keyword(Keyword::Function) {
+                    return Err(ParseError::general(
+                        "expected statement",
+                        next_token.span().start(),
+                    ));
+                }
+            }
+            TokenKind::Keyword(Keyword::Let) => {
+                let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
+                if next_token.kind() == &TokenKind::Punctuator(Punctuator::OpenBracket) {
+                    return Err(ParseError::general(
+                        "expected statement",
+                        next_token.span().start(),
+                    ));
+                }
+            }
+            _ => {}
+        }
+
+        let expr =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        cursor.expect_semicolon("expression statement", interner)?;
 
         Ok(expr)
     }

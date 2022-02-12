@@ -7,6 +7,7 @@ use crate::{
         ast::{Position, Punctuator, Span},
         lexer::Token,
     },
+    Interner,
 };
 use std::io::Read;
 
@@ -31,7 +32,12 @@ impl SpreadLiteral {
 }
 
 impl<R> Tokenizer<R> for SpreadLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        _interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {

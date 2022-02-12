@@ -1,13 +1,14 @@
 use crate::{
-    exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// The `return` statement ends function execution and specifies a value to be returned to the
 /// function caller.
@@ -31,12 +32,12 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Return {
     expr: Option<Box<Node>>,
-    label: Option<Box<str>>,
+    label: Option<Sym>,
 }
 
 impl Return {
-    pub fn label(&self) -> Option<&str> {
-        self.label.as_ref().map(Box::as_ref)
+    pub fn label(&self) -> Option<Sym> {
+        self.label
     }
 
     pub fn expr(&self) -> Option<&Node> {
@@ -48,7 +49,7 @@ impl Return {
     where
         E: Into<Node>,
         OE: Into<Option<E>>,
-        L: Into<Option<Box<str>>>,
+        L: Into<Option<Sym>>,
     {
         Self {
             expr: expr.into().map(E::into).map(Box::new),
@@ -57,31 +58,17 @@ impl Return {
     }
 }
 
-impl Executable for Return {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let result = match self.expr() {
-            Some(ref v) => v.run(context),
-            None => Ok(Value::undefined()),
-        };
-        // Set flag for return
-        context
-            .executor()
-            .set_current_state(InterpreterState::Return);
-        result
-    }
-}
-
 impl From<Return> for Node {
-    fn from(return_smt: Return) -> Node {
-        Node::Return(return_smt)
+    fn from(return_smt: Return) -> Self {
+        Self::Return(return_smt)
     }
 }
 
-impl fmt::Display for Return {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl ToInternedString for Return {
+    fn to_interned_string(&self, interner: &Interner) -> String {
         match self.expr() {
-            Some(ex) => write!(f, "return {}", ex),
-            None => write!(f, "return"),
+            Some(ex) => format!("return {}", ex.to_interned_string(interner)),
+            None => "return".to_owned(),
         }
     }
 }

@@ -4,6 +4,7 @@ use crate::{
         lexer::{InputElement, Lexer, Position, Token, TokenKind},
         parser::error::ParseError,
     },
+    Interner,
 };
 use std::io::Read;
 
@@ -16,12 +17,12 @@ const MAX_PEEK_SKIP: usize = 3;
 /// The fixed size of the buffer used for storing values that are peeked ahead.
 ///
 /// The size is calculated for a worst case scenario, where we want to peek `MAX_PEEK_SKIP` tokens
-/// skipping line terminators:
+/// skipping line terminators, and the stream ends just after:
 /// ```text
-/// [\n, B, \n, C, \n, D, \n, E, \n, F]
-///   0  0   1  1   2  2   3  3   4  4
+/// [\n, B, \n, C, \n, D, \n, E, \n, F, None]
+///   0  0   1  1   2  2   3  3   4  4  5
 /// ```
-const PEEK_BUF_SIZE: usize = (MAX_PEEK_SKIP + 1) * 2;
+const PEEK_BUF_SIZE: usize = (MAX_PEEK_SKIP + 1) * 2 + 1;
 
 #[derive(Debug)]
 pub(super) struct BufferedLexer<R> {
@@ -40,6 +41,7 @@ where
         Self {
             lexer,
             peeked: [
+                None::<Token>,
                 None::<Token>,
                 None::<Token>,
                 None::<Token>,
@@ -73,21 +75,33 @@ where
     #[inline]
     pub(super) fn set_goal(&mut self, elm: InputElement) {
         let _timer = BoaProfiler::global().start_event("cursor::set_goal()", "Parsing");
-        self.lexer.set_goal(elm)
+        self.lexer.set_goal(elm);
     }
 
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     #[inline]
-    pub(super) fn lex_regex(&mut self, start: Position) -> Result<Token, ParseError> {
+    pub(super) fn lex_regex(
+        &mut self,
+        start: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, ParseError> {
         let _timer = BoaProfiler::global().start_event("cursor::lex_regex()", "Parsing");
         self.set_goal(InputElement::RegExp);
-        self.lexer.lex_slash_token(start).map_err(|e| e.into())
+        self.lexer
+            .lex_slash_token(start, interner)
+            .map_err(Into::into)
     }
 
     /// Lexes the next tokens as template middle or template tail assuming that the starting
     /// '}' has already been consumed.
-    pub(super) fn lex_template(&mut self, start: Position) -> Result<Token, ParseError> {
-        self.lexer.lex_template(start).map_err(ParseError::from)
+    pub(super) fn lex_template(
+        &mut self,
+        start: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, ParseError> {
+        self.lexer
+            .lex_template(start, interner)
+            .map_err(ParseError::from)
     }
 
     #[inline]
@@ -97,13 +111,13 @@ where
 
     #[inline]
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
-        self.lexer.set_strict_mode(strict_mode)
+        self.lexer.set_strict_mode(strict_mode);
     }
 
     /// Fills the peeking buffer with the next token.
     ///
     /// It will not fill two line terminators one after the other.
-    fn fill(&mut self) -> Result<(), ParseError> {
+    fn fill(&mut self, interner: &mut Interner) -> Result<(), ParseError> {
         debug_assert!(
             self.write_index < PEEK_BUF_SIZE,
             "write index went out of bounds"
@@ -116,7 +130,7 @@ where
                 // We don't want to have multiple contiguous line terminators in the buffer, since
                 // they have no meaning.
                 let next = loop {
-                    let next = self.lexer.next()?;
+                    let next = self.lexer.next(interner)?;
                     if let Some(ref token) = next {
                         if token.kind() != &TokenKind::LineTerminator {
                             break next;
@@ -128,10 +142,10 @@ where
 
                 self.peeked[self.write_index] = next;
             } else {
-                self.peeked[self.write_index] = self.lexer.next()?;
+                self.peeked[self.write_index] = self.lexer.next(interner)?;
             }
         } else {
-            self.peeked[self.write_index] = self.lexer.next()?;
+            self.peeked[self.write_index] = self.lexer.next(interner)?;
         }
         self.write_index = (self.write_index + 1) % PEEK_BUF_SIZE;
 
@@ -149,7 +163,7 @@ where
 
     /// Moves the cursor to the next token and returns the token.
     ///
-    /// If skip_line_terminators is true then line terminators will be discarded.
+    /// If `skip_line_terminators` is true then line terminators will be discarded.
     ///
     /// This follows iterator semantics in that a `peek(0, false)` followed by a `next(false)` will
     /// return the same value. Note that because a `peek(n, false)` may return a line terminator a
@@ -157,24 +171,22 @@ where
     pub(super) fn next(
         &mut self,
         skip_line_terminators: bool,
+        interner: &mut Interner,
     ) -> Result<Option<Token>, ParseError> {
         if self.read_index == self.write_index {
-            self.fill()?;
+            self.fill(interner)?;
         }
 
         if let Some(ref token) = self.peeked[self.read_index] {
-            let tok = if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
-                self.peeked[self.read_index].take()
-            } else {
+            if skip_line_terminators && token.kind() == &TokenKind::LineTerminator {
                 // We only store 1 contiguous line terminator, so if the one at `self.read_index`
                 // was a line terminator, we know that the next won't be one.
                 self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
                 if self.read_index == self.write_index {
-                    self.fill()?;
+                    self.fill(interner)?;
                 }
-
-                self.peeked[self.read_index].take()
-            };
+            }
+            let tok = self.peeked[self.read_index].take();
             self.read_index = (self.read_index + 1) % PEEK_BUF_SIZE;
 
             Ok(tok)
@@ -205,6 +217,7 @@ where
         &mut self,
         skip_n: usize,
         skip_line_terminators: bool,
+        interner: &mut Interner,
     ) -> Result<Option<&Token>, ParseError> {
         assert!(
             skip_n <= MAX_PEEK_SKIP,
@@ -216,25 +229,20 @@ where
         let mut count = 0;
         let res_token = loop {
             if read_index == self.write_index {
-                self.fill()?;
+                self.fill(interner)?;
             }
 
             if let Some(ref token) = self.peeked[read_index] {
-                if !skip_line_terminators || token.kind() != &TokenKind::LineTerminator {
-                    if count == skip_n {
-                        break self.peeked[read_index].as_ref();
-                    }
-                } else {
+                if skip_line_terminators && token.kind() == &TokenKind::LineTerminator {
                     read_index = (read_index + 1) % PEEK_BUF_SIZE;
                     // We only store 1 contiguous line terminator, so if the one at `self.read_index`
                     // was a line terminator, we know that the next won't be one.
                     if read_index == self.write_index {
-                        self.fill()?;
+                        self.fill(interner)?;
                     }
-
-                    if count == skip_n {
-                        break self.peeked[read_index].as_ref();
-                    }
+                }
+                if count == skip_n {
+                    break self.peeked[read_index].as_ref();
                 }
             } else {
                 break None;

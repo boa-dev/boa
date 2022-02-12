@@ -1,10 +1,8 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -61,43 +59,36 @@ impl If {
         }
     }
 
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indent: usize,
-    ) -> fmt::Result {
-        write!(f, "if ({}) ", self.cond())?;
+    ) -> String {
+        let mut buf = format!("if ({}) ", self.cond().to_interned_string(interner));
         match self.else_node() {
             Some(else_e) => {
-                self.body().display(f, indent)?;
-                f.write_str(" else ")?;
-                else_e.display(f, indent)
+                buf.push_str(&format!(
+                    "{} else {}",
+                    self.body().to_indented_string(interner, indent),
+                    else_e.to_indented_string(interner, indent)
+                ));
             }
-            None => self.body().display(f, indent),
+            None => {
+                buf.push_str(&self.body().to_indented_string(interner, indent));
+            }
         }
+        buf
     }
 }
 
-impl Executable for If {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        Ok(if self.cond().run(context)?.to_boolean() {
-            self.body().run(context)?
-        } else if let Some(ref else_e) = self.else_node() {
-            else_e.run(context)?
-        } else {
-            Value::undefined()
-        })
-    }
-}
-
-impl fmt::Display for If {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for If {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 
 impl From<If> for Node {
-    fn from(if_stm: If) -> Node {
+    fn from(if_stm: If) -> Self {
         Self::If(if_stm)
     }
 }

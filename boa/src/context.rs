@@ -1,62 +1,48 @@
 //! Javascript context.
 
+use boa_interner::Sym;
+
 use crate::{
     builtins::{
-        self,
-        function::{Function, FunctionFlags, NativeFunction},
-        iterable::IteratorPrototypes,
+        self, function::NativeFunctionSignature, intrinsics::IntrinsicObjects,
+        iterable::IteratorPrototypes, typed_array::TypedArray,
     },
+    bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
-    exec::Interpreter,
-    object::{FunctionBuilder, GcObject, Object, PROTOTYPE},
-    property::{Attribute, DataDescriptor, PropertyKey},
+    gc::Gc,
+    object::{FunctionBuilder, JsObject, ObjectData},
+    property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    symbol::{RcSymbol, Symbol},
-    syntax::{
-        ast::{
-            node::{
-                statement_list::RcStatementList, Call, FormalParameter, Identifier, New,
-                StatementList,
-            },
-            Const, Node,
-        },
-        Parser,
-    },
-    value::{RcString, Value},
-    BoaProfiler, Executable, Result,
+    syntax::{ast::node::StatementList, parser::ParseError, Parser},
+    vm::{CallFrame, CodeBlock, FinallyReturn, Vm},
+    BoaProfiler, Interner, JsResult, JsValue,
 };
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
 
-#[cfg(feature = "vm")]
-use crate::vm::{
-    compilation::{CodeGen, Compiler},
-    VM,
-};
-
 /// Store a builtin constructor (such as `Object`) and its corresponding prototype.
 #[derive(Debug, Clone)]
 pub struct StandardConstructor {
-    pub(crate) constructor: GcObject,
-    pub(crate) prototype: GcObject,
+    pub(crate) constructor: JsObject,
+    pub(crate) prototype: JsObject,
 }
 
 impl Default for StandardConstructor {
     fn default() -> Self {
         Self {
-            constructor: GcObject::new(Object::default()),
-            prototype: GcObject::new(Object::default()),
+            constructor: JsObject::empty(),
+            prototype: JsObject::empty(),
         }
     }
 }
 
 impl StandardConstructor {
     /// Build a constructor with a defined prototype.
-    fn with_prototype(prototype: Object) -> Self {
+    fn with_prototype(prototype: JsObject) -> Self {
         Self {
-            constructor: GcObject::new(Object::default()),
-            prototype: GcObject::new(prototype),
+            constructor: JsObject::empty(),
+            prototype,
         }
     }
 
@@ -64,7 +50,7 @@ impl StandardConstructor {
     ///
     /// This is the same as `Object`, `Array`, etc.
     #[inline]
-    pub fn constructor(&self) -> GcObject {
+    pub fn constructor(&self) -> JsObject {
         self.constructor.clone()
     }
 
@@ -72,7 +58,7 @@ impl StandardConstructor {
     ///
     /// This is the same as `Object.prototype`, `Array.prototype`, etc
     #[inline]
-    pub fn prototype(&self) -> GcObject {
+    pub fn prototype(&self) -> JsObject {
         self.prototype.clone()
     }
 }
@@ -81,6 +67,7 @@ impl StandardConstructor {
 #[derive(Debug, Clone)]
 pub struct StandardObjects {
     object: StandardConstructor,
+    proxy: StandardConstructor,
     function: StandardConstructor,
     array: StandardConstructor,
     bigint: StandardConstructor,
@@ -91,36 +78,74 @@ pub struct StandardObjects {
     symbol: StandardConstructor,
     error: StandardConstructor,
     type_error: StandardConstructor,
-    referece_error: StandardConstructor,
+    reference_error: StandardConstructor,
     range_error: StandardConstructor,
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
     map: StandardConstructor,
     set: StandardConstructor,
+    typed_array: StandardConstructor,
+    typed_int8_array: StandardConstructor,
+    typed_uint8_array: StandardConstructor,
+    typed_uint8clamped_array: StandardConstructor,
+    typed_int16_array: StandardConstructor,
+    typed_uint16_array: StandardConstructor,
+    typed_int32_array: StandardConstructor,
+    typed_uint32_array: StandardConstructor,
+    typed_bigint64_array: StandardConstructor,
+    typed_biguint64_array: StandardConstructor,
+    typed_float32_array: StandardConstructor,
+    typed_float64_array: StandardConstructor,
+    array_buffer: StandardConstructor,
+    data_view: StandardConstructor,
 }
 
 impl Default for StandardObjects {
     fn default() -> Self {
         Self {
             object: StandardConstructor::default(),
+            proxy: StandardConstructor::default(),
             function: StandardConstructor::default(),
             array: StandardConstructor::default(),
             bigint: StandardConstructor::default(),
-            number: StandardConstructor::with_prototype(Object::number(0.0)),
-            boolean: StandardConstructor::with_prototype(Object::boolean(false)),
-            string: StandardConstructor::with_prototype(Object::string("")),
+            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
+                None,
+                ObjectData::number(0.0),
+            )),
+            boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
+                None,
+                ObjectData::boolean(false),
+            )),
+            string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
+                None,
+                ObjectData::string("".into()),
+            )),
             regexp: StandardConstructor::default(),
             symbol: StandardConstructor::default(),
             error: StandardConstructor::default(),
             type_error: StandardConstructor::default(),
-            referece_error: StandardConstructor::default(),
+            reference_error: StandardConstructor::default(),
             range_error: StandardConstructor::default(),
             syntax_error: StandardConstructor::default(),
             eval_error: StandardConstructor::default(),
             uri_error: StandardConstructor::default(),
             map: StandardConstructor::default(),
             set: StandardConstructor::default(),
+            typed_array: StandardConstructor::default(),
+            typed_int8_array: StandardConstructor::default(),
+            typed_uint8_array: StandardConstructor::default(),
+            typed_uint8clamped_array: StandardConstructor::default(),
+            typed_int16_array: StandardConstructor::default(),
+            typed_uint16_array: StandardConstructor::default(),
+            typed_int32_array: StandardConstructor::default(),
+            typed_uint32_array: StandardConstructor::default(),
+            typed_bigint64_array: StandardConstructor::default(),
+            typed_biguint64_array: StandardConstructor::default(),
+            typed_float32_array: StandardConstructor::default(),
+            typed_float64_array: StandardConstructor::default(),
+            array_buffer: StandardConstructor::default(),
+            data_view: StandardConstructor::default(),
         }
     }
 }
@@ -129,6 +154,11 @@ impl StandardObjects {
     #[inline]
     pub fn object_object(&self) -> &StandardConstructor {
         &self.object
+    }
+
+    #[inline]
+    pub fn proxy_object(&self) -> &StandardConstructor {
+        &self.proxy
     }
 
     #[inline]
@@ -178,7 +208,7 @@ impl StandardObjects {
 
     #[inline]
     pub fn reference_error_object(&self) -> &StandardConstructor {
-        &self.referece_error
+        &self.reference_error
     }
 
     #[inline]
@@ -215,6 +245,76 @@ impl StandardObjects {
     pub fn set_object(&self) -> &StandardConstructor {
         &self.set
     }
+
+    #[inline]
+    pub fn typed_array_object(&self) -> &StandardConstructor {
+        &self.typed_array
+    }
+
+    #[inline]
+    pub fn typed_int8_array_object(&self) -> &StandardConstructor {
+        &self.typed_int8_array
+    }
+
+    #[inline]
+    pub fn typed_uint8_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint8_array
+    }
+
+    #[inline]
+    pub fn typed_uint8clamped_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint8clamped_array
+    }
+
+    #[inline]
+    pub fn typed_int16_array_object(&self) -> &StandardConstructor {
+        &self.typed_int16_array
+    }
+
+    #[inline]
+    pub fn typed_uint16_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint16_array
+    }
+
+    #[inline]
+    pub fn typed_uint32_array_object(&self) -> &StandardConstructor {
+        &self.typed_uint32_array
+    }
+
+    #[inline]
+    pub fn typed_int32_array_object(&self) -> &StandardConstructor {
+        &self.typed_int32_array
+    }
+
+    #[inline]
+    pub fn typed_bigint64_array_object(&self) -> &StandardConstructor {
+        &self.typed_bigint64_array
+    }
+
+    #[inline]
+    pub fn typed_biguint64_array_object(&self) -> &StandardConstructor {
+        &self.typed_biguint64_array
+    }
+
+    #[inline]
+    pub fn typed_float32_array_object(&self) -> &StandardConstructor {
+        &self.typed_float32_array
+    }
+
+    #[inline]
+    pub fn typed_float64_array_object(&self) -> &StandardConstructor {
+        &self.typed_float64_array
+    }
+
+    #[inline]
+    pub fn array_buffer_object(&self) -> &StandardConstructor {
+        &self.array_buffer
+    }
+
+    #[inline]
+    pub fn data_view_object(&self) -> &StandardConstructor {
+        &self.data_view
+    }
 }
 
 /// Javascript context. It is the primary way to interact with the runtime.
@@ -222,13 +322,49 @@ impl StandardObjects {
 /// `Context`s constructed in a thread share the same runtime, therefore it
 /// is possible to share objects from one context to another context, but they
 /// have to be in the same thread.
+///
+/// # Examples
+///
+/// ## Execute Function of Script File
+///
+/// ```rust
+/// use boa::{Context, object::ObjectInitializer, property::{Attribute, PropertyDescriptor}};
+///
+/// let script = r#"
+/// function test(arg1) {
+///     if(arg1 != null) {
+///         return arg1.x;
+///     }
+///     return 112233;
+/// }
+/// "#;
+///
+/// let mut context = Context::default();
+///
+/// // Populate the script definition to the context.
+/// context.eval(script).unwrap();
+///
+/// // Create an object that can be used in eval calls.
+/// let arg = ObjectInitializer::new(&mut context)
+///     .property("x", 12, Attribute::READONLY)
+///     .build();
+/// context.register_global_property(
+///     "arg",
+///     arg,
+///     Attribute::all()
+/// );
+///
+/// let value = context.eval("test(arg)").unwrap();
+///
+/// assert_eq!(value.as_number(), Some(12.0))
+/// ```
 #[derive(Debug)]
 pub struct Context {
     /// realm holds both the global object and the environment
     pub(crate) realm: Realm,
 
-    /// The current executor.
-    executor: Interpreter,
+    /// String interner in the context.
+    interner: Interner,
 
     /// console object state.
     #[cfg(feature = "console")]
@@ -237,32 +373,56 @@ pub struct Context {
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 
+    /// Cached TypedArray constructor.
+    typed_array_constructor: StandardConstructor,
+
     /// Cached standard objects and their prototypes.
     standard_objects: StandardObjects,
 
-    /// Whether or not to show trace of instructions being ran
-    pub trace: bool,
+    /// Cached intrinsic objects
+    intrinsic_objects: IntrinsicObjects,
+
+    /// Whether or not global strict mode is active.
+    strict: bool,
+
+    pub(crate) vm: Vm,
 }
 
 impl Default for Context {
     fn default() -> Self {
-        let realm = Realm::create();
-        let executor = Interpreter::new();
         let mut context = Self {
-            realm,
-            executor,
+            realm: Realm::create(),
+            interner: Interner::default(),
             #[cfg(feature = "console")]
             console: Console::default(),
             iterator_prototypes: IteratorPrototypes::default(),
-            standard_objects: Default::default(),
-            trace: false,
+            typed_array_constructor: StandardConstructor::default(),
+            standard_objects: StandardObjects::default(),
+            intrinsic_objects: IntrinsicObjects::default(),
+            strict: false,
+            vm: Vm {
+                frame: None,
+                stack: Vec::with_capacity(1024),
+                trace: false,
+                stack_size_limit: 1024,
+            },
         };
 
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
+        let typed_array_constructor_constructor = TypedArray::init(&mut context);
+        let typed_array_constructor_prototype = typed_array_constructor_constructor
+            .get("prototype", &mut context)
+            .expect("prototype must exist")
+            .as_object()
+            .expect("prototype must be object")
+            .clone();
+        context.typed_array_constructor.constructor = typed_array_constructor_constructor;
+        context.typed_array_constructor.prototype = typed_array_constructor_prototype;
         context.create_intrinsics();
         context.iterator_prototypes = IteratorPrototypes::init(&mut context);
+        context.intrinsic_objects = IntrinsicObjects::init(&mut context);
         context
     }
 }
@@ -270,13 +430,23 @@ impl Default for Context {
 impl Context {
     /// Create a new `Context`.
     #[inline]
-    pub fn new() -> Self {
-        Default::default()
+    pub fn new(interner: Interner) -> Self {
+        Self {
+            interner,
+            ..Self::default()
+        }
     }
 
+    /// Gets the string interner.
     #[inline]
-    pub fn executor(&mut self) -> &mut Interpreter {
-        &mut self.executor
+    pub fn interner(&self) -> &Interner {
+        &self.interner
+    }
+
+    /// Gets a mutable reference to the string interner.
+    #[inline]
+    pub fn interner_mut(&mut self) -> &mut Interner {
+        &mut self.interner
     }
 
     /// A helper function for getting an immutable reference to the `console` object.
@@ -292,6 +462,18 @@ impl Context {
         &mut self.console
     }
 
+    /// Returns if strict mode is currently active.
+    #[inline]
+    pub fn strict(&self) -> bool {
+        self.strict
+    }
+
+    /// Set the global strict mode of the context.
+    #[inline]
+    pub fn set_strict_mode(&mut self, strict: bool) {
+        self.strict = strict;
+    }
+
     /// Sets up the default global objects within Global
     #[inline]
     fn create_intrinsics(&mut self) {
@@ -300,52 +482,85 @@ impl Context {
         builtins::init(self);
     }
 
-    /// Construct a new `Symbol` with an optional description.
+    /// Constructs an object with the `%Object.prototype%` prototype.
     #[inline]
-    pub fn construct_symbol(&mut self, description: Option<RcString>) -> RcSymbol {
-        RcSymbol::from(Symbol::new(description))
+    pub fn construct_object(&self) -> JsObject {
+        JsObject::from_proto_and_data(
+            self.standard_objects().object_object().prototype(),
+            ObjectData::ordinary(),
+        )
     }
 
-    /// Construct an empty object.
-    #[inline]
-    pub fn construct_object(&self) -> GcObject {
-        let object_prototype: Value = self.standard_objects().object_object().prototype().into();
-        GcObject::new(Object::create(object_prototype))
+    pub fn parse<S>(&mut self, src: S) -> Result<StatementList, ParseError>
+    where
+        S: AsRef<[u8]>,
+    {
+        Parser::new(src.as_ref(), self.strict).parse_all(&mut self.interner)
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
     #[inline]
-    pub(crate) fn call(&mut self, f: &Value, this: &Value, args: &[Value]) -> Result<Value> {
-        match *f {
-            Value::Object(ref object) => object.call(this, args, self),
-            _ => self.throw_type_error("not a function"),
-        }
+    pub(crate) fn call(
+        &mut self,
+        f: &JsValue,
+        this: &JsValue,
+        args: &[JsValue],
+    ) -> JsResult<JsValue> {
+        f.as_callable()
+            .ok_or_else(|| self.construct_type_error("Value is not callable"))
+            .and_then(|obj| obj.call(this, args, self))
     }
 
     /// Return the global object.
     #[inline]
-    pub fn global_object(&self) -> GcObject {
+    pub fn global_object(&self) -> JsObject {
         self.realm.global_object.clone()
+    }
+
+    /// Constructs a `Error` with the specified message.
+    #[inline]
+    pub fn construct_error<M>(&mut self, message: M) -> JsValue
+    where
+        M: Into<Box<str>>,
+    {
+        crate::builtins::error::Error::constructor(
+            &self.standard_objects().error_object().constructor().into(),
+            &[message.into().into()],
+            self,
+        )
+        .expect("Into<String> used as message")
+    }
+
+    /// Throws a `Error` with the specified message.
+    #[inline]
+    pub fn throw_error<M, R>(&mut self, message: M) -> JsResult<R>
+    where
+        M: Into<Box<str>>,
+    {
+        Err(self.construct_error(message))
     }
 
     /// Constructs a `RangeError` with the specified message.
     #[inline]
-    pub fn construct_range_error<M>(&mut self, message: M) -> Value
+    pub fn construct_range_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new RangeError(message)`.
-        New::from(Call::new(
-            Identifier::from("RangeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::RangeError::constructor(
+            &self
+                .standard_objects()
+                .range_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `RangeError` with the specified message.
     #[inline]
-    pub fn throw_range_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_range_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -354,22 +569,25 @@ impl Context {
 
     /// Constructs a `TypeError` with the specified message.
     #[inline]
-    pub fn construct_type_error<M>(&mut self, message: M) -> Value
+    pub fn construct_type_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
-        // Runs a `new TypeError(message)`.
-        New::from(Call::new(
-            Identifier::from("TypeError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::TypeError::constructor(
+            &self
+                .standard_objects()
+                .type_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `TypeError` with the specified message.
     #[inline]
-    pub fn throw_type_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_type_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -378,21 +596,25 @@ impl Context {
 
     /// Constructs a `ReferenceError` with the specified message.
     #[inline]
-    pub fn construct_reference_error<M>(&mut self, message: M) -> Value
+    pub fn construct_reference_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("ReferenceError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::ReferenceError::constructor(
+            &self
+                .standard_objects()
+                .reference_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `ReferenceError` with the specified message.
     #[inline]
-    pub fn throw_reference_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_reference_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -401,21 +623,25 @@ impl Context {
 
     /// Constructs a `SyntaxError` with the specified message.
     #[inline]
-    pub fn construct_syntax_error<M>(&mut self, message: M) -> Value
+    pub fn construct_syntax_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("SyntaxError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::SyntaxError::constructor(
+            &self
+                .standard_objects()
+                .syntax_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `SyntaxError` with the specified message.
     #[inline]
-    pub fn throw_syntax_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_syntax_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -423,33 +649,41 @@ impl Context {
     }
 
     /// Constructs a `EvalError` with the specified message.
-    pub fn construct_eval_error<M>(&mut self, message: M) -> Value
+    pub fn construct_eval_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("EvalError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::EvalError::constructor(
+            &self
+                .standard_objects()
+                .eval_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Constructs a `URIError` with the specified message.
-    pub fn construct_uri_error<M>(&mut self, message: M) -> Value
+    pub fn construct_uri_error<M>(&mut self, message: M) -> JsValue
     where
         M: Into<Box<str>>,
     {
-        New::from(Call::new(
-            Identifier::from("URIError"),
-            vec![Const::from(message.into()).into()],
-        ))
-        .run(self)
+        crate::builtins::error::UriError::constructor(
+            &self
+                .standard_objects()
+                .uri_error_object()
+                .constructor()
+                .into(),
+            &[message.into().into()],
+            self,
+        )
         .expect("Into<String> used as message")
     }
 
     /// Throws a `EvalError` with the specified message.
-    pub fn throw_eval_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_eval_error<M, R>(&mut self, message: M) -> JsResult<R>
     where
         M: Into<Box<str>>,
     {
@@ -457,113 +691,102 @@ impl Context {
     }
 
     /// Throws a `URIError` with the specified message.
-    pub fn throw_uri_error<M>(&mut self, message: M) -> Result<Value>
+    pub fn throw_uri_error<M>(&mut self, message: M) -> JsResult<JsValue>
     where
         M: Into<Box<str>>,
     {
         Err(self.construct_uri_error(message))
     }
 
-    /// Utility to create a function Value for Function Declarations, Arrow Functions or Function Expressions
-    pub(crate) fn create_function<P, B>(
-        &mut self,
-        params: P,
-        body: B,
-        flags: FunctionFlags,
-    ) -> Result<Value>
-    where
-        P: Into<Box<[FormalParameter]>>,
-        B: Into<StatementList>,
-    {
-        let function_prototype: Value =
-            self.standard_objects().function_object().prototype().into();
-
-        // Every new function has a prototype property pre-made
-        let proto = Value::new_object(self);
-
-        let params = params.into();
-        let params_len = params.len();
-        let func = Function::Ordinary {
-            flags,
-            body: RcStatementList::from(body.into()),
-            params,
-            environment: self.get_current_environment().clone(),
-        };
-
-        let new_func = Object::function(func, function_prototype);
-
-        let val = Value::from(new_func);
-
-        // Set constructor field to the newly created Value (function object)
-        proto.set_field("constructor", val.clone(), self)?;
-
-        val.set_field(PROTOTYPE, proto, self)?;
-        val.set_field("length", Value::from(params_len), self)?;
-
-        Ok(val)
-    }
-
-    /// Register a global function.
+    /// Register a global native function.
     ///
-    /// The function will be both `callable` and `constructable` (call with `new`).
+    /// This is more efficient that creating a closure function, since this does not allocate,
+    /// it is just a function pointer.
+    ///
+    /// The function will be both `constructable` (call with `new`).
     ///
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
     ///
     /// # Note
     ///
-    /// If you want to make a function only `callable` or `constructable`, or wish to bind it differently
-    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder).
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::native).
     /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
     #[inline]
     pub fn register_global_function(
         &mut self,
         name: &str,
         length: usize,
-        body: NativeFunction,
-    ) -> Result<()> {
-        let function = FunctionBuilder::new(self, body)
+        body: NativeFunctionSignature,
+    ) -> JsResult<()> {
+        let function = FunctionBuilder::native(self, body)
             .name(name)
             .length(length)
-            .callable(true)
-            .constructable(true)
+            .constructor(true)
             .build();
 
         self.global_object().insert_property(
             name,
-            function,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
+        );
+        Ok(())
+    }
+
+    /// Register a global closure function.
+    ///
+    /// The function will be both `constructable` (call with `new`).
+    ///
+    /// The function will be bound to the global object with `writable`, `non-enumerable`
+    /// and `configurable` attributes. The same as when you create a function in JavaScript.
+    ///
+    /// # Note #1
+    ///
+    /// If you want to make a function only `constructable`, or wish to bind it differently
+    /// to the global object, you can create the function object with [`FunctionBuilder`](crate::object::FunctionBuilder::closure).
+    /// And bind it to the global object with [`Context::register_global_property`](Context::register_global_property) method.
+    ///
+    /// # Note #2
+    ///
+    /// This function will only accept `Copy` closures, meaning you cannot
+    /// move `Clone` types, just `Copy` types. If you need to move `Clone` types
+    /// as captures, see [`FunctionBuilder::closure_with_captures`].
+    ///
+    /// See <https://github.com/boa-dev/boa/issues/1515> for an explanation on
+    /// why we need to restrict the set of accepted closures.
+    #[inline]
+    pub fn register_global_closure<F>(&mut self, name: &str, length: usize, body: F) -> JsResult<()>
+    where
+        F: Fn(&JsValue, &[JsValue], &mut Self) -> JsResult<JsValue> + Copy + 'static,
+    {
+        let function = FunctionBuilder::closure(self, body)
+            .name(name)
+            .length(length)
+            .constructor(true)
+            .build();
+
+        self.global_object().insert_property(
+            name,
+            PropertyDescriptor::builder()
+                .value(function)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
         );
         Ok(())
     }
 
     /// <https://tc39.es/ecma262/#sec-hasproperty>
     #[inline]
-    pub(crate) fn has_property(&self, obj: &Value, key: &PropertyKey) -> bool {
+    pub(crate) fn has_property(&mut self, obj: &JsValue, key: &PropertyKey) -> JsResult<bool> {
         if let Some(obj) = obj.as_object() {
-            obj.has_property(key)
+            obj.__has_property__(key, self)
         } else {
-            false
-        }
-    }
-
-    #[inline]
-    pub(crate) fn set_value(&mut self, node: &Node, value: Value) -> Result<Value> {
-        match node {
-            Node::Identifier(ref name) => {
-                self.set_mutable_binding(name.as_ref(), value.clone(), true)?;
-                Ok(value)
-            }
-            Node::GetConstField(ref get_const_field_node) => Ok(get_const_field_node
-                .obj()
-                .run(self)?
-                .set_field(get_const_field_node.field(), value, self)?),
-            Node::GetField(ref get_field) => {
-                let field = get_field.field().run(self)?;
-                let key = field.to_property_key(self)?;
-                Ok(get_field.obj().run(self)?.set_field(key, value, self)?)
-            }
-            _ => self.throw_type_error(format!("invalid assignment to {}", node)),
+            Ok(false)
         }
     }
 
@@ -581,7 +804,7 @@ impl Context {
     /// context.register_global_class::<MyClass>();
     /// ```
     #[inline]
-    pub fn register_global_class<T>(&mut self) -> Result<()>
+    pub fn register_global_class<T>(&mut self) -> JsResult<()>
     where
         T: Class,
     {
@@ -589,7 +812,11 @@ impl Context {
         T::init(&mut class_builder)?;
 
         let class = class_builder.build();
-        let property = DataDescriptor::new(class, T::ATTRIBUTE);
+        let property = PropertyDescriptor::builder()
+            .value(class)
+            .writable(T::ATTRIBUTES.writable())
+            .enumerable(T::ATTRIBUTES.enumerable())
+            .configurable(T::ATTRIBUTES.configurable());
         self.global_object().insert(T::NAME, property);
         Ok(())
     }
@@ -598,61 +825,48 @@ impl Context {
     ///
     /// # Example
     /// ```
-    /// use boa::{Context, property::Attribute, object::ObjectInitializer};
+    /// use boa::{Context, property::{Attribute, PropertyDescriptor}, object::ObjectInitializer};
     ///
-    /// let mut context = Context::new();
+    /// let mut context = Context::default();
     ///
-    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
+    /// context.register_global_property(
+    ///     "myPrimitiveProperty",
+    ///     10,
+    ///     Attribute::all()
+    /// );
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///    .property("x", 0, Attribute::all())
-    ///    .property("y", 1, Attribute::all())
+    ///    .property(
+    ///         "x",
+    ///         0,
+    ///         Attribute::all()
+    ///     )
+    ///     .property(
+    ///         "y",
+    ///         1,
+    ///         Attribute::all()
+    ///     )
     ///    .build();
-    /// context.register_global_property("myObjectProperty", object, Attribute::all());
+    /// context.register_global_property(
+    ///     "myObjectProperty",
+    ///     object,
+    ///     Attribute::all()
+    /// );
     /// ```
     #[inline]
     pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
     where
         K: Into<PropertyKey>,
-        V: Into<Value>,
+        V: Into<JsValue>,
     {
-        let property = DataDescriptor::new(value, attribute);
-        self.global_object().insert(key, property);
-    }
-
-    /// Evaluates the given code.
-    ///
-    /// # Examples
-    /// ```
-    ///# use boa::Context;
-    /// let mut context = Context::new();
-    ///
-    /// let value = context.eval("1 + 3").unwrap();
-    ///
-    /// assert!(value.is_number());
-    /// assert_eq!(value.as_number().unwrap(), 4.0);
-    /// ```
-    #[cfg(not(feature = "vm"))]
-    #[allow(clippy::unit_arg, clippy::drop_copy)]
-    #[inline]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
-        let main_timer = BoaProfiler::global().start_event("Main", "Main");
-        let src_bytes: &[u8] = src.as_ref();
-
-        let parsing_result = Parser::new(src_bytes, false)
-            .parse_all()
-            .map_err(|e| e.to_string());
-
-        let execution_result = match parsing_result {
-            Ok(statement_list) => statement_list.run(self),
-            Err(e) => self.throw_syntax_error(e),
-        };
-
-        // The main_timer needs to be dropped before the BoaProfiler is.
-        drop(main_timer);
-        BoaProfiler::global().drop();
-
-        execution_result
+        self.global_object().insert(
+            key,
+            PropertyDescriptor::builder()
+                .value(value)
+                .writable(attribute.writable())
+                .enumerable(attribute.enumerable())
+                .configurable(attribute.configurable()),
+        );
     }
 
     /// Evaluates the given code by compiling down to bytecode, then interpreting the bytecode into a value
@@ -660,21 +874,22 @@ impl Context {
     /// # Examples
     /// ```
     ///# use boa::Context;
-    /// let mut context = Context::new();
+    /// let mut context = Context::default();
     ///
     /// let value = context.eval("1 + 3").unwrap();
     ///
     /// assert!(value.is_number());
     /// assert_eq!(value.as_number().unwrap(), 4.0);
     /// ```
-    #[cfg(feature = "vm")]
     #[allow(clippy::unit_arg, clippy::drop_copy)]
-    pub fn eval<T: AsRef<[u8]>>(&mut self, src: T) -> Result<Value> {
-        let main_timer = BoaProfiler::global().start_event("Main", "Main");
-        let src_bytes: &[u8] = src.as_ref();
+    pub fn eval<S>(&mut self, src: S) -> JsResult<JsValue>
+    where
+        S: AsRef<[u8]>,
+    {
+        let main_timer = BoaProfiler::global().start_event("Evaluation", "Main");
 
-        let parsing_result = Parser::new(src_bytes, false)
-            .parse_all()
+        let parsing_result = Parser::new(src.as_ref(), false)
+            .parse_all(&mut self.interner)
             .map_err(|e| e.to_string());
 
         let statement_list = match parsing_result {
@@ -682,18 +897,51 @@ impl Context {
             Err(e) => return self.throw_syntax_error(e),
         };
 
-        let mut compiler = Compiler::default();
-        statement_list.compile(&mut compiler);
+        let code_block = self.compile(&statement_list);
+        let result = self.execute(code_block);
 
-        let mut vm = VM::new(compiler, self);
-        // Generate Bytecode and place it into instruction_stack
-        // Interpret the Bytecode
-        let result = vm.run();
         // The main_timer needs to be dropped before the BoaProfiler is.
         drop(main_timer);
         BoaProfiler::global().drop();
 
         result
+    }
+
+    /// Compile the AST into a `CodeBlock` ready to be executed by the VM.
+    #[inline]
+    pub fn compile(&mut self, statement_list: &StatementList) -> Gc<CodeBlock> {
+        let _ = BoaProfiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), &self.interner);
+        compiler.compile_statement_list(statement_list, true);
+        Gc::new(compiler.finish())
+    }
+
+    /// Call the VM with a `CodeBlock` and return the result.
+    ///
+    /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's
+    /// just a pointer copy. Therefore, if you'd like to execute the same `CodeBlock` multiple
+    /// times, there is no need to re-compile it, and you can just call `clone()` on the
+    /// `Gc<CodeBlock>` returned by the [`Self::compile()`] function.
+    #[inline]
+    pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
+        let _ = BoaProfiler::global().start_event("Execution", "Main");
+        let global_object = self.global_object().into();
+
+        self.vm.push_frame(CallFrame {
+            prev: None,
+            code: code_block,
+            this: global_object,
+            pc: 0,
+            catch: Vec::new(),
+            finally_return: FinallyReturn::None,
+            finally_jump: Vec::new(),
+            pop_on_return: 0,
+            pop_env_on_return: 0,
+            param_count: 0,
+            arg_count: 0,
+        });
+
+        self.run()
     }
 
     /// Return the cached iterator prototypes.
@@ -702,14 +950,26 @@ impl Context {
         &self.iterator_prototypes
     }
 
+    /// Return the cached `TypedArray` constructor.
+    #[inline]
+    pub(crate) fn typed_array_constructor(&self) -> &StandardConstructor {
+        &self.typed_array_constructor
+    }
+
     /// Return the core standard objects.
     #[inline]
     pub fn standard_objects(&self) -> &StandardObjects {
         &self.standard_objects
     }
 
+    /// Return the intrinsic objects.
+    #[inline]
+    pub fn intrinsics(&self) -> &IntrinsicObjects {
+        &self.intrinsic_objects
+    }
+
     /// Set the value of trace on the context
     pub fn set_trace(&mut self, trace: bool) {
-        self.trace = trace;
+        self.vm.trace = trace;
     }
 }

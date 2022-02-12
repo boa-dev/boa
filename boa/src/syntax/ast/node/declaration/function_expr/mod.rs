@@ -1,14 +1,13 @@
 use crate::{
-    builtins::function::FunctionFlags,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+use super::block_to_string;
 
 /// The `function` expression defines a function with the specified parameters.
 ///
@@ -29,7 +28,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionExpr {
-    name: Option<Box<str>>,
+    name: Option<Sym>,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
@@ -38,7 +37,7 @@ impl FunctionExpr {
     /// Creates a new function expression
     pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
     where
-        N: Into<Option<Box<str>>>,
+        N: Into<Option<Sym>>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
@@ -50,8 +49,8 @@ impl FunctionExpr {
     }
 
     /// Gets the name of the function declaration.
-    pub fn name(&self) -> Option<&str> {
-        self.name.as_ref().map(Box::as_ref)
+    pub fn name(&self) -> Option<Sym> {
+        self.name
     }
 
     /// Gets the list of parameters of the function declaration.
@@ -60,49 +59,33 @@ impl FunctionExpr {
     }
 
     /// Gets the body of the function declaration.
-    pub fn body(&self) -> &[Node] {
-        self.body.items()
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        f.write_str("function")?;
-        if let Some(ref name) = self.name {
-            write!(f, " {}", name)?;
+    ) -> String {
+        let mut buf = "function".to_owned();
+        if let Some(name) = self.name {
+            buf.push_str(&format!(" {}", interner.resolve_expect(name)));
         }
-        f.write_str("(")?;
-        join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
+        buf.push_str(&format!(
+            "({}) {}",
+            join_nodes(interner, &self.parameters),
+            block_to_string(&self.body, interner, indentation)
+        ));
 
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
+        buf
     }
 }
 
-impl Executable for FunctionExpr {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let val = context.create_function(
-            self.parameters().to_vec(),
-            self.body().to_vec(),
-            FunctionFlags::CALLABLE | FunctionFlags::CONSTRUCTABLE,
-        )?;
-
-        if let Some(name) = self.name() {
-            val.set_field("name", Value::from(name), context)?;
-        }
-
-        Ok(val)
-    }
-}
-
-impl fmt::Display for FunctionExpr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for FunctionExpr {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

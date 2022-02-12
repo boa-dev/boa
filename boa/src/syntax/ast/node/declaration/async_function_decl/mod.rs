@@ -1,12 +1,10 @@
 //! Async Function Declaration.
 
 use crate::{
-    exec::Executable,
+    gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    BoaProfiler, Context, Result, Value,
 };
-use gc::{Finalize, Trace};
-use std::fmt;
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -22,29 +20,28 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncFunctionDecl {
-    name: Option<Box<str>>,
+    name: Sym,
     parameters: Box<[FormalParameter]>,
     body: StatementList,
 }
 
 impl AsyncFunctionDecl {
     /// Creates a new async function declaration.
-    pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
+    pub(in crate::syntax) fn new<P, B>(name: Sym, parameters: P, body: B) -> Self
     where
-        N: Into<Option<Box<str>>>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
         Self {
-            name: name.into(),
+            name,
             parameters: parameters.into(),
             body: body.into(),
         }
     }
 
     /// Gets the name of the async function declaration.
-    pub fn name(&self) -> Option<&str> {
-        self.name.as_deref()
+    pub fn name(&self) -> Sym {
+        self.name
     }
 
     /// Gets the list of parameters of the async function declaration.
@@ -58,33 +55,27 @@ impl AsyncFunctionDecl {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        match &self.name {
-            Some(name) => {
-                write!(f, "async function {}(", name)?;
-            }
-            None => {
-                write!(f, "async function (")?;
-            }
+    ) -> String {
+        let mut buf = format!(
+            "async function {}({}",
+            interner.resolve_expect(self.name),
+            join_nodes(interner, &self.parameters)
+        );
+
+        if self.body().is_empty() {
+            buf.push_str(") {}");
+        } else {
+            buf.push_str(&format!(
+                ") {{\n{}{}}}",
+                self.body.to_indented_string(interner, indentation + 1),
+                "    ".repeat(indentation)
+            ));
         }
-        join_nodes(f, &self.parameters)?;
-        f.write_str(") {{")?;
-
-        self.body.display(f, indentation + 1)?;
-
-        writeln!(f, "}}")
-    }
-}
-
-impl Executable for AsyncFunctionDecl {
-    fn run(&self, _: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("AsyncFunctionDecl", "exec");
-        // TODO: Implement AsyncFunctionDecl
-        Ok(Value::undefined())
+        buf
     }
 }
 
@@ -94,8 +85,8 @@ impl From<AsyncFunctionDecl> for Node {
     }
 }
 
-impl fmt::Display for AsyncFunctionDecl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for AsyncFunctionDecl {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }

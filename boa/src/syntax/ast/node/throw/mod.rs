@@ -1,13 +1,14 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
+
+#[cfg(test)]
+mod tests;
 
 /// The `throw` statement throws a user-defined exception.
 ///
@@ -45,21 +46,14 @@ impl Throw {
     }
 }
 
-impl Executable for Throw {
-    #[inline]
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        Err(self.expr().run(context)?)
-    }
-}
-
-impl fmt::Display for Throw {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "throw {}", self.expr)
+impl ToInternedString for Throw {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!("throw {}", self.expr.to_interned_string(interner))
     }
 }
 
 impl From<Throw> for Node {
-    fn from(trw: Throw) -> Node {
+    fn from(trw: Throw) -> Self {
         Self::Throw(trw)
     }
 }

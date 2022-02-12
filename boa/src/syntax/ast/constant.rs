@@ -8,10 +8,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
 use crate::{
-    builtins::bigint::BigInt,
     gc::{Finalize, Trace},
+    JsBigInt,
 };
-use std::fmt::{Display, Formatter, Result};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -42,7 +42,7 @@ pub enum Const {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-string-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#String_literals
-    String(Box<str>),
+    String(Sym),
 
     /// A floating-point number literal.
     ///
@@ -76,7 +76,7 @@ pub enum Const {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-bigint-value
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Numeric_literals
-    BigInt(BigInt),
+    BigInt(JsBigInt),
 
     /// The Boolean type has two literal values: `true` and `false`.
     ///
@@ -115,27 +115,9 @@ pub enum Const {
     Undefined,
 }
 
-impl From<&str> for Const {
-    fn from(s: &str) -> Self {
-        Self::String(s.to_owned().into_boxed_str())
-    }
-}
-
-impl From<&String> for Const {
-    fn from(s: &String) -> Self {
-        Self::String(s.clone().into_boxed_str())
-    }
-}
-
-impl From<Box<str>> for Const {
-    fn from(s: Box<str>) -> Self {
-        Self::String(s)
-    }
-}
-
-impl From<String> for Const {
-    fn from(s: String) -> Self {
-        Self::String(s.into_boxed_str())
+impl From<Sym> for Const {
+    fn from(string: Sym) -> Self {
+        Self::String(string)
     }
 }
 
@@ -151,8 +133,8 @@ impl From<i32> for Const {
     }
 }
 
-impl From<BigInt> for Const {
-    fn from(i: BigInt) -> Self {
+impl From<JsBigInt> for Const {
+    fn from(i: JsBigInt) -> Self {
         Self::BigInt(i)
     }
 }
@@ -163,16 +145,18 @@ impl From<bool> for Const {
     }
 }
 
-impl Display for Const {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+impl ToInternedString for Const {
+    fn to_interned_string(&self, interner: &Interner) -> String {
         match *self {
-            Self::String(ref st) => write!(f, "\"{}\"", st),
-            Self::Num(num) => write!(f, "{}", num),
-            Self::Int(num) => write!(f, "{}", num),
-            Self::BigInt(ref num) => write!(f, "{}", num),
-            Self::Bool(v) => write!(f, "{}", v),
-            Self::Null => write!(f, "null"),
-            Self::Undefined => write!(f, "undefined"),
+            Self::String(st) => {
+                format!("\"{}\"", interner.resolve_expect(st))
+            }
+            Self::Num(num) => num.to_string(),
+            Self::Int(num) => num.to_string(),
+            Self::BigInt(ref num) => num.to_string(),
+            Self::Bool(v) => v.to_string(),
+            Self::Null => "null".to_owned(),
+            Self::Undefined => "undefined".to_owned(),
         }
     }
 }

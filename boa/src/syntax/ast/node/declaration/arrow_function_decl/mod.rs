@@ -1,11 +1,8 @@
 use crate::{
-    builtins::function::FunctionFlags,
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -49,38 +46,33 @@ impl ArrowFunctionDecl {
     }
 
     /// Gets the body of the arrow function.
-    pub(crate) fn body(&self) -> &[Node] {
-        &self.body.items()
+    pub(crate) fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        write!(f, "(")?;
-        join_nodes(f, &self.params)?;
-        f.write_str(") => ")?;
-        self.body.display(f, indentation)
+    ) -> String {
+        let mut buf = format!("({}", join_nodes(interner, &self.params));
+        if self.body().items().is_empty() {
+            buf.push_str(") => {}");
+        } else {
+            buf.push_str(&format!(
+                ") => {{\n{}{}}}",
+                self.body.to_indented_string(interner, indentation + 1),
+                "    ".repeat(indentation)
+            ));
+        }
+        buf
     }
 }
 
-impl Executable for ArrowFunctionDecl {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        context.create_function(
-            self.params().to_vec(),
-            self.body().to_vec(),
-            FunctionFlags::CALLABLE
-                | FunctionFlags::CONSTRUCTABLE
-                | FunctionFlags::LEXICAL_THIS_MODE,
-        )
-    }
-}
-
-impl fmt::Display for ArrowFunctionDecl {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for ArrowFunctionDecl {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

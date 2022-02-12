@@ -1,10 +1,8 @@
 use crate::{
-    exec::Executable,
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -59,30 +57,19 @@ impl ConditionalOp {
     }
 }
 
-impl Executable for ConditionalOp {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        Ok(if self.cond().run(context)?.to_boolean() {
-            self.if_true().run(context)?
-        } else {
-            self.if_false().run(context)?
-        })
-    }
-}
-
-impl fmt::Display for ConditionalOp {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(
-            f,
+impl ToInternedString for ConditionalOp {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
             "{} ? {} : {}",
-            self.cond(),
-            self.if_true(),
-            self.if_false()
+            self.cond().to_interned_string(interner),
+            self.if_true().to_interned_string(interner),
+            self.if_false().to_interned_string(interner)
         )
     }
 }
 
 impl From<ConditionalOp> for Node {
-    fn from(cond_op: ConditionalOp) -> Node {
+    fn from(cond_op: ConditionalOp) -> Self {
         Self::ConditionalOp(cond_op)
     }
 }

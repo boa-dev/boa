@@ -7,7 +7,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#Declarations
 //! [spec]:https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 
-mod hoistable;
+pub(in crate::syntax::parser) mod hoistable;
 mod lexical;
 #[cfg(test)]
 mod tests;
@@ -15,6 +15,7 @@ mod tests;
 use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
 
 use crate::syntax::lexer::TokenKind;
+use crate::Interner;
 use crate::{
     syntax::{
         ast::{Keyword, Node},
@@ -58,23 +59,26 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("Declaration", "Parsing");
-        let tok = cursor.peek(0)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Function) | TokenKind::Keyword(Keyword::Async) => {
-                HoistableDeclaration::new(self.allow_yield, self.allow_await, false).parse(cursor)
+            TokenKind::Keyword(Keyword::Function | Keyword::Async) => {
+                HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor, interner)
             }
-            TokenKind::Keyword(Keyword::Const) | TokenKind::Keyword(Keyword::Let) => {
-                LexicalDeclaration::new(
-                    true,
-                    self.allow_yield,
-                    self.allow_await,
-                    self.const_init_required,
-                )
-                .parse(cursor)
-            }
+            TokenKind::Keyword(Keyword::Const | Keyword::Let) => LexicalDeclaration::new(
+                true,
+                self.allow_yield,
+                self.allow_await,
+                self.const_init_required,
+            )
+            .parse(cursor, interner),
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }

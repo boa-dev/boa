@@ -5,6 +5,6 @@
 #![allow(clippy::unsafe_removed_from_name)]
 
 pub use gc::{
-    custom_trace, force_collect, unsafe_empty_trace as empty_trace, Finalize, GcCellRef as Ref,
-    GcCellRefMut as RefMut, Trace,
+    custom_trace, force_collect, unsafe_empty_trace as empty_trace, Finalize, Gc, GcCell as Cell,
+    GcCellRef as Ref, GcCellRefMut as RefMut, Trace,
 };

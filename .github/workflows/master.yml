@@ -1,22 +1,23 @@
-name: Master workflows
+name: Main workflows
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   benchmark:
+    if: ${{ github.actor != 'dependabot[bot]' }}
     name: Upload docs and run benchmarks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v2.4.0
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.6
+        uses: actions/cache@v2.1.7
         with:
           path: |
             target
@@ -34,7 +35,7 @@ jobs:
           if [ -d target/doc_upload ]; then rm -rf target/doc_upload; fi
           mkdir target/doc_upload && mv target/doc target/doc_upload/doc
       - name: Upload documentation
-        uses: crazy-max/ghaction-github-pages@v2.5.0
+        uses: crazy-max/ghaction-github-pages@v2.6.0
         with:
           target_branch: gh-pages
           keep_history: true
@@ -42,12 +43,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run benchmark
-        run: cargo bench -p Boa | tee output.txt
+        run: cargo bench -p Boa -- --output-format bencher | tee output.txt
       - name: Store benchmark result
-        uses: jasonwilliams/github-action-benchmark@v1
+        uses: benchmark-action/github-action-benchmark@v1.12.0
         with:
           name: Boa Benchmarks
-          tool: "criterion"
+          tool: "cargo"
           output-file-path: output.txt
           auto-push: true
           github-token: ${{ secrets.GITHUB_TOKEN }}

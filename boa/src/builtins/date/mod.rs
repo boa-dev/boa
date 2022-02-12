@@ -3,14 +3,20 @@ mod tests;
 
 use crate::{
     builtins::BuiltIn,
+    context::StandardObjects,
     gc::{empty_trace, Finalize, Trace},
-    object::{ConstructorBuilder, ObjectData, PROTOTYPE},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+    },
     property::Attribute,
-    value::{PreferredType, Value},
-    BoaProfiler, Context, Result,
+    symbol::WellKnownSymbols,
+    value::{JsValue, PreferredType},
+    BoaProfiler, Context, JsResult, JsString,
 };
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
+
+use super::JsArgs;
 
 /// The number of nanoseconds in a millisecond.
 const NANOS_PER_MS: i64 = 1_000_000;
@@ -23,9 +29,7 @@ const MILLIS_PER_SECOND: i64 = 1000;
 
 #[inline]
 fn is_zero_or_normal_opt(value: Option<f64>) -> bool {
-    value
-        .map(|value| value == 0f64 || value.is_normal())
-        .unwrap_or(true)
+    value.map_or(true, |value| value == 0f64 || value.is_normal())
 }
 
 macro_rules! check_normal_opt {
@@ -37,54 +41,23 @@ macro_rules! check_normal_opt {
 #[inline]
 fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
     match result {
-        LocalResult::Ambiguous(v, _) => Some(v),
-        LocalResult::Single(v) => Some(v),
+        LocalResult::Ambiguous(v, _) | LocalResult::Single(v) => Some(v),
         LocalResult::None => None,
     }
 }
 
 macro_rules! getter_method {
     ($name:ident) => {{
-        fn get_value(this: &Value, _: &[Value], context: &mut Context) -> Result<Value> {
-            Ok(Value::from(this_time_value(this, context)?.$name()))
+        fn get_value(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+            Ok(JsValue::new(this_time_value(this, context)?.$name()))
         }
         get_value
     }};
     (Self::$name:ident) => {{
-        fn get_value(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-            Ok(Value::from(Date::$name()))
+        fn get_value(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+            Ok(JsValue::new(Date::$name()))
         }
         get_value
-    }};
-}
-
-macro_rules! setter_method {
-    ($name:ident($($e:expr),* $(,)?)) => {{
-        fn set_value(this: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
-            let mut result = this_time_value(this, context)?;
-            result.$name(
-                $(
-                    args
-                        .get($e)
-                        .and_then(|value| {
-                            value.to_numeric_number(context).map_or_else(
-                                |_| None,
-                                |value| {
-                                    if value == 0f64 || value.is_normal() {
-                                        Some(value)
-                                    } else {
-                                        None
-                                    }
-                                },
-                            )
-                        })
-                ),*
-            );
-
-            this.set_data(ObjectData::Date(result));
-            Ok(Value::from(result.get_time()))
-        }
-        set_value
     }};
 }
 
@@ -115,11 +88,11 @@ impl Default for Date {
 impl BuiltIn for Date {
     const NAME: &'static str = "Date";
 
-    fn attribute() -> Attribute {
-        Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE
-    }
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> (&'static str, Value, Attribute) {
+    fn init(context: &mut Context) -> JsValue {
         let _timer = BoaProfiler::global().start_event(Self::NAME, "init");
 
         let date_object = ConstructorBuilder::new(context, Self::constructor)
@@ -135,11 +108,7 @@ impl BuiltIn for Date {
             .method(getter_method!(get_seconds), "getSeconds", 0)
             .method(getter_method!(get_time), "getTime", 0)
             .method(getter_method!(get_year), "getYear", 0)
-            .method(
-                getter_method!(Self::get_timezone_offset),
-                "getTimezoneOffset",
-                0,
-            )
+            .method(Self::get_timezone_offset, "getTimezoneOffset", 0)
             .method(getter_method!(get_utc_date), "getUTCDate", 0)
             .method(getter_method!(get_utc_day), "getUTCDay", 0)
             .method(getter_method!(get_utc_full_year), "getUTCFullYear", 0)
@@ -152,45 +121,42 @@ impl BuiltIn for Date {
             .method(getter_method!(get_utc_minutes), "getUTCMinutes", 0)
             .method(getter_method!(get_utc_month), "getUTCMonth", 0)
             .method(getter_method!(get_utc_seconds), "getUTCSeconds", 0)
-            .method(setter_method!(set_date(0)), "setDate", 1)
-            .method(setter_method!(set_full_year(0, 1, 2)), "setFullYear", 1)
-            .method(setter_method!(set_hours(0, 1, 2, 3)), "setHours", 1)
-            .method(setter_method!(set_milliseconds(0)), "setMilliseconds", 1)
-            .method(setter_method!(set_minutes(0, 1, 2)), "setMinutes", 1)
-            .method(setter_method!(set_month(0, 1)), "setMonth", 1)
-            .method(setter_method!(set_seconds(0, 1)), "setSeconds", 1)
-            .method(setter_method!(set_year(0, 1, 2)), "setYear", 1)
-            .method(setter_method!(set_time(0)), "setTime", 1)
-            .method(setter_method!(set_utc_date(0)), "setUTCDate", 1)
-            .method(
-                setter_method!(set_utc_full_year(0, 1, 2)),
-                "setUTCFullYear",
-                1,
-            )
-            .method(setter_method!(set_utc_hours(0, 1, 2, 3)), "setUTCHours", 1)
-            .method(
-                setter_method!(set_utc_milliseconds(0)),
-                "setUTCMilliseconds",
-                1,
-            )
-            .method(setter_method!(set_utc_minutes(0, 1, 2)), "setUTCMinutes", 1)
-            .method(setter_method!(set_utc_month(0, 1)), "setUTCMonth", 1)
-            .method(setter_method!(set_utc_seconds(0, 1)), "setUTCSeconds", 1)
-            .method(getter_method!(to_date_string), "toDateString", 0)
+            .method(Self::set_date, "setDate", 1)
+            .method(Self::set_full_year, "setFullYear", 3)
+            .method(Self::set_hours, "setHours", 4)
+            .method(Self::set_milliseconds, "setMilliseconds", 1)
+            .method(Self::set_minutes, "setMinutes", 3)
+            .method(Self::set_month, "setMonth", 2)
+            .method(Self::set_seconds, "setSeconds", 2)
+            .method(Self::set_year, "setYear", 1)
+            .method(Self::set_time, "setTime", 1)
+            .method(Self::set_utc_date, "setUTCDate", 1)
+            .method(Self::set_utc_full_year, "setUTCFullYear", 3)
+            .method(Self::set_utc_hours, "setUTCHours", 4)
+            .method(Self::set_utc_milliseconds, "setUTCMilliseconds", 1)
+            .method(Self::set_utc_minutes, "setUTCMinutes", 3)
+            .method(Self::set_utc_month, "setUTCMonth", 2)
+            .method(Self::set_utc_seconds, "setUTCSeconds", 2)
+            .method(Self::to_date_string, "toDateString", 0)
             .method(getter_method!(to_gmt_string), "toGMTString", 0)
-            .method(getter_method!(to_iso_string), "toISOString", 0)
-            .method(getter_method!(to_json), "toJSON", 0)
+            .method(Self::to_iso_string, "toISOString", 0)
+            .method(Self::to_json, "toJSON", 1)
             // Locale strings
-            .method(getter_method!(to_string), "toString", 0)
-            .method(getter_method!(to_time_string), "toTimeString", 0)
+            .method(Self::to_string, "toString", 0)
+            .method(Self::to_time_string, "toTimeString", 0)
             .method(getter_method!(to_utc_string), "toUTCString", 0)
             .method(getter_method!(value_of), "valueOf", 0)
+            .method(
+                Self::to_primitive,
+                (WellKnownSymbols::to_primitive(), "[Symbol.toPrimitive]"),
+                1,
+            )
             .static_method(Self::now, "now", 0)
             .static_method(Self::parse, "parse", 1)
             .static_method(Self::utc, "UTC", 7)
             .build();
 
-        (Self::NAME, date_object.into(), Self::attribute())
+        date_object.into()
     }
 }
 
@@ -198,7 +164,7 @@ impl Date {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 7;
 
-    /// Check if the time (number of miliseconds) is in the expected range.
+    /// Check if the time (number of milliseconds) is in the expected range.
     /// Returns None if the time is not in the range, otherwise returns the time itself in option.
     ///
     /// More information:
@@ -217,7 +183,8 @@ impl Date {
     /// Converts the `Date` to a local `DateTime`.
     ///
     /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
-    pub fn to_local(&self) -> Option<DateTime<Local>> {
+    #[inline]
+    pub fn to_local(self) -> Option<DateTime<Local>> {
         self.0
             .map(|utc| Local::now().timezone().from_utc_datetime(&utc))
     }
@@ -225,7 +192,7 @@ impl Date {
     /// Converts the `Date` to a UTC `DateTime`.
     ///
     /// If the `Date` is invalid (i.e. NAN), this function will return `None`.
-    pub fn to_utc(&self) -> Option<DateTime<Utc>> {
+    pub fn to_utc(self) -> Option<DateTime<Utc>> {
         self.0
             .map(|utc| Utc::now().timezone().from_utc_datetime(&utc))
     }
@@ -320,14 +287,14 @@ impl Date {
         };
 
         self.0 = naive.and_then(|naive| {
-            let year = year.unwrap_or_else(|| naive.year() as f64) as i32;
-            let month = month.unwrap_or_else(|| naive.month0() as f64) as i32;
-            let day = (day.unwrap_or_else(|| naive.day() as f64) as i32).checked_sub(1)?;
-            let hour = hour.unwrap_or_else(|| naive.hour() as f64) as i64;
-            let minute = minute.unwrap_or_else(|| naive.minute() as f64) as i64;
-            let second = second.unwrap_or_else(|| naive.second() as f64) as i64;
+            let year = year.unwrap_or_else(|| f64::from(naive.year())) as i32;
+            let month = month.unwrap_or_else(|| f64::from(naive.month0())) as i32;
+            let day = (day.unwrap_or_else(|| f64::from(naive.day())) as i32).checked_sub(1)?;
+            let hour = hour.unwrap_or_else(|| f64::from(naive.hour())) as i64;
+            let minute = minute.unwrap_or_else(|| f64::from(naive.minute())) as i64;
+            let second = second.unwrap_or_else(|| f64::from(naive.second())) as i64;
             let millisecond = millisecond
-                .unwrap_or_else(|| naive.nanosecond() as f64 / NANOS_PER_MS as f64)
+                .unwrap_or_else(|| f64::from(naive.nanosecond()) / NANOS_PER_MS as f64)
                 as i64;
 
             let (year, month, day) = fix_day(year, month, day)?;
@@ -366,32 +333,26 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn constructor(
-        new_target: &Value,
-        args: &[Value],
+        new_target: &JsValue,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsValue> {
         if new_target.is_undefined() {
             Ok(Self::make_date_string())
         } else {
-            let prototype = new_target
-                .as_object()
-                .and_then(|obj| {
-                    obj.get(&PROTOTYPE.into(), obj.clone().into(), context)
-                        .map(|o| o.as_object())
-                        .transpose()
-                })
-                .transpose()?
-                .unwrap_or_else(|| context.standard_objects().object_object().prototype());
-            let mut obj = context.construct_object();
-            obj.set_prototype_instance(prototype.into());
-            let this = obj.into();
-            if args.is_empty() {
-                Ok(Self::make_date_now(&this))
+            let prototype = get_prototype_from_constructor(
+                new_target,
+                StandardObjects::object_object,
+                context,
+            )?;
+            Ok(if args.is_empty() {
+                Self::make_date_now(prototype)
             } else if args.len() == 1 {
-                Self::make_date_single(&this, args, context)
+                Self::make_date_single(prototype, args, context)?
             } else {
-                Self::make_date_multiple(&this, args, context)
+                Self::make_date_multiple(prototype, args, context)?
             }
+            .into())
         }
     }
 
@@ -405,8 +366,8 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_string() -> Value {
-        Value::from(Local::now().to_rfc3339())
+    pub(crate) fn make_date_string() -> JsValue {
+        JsValue::new(Local::now().to_rfc3339())
     }
 
     /// `Date()`
@@ -419,10 +380,8 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
-    pub(crate) fn make_date_now(this: &Value) -> Value {
-        let date = Date::default();
-        this.set_data(ObjectData::Date(date));
-        this.clone()
+    pub(crate) fn make_date_now(prototype: JsObject) -> JsObject {
+        JsObject::from_proto_and_data(prototype, ObjectData::date(Self::default()))
     }
 
     /// `Date(value)`
@@ -436,31 +395,36 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_single(
-        this: &Value,
-        args: &[Value],
+        prototype: JsObject,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
+    ) -> JsResult<JsObject> {
         let value = &args[0];
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
             _ => match value.to_primitive(context, PreferredType::Default)? {
-                Value::String(ref str) => match chrono::DateTime::parse_from_rfc3339(&str) {
+                JsValue::String(ref str) => match chrono::DateTime::parse_from_rfc3339(str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
                 },
                 tv => {
                     let tv = tv.to_number(context)?;
-                    let secs = (tv / 1_000f64) as i64;
-                    let nsecs = ((tv % 1_000f64) * 1_000_000f64) as u32;
-                    NaiveDateTime::from_timestamp_opt(secs, nsecs)
+                    if tv.is_nan() {
+                        None
+                    } else {
+                        let secs = (tv / 1_000f64) as i64;
+                        let nano_secs = ((tv % 1_000f64) * 1_000_000f64) as u32;
+                        NaiveDateTime::from_timestamp_opt(secs, nano_secs)
+                    }
                 }
             },
         };
 
         let tv = tv.filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
-        let date = Date(tv);
-        this.set_data(ObjectData::Date(date));
-        Ok(this.clone())
+        Ok(JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::date(Self(tv)),
+        ))
     }
 
     /// `Date(year, month [ , date [ , hours [ , minutes [ , seconds [ , ms ] ] ] ] ])`
@@ -474,11 +438,11 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date-constructor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/Date
     pub(crate) fn make_date_multiple(
-        this: &Value,
-        args: &[Value],
+        prototype: JsObject,
+        args: &[JsValue],
         context: &mut Context,
-    ) -> Result<Value> {
-        let year = args[0].to_number(context)?;
+    ) -> JsResult<JsObject> {
+        let mut year = args[0].to_number(context)?;
         let month = args[1].to_number(context)?;
         let day = args
             .get(2)
@@ -498,34 +462,82 @@ impl Date {
 
         // If any of the args are infinity or NaN, return an invalid date.
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
-            let date = Date(None);
-            this.set_data(ObjectData::Date(date));
-            return Ok(this.clone());
+            return Ok(JsObject::from_proto_and_data(
+                prototype,
+                ObjectData::date(Self(None)),
+            ));
         }
 
-        let year = year as i32;
-        let month = month as u32;
-        let day = day as u32;
-        let hour = hour as u32;
-        let min = min as u32;
-        let sec = sec as u32;
-        let milli = milli as u32;
+        if (0.0..=99.0).contains(&year) {
+            year += 1900.0;
+        }
 
-        let year = if (0..=99).contains(&year) {
-            1900 + year
+        let mut date = Self(
+            NaiveDateTime::from_timestamp_opt(0, 0)
+                .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                .map(|local| local.naive_utc())
+                .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some()),
+        );
+
+        date.set_components(
+            false,
+            Some(year),
+            Some(month),
+            Some(day),
+            Some(hour),
+            Some(min),
+            Some(sec),
+            Some(milli),
+        );
+
+        Ok(JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::date(date),
+        ))
+    }
+
+    /// `Date.prototype[@@toPrimitive]`
+    ///
+    /// The [@@toPrimitive]() method converts a Date object to a primitive value.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype-@@toprimitive
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/@@toPrimitive
+    #[allow(clippy::wrong_self_convention)]
+    pub(crate) fn to_primitive(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. If Type(O) is not Object, throw a TypeError exception.
+        let o = if let Some(o) = this.as_object() {
+            o
         } else {
-            year
+            return context.throw_type_error("Date.prototype[@@toPrimitive] called on non object");
         };
 
-        let final_date = NaiveDate::from_ymd_opt(year, month + 1, day)
-            .and_then(|naive_date| naive_date.and_hms_milli_opt(hour, min, sec, milli))
-            .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
-            .map(|local| local.naive_utc())
-            .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
+        let hint = args.get_or_undefined(0);
 
-        let date = Date(final_date);
-        this.set_data(ObjectData::Date(date));
-        Ok(this.clone())
+        let try_first = match hint.as_string().map(JsString::as_str) {
+            // 3. If hint is "string" or "default", then
+            // a. Let tryFirst be string.
+            Some("string" | "default") => PreferredType::String,
+            // 4. Else if hint is "number", then
+            // a. Let tryFirst be number.
+            Some("number") => PreferredType::Number,
+            // 5. Else, throw a TypeError exception.
+            _ => {
+                return context
+                    .throw_type_error("Date.prototype[@@toPrimitive] called with invalid hint")
+            }
+        };
+
+        // 6. Return ? OrdinaryToPrimitive(O, tryFirst).
+        o.ordinary_to_primitive(context, try_first)
     }
 
     /// `Date.prototype.getDate()`
@@ -539,7 +551,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDate
     pub fn get_date(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.day() as f64)
+        self.to_local().map_or(f64::NAN, |dt| f64::from(dt.day()))
     }
 
     /// `Date.prototype.getDay()`
@@ -557,7 +569,7 @@ impl Date {
         self.to_local().map_or(f64::NAN, |dt| {
             let weekday = dt.weekday() as u32;
             let weekday = (weekday + 1) % 7; // 0 represents Monday in Chrono
-            weekday as f64
+            f64::from(weekday)
         })
     }
 
@@ -572,7 +584,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getfullyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getFullYear
     pub fn get_full_year(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.year() as f64)
+        self.to_local().map_or(f64::NAN, |dt| f64::from(dt.year()))
     }
 
     /// `Date.prototype.getHours()`
@@ -586,7 +598,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gethours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getHours
     pub fn get_hours(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.hour() as f64)
+        self.to_local().map_or(f64::NAN, |dt| f64::from(dt.hour()))
     }
 
     /// `Date.prototype.getMilliseconds()`
@@ -600,8 +612,9 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmilliseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMilliseconds
     pub fn get_milliseconds(&self) -> f64 {
-        self.to_local()
-            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_PER_MS as f64)
+        self.to_local().map_or(f64::NAN, |dt| {
+            f64::from(dt.nanosecond()) / NANOS_PER_MS as f64
+        })
     }
 
     /// `Date.prototype.getMinutes()`
@@ -615,7 +628,8 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMinutes
     pub fn get_minutes(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.minute() as f64)
+        self.to_local()
+            .map_or(f64::NAN, |dt| f64::from(dt.minute()))
     }
 
     /// `Date.prototype.getMonth()`
@@ -630,7 +644,8 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getMonth
     pub fn get_month(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.month0() as f64)
+        self.to_local()
+            .map_or(f64::NAN, |dt| f64::from(dt.month0()))
     }
 
     /// `Date.prototype.getSeconds()`
@@ -644,13 +659,15 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getSeconds
     pub fn get_seconds(&self) -> f64 {
-        self.to_local().map_or(f64::NAN, |dt| dt.second() as f64)
+        self.to_local()
+            .map_or(f64::NAN, |dt| f64::from(dt.second()))
     }
 
     /// `Date.prototype.getYear()`
     ///
-    /// The getYear() method returns the year in the specified date according to local time. Because getYear() does not
-    /// return full years ("year 2000 problem"), it is no longer used and has been replaced by the getFullYear() method.
+    /// The `getYear()` method returns the year in the specified date according to local time.
+    /// Because `getYear()` does not return full years ("year 2000 problem"), it is no longer used
+    /// and has been replaced by the `getFullYear()` method.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -660,7 +677,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getYear
     pub fn get_year(&self) -> f64 {
         self.to_local()
-            .map_or(f64::NAN, |dt| dt.year() as f64 - 1900f64)
+            .map_or(f64::NAN, |dt| f64::from(dt.year()) - 1900f64)
     }
 
     /// `Date.prototype.getTime()`
@@ -680,7 +697,7 @@ impl Date {
 
     /// `Date.prototype.getTimeZoneOffset()`
     ///
-    /// The getTimezoneOffset() method returns the time zone difference, in minutes, from current locale (host system
+    /// The `getTimezoneOffset()` method returns the time zone difference, in minutes, from current locale (host system
     /// settings) to UTC.
     ///
     /// More information:
@@ -690,9 +707,23 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gettimezoneoffset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset
     #[inline]
-    pub fn get_timezone_offset() -> f64 {
-        let offset_seconds = chrono::Local::now().offset().local_minus_utc() as f64;
-        offset_seconds / 60f64
+    pub fn get_timezone_offset(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let t = this_time_value(this, context)?;
+
+        // 2. If t is NaN, return NaN.
+        if t.0.is_none() {
+            return Ok(JsValue::nan());
+        }
+
+        // 3. Return (t - LocalTime(t)) / msPerMinute.
+        Ok(JsValue::new(
+            f64::from(-Local::now().offset().local_minus_utc()) / 60f64,
+        ))
     }
 
     /// `Date.prototype.getUTCDate()`
@@ -706,7 +737,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCDate
     pub fn get_utc_date(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.day() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.day()))
     }
 
     /// `Date.prototype.getUTCDay()`
@@ -724,7 +755,7 @@ impl Date {
         self.to_utc().map_or(f64::NAN, |dt| {
             let weekday = dt.weekday() as u32;
             let weekday = (weekday + 1) % 7; // 0 represents Monday in Chrono
-            weekday as f64
+            f64::from(weekday)
         })
     }
 
@@ -739,7 +770,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcfullyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCFullYear
     pub fn get_utc_full_year(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.year() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.year()))
     }
 
     /// `Date.prototype.getUTCHours()`
@@ -753,7 +784,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutchours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCHours
     pub fn get_utc_hours(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.hour() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.hour()))
     }
 
     /// `Date.prototype.getUTCMilliseconds()`
@@ -767,8 +798,9 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmilliseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMilliseconds
     pub fn get_utc_milliseconds(&self) -> f64 {
-        self.to_utc()
-            .map_or(f64::NAN, |dt| dt.nanosecond() as f64 / NANOS_PER_MS as f64)
+        self.to_utc().map_or(f64::NAN, |dt| {
+            f64::from(dt.nanosecond()) / NANOS_PER_MS as f64
+        })
     }
 
     /// `Date.prototype.getUTCMinutes()`
@@ -782,7 +814,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMinutes
     pub fn get_utc_minutes(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.minute() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.minute()))
     }
 
     /// `Date.prototype.getUTCMonth()`
@@ -797,7 +829,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCMonth
     pub fn get_utc_month(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.month0() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.month0()))
     }
 
     /// `Date.prototype.getUTCSeconds()`
@@ -811,7 +843,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getutcseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getUTCSeconds
     pub fn get_utc_seconds(&self) -> f64 {
-        self.to_utc().map_or(f64::NAN, |dt| dt.second() as f64)
+        self.to_utc().map_or(f64::NAN, |dt| f64::from(dt.second()))
     }
 
     /// `Date.prototype.setDate()`
@@ -825,12 +857,28 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
-    pub fn set_date(&mut self, day: Option<f64>) {
-        if let Some(day) = day {
-            self.set_components(false, None, None, Some(day), None, None, None, None)
-        } else {
-            self.0 = None
-        }
+    pub fn set_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let t be LocalTime(? thisTimeValue(this value)).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let dt be ? ToNumber(date).
+        let dt = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. Let newDate be MakeDate(MakeDay(YearFromTime(t), MonthFromTime(t), dt), TimeWithinDay(t)).
+        t.set_components(false, None, None, Some(dt), None, None, None, None);
+
+        // 4. Let u be TimeClip(UTC(newDate)).
+        let u = t.get_time();
+
+        // 5. Set the [[DateValue]] internal slot of this Date object to u.
+        this.set_data(ObjectData::date(t));
+
+        // 6. Return u.
+        Ok(u.into())
     }
 
     /// `Date.prototype.setFullYear()`
@@ -844,12 +892,54 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setfullyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setFullYear
-    pub fn set_full_year(&mut self, year: Option<f64>, month: Option<f64>, day: Option<f64>) {
-        if let Some(year) = year {
-            self.set_components(false, Some(year), month, day, None, None, None, None)
-        } else {
-            self.0 = None
+    pub fn set_full_year(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
+        if t.0.is_none() {
+            t.0 = NaiveDateTime::from_timestamp_opt(0, 0)
+                .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                .map(|local| local.naive_utc())
+                .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
         }
+
+        // 3. Let y be ? ToNumber(year).
+        let y = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 4. If month is not present, let m be MonthFromTime(t); otherwise, let m be ? ToNumber(month).
+        let m = if let Some(m) = args.get(1) {
+            Some(m.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 5. If date is not present, let dt be DateFromTime(t); otherwise, let dt be ? ToNumber(date).
+        let dt = if let Some(dt) = args.get(2) {
+            Some(dt.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 6. Let newDate be MakeDate(MakeDay(y, m, dt), TimeWithinDay(t)).
+        t.set_components(false, Some(y), m, dt, None, None, None, None);
+
+        // 7. Let u be TimeClip(UTC(newDate)).
+        let u = t.get_time();
+
+        // 8. Set the [[DateValue]] internal slot of this Date object to u.
+        this.set_data(ObjectData::date(t));
+
+        // 9. Return u.
+        Ok(u.into())
     }
 
     /// `Date.prototype.setHours()`
@@ -864,27 +954,49 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.sethours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setHours
-    pub fn set_hours(
-        &mut self,
-        hour: Option<f64>,
-        minute: Option<f64>,
-        second: Option<f64>,
-        millisecond: Option<f64>,
-    ) {
-        if let Some(hour) = hour {
-            self.set_components(
-                false,
-                None,
-                None,
-                None,
-                Some(hour),
-                minute,
-                second,
-                millisecond,
-            )
+    pub fn set_hours(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let t be LocalTime(? thisTimeValue(this value)).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let h be ? ToNumber(hour).
+        let h = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If min is not present, let m be MinFromTime(t); otherwise, let m be ? ToNumber(min).
+        let m = if let Some(m) = args.get(1) {
+            Some(m.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 4. If sec is not present, let s be SecFromTime(t); otherwise, let s be ? ToNumber(sec).
+        let sec = if let Some(sec) = args.get(2) {
+            Some(sec.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 5. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
+        let milli = if let Some(milli) = args.get(3) {
+            Some(milli.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 6. Let date be MakeDate(Day(t), MakeTime(h, m, s, milli)).
+        t.set_components(false, None, None, None, Some(h), m, sec, milli);
+
+        // 7. Let u be TimeClip(UTC(date)).
+        let u = t.get_time();
+
+        // 8. Set the [[DateValue]] internal slot of this Date object to u.
+        this.set_data(ObjectData::date(t));
+
+        // 9. Return u.
+        Ok(u.into())
     }
 
     /// `Date.prototype.setMilliseconds()`
@@ -897,12 +1009,32 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmilliseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMilliseconds
-    pub fn set_milliseconds(&mut self, millisecond: Option<f64>) {
-        if let Some(millisecond) = millisecond {
-            self.set_components(false, None, None, None, None, None, None, Some(millisecond))
-        } else {
-            self.0 = None
-        }
+    pub fn set_milliseconds(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be LocalTime(? thisTimeValue(this value)).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Set ms to ? ToNumber(ms).
+        let ms = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. Let time be MakeTime(HourFromTime(t), MinFromTime(t), SecFromTime(t), ms).
+        t.set_components(false, None, None, None, None, None, None, Some(ms));
+
+        // 4. Let u be TimeClip(UTC(MakeDate(Day(t), time))).
+        let u = t.get_time();
+
+        // 5. Set the [[DateValue]] internal slot of this Date object to u.
+        this.set_data(ObjectData::date(t));
+
+        // 6. Return u.
+        Ok(u.into())
     }
 
     /// `Date.prototype.setMinutes()`
@@ -916,25 +1048,45 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMinutes
     pub fn set_minutes(
-        &mut self,
-        minute: Option<f64>,
-        second: Option<f64>,
-        millisecond: Option<f64>,
-    ) {
-        if let Some(minute) = minute {
-            self.set_components(
-                false,
-                None,
-                None,
-                None,
-                None,
-                Some(minute),
-                second,
-                millisecond,
-            )
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be LocalTime(? thisTimeValue(this value)).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let m be ? ToNumber(min).
+        let m = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If sec is not present, let s be SecFromTime(t); otherwise, let s be ? ToNumber(sec).
+        let s = if let Some(s) = args.get(1) {
+            Some(s.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 4. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
+        let milli = if let Some(milli) = args.get(2) {
+            Some(milli.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 5. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), m, s, milli)).
+        t.set_components(false, None, None, None, None, Some(m), s, milli);
+
+        // 6. Let u be TimeClip(UTC(date)).
+        let u = t.get_time();
+
+        // 7. Set the [[DateValue]] internal slot of this Date object to u.
+        this.set_data(ObjectData::date(t));
+
+        // 8. Return u.
+        Ok(u.into())
     }
 
     /// `Date.prototype.setMonth()`
@@ -947,12 +1099,35 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMonth
-    pub fn set_month(&mut self, month: Option<f64>, day: Option<f64>) {
-        if let Some(month) = month {
-            self.set_components(false, None, Some(month), day, None, None, None, None)
+    pub fn set_month(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let t be LocalTime(? thisTimeValue(this value)).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let m be ? ToNumber(month).
+        let m = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If date is not present, let dt be DateFromTime(t); otherwise, let dt be ? ToNumber(date).
+        let dt = if let Some(date) = args.get(1) {
+            Some(date.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 4. Let newDate be MakeDate(MakeDay(YearFromTime(t), m, dt), TimeWithinDay(t)).
+        t.set_components(false, None, Some(m), dt, None, None, None, None);
+
+        // 5. Let u be TimeClip(UTC(newDate)).
+        let u = t.get_time();
+
+        // 6. Set the [[DateValue]] internal slot of this Date object to u.
+        this.set_data(ObjectData::date(t));
+
+        // 7. Return u.
+        Ok(u.into())
     }
 
     /// `Date.prototype.setSeconds()`
@@ -965,21 +1140,39 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setSeconds
-    pub fn set_seconds(&mut self, second: Option<f64>, millisecond: Option<f64>) {
-        if let Some(second) = second {
-            self.set_components(
-                false,
-                None,
-                None,
-                None,
-                None,
-                None,
-                Some(second),
-                millisecond,
-            )
+    pub fn set_seconds(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be LocalTime(? thisTimeValue(this value)).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let s be ? ToNumber(sec).
+        let s = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
+        let milli = if let Some(milli) = args.get(1) {
+            Some(milli.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 4. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), MinFromTime(t), s, milli)).
+        t.set_components(false, None, None, None, None, None, Some(s), milli);
+
+        // 5. Let u be TimeClip(UTC(date)).
+        let u = t.get_time();
+
+        // 6. Set the [[DateValue]] internal slot of this Date object to u.
+        this.set_data(ObjectData::date(t));
+
+        // 7. Return u.
+        Ok(u.into())
     }
 
     /// `Date.prototype.setYear()`
@@ -992,17 +1185,50 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear
-    pub fn set_year(&mut self, year: Option<f64>, month: Option<f64>, day: Option<f64>) {
-        if let Some(mut year) = year {
-            year += if (0f64..100f64).contains(&year) {
-                1900f64
-            } else {
-                0f64
-            };
-            self.set_components(false, Some(year), month, day, None, None, None, None)
-        } else {
-            self.0 = None
+    pub fn set_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
+        if t.0.is_none() {
+            t.0 = NaiveDateTime::from_timestamp_opt(0, 0)
+                .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                .map(|local| local.naive_utc())
+                .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
         }
+
+        // 3. Let y be ? ToNumber(year).
+        let mut y = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 4. If y is NaN, then
+        if y.is_nan() {
+            // a. Set the [[DateValue]] internal slot of this Date object to NaN.
+            this.set_data(ObjectData::date(Self(None)));
+
+            // b. Return NaN.
+            return Ok(JsValue::nan());
+        }
+
+        // 5. Let yi be ! ToIntegerOrInfinity(y).
+        // 6. If 0 ≤ yi ≤ 99, let yyyy be 1900𝔽 + 𝔽(yi).
+        // 7. Else, let yyyy be y.
+        if (0f64..=99f64).contains(&y) {
+            y += 1900f64;
+        }
+
+        // 8. Let d be MakeDay(yyyy, MonthFromTime(t), DateFromTime(t)).
+        // 9. Let date be UTC(MakeDate(d, TimeWithinDay(t))).
+        t.set_components(false, Some(y), None, None, None, None, None, None);
+
+        // 10. Set the [[DateValue]] internal slot of this Date object to TimeClip(date).
+        this.set_data(ObjectData::date(t));
+
+        // 11. Return the value of the [[DateValue]] internal slot of this Date object.
+        Ok(t.get_time().into())
     }
 
     /// `Date.prototype.setTime()`
@@ -1016,14 +1242,31 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.settime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setTime
-    pub fn set_time(&mut self, time: Option<f64>) {
-        if let Some(time) = time {
-            let secs = (time / 1_000f64) as i64;
-            let nsecs = ((time % 1_000f64) * 1_000_000f64) as u32;
-            self.0 = ignore_ambiguity(Local.timestamp_opt(secs, nsecs)).map(|dt| dt.naive_utc());
+    pub fn set_time(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Perform ? thisTimeValue(this value).
+        this_time_value(this, context)?;
+
+        // 2. Let t be ? ToNumber(time).
+        let t = if let Some(t) = args.get(0) {
+            let t = t.to_number(context)?;
+            let seconds = (t / 1_000f64) as i64;
+            let nanoseconds = ((t % 1_000f64) * 1_000_000f64) as u32;
+            Self(
+                ignore_ambiguity(Local.timestamp_opt(seconds, nanoseconds))
+                    .map(|dt| dt.naive_utc()),
+            )
         } else {
-            self.0 = None
-        }
+            Self(None)
+        };
+
+        // 3. Let v be TimeClip(t).
+        let v = t.get_time();
+
+        // 4. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 5. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.setUTCDate()`
@@ -1036,12 +1279,32 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCDate
-    pub fn set_utc_date(&mut self, day: Option<f64>) {
-        if let Some(day) = day {
-            self.set_components(true, None, None, Some(day), None, None, None, None)
-        } else {
-            self.0 = None
-        }
+    pub fn set_utc_date(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let dt be ? ToNumber(date).
+        let dt = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. Let newDate be MakeDate(MakeDay(YearFromTime(t), MonthFromTime(t), dt), TimeWithinDay(t)).
+        t.set_components(true, None, None, Some(dt), None, None, None, None);
+
+        // 4. Let v be TimeClip(newDate).
+        let v = t.get_time();
+
+        // 5. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 6. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.setFullYear()`
@@ -1055,12 +1318,54 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcfullyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCFullYear
-    pub fn set_utc_full_year(&mut self, year: Option<f64>, month: Option<f64>, day: Option<f64>) {
-        if let Some(year) = year {
-            self.set_components(true, Some(year), month, day, None, None, None, None)
-        } else {
-            self.0 = None
+    pub fn set_utc_full_year(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. If t is NaN, set t to +0𝔽.
+        if t.0.is_none() {
+            t.0 = NaiveDateTime::from_timestamp_opt(0, 0)
+                .and_then(|local| ignore_ambiguity(Local.from_local_datetime(&local)))
+                .map(|local| local.naive_utc())
+                .filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
         }
+
+        // 3. Let y be ? ToNumber(year).
+        let y = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 4. If month is not present, let m be MonthFromTime(t); otherwise, let m be ? ToNumber(month).
+        let m = if let Some(m) = args.get(1) {
+            Some(m.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 5. If date is not present, let dt be DateFromTime(t); otherwise, let dt be ? ToNumber(date).
+        let dt = if let Some(dt) = args.get(2) {
+            Some(dt.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 6. Let newDate be MakeDate(MakeDay(y, m, dt), TimeWithinDay(t)).
+        t.set_components(true, Some(y), m, dt, None, None, None, None);
+
+        // 7. Let v be TimeClip(newDate).
+        let v = t.get_time();
+
+        // 8. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 9. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.setUTCHours()`
@@ -1076,26 +1381,52 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutchours
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCHours
     pub fn set_utc_hours(
-        &mut self,
-        hour: Option<f64>,
-        minute: Option<f64>,
-        second: Option<f64>,
-        millisecond: Option<f64>,
-    ) {
-        if let Some(hour) = hour {
-            self.set_components(
-                true,
-                None,
-                None,
-                None,
-                Some(hour),
-                minute,
-                second,
-                millisecond,
-            )
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let h be ? ToNumber(hour).
+        let h = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If min is not present, let m be MinFromTime(t); otherwise, let m be ? ToNumber(min).
+        let m = if let Some(m) = args.get(1) {
+            Some(m.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 4. If sec is not present, let s be SecFromTime(t); otherwise, let s be ? ToNumber(sec).
+        let sec = if let Some(s) = args.get(2) {
+            Some(s.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 5. If ms is not present, let milli be msFromTime(t); otherwise, let milli be ? ToNumber(ms).
+        let ms = if let Some(ms) = args.get(3) {
+            Some(ms.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 6. Let newDate be MakeDate(Day(t), MakeTime(h, m, s, milli)).
+        t.set_components(true, None, None, None, Some(h), m, sec, ms);
+
+        // 7. Let v be TimeClip(newDate).
+        let v = t.get_time();
+
+        // 8. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 9. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.setUTCMilliseconds()`
@@ -1108,12 +1439,32 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcmilliseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMilliseconds
-    pub fn set_utc_milliseconds(&mut self, millisecond: Option<f64>) {
-        if let Some(millisecond) = millisecond {
-            self.set_components(true, None, None, None, None, None, None, Some(millisecond))
-        } else {
-            self.0 = None
-        }
+    pub fn set_utc_milliseconds(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let milli be ? ToNumber(ms).
+        let ms = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. Let time be MakeTime(HourFromTime(t), MinFromTime(t), SecFromTime(t), milli).
+        t.set_components(true, None, None, None, None, None, None, Some(ms));
+
+        // 4. Let v be TimeClip(MakeDate(Day(t), time)).
+        let v = t.get_time();
+
+        // 5. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 6. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.setUTCMinutes()`
@@ -1127,25 +1478,49 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcminutes
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMinutes
     pub fn set_utc_minutes(
-        &mut self,
-        minute: Option<f64>,
-        second: Option<f64>,
-        millisecond: Option<f64>,
-    ) {
-        if let Some(minute) = minute {
-            self.set_components(
-                true,
-                None,
-                None,
-                None,
-                None,
-                Some(minute),
-                second,
-                millisecond,
-            )
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let m be ? ToNumber(min).
+        let m = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If sec is not present, let s be SecFromTime(t).
+        // 4. Else,
+        let s = if let Some(s) = args.get(1) {
+            // a. Let s be ? ToNumber(sec).
+            Some(s.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 5. If ms is not present, let milli be msFromTime(t).
+        // 6. Else,
+        let milli = if let Some(ms) = args.get(2) {
+            // a. Let milli be ? ToNumber(ms).
+            Some(ms.to_number(context)?)
+        } else {
+            None
+        };
+
+        // 7. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), m, s, milli)).
+        t.set_components(true, None, None, None, None, Some(m), s, milli);
+
+        // 8. Let v be TimeClip(date).
+        let v = t.get_time();
+
+        // 9. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 10. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.setUTCMonth()`
@@ -1158,12 +1533,41 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcmonth
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCMonth
-    pub fn set_utc_month(&mut self, month: Option<f64>, day: Option<f64>) {
-        if let Some(month) = month {
-            self.set_components(true, None, Some(month), day, None, None, None, None)
+    pub fn set_utc_month(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let m be ? ToNumber(month).
+        let m = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If date is not present, let dt be DateFromTime(t).
+        // 4. Else,
+        let dt = if let Some(dt) = args.get(1) {
+            // a. Let dt be ? ToNumber(date).
+            Some(dt.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 5. Let newDate be MakeDate(MakeDay(YearFromTime(t), m, dt), TimeWithinDay(t)).
+        t.set_components(true, None, Some(m), dt, None, None, None, None);
+
+        // 6. Let v be TimeClip(newDate).
+        let v = t.get_time();
+
+        // 7. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 8. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.setUTCSeconds()`
@@ -1176,21 +1580,41 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.setutcseconds
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setUTCSeconds
-    pub fn set_utc_seconds(&mut self, second: Option<f64>, millisecond: Option<f64>) {
-        if let Some(second) = second {
-            self.set_components(
-                true,
-                None,
-                None,
-                None,
-                None,
-                None,
-                Some(second),
-                millisecond,
-            )
+    pub fn set_utc_seconds(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let t be ? thisTimeValue(this value).
+        let mut t = this_time_value(this, context)?;
+
+        // 2. Let s be ? ToNumber(sec).
+        let s = args
+            .get(0)
+            .cloned()
+            .unwrap_or_default()
+            .to_number(context)?;
+
+        // 3. If ms is not present, let milli be msFromTime(t).
+        // 4. Else,
+        let milli = if let Some(milli) = args.get(1) {
+            // a. Let milli be ? ToNumber(ms).
+            Some(milli.to_number(context)?)
         } else {
-            self.0 = None
-        }
+            None
+        };
+
+        // 5. Let date be MakeDate(Day(t), MakeTime(HourFromTime(t), MinFromTime(t), s, milli)).
+        t.set_components(true, None, None, None, None, None, Some(s), milli);
+
+        // 6. Let v be TimeClip(date).
+        let v = t.get_time();
+
+        // 7. Set the [[DateValue]] internal slot of this Date object to v.
+        this.set_data(ObjectData::date(t));
+
+        // 8. Return v.
+        Ok(v.into())
     }
 
     /// `Date.prototype.toDateString()`
@@ -1203,10 +1627,24 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString
-    pub fn to_date_string(&self) -> String {
-        self.to_local()
-            .map(|date_time| date_time.format("%a %b %d %Y").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_date_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be this Date object.
+        // 2. Let tv be ? thisTimeValue(O).
+        let tv = this_time_value(this, context)?;
+
+        // 3. If tv is NaN, return "Invalid Date".
+        // 4. Let t be LocalTime(tv).
+        // 5. Return DateString(t).
+        if let Some(t) = tv.0 {
+            Ok(t.format("%a %b %d %Y").to_string().into())
+        } else {
+            Ok(JsString::from("Invalid Date").into())
+        }
     }
 
     /// `Date.prototype.toGMTString()`
@@ -1219,7 +1657,7 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.togmtstring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toGMTString
-    pub fn to_gmt_string(&self) -> String {
+    pub fn to_gmt_string(self) -> String {
         self.to_utc_string()
     }
 
@@ -1235,11 +1673,22 @@ impl Date {
     /// [iso8601]: http://en.wikipedia.org/wiki/ISO_8601
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
-    pub fn to_iso_string(&self) -> String {
-        self.to_utc()
-            // RFC 3389 uses +0.00 for UTC, where JS expects Z, so we can't use the built-in chrono function.
-            .map(|f| f.format("%Y-%m-%dT%H:%M:%S.%3fZ").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_iso_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        if let Some(t) = this_time_value(this, context)?.0 {
+            Ok(Utc::now()
+                .timezone()
+                .from_utc_datetime(&t)
+                .format("%Y-%m-%dT%H:%M:%S.%3fZ")
+                .to_string()
+                .into())
+        } else {
+            context.throw_range_error("Invalid time value")
+        }
     }
 
     /// `Date.prototype.toJSON()`
@@ -1252,8 +1701,52 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tojson
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toJSON
-    pub fn to_json(&self) -> String {
-        self.to_iso_string()
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_json(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let o = this.to_object(context)?;
+
+        // 2. Let tv be ? ToPrimitive(O, number).
+        let tv = this.to_primitive(context, PreferredType::Number)?;
+
+        // 3. If Type(tv) is Number and tv is not finite, return null.
+        if let Some(number) = tv.as_number() {
+            if !number.is_finite() {
+                return Ok(JsValue::null());
+            }
+        }
+
+        // 4. Return ? Invoke(O, "toISOString").
+        let func = o.get("toISOString", context)?;
+        context.call(&func, &o.into(), &[])
+    }
+
+    /// `Date.prototype.toString()`
+    ///
+    /// The toString() method returns a string representing the specified Date object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let tv be ? thisTimeValue(this value).
+        let tv = this_time_value(this, context)?;
+
+        // 2. Return ToDateString(tv).
+        if let Some(t) = tv.0 {
+            Ok(Local::now()
+                .timezone()
+                .from_utc_datetime(&t)
+                .format("%a %b %d %Y %H:%M:%S GMT%z")
+                .to_string()
+                .into())
+        } else {
+            Ok(JsString::from("Invalid Date").into())
+        }
     }
 
     /// `Date.prototype.toTimeString()`
@@ -1267,10 +1760,29 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString
-    pub fn to_time_string(&self) -> String {
-        self.to_local()
-            .map(|date_time| date_time.format("%H:%M:%S GMT%:z").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_time_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be this Date object.
+        // 2. Let tv be ? thisTimeValue(O).
+        let tv = this_time_value(this, context)?;
+
+        // 3. If tv is NaN, return "Invalid Date".
+        // 4. Let t be LocalTime(tv).
+        // 5. Return the string-concatenation of TimeString(t) and TimeZoneString(tv).
+        if let Some(t) = tv.0 {
+            Ok(Local::now()
+                .timezone()
+                .from_utc_datetime(&t)
+                .format("%H:%M:%S GMT%z")
+                .to_string()
+                .into())
+        } else {
+            Ok(JsString::from("Invalid Date").into())
+        }
     }
 
     /// `Date.prototype.toUTCString()`
@@ -1283,10 +1795,11 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toutcstring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toUTCString
-    pub fn to_utc_string(&self) -> String {
-        self.to_utc()
-            .map(|date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string())
-            .unwrap_or_else(|| "Invalid Date".to_string())
+    pub fn to_utc_string(self) -> String {
+        self.to_utc().map_or_else(
+            || "Invalid Date".to_string(),
+            |date_time| date_time.format("%a, %d %b %Y %H:%M:%S GMT").to_string(),
+        )
     }
 
     /// `Date.prototype.valueOf()`
@@ -1313,14 +1826,15 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.now
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now
-    pub(crate) fn now(_: &Value, _: &[Value], _: &mut Context) -> Result<Value> {
-        Ok(Value::from(Utc::now().timestamp_millis() as f64))
+    #[allow(clippy::unnecessary_wraps)]
+    pub(crate) fn now(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::new(Utc::now().timestamp_millis() as f64))
     }
 
     /// `Date.parse()`
     ///
     /// The `Date.parse()` method parses a string representation of a date, and returns the number of milliseconds since
-    /// January 1, 1970, 00:00:00 UTC or NaN if the string is unrecognized or, in some cases, contains illegal date
+    /// January 1, 1970, 00:00:00 UTC or `NaN` if the string is unrecognized or, in some cases, contains illegal date
     /// values.
     ///
     /// More information:
@@ -1329,17 +1843,17 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.parse
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/parse
-    pub(crate) fn parse(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn parse(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
         if args.is_empty() {
-            return Ok(Value::number(f64::NAN));
+            return Ok(JsValue::nan());
         }
 
         match DateTime::parse_from_rfc3339(&args[0].to_string(context)?) {
-            Ok(v) => Ok(Value::number(v.naive_utc().timestamp_millis() as f64)),
-            _ => Ok(Value::number(f64::NAN)),
+            Ok(v) => Ok(JsValue::new(v.naive_utc().timestamp_millis() as f64)),
+            _ => Ok(JsValue::new(f64::NAN)),
         }
     }
 
@@ -1353,13 +1867,13 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.utc
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/UTC
-    pub(crate) fn utc(_: &Value, args: &[Value], context: &mut Context) -> Result<Value> {
+    pub(crate) fn utc(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let year = args
             .get(0)
             .map_or(Ok(f64::NAN), |value| value.to_number(context))?;
         let month = args
             .get(1)
-            .map_or(Ok(1f64), |value| value.to_number(context))?;
+            .map_or(Ok(0f64), |value| value.to_number(context))?;
         let day = args
             .get(2)
             .map_or(Ok(1f64), |value| value.to_number(context))?;
@@ -1377,7 +1891,7 @@ impl Date {
             .map_or(Ok(0f64), |value| value.to_number(context))?;
 
         if !check_normal_opt!(year, month, day, hour, min, sec, milli) {
-            return Ok(Value::number(f64::NAN));
+            return Ok(JsValue::nan());
         }
 
         let year = year as i32;
@@ -1397,7 +1911,7 @@ impl Date {
         NaiveDate::from_ymd_opt(year, month + 1, day)
             .and_then(|f| f.and_hms_milli_opt(hour, min, sec, milli))
             .and_then(|f| Self::time_clip(f.timestamp_millis() as f64))
-            .map_or(Ok(Value::number(f64::NAN)), |time| Ok(Value::number(time)))
+            .map_or(Ok(JsValue::nan()), |time| Ok(JsValue::new(time)))
     }
 }
 
@@ -1414,11 +1928,9 @@ impl Date {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
-pub fn this_time_value(value: &Value, context: &mut Context) -> Result<Date> {
-    if let Value::Object(ref object) = value {
-        if let ObjectData::Date(ref date) = object.borrow().data {
-            return Ok(*date);
-        }
-    }
-    Err(context.construct_type_error("'this' is not a Date"))
+pub fn this_time_value(value: &JsValue, context: &mut Context) -> JsResult<Date> {
+    value
+        .as_object()
+        .and_then(|obj| obj.borrow().as_date().copied())
+        .ok_or_else(|| context.construct_type_error("'this' is not a Date"))
 }

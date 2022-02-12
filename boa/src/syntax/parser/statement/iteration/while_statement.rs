@@ -1,12 +1,12 @@
 use crate::{
     syntax::{
-        ast::{node::WhileLoop, Keyword, Punctuator},
+        ast::{node::WhileLoop, Keyword, Node, Punctuator},
         parser::{
             expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
             Cursor, ParseError, TokenParser,
         },
     },
-    BoaProfiler,
+    BoaProfiler, Interner,
 };
 
 use std::io::Read;
@@ -52,18 +52,31 @@ where
 {
     type Output = WhileLoop;
 
-    fn parse(self, cursor: &mut Cursor<R>) -> Result<Self::Output, ParseError> {
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
         let _timer = BoaProfiler::global().start_event("WhileStatement", "Parsing");
-        cursor.expect(Keyword::While, "while statement")?;
+        cursor.expect(Keyword::While, "while statement", interner)?;
 
-        cursor.expect(Punctuator::OpenParen, "while statement")?;
+        cursor.expect(Punctuator::OpenParen, "while statement", interner)?;
 
-        let cond = Expression::new(true, self.allow_yield, self.allow_await).parse(cursor)?;
+        let cond =
+            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-        cursor.expect(Punctuator::CloseParen, "while statement")?;
+        let position = cursor
+            .expect(Punctuator::CloseParen, "while statement", interner)?
+            .span()
+            .end();
 
-        let body =
-            Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor)?;
+        let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+            .parse(cursor, interner)?;
+
+        // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
+        if let Node::FunctionDecl(_) = body {
+            return Err(ParseError::wrong_function_declaration_non_strict(position));
+        }
 
         Ok(WhileLoop::new(cond, body))
     }

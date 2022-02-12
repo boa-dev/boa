@@ -1,18 +1,18 @@
 //! Statement list node.
 
 use crate::{
-    exec::{Executable, InterpreterState},
     gc::{empty_trace, Finalize, Trace},
-    syntax::ast::node::Node,
-    BoaProfiler, Context, Result, Value,
+    syntax::ast::node::{Declaration, Node},
 };
-use std::{collections::HashSet, fmt, ops::Deref, rc::Rc};
+use boa_interner::{Interner, Sym, ToInternedString};
+use std::{ops::Deref, rc::Rc};
 
+use rustc_hash::FxHashSet;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-#[cfg(feature = "vm")]
-use crate::vm::{compilation::CodeGen, Compiler};
+#[cfg(test)]
+mod tests;
 
 /// List of statements.
 ///
@@ -27,44 +27,76 @@ use crate::vm::{compilation::CodeGen, Compiler};
 pub struct StatementList {
     #[cfg_attr(feature = "deser", serde(flatten))]
     items: Box<[Node]>,
+    strict: bool,
 }
 
 impl StatementList {
     /// Gets the list of items.
+    #[inline]
     pub fn items(&self) -> &[Node] {
         &self.items
     }
 
+    /// Get the strict mode.
+    #[inline]
+    pub fn strict(&self) -> bool {
+        self.strict
+    }
+
+    /// Set the strict mode.
+    #[inline]
+    pub fn set_strict(&mut self, strict: bool) {
+        self.strict = strict;
+    }
+
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
+        interner: &Interner,
         indentation: usize,
-    ) -> fmt::Result {
-        let indent = "    ".repeat(indentation);
+    ) -> String {
+        let mut buf = String::new();
         // Print statements
         for node in self.items.iter() {
-            f.write_str(&indent)?;
-            node.display(f, indentation + 1)?;
+            // We rely on the node to add the correct indent.
+            buf.push_str(&node.to_indented_string(interner, indentation));
 
             match node {
                 Node::Block(_) | Node::If(_) | Node::Switch(_) | Node::WhileLoop(_) => {}
-                _ => write!(f, ";")?,
+                _ => buf.push(';'),
             }
-            writeln!(f)?;
+
+            buf.push('\n');
         }
-        Ok(())
+        buf
     }
 
-    pub fn lexically_declared_names(&self) -> HashSet<&str> {
-        let mut set = HashSet::new();
+    pub fn lexically_declared_names(&self, interner: &Interner) -> FxHashSet<Sym> {
+        let mut set = FxHashSet::default();
         for stmt in self.items() {
             if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
-                    if !set.insert(decl.name()) {
-                        // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
-                        // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
-                        unreachable!("Redeclaration of {}", decl.name());
+                    // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
+                    // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
+                    match decl {
+                        Declaration::Identifier { ident, .. } => {
+                            if !set.insert(ident.sym()) {
+                                unreachable!(
+                                    "Redeclaration of {}",
+                                    interner.resolve_expect(ident.sym())
+                                );
+                            }
+                        }
+                        Declaration::Pattern(p) => {
+                            for ident in p.idents().iter().copied() {
+                                if !set.insert(ident) {
+                                    unreachable!(
+                                        "Redeclaration of {}",
+                                        interner.resolve_expect(ident)
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -72,8 +104,8 @@ impl StatementList {
         set
     }
 
-    pub fn function_declared_names(&self) -> HashSet<&str> {
-        let mut set = HashSet::new();
+    pub fn function_declared_names(&self) -> FxHashSet<Sym> {
+        let mut set = FxHashSet::default();
         for stmt in self.items() {
             if let Node::FunctionDecl(decl) = stmt {
                 set.insert(decl.name());
@@ -82,65 +114,21 @@ impl StatementList {
         set
     }
 
-    pub fn var_declared_names(&self) -> HashSet<&str> {
-        let mut set = HashSet::new();
+    pub fn var_declared_names(&self) -> FxHashSet<Sym> {
+        let mut set = FxHashSet::default();
         for stmt in self.items() {
             if let Node::VarDeclList(decl_list) = stmt {
                 for decl in decl_list.as_ref() {
-                    set.insert(decl.name());
+                    match decl {
+                        Declaration::Identifier { ident, .. } => {
+                            set.insert(ident.sym());
+                        }
+                        Declaration::Pattern(p) => set.extend(p.idents().into_iter()),
+                    }
                 }
             }
         }
         set
-    }
-}
-
-impl Executable for StatementList {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("StatementList", "exec");
-
-        // https://tc39.es/ecma262/#sec-block-runtime-semantics-evaluation
-        // The return value is uninitialized, which means it defaults to Value::Undefined
-        let mut obj = Value::default();
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-        for (i, item) in self.items().iter().enumerate() {
-            let val = item.run(context)?;
-            match context.executor().get_current_state() {
-                InterpreterState::Return => {
-                    // Early return.
-                    obj = val;
-                    break;
-                }
-                InterpreterState::Break(_label) => {
-                    // Early break.
-                    break;
-                }
-                InterpreterState::Continue(_label) => {
-                    break;
-                }
-                InterpreterState::Executing => {
-                    // Continue execution
-                }
-            }
-            if i + 1 == self.items().len() {
-                obj = val;
-            }
-        }
-
-        Ok(obj)
-    }
-}
-
-#[cfg(feature = "vm")]
-impl CodeGen for StatementList {
-    fn compile(&self, compiler: &mut Compiler) {
-        let _timer = BoaProfiler::global().start_event("StatementList - Code Gen", "codeGen");
-
-        for item in self.items().iter() {
-            item.compile(compiler);
-        }
     }
 }
 
@@ -149,13 +137,16 @@ where
     T: Into<Box<[Node]>>,
 {
     fn from(stm: T) -> Self {
-        Self { items: stm.into() }
+        Self {
+            items: stm.into(),
+            strict: false,
+        }
     }
 }
 
-impl fmt::Display for StatementList {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for StatementList {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

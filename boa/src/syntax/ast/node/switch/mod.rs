@@ -1,12 +1,10 @@
 //! Switch node.
 //!
 use crate::{
-    exec::{Executable, InterpreterState},
     gc::{Finalize, Trace},
     syntax::ast::node::Node,
-    Context, Result, Value,
 };
-use std::fmt;
+use boa_interner::{Interner, ToInternedString};
 
 use crate::syntax::ast::node::StatementList;
 
@@ -102,106 +100,38 @@ impl Switch {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn display(
+    pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
-        f: &mut fmt::Formatter<'_>,
-        indent: usize,
-    ) -> fmt::Result {
-        writeln!(f, "switch ({}) {{", self.val())?;
+        interner: &Interner,
+        indentation: usize,
+    ) -> String {
+        let indent = "    ".repeat(indentation);
+        let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
         for e in self.cases().iter() {
-            writeln!(f, "{}case {}:", indent, e.condition())?;
-            e.body().display(f, indent)?;
+            buf.push_str(&format!(
+                "{}    case {}:\n{}",
+                indent,
+                e.condition().to_interned_string(interner),
+                e.body().to_indented_string(interner, indentation + 2)
+            ));
         }
 
         if let Some(ref default) = self.default {
-            writeln!(f, "{}default:", indent)?;
-            default.display(f, indent + 1)?;
+            buf.push_str(&format!(
+                "{}    default:\n{}",
+                indent,
+                default.to_indented_string(interner, indentation + 2)
+            ));
         }
-        writeln!(f, "{}}}", indent)
+        buf.push_str(&format!("{}}}", indent));
+
+        buf
     }
 }
 
-impl Executable for Switch {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let val = self.val().run(context)?;
-        let mut result = Value::null();
-        let mut matched = false;
-        context
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-
-        // If a case block does not end with a break statement then subsequent cases will be run without
-        // checking their conditions until a break is encountered.
-        let mut fall_through: bool = false;
-
-        for case in self.cases().iter() {
-            let cond = case.condition();
-            let block = case.body();
-            if fall_through || val.strict_equals(&cond.run(context)?) {
-                matched = true;
-                let result = block.run(context)?;
-                match context.executor().get_current_state() {
-                    InterpreterState::Return => {
-                        // Early return.
-                        return Ok(result);
-                    }
-                    InterpreterState::Break(_label) => {
-                        // TODO, break to a label.
-                        // Break statement encountered so therefore end switch statement.
-                        context
-                            .executor()
-                            .set_current_state(InterpreterState::Executing);
-                        break;
-                    }
-                    InterpreterState::Continue(_label) => {
-                        // TODO, continue to a label.
-                        break;
-                    }
-                    InterpreterState::Executing => {
-                        // Continuing execution / falling through to next case statement(s).
-                        fall_through = true;
-                    }
-                }
-            }
-        }
-
-        if !matched {
-            if let Some(default) = self.default() {
-                context
-                    .executor()
-                    .set_current_state(InterpreterState::Executing);
-                for (i, item) in default.iter().enumerate() {
-                    let val = item.run(context)?;
-                    match context.executor().get_current_state() {
-                        InterpreterState::Return => {
-                            // Early return.
-                            result = val;
-                            break;
-                        }
-                        InterpreterState::Break(_label) => {
-                            // TODO, break to a label.
-
-                            // Early break.
-                            break;
-                        }
-                        _ => {
-                            // Continue execution
-                        }
-                    }
-                    if i == default.len() - 1 {
-                        result = val;
-                    }
-                }
-            }
-        }
-
-        Ok(result)
-    }
-}
-
-impl fmt::Display for Switch {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
+impl ToInternedString for Switch {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 

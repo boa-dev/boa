@@ -3,7 +3,6 @@
 pub mod array;
 pub mod await_expr;
 pub mod block;
-pub mod break_node;
 pub mod call;
 pub mod conditional;
 pub mod declaration;
@@ -20,24 +19,27 @@ pub mod switch;
 pub mod template;
 pub mod throw;
 pub mod try_node;
+pub mod r#yield;
 
 pub use self::{
     array::ArrayDecl,
     await_expr::AwaitExpr,
     block::Block,
-    break_node::Break,
     call::Call,
     conditional::{ConditionalOp, If},
     declaration::{
-        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
+        async_generator_decl::AsyncGeneratorDecl, async_generator_expr::AsyncGeneratorExpr,
+        generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
+        AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, DeclarationPattern,
         FunctionDecl, FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
-    iteration::{Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
+    iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
     new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
+    r#yield::Yield,
     return_smt::Return,
     spread::Spread,
     statement_list::{RcStatementList, StatementList},
@@ -47,19 +49,14 @@ pub use self::{
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
-use crate::{
-    exec::Executable,
-    gc::{empty_trace, Finalize, Trace},
-    BoaProfiler, Context, Result, Value,
-};
-use std::{
-    cmp::Ordering,
-    fmt::{self, Display},
-};
+use crate::gc::{empty_trace, Finalize, Trace};
+use boa_interner::{Interner, Sym, ToInternedString};
+use std::cmp::Ordering;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
+// TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Node {
@@ -77,6 +74,12 @@ pub enum Node {
 
     /// An async function expression node. [More information](./declaration/struct.AsyncFunctionExpr.html).
     AsyncFunctionExpr(AsyncFunctionExpr),
+
+    /// An async generator expression node.
+    AsyncGeneratorExpr(AsyncGeneratorExpr),
+
+    /// An async generator declaration node.
+    AsyncGeneratorDecl(AsyncGeneratorDecl),
 
     /// An await expression node. [More information](./await_expr/struct.AwaitExpression.html).
     AwaitExpr(AwaitExpr),
@@ -163,7 +166,7 @@ pub enum Node {
     Spread(Spread),
 
     /// A tagged template. [More information](./template/struct.TaggedTemplate.html).
-    TaggedTemplate(TaggedTemplate),
+    TaggedTemplate(Box<TaggedTemplate>),
 
     /// A template literal. [More information](./template/struct.TemplateLit.html).
     TemplateLit(TemplateLit),
@@ -172,7 +175,7 @@ pub enum Node {
     Throw(Throw),
 
     /// A `try...catch` node. [More information](./try_node/struct.Try.htl).
-    Try(Try),
+    Try(Box<Try>),
 
     /// The JavaScript `this` keyword refers to the object it belongs to.
     ///
@@ -208,12 +211,15 @@ pub enum Node {
     /// [spec]: https://tc39.es/ecma262/#prod-EmptyStatement
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/Empty
     Empty,
-}
 
-impl Display for Node {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.display(f, 0)
-    }
+    /// A `yield` node. [More information](./yield/struct.Yield.html).
+    Yield(Yield),
+
+    /// A generator function declaration node. [More information](./declaration/struct.GeneratorDecl.html).
+    GeneratorDecl(GeneratorDecl),
+
+    /// A generator function expression node. [More information](./declaration/struct.GeneratorExpr.html).
+    GeneratorExpr(GeneratorExpr),
 }
 
 impl From<Const> for Node {
@@ -224,7 +230,8 @@ impl From<Const> for Node {
 
 impl Node {
     /// Returns a node ordering based on the hoistability of each node.
-    pub(crate) fn hoistable_order(a: &Node, b: &Node) -> Ordering {
+    #[allow(clippy::match_same_arms)]
+    pub(crate) fn hoistable_order(a: &Self, b: &Self) -> Ordering {
         match (a, b) {
             (Node::FunctionDecl(_), Node::FunctionDecl(_)) => Ordering::Equal,
             (_, Node::FunctionDecl(_)) => Ordering::Greater,
@@ -239,133 +246,106 @@ impl Node {
         Self::This
     }
 
-    /// Implements the display formatting with indentation.
-    fn display(&self, f: &mut fmt::Formatter<'_>, indentation: usize) -> fmt::Result {
-        let indent = "    ".repeat(indentation);
-        match *self {
-            Self::Block(_) => {}
-            _ => write!(f, "{}", indent)?,
-        }
+    /// Creates a string of the value of the node with the given indentation. For example, an
+    /// indent level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log("hello");
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = match *self {
+            Self::Block(_) => String::new(),
+            _ => "    ".repeat(indentation),
+        };
 
+        buf.push_str(&self.to_no_indent_string(interner, indentation));
+
+        buf
+    }
+
+    /// Implements the display formatting with indentation.
+    ///
+    /// This will not prefix the value with any indentation. If you want to prefix this with proper
+    /// indents, use [`to_indented_string()`](Self::to_indented_string).
+    fn to_no_indent_string(&self, interner: &Interner, indentation: usize) -> String {
         match *self {
-            Self::Call(ref expr) => Display::fmt(expr, f),
-            Self::Const(ref c) => write!(f, "{}", c),
-            Self::ConditionalOp(ref cond_op) => Display::fmt(cond_op, f),
-            Self::ForLoop(ref for_loop) => for_loop.display(f, indentation),
-            Self::ForOfLoop(ref for_of) => for_of.display(f, indentation),
-            Self::ForInLoop(ref for_in) => for_in.display(f, indentation),
-            Self::This => write!(f, "this"),
-            Self::Try(ref try_catch) => try_catch.display(f, indentation),
-            Self::Break(ref break_smt) => Display::fmt(break_smt, f),
-            Self::Continue(ref cont) => Display::fmt(cont, f),
-            Self::Spread(ref spread) => Display::fmt(spread, f),
-            Self::Block(ref block) => block.display(f, indentation),
-            Self::Identifier(ref s) => Display::fmt(s, f),
-            Self::New(ref expr) => Display::fmt(expr, f),
-            Self::GetConstField(ref get_const_field) => Display::fmt(get_const_field, f),
-            Self::GetField(ref get_field) => Display::fmt(get_field, f),
-            Self::WhileLoop(ref while_loop) => while_loop.display(f, indentation),
-            Self::DoWhileLoop(ref do_while) => do_while.display(f, indentation),
-            Self::If(ref if_smt) => if_smt.display(f, indentation),
-            Self::Switch(ref switch) => switch.display(f, indentation),
-            Self::Object(ref obj) => obj.display(f, indentation),
-            Self::ArrayDecl(ref arr) => Display::fmt(arr, f),
-            Self::VarDeclList(ref list) => Display::fmt(list, f),
-            Self::FunctionDecl(ref decl) => decl.display(f, indentation),
-            Self::FunctionExpr(ref expr) => expr.display(f, indentation),
-            Self::ArrowFunctionDecl(ref decl) => decl.display(f, indentation),
-            Self::BinOp(ref op) => Display::fmt(op, f),
-            Self::UnaryOp(ref op) => Display::fmt(op, f),
-            Self::Return(ref ret) => Display::fmt(ret, f),
-            Self::TaggedTemplate(ref template) => Display::fmt(template, f),
-            Self::TemplateLit(ref template) => Display::fmt(template, f),
-            Self::Throw(ref throw) => Display::fmt(throw, f),
-            Self::Assign(ref op) => Display::fmt(op, f),
-            Self::LetDeclList(ref decl) => Display::fmt(decl, f),
-            Self::ConstDeclList(ref decl) => Display::fmt(decl, f),
-            Self::AsyncFunctionDecl(ref decl) => decl.display(f, indentation),
-            Self::AsyncFunctionExpr(ref expr) => expr.display(f, indentation),
-            Self::AwaitExpr(ref expr) => expr.display(f, indentation),
-            Self::Empty => write!(f, ";"),
+            Self::Call(ref expr) => expr.to_interned_string(interner),
+            Self::Const(ref c) => c.to_interned_string(interner),
+            Self::ConditionalOp(ref cond_op) => cond_op.to_interned_string(interner),
+            Self::ForLoop(ref for_loop) => for_loop.to_indented_string(interner, indentation),
+            Self::ForOfLoop(ref for_of) => for_of.to_indented_string(interner, indentation),
+            Self::ForInLoop(ref for_in) => for_in.to_indented_string(interner, indentation),
+            Self::This => "this".to_owned(),
+            Self::Try(ref try_catch) => try_catch.to_indented_string(interner, indentation),
+            Self::Break(ref break_smt) => break_smt.to_interned_string(interner),
+            Self::Continue(ref cont) => cont.to_interned_string(interner),
+            Self::Spread(ref spread) => spread.to_interned_string(interner),
+            Self::Block(ref block) => block.to_indented_string(interner, indentation),
+            Self::Identifier(ref ident) => ident.to_interned_string(interner),
+            Self::New(ref expr) => expr.to_interned_string(interner),
+            Self::GetConstField(ref get_const_field) => {
+                get_const_field.to_interned_string(interner)
+            }
+            Self::GetField(ref get_field) => get_field.to_interned_string(interner),
+            Self::WhileLoop(ref while_loop) => while_loop.to_indented_string(interner, indentation),
+            Self::DoWhileLoop(ref do_while) => do_while.to_indented_string(interner, indentation),
+            Self::If(ref if_smt) => if_smt.to_indented_string(interner, indentation),
+            Self::Switch(ref switch) => switch.to_indented_string(interner, indentation),
+            Self::Object(ref obj) => obj.to_indented_string(interner, indentation),
+            Self::ArrayDecl(ref arr) => arr.to_interned_string(interner),
+            Self::VarDeclList(ref list) => list.to_interned_string(interner),
+            Self::FunctionDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::FunctionExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::ArrowFunctionDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::BinOp(ref op) => op.to_interned_string(interner),
+            Self::UnaryOp(ref op) => op.to_interned_string(interner),
+            Self::Return(ref ret) => ret.to_interned_string(interner),
+            Self::TaggedTemplate(ref template) => template.to_interned_string(interner),
+            Self::TemplateLit(ref template) => template.to_interned_string(interner),
+            Self::Throw(ref throw) => throw.to_interned_string(interner),
+            Self::Assign(ref op) => op.to_interned_string(interner),
+            Self::LetDeclList(ref decl) | Self::ConstDeclList(ref decl) => {
+                decl.to_interned_string(interner)
+            }
+            Self::AsyncFunctionDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::AsyncFunctionExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::AwaitExpr(ref expr) => expr.to_interned_string(interner),
+            Self::Empty => ";".to_owned(),
+            Self::Yield(ref y) => y.to_interned_string(interner),
+            Self::GeneratorDecl(ref decl) => decl.to_interned_string(interner),
+            Self::GeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::AsyncGeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::AsyncGeneratorDecl(ref decl) => decl.to_indented_string(interner, indentation),
         }
     }
 }
 
-impl Executable for Node {
-    fn run(&self, context: &mut Context) -> Result<Value> {
-        let _timer = BoaProfiler::global().start_event("Executable", "exec");
-        match *self {
-            Node::AsyncFunctionDecl(ref decl) => decl.run(context),
-            Node::AsyncFunctionExpr(ref function_expr) => function_expr.run(context),
-            Node::AwaitExpr(ref expr) => expr.run(context),
-            Node::Call(ref call) => call.run(context),
-            Node::Const(Const::Null) => Ok(Value::null()),
-            Node::Const(Const::Num(num)) => Ok(Value::rational(num)),
-            Node::Const(Const::Int(num)) => Ok(Value::integer(num)),
-            Node::Const(Const::BigInt(ref num)) => Ok(Value::from(num.clone())),
-            Node::Const(Const::Undefined) => Ok(Value::Undefined),
-            // we can't move String from Const into value, because const is a garbage collected value
-            // Which means Drop() get's called on Const, but str will be gone at that point.
-            // Do Const values need to be garbage collected? We no longer need them once we've generated Values
-            Node::Const(Const::String(ref value)) => Ok(Value::string(value.to_string())),
-            Node::Const(Const::Bool(value)) => Ok(Value::boolean(value)),
-            Node::Block(ref block) => block.run(context),
-            Node::Identifier(ref identifier) => identifier.run(context),
-            Node::GetConstField(ref get_const_field_node) => get_const_field_node.run(context),
-            Node::GetField(ref get_field) => get_field.run(context),
-            Node::WhileLoop(ref while_loop) => while_loop.run(context),
-            Node::DoWhileLoop(ref do_while) => do_while.run(context),
-            Node::ForLoop(ref for_loop) => for_loop.run(context),
-            Node::ForOfLoop(ref for_of_loop) => for_of_loop.run(context),
-            Node::ForInLoop(ref for_in_loop) => for_in_loop.run(context),
-            Node::If(ref if_smt) => if_smt.run(context),
-            Node::ConditionalOp(ref op) => op.run(context),
-            Node::Switch(ref switch) => switch.run(context),
-            Node::Object(ref obj) => obj.run(context),
-            Node::ArrayDecl(ref arr) => arr.run(context),
-            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionDecl(ref decl) => decl.run(context),
-            // <https://tc39.es/ecma262/#sec-createdynamicfunction>
-            Node::FunctionExpr(ref function_expr) => function_expr.run(context),
-            Node::ArrowFunctionDecl(ref decl) => decl.run(context),
-            Node::BinOp(ref op) => op.run(context),
-            Node::UnaryOp(ref op) => op.run(context),
-            Node::New(ref call) => call.run(context),
-            Node::Return(ref ret) => ret.run(context),
-            Node::TaggedTemplate(ref template) => template.run(context),
-            Node::TemplateLit(ref template) => template.run(context),
-            Node::Throw(ref throw) => throw.run(context),
-            Node::Assign(ref op) => op.run(context),
-            Node::VarDeclList(ref decl) => decl.run(context),
-            Node::LetDeclList(ref decl) => decl.run(context),
-            Node::ConstDeclList(ref decl) => decl.run(context),
-            Node::Spread(ref spread) => spread.run(context),
-            Node::This => {
-                // Will either return `this` binding or undefined
-                context.get_this_binding()
-            }
-            Node::Try(ref try_node) => try_node.run(context),
-            Node::Break(ref break_node) => break_node.run(context),
-            Node::Continue(ref continue_node) => continue_node.run(context),
-            Node::Empty => Ok(Value::Undefined),
-        }
+impl ToInternedString for Node {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }
 
 /// Utility to join multiple Nodes into a single string.
-fn join_nodes<N>(f: &mut fmt::Formatter<'_>, nodes: &[N]) -> fmt::Result
+fn join_nodes<N>(interner: &Interner, nodes: &[N]) -> String
 where
-    N: Display,
+    N: ToInternedString,
 {
     let mut first = true;
+    let mut buf = String::new();
     for e in nodes {
-        if !first {
-            f.write_str(", ")?;
+        if first {
+            first = false;
+        } else {
+            buf.push_str(", ");
         }
-        first = false;
-        Display::fmt(e, f)?;
+        buf.push_str(&e.to_interned_string(interner));
     }
-    Ok(())
+    buf
 }
 
 /// "Formal parameter" is a fancy way of saying "function parameter".
@@ -386,50 +366,63 @@ where
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
-    name: Box<str>,
-    init: Option<Node>,
+    declaration: Declaration,
     is_rest_param: bool,
 }
 
 impl FormalParameter {
     /// Creates a new formal parameter.
-    pub(in crate::syntax) fn new<N>(name: N, init: Option<Node>, is_rest_param: bool) -> Self
+    pub(in crate::syntax) fn new<D>(declaration: D, is_rest_param: bool) -> Self
     where
-        N: Into<Box<str>>,
+        D: Into<Declaration>,
     {
         Self {
-            name: name.into(),
-            init,
+            declaration: declaration.into(),
             is_rest_param,
         }
     }
 
     /// Gets the name of the formal parameter.
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn names(&self) -> Vec<Sym> {
+        match &self.declaration {
+            Declaration::Identifier { ident, .. } => vec![ident.sym()],
+            Declaration::Pattern(pattern) => match pattern {
+                DeclarationPattern::Object(object_pattern) => object_pattern.idents(),
+
+                DeclarationPattern::Array(array_pattern) => array_pattern.idents(),
+            },
+        }
+    }
+
+    /// Get the declaration of the formal parameter
+    pub fn declaration(&self) -> &Declaration {
+        &self.declaration
     }
 
     /// Gets the initialization node of the formal parameter, if any.
     pub fn init(&self) -> Option<&Node> {
-        self.init.as_ref()
+        self.declaration.init()
     }
 
     /// Gets wether the parameter is a rest parameter.
     pub fn is_rest_param(&self) -> bool {
         self.is_rest_param
     }
+
+    pub fn is_identifier(&self) -> bool {
+        matches!(&self.declaration, Declaration::Identifier { .. })
+    }
 }
 
-impl Display for FormalParameter {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if self.is_rest_param {
-            write!(f, "...")?;
-        }
-        write!(f, "{}", self.name)?;
-        if let Some(n) = self.init.as_ref() {
-            write!(f, " = {}", n)?;
-        }
-        Ok(())
+impl ToInternedString for FormalParameter {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let mut buf = if self.is_rest_param {
+            "...".to_owned()
+        } else {
+            String::new()
+        };
+        buf.push_str(&self.declaration.to_interned_string(interner));
+        buf
     }
 }
 
@@ -457,7 +450,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-IdentifierReference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    IdentifierReference(Box<str>),
+    IdentifierReference(Sym),
 
     /// Binds a property name to a JavaScript value.
     ///
@@ -467,7 +460,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    Property(Box<str>, Node),
+    Property(PropertyName, Node),
 
     /// A property of an object can also refer to a function or a getter or setter method.
     ///
@@ -477,7 +470,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
-    MethodDefinition(MethodDefinitionKind, Box<str>, FunctionExpr),
+    MethodDefinition(MethodDefinitionKind, PropertyName, FunctionExpr),
 
     /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
     /// It copies own enumerable properties from a provided object onto a new object.
@@ -495,17 +488,14 @@ pub enum PropertyDefinition {
 
 impl PropertyDefinition {
     /// Creates an `IdentifierReference` property definition.
-    pub fn identifier_reference<I>(ident: I) -> Self
-    where
-        I: Into<Box<str>>,
-    {
-        Self::IdentifierReference(ident.into())
+    pub fn identifier_reference(ident: Sym) -> Self {
+        Self::IdentifierReference(ident)
     }
 
     /// Creates a `Property` definition.
     pub fn property<N, V>(name: N, value: V) -> Self
     where
-        N: Into<Box<str>>,
+        N: Into<PropertyName>,
         V: Into<Node>,
     {
         Self::Property(name.into(), value.into())
@@ -514,7 +504,7 @@ impl PropertyDefinition {
     /// Creates a `MethodDefinition`.
     pub fn method_definition<N>(kind: MethodDefinitionKind, name: N, body: FunctionExpr) -> Self
     where
-        N: Into<Box<str>>,
+        N: Into<PropertyName>,
     {
         Self::MethodDefinition(kind, name.into(), body)
     }
@@ -582,9 +572,129 @@ pub enum MethodDefinitionKind {
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
     Ordinary,
-    // TODO: support other method definition kinds, like `Generator`.
+
+    /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#generator_methods
+    Generator,
+
+    /// Async generators can be used to define a method
+    ///
+    /// More information
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_generator_methods
+    AsyncGenerator,
+
+    /// Async function can be used to define a method
+    ///
+    /// More information
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_methods
+    Async,
 }
 
 unsafe impl Trace for MethodDefinitionKind {
     empty_trace!();
+}
+
+/// `PropertyName` can be either a literal or computed.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-PropertyName
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Finalize)]
+pub enum PropertyName {
+    /// A `Literal` property name can be either an identifier, a string or a numeric literal.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName
+    Literal(Sym),
+    /// A `Computed` property name is an expression that gets evaluated and converted into a property name.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
+    Computed(Node),
+}
+
+impl ToInternedString for PropertyName {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match self {
+            PropertyName::Literal(key) => interner.resolve_expect(*key).to_owned(),
+            PropertyName::Computed(key) => key.to_interned_string(interner),
+        }
+    }
+}
+
+impl From<Sym> for PropertyName {
+    fn from(name: Sym) -> Self {
+        Self::Literal(name)
+    }
+}
+
+impl From<Node> for PropertyName {
+    fn from(name: Node) -> Self {
+        Self::Computed(name)
+    }
+}
+
+unsafe impl Trace for PropertyName {
+    empty_trace!();
+}
+
+/// This parses the given source code, and then makes sure that
+/// the resulting `StatementList` is formatted in the same manner
+/// as the source code. This is expected to have a preceding
+/// newline.
+///
+/// This is a utility function for tests. It was made in case people
+/// are using different indents in their source files. This fixes
+/// any strings which may have been changed in a different indent
+/// level.
+#[cfg(test)]
+fn test_formatting(source: &'static str) {
+    use crate::syntax::Parser;
+
+    // Remove preceding newline.
+    let source = &source[1..];
+
+    // Find out how much the code is indented
+    let first_line = &source[..source.find('\n').unwrap()];
+    let trimmed_first_line = first_line.trim();
+    let characters_to_remove = first_line.len() - trimmed_first_line.len();
+
+    let scenario = source
+        .lines()
+        .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
+        .collect::<Vec<&'static str>>()
+        .join("\n");
+    let mut interner = Interner::default();
+    let result = Parser::new(scenario.as_bytes(), false)
+        .parse_all(&mut interner)
+        .expect("parsing failed")
+        .to_interned_string(&interner);
+    if scenario != result {
+        eprint!("========= Expected:\n{}", scenario);
+        eprint!("========= Got:\n{}", result);
+        // Might be helpful to find differing whitespace
+        eprintln!("========= Expected: {:?}", scenario);
+        eprintln!("========= Got:      {:?}", result);
+        panic!("parsing test did not give the correct result (see above)");
+    }
 }

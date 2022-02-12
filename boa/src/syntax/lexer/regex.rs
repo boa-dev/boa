@@ -9,15 +9,11 @@ use crate::{
     },
 };
 use bitflags::bitflags;
-use std::io::{self, ErrorKind};
-use std::str;
+use boa_interner::{Interner, Sym};
 use std::{
-    fmt::{self, Display, Formatter},
-    io::Read,
+    io::{self, ErrorKind, Read},
+    str,
 };
-
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Regex literal lexing.
 ///
@@ -35,7 +31,12 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub(super) struct RegexLiteral;
 
 impl<R> Tokenizer<R> for RegexLiteral {
-    fn lex(&mut self, cursor: &mut Cursor<R>, start_pos: Position) -> Result<Token, Error>
+    fn lex(
+        &mut self,
+        cursor: &mut Cursor<R>,
+        start_pos: Position,
+        interner: &mut Interner,
+    ) -> Result<Token, Error>
     where
         R: Read,
     {
@@ -109,14 +110,14 @@ impl<R> Tokenizer<R> for RegexLiteral {
 
         let mut flags = Vec::new();
         let flags_start = cursor.pos();
-        cursor.take_while_ascii_pred(&mut flags, &|c: char| c.is_alphabetic())?;
+        cursor.take_while_ascii_pred(&mut flags, &char::is_alphabetic)?;
 
         let flags_str = unsafe { str::from_utf8_unchecked(flags.as_slice()) };
         if let Ok(body_str) = str::from_utf8(body.as_slice()) {
             Ok(Token::new(
                 TokenKind::regular_expression_literal(
-                    body_str,
-                    parse_regex_flags(flags_str, flags_start)?,
+                    interner.get_or_intern(body_str),
+                    parse_regex_flags(flags_str, flags_start, interner)?,
                 ),
                 Span::new(start_pos, cursor.pos()),
             ))
@@ -132,7 +133,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
 bitflags! {
     /// Flags of a regular expression.
     #[derive(Default)]
-    pub struct RegExpFlags: u8 {
+    struct RegExpFlags: u8 {
         const GLOBAL = 0b0000_0001;
         const IGNORE_CASE = 0b0000_0010;
         const MULTILINE = 0b0000_0100;
@@ -142,7 +143,7 @@ bitflags! {
     }
 }
 
-pub(crate) fn parse_regex_flags(s: &str, start: Position) -> Result<RegExpFlags, Error> {
+fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Result<Sym, Error> {
     let mut flags = RegExpFlags::default();
     for c in s.bytes() {
         let new_flag = match c {
@@ -160,88 +161,38 @@ pub(crate) fn parse_regex_flags(s: &str, start: Position) -> Result<RegExpFlags,
             }
         };
 
-        if !flags.contains(new_flag) {
-            flags.insert(new_flag);
-        } else {
+        if flags.contains(new_flag) {
             return Err(Error::syntax(
-                format!("invalid regular expression flag {}", char::from(c)),
+                format!("repeated regular expression flag {}", char::from(c)),
                 start,
             ));
         }
+        flags.insert(new_flag);
     }
-    Ok(flags)
+    Ok(interner.get_or_intern(flags.to_string()))
 }
 
-impl Display for RegExpFlags {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        use fmt::Write;
-
+impl ToString for RegExpFlags {
+    fn to_string(&self) -> String {
+        let mut s = String::new();
         if self.contains(Self::GLOBAL) {
-            f.write_char('g')?;
+            s.push('g');
         }
         if self.contains(Self::IGNORE_CASE) {
-            f.write_char('i')?;
+            s.push('i');
         }
         if self.contains(Self::MULTILINE) {
-            f.write_char('m')?;
+            s.push('m');
         }
         if self.contains(Self::DOT_ALL) {
-            f.write_char('s')?;
+            s.push('s');
         }
         if self.contains(Self::UNICODE) {
-            f.write_char('u')?;
+            s.push('u');
         }
         if self.contains(Self::STICKY) {
-            f.write_char('y')?;
+            s.push('y');
         }
-        Ok(())
-    }
-}
-
-#[cfg(feature = "deser")]
-impl Serialize for RegExpFlags {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.to_string())
-    }
-}
-
-#[cfg(feature = "deser")]
-impl<'de> Deserialize<'de> for RegExpFlags {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        use serde::de::{self, Visitor};
-
-        /// Deserializer visitor implementation for `RegExpFlags`.
-        #[derive(Debug, Clone, Copy)]
-        struct RegExpFlagsVisitor;
-
-        impl<'de> Visitor<'de> for RegExpFlagsVisitor {
-            type Value = RegExpFlags;
-
-            fn expecting(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
-                formatter.write_str("a string representing JavaScript regular expression flags")
-            }
-
-            fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                parse_regex_flags(value, Position::new(0, 0)).map_err(E::custom)
-            }
-
-            fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-            where
-                E: de::Error,
-            {
-                self.visit_str(&value)
-            }
-        }
-
-        deserializer.deserialize_str(RegExpFlagsVisitor)
+        s
     }
 }

@@ -1,7 +1,7 @@
-use super::*;
+use super::{JsBigInt, JsObject, JsResult, JsValue, PreferredType};
 use crate::{builtins::Number, Context};
 
-impl Value {
+impl JsValue {
     /// Strict equality comparison.
     ///
     /// This method is executed when doing strict equality comparisons with the `===` operator.
@@ -15,7 +15,7 @@ impl Value {
         match (self, other) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::equal(x, y).
-            (Self::BigInt(x), Self::BigInt(y)) => BigInt::equal(x, y),
+            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::equal(x, y),
             (Self::Rational(x), Self::Rational(y)) => Number::equal(*x, *y),
             (Self::Rational(x), Self::Integer(y)) => Number::equal(*x, f64::from(*y)),
             (Self::Integer(x), Self::Rational(y)) => Number::equal(f64::from(*x), *y),
@@ -37,7 +37,7 @@ impl Value {
     /// This method is executed when doing abstract equality comparisons with the `==` operator.
     ///  For more information, check <https://tc39.es/ecma262/#sec-abstract-equality-comparison>
     #[allow(clippy::float_cmp)]
-    pub fn equals(&self, other: &Self, context: &mut Context) -> Result<bool> {
+    pub fn equals(&self, other: &Self, context: &mut Context) -> JsResult<bool> {
         // 1. If Type(x) is the same as Type(y), then
         //     a. Return the result of performing Strict Equality Comparison x === y.
         if self.get_type() == other.get_type() {
@@ -53,12 +53,8 @@ impl Value {
             // 4. If Type(x) is String and Type(y) is Number, return the result of the comparison ! ToNumber(x) == y.
             //
             // https://github.com/rust-lang/rust/issues/54883
-            (Self::Integer(_), Self::String(_))
-            | (Self::Rational(_), Self::String(_))
-            | (Self::String(_), Self::Integer(_))
-            | (Self::String(_), Self::Rational(_))
-            | (Self::Rational(_), Self::Boolean(_))
-            | (Self::Integer(_), Self::Boolean(_)) => {
+            (Self::Integer(_) | Self::Rational(_), Self::String(_) | Self::Boolean(_))
+            | (Self::String(_), Self::Integer(_) | Self::Rational(_)) => {
                 let x = self.to_number(context)?;
                 let y = other.to_number(context)?;
                 Number::equal(x, y)
@@ -68,22 +64,22 @@ impl Value {
             //    a. Let n be ! StringToBigInt(y).
             //    b. If n is NaN, return false.
             //    c. Return the result of the comparison x == n.
-            (Self::BigInt(ref a), Self::String(ref b)) => match string_to_bigint(b) {
-                Some(ref b) => a.as_inner() == b,
+            (Self::BigInt(ref a), Self::String(ref b)) => match JsBigInt::from_string(b) {
+                Some(ref b) => a == b,
                 None => false,
             },
 
             // 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.
-            (Self::String(ref a), Self::BigInt(ref b)) => match string_to_bigint(a) {
-                Some(ref a) => a == b.as_inner(),
+            (Self::String(ref a), Self::BigInt(ref b)) => match JsBigInt::from_string(a) {
+                Some(ref a) => a == b,
                 None => false,
             },
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(x), _) => return other.equals(&Value::from(*x as i32), context),
+            (Self::Boolean(x), _) => return other.equals(&Self::new(*x as i32), context),
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(y)) => return self.equals(&Value::from(*y as i32), context),
+            (_, Self::Boolean(y)) => return self.equals(&Self::new(*y as i32), context),
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
@@ -102,10 +98,10 @@ impl Value {
             // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then
             //    a. If x or y are any of NaN, +∞, or -∞, return false.
             //    b. If the mathematical value of x is equal to the mathematical value of y, return true; otherwise return false.
-            (Self::BigInt(ref a), Self::Rational(ref b)) => a.as_inner() == b,
-            (Self::Rational(ref a), Self::BigInt(ref b)) => a == b.as_inner(),
-            (Self::BigInt(ref a), Self::Integer(ref b)) => a.as_inner() == b,
-            (Self::Integer(ref a), Self::BigInt(ref b)) => a == b.as_inner(),
+            (Self::BigInt(ref a), Self::Rational(ref b)) => a == b,
+            (Self::Rational(ref a), Self::BigInt(ref b)) => a == b,
+            (Self::BigInt(ref a), Self::Integer(ref b)) => a == b,
+            (Self::Integer(ref a), Self::BigInt(ref b)) => a == b,
 
             // 13. Return false.
             _ => false,
@@ -119,7 +115,7 @@ impl Value {
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevalue
-    pub fn same_value(x: &Value, y: &Value) -> bool {
+    pub fn same_value(x: &Self, y: &Self) -> bool {
         // 1. If Type(x) is different from Type(y), return false.
         if x.get_type() != y.get_type() {
             return false;
@@ -128,11 +124,11 @@ impl Value {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValue(x, y).
-            (Value::BigInt(x), Value::BigInt(y)) => BigInt::same_value(x, y),
-            (Value::Rational(x), Value::Rational(y)) => Number::same_value(*x, *y),
-            (Value::Rational(x), Value::Integer(y)) => Number::same_value(*x, f64::from(*y)),
-            (Value::Integer(x), Value::Rational(y)) => Number::same_value(f64::from(*x), *y),
-            (Value::Integer(x), Value::Integer(y)) => x == y,
+            (Self::BigInt(x), Self::BigInt(y)) => JsBigInt::same_value(x, y),
+            (Self::Rational(x), Self::Rational(y)) => Number::same_value(*x, *y),
+            (Self::Rational(x), Self::Integer(y)) => Number::same_value(*x, f64::from(*y)),
+            (Self::Integer(x), Self::Rational(y)) => Number::same_value(f64::from(*x), *y),
+            (Self::Integer(x), Self::Integer(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),
@@ -142,13 +138,13 @@ impl Value {
     /// The internal comparison abstract operation `SameValueZero(x, y)`,
     /// where `x` and `y` are ECMAScript language values, produces `true` or `false`.
     ///
-    /// `SameValueZero` differs from SameValue only in its treatment of `+0` and `-0`.
+    /// `SameValueZero` differs from `SameValue` only in its treatment of `+0` and `-0`.
     ///
     /// More information:
     ///  - [ECMAScript][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-samevaluezero
-    pub fn same_value_zero(x: &Value, y: &Value) -> bool {
+    pub fn same_value_zero(x: &Self, y: &Self) -> bool {
         if x.get_type() != y.get_type() {
             return false;
         }
@@ -156,43 +152,31 @@ impl Value {
         match (x, y) {
             // 2. If Type(x) is Number or BigInt, then
             //    a. Return ! Type(x)::SameValueZero(x, y).
-            (Value::BigInt(x), Value::BigInt(y)) => BigInt::same_value_zero(x, y),
+            (JsValue::BigInt(x), JsValue::BigInt(y)) => JsBigInt::same_value_zero(x, y),
 
-            (Value::Rational(x), Value::Rational(y)) => Number::same_value_zero(*x, *y),
-            (Value::Rational(x), Value::Integer(y)) => Number::same_value_zero(*x, f64::from(*y)),
-            (Value::Integer(x), Value::Rational(y)) => Number::same_value_zero(f64::from(*x), *y),
-            (Value::Integer(x), Value::Integer(y)) => x == y,
+            (JsValue::Rational(x), JsValue::Rational(y)) => Number::same_value_zero(*x, *y),
+            (JsValue::Rational(x), JsValue::Integer(y)) => {
+                Number::same_value_zero(*x, f64::from(*y))
+            }
+            (JsValue::Integer(x), JsValue::Rational(y)) => {
+                Number::same_value_zero(f64::from(*x), *y)
+            }
+            (JsValue::Integer(x), JsValue::Integer(y)) => x == y,
 
             // 3. Return ! SameValueNonNumeric(x, y).
             (_, _) => Self::same_value_non_numeric(x, y),
         }
     }
 
-    fn same_value_non_numeric(x: &Value, y: &Value) -> bool {
+    fn same_value_non_numeric(x: &Self, y: &Self) -> bool {
         debug_assert!(x.get_type() == y.get_type());
         match (x, y) {
-            (Value::Null, Value::Null) | (Value::Undefined, Value::Undefined) => true,
-            (Value::String(ref x), Value::String(ref y)) => x == y,
-            (Value::Boolean(x), Value::Boolean(y)) => x == y,
-            (Value::Object(ref x), Value::Object(ref y)) => GcObject::equals(x, y),
-            (Value::Symbol(ref x), Value::Symbol(ref y)) => x == y,
+            (JsValue::Null, JsValue::Null) | (JsValue::Undefined, JsValue::Undefined) => true,
+            (JsValue::String(ref x), JsValue::String(ref y)) => x == y,
+            (JsValue::Boolean(x), JsValue::Boolean(y)) => x == y,
+            (JsValue::Object(ref x), JsValue::Object(ref y)) => JsObject::equals(x, y),
+            (JsValue::Symbol(ref x), JsValue::Symbol(ref y)) => x == y,
             _ => false,
         }
     }
-}
-
-/// This function takes a string and conversts it to BigInt type.
-///
-/// If the result is `NaN` than `None` is returned.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-stringtobigint
-pub fn string_to_bigint(string: &str) -> Option<BigInt> {
-    if string.is_empty() {
-        return Some(BigInt::from(0));
-    }
-
-    BigInt::from_str(string)
 }

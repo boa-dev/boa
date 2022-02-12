@@ -1,35 +1,50 @@
 //! Iteration nodes
 
 pub use self::{
-    continue_node::Continue, do_while_loop::DoWhileLoop, for_in_loop::ForInLoop, for_loop::ForLoop,
-    for_of_loop::ForOfLoop, while_loop::WhileLoop,
+    break_node::Break, continue_node::Continue, do_while_loop::DoWhileLoop, for_in_loop::ForInLoop,
+    for_loop::ForLoop, for_of_loop::ForOfLoop, while_loop::WhileLoop,
 };
+use crate::{
+    gc::{Finalize, Trace},
+    syntax::ast::node::{declaration::Declaration, identifier::Identifier},
+};
+use boa_interner::{Interner, ToInternedString};
+
+#[cfg(feature = "deser")]
+use serde::{Deserialize, Serialize};
 
 #[cfg(test)]
 mod tests;
 
-// Checking labels for break and continue is the same operation for `ForLoop`, `While` and `DoWhile`
-#[macro_use]
-macro_rules! handle_state_with_labels {
-    ($self:ident, $label:ident, $interpreter:ident, $state:tt) => {{
-        if let Some(brk_label) = $label {
-            if let Some(stmt_label) = $self.label() {
-                // Break from where we are, keeping "continue" set as the state
-                if stmt_label != brk_label.as_ref() {
-                    break;
-                }
-            } else {
-                // if a label is set but the current block has no label, break
-                break;
-            }
-        }
-
-        $interpreter
-            .executor()
-            .set_current_state(InterpreterState::Executing);
-    }};
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum IterableLoopInitializer {
+    Identifier(Identifier),
+    Var(Declaration),
+    Let(Declaration),
+    Const(Declaration),
 }
 
+impl ToInternedString for IterableLoopInitializer {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match self {
+            IterableLoopInitializer::Identifier(identifier) => {
+                identifier.to_interned_string(interner)
+            }
+            IterableLoopInitializer::Var(declaration) => {
+                format!("var {}", declaration.to_interned_string(interner))
+            }
+            IterableLoopInitializer::Let(declaration) => {
+                format!("let {}", declaration.to_interned_string(interner))
+            }
+            IterableLoopInitializer::Const(declaration) => {
+                format!("const {}", declaration.to_interned_string(interner))
+            }
+        }
+    }
+}
+
+pub mod break_node;
 pub mod continue_node;
 pub mod do_while_loop;
 pub mod for_in_loop;
