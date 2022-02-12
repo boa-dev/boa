@@ -1479,7 +1479,7 @@ fn test_strict_mode_reserved_name() {
 
     for case in &test_cases {
         let mut context = Context::default();
-        let scenario = format!("'use strict'; \n {}", case);
+        let scenario = format!("'use strict'; \n {case}");
 
         let string = dbg!(forward(&mut context, &scenario));
 

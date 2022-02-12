@@ -67,7 +67,7 @@ impl FromStr for TestFlag {
             "CanBlockIsFalse" => Ok(Self::CanBlockIsFalse),
             "CanBlockIsTrue" => Ok(Self::CanBlockIsTrue),
             "non-deterministic" => Ok(Self::NonDeterministic),
-            _ => Err(format!("unknown test flag: {}", s)),
+            _ => Err(format!("unknown test flag: {s}")),
         }
     }
 }

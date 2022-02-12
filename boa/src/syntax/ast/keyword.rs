@@ -548,7 +548,7 @@ impl TryInto<BinOp> for Keyword {
     type Error = String;
     fn try_into(self) -> Result<BinOp, Self::Error> {
         self.as_binop()
-            .ok_or_else(|| format!("No binary operation for {}", self))
+            .ok_or_else(|| format!("No binary operation for {self}"))
     }
 }
 

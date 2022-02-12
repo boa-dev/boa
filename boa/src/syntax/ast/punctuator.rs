@@ -185,6 +185,7 @@ impl Punctuator {
         }
     }
 
+    /// Retrieves the punctuator as a static string.
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Add => "+",
@@ -251,7 +252,7 @@ impl TryInto<BinOp> for Punctuator {
     type Error = String;
     fn try_into(self) -> Result<BinOp, Self::Error> {
         self.as_binop()
-            .ok_or_else(|| format!("No binary operation for {}", self))
+            .ok_or_else(|| format!("No binary operation for {self}"))
     }
 }
 

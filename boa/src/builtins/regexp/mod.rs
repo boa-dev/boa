@@ -317,8 +317,7 @@ impl RegExp {
                 'y' => sticky = true,
                 c => {
                     return context.throw_syntax_error(format!(
-                        "RegExp flags contains unknown code unit '{}'",
-                        c
+                        "RegExp flags contains unknown code unit '{c}'",
                     ))
                 }
             }
@@ -421,8 +420,7 @@ impl RegExp {
         };
 
         context.throw_type_error(format!(
-            "RegExp.prototype.{} getter called on non-RegExp object",
-            name
+            "RegExp.prototype.{name} getter called on non-RegExp object",
         ))
     }
 
@@ -1153,7 +1151,7 @@ impl RegExp {
                 this.display()
             ));
         };
-        Ok(format!("/{}/{}", body, flags).into())
+        Ok(format!("/{body}/{flags}").into())
     }
 
     /// `RegExp.prototype[ @@matchAll ]( string )`
@@ -1444,10 +1442,8 @@ impl RegExp {
                 // ii. Set accumulatedResult to the string-concatenation of accumulatedResult,
                 //     the substring of S from nextSourcePosition to position, and replacement.
                 accumulated_result = format!(
-                    "{}{}{}",
-                    accumulated_result,
+                    "{accumulated_result}{}{replacement}",
                     arg_str.get(next_source_position..position).unwrap(),
-                    replacement
                 )
                 .into();
 
@@ -1578,7 +1574,7 @@ impl RegExp {
         let new_flags = if flags.contains('y') {
             flags.to_string()
         } else {
-            format!("{}{}", flags, 'y')
+            format!("{flags}y")
         };
 
         // 10. Let splitter be ? Construct(C, « rx, newFlags »).

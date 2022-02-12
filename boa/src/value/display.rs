@@ -89,8 +89,8 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             match v.borrow().kind() {
-                ObjectKind::String(ref string) => format!("String {{ \"{}\" }}", string),
-                ObjectKind::Boolean(boolean) => format!("Boolean {{ {} }}", boolean),
+                ObjectKind::String(ref string) => format!("String {{ \"{string}\" }}"),
+                ObjectKind::Boolean(boolean) => format!("Boolean {{ {boolean} }}"),
                 ObjectKind::Number(rational) => {
                     if rational.is_sign_negative() && *rational == 0.0 {
                         "Number { -0 }".to_string()
@@ -135,9 +135,9 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                             .collect::<Vec<String>>()
                             .join(", ");
 
-                        format!("[ {} ]", arr)
+                        format!("[ {arr} ]")
                     } else {
-                        format!("Array({})", len)
+                        format!("Array({len})")
                     }
                 }
                 ObjectKind::Map(ref map) => {
@@ -152,13 +152,13 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                             .map(|(key, value)| {
                                 let key = log_string_from(key, print_internals, false);
                                 let value = log_string_from(value, print_internals, false);
-                                format!("{} → {}", key, value)
+                                format!("{key} → {value}")
                             })
                             .collect::<Vec<String>>()
                             .join(", ");
-                        format!("Map {{ {} }}", mappings)
+                        format!("Map {{ {mappings} }}")
                     } else {
-                        format!("Map({})", size)
+                        format!("Map({size})")
                     }
                 }
                 ObjectKind::Set(ref set) => {
@@ -174,16 +174,16 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                             .map(|value| log_string_from(value, print_internals, false))
                             .collect::<Vec<String>>()
                             .join(", ");
-                        format!("Set {{ {} }}", entries)
+                        format!("Set {{ {entries} }}")
                     } else {
-                        format!("Set({})", size)
+                        format!("Set({size})")
                     }
                 }
                 _ => display_obj(x, print_internals),
             }
         }
         JsValue::Symbol(ref symbol) => symbol.to_string(),
-        _ => format!("{}", x.display()),
+        _ => x.display().to_string(),
     }
 }
 
@@ -229,10 +229,10 @@ pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
             let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
                 .expect("Could not create the closing brace's indentation string");
 
-            format!("{{\n{}\n{}}}", result, closing_indent)
+            format!("{{\n{result}\n{closing_indent}}}")
         } else {
             // Every other type of data is printed with the display method
-            format!("{}", data.display())
+            data.display().to_string()
         }
     }
 
@@ -256,7 +256,7 @@ pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
                 .unwrap_or(&JsValue::Undefined)
                 .display()
                 .to_string();
-            return format!("{}: {}", name, message);
+            return format!("{name}: {message}");
         }
     }
 
@@ -268,16 +268,16 @@ impl Display for ValueDisplay<'_> {
         match self.value {
             JsValue::Null => write!(f, "null"),
             JsValue::Undefined => write!(f, "undefined"),
-            JsValue::Boolean(v) => write!(f, "{}", v),
+            JsValue::Boolean(v) => write!(f, "{v}"),
             JsValue::Symbol(ref symbol) => match symbol.description() {
-                Some(description) => write!(f, "Symbol({})", description),
+                Some(description) => write!(f, "Symbol({description})"),
                 None => write!(f, "Symbol()"),
             },
-            JsValue::String(ref v) => write!(f, "\"{}\"", v),
+            JsValue::String(ref v) => write!(f, "\"{v}\""),
             JsValue::Rational(v) => format_rational(*v, f),
             JsValue::Object(_) => write!(f, "{}", log_string_from(self.value, true, true)),
-            JsValue::Integer(v) => write!(f, "{}", v),
-            JsValue::BigInt(ref num) => write!(f, "{}n", num),
+            JsValue::Integer(v) => write!(f, "{v}"),
+            JsValue::BigInt(ref num) => write!(f, "{num}n"),
         }
     }
 }

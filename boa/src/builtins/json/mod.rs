@@ -498,7 +498,7 @@ impl Json {
                 {
                     // i. Let unit be the code unit whose numeric value is that of C.
                     // ii. Set product to the string-concatenation of product and UnicodeEscape(unit).
-                    product.push_str(&format!("\\\\uAA{:x}", code_point));
+                    product.push_str(&format!("\\\\uAA{code_point:x}"));
                 }
                 // c. Else,
                 code_point => {
@@ -603,18 +603,15 @@ impl Json {
             } else {
                 // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                let separator = format!(",{}{}", '\u{A}', state.indent.as_str());
+                let separator = format!(",\n{}", state.indent.as_str());
                 // ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
                 let properties = partial.join(&separator);
                 // iii. Let final be the string-concatenation of "{", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "}".
                 format!(
-                    "{{{}{}{}{}{}}}",
-                    '\u{A}',
+                    "{{\n{}{properties}\n{}}}",
                     state.indent.as_str(),
-                    &properties,
-                    '\u{A}',
                     stepback.as_str()
                 )
                 .into()
@@ -703,18 +700,15 @@ impl Json {
             } else {
                 // i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),
                 //    the code unit 0x000A (LINE FEED), and state.[[Indent]].
-                let separator = format!(",{}{}", '\u{A}', state.indent.as_str());
+                let separator = format!(",\n{}", state.indent.as_str());
                 // ii. Let properties be the String value formed by concatenating all the element Strings of partial
                 //     with each adjacent pair of Strings separated with separator.
                 //     The separator String is not inserted either before the first String or after the last String.
                 let properties = partial.join(&separator);
                 // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
                 format!(
-                    "[{}{}{}{}{}]",
-                    '\u{A}',
+                    "[\n{}{properties}\n{}]",
                     state.indent.as_str(),
-                    &properties,
-                    '\u{A}',
                     stepback.as_str()
                 )
                 .into()

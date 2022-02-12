@@ -56,23 +56,21 @@ impl Object {
         for property in self.properties().iter() {
             buf.push_str(&match property {
                 PropertyDefinition::IdentifierReference(ident) => {
-                    format!("{}{},\n", indentation, interner.resolve_expect(*ident))
+                    format!("{indentation}{},\n", interner.resolve_expect(*ident))
                 }
                 PropertyDefinition::Property(key, value) => {
                     format!(
-                        "{}{}: {},\n",
-                        indentation,
+                        "{indentation}{}: {},\n",
                         key.to_interned_string(interner),
                         value.to_no_indent_string(interner, indent_n + 1)
                     )
                 }
                 PropertyDefinition::SpreadObject(key) => {
-                    format!("{}...{},\n", indentation, key.to_interned_string(interner))
+                    format!("{indentation}...{},\n", key.to_interned_string(interner))
                 }
                 PropertyDefinition::MethodDefinition(kind, key, node) => {
                     format!(
-                        "{}{}{}({}) {},\n",
-                        indentation,
+                        "{indentation}{}{}({}) {},\n",
                         match &kind {
                             MethodDefinitionKind::Get => "get ",
                             MethodDefinitionKind::Set => "set ",

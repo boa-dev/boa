@@ -170,7 +170,7 @@ fn bigger_switch_example() {
     for (i, val) in expected.iter().enumerate() {
         let scenario = format!(
             r#"
-            let a = {};
+            let a = {i};
             let b = "unknown";
 
             switch (a) {{
@@ -200,7 +200,6 @@ fn bigger_switch_example() {
             b;
 
             "#,
-            i
         );
 
         assert_eq!(&exec(&scenario), val);

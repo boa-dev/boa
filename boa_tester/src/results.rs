@@ -278,7 +278,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             );
             println!("\n```");
             for test in test_diff.fixed {
-                println!("{}", test);
+                println!("{test}");
             }
             println!("```");
             println!("</details>");
@@ -292,7 +292,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             );
             println!("\n```");
             for test in test_diff.broken {
-                println!("{}", test);
+                println!("{test}");
             }
             println!("```");
             println!("</details>");
@@ -306,7 +306,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             );
             println!("\n```");
             for test in test_diff.new_panics {
-                println!("{}", test);
+                println!("{test}");
             }
             println!("```");
             println!("</details>");
@@ -320,7 +320,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             );
             println!("\n```");
             for test in test_diff.panic_fixes {
-                println!("{}", test);
+                println!("{test}");
             }
             println!("```");
             println!("</details>");
@@ -329,27 +329,19 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
         println!("Test262 conformance changes:");
         println!("| Test result | main |    PR   | difference |");
         println!(
-            "|    Passed   | {:^6} | {:^5} | {:^10} |",
-            base_passed,
-            new_passed,
+            "|    Passed   | {base_passed:^6} | {new_passed:^5} | {:^10} |",
             base_passed - new_passed
         );
         println!(
-            "|   Ignored   | {:^6} | {:^5} | {:^10} |",
-            base_ignored,
-            new_ignored,
+            "|   Ignored   | {base_ignored:^6} | {new_ignored:^5} | {:^10} |",
             base_ignored - new_ignored
         );
         println!(
-            "|   Failed    | {:^6} | {:^5} | {:^10} |",
-            base_failed,
-            new_failed,
+            "|   Failed    | {base_failed:^6} | {new_failed:^5} | {:^10} |",
             base_failed - new_failed,
         );
         println!(
-            "|   Panics    | {:^6} | {:^5} | {:^10} |",
-            base_panics,
-            new_panics,
+            "|   Panics    | {base_panics:^6} | {new_panics:^5} | {:^10} |",
             base_panics - new_panics
         );
 
@@ -357,7 +349,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             println!();
             println!("Fixed tests ({}):", test_diff.fixed.len());
             for test in test_diff.fixed {
-                println!("{}", test);
+                println!("{test}");
             }
         }
 
@@ -365,7 +357,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             println!();
             println!("Broken tests ({}):", test_diff.broken.len());
             for test in test_diff.broken {
-                println!("{}", test);
+                println!("{test}");
             }
         }
 
@@ -373,7 +365,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             println!();
             println!("New panics ({}):", test_diff.new_panics.len());
             for test in test_diff.new_panics {
-                println!("{}", test);
+                println!("{test}");
             }
         }
 
@@ -381,7 +373,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             println!();
             println!("Fixed panics ({}):", test_diff.panic_fixes.len());
             for test in test_diff.panic_fixes {
-                println!("{}", test);
+                println!("{test}");
             }
         }
     }

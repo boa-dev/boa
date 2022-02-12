@@ -134,7 +134,7 @@ impl Error {
         } else if message.is_empty() {
             Ok(name.into())
         } else {
-            Ok(format!("{}: {}", name, message).into())
+            Ok(format!("{name}: {message}").into())
         }
     }
 }
