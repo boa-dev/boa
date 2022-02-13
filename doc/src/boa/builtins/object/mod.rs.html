@@ -1566,7 +1566,7 @@
         <span class="kw">let</span> <span class="ident">tag_str</span> <span class="op">=</span> <span class="ident">tag</span>.<span class="ident">as_string</span>().<span class="ident">map_or</span>(<span class="ident">builtin_tag</span>, <span class="ident">JsString::as_str</span>);
 
         <span class="comment">// 17. Return the string-concatenation of &quot;[object &quot;, tag, and &quot;]&quot;.</span>
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;[object {}]&quot;</span>, <span class="ident">tag_str</span>).<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;[object {tag_str}]&quot;</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Object.prototype.hasOwnProperty( property )`</span>

@@ -335,8 +335,6 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains the Boa lexer or tokenizer implementation.</span>
@@ -619,8 +617,7 @@
                 }
                 <span class="kw">_</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">details</span> <span class="op">=</span> <span class="macro">format!</span>(
-                        <span class="string">&quot;unexpected &#39;{}&#39; at line {}, column {}&quot;</span>,
-                        <span class="ident">c</span>,
+                        <span class="string">&quot;unexpected &#39;{c}&#39; at line {}, column {}&quot;</span>,
                         <span class="ident">start</span>.<span class="ident">line_number</span>(),
                         <span class="ident">start</span>.<span class="ident">column_number</span>()
                     );
@@ -637,8 +634,7 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;unexpected utf-8 char &#39;\\u{}&#39; at line {}, column {}&quot;</span>,
-                    <span class="ident">next_ch</span>,
+                    <span class="string">&quot;unexpected utf-8 char &#39;\\u{next_ch}&#39; at line {}, column {}&quot;</span>,
                     <span class="ident">start</span>.<span class="ident">line_number</span>(),
                     <span class="ident">start</span>.<span class="ident">column_number</span>()
                 ),

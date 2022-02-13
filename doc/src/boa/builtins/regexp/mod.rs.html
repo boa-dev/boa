@@ -1765,10 +1765,6 @@
 <span id="1764">1764</span>
 <span id="1765">1765</span>
 <span id="1766">1766</span>
-<span id="1767">1767</span>
-<span id="1768">1768</span>
-<span id="1769">1769</span>
-<span id="1770">1770</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -2088,8 +2084,7 @@
                 <span class="string">&#39;y&#39;</span> =&gt; <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">true</span>,
                 <span class="ident">c</span> =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;RegExp flags contains unknown code unit &#39;{}&#39;&quot;</span>,
-                        <span class="ident">c</span>
+                        <span class="string">&quot;RegExp flags contains unknown code unit &#39;{c}&#39;&quot;</span>,
                     ))
                 }
             }
@@ -2192,8 +2187,7 @@
         };
 
         <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;RegExp.prototype.{} getter called on non-RegExp object&quot;</span>,
-            <span class="ident">name</span>
+            <span class="string">&quot;RegExp.prototype.{name} getter called on non-RegExp object&quot;</span>,
         ))
     }
 
@@ -2924,7 +2918,7 @@
                 <span class="ident">this</span>.<span class="ident">display</span>()
             ));
         };
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;/{}/{}&quot;</span>, <span class="ident">body</span>, <span class="ident">flags</span>).<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;/{body}/{flags}&quot;</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `RegExp.prototype[ @@matchAll ]( string )`</span>
@@ -3215,10 +3209,8 @@
                 <span class="comment">// ii. Set accumulatedResult to the string-concatenation of accumulatedResult,</span>
                 <span class="comment">//     the substring of S from nextSourcePosition to position, and replacement.</span>
                 <span class="ident">accumulated_result</span> <span class="op">=</span> <span class="macro">format!</span>(
-                    <span class="string">&quot;{}{}{}&quot;</span>,
-                    <span class="ident">accumulated_result</span>,
+                    <span class="string">&quot;{accumulated_result}{}{replacement}&quot;</span>,
                     <span class="ident">arg_str</span>.<span class="ident">get</span>(<span class="ident">next_source_position</span>..<span class="ident">position</span>).<span class="ident">unwrap</span>(),
-                    <span class="ident">replacement</span>
                 )
                 .<span class="ident">into</span>();
 
@@ -3349,7 +3341,7 @@
         <span class="kw">let</span> <span class="ident">new_flags</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;y&#39;</span>) {
             <span class="ident">flags</span>.<span class="ident">to_string</span>()
         } <span class="kw">else</span> {
-            <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">flags</span>, <span class="string">&#39;y&#39;</span>)
+            <span class="macro">format!</span>(<span class="string">&quot;{flags}y&quot;</span>)
         };
 
         <span class="comment">// 10. Let splitter be ? Construct(C, « rx, newFlags »).</span>

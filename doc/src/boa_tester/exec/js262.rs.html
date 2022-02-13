@@ -104,8 +104,6 @@
 <span id="103">103</span>
 <span id="104">104</span>
 <span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa</span>::{
     <span class="ident">builtins::JsArgs</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>},
@@ -136,8 +134,6 @@
 <span class="doccomment">/// returns the `$262` property of the new realm&#39;s global object.</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
 <span class="kw">fn</span> <span class="ident">create_realm</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-    <span class="comment">// eprintln!(&quot;called $262.createRealm()&quot;);</span>
-
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::default</span>();
 
     <span class="comment">// add the $262 object.</span>
@@ -194,7 +190,7 @@
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source_text</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">JsValue::as_string</span>) {
         <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">parse</span>(<span class="ident">source_text</span>.<span class="ident">as_str</span>()) {
             <span class="comment">// TODO: check strict</span>
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Uncaught Syntax Error: {}&quot;</span>, <span class="ident">e</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Uncaught Syntax Error: {e}&quot;</span>)),
             <span class="comment">// Calling eval here parses the code a second time.</span>
             <span class="comment">// TODO: We can fix this after we have have defined the public api for the vm executer.</span>
             <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">source_text</span>.<span class="ident">as_str</span>()),

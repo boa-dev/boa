@@ -682,7 +682,7 @@
             } <span class="kw">else</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">io::Error::new</span>(
                     <span class="ident">ErrorKind::UnexpectedEof</span>,
-                    <span class="macro">format!</span>(<span class="string">&quot;Unexpected end of file when looking for character {}&quot;</span>, <span class="ident">stop</span>),
+                    <span class="macro">format!</span>(<span class="string">&quot;Unexpected end of file when looking for character {stop}&quot;</span>),
                 ));
             }
         }

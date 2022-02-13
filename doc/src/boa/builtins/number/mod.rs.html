@@ -1436,8 +1436,8 @@
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">f64_to_exponential</span>(<span class="ident">this_num</span>)))
         } <span class="kw">else</span> {
             <span class="comment">// Get rid of the &#39;-&#39; sign for -0.0 because of 9. If x &lt; 0, then set s to &quot;-&quot;.</span>
-            <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">this_num</span> <span class="op">==</span> <span class="number">0.</span> { <span class="number">0.</span> } <span class="kw">else</span> { <span class="ident">this_num</span> };
-            <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.*}&quot;</span>, <span class="ident">precision</span>, <span class="ident">this_num</span>);
+            <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">this_num</span> <span class="op">==</span> <span class="number">0_f64</span> { <span class="number">0_f64</span> } <span class="kw">else</span> { <span class="ident">this_num</span> };
+            <span class="kw">let</span> <span class="ident">this_fixed_num</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{this_num:.precision$}&quot;</span>);
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_fixed_num</span>))
         }
     }
@@ -1462,7 +1462,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">this_num</span>);
+        <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="ident">this_num</span>.<span class="ident">to_string</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str_num</span>))
     }
 
@@ -1616,7 +1616,7 @@
             <span class="comment">// Due to f64 limitations, this part differs a bit from the spec,</span>
             <span class="comment">// but has the same effect. It manipulates the string constructed</span>
             <span class="comment">// by `format`: digits with an optional dot between two of them.</span>
-            <span class="ident">suffix</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.100}&quot;</span>, <span class="ident">this_num</span>);
+            <span class="ident">suffix</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{this_num:.100}&quot;</span>);
 
             <span class="comment">// a: getting an exponent</span>
             <span class="ident">exponent</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::flt_str_to_exp</span>(<span class="kw-2">&amp;</span><span class="ident">suffix</span>);
@@ -1851,7 +1851,7 @@
         <span class="comment">// I am not sure if this part is effective as the v8 equivalent https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/builtins/number.tq#53</span>
         <span class="comment">// // Fast case where the result is a one character string.</span>
         <span class="comment">// if x.is_sign_positive() &amp;&amp; x.fract() == 0.0 &amp;&amp; x &lt; radix_number as f64 {</span>
-        <span class="comment">//     return Ok(to_value(format!(&quot;{}&quot;, std::char::from_digit(x as u32, radix_number as u32).unwrap())))</span>
+        <span class="comment">//     return Ok(std::char::from_digit(x as u32, radix_number as u32).unwrap().to_string().into())</span>
         <span class="comment">// }</span>
 
         <span class="comment">// 6. Return the String representation of this Number value using the radix specified by radixNumber.</span>
@@ -2310,8 +2310,8 @@
 <span class="doccomment">/// Helper function that formats a float as a ES6-style exponential number string.</span>
 <span class="kw">fn</span> <span class="ident">f64_to_exponential</span>(<span class="ident">n</span>: <span class="ident">f64</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">match</span> <span class="ident">n</span>.<span class="ident">abs</span>() {
-        <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0.0</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>).<span class="ident">replace</span>(<span class="string">&#39;e&#39;</span>, <span class="string">&quot;e+&quot;</span>),
-        <span class="kw">_</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;{:e}&quot;</span>, <span class="ident">n</span>),
+        <span class="ident">x</span> <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">1.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="number">0.0</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;{n:e}&quot;</span>).<span class="ident">replace</span>(<span class="string">&#39;e&#39;</span>, <span class="string">&quot;e+&quot;</span>),
+        <span class="kw">_</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;{n:e}&quot;</span>),
     }
 }
 
@@ -2320,7 +2320,7 @@
 <span class="comment">// because in cases like (0.999).toExponential(0) the result will be 1e0.</span>
 <span class="comment">// Instead we get the index of &#39;e&#39;, and if the next character is not &#39;-&#39; we insert the plus sign</span>
 <span class="kw">fn</span> <span class="ident">f64_to_exponential_with_precision</span>(<span class="ident">n</span>: <span class="ident">f64</span>, <span class="ident">prec</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{:.*e}&quot;</span>, <span class="ident">prec</span>, <span class="ident">n</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{n:.prec$e}&quot;</span>);
     <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">res</span>.<span class="ident">find</span>(<span class="string">&#39;e&#39;</span>).<span class="ident">expect</span>(<span class="string">&quot;&#39;e&#39; not found in exponential string&quot;</span>);
     <span class="kw">if</span> <span class="ident">res</span>.<span class="ident">as_bytes</span>()[<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;-&#39;</span> {
         <span class="ident">res</span>.<span class="ident">insert</span>(<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>, <span class="string">&#39;+&#39;</span>);

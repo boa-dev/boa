@@ -1158,7 +1158,6 @@
 <span id="1157">1157</span>
 <span id="1158">1158</span>
 <span id="1159">1159</span>
-<span id="1160">1160</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1634,8 +1633,7 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;cannot convert string &#39;{}&#39; to bigint primitive&quot;</span>,
-                        <span class="ident">string</span>
+                        <span class="string">&quot;cannot convert string &#39;{string}&#39; to bigint primitive&quot;</span>,
                     ))
                 }
             }

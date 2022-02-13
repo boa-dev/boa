@@ -1560,7 +1560,7 @@
     <span class="comment">//    create such a Data Block, throw a RangeError exception.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_block</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="ident">data_block</span>.<span class="ident">try_reserve</span>(<span class="ident">size</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-        <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {}&quot;</span>, <span class="ident">e</span>))
+        <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Set all of the bytes of db to 0.</span>

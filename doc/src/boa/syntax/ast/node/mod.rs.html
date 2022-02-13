@@ -1391,11 +1391,11 @@
         .<span class="ident">expect</span>(<span class="string">&quot;parsing failed&quot;</span>)
         .<span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="ident">interner</span>);
     <span class="kw">if</span> <span class="ident">scenario</span> <span class="op">!</span><span class="op">=</span> <span class="ident">result</span> {
-        <span class="macro">eprint!</span>(<span class="string">&quot;========= Expected:\n{}&quot;</span>, <span class="ident">scenario</span>);
-        <span class="macro">eprint!</span>(<span class="string">&quot;========= Got:\n{}&quot;</span>, <span class="ident">result</span>);
+        <span class="macro">eprint!</span>(<span class="string">&quot;========= Expected:\n{scenario}&quot;</span>);
+        <span class="macro">eprint!</span>(<span class="string">&quot;========= Got:\n{result}&quot;</span>);
         <span class="comment">// Might be helpful to find differing whitespace</span>
-        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Expected: {:?}&quot;</span>, <span class="ident">scenario</span>);
-        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Got:      {:?}&quot;</span>, <span class="ident">result</span>);
+        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Expected: {scenario:?}&quot;</span>);
+        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Got:      {result:?}&quot;</span>);
         <span class="macro">panic!</span>(<span class="string">&quot;parsing test did not give the correct result (see above)&quot;</span>);
     }
 }

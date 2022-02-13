@@ -388,7 +388,7 @@
     <span class="kw">fn</span> <span class="ident">number_to_bigint</span>(<span class="ident">number</span>: <span class="ident">f64</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If IsIntegralNumber(number) is false, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span>.<span class="ident">fract</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0.0</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot convert {} to BigInt&quot;</span>, <span class="ident">number</span>));
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Cannot convert {number} to BigInt&quot;</span>));
         }
 
         <span class="comment">// 2. Return the BigInt value that represents ℝ(number).</span>

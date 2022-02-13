@@ -458,14 +458,6 @@
 <span id="457">457</span>
 <span id="458">458</span>
 <span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
-<span id="466">466</span>
-<span id="467">467</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SuiteResult</span>;
 <span class="kw">use</span> <span class="ident">git2::Repository</span>;
 <span class="kw">use</span> <span class="ident">hex::ToHex</span>;
@@ -746,7 +738,7 @@
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">fixed</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
@@ -760,7 +752,7 @@
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">broken</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
@@ -774,7 +766,7 @@
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">new_panics</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
@@ -788,7 +780,7 @@
             );
             <span class="macro">println!</span>(<span class="string">&quot;\n```&quot;</span>);
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
             <span class="macro">println!</span>(<span class="string">&quot;```&quot;</span>);
             <span class="macro">println!</span>(<span class="string">&quot;&lt;/details&gt;&quot;</span>);
@@ -797,27 +789,19 @@
         <span class="macro">println!</span>(<span class="string">&quot;Test262 conformance changes:&quot;</span>);
         <span class="macro">println!</span>(<span class="string">&quot;| Test result | main |    PR   | difference |&quot;</span>);
         <span class="macro">println!</span>(
-            <span class="string">&quot;|    Passed   | {:^6} | {:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_passed</span>,
-            <span class="ident">new_passed</span>,
+            <span class="string">&quot;|    Passed   | {base_passed:^6} | {new_passed:^5} | {:^10} |&quot;</span>,
             <span class="ident">base_passed</span> <span class="op">-</span> <span class="ident">new_passed</span>
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;|   Ignored   | {:^6} | {:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_ignored</span>,
-            <span class="ident">new_ignored</span>,
+            <span class="string">&quot;|   Ignored   | {base_ignored:^6} | {new_ignored:^5} | {:^10} |&quot;</span>,
             <span class="ident">base_ignored</span> <span class="op">-</span> <span class="ident">new_ignored</span>
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;|   Failed    | {:^6} | {:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_failed</span>,
-            <span class="ident">new_failed</span>,
+            <span class="string">&quot;|   Failed    | {base_failed:^6} | {new_failed:^5} | {:^10} |&quot;</span>,
             <span class="ident">base_failed</span> <span class="op">-</span> <span class="ident">new_failed</span>,
         );
         <span class="macro">println!</span>(
-            <span class="string">&quot;|   Panics    | {:^6} | {:^5} | {:^10} |&quot;</span>,
-            <span class="ident">base_panics</span>,
-            <span class="ident">new_panics</span>,
+            <span class="string">&quot;|   Panics    | {base_panics:^6} | {new_panics:^5} | {:^10} |&quot;</span>,
             <span class="ident">base_panics</span> <span class="op">-</span> <span class="ident">new_panics</span>
         );
 
@@ -825,7 +809,7 @@
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(<span class="string">&quot;Fixed tests ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">fixed</span>.<span class="ident">len</span>());
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">fixed</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
 
@@ -833,7 +817,7 @@
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(<span class="string">&quot;Broken tests ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">broken</span>.<span class="ident">len</span>());
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">broken</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
 
@@ -841,7 +825,7 @@
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(<span class="string">&quot;New panics ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">new_panics</span>.<span class="ident">len</span>());
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">new_panics</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
 
@@ -849,7 +833,7 @@
             <span class="macro">println!</span>();
             <span class="macro">println!</span>(<span class="string">&quot;Fixed panics ({}):&quot;</span>, <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span>.<span class="ident">len</span>());
             <span class="kw">for</span> <span class="ident">test</span> <span class="kw">in</span> <span class="ident">test_diff</span>.<span class="ident">panic_fixes</span> {
-                <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">test</span>);
+                <span class="macro">println!</span>(<span class="string">&quot;{test}&quot;</span>);
             }
         }
     }

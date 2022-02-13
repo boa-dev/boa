@@ -387,8 +387,8 @@
             <span class="comment">// Can use the private &quot;type&quot; field of an Object to match on</span>
             <span class="comment">// which type of Object it represents for special printing</span>
             <span class="kw">match</span> <span class="ident">v</span>.<span class="ident">borrow</span>().<span class="ident">kind</span>() {
-                <span class="ident">ObjectKind::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{}\&quot; }}&quot;</span>, <span class="ident">string</span>),
-                <span class="ident">ObjectKind::Boolean</span>(<span class="ident">boolean</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {} }}&quot;</span>, <span class="ident">boolean</span>),
+                <span class="ident">ObjectKind::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;String {{ \&quot;{string}\&quot; }}&quot;</span>),
+                <span class="ident">ObjectKind::Boolean</span>(<span class="ident">boolean</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;Boolean {{ {boolean} }}&quot;</span>),
                 <span class="ident">ObjectKind::Number</span>(<span class="ident">rational</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">rational</span>.<span class="ident">is_sign_negative</span>() <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">rational</span> <span class="op">==</span> <span class="number">0.0</span> {
                         <span class="string">&quot;Number { -0 }&quot;</span>.<span class="ident">to_string</span>()
@@ -433,9 +433,9 @@
                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                             .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
 
-                        <span class="macro">format!</span>(<span class="string">&quot;[ {} ]&quot;</span>, <span class="ident">arr</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;[ {arr} ]&quot;</span>)
                     } <span class="kw">else</span> {
-                        <span class="macro">format!</span>(<span class="string">&quot;Array({})&quot;</span>, <span class="ident">len</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Array({len})&quot;</span>)
                     }
                 }
                 <span class="ident">ObjectKind::Map</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) =&gt; {
@@ -450,13 +450,13 @@
                             .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">key</span>, <span class="ident">value</span>)<span class="op">|</span> {
                                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">key</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
                                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>);
-                                <span class="macro">format!</span>(<span class="string">&quot;{} → {}&quot;</span>, <span class="ident">key</span>, <span class="ident">value</span>)
+                                <span class="macro">format!</span>(<span class="string">&quot;{key} → {value}&quot;</span>)
                             })
                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                             .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
-                        <span class="macro">format!</span>(<span class="string">&quot;Map {{ {} }}&quot;</span>, <span class="ident">mappings</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Map {{ {mappings} }}&quot;</span>)
                     } <span class="kw">else</span> {
-                        <span class="macro">format!</span>(<span class="string">&quot;Map({})&quot;</span>, <span class="ident">size</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Map({size})&quot;</span>)
                     }
                 }
                 <span class="ident">ObjectKind::Set</span>(<span class="kw-2">ref</span> <span class="ident">set</span>) =&gt; {
@@ -472,16 +472,16 @@
                             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="ident">log_string_from</span>(<span class="ident">value</span>, <span class="ident">print_internals</span>, <span class="bool-val">false</span>))
                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span>()
                             .<span class="ident">join</span>(<span class="string">&quot;, &quot;</span>);
-                        <span class="macro">format!</span>(<span class="string">&quot;Set {{ {} }}&quot;</span>, <span class="ident">entries</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Set {{ {entries} }}&quot;</span>)
                     } <span class="kw">else</span> {
-                        <span class="macro">format!</span>(<span class="string">&quot;Set({})&quot;</span>, <span class="ident">size</span>)
+                        <span class="macro">format!</span>(<span class="string">&quot;Set({size})&quot;</span>)
                     }
                 }
                 <span class="kw">_</span> =&gt; <span class="ident">display_obj</span>(<span class="ident">x</span>, <span class="ident">print_internals</span>),
             }
         }
         <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">to_string</span>(),
-        <span class="kw">_</span> =&gt; <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">x</span>.<span class="ident">display</span>()),
+        <span class="kw">_</span> =&gt; <span class="ident">x</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
     }
 }
 
@@ -527,10 +527,10 @@
             <span class="kw">let</span> <span class="ident">closing_indent</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; <span class="ident">indent</span>.<span class="ident">wrapping_sub</span>(<span class="number">4</span>)])
                 .<span class="ident">expect</span>(<span class="string">&quot;Could not create the closing brace&#39;s indentation string&quot;</span>);
 
-            <span class="macro">format!</span>(<span class="string">&quot;{{\n{}\n{}}}&quot;</span>, <span class="ident">result</span>, <span class="ident">closing_indent</span>)
+            <span class="macro">format!</span>(<span class="string">&quot;{{\n{result}\n{closing_indent}}}&quot;</span>)
         } <span class="kw">else</span> {
             <span class="comment">// Every other type of data is printed with the display method</span>
-            <span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">data</span>.<span class="ident">display</span>())
+            <span class="ident">data</span>.<span class="ident">display</span>().<span class="ident">to_string</span>()
         }
     }
 
@@ -554,7 +554,7 @@
                 .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>)
                 .<span class="ident">display</span>()
                 .<span class="ident">to_string</span>();
-            <span class="kw">return</span> <span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, <span class="ident">name</span>, <span class="ident">message</span>);
+            <span class="kw">return</span> <span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>);
         }
     }
 
@@ -566,16 +566,16 @@
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">value</span> {
             <span class="ident">JsValue::Null</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;null&quot;</span>),
             <span class="ident">JsValue::Undefined</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;undefined&quot;</span>),
-            <span class="ident">JsValue::Boolean</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">JsValue::Boolean</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{v}&quot;</span>),
             <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="kw">match</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">description</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">description</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">description</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({description})&quot;</span>),
                 <span class="prelude-val">None</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
             },
-            <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{}\&quot;&quot;</span>, <span class="ident">v</span>),
+            <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{v}\&quot;&quot;</span>),
             <span class="ident">JsValue::Rational</span>(<span class="ident">v</span>) =&gt; <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
             <span class="ident">JsValue::Object</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)),
-            <span class="ident">JsValue::Integer</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">v</span>),
-            <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}n&quot;</span>, <span class="ident">num</span>),
+            <span class="ident">JsValue::Integer</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{v}&quot;</span>),
+            <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{num}n&quot;</span>),
         }
     }
 }

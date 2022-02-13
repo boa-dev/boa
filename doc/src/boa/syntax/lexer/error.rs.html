@@ -103,8 +103,8 @@
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Error</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::IO</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;I/O error: {}&quot;</span>, <span class="ident">e</span>),
-            <span class="ident"><span class="self">Self</span>::Syntax</span>(<span class="ident">e</span>, <span class="ident">pos</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Syntax Error: {} at position: {}&quot;</span>, <span class="ident">e</span>, <span class="ident">pos</span>),
+            <span class="ident"><span class="self">Self</span>::IO</span>(<span class="ident">e</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;I/O error: {e}&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Syntax</span>(<span class="ident">e</span>, <span class="ident">pos</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Syntax Error: {e} at position: {pos}&quot;</span>),
         }
     }
 }

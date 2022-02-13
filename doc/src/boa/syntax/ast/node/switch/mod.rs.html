@@ -140,7 +140,6 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
-<span id="142">142</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Switch node.</span>
 <span class="doccomment">//!</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -261,12 +260,11 @@
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">default</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">default</span> {
             <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;{}    default:\n{}&quot;</span>,
-                <span class="ident">indent</span>,
+                <span class="string">&quot;{indent}    default:\n{}&quot;</span>,
                 <span class="ident">default</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">2</span>)
             ));
         }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}}}&quot;</span>, <span class="ident">indent</span>));
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{indent}}}&quot;</span>));
 
         <span class="ident">buf</span>
     }

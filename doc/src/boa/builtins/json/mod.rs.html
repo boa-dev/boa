@@ -734,12 +734,6 @@
 <span id="733">733</span>
 <span id="734">734</span>
 <span id="735">735</span>
-<span id="736">736</span>
-<span id="737">737</span>
-<span id="738">738</span>
-<span id="739">739</span>
-<span id="740">740</span>
-<span id="741">741</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]</span>
@@ -1240,7 +1234,7 @@
                 {
                     <span class="comment">// i. Let unit be the code unit whose numeric value is that of C.</span>
                     <span class="comment">// ii. Set product to the string-concatenation of product and UnicodeEscape(unit).</span>
-                    <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\\\\uAA{:x}&quot;</span>, <span class="ident">code_point</span>));
+                    <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\\\\uAA{code_point:x}&quot;</span>));
                 }
                 <span class="comment">// c. Else,</span>
                 <span class="ident">code_point</span> =&gt; {
@@ -1345,18 +1339,15 @@
             } <span class="kw">else</span> {
                 <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),</span>
                 <span class="comment">//    the code unit 0x000A (LINE FEED), and state.[[Indent]].</span>
-                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;,{}{}&quot;</span>, <span class="string">&#39;\u{A}&#39;</span>, <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>());
+                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;,\n{}&quot;</span>, <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>());
                 <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial</span>
                 <span class="comment">//     with each adjacent pair of Strings separated with separator.</span>
                 <span class="comment">//     The separator String is not inserted either before the first String or after the last String.</span>
                 <span class="kw">let</span> <span class="ident">properties</span> <span class="op">=</span> <span class="ident">partial</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">separator</span>);
                 <span class="comment">// iii. Let final be the string-concatenation of &quot;{&quot;, the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and &quot;}&quot;.</span>
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;{{{}{}{}{}{}}}&quot;</span>,
-                    <span class="string">&#39;\u{A}&#39;</span>,
+                    <span class="string">&quot;{{\n{}{properties}\n{}}}&quot;</span>,
                     <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">properties</span>,
-                    <span class="string">&#39;\u{A}&#39;</span>,
                     <span class="ident">stepback</span>.<span class="ident">as_str</span>()
                 )
                 .<span class="ident">into</span>()
@@ -1445,18 +1436,15 @@
             } <span class="kw">else</span> {
                 <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),</span>
                 <span class="comment">//    the code unit 0x000A (LINE FEED), and state.[[Indent]].</span>
-                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;,{}{}&quot;</span>, <span class="string">&#39;\u{A}&#39;</span>, <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>());
+                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;,\n{}&quot;</span>, <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>());
                 <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial</span>
                 <span class="comment">//     with each adjacent pair of Strings separated with separator.</span>
                 <span class="comment">//     The separator String is not inserted either before the first String or after the last String.</span>
                 <span class="kw">let</span> <span class="ident">properties</span> <span class="op">=</span> <span class="ident">partial</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">separator</span>);
                 <span class="comment">// iii. Let final be the string-concatenation of &quot;[&quot;, the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and &quot;]&quot;.</span>
                 <span class="macro">format!</span>(
-                    <span class="string">&quot;[{}{}{}{}{}]&quot;</span>,
-                    <span class="string">&#39;\u{A}&#39;</span>,
+                    <span class="string">&quot;[\n{}{properties}\n{}]&quot;</span>,
                     <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">properties</span>,
-                    <span class="string">&#39;\u{A}&#39;</span>,
                     <span class="ident">stepback</span>.<span class="ident">as_str</span>()
                 )
                 .<span class="ident">into</span>()

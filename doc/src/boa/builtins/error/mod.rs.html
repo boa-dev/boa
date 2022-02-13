@@ -275,7 +275,7 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">message</span>.<span class="ident">is_empty</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">name</span>.<span class="ident">into</span>())
         } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;{}: {}&quot;</span>, <span class="ident">name</span>, <span class="ident">message</span>).<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;{name}: {message}&quot;</span>).<span class="ident">into</span>())
         }
     }
 }

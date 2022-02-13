@@ -192,7 +192,6 @@
 <span id="191">191</span>
 <span id="192">192</span>
 <span id="193">193</span>
-<span id="194">194</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
@@ -317,8 +316,7 @@
             {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
                     <span class="macro">format!</span>(
-                        <span class="string">&quot;using future reserved keyword &#39;{}&#39; not allowed in strict mode&quot;</span>,
-                        <span class="ident">identifier_name</span>
+                        <span class="string">&quot;using future reserved keyword &#39;{identifier_name}&#39; not allowed in strict mode&quot;</span>,
                     )
                     .<span class="ident">into</span>(),
                     <span class="ident">start_pos</span>,

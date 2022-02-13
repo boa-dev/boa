@@ -1032,6 +1032,27 @@
 <span id="1031">1031</span>
 <span id="1032">1032</span>
 <span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements various structure for logic handling.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -1129,20 +1150,23 @@
     <span class="ident">Mod</span>,
 }
 
+<span class="kw">impl</span> <span class="ident">NumOp</span> {
+    <span class="doccomment">/// Retrieves the operation as a static string.</span>
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="string">&quot;-&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="string">&quot;/&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="string">&quot;*&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="string">&quot;%&quot;</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">NumOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="string">&quot;-&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="string">&quot;/&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="string">&quot;*&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="string">&quot;%&quot;</span>,
-            }
-        )
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 
@@ -1342,23 +1366,26 @@
     <span class="ident">Void</span>,
 }
 
+<span class="kw">impl</span> <span class="ident">UnaryOp</span> {
+    <span class="doccomment">/// Retrieves the operation as a static string.</span>
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::IncrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::IncrementPre</span> =&gt; <span class="string">&quot;++&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::DecrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::DecrementPre</span> =&gt; <span class="string">&quot;--&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Plus</span> =&gt; <span class="string">&quot;+&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Minus</span> =&gt; <span class="string">&quot;-&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Not</span> =&gt; <span class="string">&quot;!&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Tilde</span> =&gt; <span class="string">&quot;~&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Delete</span> =&gt; <span class="string">&quot;delete&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::TypeOf</span> =&gt; <span class="string">&quot;typeof&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Void</span> =&gt; <span class="string">&quot;void&quot;</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::IncrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::IncrementPre</span> =&gt; <span class="string">&quot;++&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::DecrementPost</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::DecrementPre</span> =&gt; <span class="string">&quot;--&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Plus</span> =&gt; <span class="string">&quot;+&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Minus</span> =&gt; <span class="string">&quot;-&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Not</span> =&gt; <span class="string">&quot;!&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Tilde</span> =&gt; <span class="string">&quot;~&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Delete</span> =&gt; <span class="string">&quot;delete&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::TypeOf</span> =&gt; <span class="string">&quot;typeof&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Void</span> =&gt; <span class="string">&quot;void&quot;</span>,
-            }
-        )
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 
@@ -1460,20 +1487,23 @@
     <span class="ident">UShr</span>,
 }
 
+<span class="kw">impl</span> <span class="ident">BitOp</span> {
+    <span class="doccomment">/// Retrieves the operation as a static string.</span>
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="string">&quot;^&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Shl</span> =&gt; <span class="string">&quot;&lt;&lt;&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Shr</span> =&gt; <span class="string">&quot;&gt;&gt;&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::UShr</span> =&gt; <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BitOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="string">&quot;^&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shl</span> =&gt; <span class="string">&quot;&lt;&lt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shr</span> =&gt; <span class="string">&quot;&gt;&gt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::UShr</span> =&gt; <span class="string">&quot;&gt;&gt;&gt;&quot;</span>,
-            }
-        )
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 
@@ -1653,24 +1683,27 @@
     <span class="ident">InstanceOf</span>,
 }
 
+<span class="kw">impl</span> <span class="ident">CompOp</span> {
+    <span class="doccomment">/// Retrieves the operation as a static string.</span>
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Equal</span> =&gt; <span class="string">&quot;==&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::NotEqual</span> =&gt; <span class="string">&quot;!=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::StrictEqual</span> =&gt; <span class="string">&quot;===&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::StrictNotEqual</span> =&gt; <span class="string">&quot;!==&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GreaterThan</span> =&gt; <span class="string">&quot;&gt;&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GreaterThanOrEqual</span> =&gt; <span class="string">&quot;&gt;=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::LessThan</span> =&gt; <span class="string">&quot;&lt;&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::LessThanOrEqual</span> =&gt; <span class="string">&quot;&lt;=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::In</span> =&gt; <span class="string">&quot;in&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; <span class="string">&quot;instanceof&quot;</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">CompOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Equal</span> =&gt; <span class="string">&quot;==&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::NotEqual</span> =&gt; <span class="string">&quot;!=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::StrictEqual</span> =&gt; <span class="string">&quot;===&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::StrictNotEqual</span> =&gt; <span class="string">&quot;!==&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::GreaterThan</span> =&gt; <span class="string">&quot;&gt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::GreaterThanOrEqual</span> =&gt; <span class="string">&quot;&gt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::LessThan</span> =&gt; <span class="string">&quot;&lt;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::LessThanOrEqual</span> =&gt; <span class="string">&quot;&lt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::In</span> =&gt; <span class="string">&quot;in&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; <span class="string">&quot;instanceof&quot;</span>,
-            }
-        )
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 
@@ -1732,17 +1765,20 @@
     <span class="ident">Coalesce</span>,
 }
 
+<span class="kw">impl</span> <span class="ident">LogOp</span> {
+    <span class="doccomment">/// Retrieves the operation as a static string.</span>
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&amp;&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;||&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="string">&quot;??&quot;</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">LogOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&amp;&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;||&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="string">&quot;??&quot;</span>,
-            }
-        )
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 
@@ -1813,20 +1849,23 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">BinOp</span> {
+    <span class="doccomment">/// Retrieves the operation as a static string.</span>
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
+            <span class="ident"><span class="self">Self</span>::Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
+            <span class="ident"><span class="self">Self</span>::Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
+            <span class="ident"><span class="self">Self</span>::Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
+            <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">as_str</span>(),
+            <span class="ident"><span class="self">Self</span>::Comma</span> =&gt; <span class="string">&quot;,&quot;</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Num</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Bit</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Comp</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Log</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="kw-2">ref</span> <span class="ident">op</span>) =&gt; <span class="ident">op</span>.<span class="ident">to_string</span>(),
-                <span class="ident"><span class="self">Self</span>::Comma</span> =&gt; <span class="string">&quot;,&quot;</span>.<span class="ident">to_string</span>(),
-            }
-        )
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 
@@ -2040,29 +2079,32 @@
     <span class="macro">empty_trace!</span>();
 }
 
+<span class="kw">impl</span> <span class="ident">AssignOp</span> {
+    <span class="doccomment">/// Retrieves the operation as a static string.</span>
+    <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="string">&quot;-=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="string">&quot;*=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="string">&quot;/=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="string">&quot;%=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="string">&quot;^=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Shl</span> =&gt; <span class="string">&quot;&lt;&lt;=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Shr</span> =&gt; <span class="string">&quot;&gt;&gt;=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Ushr</span> =&gt; <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::BoolAnd</span> =&gt; <span class="string">&quot;&amp;&amp;=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::BoolOr</span> =&gt; <span class="string">&quot;||=&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="string">&quot;??=&quot;</span>,
+        }
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">AssignOp</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}&quot;</span>,
-            <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-                <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="string">&quot;-=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="string">&quot;*=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="string">&quot;/=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="string">&quot;%=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="string">&quot;^=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shl</span> =&gt; <span class="string">&quot;&lt;&lt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Shr</span> =&gt; <span class="string">&quot;&gt;&gt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Ushr</span> =&gt; <span class="string">&quot;&gt;&gt;&gt;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::BoolAnd</span> =&gt; <span class="string">&quot;&amp;&amp;=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::BoolOr</span> =&gt; <span class="string">&quot;||=&quot;</span>,
-                <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="string">&quot;??=&quot;</span>,
-            }
-        )
+        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
     }
 }
 </code></pre></div>
