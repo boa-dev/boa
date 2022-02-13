@@ -280,8 +280,7 @@ impl<R> Lexer<R> {
                 }
                 _ => {
                     let details = format!(
-                        "unexpected '{}' at line {}, column {}",
-                        c,
+                        "unexpected '{c}' at line {}, column {}",
                         start.line_number(),
                         start.column_number()
                     );
@@ -298,8 +297,7 @@ impl<R> Lexer<R> {
         } else {
             Err(Error::syntax(
                 format!(
-                    "unexpected utf-8 char '\\u{}' at line {}, column {}",
-                    next_ch,
+                    "unexpected utf-8 char '\\u{next_ch}' at line {}, column {}",
                     start.line_number(),
                     start.column_number()
                 ),

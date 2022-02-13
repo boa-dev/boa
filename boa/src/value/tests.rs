@@ -470,12 +470,14 @@ fn debug_object() {
     let mut context = Context::default();
     let value = forward_val(&mut context, "new Array([new Date()])").unwrap();
 
-    // We don't care about the contents of the debug display (it is *debug* after all). In the commit that this test was
-    // added, this would cause a stack overflow, so executing Debug::fmt is the assertion.
+    // We don't care about the contents of the debug display (it is *debug* after all). In the
+    // commit that this test was added, this would cause a stack overflow, so executing
+    // `Debug::fmt` is the assertion.
     //
-    // However, we want to make sure that no data is being left in the internal hashset, so executing this twice should
-    // result in the same output.
-    assert_eq!(format!("{:?}", value), format!("{:?}", value));
+    // However, we want to make sure that no data is being left in the internal hashset, so
+    // executing the formatting twice should result in the same output.
+
+    assert_eq!(format!("{value:?}"), format!("{value:?}"));
 }
 
 #[test]
@@ -644,7 +646,9 @@ mod cyclic_conversions {
         assert_eq!(result, "[[],[]]",);
     }
 
-    // These tests don't throw errors. Instead we mirror Chrome / Firefox behavior for these conversions
+    // These tests don't throw errors. Instead we mirror Chrome / Firefox behavior for these
+    // conversions
+
     #[test]
     fn to_string_cyclic() {
         let mut context = Context::default();

@@ -112,7 +112,7 @@ impl Context {
         };
 
         let _timer =
-            BoaProfiler::global().start_event(&format!("INST - {}", &opcode.as_str()), "vm");
+            BoaProfiler::global().start_event(&format!("INST - {}", opcode.as_str()), "vm");
 
         match opcode {
             Opcode::Nop => {}
@@ -1124,18 +1124,14 @@ impl Context {
                 self.vm.frame().code.to_interned_string(self.interner())
             );
             println!(
-                "{:-^width$}",
-                msg,
+                "{msg:-^width$}",
                 width = COLUMN_WIDTH * NUMBER_OF_COLUMNS - 10
             );
             println!(
-                "{:<time_width$} {:<opcode_width$} {:<operand_width$} Top Of Stack\n",
+                "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {:<OPERAND_COLUMN_WIDTH$} Top Of Stack\n",
                 "Time",
                 "Opcode",
                 "Operands",
-                time_width = TIME_COLUMN_WIDTH,
-                opcode_width = OPCODE_COLUMN_WIDTH,
-                operand_width = OPERAND_COLUMN_WIDTH,
             );
         }
 
@@ -1151,10 +1147,9 @@ impl Context {
                 let duration = instant.elapsed();
 
                 println!(
-                    "{:<time_width$} {:<opcode_width$} {:<operand_width$} {}",
+                    "{:<TIME_COLUMN_WIDTH$} {:<OPCODE_COLUMN_WIDTH$} {operands:<OPERAND_COLUMN_WIDTH$} {}",
                     format!("{}μs", duration.as_micros()),
                     opcode.as_str(),
-                    operands,
                     match self.vm.stack.last() {
                         None => "<empty>".to_string(),
                         Some(value) => {
@@ -1163,13 +1158,10 @@ impl Context {
                             } else if value.is_object() {
                                 "[object]".to_string()
                             } else {
-                                format!("{}", value.display())
+                                value.display().to_string()
                             }
                         }
                     },
-                    time_width = TIME_COLUMN_WIDTH,
-                    opcode_width = OPCODE_COLUMN_WIDTH,
-                    operand_width = OPERAND_COLUMN_WIDTH,
                 );
 
                 result
@@ -1218,15 +1210,14 @@ impl Context {
             } else {
                 for (i, value) in self.vm.stack.iter().enumerate() {
                     println!(
-                        "{:04}{:<width$} {}",
-                        i,
+                        "{i:04}{:<width$} {}",
                         "",
                         if value.is_callable() {
                             "[function]".to_string()
                         } else if value.is_object() {
                             "[object]".to_string()
                         } else {
-                            format!("{}", value.display())
+                            value.display().to_string()
                         },
                         width = COLUMN_WIDTH / 2 - 4,
                     );

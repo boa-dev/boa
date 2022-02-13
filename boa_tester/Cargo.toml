@@ -9,7 +9,7 @@ categories = ["parser-implementations", "wasm"]
 license = "Unlicense/MIT"
 exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2021"
-rust-version = "1.56"
+rust-version = "1.58"
 
 [dependencies]
 Boa = { path = "../boa" }

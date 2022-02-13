@@ -160,7 +160,7 @@ where
             } else {
                 return Err(io::Error::new(
                     ErrorKind::UnexpectedEof,
-                    format!("Unexpected end of file when looking for character {}", stop),
+                    format!("Unexpected end of file when looking for character {stop}"),
                 ));
             }
         }

@@ -91,7 +91,7 @@ impl JsObject {
         let success = self.__set__(key.clone(), value.into(), self.clone().into(), context)?;
         // 5. If success is false and Throw is true, throw a TypeError exception.
         if !success && throw {
-            return context.throw_type_error(format!("cannot set non-writable property: {}", key));
+            return context.throw_type_error(format!("cannot set non-writable property: {key}"));
         }
         // 6. Return success.
         Ok(success)
@@ -150,7 +150,7 @@ impl JsObject {
         let success = self.create_data_property(key.clone(), value, context)?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
-            return context.throw_type_error(format!("cannot redefine property: {}", key));
+            return context.throw_type_error(format!("cannot redefine property: {key}"));
         }
         // 5. Return success.
         Ok(success)
@@ -180,7 +180,7 @@ impl JsObject {
         let success = self.__define_own_property__(key.clone(), desc.into(), context)?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
-            return context.throw_type_error(format!("cannot redefine property: {}", key));
+            return context.throw_type_error(format!("cannot redefine property: {key}"));
         }
         // 5. Return success.
         Ok(success)
@@ -204,7 +204,7 @@ impl JsObject {
         let success = self.__delete__(&key, context)?;
         // 4. If success is false, throw a TypeError exception.
         if !success {
-            return context.throw_type_error(format!("cannot delete property: {}", key));
+            return context.throw_type_error(format!("cannot delete property: {key}"));
         }
         // 5. Return success.
         Ok(success)

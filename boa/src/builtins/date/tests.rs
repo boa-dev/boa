@@ -39,7 +39,7 @@ fn forward_dt_local(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
 #[test]
 fn date_display() {
     let dt = super::Date(None);
-    assert_eq!("[Invalid Date]", format!("[{}]", dt));
+    assert_eq!("[Invalid Date]", format!("[{dt}]"));
 
     let cd = super::Date::default();
     assert_eq!(
@@ -47,7 +47,7 @@ fn date_display() {
             "[{}]",
             cd.to_local().unwrap().format("%a %b %d %Y %H:%M:%S GMT%:z")
         ),
-        format!("[{}]", cd)
+        format!("[{cd}]")
     );
 }
 

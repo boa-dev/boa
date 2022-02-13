@@ -305,7 +305,7 @@ impl Display for JsSymbol {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match &self.inner.description {
-            Some(desc) => write!(f, "Symbol({})", desc),
+            Some(desc) => write!(f, "Symbol({desc})"),
             None => write!(f, "Symbol()"),
         }
     }

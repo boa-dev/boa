@@ -182,7 +182,7 @@ mod tests {
         let pos = Position::new(10, 50);
 
         assert_eq!("10:50", pos.to_string());
-        assert_eq!("10:50", format!("{}", pos));
+        assert_eq!("10:50", pos.to_string());
     }
 
     /// Checks that we cannot create an invalid span.
@@ -278,7 +278,7 @@ mod tests {
         let span = Span::new(a, b);
 
         assert_eq!("[10:50..11:20]", span.to_string());
-        assert_eq!("[10:50..11:20]", format!("{}", span));
+        assert_eq!("[10:50..11:20]", span.to_string());
     }
 
     /// Checks that the ordering of spans is correct.

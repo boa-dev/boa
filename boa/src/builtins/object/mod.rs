@@ -520,7 +520,7 @@ impl Object {
         let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(format!("[object {}]", tag_str).into())
+        Ok(format!("[object {tag_str}]").into())
     }
 
     /// `Object.prototype.hasOwnProperty( property )`

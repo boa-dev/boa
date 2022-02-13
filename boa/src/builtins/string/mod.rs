@@ -893,9 +893,7 @@ impl String {
 
         // 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.
         Ok(format!(
-            "{}{}{}",
-            preserved,
-            replacement,
+            "{preserved}{replacement}{}",
             StdString::from_utf16_lossy(
                 &this_str
                     .encode_utf16()
@@ -1055,7 +1053,7 @@ impl String {
                 .expect("GetSubstitution should never fail here.")
             };
             // d. Set result to the string-concatenation of result, preserved, and replacement.
-            result = JsString::new(format!("{}{}{}", result.as_str(), &preserved, &replacement));
+            result = JsString::new(format!("{}{preserved}{replacement}", result.as_str()));
 
             // e. Set endOfLastMatch to p + searchLength.
             end_of_last_match = p + search_length;
@@ -1247,9 +1245,9 @@ impl String {
         let concat_fill_str: StdString = fill_str.chars().take(fill_len as usize).collect();
 
         if at_start {
-            JsValue::new(format!("{}{}", concat_fill_str, &primitive))
+            JsValue::new(format!("{concat_fill_str}{primitive}"))
         } else {
-            JsValue::new(format!("{}{}", primitive, &concat_fill_str))
+            JsValue::new(format!("{primitive}{concat_fill_str}"))
         }
     }
 

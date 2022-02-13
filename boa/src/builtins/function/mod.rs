@@ -226,7 +226,7 @@ pub(crate) fn make_builtin_fn<N>(
     N: Into<String>,
 {
     let name = name.into();
-    let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {}", &name), "init");
+    let _timer = BoaProfiler::global().start_event(&format!("make_builtin_fn: {name}"), "init");
 
     let function = JsObject::from_proto_and_data(
         interpreter.standard_objects().function_object().prototype(),
@@ -453,13 +453,11 @@ impl BuiltInFunctionObject {
                     constructor: _,
                 },
                 Some(name),
-            ) => Ok(format!("function {}() {{\n  [native Code]\n}}", &name).into()),
+            ) => Ok(format!("function {name}() {{\n  [native Code]\n}}").into()),
             (Function::VmOrdinary { .. }, Some(name)) if name.is_empty() => {
                 Ok("[Function (anonymous)]".into())
             }
-            (Function::VmOrdinary { .. }, Some(name)) => {
-                Ok(format!("[Function: {}]", &name).into())
-            }
+            (Function::VmOrdinary { .. }, Some(name)) => Ok(format!("[Function: {name}]").into()),
             (Function::VmOrdinary { .. }, None) => Ok("[Function (anonymous)]".into()),
             _ => Ok("TODO".into()),
         }
@@ -552,7 +550,7 @@ fn set_function_name(
             }
         }
         PropertyKey::String(string) => Cow::Borrowed(string),
-        PropertyKey::Index(index) => Cow::Owned(JsString::new(format!("{}", index))),
+        PropertyKey::Index(index) => Cow::Owned(JsString::new(index.to_string())),
     };
 
     // 3. Else if name is a Private Name, then

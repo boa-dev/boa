@@ -53,14 +53,11 @@ unsafe impl Trace for Break {
 
 impl ToInternedString for Break {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        format!(
-            "break{}",
-            if let Some(label) = self.label {
-                format!(" {}", interner.resolve_expect(label))
-            } else {
-                String::new()
-            }
-        )
+        if let Some(label) = self.label {
+            format!("break {}", interner.resolve_expect(label))
+        } else {
+            "break".to_owned()
+        }
     }
 }
 

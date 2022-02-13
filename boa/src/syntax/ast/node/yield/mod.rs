@@ -54,7 +54,7 @@ impl ToInternedString for Yield {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let y = if self.delegate { "yield*" } else { "yield" };
         if let Some(ex) = self.expr() {
-            format!("{} {}", y, ex.to_interned_string(interner))
+            format!("{y} {}", ex.to_interned_string(interner))
         } else {
             y.to_owned()
         }

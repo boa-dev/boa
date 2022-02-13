@@ -95,20 +95,23 @@ pub enum NumOp {
     Mod,
 }
 
+impl NumOp {
+    /// Retrieves the operation as a static string.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Add => "+",
+            Self::Sub => "-",
+            Self::Div => "/",
+            Self::Mul => "*",
+            Self::Exp => "**",
+            Self::Mod => "%",
+        }
+    }
+}
+
 impl Display for NumOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::Add => "+",
-                Self::Sub => "-",
-                Self::Div => "/",
-                Self::Mul => "*",
-                Self::Exp => "**",
-                Self::Mod => "%",
-            }
-        )
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -308,23 +311,26 @@ pub enum UnaryOp {
     Void,
 }
 
+impl UnaryOp {
+    /// Retrieves the operation as a static string.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::IncrementPost | Self::IncrementPre => "++",
+            Self::DecrementPost | Self::DecrementPre => "--",
+            Self::Plus => "+",
+            Self::Minus => "-",
+            Self::Not => "!",
+            Self::Tilde => "~",
+            Self::Delete => "delete",
+            Self::TypeOf => "typeof",
+            Self::Void => "void",
+        }
+    }
+}
+
 impl Display for UnaryOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::IncrementPost | Self::IncrementPre => "++",
-                Self::DecrementPost | Self::DecrementPre => "--",
-                Self::Plus => "+",
-                Self::Minus => "-",
-                Self::Not => "!",
-                Self::Tilde => "~",
-                Self::Delete => "delete",
-                Self::TypeOf => "typeof",
-                Self::Void => "void",
-            }
-        )
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -426,20 +432,23 @@ pub enum BitOp {
     UShr,
 }
 
+impl BitOp {
+    /// Retrieves the operation as a static string.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::And => "&",
+            Self::Or => "|",
+            Self::Xor => "^",
+            Self::Shl => "<<",
+            Self::Shr => ">>",
+            Self::UShr => ">>>",
+        }
+    }
+}
+
 impl Display for BitOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::And => "&",
-                Self::Or => "|",
-                Self::Xor => "^",
-                Self::Shl => "<<",
-                Self::Shr => ">>",
-                Self::UShr => ">>>",
-            }
-        )
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -619,24 +628,27 @@ pub enum CompOp {
     InstanceOf,
 }
 
+impl CompOp {
+    /// Retrieves the operation as a static string.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Equal => "==",
+            Self::NotEqual => "!=",
+            Self::StrictEqual => "===",
+            Self::StrictNotEqual => "!==",
+            Self::GreaterThan => ">",
+            Self::GreaterThanOrEqual => ">=",
+            Self::LessThan => "<",
+            Self::LessThanOrEqual => "<=",
+            Self::In => "in",
+            Self::InstanceOf => "instanceof",
+        }
+    }
+}
+
 impl Display for CompOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::Equal => "==",
-                Self::NotEqual => "!=",
-                Self::StrictEqual => "===",
-                Self::StrictNotEqual => "!==",
-                Self::GreaterThan => ">",
-                Self::GreaterThanOrEqual => ">=",
-                Self::LessThan => "<",
-                Self::LessThanOrEqual => "<=",
-                Self::In => "in",
-                Self::InstanceOf => "instanceof",
-            }
-        )
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -698,17 +710,20 @@ pub enum LogOp {
     Coalesce,
 }
 
+impl LogOp {
+    /// Retrieves the operation as a static string.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::And => "&&",
+            Self::Or => "||",
+            Self::Coalesce => "??",
+        }
+    }
+}
+
 impl Display for LogOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::And => "&&",
-                Self::Or => "||",
-                Self::Coalesce => "??",
-            }
-        )
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -779,20 +794,23 @@ impl From<AssignOp> for BinOp {
     }
 }
 
+impl BinOp {
+    /// Retrieves the operation as a static string.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Num(ref op) => op.as_str(),
+            Self::Bit(ref op) => op.as_str(),
+            Self::Comp(ref op) => op.as_str(),
+            Self::Log(ref op) => op.as_str(),
+            Self::Assign(ref op) => op.as_str(),
+            Self::Comma => ",",
+        }
+    }
+}
+
 impl Display for BinOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::Num(ref op) => op.to_string(),
-                Self::Bit(ref op) => op.to_string(),
-                Self::Comp(ref op) => op.to_string(),
-                Self::Log(ref op) => op.to_string(),
-                Self::Assign(ref op) => op.to_string(),
-                Self::Comma => ",".to_string(),
-            }
-        )
+        write!(f, "{}", self.as_str())
     }
 }
 
@@ -1006,28 +1024,31 @@ unsafe impl Trace for AssignOp {
     empty_trace!();
 }
 
+impl AssignOp {
+    /// Retrieves the operation as a static string.
+    fn as_str(self) -> &'static str {
+        match self {
+            Self::Add => "+=",
+            Self::Sub => "-=",
+            Self::Mul => "*=",
+            Self::Exp => "**=",
+            Self::Div => "/=",
+            Self::Mod => "%=",
+            Self::And => "&=",
+            Self::Or => "|=",
+            Self::Xor => "^=",
+            Self::Shl => "<<=",
+            Self::Shr => ">>=",
+            Self::Ushr => ">>>=",
+            Self::BoolAnd => "&&=",
+            Self::BoolOr => "||=",
+            Self::Coalesce => "??=",
+        }
+    }
+}
+
 impl Display for AssignOp {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(
-            f,
-            "{}",
-            match *self {
-                Self::Add => "+=",
-                Self::Sub => "-=",
-                Self::Mul => "*=",
-                Self::Exp => "**=",
-                Self::Div => "/=",
-                Self::Mod => "%=",
-                Self::And => "&=",
-                Self::Or => "|=",
-                Self::Xor => "^=",
-                Self::Shl => "<<=",
-                Self::Shr => ">>=",
-                Self::Ushr => ">>>=",
-                Self::BoolAnd => "&&=",
-                Self::BoolOr => "||=",
-                Self::Coalesce => "??=",
-            }
-        )
+        write!(f, "{}", self.as_str())
     }
 }

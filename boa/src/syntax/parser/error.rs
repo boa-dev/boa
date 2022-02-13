@@ -132,7 +132,7 @@ impl fmt::Display for ParseError {
                 context,
             } => write!(
                 f,
-                "expected {}, got '{}' in {} at line {}, col {}",
+                "expected {}, got '{found}' in {context} at line {}, col {}",
                 if expected.len() == 1 {
                     format!("token '{}'", expected.first().unwrap())
                 } else {
@@ -143,7 +143,7 @@ impl fmt::Display for ParseError {
                             .enumerate()
                             .map(|(i, t)| {
                                 format!(
-                                    "{}'{}'",
+                                    "{}'{t}'",
                                     if i == 0 {
                                         ""
                                     } else if i == expected.len() - 1 {
@@ -151,14 +151,11 @@ impl fmt::Display for ParseError {
                                     } else {
                                         ", "
                                     },
-                                    t
                                 )
                             })
                             .collect::<String>()
                     )
                 },
-                found,
-                context,
                 span.start().line_number(),
                 span.start().column_number()
             ),
@@ -168,10 +165,9 @@ impl fmt::Display for ParseError {
                 message,
             } => write!(
                 f,
-                "unexpected token '{}'{} at line {}, col {}",
-                found,
+                "unexpected token '{found}'{} at line {}, col {}",
                 if let Some(m) = message {
-                    format!(", {}", m)
+                    format!(", {m}")
                 } else {
                     String::new()
                 },
@@ -181,16 +177,14 @@ impl fmt::Display for ParseError {
             Self::AbruptEnd => f.write_str("abrupt end"),
             Self::General { message, position } => write!(
                 f,
-                "{} at line {}, col {}",
-                message,
+                "{message} at line {}, col {}",
                 position.line_number(),
                 position.column_number()
             ),
             Self::Lex { err } => fmt::Display::fmt(err, f),
             Self::Unimplemented { message, position } => write!(
                 f,
-                "{} not yet implemented at line {}, col {}",
-                message,
+                "{message} not yet implemented at line {}, col {}",
                 position.line_number(),
                 position.column_number()
             ),
