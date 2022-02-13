@@ -14,9 +14,7 @@ use core::convert::TryFrom;
 use std::io::Read;
 use std::str;
 
-const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 11] = [
-    "eval",
-    "arguments",
+const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 9] = [
     "implements",
     "interface",
     "let",

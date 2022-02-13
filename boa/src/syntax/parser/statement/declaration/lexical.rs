@@ -16,7 +16,7 @@ use crate::{
             },
             Keyword, Punctuator,
         },
-        lexer::TokenKind,
+        lexer::{Error as LexError, TokenKind},
         parser::{
             cursor::{Cursor, SemicolonResult},
             expression::Initializer,
@@ -27,6 +27,7 @@ use crate::{
     BoaProfiler, Interner,
 };
 
+use boa_interner::Sym;
 use std::io::Read;
 
 /// Parses a lexical declaration.
@@ -259,6 +260,7 @@ where
         let _timer = BoaProfiler::global().start_event("LexicalBinding", "Parsing");
 
         let peek_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token_pos = peek_token.span().start();
 
         match peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -318,7 +320,12 @@ where
                 } else {
                     None
                 };
-
+                if cursor.strict_mode() && (ident == Sym::EVAL || ident == Sym::ARGUMENTS) {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "Unexpected eval or arguments in strict mode".into(),
+                        token_pos,
+                    )));
+                }
                 Ok(Declaration::new_with_identifier(ident, init))
             }
         }
