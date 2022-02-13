@@ -248,7 +248,7 @@ impl String {
         for arg in args.iter() {
             let number = arg.to_number(context)?;
 
-            if !Number::is_float_integer(number) || number < 0.0 || number > (0x10FFFF as f64) {
+            if !Number::is_float_integer(number) || number < 0.0 || number > f64::from(0x10FFFF) {
                 return Err(
                     context.construct_range_error(format!("invalid code point: {}", number))
                 );
@@ -412,8 +412,7 @@ impl String {
         // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of
         // bytes is an O(1) operation.
         if let Some(utf16_val) = string.encode_utf16().nth(position as usize) {
-            // TODO: Full UTF-16 support
-            Ok(char::try_from(utf16_val as u32)
+            Ok(char::try_from(u32::from(utf16_val))
                 .unwrap_or('\u{FFFD}' /* replacement char */)
                 .into())
         } else {
@@ -657,7 +656,6 @@ impl String {
             Ok("".into())
         } else {
             let span = to - from;
-            // TODO: Full UTF-16 support
             let substring_utf16: Vec<u16> = string.encode_utf16().skip(from).take(span).collect();
             let substring_lossy = StdString::from_utf16_lossy(&substring_utf16);
             Ok(substring_lossy.into())
@@ -707,7 +705,6 @@ impl String {
         if end > len as f64 {
             Ok(JsValue::new(false))
         } else {
-            // TODO: Full UTF-16 support
             let substring_utf16 = string
                 .encode_utf16()
                 .skip(start as usize)
