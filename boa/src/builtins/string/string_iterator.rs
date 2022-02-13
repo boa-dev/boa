@@ -57,7 +57,7 @@ impl StringIterator {
             ));
         }
         let (_, code_unit_count, _) =
-            code_point_at(&native_string, position).expect("Invalid code point position");
+            code_point_at(&native_string, position as i64).expect("Invalid code point position");
         string_iterator.next_index += i32::from(code_unit_count);
         let result_string = crate::builtins::string::String::substring(
             &string_iterator.string,

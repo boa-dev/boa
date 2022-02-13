@@ -84,12 +84,3 @@ pub(crate) fn f64_to_int32(number: f64) -> i32 {
 pub(crate) fn f64_to_uint32(number: f64) -> u32 {
     f64_to_int32(number) as u32
 }
-
-/// Converts a 64-bit floating point number to an `u16` according to the [`ToUint16`][ToUint16] algorithm.
-///
-/// [ToUint16]: https://tc39.es/ecma262/#sec-touint16
-#[inline]
-pub(crate) fn f64_to_uint16(number: f64) -> u16 {
-    let n = f64_to_int32(number) as u32;
-    (n % (1 << 16)) as u16
-}
