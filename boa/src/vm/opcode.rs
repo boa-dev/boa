@@ -1042,3 +1042,16 @@ impl TryFrom<u8> for Opcode {
         Ok(opcode)
     }
 }
+
+/// Specific opcodes for bindings.
+///
+/// This separate enum exists to make matching exhaustive where needed.
+#[derive(Clone, Copy, Debug)]
+pub(crate) enum BindingOpcode {
+    Var,
+    Let,
+    InitVar,
+    InitLet,
+    InitArg,
+    InitConst,
+}

@@ -206,9 +206,7 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{:?}' (length: {})",
-                    interner
-                        .resolve(self.functions[operand as usize].name)
-                        .unwrap(),
+                    interner.resolve_expect(self.functions[operand as usize].name),
                     self.functions[operand as usize].length
                 )
             }
@@ -226,9 +224,7 @@ impl CodeBlock {
                 format!(
                     "{:04}: '{}'",
                     operand,
-                    interner
-                        .resolve(self.bindings[operand as usize].name())
-                        .unwrap(),
+                    interner.resolve_expect(self.bindings[operand as usize].name()),
                 )
             }
             Opcode::GetPropertyByName
@@ -240,8 +236,8 @@ impl CodeBlock {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
-                    "{operand:04}: '{:?}'",
-                    interner.resolve(self.variables[operand as usize]).unwrap()
+                    "{operand:04}: '{}'",
+                    interner.resolve_expect(self.variables[operand as usize]),
                 )
             }
             Opcode::Pop

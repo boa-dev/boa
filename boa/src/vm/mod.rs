@@ -19,6 +19,7 @@ mod opcode;
 pub use call_frame::CallFrame;
 pub(crate) use call_frame::{FinallyReturn, TryStackEntry};
 pub use code_block::{CodeBlock, JsVmFunction};
+pub(crate) use opcode::BindingOpcode;
 pub use opcode::Opcode;
 
 #[cfg(test)]
@@ -391,11 +392,10 @@ impl Context {
                                 self.call(&get, &self.global_object().clone().into(), &[])?
                             }
                             _ => {
-                                return self
-                                    .throw_reference_error(format!("{} is not defined", key))
+                                return self.throw_reference_error(format!("{key} is not defined"))
                             }
                         },
-                        _ => return self.throw_reference_error(format!("{} is not defined", key)),
+                        _ => return self.throw_reference_error(format!("{key} is not defined")),
                     }
                 } else if let Some(value) = self.realm.environments.get_value_optional(
                     binding_locator.environment_index(),
@@ -405,7 +405,7 @@ impl Context {
                 } else {
                     let name =
                         JsString::from(self.interner().resolve_expect(binding_locator.name()));
-                    return self.throw_reference_error(format!("{} is not initialized", name));
+                    return self.throw_reference_error(format!("{name} is not initialized"));
                 };
 
                 self.vm.push(value);
@@ -459,7 +459,8 @@ impl Context {
                     let exists = self.global_bindings_mut().contains_key(&key);
 
                     if !exists && (self.strict() || self.vm.frame().code.strict) {
-                        return self.throw_reference_error("Binding already exists");
+                        return self
+                            .throw_reference_error(format!("binding already exists: {key}"));
                     }
 
                     let success = crate::object::internal_methods::global::global_set_no_receiver(
@@ -469,10 +470,8 @@ impl Context {
                     )?;
 
                     if !success && (self.strict() || self.vm.frame().code.strict) {
-                        return self.throw_type_error(format!(
-                            "cannot set non-writable property: {}",
-                            key
-                        ));
+                        return self
+                            .throw_type_error(format!("cannot set non-writable property: {key}",));
                     }
                 } else if !self.realm.environments.put_value_if_initialized(
                     binding_locator.environment_index(),
@@ -1308,7 +1307,11 @@ impl Context {
                     .read::<u8>(pc)
                     .try_into()
                     .expect("invalid opcode");
-                let operands = self.vm.frame().code.instruction_operands(&mut pc, self.interner());
+                let operands = self
+                    .vm
+                    .frame()
+                    .code
+                    .instruction_operands(&mut pc, self.interner());
 
                 let instant = Instant::now();
                 let result = self.execute_instruction();

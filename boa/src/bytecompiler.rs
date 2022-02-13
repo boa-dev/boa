@@ -13,7 +13,7 @@ use crate::{
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
     },
-    vm::{CodeBlock, Opcode},
+    vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
 use boa_interner::{Interner, Sym};
@@ -133,33 +133,42 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn emit_binding(&mut self, opcode: Opcode, name: Sym) {
+    fn emit_binding(&mut self, opcode: BindingOpcode, name: Sym) {
         match opcode {
-            Opcode::DefInitVar => {
+            BindingOpcode::Var => {
+                let binding = self.context.initialize_mutable_binding(name, true);
+                let index = self.get_or_insert_binding(binding);
+                self.emit(Opcode::DefVar, &[index]);
+            }
+            BindingOpcode::Let => {
+                let binding = self.context.initialize_mutable_binding(name, false);
+                let index = self.get_or_insert_binding(binding);
+                self.emit(Opcode::DefLet, &[index]);
+            }
+            BindingOpcode::InitVar => {
                 let binding = if self.context.has_binding(name) {
                     self.context.set_mutable_binding(name)
                 } else {
                     self.context.initialize_mutable_binding(name, true)
                 };
                 let index = self.get_or_insert_binding(binding);
-                self.emit(opcode, &[index]);
+                self.emit(Opcode::DefInitVar, &[index]);
             }
-            Opcode::DefVar => {
-                let binding = self.context.initialize_mutable_binding(name, true);
-                let index = self.get_or_insert_binding(binding);
-                self.emit(opcode, &[index]);
-            }
-            Opcode::DefInitLet | Opcode::DefLet | Opcode::DefInitArg => {
+            BindingOpcode::InitLet => {
                 let binding = self.context.initialize_mutable_binding(name, false);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(opcode, &[index]);
+                self.emit(Opcode::DefInitLet, &[index]);
             }
-            Opcode::DefInitConst => {
+            BindingOpcode::InitArg => {
+                let binding = self.context.initialize_mutable_binding(name, false);
+                let index = self.get_or_insert_binding(binding);
+                self.emit(Opcode::DefInitArg, &[index]);
+            }
+            BindingOpcode::InitConst => {
                 let binding = self.context.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
-                self.emit(opcode, &[index]);
+                self.emit(Opcode::DefInitConst, &[index]);
             }
-            _ => panic!("invalid opcode passed to emit_binding"),
         }
     }
 
@@ -1038,9 +1047,9 @@ impl<'b> ByteCompiler<'b> {
 
                             if let Some(expr) = decl.init() {
                                 self.compile_expr(expr, true)?;
-                                self.emit_binding(Opcode::DefInitVar, ident);
+                                self.emit_binding(BindingOpcode::InitVar, ident);
                             } else {
-                                self.emit_binding(Opcode::DefVar, ident);
+                                self.emit_binding(BindingOpcode::Var, ident);
                             }
                         }
                         Declaration::Pattern(pattern) => {
@@ -1054,7 +1063,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitVar)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
                         }
                     }
                 }
@@ -1069,9 +1078,9 @@ impl<'b> ByteCompiler<'b> {
 
                             if let Some(expr) = decl.init() {
                                 self.compile_expr(expr, true)?;
-                                self.emit_binding(Opcode::DefInitLet, ident.sym());
+                                self.emit_binding(BindingOpcode::InitLet, ident.sym());
                             } else {
-                                self.emit_binding(Opcode::DefLet, ident.sym());
+                                self.emit_binding(BindingOpcode::Let, ident.sym());
                             }
                         }
                         Declaration::Pattern(pattern) => {
@@ -1085,7 +1094,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitLet)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
                         }
                     }
                 }
@@ -1101,7 +1110,7 @@ impl<'b> ByteCompiler<'b> {
                                 .init()
                                 .expect("const declaration must have initializer");
                             self.compile_expr(init, true)?;
-                            self.emit_binding(Opcode::DefInitConst, ident.sym());
+                            self.emit_binding(BindingOpcode::InitConst, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             if pattern.idents().contains(&Sym::ARGUMENTS) {
@@ -1114,7 +1123,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::PushUndefined);
                             };
 
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitConst)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     }
                 }
@@ -1213,38 +1222,38 @@ impl<'b> ByteCompiler<'b> {
                         Declaration::Identifier { ident, .. } => {
                             self.context
                                 .create_mutable_binding(ident.sym(), true, true)?;
-                            self.emit_binding(Opcode::DefInitVar, ident.sym());
+                            self.emit_binding(BindingOpcode::InitVar, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 self.context.create_mutable_binding(ident, true, true)?;
                             }
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitVar)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
                         }
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             self.context
                                 .create_mutable_binding(ident.sym(), false, false)?;
-                            self.emit_binding(Opcode::DefInitLet, ident.sym());
+                            self.emit_binding(BindingOpcode::InitLet, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 self.context.create_mutable_binding(ident, false, false)?;
                             }
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitLet)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
                         }
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             self.context.create_immutable_binding(ident.sym())?;
-                            self.emit_binding(Opcode::DefInitConst, ident.sym());
+                            self.emit_binding(BindingOpcode::InitConst, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 self.context.create_immutable_binding(ident)?;
                             }
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitConst)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
                 }
@@ -1290,38 +1299,38 @@ impl<'b> ByteCompiler<'b> {
                         Declaration::Identifier { ident, .. } => {
                             self.context
                                 .create_mutable_binding(ident.sym(), true, true)?;
-                            self.emit_binding(Opcode::DefInitVar, ident.sym());
+                            self.emit_binding(BindingOpcode::InitVar, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 self.context.create_mutable_binding(ident, true, true)?;
                             }
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitVar)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
                         }
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             self.context
                                 .create_mutable_binding(ident.sym(), false, false)?;
-                            self.emit_binding(Opcode::DefInitLet, ident.sym());
+                            self.emit_binding(BindingOpcode::InitLet, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 self.context.create_mutable_binding(ident, false, false)?;
                             }
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitLet)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
                         }
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Declaration::Identifier { ident, .. } => {
                             self.context.create_immutable_binding(ident.sym())?;
-                            self.emit_binding(Opcode::DefInitConst, ident.sym());
+                            self.emit_binding(BindingOpcode::InitConst, ident.sym());
                         }
                         Declaration::Pattern(pattern) => {
                             for ident in pattern.idents() {
                                 self.context.create_immutable_binding(ident)?;
                             }
-                            self.compile_declaration_pattern(pattern, Opcode::DefInitConst)?;
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
                 }
@@ -1581,13 +1590,13 @@ impl<'b> ByteCompiler<'b> {
                             Declaration::Identifier { ident, .. } => {
                                 self.context
                                     .create_mutable_binding(ident.sym(), false, false)?;
-                                self.emit_binding(Opcode::DefInitLet, ident.sym());
+                                self.emit_binding(BindingOpcode::InitLet, ident.sym());
                             }
                             Declaration::Pattern(pattern) => {
                                 for ident in pattern.idents() {
                                     self.context.create_mutable_binding(ident, false, false)?;
                                 }
-                                self.compile_declaration_pattern(pattern, Opcode::DefInitLet)?;
+                                self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
                             }
                         }
                     } else {
@@ -1741,7 +1750,7 @@ impl<'b> ByteCompiler<'b> {
                         compiler.compile_expr(init, true)?;
                         compiler.patch_jump(skip);
                     }
-                    compiler.emit_binding(Opcode::DefInitArg, ident.sym());
+                    compiler.emit_binding(BindingOpcode::InitArg, ident.sym());
                 }
                 Declaration::Pattern(pattern) => {
                     for ident in pattern.idents() {
@@ -1749,7 +1758,7 @@ impl<'b> ByteCompiler<'b> {
                             .context
                             .create_mutable_binding(ident, false, true)?;
                     }
-                    compiler.compile_declaration_pattern(pattern, Opcode::DefInitArg)?;
+                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)?;
                 }
             }
         }
@@ -1802,7 +1811,7 @@ impl<'b> ByteCompiler<'b> {
         match kind {
             FunctionKind::Declaration => {
                 self.emit_binding(
-                    Opcode::DefInitVar,
+                    BindingOpcode::InitVar,
                     name.expect("function declaration must have a name"),
                 );
             }
@@ -1884,7 +1893,7 @@ impl<'b> ByteCompiler<'b> {
     fn compile_declaration_pattern(
         &mut self,
         pattern: &DeclarationPattern,
-        def: Opcode,
+        def: BindingOpcode,
     ) -> JsResult<()> {
         match pattern {
             DeclarationPattern::Object(pattern) => {
