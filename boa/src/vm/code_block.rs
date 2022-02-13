@@ -185,16 +185,14 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                format!("{}, {}", operand1, operand2)
+                format!("{operand1}, {operand2}")
             }
             Opcode::GetFunction => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
-                    "{:04}: '{:?}' (length: {})",
-                    operand,
-                    self.functions[operand as usize].name,
-                    self.functions[operand as usize].length
+                    "{operand:04}: '{:?}' (length: {})",
+                    self.functions[operand as usize].name, self.functions[operand as usize].length
                 )
             }
             Opcode::DefInitArg
@@ -216,7 +214,7 @@ impl CodeBlock {
             | Opcode::CopyDataProperties => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                format!("{:04}: '{:?}'", operand, self.variables[operand as usize])
+                format!("{operand:04}: '{:?}'", self.variables[operand as usize])
             }
             Opcode::Pop
             | Opcode::Dup
@@ -308,9 +306,8 @@ impl ToInternedString for CodeBlock {
         };
 
         f.push_str(&format!(
-            "{:-^width$}\n    Location  Count   Opcode                     Operands\n\n",
-            format!("Compiled Output: '{}'", name),
-            width = 70
+            "{:-^70}\n    Location  Count   Opcode                     Operands\n\n",
+            format!("Compiled Output: '{name}'"),
         ));
 
         let mut pc = 0;
@@ -319,11 +316,8 @@ impl ToInternedString for CodeBlock {
             let opcode: Opcode = self.code[pc].try_into().unwrap();
             let operands = self.instruction_operands(&mut pc);
             f.push_str(&format!(
-                "    {:06}    {:04}    {:<27}\n{}",
-                pc,
-                count,
+                "    {pc:06}    {count:04}    {:<27}\n{operands}",
                 opcode.as_str(),
-                operands
             ));
             count += 1;
         }
@@ -335,8 +329,7 @@ impl ToInternedString for CodeBlock {
         } else {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
-                    "    {:04}: <{}> {}\n",
-                    i,
+                    "    {i:04}: <{}> {}\n",
                     value.type_of(),
                     value.display()
                 ));
@@ -349,8 +342,7 @@ impl ToInternedString for CodeBlock {
         } else {
             for (i, value) in self.variables.iter().enumerate() {
                 f.push_str(&format!(
-                    "    {:04}: {}\n",
-                    i,
+                    "    {i:04}: {}\n",
                     interner.resolve_expect(*value)
                 ));
             }
@@ -362,8 +354,7 @@ impl ToInternedString for CodeBlock {
         } else {
             for (i, code) in self.functions.iter().enumerate() {
                 f.push_str(&format!(
-                    "    {:04}: name: '{}' (length: {})\n",
-                    i,
+                    "    {i:04}: name: '{}' (length: {})\n",
                     interner.resolve_expect(code.name),
                     code.length
                 ));

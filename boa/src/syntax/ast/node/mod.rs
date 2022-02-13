@@ -690,11 +690,11 @@ fn test_formatting(source: &'static str) {
         .expect("parsing failed")
         .to_interned_string(&interner);
     if scenario != result {
-        eprint!("========= Expected:\n{}", scenario);
-        eprint!("========= Got:\n{}", result);
+        eprint!("========= Expected:\n{scenario}");
+        eprint!("========= Got:\n{result}");
         // Might be helpful to find differing whitespace
-        eprintln!("========= Expected: {:?}", scenario);
-        eprintln!("========= Got:      {:?}", result);
+        eprintln!("========= Expected: {scenario:?}");
+        eprintln!("========= Got:      {result:?}");
         panic!("parsing test did not give the correct result (see above)");
     }
 }

@@ -41,10 +41,10 @@ pub(crate) fn logger(msg: LogMessage, console_state: &Console) {
 
     match msg {
         LogMessage::Error(msg) => {
-            eprintln!("{:>width$}", msg, width = indent);
+            eprintln!("{msg:>indent$}");
         }
         LogMessage::Log(msg) | LogMessage::Info(msg) | LogMessage::Warn(msg) => {
-            println!("{:>width$}", msg, width = indent);
+            println!("{msg:>indent$}");
         }
     }
 }
@@ -75,7 +75,7 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                                 .cloned()
                                 .unwrap_or_default()
                                 .to_integer(context)?;
-                            formatted.push_str(&format!("{}", arg));
+                            formatted.push_str(&arg.to_string());
                             arg_index += 1;
                         }
                         /* float */
@@ -85,13 +85,13 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                                 .cloned()
                                 .unwrap_or_default()
                                 .to_number(context)?;
-                            formatted.push_str(&format!("{number:.prec$}", number = arg, prec = 6));
+                            formatted.push_str(&format!("{arg:.6}"));
                             arg_index += 1;
                         }
                         /* object, FIXME: how to render this properly? */
                         'o' | 'O' => {
                             let arg = data.get_or_undefined(arg_index);
-                            formatted.push_str(&format!("{}", arg.display()));
+                            formatted.push_str(&arg.display().to_string());
                             arg_index += 1;
                         }
                         /* string */
@@ -199,7 +199,7 @@ impl Console {
             } else if !args[0].is_string() {
                 args.insert(0, JsValue::new(message));
             } else {
-                let concat = format!("{}: {}", message, args[0].display());
+                let concat = format!("{message}: {}", args[0].display());
                 args[0] = JsValue::new(concat);
             }
 
@@ -375,14 +375,11 @@ impl Console {
             None => "default".into(),
         };
 
-        let msg = format!("count {}:", &label);
+        let msg = format!("count {label}:");
         let c = context.console_mut().count_map.entry(label).or_insert(0);
         *c += 1;
 
-        logger(
-            LogMessage::Info(format!("{} {}", msg, c)),
-            context.console(),
-        );
+        logger(LogMessage::Info(format!("{msg} {c}")), context.console());
         Ok(JsValue::undefined())
     }
 
@@ -409,7 +406,7 @@ impl Console {
         context.console_mut().count_map.remove(&label);
 
         logger(
-            LogMessage::Warn(format!("countReset {}", label)),
+            LogMessage::Warn(format!("countReset {label}")),
             context.console(),
         );
 
@@ -442,7 +439,7 @@ impl Console {
 
         if context.console().timer_map.get(&label).is_some() {
             logger(
-                LogMessage::Warn(format!("Timer '{}' already exist", label)),
+                LogMessage::Warn(format!("Timer '{label}' already exist")),
                 context.console(),
             );
         } else {
@@ -475,14 +472,14 @@ impl Console {
 
         if let Some(t) = context.console().timer_map.get(&label) {
             let time = Self::system_time_in_ms();
-            let mut concat = format!("{}: {} ms", label, time - t);
+            let mut concat = format!("{label}: {} ms", time - t);
             for msg in args.iter().skip(1) {
                 concat = concat + " " + &msg.display().to_string();
             }
             logger(LogMessage::Log(concat), context.console());
         } else {
             logger(
-                LogMessage::Warn(format!("Timer '{}' doesn't exist", label)),
+                LogMessage::Warn(format!("Timer '{label}' doesn't exist")),
                 context.console(),
             );
         }
@@ -513,12 +510,12 @@ impl Console {
         if let Some(t) = context.console_mut().timer_map.remove(label.as_str()) {
             let time = Self::system_time_in_ms();
             logger(
-                LogMessage::Info(format!("{}: {} ms - timer removed", label, time - t)),
+                LogMessage::Info(format!("{label}: {} ms - timer removed", time - t)),
                 context.console(),
             );
         } else {
             logger(
-                LogMessage::Warn(format!("Timer '{}' doesn't exist", label)),
+                LogMessage::Warn(format!("Timer '{label}' doesn't exist")),
                 context.console(),
             );
         }
@@ -540,7 +537,7 @@ impl Console {
         let group_label = formatter(args, context)?;
 
         logger(
-            LogMessage::Info(format!("group: {}", &group_label)),
+            LogMessage::Info(format!("group: {group_label}")),
             context.console(),
         );
         context.console_mut().groups.push(group_label);

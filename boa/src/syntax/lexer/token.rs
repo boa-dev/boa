@@ -234,7 +234,7 @@ impl TokenKind {
             Self::NullLiteral => "null".to_owned(),
             Self::NumericLiteral(Numeric::Rational(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::Integer(num)) => num.to_string(),
-            Self::NumericLiteral(Numeric::BigInt(ref num)) => format!("{}n", num),
+            Self::NumericLiteral(Numeric::BigInt(ref num)) => format!("{num}n"),
             Self::Punctuator(punc) => punc.to_string(),
             Self::StringLiteral(lit) => interner.resolve_expect(lit).to_owned(),
             Self::TemplateNoSubstitution(ts) | Self::TemplateMiddle(ts) => {

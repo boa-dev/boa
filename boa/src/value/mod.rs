@@ -473,8 +473,7 @@ impl JsValue {
                     Ok(value)
                 } else {
                     context.throw_syntax_error(format!(
-                        "cannot convert string '{}' to bigint primitive",
-                        string
+                        "cannot convert string '{string}' to bigint primitive",
                     ))
                 }
             }

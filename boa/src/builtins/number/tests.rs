@@ -589,10 +589,7 @@ fn parse_int_varying_radix() {
         let expected = i32::from_str_radix(base_str, radix).unwrap();
 
         assert_eq!(
-            forward(
-                &mut context,
-                &format!("parseInt(\"{}\", {} )", base_str, radix)
-            ),
+            forward(&mut context, &format!("parseInt(\"{base_str}\", {radix} )")),
             expected.to_string()
         );
     }
@@ -608,10 +605,7 @@ fn parse_int_negative_varying_radix() {
         let expected = i32::from_str_radix(base_str, radix).unwrap();
 
         assert_eq!(
-            forward(
-                &mut context,
-                &format!("parseInt(\"{}\", {} )", base_str, radix)
-            ),
+            forward(&mut context, &format!("parseInt(\"{base_str}\", {radix} )")),
             expected.to_string()
         );
     }

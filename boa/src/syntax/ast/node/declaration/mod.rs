@@ -296,9 +296,9 @@ impl ToInternedString for DeclarationPatternObject {
         for (i, binding) in self.bindings.iter().enumerate() {
             let binding = binding.to_interned_string(interner);
             let str = if i == self.bindings.len() - 1 {
-                format!("{} ", binding)
+                format!("{binding} ")
             } else {
-                format!("{},", binding)
+                format!("{binding},")
             };
 
             buf.push_str(&str);

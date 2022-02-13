@@ -104,7 +104,7 @@ impl BigInt {
     fn number_to_bigint(number: f64, context: &mut Context) -> JsResult<JsValue> {
         // 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
         if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-            return context.throw_range_error(format!("Cannot convert {} to BigInt", number));
+            return context.throw_range_error(format!("Cannot convert {number} to BigInt"));
         }
 
         // 2. Return the BigInt value that represents ℝ(number).

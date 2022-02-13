@@ -150,7 +150,7 @@ where
     let src_bytes = src.as_ref();
     Parser::new(src_bytes, false)
         .parse_all(interner)
-        .map_err(|e| format!("ParsingError: {}", e))
+        .map_err(|e| format!("ParsingError: {e}"))
 }
 
 /// Dumps the AST to stdout with format controlled by the given arguments.
@@ -167,14 +167,14 @@ where
 
         match arg {
             Some(format) => match format {
-                DumpFormat::Debug => println!("{:#?}", ast),
+                DumpFormat::Debug => println!("{ast:#?}"),
                 DumpFormat::Json => println!("{}", serde_json::to_string(&ast).unwrap()),
                 DumpFormat::JsonPretty => {
                     println!("{}", serde_json::to_string_pretty(&ast).unwrap());
                 }
             },
             // Default ast dumping format.
-            None => println!("{:#?}", ast),
+            None => println!("{ast:#?}"),
         }
     }
 
@@ -194,7 +194,7 @@ pub fn main() -> Result<(), std::io::Error> {
 
         if args.has_dump_flag() {
             if let Err(e) = dump(&buffer, &args) {
-                eprintln!("{}", e);
+                eprintln!("{e}");
             }
         } else {
             match context.eval(&buffer) {
@@ -233,7 +233,7 @@ pub fn main() -> Result<(), std::io::Error> {
 
                     if args.has_dump_flag() {
                         if let Err(e) = dump(&line, &args) {
-                            eprintln!("{}", e);
+                            eprintln!("{e}");
                         }
                     } else {
                         match context.eval(line.trim_end()) {
@@ -250,7 +250,7 @@ pub fn main() -> Result<(), std::io::Error> {
                 }
 
                 Err(err) => {
-                    eprintln!("Unknown error: {:?}", err);
+                    eprintln!("Unknown error: {err:?}");
                     break;
                 }
             }

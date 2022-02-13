@@ -20,7 +20,7 @@ fn main() -> Result<(), JsValue> {
     context.register_global_closure("closure", 0, move |_, _, _| {
         println!("Called `closure`");
         // `variable` is captured from the main function.
-        println!("variable = {}", variable);
+        println!("variable = {variable}");
         println!();
 
         // We return the moved variable as a `JsValue`.
@@ -77,7 +77,7 @@ fn main() -> Result<(), JsValue> {
             // We can also mutate the moved data inside the closure.
             captures.greeting = format!("{} Hello!", captures.greeting).into();
 
-            println!("{}", message);
+            println!("{message}");
             println!();
 
             // We convert `message` into `Jsvalue` to be able to return it.

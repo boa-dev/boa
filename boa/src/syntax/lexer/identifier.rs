@@ -122,8 +122,7 @@ impl<R> Tokenizer<R> for Identifier {
             {
                 return Err(Error::Syntax(
                     format!(
-                        "using future reserved keyword '{}' not allowed in strict mode",
-                        identifier_name
+                        "using future reserved keyword '{identifier_name}' not allowed in strict mode",
                     )
                     .into(),
                     start_pos,

@@ -118,12 +118,11 @@ impl Switch {
 
         if let Some(ref default) = self.default {
             buf.push_str(&format!(
-                "{}    default:\n{}",
-                indent,
+                "{indent}    default:\n{}",
                 default.to_indented_string(interner, indentation + 2)
             ));
         }
-        buf.push_str(&format!("{}}}", indent));
+        buf.push_str(&format!("{indent}}}"));
 
         buf
     }

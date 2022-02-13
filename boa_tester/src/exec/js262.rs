@@ -28,8 +28,6 @@ pub(super) fn init(context: &mut Context) -> JsObject {
 /// returns the `$262` property of the new realm's global object.
 #[allow(clippy::unnecessary_wraps)]
 fn create_realm(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
-    // eprintln!("called $262.createRealm()");
-
     let mut context = Context::default();
 
     // add the $262 object.
@@ -86,7 +84,7 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsRe
     if let Some(source_text) = args.get(0).and_then(JsValue::as_string) {
         match context.parse(source_text.as_str()) {
             // TODO: check strict
-            Err(e) => context.throw_type_error(format!("Uncaught Syntax Error: {}", e)),
+            Err(e) => context.throw_type_error(format!("Uncaught Syntax Error: {e}")),
             // Calling eval here parses the code a second time.
             // TODO: We can fix this after we have have defined the public api for the vm executer.
             Ok(_) => context.eval(source_text.as_str()),

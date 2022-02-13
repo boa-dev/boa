@@ -70,14 +70,18 @@ impl TestSuite {
 
         if verbose != 0 {
             println!(
-                "Suite {} results: total: {}, passed: {}, ignored: {}, failed: {} (panics: {}{}), conformance: {:.2}%",
+                "Suite {} results: total: {total}, passed: {}, ignored: {}, failed: {} (panics: \
+                    {}{}), conformance: {:.2}%",
                 self.name,
-                total,
                 passed.to_string().green(),
                 ignored.to_string().yellow(),
                 (total - passed - ignored).to_string().red(),
-                if panic == 0 {"0".normal()} else {panic.to_string().red()},
-                if panic == 0 {""} else {" ⚠"}.red(),
+                if panic == 0 {
+                    "0".normal()
+                } else {
+                    panic.to_string().red()
+                },
+                if panic == 0 { "" } else { " ⚠" }.red(),
                 (passed as f64 / total as f64) * 100.0
             );
         }
@@ -155,7 +159,7 @@ impl Test {
 
                             let passed = res.is_ok();
                             let text = match res {
-                                Ok(val) => format!("{}", val.display()),
+                                Ok(val) => val.display().to_string(),
                                 Err(e) => format!("Uncaught {}", e.display()),
                             };
 
@@ -177,8 +181,8 @@ impl Test {
 
                     let mut interner = Interner::default();
                     match Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner) {
-                        Ok(n) => (false, format!("{:?}", n)),
-                        Err(e) => (true, format!("Uncaught {}", e)),
+                        Ok(n) => (false, format!("{n:?}")),
+                        Err(e) => (true, format!("Uncaught {e}")),
                     }
                 }
                 Outcome::Negative {
@@ -193,13 +197,13 @@ impl Test {
                     if let Err(e) =
                         Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner)
                     {
-                        (false, format!("Uncaught {}", e))
+                        (false, format!("Uncaught {e}"))
                     } else {
                         match self.set_up_env(harness, strict) {
                             Ok(mut context) => {
                                 context.set_strict_mode(strict);
                                 match context.eval(&self.content.as_ref()) {
-                                    Ok(res) => (false, format!("{}", res.display())),
+                                    Ok(res) => (false, res.display().to_string()),
                                     Err(e) => {
                                         let passed =
                                             e.display().to_string().contains(error_type.as_ref());
@@ -273,7 +277,7 @@ impl Test {
                 self.name,
                 if strict { " (strict mode)" } else { "" },
             );
-            println!("{}", result_text);
+            println!("{result_text}");
             println!();
         }
 
@@ -322,13 +326,12 @@ impl Test {
                     &harness
                         .includes
                         .get(include)
-                        .ok_or_else(|| format!("could not find the {} include file.", include))?
+                        .ok_or_else(|| format!("could not find the {include} include file."))?
                         .as_ref(),
                 )
                 .map_err(|e| {
                     format!(
-                        "could not run the {} include file:\nUncaught {}",
-                        include,
+                        "could not run the {include} include file:\nUncaught {}",
                         e.display()
                     )
                 })?;

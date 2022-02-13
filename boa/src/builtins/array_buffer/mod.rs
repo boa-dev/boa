@@ -745,7 +745,7 @@ pub fn create_byte_data_block(size: usize, context: &mut Context) -> JsResult<Ve
     //    create such a Data Block, throw a RangeError exception.
     let mut data_block = Vec::new();
     data_block.try_reserve(size).map_err(|e| {
-        context.construct_range_error(format!("couldn't allocate the data block: {}", e))
+        context.construct_range_error(format!("couldn't allocate the data block: {e}"))
     })?;
 
     // 2. Set all of the bytes of db to 0.

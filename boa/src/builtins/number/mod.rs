@@ -271,8 +271,8 @@ impl Number {
             Ok(JsValue::new(f64_to_exponential(this_num)))
         } else {
             // Get rid of the '-' sign for -0.0 because of 9. If x < 0, then set s to "-".
-            let this_num = if this_num == 0. { 0. } else { this_num };
-            let this_fixed_num = format!("{:.*}", precision, this_num);
+            let this_num = if this_num == 0_f64 { 0_f64 } else { this_num };
+            let this_fixed_num = format!("{this_num:.precision$}");
             Ok(JsValue::new(this_fixed_num))
         }
     }
@@ -297,7 +297,7 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let this_num = Self::this_number_value(this, context)?;
-        let this_str_num = format!("{}", this_num);
+        let this_str_num = this_num.to_string();
         Ok(JsValue::new(this_str_num))
     }
 
@@ -451,7 +451,7 @@ impl Number {
             // Due to f64 limitations, this part differs a bit from the spec,
             // but has the same effect. It manipulates the string constructed
             // by `format`: digits with an optional dot between two of them.
-            suffix = format!("{:.100}", this_num);
+            suffix = format!("{this_num:.100}");
 
             // a: getting an exponent
             exponent = Self::flt_str_to_exp(&suffix);
@@ -686,7 +686,7 @@ impl Number {
         // I am not sure if this part is effective as the v8 equivalent https://chromium.googlesource.com/v8/v8/+/refs/heads/master/src/builtins/number.tq#53
         // // Fast case where the result is a one character string.
         // if x.is_sign_positive() && x.fract() == 0.0 && x < radix_number as f64 {
-        //     return Ok(to_value(format!("{}", std::char::from_digit(x as u32, radix_number as u32).unwrap())))
+        //     return Ok(std::char::from_digit(x as u32, radix_number as u32).unwrap().to_string().into())
         // }
 
         // 6. Return the String representation of this Number value using the radix specified by radixNumber.
@@ -1145,8 +1145,8 @@ impl Number {
 /// Helper function that formats a float as a ES6-style exponential number string.
 fn f64_to_exponential(n: f64) -> String {
     match n.abs() {
-        x if x >= 1.0 || x == 0.0 => format!("{:e}", n).replace('e', "e+"),
-        _ => format!("{:e}", n),
+        x if x >= 1.0 || x == 0.0 => format!("{n:e}").replace('e', "e+"),
+        _ => format!("{n:e}"),
     }
 }
 
@@ -1155,7 +1155,7 @@ fn f64_to_exponential(n: f64) -> String {
 // because in cases like (0.999).toExponential(0) the result will be 1e0.
 // Instead we get the index of 'e', and if the next character is not '-' we insert the plus sign
 fn f64_to_exponential_with_precision(n: f64, prec: usize) -> String {
-    let mut res = format!("{:.*e}", prec, n);
+    let mut res = format!("{n:.prec$e}");
     let idx = res.find('e').expect("'e' not found in exponential string");
     if res.as_bytes()[idx + 1] != b'-' {
         res.insert(idx + 1, '+');
