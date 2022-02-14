@@ -644,6 +644,11 @@
 <span id="643">643</span>
 <span id="644">644</span>
 <span id="645">645</span>
+<span id="646">646</span>
+<span id="647">647</span>
+<span id="648">648</span>
+<span id="649">649</span>
+<span id="650">650</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -662,6 +667,8 @@
 <span class="kw">mod</span> <span class="ident">update</span>;
 
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">mod</span> <span class="ident">await_expr</span>;
+
+<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::assignment::ExponentiationExpression</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assignment::AssignmentExpression</span>, <span class="ident">primary::Initializer</span>};
@@ -767,6 +774,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Expression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Expression</span> {
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -774,13 +782,15 @@
 
 <span class="kw">impl</span> <span class="ident">Expression</span> {
     <span class="doccomment">/// Creates a new `Expression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
+            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
             <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
             <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
             <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
@@ -792,7 +802,7 @@
     <span class="ident">Expression</span>,
     <span class="ident">AssignmentExpression</span>,
     [<span class="ident">Punctuator::Comma</span>],
-    [<span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
+    [<span class="ident">name</span>, <span class="ident">allow_in</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
     <span class="prelude-val">None</span>::<span class="op">&lt;</span><span class="ident">InputElement</span><span class="op">&gt;</span>
 );
 

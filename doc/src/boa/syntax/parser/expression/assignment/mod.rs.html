@@ -239,6 +239,17 @@
 <span id="238">238</span>
 <span id="239">239</span>
 <span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -267,6 +278,7 @@
     },
     <span class="ident">BoaProfiler</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="ident">exponentiation::ExponentiationExpression</span>;
 
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
@@ -291,6 +303,7 @@
 <span class="doccomment">/// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">AssignmentExpression</span> {
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -298,17 +311,20 @@
 
 <span class="kw">impl</span> <span class="ident">AssignmentExpression</span> {
     <span class="doccomment">/// Creates a new `AssignmentExpression` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
+        <span class="ident">name</span>: <span class="ident">N</span>,
         <span class="ident">allow_in</span>: <span class="ident">I</span>,
         <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
     ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
+            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
             <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
             <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
             <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
@@ -343,6 +359,7 @@
                 {
                     <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>) {
                         <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
+                            <span class="self">self</span>.<span class="ident">name</span>,
                             <span class="self">self</span>.<span class="ident">allow_in</span>,
                             <span class="self">self</span>.<span class="ident">allow_yield</span>,
                             <span class="self">self</span>.<span class="ident">allow_await</span>,
@@ -362,6 +379,7 @@
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                 <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>) {
                                     <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
+                                        <span class="self">self</span>.<span class="ident">name</span>,
                                         <span class="self">self</span>.<span class="ident">allow_in</span>,
                                         <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                         <span class="self">self</span>.<span class="ident">allow_await</span>,
@@ -373,6 +391,7 @@
                         }
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Spread</span>) =&gt; {
                             <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
+                                <span class="prelude-val">None</span>,
                                 <span class="self">self</span>.<span class="ident">allow_in</span>,
                                 <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                 <span class="self">self</span>.<span class="ident">allow_await</span>,
@@ -386,6 +405,7 @@
                                     <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt; {
                                         <span class="comment">// This must be an argument list and therefore (a, b) =&gt; {}</span>
                                         <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
+                                            <span class="self">self</span>.<span class="ident">name</span>,
                                             <span class="self">self</span>.<span class="ident">allow_in</span>,
                                             <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                             <span class="self">self</span>.<span class="ident">allow_await</span>,
@@ -401,6 +421,7 @@
                                             <span class="kw">if</span> <span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Arrow</span>)
                                             {
                                                 <span class="kw">return</span> <span class="ident">ArrowFunction::new</span>(
+                                                    <span class="self">self</span>.<span class="ident">name</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_in</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_await</span>,
@@ -434,7 +455,8 @@
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                     <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
                     <span class="kw">if</span> <span class="ident">is_assignable</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>) {
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">lhs</span>, <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>).<span class="ident">into</span>();
+                        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">lhs</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                             <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.<span class="ident">into</span>(),

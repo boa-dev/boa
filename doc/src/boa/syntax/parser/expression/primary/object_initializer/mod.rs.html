@@ -702,6 +702,9 @@
 <span id="701">701</span>
 <span id="702">702</span>
 <span id="703">703</span>
+<span id="704">704</span>
+<span id="705">705</span>
+<span id="706">706</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -713,8 +716,6 @@
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
-<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
-
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
@@ -730,6 +731,7 @@
     },
     <span class="ident">BoaProfiler</span>, <span class="ident">Interner</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="doccomment">/// Parses an object literal.</span>
@@ -899,7 +901,7 @@
 
         <span class="comment">//  ... AssignmentExpression[+In, ?Yield, ?Await]</span>
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Spread</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
-            <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+            <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::SpreadObject</span>(<span class="ident">node</span>));
         }
@@ -1145,7 +1147,7 @@
 
         <span class="comment">//  PropertyName[?Yield, ?Await] : AssignmentExpression[+In, ?Yield, ?Await]</span>
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Colon</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::PropertyDefinition::property</span>(<span class="ident">property_name</span>, <span class="ident">value</span>));
         }
@@ -1343,7 +1345,7 @@
 
         <span class="comment">// ComputedPropertyName[?Yield, ?Await] -&gt; [ AssignmentExpression[+In, ?Yield, ?Await] ]</span>
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::OpenBracket</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
-            <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+            <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
             <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBracket</span>, <span class="string">&quot;expected token &#39;]&#39;&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node</span>.<span class="ident">into</span>());
@@ -1366,6 +1368,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Initializer</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">Initializer</span> {
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -1373,17 +1376,20 @@
 
 <span class="kw">impl</span> <span class="ident">Initializer</span> {
     <span class="doccomment">/// Creates a new `Initializer` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(
+        <span class="ident">name</span>: <span class="ident">N</span>,
         <span class="ident">allow_in</span>: <span class="ident">I</span>,
         <span class="ident">allow_yield</span>: <span class="ident">Y</span>,
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
     ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
+            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
             <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
             <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
             <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
@@ -1401,7 +1407,7 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">BoaProfiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Initializer&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Assign</span>, <span class="string">&quot;initializer&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="ident">AssignmentExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+        <span class="ident">AssignmentExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
     }
 }

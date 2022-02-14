@@ -187,7 +187,7 @@
                 <span class="ident">delegate</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
             <span class="ident">expr</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
-                <span class="ident">AssignmentExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="self">self</span>.<span class="ident">allow_in</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
             );
         }

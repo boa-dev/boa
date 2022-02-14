@@ -227,7 +227,7 @@
             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Spread</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
                 <span class="ident">args</span>.<span class="ident">push</span>(
                     <span class="ident">Spread::new</span>(
-                        <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
                     )
                     .<span class="ident">into</span>(),
@@ -235,7 +235,7 @@
             } <span class="kw">else</span> {
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
                 <span class="ident">args</span>.<span class="ident">push</span>(
-                    <span class="ident">AssignmentExpression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                    <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
                 );
             }

@@ -187,7 +187,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="macro">vec!</span>[
             <span class="ident">TemplateElement::String</span>(<span class="self">self</span>.<span class="ident">first</span>),
             <span class="ident">TemplateElement::Expr</span>(
-                <span class="ident">Expression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
             ),
         ];
@@ -206,7 +206,7 @@
 
                     <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement::String</span>(<span class="ident">cooked</span>));
                     <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">TemplateElement::Expr</span>(
-                        <span class="ident">Expression::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
                     ));
                     <span class="ident">cursor</span>.<span class="ident">expect</span>(
