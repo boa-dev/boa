@@ -243,20 +243,30 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let result be the empty String.
         let mut result = StdString::new();
 
+        // 2. For each element next of codePoints, do
         for arg in args.iter() {
-            let number = arg.to_number(context)?;
+            // a. Let nextCP be ? ToNumber(next).
+            let nextcp = arg.to_number(context)?;
 
-            if !Number::is_float_integer(number) || number < 0.0 || number > f64::from(0x10FFFF) {
-                return Err(
-                    context.construct_range_error(format!("invalid code point: {}", number))
-                );
+            // b. If ! IsIntegralNumber(nextCP) is false, throw a RangeError exception.
+            if !Number::is_float_integer(nextcp) {
+                return Err(context.construct_range_error(format!("invalid code point: {nextcp}")));
             }
 
-            result.push(char::try_from(number as u32).unwrap());
+            // c. If ℝ(nextCP) < 0 or ℝ(nextCP) > 0x10FFFF, throw a RangeError exception.
+            if nextcp < 0.0 || nextcp > f64::from(0x10FFFF) {
+                return Err(context.construct_range_error(format!("invalid code point: {nextcp}")));
+            }
+
+            // d. Set result to the string-concatenation of result and ! UTF16EncodeCodePoint(ℝ(nextCP)).
+            result.push(char::try_from(nextcp as u32).expect("nextcp must be a valid code point"));
         }
 
+        // 3. Assert: If codePoints is empty, then result is the empty String.
+        // 4. Return result.
         Ok(result.into())
     }
 
