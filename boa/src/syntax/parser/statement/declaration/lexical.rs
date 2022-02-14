@@ -269,8 +269,13 @@ where
                 let init = if let Some(t) = cursor.peek(0, interner)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                         Some(
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?,
+                            Initializer::new(
+                                None,
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor, interner)?,
                         )
                     } else {
                         None
@@ -289,8 +294,13 @@ where
                 let init = if let Some(t) = cursor.peek(0, interner)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                         Some(
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?,
+                            Initializer::new(
+                                None,
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor, interner)?,
                         )
                     } else {
                         None
@@ -309,7 +319,7 @@ where
                 let init = if let Some(t) = cursor.peek(0, interner)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                         Some(
-                            Initializer::new(true, self.allow_yield, self.allow_await)
+                            Initializer::new(Some(ident), true, self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?,
                         )
                     } else {

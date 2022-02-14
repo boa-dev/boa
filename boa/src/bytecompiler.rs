@@ -1423,7 +1423,7 @@ impl<'b> ByteCompiler<'b> {
             ),
             Node::ArrowFunctionDecl(function) => (
                 FunctionKind::Arrow,
-                None,
+                function.name(),
                 function.params(),
                 function.body(),
             ),

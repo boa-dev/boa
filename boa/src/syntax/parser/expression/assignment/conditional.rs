@@ -72,14 +72,22 @@ where
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {
                 cursor.next(interner)?.expect("? character vanished"); // Consume the token.
-                let then_clause =
-                    AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                let then_clause = AssignmentExpression::new(
+                    None,
+                    self.allow_in,
+                    self.allow_yield,
+                    self.allow_await,
+                )
+                .parse(cursor, interner)?;
                 cursor.expect(Punctuator::Colon, "conditional expression", interner)?;
 
-                let else_clause =
-                    AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                let else_clause = AssignmentExpression::new(
+                    None,
+                    self.allow_in,
+                    self.allow_yield,
+                    self.allow_await,
+                )
+                .parse(cursor, interner)?;
                 return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
             }
         }

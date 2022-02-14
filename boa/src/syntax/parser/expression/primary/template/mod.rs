@@ -69,7 +69,7 @@ where
         let mut elements = vec![
             TemplateElement::String(self.first),
             TemplateElement::Expr(
-                Expression::new(true, self.allow_yield, self.allow_await)
+                Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?,
             ),
         ];
@@ -88,7 +88,7 @@ where
 
                     elements.push(TemplateElement::String(cooked));
                     elements.push(TemplateElement::Expr(
-                        Expression::new(true, self.allow_yield, self.allow_await)
+                        Expression::new(None, true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                     ));
                     cursor.expect(

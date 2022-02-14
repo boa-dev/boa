@@ -154,6 +154,7 @@ fn check_arrow_only_rest() {
     check_parser(
         "(...a) => {}",
         vec![ArrowFunctionDecl::new(
+            None,
             vec![FormalParameter::new(
                 Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
                 true,
@@ -172,6 +173,7 @@ fn check_arrow_rest() {
     check_parser(
         "(a, b, ...c) => {}",
         vec![ArrowFunctionDecl::new(
+            None,
             vec![
                 FormalParameter::new(
                     Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
@@ -200,6 +202,7 @@ fn check_arrow() {
     check_parser(
         "(a, b) => { return a + b; }",
         vec![ArrowFunctionDecl::new(
+            None,
             vec![
                 FormalParameter::new(
                     Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
@@ -232,6 +235,7 @@ fn check_arrow_semicolon_insertion() {
     check_parser(
         "(a, b) => { return a + b }",
         vec![ArrowFunctionDecl::new(
+            None,
             vec![
                 FormalParameter::new(
                     Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
@@ -264,6 +268,7 @@ fn check_arrow_epty_return() {
     check_parser(
         "(a, b) => { return; }",
         vec![ArrowFunctionDecl::new(
+            None,
             vec![
                 FormalParameter::new(
                     Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
@@ -288,6 +293,7 @@ fn check_arrow_empty_return_semicolon_insertion() {
     check_parser(
         "(a, b) => { return }",
         vec![ArrowFunctionDecl::new(
+            None,
             vec![
                 FormalParameter::new(
                     Declaration::new_with_identifier(interner.get_or_intern_static("a"), None),
@@ -315,6 +321,7 @@ fn check_arrow_assignment() {
                 Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![FormalParameter::new(
                             Declaration::new_with_identifier(
                                 interner.get_or_intern_static("a"),
@@ -348,6 +355,7 @@ fn check_arrow_assignment_nobrackets() {
                 interner.get_or_intern_static("foo"),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![FormalParameter::new(
                             Declaration::new_with_identifier(
                                 interner.get_or_intern_static("a"),
@@ -381,6 +389,7 @@ fn check_arrow_assignment_noparenthesis() {
                 interner.get_or_intern_static("foo"),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![FormalParameter::new(
                             Declaration::new_with_identifier(
                                 interner.get_or_intern_static("a"),
@@ -414,6 +423,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                 Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![FormalParameter::new(
                             Declaration::new_with_identifier(
                                 interner.get_or_intern_static("a"),
@@ -447,6 +457,7 @@ fn check_arrow_assignment_2arg() {
                 Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![
                             FormalParameter::new(
                                 Declaration::new_with_identifier(
@@ -489,6 +500,7 @@ fn check_arrow_assignment_2arg_nobrackets() {
                 Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![
                             FormalParameter::new(
                                 Declaration::new_with_identifier(
@@ -531,6 +543,7 @@ fn check_arrow_assignment_3arg() {
                 Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![
                             FormalParameter::new(
                                 Declaration::new_with_identifier(
@@ -580,6 +593,7 @@ fn check_arrow_assignment_3arg_nobrackets() {
                 Identifier::new(interner.get_or_intern_static("foo")),
                 Some(
                     ArrowFunctionDecl::new(
+                        Some(interner.get_or_intern_static("foo")),
                         vec![
                             FormalParameter::new(
                                 Declaration::new_with_identifier(

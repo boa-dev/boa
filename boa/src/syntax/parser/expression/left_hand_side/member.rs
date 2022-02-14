@@ -112,7 +112,7 @@ where
                     cursor
                         .next(interner)?
                         .expect("open bracket punctuator token disappeared"); // We move the parser forward.
-                    let idx = Expression::new(true, self.allow_yield, self.allow_await)
+                    let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression", interner)?;
                     lhs = GetField::new(lhs, idx).into();

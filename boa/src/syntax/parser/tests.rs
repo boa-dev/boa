@@ -1,5 +1,7 @@
 //! Tests for the parser.
 
+use boa_interner::Sym;
+
 use super::Parser;
 use crate::{
     syntax::ast::{
@@ -407,7 +409,8 @@ fn spread_in_arrow_function() {
     check_parser(
         s,
         vec![
-            ArrowFunctionDecl::new::<Box<[FormalParameter]>, StatementList>(
+            ArrowFunctionDecl::new::<Option<Sym>, Box<[FormalParameter]>, StatementList>(
+                None,
                 Box::new([FormalParameter::new(
                     Declaration::new_with_identifier::<_, Option<Node>>(b, None),
                     true,

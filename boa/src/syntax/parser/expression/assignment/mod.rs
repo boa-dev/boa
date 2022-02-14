@@ -26,6 +26,7 @@ use crate::{
     },
     BoaProfiler,
 };
+use boa_interner::Sym;
 pub(super) use exponentiation::ExponentiationExpression;
 
 use std::io::Read;
@@ -50,6 +51,7 @@ use std::io::Read;
 /// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct AssignmentExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -57,17 +59,20 @@ pub(in crate::syntax::parser) struct AssignmentExpression {
 
 impl AssignmentExpression {
     /// Creates a new `AssignmentExpression` parser.
-    pub(in crate::syntax::parser) fn new<I, Y, A>(
+    pub(in crate::syntax::parser) fn new<N, I, Y, A>(
+        name: N,
         allow_in: I,
         allow_yield: Y,
         allow_await: A,
     ) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -102,6 +107,7 @@ where
                 {
                     if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
+                            self.name,
                             self.allow_in,
                             self.allow_yield,
                             self.allow_await,
@@ -121,6 +127,7 @@ where
                             if let Some(t) = cursor.peek(2, interner)? {
                                 if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                                     return ArrowFunction::new(
+                                        self.name,
                                         self.allow_in,
                                         self.allow_yield,
                                         self.allow_await,
@@ -132,6 +139,7 @@ where
                         }
                         TokenKind::Punctuator(Punctuator::Spread) => {
                             return ArrowFunction::new(
+                                None,
                                 self.allow_in,
                                 self.allow_yield,
                                 self.allow_await,
@@ -145,6 +153,7 @@ where
                                     TokenKind::Punctuator(Punctuator::Comma) => {
                                         // This must be an argument list and therefore (a, b) => {}
                                         return ArrowFunction::new(
+                                            self.name,
                                             self.allow_in,
                                             self.allow_yield,
                                             self.allow_await,
@@ -160,6 +169,7 @@ where
                                             if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
                                             {
                                                 return ArrowFunction::new(
+                                                    self.name,
                                                     self.allow_in,
                                                     self.allow_yield,
                                                     self.allow_await,
@@ -193,7 +203,8 @@ where
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     cursor.next(interner)?.expect("= token vanished"); // Consume the token.
                     if is_assignable(&lhs) {
-                        lhs = Assign::new(lhs, self.parse(cursor, interner)?).into();
+                        let expr = self.parse(cursor, interner)?;
+                        lhs = Assign::new(lhs, expr).into();
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),

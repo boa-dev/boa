@@ -57,8 +57,8 @@ where
 
         cursor.peek_expect_no_lineterminator(0, "throw statement", interner)?;
 
-        let expr =
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
                 let _next = cursor.next(interner).expect("token disappeared");

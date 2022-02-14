@@ -87,7 +87,7 @@ where
                 delegate = true;
             }
             expr = Some(
-                AssignmentExpression::new(self.allow_in, true, self.allow_await)
+                AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?,
             );
         }

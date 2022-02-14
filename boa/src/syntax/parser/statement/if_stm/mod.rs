@@ -64,8 +64,8 @@ where
         cursor.expect(Keyword::If, "if statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "if statement", interner)?;
 
-        let condition =
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let condition = Expression::new(None, true, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
 
         let position = cursor
             .expect(Punctuator::CloseParen, "if statement", interner)?

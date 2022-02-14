@@ -70,8 +70,8 @@ where
             return Ok(Return::new::<Node, Option<_>, Option<_>>(None, None));
         }
 
-        let expr =
-            Expression::new(true, self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
 
         cursor.expect_semicolon("return statement", interner)?;
 
