@@ -360,16 +360,16 @@ impl RegExp {
     }
 
     #[inline]
-    fn regexp_has_flag(this: &JsValue, flag: char, context: &mut Context) -> JsResult<JsValue> {
+    fn regexp_has_flag(this: &JsValue, flag: u8, context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             if let Some(regexp) = object.borrow().as_regexp() {
                 return Ok(JsValue::new(match flag {
-                    'g' => regexp.flags.contains(RegExpFlags::GLOBAL),
-                    'm' => regexp.flags.contains(RegExpFlags::MULTILINE),
-                    's' => regexp.flags.contains(RegExpFlags::DOT_ALL),
-                    'i' => regexp.flags.contains(RegExpFlags::IGNORE_CASE),
-                    'u' => regexp.flags.contains(RegExpFlags::UNICODE),
-                    'y' => regexp.flags.contains(RegExpFlags::STICKY),
+                    b'g' => regexp.flags.contains(RegExpFlags::GLOBAL),
+                    b'm' => regexp.flags.contains(RegExpFlags::MULTILINE),
+                    b's' => regexp.flags.contains(RegExpFlags::DOT_ALL),
+                    b'i' => regexp.flags.contains(RegExpFlags::IGNORE_CASE),
+                    b'u' => regexp.flags.contains(RegExpFlags::UNICODE),
+                    b'y' => regexp.flags.contains(RegExpFlags::STICKY),
                     _ => unreachable!(),
                 }));
             }
@@ -383,12 +383,12 @@ impl RegExp {
         }
 
         let name = match flag {
-            'g' => "global",
-            'm' => "multiline",
-            's' => "dotAll",
-            'i' => "ignoreCase",
-            'u' => "unicode",
-            'y' => "sticky",
+            b'g' => "global",
+            b'm' => "multiline",
+            b's' => "dotAll",
+            b'i' => "ignoreCase",
+            b'u' => "unicode",
+            b'y' => "sticky",
             _ => unreachable!(),
         };
 
@@ -412,7 +412,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'g', context)
+        Self::regexp_has_flag(this, b'g', context)
     }
 
     /// `get RegExp.prototype.ignoreCase`
@@ -430,7 +430,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'i', context)
+        Self::regexp_has_flag(this, b'i', context)
     }
 
     /// `get RegExp.prototype.multiline`
@@ -448,7 +448,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'm', context)
+        Self::regexp_has_flag(this, b'm', context)
     }
 
     /// `get RegExp.prototype.dotAll`
@@ -466,7 +466,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 's', context)
+        Self::regexp_has_flag(this, b's', context)
     }
 
     /// `get RegExp.prototype.unicode`
@@ -485,7 +485,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'u', context)
+        Self::regexp_has_flag(this, b'u', context)
     }
 
     /// `get RegExp.prototype.sticky`
@@ -504,7 +504,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'y', context)
+        Self::regexp_has_flag(this, b'y', context)
     }
 
     /// `get RegExp.prototype.flags`
