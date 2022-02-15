@@ -1197,44 +1197,59 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
+        // 3. Let searchStr be ? ToString(searchString).
         let search_str = args
             .get(0)
             .cloned()
             .unwrap_or_else(JsValue::undefined)
             .to_string(context)?;
 
+        // 4. Let numPos be ? ToNumber(position).
+        // 5. Assert: If position is undefined, then numPos is NaN.
         let num_pos = args
             .get(1)
             .cloned()
             .unwrap_or_else(JsValue::undefined)
             .to_number(context)?;
 
+        // 6. If numPos is NaN, let pos be +∞; otherwise, let pos be ! ToIntegerOrInfinity(numPos).
         let pos = if num_pos.is_nan() {
             f64::INFINITY
         } else {
             JsValue::new(num_pos).to_integer(context)?
         };
 
+        // 7. Let len be the length of S.
         let len = string.encode_utf16().count();
+        // 8. Let start be the result of clamping pos between 0 and len.
         let start = pos.max(0.0).min(len as f64) as usize;
 
+        // 9. If searchStr is the empty String, return 𝔽(start).
         if search_str.is_empty() {
             return Ok(JsValue::new(start as f64));
         }
 
         // TODO: Full UTF-16 support
-        let substring_utf16: Vec<u16> = string.encode_utf16().take(start + 1).collect();
+        // 10. Let searchLen be the length of searchStr.
+        let search_len = search_str.encode_utf16().count();
+        // 11. For each non-negative integer i starting with start such that i ≤ len - searchLen, in descending order, do
+        // a. Let candidate be the substring of S from i to i + searchLen.
+        let substring_utf16: Vec<u16> = string.encode_utf16().take(start + search_len).collect();
         let substring_lossy = StdString::from_utf16_lossy(&substring_utf16);
         if let Some(position) = substring_lossy.rfind(search_str.as_str()) {
-            Ok(JsValue::new(
+            // b. If candidate is the same sequence of code units as searchStr, return 𝔽(i).
+            return Ok(JsValue::new(
                 substring_lossy[..position].encode_utf16().count(),
-            ))
-        } else {
-            Ok(JsValue::new(-1))
+            ));
         }
+
+        // 12. Return -1𝔽.
+        Ok(JsValue::new(-1))
     }
 
     /// `String.prototype.match( regexp )`
