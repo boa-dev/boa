@@ -261,8 +261,9 @@ impl String {
                 return Err(context.construct_range_error(format!("invalid code point: {nextcp}")));
             }
 
+            // TODO: Full UTF-16 support
             // d. Set result to the string-concatenation of result and ! UTF16EncodeCodePoint(ℝ(nextCP)).
-            result.push(char::try_from(nextcp as u32).expect("nextcp must be a valid code point"));
+            result.push(char::try_from(nextcp as u32).unwrap_or('\u{FFFD}' /* replacement char */));
         }
 
         // 3. Assert: If codePoints is empty, then result is the empty String.
