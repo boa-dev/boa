@@ -1760,7 +1760,7 @@ fn advance_string_index(s: &JsString, index: usize, unicode: bool) -> usize {
 
     // 5. Let cp be ! CodePointAt(S, index).
     let (_, offset, _) =
-        crate::builtins::string::code_point_at(s, index as i32).expect("Failed to get code point");
+        crate::builtins::string::code_point_at(s, index as i64).expect("Failed to get code point");
 
     index + offset as usize
 }
