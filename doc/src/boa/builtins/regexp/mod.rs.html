@@ -3527,7 +3527,7 @@
 
     <span class="comment">// 5. Let cp be ! CodePointAt(S, index).</span>
     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>, <span class="kw">_</span>) <span class="op">=</span>
-        <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">i32</span>).<span class="ident">expect</span>(<span class="string">&quot;Failed to get code point&quot;</span>);
+        <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">i64</span>).<span class="ident">expect</span>(<span class="string">&quot;Failed to get code point&quot;</span>);
 
     <span class="ident">index</span> <span class="op">+</span> <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">usize</span>
 }

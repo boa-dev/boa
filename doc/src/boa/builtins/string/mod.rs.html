@@ -2069,6 +2069,78 @@
 <span id="2068">2068</span>
 <span id="2069">2069</span>
 <span id="2070">2070</span>
+<span id="2071">2071</span>
+<span id="2072">2072</span>
+<span id="2073">2073</span>
+<span id="2074">2074</span>
+<span id="2075">2075</span>
+<span id="2076">2076</span>
+<span id="2077">2077</span>
+<span id="2078">2078</span>
+<span id="2079">2079</span>
+<span id="2080">2080</span>
+<span id="2081">2081</span>
+<span id="2082">2082</span>
+<span id="2083">2083</span>
+<span id="2084">2084</span>
+<span id="2085">2085</span>
+<span id="2086">2086</span>
+<span id="2087">2087</span>
+<span id="2088">2088</span>
+<span id="2089">2089</span>
+<span id="2090">2090</span>
+<span id="2091">2091</span>
+<span id="2092">2092</span>
+<span id="2093">2093</span>
+<span id="2094">2094</span>
+<span id="2095">2095</span>
+<span id="2096">2096</span>
+<span id="2097">2097</span>
+<span id="2098">2098</span>
+<span id="2099">2099</span>
+<span id="2100">2100</span>
+<span id="2101">2101</span>
+<span id="2102">2102</span>
+<span id="2103">2103</span>
+<span id="2104">2104</span>
+<span id="2105">2105</span>
+<span id="2106">2106</span>
+<span id="2107">2107</span>
+<span id="2108">2108</span>
+<span id="2109">2109</span>
+<span id="2110">2110</span>
+<span id="2111">2111</span>
+<span id="2112">2112</span>
+<span id="2113">2113</span>
+<span id="2114">2114</span>
+<span id="2115">2115</span>
+<span id="2116">2116</span>
+<span id="2117">2117</span>
+<span id="2118">2118</span>
+<span id="2119">2119</span>
+<span id="2120">2120</span>
+<span id="2121">2121</span>
+<span id="2122">2122</span>
+<span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
+<span id="2129">2129</span>
+<span id="2130">2130</span>
+<span id="2131">2131</span>
+<span id="2132">2132</span>
+<span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `String` global object is a constructor for strings or a sequence of characters.</span>
@@ -2086,7 +2158,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">Array</span>, <span class="ident">BuiltIn</span>, <span class="ident">RegExp</span>, <span class="ident">Symbol</span>},
+    <span class="ident">builtins</span>::{<span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">Array</span>, <span class="ident">BuiltIn</span>, <span class="ident">Number</span>, <span class="ident">RegExp</span>, <span class="ident">Symbol</span>},
     <span class="ident">context::StandardObjects</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -2095,24 +2167,21 @@
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">char</span>::{<span class="ident">decode_utf16</span>, <span class="ident">from_u32</span>},
-    <span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>},
-    <span class="ident">string::String</span> <span class="kw">as</span> <span class="ident">StdString</span>,
-};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">char::from_u32</span>, <span class="ident">cmp::max</span>, <span class="ident">string::String</span> <span class="kw">as</span> <span class="ident">StdString</span>};
 <span class="kw">use</span> <span class="ident">unicode_normalization::UnicodeNormalization</span>;
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">code_point_at</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">position</span>: <span class="ident">i32</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u8</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
-    <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">code_point_at</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">position</span>: <span class="ident">i64</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">u32</span>, <span class="ident">u8</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+    <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">size</span> <span class="kw">as</span> <span class="ident">i64</span> {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
+
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>();
     <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">encoded</span>.<span class="ident">nth</span>(<span class="ident">position</span> <span class="kw">as</span> <span class="ident">usize</span>)<span class="question-mark">?</span>;
     <span class="kw">if</span> <span class="op">!</span><span class="ident">is_leading_surrogate</span>(<span class="ident">first</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_trailing_surrogate</span>(<span class="ident">first</span>) {
         <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">u32::from</span>(<span class="ident">first</span>), <span class="number">1</span>, <span class="bool-val">false</span>));
     }
-    <span class="kw">if</span> <span class="ident">is_trailing_surrogate</span>(<span class="ident">first</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">position</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">size</span> {
+    <span class="kw">if</span> <span class="ident">is_trailing_surrogate</span>(<span class="ident">first</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">position</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">size</span> <span class="kw">as</span> <span class="ident">i64</span> {
         <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">u32::from</span>(<span class="ident">first</span>), <span class="number">1</span>, <span class="bool-val">true</span>));
     }
     <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="ident">encoded</span>.<span class="ident">next</span>()<span class="question-mark">?</span>;
@@ -2179,6 +2248,7 @@
         .<span class="ident">property</span>(<span class="string">&quot;length&quot;</span>, <span class="number">0</span>, <span class="ident">attribute</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::raw</span>, <span class="string">&quot;raw&quot;</span>, <span class="number">1</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::from_char_code</span>, <span class="string">&quot;fromCharCode&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::from_code_point</span>, <span class="string">&quot;fromCodePoint&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::char_at</span>, <span class="string">&quot;charAt&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::char_code_at</span>, <span class="string">&quot;charCodeAt&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::code_point_at</span>, <span class="string">&quot;codePointAt&quot;</span>, <span class="number">1</span>)
@@ -2299,6 +2369,49 @@
             .<span class="ident">cloned</span>()
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_string</span>()))
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a string&quot;</span>))
+    }
+
+    <span class="doccomment">/// `String.fromCodePoint(num1[, ...[, numN]])`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The static `String.fromCodePoint()` method returns a string created by using the specified sequence of code points.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.fromcodepoint</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/fromCodePoint</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_code_point</span>(
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let result be the empty String.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
+
+        <span class="comment">// 2. For each element next of codePoints, do</span>
+        <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>() {
+            <span class="comment">// a. Let nextCP be ? ToNumber(next).</span>
+            <span class="kw">let</span> <span class="ident">nextcp</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// b. If ! IsIntegralNumber(nextCP) is false, throw a RangeError exception.</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">Number::is_float_integer</span>(<span class="ident">nextcp</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>)));
+            }
+
+            <span class="comment">// c. If ℝ(nextCP) &lt; 0 or ℝ(nextCP) &gt; 0x10FFFF, throw a RangeError exception.</span>
+            <span class="kw">if</span> <span class="ident">nextcp</span> <span class="op">&lt;</span> <span class="number">0.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">nextcp</span> <span class="op">&gt;</span> <span class="ident">f64::from</span>(<span class="number">0x10FFFF</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>)));
+            }
+
+            <span class="comment">// TODO: Full UTF-16 support</span>
+            <span class="comment">// d. Set result to the string-concatenation of result and ! UTF16EncodeCodePoint(ℝ(nextCP)).</span>
+            <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">char::try_from</span>(<span class="ident">nextcp</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap_or</span>(<span class="string">&#39;\u{FFFD}&#39;</span> <span class="comment">/* replacement char */</span>));
+        }
+
+        <span class="comment">// 3. Assert: If codePoints is empty, then result is the empty String.</span>
+        <span class="comment">// 4. Return result.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.raw( template, ...substitutions )`</span>
@@ -2435,17 +2548,16 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Fast path returning empty string when pos is obviously out of range</span>
-        <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span> {
+        <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>());
         }
 
@@ -2453,8 +2565,10 @@
         <span class="comment">// unicode code points</span>
         <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of</span>
         <span class="comment">// bytes is an O(1) operation.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">usize</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">utf16_val</span>)).<span class="ident">unwrap</span>()))
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">position</span> <span class="kw">as</span> <span class="ident">usize</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">char::try_from</span>(<span class="ident">u32::from</span>(<span class="ident">utf16_val</span>))
+                .<span class="ident">unwrap_or</span>(<span class="string">&#39;\u{FFFD}&#39;</span> <span class="comment">/* replacement char */</span>)
+                .<span class="ident">into</span>())
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
         }
@@ -2516,19 +2630,20 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Fast path returning undefined when pos is obviously out of range</span>
-        <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span> {
+        <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">code_point</span>, <span class="kw">_</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">code_point_at</span>(<span class="kw-2">&amp;</span><span class="ident">primitive_val</span>, <span class="ident">pos</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">code_point</span>, <span class="kw">_</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">code_point_at</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>, <span class="ident">position</span> <span class="kw">as</span> <span class="ident">i64</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">code_point</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
@@ -2556,22 +2671,23 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
         <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Fast path returning NaN when pos is obviously out of range</span>
-        <span class="kw">if</span> <span class="ident">pos</span> <span class="op">&lt;</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">pos</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span> {
+        <span class="kw">if</span> <span class="ident">position</span> <span class="op">&lt;</span> <span class="number">0.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">f64</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>());
         }
 
         <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points</span>
         <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.</span>
         <span class="comment">// If there is no element at that index, the result is NaN</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">pos</span> <span class="kw">as</span> <span class="ident">usize</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">position</span> <span class="kw">as</span> <span class="ident">usize</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">f64::from</span>(<span class="ident">utf16_val</span>)))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>())
@@ -2597,8 +2713,8 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
 
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
             <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
@@ -2623,8 +2739,8 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2661,44 +2777,43 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points</span>
         <span class="comment">// Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.</span>
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
-
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+        {
+            <span class="ident">int_start</span> <span class="kw">if</span> <span class="ident">int_start</span>.<span class="ident">is_infinite</span>() <span class="op">&amp;&amp;</span> <span class="ident">int_start</span>.<span class="ident">is_sign_negative</span>() =&gt; <span class="number">0.0</span>,
+            <span class="ident">int_start</span> <span class="kw">if</span> <span class="ident">int_start</span> <span class="op">&lt;</span> <span class="number">0.0</span> =&gt; (<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">+</span> <span class="ident">int_start</span>).<span class="ident">max</span>(<span class="number">0.0</span>),
+            <span class="ident">int_start</span> =&gt; <span class="ident">int_start</span>.<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>),
+        } <span class="kw">as</span> <span class="ident">usize</span>;
+
+        <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">1</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsValue::new</span>(<span class="ident">length</span>))
-            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">end</span><span class="op">|</span> <span class="op">!</span><span class="ident">end</span>.<span class="ident">is_undefined</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">end</span><span class="op">|</span> <span class="ident">end</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>))
+            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
+            .<span class="ident">unwrap_or</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>)
+        {
+            <span class="ident">int_end</span> <span class="kw">if</span> <span class="ident">int_end</span>.<span class="ident">is_infinite</span>() <span class="op">&amp;&amp;</span> <span class="ident">int_end</span>.<span class="ident">is_sign_negative</span>() =&gt; <span class="number">0.0</span>,
+            <span class="ident">int_end</span> <span class="kw">if</span> <span class="ident">int_end</span> <span class="op">&lt;</span> <span class="number">0.0</span> =&gt; (<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">+</span> <span class="ident">int_end</span>).<span class="ident">max</span>(<span class="number">0.0</span>),
+            <span class="ident">int_end</span> =&gt; <span class="ident">int_end</span>.<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>),
+        } <span class="kw">as</span> <span class="ident">usize</span>;
 
-        <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="ident">max</span>(<span class="ident">length</span>.<span class="ident">wrapping_add</span>(<span class="ident">start</span>), <span class="number">0</span>)
+        <span class="kw">if</span> <span class="ident">from</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">to</span> {
+            <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
         } <span class="kw">else</span> {
-            <span class="ident">min</span>(<span class="ident">start</span>, <span class="ident">length</span>)
-        };
-        <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">end</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="ident">max</span>(<span class="ident">length</span>.<span class="ident">wrapping_add</span>(<span class="ident">end</span>), <span class="number">0</span>)
-        } <span class="kw">else</span> {
-            <span class="ident">min</span>(<span class="ident">end</span>, <span class="ident">length</span>)
-        };
-
-        <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">max</span>(<span class="ident">to</span>.<span class="ident">wrapping_sub</span>(<span class="ident">from</span>), <span class="number">0</span>);
-
-        <span class="kw">let</span> <span class="ident">new_str</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>
-            .<span class="ident">chars</span>()
-            .<span class="ident">skip</span>(<span class="ident">from</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            .<span class="ident">take</span>(<span class="ident">span</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">new_str</span>))
+            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">to</span> <span class="op">-</span> <span class="ident">from</span>;
+            <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">from</span>).<span class="ident">take</span>(<span class="ident">span</span>).<span class="ident">collect</span>();
+            <span class="kw">let</span> <span class="ident">substring_lossy</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>);
+            <span class="prelude-val">Ok</span>(<span class="ident">substring_lossy</span>.<span class="ident">into</span>())
+        }
     }
 
     <span class="doccomment">/// `String.prototype.startWith( searchString[, position] )`</span>
@@ -2716,41 +2831,40 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
 
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_regexp_object</span>(<span class="ident">arg</span>) {
+        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>) {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                 <span class="string">&quot;First argument to String.prototype.startsWith must not be a regular expression&quot;</span>,
             )<span class="question-mark">?</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">search_str</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
-        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
 
         <span class="comment">// If less than 2 args specified, position is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>) {
+            <span class="ident">position</span> <span class="kw">if</span> <span class="ident">position</span>.<span class="ident">is_undefined</span>() =&gt; <span class="number">0.0</span>,
+            <span class="ident">position</span> =&gt; <span class="ident">position</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">start</span>.<span class="ident">wrapping_add</span>(<span class="ident">search_length</span>);
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">max</span>(<span class="number">0.0</span>);
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">start</span> <span class="op">+</span> <span class="ident">search_length</span> <span class="kw">as</span> <span class="ident">f64</span>;
 
-        <span class="kw">if</span> <span class="ident">end</span> <span class="op">&gt;</span> <span class="ident">length</span> {
+        <span class="kw">if</span> <span class="ident">end</span> <span class="op">&gt;</span> <span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>))
         } <span class="kw">else</span> {
-            <span class="comment">// Only use the part of the string from &quot;start&quot;</span>
-            <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
-                <span class="ident">this_string</span>.<span class="ident">starts_with</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>()),
-            ))
+            <span class="kw">let</span> <span class="ident">substring_utf16</span> <span class="op">=</span> <span class="ident">string</span>
+                .<span class="ident">encode_utf16</span>()
+                .<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>)
+                .<span class="ident">take</span>(<span class="ident">search_length</span>);
+            <span class="kw">let</span> <span class="ident">search_str_utf16</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>();
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">substring_utf16</span>.<span class="ident">eq</span>(<span class="ident">search_str_utf16</span>)))
         }
     }
 
@@ -2769,40 +2883,44 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">search_str</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>) {
+            <span class="ident">search_string</span> <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>) =&gt; {
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                    <span class="string">&quot;First argument to String.prototype.endsWith must not be a regular expression&quot;</span>,
+                );
+            }
+            <span class="ident">search_string</span> =&gt; <span class="ident">search_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+        };
 
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_regexp_object</span>(<span class="ident">arg</span>) {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                <span class="string">&quot;First argument to String.prototype.endsWith must not be a regular expression&quot;</span>,
-            )<span class="question-mark">?</span>;
-        }
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
 
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>) {
+            <span class="ident">end_position</span> <span class="kw">if</span> <span class="ident">end_position</span>.<span class="ident">is_undefined</span>() =&gt; <span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>,
+            <span class="ident">end_position</span> =&gt; <span class="ident">end_position</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+        };
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
-        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// If less than 2 args specified, end_position is &#39;undefined&#39;, defaults to</span>
         <span class="comment">// length of this</span>
-        <span class="kw">let</span> <span class="ident">end_position</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
-        } <span class="kw">else</span> {
-            <span class="ident">length</span>
-        };
+        <span class="kw">if</span> <span class="ident">search_str</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">true</span>));
+        }
 
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">end_position</span>, <span class="number">0</span>), <span class="ident">length</span>);
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">end</span>.<span class="ident">wrapping_sub</span>(<span class="ident">search_length</span>);
+        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
 
-        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
+        <span class="kw">if</span> <span class="ident">end</span> <span class="op">&lt;</span> <span class="ident">search_length</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="bool-val">false</span>))
         } <span class="kw">else</span> {
-            <span class="comment">// Only use the part of the string up to &quot;end&quot;</span>
-            <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="ident">end</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_string</span>.<span class="ident">ends_with</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>())))
+            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">search_length</span>;
+
+            <span class="kw">let</span> <span class="ident">substring_utf16</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">start</span>).<span class="ident">take</span>(<span class="ident">search_length</span>);
+            <span class="kw">let</span> <span class="ident">search_str_utf16</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>();
+
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">substring_utf16</span>.<span class="ident">eq</span>(<span class="ident">search_str_utf16</span>)))
         }
     }
 
@@ -2821,36 +2939,32 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_regexp_object</span>(<span class="ident">arg</span>) {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                <span class="string">&quot;First argument to String.prototype.includes must not be a regular expression&quot;</span>,
-            )<span class="question-mark">?</span>;
-        }
-
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
-
-        <span class="comment">// If less than 2 args specified, position is &#39;undefined&#39;, defaults to 0</span>
-
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
+        <span class="kw">let</span> <span class="ident">search_str</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>) {
+            <span class="ident">search_string</span> <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_regexp_object</span>(<span class="kw-2">&amp;</span><span class="ident">search_string</span>) =&gt; {
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                    <span class="string">&quot;First argument to String.prototype.includes must not be a regular expression&quot;</span>,
+                );
+            }
+            <span class="ident">search_string</span> =&gt; <span class="ident">search_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">position</span>, <span class="number">0</span>), <span class="ident">length</span>);
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">1</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">max</span>(<span class="number">0.0</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
-        <span class="comment">// Take the string from &quot;this&quot; and use only the part of it after &quot;start&quot;</span>
-        <span class="kw">let</span> <span class="ident">this_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_string</span>.<span class="ident">contains</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>())))
+        <span class="kw">let</span> <span class="ident">substring_lossy</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
+            <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">start</span>).<span class="ident">collect</span>();
+            <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">string</span>.<span class="ident">to_string</span>()
+        };
+        <span class="prelude-val">Ok</span>(<span class="ident">substring_lossy</span>.<span class="ident">contains</span>(<span class="ident">search_str</span>.<span class="ident">as_str</span>()).<span class="ident">into</span>())
     }
 
     <span class="kw">fn</span> <span class="ident">is_regexp_object</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">bool</span> {
@@ -3170,29 +3284,41 @@
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">search_str</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">1</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">position</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>))
-            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
-            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">position</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">usize</span>);
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">search_string</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">length</span>).<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">max</span>(<span class="number">0.0</span>);
+
+        <span class="kw">if</span> <span class="ident">search_str</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>)));
         }
 
-        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">length</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">find</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>()) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>[..<span class="ident">position</span>].<span class="ident">chars</span>().<span class="ident">count</span>().<span class="ident">into</span>());
+        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span> {
+            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>;
+
+            <span class="kw">let</span> <span class="ident">substring_lossy</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start</span> <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">start</span>).<span class="ident">collect</span>();
+                <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>)
+            } <span class="kw">else</span> {
+                <span class="ident">string</span>.<span class="ident">to_string</span>()
+            };
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">substring_lossy</span>.<span class="ident">find</span>(<span class="ident">search_str</span>.<span class="ident">as_str</span>()) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
+                    <span class="ident">substring_lossy</span>[..<span class="ident">position</span>].<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="op">+</span> <span class="ident">start</span>,
+                ));
             }
         }
-
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
@@ -3214,32 +3340,58 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="comment">// 3. Let searchStr be ? ToString(searchString).</span>
+        <span class="kw">let</span> <span class="ident">search_str</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
             .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">args</span>
+        <span class="comment">// 4. Let numPos be ? ToNumber(position).</span>
+        <span class="comment">// 5. Assert: If position is undefined, then numPos is NaN.</span>
+        <span class="kw">let</span> <span class="ident">num_pos</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">1</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">position</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>))
-            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
-            .<span class="ident">map_or</span>(<span class="number">0</span>, <span class="op">|</span><span class="ident">position</span><span class="op">|</span> <span class="ident">position</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">usize</span>);
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
+            .<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">search_string</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">start</span>.<span class="ident">min</span>(<span class="ident">length</span>).<span class="ident">into</span>());
+        <span class="comment">// 6. If numPos is NaN, let pos be +∞; otherwise, let pos be ! ToIntegerOrInfinity(numPos).</span>
+        <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">num_pos</span>.<span class="ident">is_nan</span>() {
+            <span class="ident">f64::INFINITY</span>
+        } <span class="kw">else</span> {
+            <span class="ident">JsValue::new</span>(<span class="ident">num_pos</span>).<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+        };
+
+        <span class="comment">// 7. Let len be the length of S.</span>
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="comment">// 8. Let start be the result of clamping pos between 0 and len.</span>
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+
+        <span class="comment">// 9. If searchStr is the empty String, return 𝔽(start).</span>
+        <span class="kw">if</span> <span class="ident">search_str</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">f64</span>));
         }
 
-        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">length</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">rfind</span>(<span class="ident">search_string</span>.<span class="ident">as_str</span>()) {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>[..<span class="ident">position</span>].<span class="ident">chars</span>().<span class="ident">count</span>().<span class="ident">into</span>());
-            }
+        <span class="comment">// TODO: Full UTF-16 support</span>
+        <span class="comment">// 10. Let searchLen be the length of searchStr.</span>
+        <span class="kw">let</span> <span class="ident">search_len</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="comment">// 11. For each non-negative integer i starting with start such that i ≤ len - searchLen, in descending order, do</span>
+        <span class="comment">// a. Let candidate be the substring of S from i to i + searchLen.</span>
+        <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">take</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">search_len</span>).<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">substring_lossy</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">substring_lossy</span>.<span class="ident">rfind</span>(<span class="ident">search_str</span>.<span class="ident">as_str</span>()) {
+            <span class="comment">// b. If candidate is the same sequence of code units as searchStr, return 𝔽(i).</span>
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
+                <span class="ident">substring_lossy</span>[..<span class="ident">position</span>].<span class="ident">encode_utf16</span>().<span class="ident">count</span>(),
+            ));
         }
 
+        <span class="comment">// 12. Return -1𝔽.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="op">-</span><span class="number">1</span>))
     }
 
@@ -3289,36 +3441,59 @@
     <span class="doccomment">/// Performs the actual string padding for padStart/End.</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-stringpad/&gt;</span>
     <span class="kw">fn</span> <span class="ident">string_pad</span>(
-        <span class="ident">primitive</span>: <span class="ident">JsString</span>,
-        <span class="ident">max_length</span>: <span class="ident">i32</span>,
-        <span class="ident">fill_string</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
+        <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">max_length</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">fill_string</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">at_start</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="ident">JsValue</span> {
-        <span class="kw">let</span> <span class="ident">primitive_length</span> <span class="op">=</span> <span class="ident">primitive</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">max_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">primitive_length</span> {
-            <span class="kw">return</span> <span class="ident">JsValue::new</span>(<span class="ident">primitive</span>);
+        <span class="kw">let</span> <span class="ident">int_max_length</span> <span class="op">=</span> <span class="ident">max_length</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string_length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+
+        <span class="kw">if</span> <span class="ident">int_max_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">string_length</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">into</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">filler</span> <span class="op">=</span> <span class="ident">fill_string</span>.<span class="ident">map_or</span>(<span class="string">&quot; &quot;</span>, <span class="ident">JsString::as_str</span>);
+        <span class="kw">let</span> <span class="ident">filler</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">fill_string</span>.<span class="ident">is_undefined</span>() {
+            <span class="string">&quot;\u{0020}&quot;</span>.<span class="ident">into</span>()
+        } <span class="kw">else</span> {
+            <span class="ident">fill_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+        };
+        <span class="kw">let</span> <span class="ident">filler_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">filler</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>();
 
         <span class="kw">if</span> <span class="ident">filler</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="ident">JsValue::new</span>(<span class="ident">primitive</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">into</span>());
         }
 
-        <span class="kw">let</span> <span class="ident">fill_len</span> <span class="op">=</span> <span class="ident">max_length</span>.<span class="ident">wrapping_sub</span>(<span class="ident">primitive_length</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fill_str</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
+        <span class="kw">let</span> <span class="ident">fill_len</span> <span class="op">=</span> <span class="ident">int_max_length</span> <span class="op">-</span> <span class="ident">string_length</span>;
+        <span class="kw">let</span> <span class="ident">filler_len</span> <span class="op">=</span> <span class="ident">filler_utf16</span>.<span class="ident">len</span>();
 
-        <span class="kw">while</span> <span class="ident">fill_str</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span> {
-            <span class="ident">fill_str</span>.<span class="ident">push_str</span>(<span class="ident">filler</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">truncated_string_filler</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">truncated_string_filler_len</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
+
+        <span class="kw">while</span> <span class="ident">truncated_string_filler_len</span> <span class="op">&lt;</span> <span class="ident">fill_len</span> {
+            <span class="kw">if</span> <span class="ident">truncated_string_filler_len</span>.<span class="ident">wrapping_add</span>(<span class="ident">filler_len</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="ident">fill_len</span> {
+                <span class="ident">truncated_string_filler</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">filler</span>);
+                <span class="ident">truncated_string_filler_len</span> <span class="op">+</span><span class="op">=</span> <span class="ident">filler_len</span>;
+            } <span class="kw">else</span> {
+                <span class="ident">truncated_string_filler</span>.<span class="ident">push_str</span>(
+                    <span class="ident">StdString::from_utf16_lossy</span>(
+                        <span class="kw-2">&amp;</span><span class="ident">filler_utf16</span>[..<span class="ident">fill_len</span> <span class="op">-</span> <span class="ident">truncated_string_filler_len</span>],
+                    )
+                    .<span class="ident">as_str</span>(),
+                );
+                <span class="ident">truncated_string_filler_len</span> <span class="op">=</span> <span class="ident">fill_len</span>;
+            }
         }
-        <span class="comment">// Cut to size max_length</span>
-        <span class="kw">let</span> <span class="ident">concat_fill_str</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">fill_str</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">collect</span>();
-
         <span class="kw">if</span> <span class="ident">at_start</span> {
-            <span class="ident">JsValue::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{concat_fill_str}{primitive}&quot;</span>))
+            <span class="ident">truncated_string_filler</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>);
+            <span class="prelude-val">Ok</span>(<span class="ident">truncated_string_filler</span>.<span class="ident">into</span>())
         } <span class="kw">else</span> {
-            <span class="ident">JsValue::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{primitive}{concat_fill_str}&quot;</span>))
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">to_string</span>();
+            <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">truncated_string_filler</span>);
+            <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">into</span>())
         }
     }
 
@@ -3339,23 +3514,12 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;padEnd requires maxLength argument&quot;</span>));
-        }
-        <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)).<span class="ident">transpose</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::string_pad</span>(
-            <span class="ident">primitive</span>,
-            <span class="ident">max_length</span>,
-            <span class="ident">fill_string</span>.<span class="ident">as_ref</span>(),
-            <span class="bool-val">false</span>,
-        ))
+        <span class="ident"><span class="self">Self</span>::string_pad</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">max_length</span>, <span class="kw-2">&amp;</span><span class="ident">fill_string</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `String.prototype.padStart( targetLength [, padString] )`</span>
@@ -3375,23 +3539,12 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;padStart requires maxLength argument&quot;</span>));
-        }
-        <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;failed to get argument for String method&quot;</span>)
-            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)).<span class="ident">transpose</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
+        <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::string_pad</span>(
-            <span class="ident">primitive</span>,
-            <span class="ident">max_length</span>,
-            <span class="ident">fill_string</span>.<span class="ident">as_ref</span>(),
-            <span class="bool-val">true</span>,
-        ))
+        <span class="ident"><span class="self">Self</span>::string_pad</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">max_length</span>, <span class="kw-2">&amp;</span><span class="ident">fill_string</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// String.prototype.trim()</span>
@@ -3407,8 +3560,8 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
     }
 
@@ -3429,6 +3582,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
             <span class="ident">string</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
@@ -3475,12 +3629,11 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_lowercase().</span>
         <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str</span>.<span class="ident">to_lowercase</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>.<span class="ident">to_lowercase</span>()))
     }
 
     <span class="doccomment">/// `String.prototype.toUpperCase()`</span>
@@ -3501,12 +3654,11 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// The Rust String is mapped to uppercase using the builtin .to_uppercase().</span>
         <span class="comment">// There might be corner cases where it does not behave exactly like Javascript expects</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str</span>.<span class="ident">to_uppercase</span>()))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>.<span class="ident">to_uppercase</span>()))
     }
 
     <span class="doccomment">/// `String.prototype.substring( indexStart[, indexEnd] )`</span>
@@ -3524,39 +3676,36 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// If no args are specified, start is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">int_start</span> <span class="op">=</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">let</span> <span class="ident">int_end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>) {
+            <span class="ident">end</span> <span class="kw">if</span> <span class="ident">end</span>.<span class="ident">is_undefined</span>() =&gt; <span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>,
+            <span class="ident">end</span> =&gt; <span class="ident">end</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
         };
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
-        <span class="comment">// If less than 2 args specified, end is the length of the this object converted to a String</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
-        } <span class="kw">else</span> {
-            <span class="ident">length</span>
-        };
+
         <span class="comment">// Both start and end args replaced by 0 if they were negative</span>
         <span class="comment">// or by the length of the String if they were greater</span>
-        <span class="kw">let</span> <span class="ident">final_start</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">start</span>, <span class="number">0</span>), <span class="ident">length</span>);
-        <span class="kw">let</span> <span class="ident">final_end</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">end</span>, <span class="number">0</span>), <span class="ident">length</span>);
-        <span class="comment">// Start and end are swapped if start is greater than end</span>
-        <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">final_start</span>, <span class="ident">final_end</span>) <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">max</span>(<span class="ident">final_start</span>, <span class="ident">final_end</span>) <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="comment">// Extract the part of the string contained between the start index and the end index</span>
-        <span class="comment">// where start is guaranteed to be smaller or equals to end</span>
-        <span class="kw">let</span> <span class="ident">extracted_string</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StdString</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">decode_utf16</span>(
-            <span class="ident">primitive_val</span>
-                .<span class="ident">encode_utf16</span>()
-                .<span class="ident">skip</span>(<span class="ident">from</span>)
-                .<span class="ident">take</span>(<span class="ident">to</span>.<span class="ident">wrapping_sub</span>(<span class="ident">from</span>)),
-        )
-        .<span class="ident">collect</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">extracted_string</span>.<span class="ident">expect</span>(<span class="string">&quot;Invalid string&quot;</span>)))
+        <span class="kw">let</span> <span class="ident">final_start</span> <span class="op">=</span> <span class="ident">int_start</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>);
+        <span class="kw">let</span> <span class="ident">final_end</span> <span class="op">=</span> <span class="ident">int_end</span>.<span class="ident">max</span>(<span class="number">0.0</span>).<span class="ident">min</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">f64</span>);
+
+        <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">final_start</span>.<span class="ident">min</span>(<span class="ident">final_end</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">final_start</span>.<span class="ident">max</span>(<span class="ident">final_end</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+
+        <span class="comment">// Extract the part of the string contained between the from index and the to index</span>
+        <span class="comment">// where from is guaranteed to be smaller or equal to to</span>
+        <span class="comment">// TODO: Full UTF-16 support</span>
+        <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">from</span>).<span class="ident">take</span>(<span class="ident">to</span> <span class="op">-</span> <span class="ident">from</span>).<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">substring</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="ident">substring</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.substr( start[, length] )`</span>
@@ -3575,44 +3724,39 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="comment">// First we get it the actual string a private field stored on the object only the context has access to.</span>
-        <span class="comment">// Then we convert it into a Rust String by wrapping it in from_value</span>
-        <span class="kw">let</span> <span class="ident">primitive_val</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="comment">// If no args are specified, start is &#39;undefined&#39;, defaults to 0</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
-        } <span class="kw">else</span> {
-            <span class="number">0</span>
-        };
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">primitive_val</span>.<span class="ident">chars</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i32</span>;
-        <span class="comment">// If less than 2 args specified, end is +infinity, the maximum number value.</span>
-        <span class="comment">// Using i32::max_value() should be safe because the final length used is at most</span>
-        <span class="comment">// the number of code units from start to the end of the string,</span>
-        <span class="comment">// which should always be smaller or equals to both +infinity and i32::max_value</span>
-        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>) {
-            <span class="ident">integer</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">i32</span>
-        } <span class="kw">else</span> {
-            <span class="ident">i32::MAX</span>
-        };
-        <span class="comment">// If start is negative it become the number of code units from the end of the string</span>
-        <span class="kw">if</span> <span class="ident">start</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="ident">start</span> <span class="op">=</span> <span class="ident">max</span>(<span class="ident">length</span>.<span class="ident">wrapping_add</span>(<span class="ident">start</span>), <span class="number">0</span>);
-        }
-        <span class="comment">// length replaced by 0 if it was negative</span>
-        <span class="comment">// or by the number of code units from start to the end of the string if it was greater</span>
-        <span class="kw">let</span> <span class="ident">result_length</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">max</span>(<span class="ident">end</span>, <span class="number">0</span>), <span class="ident">length</span>.<span class="ident">wrapping_sub</span>(<span class="ident">start</span>));
-        <span class="comment">// If length is negative we return an empty string</span>
-        <span class="comment">// otherwise we extract the part of the string from start and is length code units long</span>
-        <span class="kw">if</span> <span class="ident">result_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="string">&quot;&quot;</span>))
-        } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">extracted_string</span>: <span class="ident">StdString</span> <span class="op">=</span> <span class="ident">primitive_val</span>
-                .<span class="ident">chars</span>()
-                .<span class="ident">skip</span>(<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">take</span>(<span class="ident">result_length</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
 
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">extracted_string</span>))
+        <span class="kw">let</span> <span class="ident">int_start</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>
+            .<span class="ident">get</span>(<span class="number">0</span>)
+            .<span class="ident">cloned</span>()
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>)
+            .<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+        {
+            <span class="ident">int_start</span> <span class="kw">if</span> <span class="ident">int_start</span>.<span class="ident">is_infinite</span>() <span class="op">&amp;&amp;</span> <span class="ident">int_start</span>.<span class="ident">is_sign_negative</span>() =&gt; <span class="number">0.0</span>,
+            <span class="ident">int_start</span> <span class="kw">if</span> <span class="ident">int_start</span> <span class="op">&lt;</span> <span class="number">0.0</span> =&gt; (<span class="ident">int_start</span> <span class="op">+</span> <span class="ident">size</span> <span class="kw">as</span> <span class="ident">f64</span>).<span class="ident">max</span>(<span class="number">0.0</span>),
+            <span class="ident">int_start</span> =&gt; <span class="ident">int_start</span>,
+        };
+
+        <span class="kw">let</span> <span class="ident">int_length</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_else</span>(<span class="ident">JsValue::undefined</span>) {
+            <span class="ident">length</span> <span class="kw">if</span> <span class="ident">length</span>.<span class="ident">is_undefined</span>() =&gt; <span class="ident">size</span> <span class="kw">as</span> <span class="ident">f64</span>,
+            <span class="ident">length</span> =&gt; <span class="ident">length</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
+        };
+
+        <span class="kw">if</span> <span class="ident">int_start</span>.<span class="ident">is_infinite</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">int_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">int_length</span>.<span class="ident">is_infinite</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>());
+        }
+
+        <span class="kw">let</span> <span class="ident">int_end</span> <span class="op">=</span> (<span class="ident">int_start</span> <span class="op">+</span> <span class="ident">int_length</span>).<span class="ident">min</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">int_start</span> <span class="op">=</span> <span class="ident">int_start</span> <span class="kw">as</span> <span class="ident">usize</span>;
+
+        <span class="kw">if</span> <span class="ident">int_start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">int_end</span> {
+            <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
+        } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">substring_utf16</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">int_start</span>..<span class="ident">int_end</span>];
+            <span class="kw">let</span> <span class="ident">substring</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="ident">substring_utf16</span>);
+            <span class="prelude-val">Ok</span>(<span class="ident">substring</span>.<span class="ident">into</span>())
         }
     }
 
