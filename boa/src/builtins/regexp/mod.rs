@@ -23,8 +23,8 @@ use crate::{
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult, JsString,
+    syntax::lexer::regex::RegExpFlags,
 };
-use bitflags::bitflags;
 use regexp_string_iterator::RegExpStringIterator;
 use regress::Regex;
 
@@ -1704,19 +1704,6 @@ impl RegExp {
 
         // 22. Return A.
         Ok(a.into())
-    }
-}
-
-bitflags! {
-    /// Flags of a regular expression.
-    #[derive(Default)]
-    pub struct RegExpFlags: u8 {
-        const GLOBAL = 0b0000_0001;
-        const IGNORE_CASE = 0b0000_0010;
-        const MULTILINE = 0b0000_0100;
-        const DOT_ALL = 0b0000_1000;
-        const UNICODE = 0b0001_0000;
-        const STICKY = 0b0010_0000;
     }
 }
 

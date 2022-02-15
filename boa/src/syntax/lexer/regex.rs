@@ -2,13 +2,13 @@
 
 use super::{Cursor, Error, Span, Tokenizer};
 use crate::{
-    builtins::regexp::RegExpFlags,
     profiler::BoaProfiler,
     syntax::{
         ast::Position,
         lexer::{Token, TokenKind},
     },
 };
+use bitflags::bitflags;
 use boa_interner::{Interner, Sym};
 use std::{
     io::{self, ErrorKind, Read},
@@ -127,6 +127,19 @@ impl<R> Tokenizer<R> for RegexLiteral {
                 "Invalid UTF-8 character in regular expressions",
             )))
         }
+    }
+}
+
+bitflags! {
+    /// Flags of a regular expression.
+    #[derive(Default)]
+    pub struct RegExpFlags: u8 {
+        const GLOBAL = 0b0000_0001;
+        const IGNORE_CASE = 0b0000_0010;
+        const MULTILINE = 0b0000_0100;
+        const DOT_ALL = 0b0000_1000;
+        const UNICODE = 0b0001_0000;
+        const STICKY = 0b0010_0000;
     }
 }
 
