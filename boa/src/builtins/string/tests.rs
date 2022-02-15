@@ -893,14 +893,14 @@ fn last_index_of_with_non_string_search_string_argument() {
 fn last_index_of_with_from_index_argument() {
     let mut context = Context::default();
     assert_eq!(forward(&mut context, "''.lastIndexOf('x', 2)"), "-1");
-    assert_eq!(forward(&mut context, "'x'.lastIndexOf('x', 2)"), "-1");
-    assert_eq!(forward(&mut context, "'abcxx'.lastIndexOf('x', 2)"), "4");
-    assert_eq!(forward(&mut context, "'x'.lastIndexOf('x', 2)"), "-1");
-    assert_eq!(forward(&mut context, "'µµµxµµµ'.lastIndexOf('x', 2)"), "3");
+    assert_eq!(forward(&mut context, "'x'.lastIndexOf('x', 2)"), "0");
+    assert_eq!(forward(&mut context, "'abcxx'.lastIndexOf('x', 2)"), "-1");
+    assert_eq!(forward(&mut context, "'x'.lastIndexOf('x', 2)"), "0");
+    assert_eq!(forward(&mut context, "'µµµxµµµ'.lastIndexOf('x', 2)"), "-1");
 
     assert_eq!(
         forward(&mut context, "'µµµxµµµ'.lastIndexOf('x', 10000000)"),
-        "-1"
+        "3"
     );
 }
 
@@ -945,13 +945,13 @@ fn last_index_non_integer_position_argument() {
     );
     assert_eq!(
         forward(&mut context, "'abcx'.lastIndexOf('x', new String('1'))"),
-        "3"
+        "-1"
     );
     assert_eq!(
         forward(&mut context, "'abcx'.lastIndexOf('x', new String('100'))"),
-        "-1"
+        "3"
     );
-    assert_eq!(forward(&mut context, "'abcx'.lastIndexOf('x', null)"), "3");
+    assert_eq!(forward(&mut context, "'abcx'.lastIndexOf('x', null)"), "-1");
 }
 
 #[test]

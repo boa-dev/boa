@@ -7,6 +7,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 //! [spec]: https://tc39.es/ecma262/#sec-arrow-function-definitions
 
+use boa_interner::Sym;
+
 use super::AssignmentExpression;
 use crate::{
     syntax::{
@@ -40,6 +42,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct ArrowFunction {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -47,17 +50,20 @@ pub(in crate::syntax::parser) struct ArrowFunction {
 
 impl ArrowFunction {
     /// Creates a new `ArrowFunction` parser.
-    pub(in crate::syntax::parser) fn new<I, Y, A>(
+    pub(in crate::syntax::parser) fn new<N, I, Y, A>(
+        name: N,
         allow_in: I,
         allow_yield: Y,
         allow_await: A,
     ) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -159,7 +165,7 @@ where
             }
         }
 
-        Ok(ArrowFunctionDecl::new(params.parameters, body))
+        Ok(ArrowFunctionDecl::new(self.name, params.parameters, body))
     }
 }
 
@@ -240,6 +246,7 @@ where
     type Output = Node;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
-        AssignmentExpression::new(self.allow_in, false, self.allow_await).parse(cursor, interner)
+        AssignmentExpression::new(None, self.allow_in, false, self.allow_await)
+            .parse(cursor, interner)
     }
 }

@@ -2,7 +2,7 @@ use crate::{
     gc::{Finalize, Trace},
     syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList},
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -23,21 +23,34 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ArrowFunctionDecl {
+    name: Option<Sym>,
     params: Box<[FormalParameter]>,
     body: StatementList,
 }
 
 impl ArrowFunctionDecl {
     /// Creates a new `ArrowFunctionDecl` AST node.
-    pub(in crate::syntax) fn new<P, B>(params: P, body: B) -> Self
+    pub(in crate::syntax) fn new<N, P, B>(name: N, params: P, body: B) -> Self
     where
+        N: Into<Option<Sym>>,
         P: Into<Box<[FormalParameter]>>,
         B: Into<StatementList>,
     {
         Self {
+            name: name.into(),
             params: params.into(),
             body: body.into(),
         }
+    }
+
+    /// Gets the name of the function declaration.
+    pub fn name(&self) -> Option<Sym> {
+        self.name
+    }
+
+    /// Sets the name of the function declaration.
+    pub fn set_name(&mut self, name: Option<Sym>) {
+        self.name = name;
     }
 
     /// Gets the list of parameters of the arrow function.

@@ -17,6 +17,8 @@ mod update;
 
 pub(in crate::syntax::parser) mod await_expr;
 
+use boa_interner::Sym;
+
 use self::assignment::ExponentiationExpression;
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
@@ -121,6 +123,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
 /// [spec]: https://tc39.es/ecma262/#prod-Expression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Expression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -128,13 +131,15 @@ pub(super) struct Expression {
 
 impl Expression {
     /// Creates a new `Expression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -146,7 +151,7 @@ expression!(
     Expression,
     AssignmentExpression,
     [Punctuator::Comma],
-    [allow_in, allow_yield, allow_await],
+    [name, allow_in, allow_yield, allow_await],
     None::<InputElement>
 );
 

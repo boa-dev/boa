@@ -9,8 +9,6 @@
 
 #[cfg(test)]
 mod tests;
-use boa_interner::Sym;
-
 use crate::{
     syntax::{
         ast::{
@@ -26,6 +24,7 @@ use crate::{
     },
     BoaProfiler, Interner,
 };
+use boa_interner::Sym;
 use std::io::Read;
 
 /// Parses an object literal.
@@ -195,7 +194,7 @@ where
 
         //  ... AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
-            let node = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+            let node = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             return Ok(node::PropertyDefinition::SpreadObject(node));
         }
@@ -441,7 +440,7 @@ where
 
         //  PropertyName[?Yield, ?Await] : AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Colon, interner)?.is_some() {
-            let value = AssignmentExpression::new(true, self.allow_yield, self.allow_await)
+            let value = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             return Ok(node::PropertyDefinition::property(property_name, value));
         }
@@ -639,7 +638,7 @@ where
 
         // ComputedPropertyName[?Yield, ?Await] -> [ AssignmentExpression[+In, ?Yield, ?Await] ]
         if cursor.next_if(Punctuator::OpenBracket, interner)?.is_some() {
-            let node = AssignmentExpression::new(false, self.allow_yield, self.allow_await)
+            let node = AssignmentExpression::new(None, false, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
             return Ok(node.into());
@@ -662,6 +661,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-Initializer
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct Initializer {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -669,17 +669,20 @@ pub(in crate::syntax::parser) struct Initializer {
 
 impl Initializer {
     /// Creates a new `Initializer` parser.
-    pub(in crate::syntax::parser) fn new<I, Y, A>(
+    pub(in crate::syntax::parser) fn new<N, I, Y, A>(
+        name: N,
         allow_in: I,
         allow_yield: Y,
         allow_await: A,
     ) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -697,7 +700,7 @@ where
         let _timer = BoaProfiler::global().start_event("Initializer", "Parsing");
 
         cursor.expect(Punctuator::Assign, "initializer", interner)?;
-        AssignmentExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+        AssignmentExpression::new(self.name, self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)
     }
 }

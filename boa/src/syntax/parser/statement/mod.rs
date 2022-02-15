@@ -677,9 +677,13 @@ where
             if let Some(peek_token) = cursor.peek(0, interner)? {
                 match peek_token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
-                        let init =
-                            Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?;
+                        let init = Initializer::new(
+                            None,
+                            self.allow_in,
+                            self.allow_yield,
+                            self.allow_await,
+                        )
+                        .parse(cursor, interner)?;
                         patterns.push(BindingPatternTypeObject::SingleName {
                             ident: property_name,
                             property_name,
@@ -707,6 +711,7 @@ where
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
+                                                    None,
                                                     self.allow_in,
                                                     self.allow_yield,
                                                     self.allow_await,
@@ -752,6 +757,7 @@ where
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
+                                                    None,
                                                     self.allow_in,
                                                     self.allow_yield,
                                                     self.allow_await,
@@ -796,6 +802,7 @@ where
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
+                                                    None,
                                                     self.allow_in,
                                                     self.allow_yield,
                                                     self.allow_await,
@@ -1012,9 +1019,13 @@ where
                         .kind()
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init =
-                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                    .parse(cursor, interner)?;
+                            let default_init = Initializer::new(
+                                None,
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::BindingPattern {
                                 pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
                                     bindings,
@@ -1043,9 +1054,13 @@ where
                         .kind()
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init =
-                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                    .parse(cursor, interner)?;
+                            let default_init = Initializer::new(
+                                None,
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::BindingPattern {
                                 pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
                                     bindings,
@@ -1073,9 +1088,13 @@ where
                         .kind()
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init =
-                                Initializer::new(self.allow_in, self.allow_yield, self.allow_await)
-                                    .parse(cursor, interner)?;
+                            let default_init = Initializer::new(
+                                None,
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::SingleName {
                                 ident,
                                 default_init: Some(default_init),

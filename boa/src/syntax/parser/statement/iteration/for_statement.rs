@@ -97,7 +97,7 @@ where
             ),
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
-                Expression::new(false, self.allow_yield, self.allow_await)
+                Expression::new(None, false, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?,
             ),
         };
@@ -107,7 +107,7 @@ where
                 let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
 
                 let _next = cursor.next(interner)?;
-                let expr = Expression::new(true, self.allow_yield, self.allow_await)
+                let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
                 let position = cursor
@@ -129,7 +129,7 @@ where
                 let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
 
                 let _next = cursor.next(interner)?;
-                let iterable = Expression::new(true, self.allow_yield, self.allow_await)
+                let iterable = Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
                 let position = cursor
@@ -155,7 +155,7 @@ where
         let cond = if cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {
             Const::from(true).into()
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await)
+            let step = Expression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
             step
@@ -164,7 +164,7 @@ where
         let step = if cursor.next_if(Punctuator::CloseParen, interner)?.is_some() {
             None
         } else {
-            let step = Expression::new(true, self.allow_yield, self.allow_await)
+            let step = Expression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(
                 TokenKind::Punctuator(Punctuator::CloseParen),
