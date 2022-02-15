@@ -23,9 +23,9 @@ use crate::{
     },
     property::Attribute,
     symbol::WellKnownSymbols,
+    syntax::lexer::regex::RegExpFlags,
     value::{IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult, JsString,
-    syntax::lexer::regex::RegExpFlags,
 };
 use regexp_string_iterator::RegExpStringIterator;
 use regress::Regex;
@@ -270,7 +270,7 @@ impl RegExp {
         //    or if it contains the same code unit more than once, throw a SyntaxError exception.
         let flags = match RegExpFlags::from_str(&f) {
             Err(msg) => return context.throw_syntax_error(msg),
-            Ok(result) => result
+            Ok(result) => result,
         };
 
         // 12. Set obj.[[OriginalSource]] to P.

@@ -156,17 +156,18 @@ impl FromStr for RegExpFlags {
                 b's' => Self::DOT_ALL,
                 b'u' => Self::UNICODE,
                 b'y' => Self::STICKY,
-                _ => {
-                    return Err(format!("invalid regular expression flag {}", char::from(c)))
-                }
+                _ => return Err(format!("invalid regular expression flag {}", char::from(c))),
             };
 
             if flags.contains(new_flag) {
-                return Err(format!("repeated regular expression flag {}", char::from(c)));
+                return Err(format!(
+                    "repeated regular expression flag {}",
+                    char::from(c)
+                ));
             }
             flags.insert(new_flag);
         }
-        
+
         Ok(flags)
     }
 }
@@ -174,10 +175,8 @@ impl FromStr for RegExpFlags {
 fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Result<Sym, Error> {
     match RegExpFlags::from_str(s) {
         Err(message) => Err(Error::Syntax(message.into(), start)),
-        Ok(flags) => {
-            Ok(interner.get_or_intern(flags.to_string()))
-        }
-    }    
+        Ok(flags) => Ok(interner.get_or_intern(flags.to_string())),
+    }
 }
 
 impl ToString for RegExpFlags {
