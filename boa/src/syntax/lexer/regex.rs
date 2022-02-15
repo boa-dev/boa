@@ -12,7 +12,7 @@ use bitflags::bitflags;
 use boa_interner::{Interner, Sym};
 use std::{
     io::{self, ErrorKind, Read},
-    str,
+    str::{self, FromStr},
 };
 
 /// Regex literal lexing.
@@ -143,33 +143,41 @@ bitflags! {
     }
 }
 
-fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Result<Sym, Error> {
-    let mut flags = RegExpFlags::default();
-    for c in s.bytes() {
-        let new_flag = match c {
-            b'g' => RegExpFlags::GLOBAL,
-            b'i' => RegExpFlags::IGNORE_CASE,
-            b'm' => RegExpFlags::MULTILINE,
-            b's' => RegExpFlags::DOT_ALL,
-            b'u' => RegExpFlags::UNICODE,
-            b'y' => RegExpFlags::STICKY,
-            _ => {
-                return Err(Error::syntax(
-                    format!("invalid regular expression flag {}", char::from(c)),
-                    start,
-                ))
-            }
-        };
+impl FromStr for RegExpFlags {
+    type Err = String;
 
-        if flags.contains(new_flag) {
-            return Err(Error::syntax(
-                format!("repeated regular expression flag {}", char::from(c)),
-                start,
-            ));
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut flags = Self::default();
+        for c in s.bytes() {
+            let new_flag = match c {
+                b'g' => Self::GLOBAL,
+                b'i' => Self::IGNORE_CASE,
+                b'm' => Self::MULTILINE,
+                b's' => Self::DOT_ALL,
+                b'u' => Self::UNICODE,
+                b'y' => Self::STICKY,
+                _ => {
+                    return Err(format!("invalid regular expression flag {}", char::from(c)))
+                }
+            };
+
+            if flags.contains(new_flag) {
+                return Err(format!("repeated regular expression flag {}", char::from(c)));
+            }
+            flags.insert(new_flag);
         }
-        flags.insert(new_flag);
+        
+        Ok(flags)
     }
-    Ok(interner.get_or_intern(flags.to_string()))
+}
+
+fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Result<Sym, Error> {
+    match RegExpFlags::from_str(s) {
+        Err(message) => Err(Error::Syntax(message.into(), start)),
+        Ok(flags) => {
+            Ok(interner.get_or_intern(flags.to_string()))
+        }
+    }    
 }
 
 impl ToString for RegExpFlags {

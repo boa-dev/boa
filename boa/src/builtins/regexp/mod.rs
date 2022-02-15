@@ -11,6 +11,8 @@
 
 pub mod regexp_string_iterator;
 
+use std::str::FromStr;
+
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     context::StandardObjects,
@@ -266,40 +268,10 @@ impl RegExp {
 
         // 5. If F contains any code unit other than "g", "i", "m", "s", "u", or "y"
         //    or if it contains the same code unit more than once, throw a SyntaxError exception.
-        let mut flags = RegExpFlags::default();
-        for c in f.chars() {
-            match c {
-                'g' if flags.contains(RegExpFlags::GLOBAL) => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'g'")
-                }
-                'g' => flags.insert(RegExpFlags::GLOBAL),
-                'i' if flags.contains(RegExpFlags::IGNORE_CASE) => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'i'")
-                }
-                'i' => flags.insert(RegExpFlags::IGNORE_CASE),
-                'm' if flags.contains(RegExpFlags::MULTILINE) => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'm'")
-                }
-                'm' => flags.insert(RegExpFlags::MULTILINE),
-                's' if flags.contains(RegExpFlags::DOT_ALL) => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 's'")
-                }
-                's' => flags.insert(RegExpFlags::DOT_ALL),
-                'u' if flags.contains(RegExpFlags::UNICODE) => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'u'")
-                }
-                'u' => flags.insert(RegExpFlags::UNICODE),
-                'y' if flags.contains(RegExpFlags::STICKY) => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'y'")
-                }
-                'y' => flags.insert(RegExpFlags::STICKY),
-                c => {
-                    return context.throw_syntax_error(format!(
-                        "RegExp flags contains unknown code unit '{c}'",
-                    ))
-                }
-            }
-        }
+        let flags = match RegExpFlags::from_str(&f) {
+            Err(msg) => return context.throw_syntax_error(msg),
+            Ok(result) => result
+        };
 
         // 12. Set obj.[[OriginalSource]] to P.
         // 13. Set obj.[[OriginalFlags]] to F.
