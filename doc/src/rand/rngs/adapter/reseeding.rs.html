@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand-0.8.4&#x2F;src&#x2F;rngs&#x2F;adapter&#x2F;reseeding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reseeding.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;rand-0.8.5&#x2F;src&#x2F;rngs&#x2F;adapter&#x2F;reseeding.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>reseeding.rs - source</title><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="shortcut icon" href="https:&#x2F;&#x2F;www.rust-lang.org&#x2F;favicon.ico"><style type="text/css">#crate-search{background-image:url("../../../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../../../rand/index.html'><div class='logo-container rust-logo'><img src='https:&#x2F;&#x2F;www.rust-lang.org&#x2F;logos&#x2F;rust-logo-128x128-blk.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
 <span id="3">  3</span>
@@ -371,6 +371,20 @@
 <span id="370">370</span>
 <span id="371">371</span>
 <span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">// Copyright 2013 The Rust Project Developers.</span>
 <span class="comment">//</span>
@@ -395,10 +409,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// - On a manual call to [`reseed()`].</span>
 <span class="doccomment">/// - After `clone()`, the clone will be reseeded on first use.</span>
-<span class="doccomment">/// - After a process is forked, the RNG in the child process is reseeded within</span>
-<span class="doccomment">///   the next few generated values, depending on the block size of the</span>
-<span class="doccomment">///   underlying PRNG. For ChaCha and Hc128 this is a maximum of</span>
-<span class="doccomment">///   15 `u32` values before reseeding.</span>
+<span class="doccomment">/// - When a process is forked on UNIX, the RNGs in both the parent and child</span>
+<span class="doccomment">///   processes will be reseeded just before the next call to</span>
+<span class="doccomment">///   [`BlockRngCore::generate`], i.e. &quot;soon&quot;. For ChaCha and Hc128 this is a</span>
+<span class="doccomment">///   maximum of fifteen `u32` values before reseeding.</span>
 <span class="doccomment">/// - After the PRNG has generated a configurable number of random bytes.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # When should reseeding after a fixed number of generated bytes be used?</span>
@@ -415,6 +429,12 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Use [`ReseedingRng::new`] with a `threshold` of `0` to disable reseeding</span>
 <span class="doccomment">/// after a fixed number of generated bytes.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Limitations</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// It is recommended that a `ReseedingRng` (including `ThreadRng`) not be used</span>
+<span class="doccomment">/// from a fork handler.</span>
+<span class="doccomment">/// Use `OsRng` or `getrandom`, or defer your use of the RNG until later.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Error handling</span>
 <span class="doccomment">///</span>
@@ -683,8 +703,16 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">register_fork_handler</span>() {
         <span class="kw">static</span> <span class="ident">REGISTER</span>: <span class="ident">Once</span> <span class="op">=</span> <span class="ident">Once::new</span>();
-        <span class="ident">REGISTER</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> <span class="kw">unsafe</span> {
-            <span class="ident">libc::pthread_atfork</span>(<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">fork_handler</span>));
+        <span class="ident">REGISTER</span>.<span class="ident">call_once</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="comment">// Bump the counter before and after forking (see #1169):</span>
+            <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">libc::pthread_atfork</span>(
+                <span class="prelude-val">Some</span>(<span class="ident">fork_handler</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">fork_handler</span>),
+                <span class="prelude-val">Some</span>(<span class="ident">fork_handler</span>),
+            ) };
+            <span class="kw">if</span> <span class="ident">ret</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="macro">panic!</span>(<span class="string">&quot;libc::pthread_atfork failed with code {}&quot;</span>, <span class="ident">ret</span>);
+            }
         });
     }
 }
