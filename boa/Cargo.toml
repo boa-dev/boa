@@ -24,7 +24,7 @@ boa_interner = { path = "../boa_interner", version = "0.13.0" }
 gc = { version = "0.4.1", features = ["derive"] }
 serde = { version = "1.0.136", features = ["derive", "rc"] }
 serde_json = "1.0.78"
-rand = "0.8.4"
+rand = "0.8.5"
 num-traits = "0.2.14"
 regress = "0.4.1"
 rustc-hash = "1.1.0"
