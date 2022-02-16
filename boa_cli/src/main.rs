@@ -2,6 +2,7 @@
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
+#![cfg_attr(not(test), deny(clippy::unwrap_used))]
 #![warn(
     clippy::perf,
     clippy::single_match_else,
@@ -168,9 +169,16 @@ where
         match arg {
             Some(format) => match format {
                 DumpFormat::Debug => println!("{ast:#?}"),
-                DumpFormat::Json => println!("{}", serde_json::to_string(&ast).unwrap()),
+                DumpFormat::Json => println!(
+                    "{}",
+                    serde_json::to_string(&ast).expect("could not convert AST to a JSON string")
+                ),
                 DumpFormat::JsonPretty => {
-                    println!("{}", serde_json::to_string_pretty(&ast).unwrap());
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&ast)
+                            .expect("could not convert AST to a pretty JSON string")
+                    );
                 }
             },
             // Default ast dumping format.
@@ -256,7 +264,9 @@ pub fn main() -> Result<(), std::io::Error> {
             }
         }
 
-        editor.save_history(CLI_HISTORY).unwrap();
+        editor
+            .save_history(CLI_HISTORY)
+            .expect("could not save CLI history");
     }
 
     Ok(())
