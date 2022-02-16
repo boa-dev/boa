@@ -20,7 +20,7 @@ pub mod error;
 mod identifier;
 mod number;
 mod operator;
-mod regex;
+pub mod regex;
 mod spread;
 mod string;
 mod template;

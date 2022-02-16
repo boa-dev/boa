@@ -11,6 +11,8 @@
 
 pub mod regexp_string_iterator;
 
+use std::str::FromStr;
+
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     context::StandardObjects,
@@ -21,6 +23,7 @@ use crate::{
     },
     property::Attribute,
     symbol::WellKnownSymbols,
+    syntax::lexer::regex::RegExpFlags,
     value::{IntegerOrInfinity, JsValue},
     BoaProfiler, Context, JsResult, JsString,
 };
@@ -37,25 +40,7 @@ mod tests;
 pub struct RegExp {
     /// Regex matcher.
     matcher: Regex,
-
-    /// Flag 's' - dot matches newline characters.
-    dot_all: bool,
-
-    /// Flag 'g'
-    global: bool,
-
-    /// Flag 'i' - ignore case.
-    ignore_case: bool,
-
-    /// Flag 'm' - '^' and '$' match beginning/end of line.
-    multiline: bool,
-
-    /// Flag 'y'
-    sticky: bool,
-
-    /// Flag 'u' - Unicode.
-    unicode: bool,
-
+    flags: RegExpFlags,
     original_source: JsString,
     original_flags: JsString,
 }
@@ -283,45 +268,10 @@ impl RegExp {
 
         // 5. If F contains any code unit other than "g", "i", "m", "s", "u", or "y"
         //    or if it contains the same code unit more than once, throw a SyntaxError exception.
-        let mut global = false;
-        let mut ignore_case = false;
-        let mut multiline = false;
-        let mut dot_all = false;
-        let mut unicode = false;
-        let mut sticky = false;
-        for c in f.chars() {
-            match c {
-                'g' if global => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'g'")
-                }
-                'g' => global = true,
-                'i' if ignore_case => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'i'")
-                }
-                'i' => ignore_case = true,
-                'm' if multiline => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'm'")
-                }
-                'm' => multiline = true,
-                's' if dot_all => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 's'")
-                }
-                's' => dot_all = true,
-                'u' if unicode => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'u'")
-                }
-                'u' => unicode = true,
-                'y' if sticky => {
-                    return context.throw_syntax_error("RegExp flags contains multiple 'y'")
-                }
-                'y' => sticky = true,
-                c => {
-                    return context.throw_syntax_error(format!(
-                        "RegExp flags contains unknown code unit '{c}'",
-                    ))
-                }
-            }
-        }
+        let flags = match RegExpFlags::from_str(&f) {
+            Err(msg) => return context.throw_syntax_error(msg),
+            Ok(result) => result,
+        };
 
         // 12. Set obj.[[OriginalSource]] to P.
         // 13. Set obj.[[OriginalFlags]] to F.
@@ -336,12 +286,7 @@ impl RegExp {
 
         let regexp = Self {
             matcher,
-            dot_all,
-            global,
-            ignore_case,
-            multiline,
-            sticky,
-            unicode,
+            flags,
             original_source: p,
             original_flags: f,
         };
@@ -387,16 +332,16 @@ impl RegExp {
     }
 
     #[inline]
-    fn regexp_has_flag(this: &JsValue, flag: char, context: &mut Context) -> JsResult<JsValue> {
+    fn regexp_has_flag(this: &JsValue, flag: u8, context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             if let Some(regexp) = object.borrow().as_regexp() {
                 return Ok(JsValue::new(match flag {
-                    'g' => regexp.global,
-                    'm' => regexp.multiline,
-                    's' => regexp.dot_all,
-                    'i' => regexp.ignore_case,
-                    'u' => regexp.unicode,
-                    'y' => regexp.sticky,
+                    b'g' => regexp.flags.contains(RegExpFlags::GLOBAL),
+                    b'm' => regexp.flags.contains(RegExpFlags::MULTILINE),
+                    b's' => regexp.flags.contains(RegExpFlags::DOT_ALL),
+                    b'i' => regexp.flags.contains(RegExpFlags::IGNORE_CASE),
+                    b'u' => regexp.flags.contains(RegExpFlags::UNICODE),
+                    b'y' => regexp.flags.contains(RegExpFlags::STICKY),
                     _ => unreachable!(),
                 }));
             }
@@ -410,12 +355,12 @@ impl RegExp {
         }
 
         let name = match flag {
-            'g' => "global",
-            'm' => "multiline",
-            's' => "dotAll",
-            'i' => "ignoreCase",
-            'u' => "unicode",
-            'y' => "sticky",
+            b'g' => "global",
+            b'm' => "multiline",
+            b's' => "dotAll",
+            b'i' => "ignoreCase",
+            b'u' => "unicode",
+            b'y' => "sticky",
             _ => unreachable!(),
         };
 
@@ -439,7 +384,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'g', context)
+        Self::regexp_has_flag(this, b'g', context)
     }
 
     /// `get RegExp.prototype.ignoreCase`
@@ -457,7 +402,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'i', context)
+        Self::regexp_has_flag(this, b'i', context)
     }
 
     /// `get RegExp.prototype.multiline`
@@ -475,7 +420,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'm', context)
+        Self::regexp_has_flag(this, b'm', context)
     }
 
     /// `get RegExp.prototype.dotAll`
@@ -493,7 +438,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 's', context)
+        Self::regexp_has_flag(this, b's', context)
     }
 
     /// `get RegExp.prototype.unicode`
@@ -512,7 +457,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'u', context)
+        Self::regexp_has_flag(this, b'u', context)
     }
 
     /// `get RegExp.prototype.sticky`
@@ -531,7 +476,7 @@ impl RegExp {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::regexp_has_flag(this, 'y', context)
+        Self::regexp_has_flag(this, b'y', context)
     }
 
     /// `get RegExp.prototype.flags`
