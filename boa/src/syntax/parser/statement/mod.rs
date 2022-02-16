@@ -202,19 +202,17 @@ where
                 // Labelled Statement check
                 cursor.set_goal(InputElement::Div);
                 let tok = cursor.peek(1, interner)?;
-                if tok.is_some()
-                    && matches!(
-                        tok.unwrap().kind(),
-                        TokenKind::Punctuator(Punctuator::Colon)
-                    )
-                {
-                    return LabelledStatement::new(
-                        self.allow_yield,
-                        self.allow_await,
-                        self.allow_return,
-                    )
-                    .parse(cursor, interner)
-                    .map(Node::from);
+
+                if let Some(tok) = tok {
+                    if matches!(tok.kind(), TokenKind::Punctuator(Punctuator::Colon)) {
+                        return LabelledStatement::new(
+                            self.allow_yield,
+                            self.allow_await,
+                            self.allow_return,
+                        )
+                        .parse(cursor, interner)
+                        .map(Node::from);
+                    }
                 }
 
                 ExpressionStatement::new(self.allow_yield, self.allow_await).parse(cursor, interner)

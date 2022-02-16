@@ -154,7 +154,10 @@ impl Identifier {
 
             if Self::is_identifier_start(ch) {
                 contains_escaped_chars = true;
-                String::from(char::try_from(ch).unwrap())
+                String::from(
+                    char::try_from(ch)
+                        .expect("all identifier starts must be convertible to strings"),
+                )
             } else {
                 return Err(Error::Syntax("invalid identifier start".into(), start_pos));
             }
@@ -185,7 +188,7 @@ impl Identifier {
                 _ => break,
             };
 
-            identifier_name.push(char::try_from(ch).unwrap());
+            identifier_name.push(char::try_from(ch).expect("checked character value"));
         }
 
         Ok((identifier_name, contains_escaped_chars))

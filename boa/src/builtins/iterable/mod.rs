@@ -83,10 +83,10 @@ pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Conte
 
     // 3. Perform ! CreateDataPropertyOrThrow(obj, "value", value).
     obj.create_data_property_or_throw("value", value, context)
-        .unwrap();
+        .expect("this CreateDataPropertyOrThrow call must not fail");
     // 4. Perform ! CreateDataPropertyOrThrow(obj, "done", done).
     obj.create_data_property_or_throw("done", done, context)
-        .unwrap();
+        .expect("this CreateDataPropertyOrThrow call must not fail");
     // 5. Return obj.
     obj.into()
 }

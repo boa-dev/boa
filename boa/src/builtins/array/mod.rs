@@ -143,27 +143,30 @@ impl Array {
         if number_of_args == 0 {
             // 4.a. Return ! ArrayCreate(0, proto).
             Ok(Self::array_create(0, Some(prototype), context)
-                .unwrap()
+                .expect("this ArrayCreate call must not fail")
                 .into())
         // 5. Else if numberOfArgs = 1, then
         } else if number_of_args == 1 {
             // a. Let len be values[0].
             let len = &args[0];
             // b. Let array be ! ArrayCreate(0, proto).
-            let array = Self::array_create(0, Some(prototype), context).unwrap();
+            let array = Self::array_create(0, Some(prototype), context)
+                .expect("this ArrayCreate call must not fail");
             // c. If Type(len) is not Number, then
             #[allow(clippy::if_not_else)]
             let int_len = if !len.is_number() {
                 // i. Perform ! CreateDataPropertyOrThrow(array, "0", len).
                 array
                     .create_data_property_or_throw(0, len, context)
-                    .unwrap();
+                    .expect("this CreateDataPropertyOrThrow call must not fail");
                 // ii. Let intLen be 1𝔽.
                 1
             // d. Else,
             } else {
                 // i. Let intLen be ! ToUint32(len).
-                let int_len = len.to_u32(context).unwrap();
+                let int_len = len
+                    .to_u32(context)
+                    .expect("this ToUint32 call must not fail");
                 // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
                 if !JsValue::same_value_zero(&int_len.into(), len) {
                     return context.throw_range_error("invalid array length");
@@ -171,7 +174,9 @@ impl Array {
                 int_len
             };
             // e. Perform ! Set(array, "length", intLen, true).
-            array.set("length", int_len, true, context).unwrap();
+            array
+                .set("length", int_len, true, context)
+                .expect("this Set call must not fail");
             // f. Return array.
             Ok(array.into())
         // 6. Else,
@@ -189,7 +194,7 @@ impl Array {
                 // iii. Perform ! CreateDataPropertyOrThrow(array, Pk, itemK).
                 array
                     .create_data_property_or_throw(i, item, context)
-                    .unwrap();
+                    .expect("this CreateDataPropertyOrThrow must not fail");
                 // iv. Set k to k + 1.
             }
             // e. Assert: The mathematical value of array's "length" property is numberOfArgs.
@@ -360,8 +365,8 @@ impl Array {
             Ok(
                 c.construct(&[JsValue::new(length)], &c.clone().into(), context)?
                     .as_object()
-                    .cloned()
-                    .unwrap(),
+                    .expect("constructing an object should always return an object")
+                    .clone(),
             )
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
@@ -537,7 +542,7 @@ impl Array {
             if spreadable {
                 // item is guaranteed to be an object since is_concat_spreadable checks it,
                 // so we can call `.unwrap()`
-                let item = item.as_object().unwrap();
+                let item = item.as_object().expect("guaranteed to be an object");
                 // i. Let k be 0.
                 // ii. Let len be ? LengthOfArrayLike(E).
                 let len = item.length_of_array_like(context)?;
@@ -1639,7 +1644,7 @@ impl Array {
                 // v. If shouldFlatten is true
                 if should_flatten {
                     // For `should_flatten` to be true, element must be an object.
-                    let element = element.as_object().unwrap();
+                    let element = element.as_object().expect("must be an object");
 
                     // 1. If depth is +Infinity let newDepth be +Infinity
                     let new_depth = if depth == u64::MAX {

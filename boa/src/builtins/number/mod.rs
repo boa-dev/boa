@@ -343,7 +343,10 @@ impl Number {
     fn round_to_precision(digits: &mut String, precision: usize) -> bool {
         if digits.len() > precision {
             let to_round = digits.split_off(precision);
-            let mut digit = digits.pop().unwrap() as u8;
+            let mut digit = digits
+                .pop()
+                .expect("already checked that lenght is bigger than precision")
+                as u8;
             if let Some(first) = to_round.chars().next() {
                 if first > '4' {
                     digit += 1;
@@ -563,8 +566,9 @@ impl Number {
                 delta *= f64::from(radix);
                 // Write digit.
                 let digit = fraction as u32;
-                frac_buf[fraction_cursor] =
-                    std::char::from_digit(digit, u32::from(radix)).unwrap() as u8;
+                frac_buf[fraction_cursor] = std::char::from_digit(digit, u32::from(radix))
+                    .expect("radix already checked")
+                    as u8;
                 fraction_cursor += 1;
                 // Calculate remainder.
                 fraction -= f64::from(digit);
@@ -582,12 +586,16 @@ impl Number {
                         } else {
                             let c: u8 = frac_buf[fraction_cursor];
                             // Reconstruct digit.
-                            let digit_0 = (c as char).to_digit(10).unwrap();
+                            let digit_0 = (c as char)
+                                .to_digit(10)
+                                .expect("charactre was not a valid digit");
                             if digit_0 + 1 >= u32::from(radix) {
                                 continue;
                             }
                             frac_buf[fraction_cursor] =
-                                std::char::from_digit(digit_0 + 1, u32::from(radix)).unwrap() as u8;
+                                std::char::from_digit(digit_0 + 1, u32::from(radix))
+                                    .expect("digit was not a valid number in the given radix")
+                                    as u8;
                             fraction_cursor += 1;
                         }
                         break;
@@ -601,16 +609,17 @@ impl Number {
         }
 
         // Compute integer digits. Fill unrepresented digits with zero.
-        let mut int_iter = int_buf.iter_mut().enumerate().rev(); //.rev();
+        let mut int_iter = int_buf.iter_mut().enumerate().rev();
         while FloatCore::integer_decode(integer / f64::from(radix)).1 > 0 {
             integer /= f64::from(radix);
-            *int_iter.next().unwrap().1 = b'0';
+            *int_iter.next().expect("integer buffer exhausted").1 = b'0';
         }
 
         loop {
             let remainder = integer % f64::from(radix);
-            *int_iter.next().unwrap().1 =
-                std::char::from_digit(remainder as u32, u32::from(radix)).unwrap() as u8;
+            *int_iter.next().expect("integer buffer exhausted").1 =
+                std::char::from_digit(remainder as u32, u32::from(radix))
+                    .expect("remainder not a digit in the given number") as u8;
             integer = (integer - remainder) / f64::from(radix);
             if integer <= 0f64 {
                 break;
@@ -618,11 +627,11 @@ impl Number {
         }
         // Add sign and terminate string.
         if negative {
-            *int_iter.next().unwrap().1 = b'-';
+            *int_iter.next().expect("integer buffer exhausted").1 = b'-';
         }
         assert!(fraction_cursor < BUF_SIZE);
 
-        let integer_cursor = int_iter.next().unwrap().0 + 1;
+        let integer_cursor = int_iter.next().expect("integer buffer exhausted").0 + 1;
         let fraction_cursor = fraction_cursor + BUF_SIZE / 2;
         String::from_utf8_lossy(&buffer[integer_cursor..fraction_cursor]).into()
     }

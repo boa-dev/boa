@@ -102,9 +102,9 @@ where
             ),
         };
 
-        match cursor.peek(0, interner)? {
-            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::In) && init.is_some() => {
-                let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
+        match (init.as_ref(), cursor.peek(0, interner)?) {
+            (Some(init), Some(tok)) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
+                let init = node_to_iterable_loop_initializer(init, init_position)?;
 
                 let _next = cursor.next(interner)?;
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -125,8 +125,8 @@ where
 
                 return Ok(ForInLoop::new(init, expr, body).into());
             }
-            Some(tok) if tok.kind() == &TokenKind::Keyword(Keyword::Of) && init.is_some() => {
-                let init = node_to_iterable_loop_initializer(&init.unwrap(), init_position)?;
+            (Some(init), Some(tok)) if tok.kind() == &TokenKind::Keyword(Keyword::Of) => {
+                let init = node_to_iterable_loop_initializer(init, init_position)?;
 
                 let _next = cursor.next(interner)?;
                 let iterable = Expression::new(None, true, self.allow_yield, self.allow_await)

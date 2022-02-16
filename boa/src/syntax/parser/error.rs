@@ -134,7 +134,10 @@ impl fmt::Display for ParseError {
                 f,
                 "expected {}, got '{found}' in {context} at line {}, col {}",
                 if expected.len() == 1 {
-                    format!("token '{}'", expected.first().unwrap())
+                    format!(
+                        "token '{}'",
+                        expected.first().expect("already checked that length is 1")
+                    )
                 } else {
                     format!(
                         "one of {}",

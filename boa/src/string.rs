@@ -213,8 +213,8 @@ impl Inner {
         // of the string array.
         let inner_layout = Layout::new::<Self>();
         let (layout, offset) = inner_layout
-            .extend(Layout::array::<u8>(s.len()).unwrap())
-            .unwrap();
+            .extend(Layout::array::<u8>(s.len()).expect("failed to create memory layout"))
+            .expect("failed to extend memory layout");
 
         let inner = unsafe {
             let inner = alloc(layout).cast::<Self>();
@@ -253,8 +253,8 @@ impl Inner {
         // of the string array.
         let inner_layout = Layout::new::<Self>();
         let (layout, offset) = inner_layout
-            .extend(Layout::array::<u8>(total_string_size).unwrap())
-            .unwrap();
+            .extend(Layout::array::<u8>(total_string_size).expect("failed to create memory layout"))
+            .expect("failed to extend memory layout");
 
         let inner = unsafe {
             let inner = alloc(layout).cast::<Self>();
@@ -292,8 +292,8 @@ impl Inner {
 
         let inner_layout = Layout::new::<Self>();
         let (layout, _offset) = inner_layout
-            .extend(Layout::array::<u8>(len).unwrap())
-            .unwrap();
+            .extend(Layout::array::<u8>(len).expect("failed to create memory layout"))
+            .expect("failed to extend memory layout");
 
         dealloc(x.as_ptr().cast::<_>(), layout);
     }

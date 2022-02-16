@@ -170,7 +170,9 @@ impl Json {
                 // ii. For each String P of keys, do
                 for p in keys {
                     // This is safe, because EnumerableOwnPropertyNames with 'key' type only returns strings.
-                    let p = p.as_string().unwrap();
+                    let p = p
+                        .as_string()
+                        .expect("EnumerableOwnPropertyNames only returns strings");
 
                     // 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).
                     let new_element =
@@ -553,7 +555,12 @@ impl Json {
             // a. Let K be ? EnumerableOwnPropertyNames(value, key).
             let keys = value.enumerable_own_property_names(PropertyNameKind::Key, context)?;
             // Unwrap is safe, because EnumerableOwnPropertyNames with kind "key" only returns string values.
-            keys.iter().map(|v| v.to_string(context).unwrap()).collect()
+            keys.iter()
+                .map(|v| {
+                    v.to_string(context)
+                        .expect("EnumerableOwnPropertyNames only returns strings")
+                })
+                .collect()
         };
 
         // 7. Let partial be a new empty List.

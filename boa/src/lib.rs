@@ -65,6 +65,7 @@
     clippy::let_unit_value,
     rustdoc::missing_doc_code_examples
 )]
+#![cfg_attr(not(test), deny(clippy::unwrap_used))]
 
 pub mod bigint;
 pub mod builtins;

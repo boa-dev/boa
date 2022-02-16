@@ -202,7 +202,9 @@ impl RegExp {
         // 6. Else,
         let (p, f) = if let Some(pattern) = pattern_is_regexp {
             let obj = pattern.borrow();
-            let regexp = obj.as_regexp().unwrap();
+            let regexp = obj
+                .as_regexp()
+                .expect("already checked that IsRegExp returns true");
 
             // a. Let P be pattern.[[OriginalSource]].
             // b. If flags is undefined, let F be pattern.[[OriginalFlags]].
@@ -885,11 +887,11 @@ impl RegExp {
 
         // 20. Perform ! CreateDataPropertyOrThrow(A, "index", 𝔽(lastIndex)).
         a.create_data_property_or_throw("index", match_value.start(), context)
-            .unwrap();
+            .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, "input", S).
         a.create_data_property_or_throw("input", input.clone(), context)
-            .unwrap();
+            .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 22. Let matchedSubstr be the substring of S from lastIndex to e.
         let matched_substr = if let Some(s) = input.get(match_value.range()) {
@@ -900,7 +902,7 @@ impl RegExp {
 
         // 23. Perform ! CreateDataPropertyOrThrow(A, "0", matchedSubstr).
         a.create_data_property_or_throw(0, matched_substr, context)
-            .unwrap();
+            .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 24. If R contains any GroupName, then
         // 25. Else,
@@ -924,7 +926,7 @@ impl RegExp {
                     groups
                         .to_object(context)?
                         .create_data_property_or_throw(name, value, context)
-                        .unwrap();
+                        .expect("this CreateDataPropertyOrThrow call must not fail");
                 }
             }
             groups
@@ -935,7 +937,7 @@ impl RegExp {
 
         // 26. Perform ! CreateDataPropertyOrThrow(A, "groups", groups).
         a.create_data_property_or_throw("groups", groups, context)
-            .unwrap();
+            .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
         for i in 1..=n {
@@ -958,7 +960,7 @@ impl RegExp {
 
             // e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).
             a.create_data_property_or_throw(i, captured_value, context)
-                .unwrap();
+                .expect("this CreateDataPropertyOrThrow call must not fail");
         }
 
         // 28. Return A.
@@ -1019,7 +1021,8 @@ impl RegExp {
             rx.set("lastIndex", 0, true, context)?;
 
             // d. Let A be ! ArrayCreate(0).
-            let a = Array::array_create(0, None, context).unwrap();
+            let a =
+                Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
 
             // e. Let n be 0.
             let mut n = 0;
@@ -1037,7 +1040,7 @@ impl RegExp {
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).
                     a.create_data_property_or_throw(n, match_str.clone(), context)
-                        .unwrap();
+                        .expect("this CreateDataPropertyOrThrow call must not fail");
 
                     // 3. If matchStr is the empty String, then
                     if match_str.is_empty() {
@@ -1530,11 +1533,12 @@ impl RegExp {
         )?;
         let splitter = splitter
             .as_object()
-            // todo: remove when we handle realms on `get_prototype_from_constructor` and make `construct` always return a `JsObject`
+            // TODO: remove when we handle realms on `get_prototype_from_constructor` and make
+            // `construct` always return a `JsObject`
             .ok_or_else(|| context.construct_type_error("constructor did not return an object"))?;
 
         // 11. Let A be ! ArrayCreate(0).
-        let a = Array::array_create(0, None, context).unwrap();
+        let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
 
         // 12. Let lengthA be 0.
         let mut length_a = 0;
@@ -1567,7 +1571,7 @@ impl RegExp {
 
             // c. Perform ! CreateDataPropertyOrThrow(A, "0", S).
             a.create_data_property_or_throw(0, arg_str, context)
-                .unwrap();
+                .expect("this CreateDataPropertyOrThrow call must not fail");
 
             // d. Return A.
             return Ok(a.into());
@@ -1611,7 +1615,7 @@ impl RegExp {
 
                     // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
                     a.create_data_property_or_throw(length_a, arg_str_substring, context)
-                        .unwrap();
+                        .expect("this CreateDataPropertyOrThrow call must not fail");
 
                     // 3. Set lengthA to lengthA + 1.
                     length_a += 1;
@@ -1642,7 +1646,7 @@ impl RegExp {
 
                         // b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).
                         a.create_data_property_or_throw(length_a, next_capture, context)
-                            .unwrap();
+                            .expect("this CreateDataPropertyOrThrow call must not fail");
 
                         // d. Set lengthA to lengthA + 1.
                         length_a += 1;
@@ -1672,7 +1676,7 @@ impl RegExp {
 
         // 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
         a.create_data_property_or_throw(length_a, arg_str_substring, context)
-            .unwrap();
+            .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 22. Return A.
         Ok(a.into())

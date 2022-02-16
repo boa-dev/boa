@@ -1,30 +1,38 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "daily"
-  - package-ecosystem: "github-actions"
-    directory: "/"
+      interval: daily
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/"
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /
     schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/boa/"
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa/
     schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/boa_cli/"
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_cli/
     schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/boa_wasm/"
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_wasm/
     schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/boa_tester/"
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_tester/
     schedule:
-      interval: "daily"
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_interner/
+    schedule:
+      interval: daily
+  - package-ecosystem: gitsubmodule
+    directory: /test262/
+    schedule:
+      interval: weekly

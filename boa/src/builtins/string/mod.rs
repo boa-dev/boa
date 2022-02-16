@@ -1678,7 +1678,7 @@ impl String {
         if separator.is_undefined() {
             // a. Perform ! CreateDataPropertyOrThrow(A, "0", S).
             a.create_data_property_or_throw(0, this_str, context)
-                .unwrap();
+                .expect("this CreateDataPropertyOrThrow call must not fail");
 
             // b. Return A.
             return Ok(a.into());
@@ -1693,7 +1693,7 @@ impl String {
             if !separator_str.is_empty() {
                 // i. Perform ! CreateDataPropertyOrThrow(A, "0", S).
                 a.create_data_property_or_throw(0, this_str, context)
-                    .unwrap();
+                    .expect("this CreateDataPropertyOrThrow call must not fail");
             }
 
             // b. Return A.
@@ -1732,7 +1732,7 @@ impl String {
 
                         // 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
                         a.create_data_property_or_throw(length_a, this_str_substring, context)
-                            .unwrap();
+                            .expect("this CreateDataPropertyOrThrow call must not fail");
 
                         // 3. Set lengthA to lengthA + 1.
                         length_a += 1;
@@ -1763,7 +1763,7 @@ impl String {
 
         // 16. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).
         a.create_data_property_or_throw(length_a, this_str_substring, context)
-            .unwrap();
+            .expect("this CreateDataPropertyOrThrow call must not fail");
 
         // 17. Return A.
         Ok(a.into())
@@ -2013,8 +2013,14 @@ pub(crate) fn get_substitution(
                 // $nn
                 (Some(second), Some(third)) if second_is_digit && third_is_digit => {
                     // The nnth element of captures, where nn is a two-digit decimal number in the range 01 to 99.
-                    let tens = second.to_digit(10).unwrap() as usize;
-                    let units = third.to_digit(10).unwrap() as usize;
+                    let tens = second
+                        .to_digit(10)
+                        .expect("could not convert character to digit after checking it")
+                        as usize;
+                    let units = third
+                        .to_digit(10)
+                        .expect("could not convert character to digit after checking it")
+                        as usize;
                     let nn = 10 * tens + units;
 
                     // If nn ≤ m and the nnth element of captures is undefined, use the empty String instead.
@@ -2034,7 +2040,10 @@ pub(crate) fn get_substitution(
                 // $n
                 (Some(second), _) if second_is_digit => {
                     // The nth element of captures, where n is a single digit in the range 1 to 9.
-                    let n = second.to_digit(10).unwrap() as usize;
+                    let n = second
+                        .to_digit(10)
+                        .expect("could not convert character to digit after checking it")
+                        as usize;
 
                     // If n ≤ m and the nth element of captures is undefined, use the empty String instead.
                     // If n > m, no replacement is done.
