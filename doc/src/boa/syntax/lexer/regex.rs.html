@@ -197,6 +197,13 @@
 <span id="196">196</span>
 <span id="197">197</span>
 <span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for regex literals used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Span</span>, <span class="ident">Tokenizer</span>};
@@ -211,7 +218,7 @@
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">io</span>::{<span class="self">self</span>, <span class="ident">ErrorKind</span>, <span class="ident">Read</span>},
-    <span class="ident">str</span>,
+    <span class="ident">str</span>::{<span class="self">self</span>, <span class="ident">FromStr</span>},
 };
 
 <span class="doccomment">/// Regex literal lexing.</span>
@@ -332,7 +339,7 @@
 <span class="macro">bitflags!</span> {
     <span class="doccomment">/// Flags of a regular expression.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
-    <span class="kw">struct</span> <span class="ident">RegExpFlags</span>: <span class="ident">u8</span> {
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegExpFlags</span>: <span class="ident">u8</span> {
         <span class="kw">const</span> <span class="ident">GLOBAL</span> <span class="op">=</span> <span class="number">0b0000_0001</span>;
         <span class="kw">const</span> <span class="ident">IGNORE_CASE</span> <span class="op">=</span> <span class="number">0b0000_0010</span>;
         <span class="kw">const</span> <span class="ident">MULTILINE</span> <span class="op">=</span> <span class="number">0b0000_0100</span>;
@@ -342,33 +349,40 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">parse_regex_flags</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">Position</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">RegExpFlags::default</span>();
-    <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">bytes</span>() {
-        <span class="kw">let</span> <span class="ident">new_flag</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span> {
-            <span class="string">b&#39;g&#39;</span> =&gt; <span class="ident">RegExpFlags::GLOBAL</span>,
-            <span class="string">b&#39;i&#39;</span> =&gt; <span class="ident">RegExpFlags::IGNORE_CASE</span>,
-            <span class="string">b&#39;m&#39;</span> =&gt; <span class="ident">RegExpFlags::MULTILINE</span>,
-            <span class="string">b&#39;s&#39;</span> =&gt; <span class="ident">RegExpFlags::DOT_ALL</span>,
-            <span class="string">b&#39;u&#39;</span> =&gt; <span class="ident">RegExpFlags::UNICODE</span>,
-            <span class="string">b&#39;y&#39;</span> =&gt; <span class="ident">RegExpFlags::STICKY</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
-                    <span class="macro">format!</span>(<span class="string">&quot;invalid regular expression flag {}&quot;</span>, <span class="ident">char::from</span>(<span class="ident">c</span>)),
-                    <span class="ident">start</span>,
-                ))
-            }
-        };
+<span class="kw">impl</span> <span class="ident">FromStr</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {
+    <span class="kw">type</span> <span class="prelude-val">Err</span> <span class="op">=</span> <span class="ident">String</span>;
 
-        <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">new_flag</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
-                <span class="macro">format!</span>(<span class="string">&quot;repeated regular expression flag {}&quot;</span>, <span class="ident">char::from</span>(<span class="ident">c</span>)),
-                <span class="ident">start</span>,
-            ));
+    <span class="kw">fn</span> <span class="ident">from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::Err</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::default</span>();
+        <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span>.<span class="ident">bytes</span>() {
+            <span class="kw">let</span> <span class="ident">new_flag</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">c</span> {
+                <span class="string">b&#39;g&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::GLOBAL</span>,
+                <span class="string">b&#39;i&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::IGNORE_CASE</span>,
+                <span class="string">b&#39;m&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::MULTILINE</span>,
+                <span class="string">b&#39;s&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::DOT_ALL</span>,
+                <span class="string">b&#39;u&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::UNICODE</span>,
+                <span class="string">b&#39;y&#39;</span> =&gt; <span class="ident"><span class="self">Self</span>::STICKY</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid regular expression flag {}&quot;</span>, <span class="ident">char::from</span>(<span class="ident">c</span>))),
+            };
+
+            <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">new_flag</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;repeated regular expression flag {}&quot;</span>,
+                    <span class="ident">char::from</span>(<span class="ident">c</span>)
+                ));
+            }
+            <span class="ident">flags</span>.<span class="ident">insert</span>(<span class="ident">new_flag</span>);
         }
-        <span class="ident">flags</span>.<span class="ident">insert</span>(<span class="ident">new_flag</span>);
+
+        <span class="prelude-val">Ok</span>(<span class="ident">flags</span>)
     }
-    <span class="prelude-val">Ok</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">flags</span>.<span class="ident">to_string</span>()))
+}
+
+<span class="kw">fn</span> <span class="ident">parse_regex_flags</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">start</span>: <span class="ident">Position</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">RegExpFlags::from_str</span>(<span class="ident">s</span>) {
+        <span class="prelude-val">Err</span>(<span class="ident">message</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(<span class="ident">message</span>.<span class="ident">into</span>(), <span class="ident">start</span>)),
+        <span class="prelude-val">Ok</span>(<span class="ident">flags</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">flags</span>.<span class="ident">to_string</span>())),
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">ToString</span> <span class="kw">for</span> <span class="ident">RegExpFlags</span> {

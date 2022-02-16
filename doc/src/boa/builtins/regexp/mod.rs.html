@@ -1710,61 +1710,6 @@
 <span id="1709">1709</span>
 <span id="1710">1710</span>
 <span id="1711">1711</span>
-<span id="1712">1712</span>
-<span id="1713">1713</span>
-<span id="1714">1714</span>
-<span id="1715">1715</span>
-<span id="1716">1716</span>
-<span id="1717">1717</span>
-<span id="1718">1718</span>
-<span id="1719">1719</span>
-<span id="1720">1720</span>
-<span id="1721">1721</span>
-<span id="1722">1722</span>
-<span id="1723">1723</span>
-<span id="1724">1724</span>
-<span id="1725">1725</span>
-<span id="1726">1726</span>
-<span id="1727">1727</span>
-<span id="1728">1728</span>
-<span id="1729">1729</span>
-<span id="1730">1730</span>
-<span id="1731">1731</span>
-<span id="1732">1732</span>
-<span id="1733">1733</span>
-<span id="1734">1734</span>
-<span id="1735">1735</span>
-<span id="1736">1736</span>
-<span id="1737">1737</span>
-<span id="1738">1738</span>
-<span id="1739">1739</span>
-<span id="1740">1740</span>
-<span id="1741">1741</span>
-<span id="1742">1742</span>
-<span id="1743">1743</span>
-<span id="1744">1744</span>
-<span id="1745">1745</span>
-<span id="1746">1746</span>
-<span id="1747">1747</span>
-<span id="1748">1748</span>
-<span id="1749">1749</span>
-<span id="1750">1750</span>
-<span id="1751">1751</span>
-<span id="1752">1752</span>
-<span id="1753">1753</span>
-<span id="1754">1754</span>
-<span id="1755">1755</span>
-<span id="1756">1756</span>
-<span id="1757">1757</span>
-<span id="1758">1758</span>
-<span id="1759">1759</span>
-<span id="1760">1760</span>
-<span id="1761">1761</span>
-<span id="1762">1762</span>
-<span id="1763">1763</span>
-<span id="1764">1764</span>
-<span id="1765">1765</span>
-<span id="1766">1766</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -1778,6 +1723,8 @@
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regexp_string_iterator</span>;
 
+<span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
+
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">array::Array</span>, <span class="ident">string</span>, <span class="ident">BuiltIn</span>},
     <span class="ident">context::StandardObjects</span>,
@@ -1788,6 +1735,7 @@
     },
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
+    <span class="ident">syntax::lexer::regex::RegExpFlags</span>,
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
 };
@@ -1804,25 +1752,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegExp</span> {
     <span class="doccomment">/// Regex matcher.</span>
     <span class="ident">matcher</span>: <span class="ident">Regex</span>,
-
-    <span class="doccomment">/// Flag &#39;s&#39; - dot matches newline characters.</span>
-    <span class="ident">dot_all</span>: <span class="ident">bool</span>,
-
-    <span class="doccomment">/// Flag &#39;g&#39;</span>
-    <span class="ident">global</span>: <span class="ident">bool</span>,
-
-    <span class="doccomment">/// Flag &#39;i&#39; - ignore case.</span>
-    <span class="ident">ignore_case</span>: <span class="ident">bool</span>,
-
-    <span class="doccomment">/// Flag &#39;m&#39; - &#39;^&#39; and &#39;$&#39; match beginning/end of line.</span>
-    <span class="ident">multiline</span>: <span class="ident">bool</span>,
-
-    <span class="doccomment">/// Flag &#39;y&#39;</span>
-    <span class="ident">sticky</span>: <span class="ident">bool</span>,
-
-    <span class="doccomment">/// Flag &#39;u&#39; - Unicode.</span>
-    <span class="ident">unicode</span>: <span class="ident">bool</span>,
-
+    <span class="ident">flags</span>: <span class="ident">RegExpFlags</span>,
     <span class="ident">original_source</span>: <span class="ident">JsString</span>,
     <span class="ident">original_flags</span>: <span class="ident">JsString</span>,
 }
@@ -2050,45 +1980,10 @@
 
         <span class="comment">// 5. If F contains any code unit other than &quot;g&quot;, &quot;i&quot;, &quot;m&quot;, &quot;s&quot;, &quot;u&quot;, or &quot;y&quot;</span>
         <span class="comment">//    or if it contains the same code unit more than once, throw a SyntaxError exception.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">f</span>.<span class="ident">chars</span>() {
-            <span class="kw">match</span> <span class="ident">c</span> {
-                <span class="string">&#39;g&#39;</span> <span class="kw">if</span> <span class="ident">global</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;g&#39;&quot;</span>)
-                }
-                <span class="string">&#39;g&#39;</span> =&gt; <span class="ident">global</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;i&#39;</span> <span class="kw">if</span> <span class="ident">ignore_case</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;i&#39;&quot;</span>)
-                }
-                <span class="string">&#39;i&#39;</span> =&gt; <span class="ident">ignore_case</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;m&#39;</span> <span class="kw">if</span> <span class="ident">multiline</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;m&#39;&quot;</span>)
-                }
-                <span class="string">&#39;m&#39;</span> =&gt; <span class="ident">multiline</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;s&#39;</span> <span class="kw">if</span> <span class="ident">dot_all</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;s&#39;&quot;</span>)
-                }
-                <span class="string">&#39;s&#39;</span> =&gt; <span class="ident">dot_all</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;u&#39;</span> <span class="kw">if</span> <span class="ident">unicode</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;u&#39;&quot;</span>)
-                }
-                <span class="string">&#39;u&#39;</span> =&gt; <span class="ident">unicode</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="string">&#39;y&#39;</span> <span class="kw">if</span> <span class="ident">sticky</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="string">&quot;RegExp flags contains multiple &#39;y&#39;&quot;</span>)
-                }
-                <span class="string">&#39;y&#39;</span> =&gt; <span class="ident">sticky</span> <span class="op">=</span> <span class="bool-val">true</span>,
-                <span class="ident">c</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;RegExp flags contains unknown code unit &#39;{c}&#39;&quot;</span>,
-                    ))
-                }
-            }
-        }
+        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">RegExpFlags::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>) {
+            <span class="prelude-val">Err</span>(<span class="ident">msg</span>) =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">msg</span>),
+            <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; <span class="ident">result</span>,
+        };
 
         <span class="comment">// 12. Set obj.[[OriginalSource]] to P.</span>
         <span class="comment">// 13. Set obj.[[OriginalFlags]] to F.</span>
@@ -2103,12 +1998,7 @@
 
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">matcher</span>,
-            <span class="ident">dot_all</span>,
-            <span class="ident">global</span>,
-            <span class="ident">ignore_case</span>,
-            <span class="ident">multiline</span>,
-            <span class="ident">sticky</span>,
-            <span class="ident">unicode</span>,
+            <span class="ident">flags</span>,
             <span class="ident">original_source</span>: <span class="ident">p</span>,
             <span class="ident">original_flags</span>: <span class="ident">f</span>,
         };
@@ -2154,16 +2044,16 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">regexp_has_flag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">flag</span>: <span class="ident">char</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">regexp_has_flag</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">flag</span>: <span class="ident">u8</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_regexp</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="kw">match</span> <span class="ident">flag</span> {
-                    <span class="string">&#39;g&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">global</span>,
-                    <span class="string">&#39;m&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">multiline</span>,
-                    <span class="string">&#39;s&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">dot_all</span>,
-                    <span class="string">&#39;i&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">ignore_case</span>,
-                    <span class="string">&#39;u&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">unicode</span>,
-                    <span class="string">&#39;y&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">sticky</span>,
+                    <span class="string">b&#39;g&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::GLOBAL</span>),
+                    <span class="string">b&#39;m&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::MULTILINE</span>),
+                    <span class="string">b&#39;s&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::DOT_ALL</span>),
+                    <span class="string">b&#39;i&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::IGNORE_CASE</span>),
+                    <span class="string">b&#39;u&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::UNICODE</span>),
+                    <span class="string">b&#39;y&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::STICKY</span>),
                     <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
                 }));
             }
@@ -2177,12 +2067,12 @@
         }
 
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">flag</span> {
-            <span class="string">&#39;g&#39;</span> =&gt; <span class="string">&quot;global&quot;</span>,
-            <span class="string">&#39;m&#39;</span> =&gt; <span class="string">&quot;multiline&quot;</span>,
-            <span class="string">&#39;s&#39;</span> =&gt; <span class="string">&quot;dotAll&quot;</span>,
-            <span class="string">&#39;i&#39;</span> =&gt; <span class="string">&quot;ignoreCase&quot;</span>,
-            <span class="string">&#39;u&#39;</span> =&gt; <span class="string">&quot;unicode&quot;</span>,
-            <span class="string">&#39;y&#39;</span> =&gt; <span class="string">&quot;sticky&quot;</span>,
+            <span class="string">b&#39;g&#39;</span> =&gt; <span class="string">&quot;global&quot;</span>,
+            <span class="string">b&#39;m&#39;</span> =&gt; <span class="string">&quot;multiline&quot;</span>,
+            <span class="string">b&#39;s&#39;</span> =&gt; <span class="string">&quot;dotAll&quot;</span>,
+            <span class="string">b&#39;i&#39;</span> =&gt; <span class="string">&quot;ignoreCase&quot;</span>,
+            <span class="string">b&#39;u&#39;</span> =&gt; <span class="string">&quot;unicode&quot;</span>,
+            <span class="string">b&#39;y&#39;</span> =&gt; <span class="string">&quot;sticky&quot;</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
@@ -2206,7 +2096,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;g&#39;</span>, <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">b&#39;g&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.ignoreCase`</span>
@@ -2224,7 +2114,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;i&#39;</span>, <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">b&#39;i&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.multiline`</span>
@@ -2242,7 +2132,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;m&#39;</span>, <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">b&#39;m&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.dotAll`</span>
@@ -2260,7 +2150,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;s&#39;</span>, <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">b&#39;s&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.unicode`</span>
@@ -2279,7 +2169,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;u&#39;</span>, <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">b&#39;u&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.sticky`</span>
@@ -2298,7 +2188,7 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">&#39;y&#39;</span>, <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">b&#39;y&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.flags`</span>
