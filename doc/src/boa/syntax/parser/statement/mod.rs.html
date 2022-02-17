@@ -1128,8 +1128,6 @@
 <span id="1127">1127</span>
 <span id="1128">1128</span>
 <span id="1129">1129</span>
-<span id="1130">1130</span>
-<span id="1131">1131</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1334,19 +1332,17 @@
                 <span class="comment">// Labelled Statement check</span>
                 <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::Div</span>);
                 <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">is_some</span>()
-                    <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(
-                        <span class="ident">tok</span>.<span class="ident">unwrap</span>().<span class="ident">kind</span>(),
-                        <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Colon</span>)
-                    )
-                {
-                    <span class="kw">return</span> <span class="ident">LabelledStatement::new</span>(
-                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                        <span class="self">self</span>.<span class="ident">allow_await</span>,
-                        <span class="self">self</span>.<span class="ident">allow_return</span>,
-                    )
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                    .<span class="ident">map</span>(<span class="ident">Node::from</span>);
+
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">tok</span> {
+                    <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">tok</span>.<span class="ident">kind</span>(), <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Colon</span>)) {
+                        <span class="kw">return</span> <span class="ident">LabelledStatement::new</span>(
+                            <span class="self">self</span>.<span class="ident">allow_yield</span>,
+                            <span class="self">self</span>.<span class="ident">allow_await</span>,
+                            <span class="self">self</span>.<span class="ident">allow_return</span>,
+                        )
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
+                        .<span class="ident">map</span>(<span class="ident">Node::from</span>);
+                    }
                 }
 
                 <span class="ident">ExpressionStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)

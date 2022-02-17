@@ -161,6 +161,15 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for template literals used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
@@ -183,7 +192,8 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TemplateString</span> {
     <span class="doccomment">/// The template string of template literal with argument `raw` true.</span>
     <span class="ident">raw</span>: <span class="ident">Sym</span>,
-    <span class="doccomment">/// The start position of the template string. Used to make lexer error if `to_owned_cooked` failed.</span>
+    <span class="doccomment">/// The start position of the template string. Used to make lexer error if `to_owned_cooked`</span>
+    <span class="doccomment">/// failed.</span>
     <span class="ident">start_pos</span>: <span class="ident">Position</span>,
 }
 
@@ -203,7 +213,8 @@
         <span class="self">self</span>.<span class="ident">raw</span>
     }
 
-    <span class="doccomment">/// Creats a new cooked template string. Returns a lexer error if it fails to cook the template string.</span>
+    <span class="doccomment">/// Creats a new cooked template string. Returns a lexer error if it fails to cook the</span>
+    <span class="doccomment">/// template string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -233,8 +244,8 @@
                 }
                 <span class="prelude-val">Some</span>(<span class="ident">ch</span>) =&gt; {
                     <span class="comment">// The caller guarantees that sequences &#39;`&#39; and &#39;${&#39; never appear</span>
-                    <span class="comment">// LineTerminatorSequence &lt;CR&gt; &lt;LF&gt; is consumed by `cursor.next_char()` and returns &lt;LF&gt;,</span>
-                    <span class="comment">// which matches the TV of &lt;CR&gt; &lt;LF&gt;</span>
+                    <span class="comment">// LineTerminatorSequence &lt;CR&gt; &lt;LF&gt; is consumed by `cursor.next_char()` and</span>
+                    <span class="comment">// returns &lt;LF&gt;, which matches the TV of &lt;CR&gt; &lt;LF&gt;</span>
                     <span class="ident">buf</span>.<span class="ident">push_code_point</span>(<span class="ident">ch</span>);
                 }
                 <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
@@ -282,7 +293,8 @@
             })<span class="question-mark">?</span>;
 
             <span class="kw">match</span> <span class="ident">ch</span> {
-                <span class="number">0x0060</span> <span class="comment">/* ` */</span> =&gt; {
+                <span class="comment">// `</span>
+                <span class="number">0x0060</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">to_string_lossy</span>();
                     <span class="kw">let</span> <span class="ident">raw_sym</span> <span class="op">=</span> <span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">raw</span>);
                     <span class="kw">let</span> <span class="ident">template_string</span> <span class="op">=</span> <span class="ident">TemplateString::new</span>(<span class="ident">raw_sym</span>, <span class="ident">start_pos</span>);
@@ -292,7 +304,8 @@
                         <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
                     ));
                 }
-                <span class="number">0x0024</span> <span class="comment">/* $ */</span> <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;{&#39;</span>)<span class="question-mark">?</span> =&gt; {
+                <span class="comment">// $</span>
+                <span class="number">0x0024</span> <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_is</span>(<span class="string">b&#39;{&#39;</span>)<span class="question-mark">?</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">buf</span>.<span class="ident">to_string_lossy</span>();
                     <span class="kw">let</span> <span class="ident">raw_sym</span> <span class="op">=</span> <span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">raw</span>);
                     <span class="kw">let</span> <span class="ident">template_string</span> <span class="op">=</span> <span class="ident">TemplateString::new</span>(<span class="ident">raw_sym</span>, <span class="ident">start_pos</span>);
@@ -302,7 +315,8 @@
                         <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
                     ));
                 }
-                <span class="number">0x005C</span> <span class="comment">/* \ */</span> =&gt; {
+                <span class="comment">// \</span>
+                <span class="number">0x005C</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">escape_ch</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span>.<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                         <span class="ident">Error::from</span>(<span class="ident">io::Error::new</span>(
                             <span class="ident">ErrorKind::UnexpectedEof</span>,
@@ -312,7 +326,11 @@
 
                     <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;\\&#39;</span>));
                     <span class="kw">match</span> <span class="ident">escape_ch</span> {
-                        <span class="string">b&#39;`&#39;</span> <span class="op">|</span> <span class="string">b&#39;$&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> =&gt; <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">u16::from</span>(<span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">unwrap</span>())),
+                        <span class="string">b&#39;`&#39;</span> <span class="op">|</span> <span class="string">b&#39;$&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> =&gt; {
+                            <span class="kw">let</span> <span class="ident">next_byte</span> <span class="op">=</span>
+                                <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;already checked next character&quot;</span>);
+                            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">u16::from</span>(<span class="ident">next_byte</span>));
+                        }
                         <span class="kw">_</span> =&gt; <span class="kw">continue</span>,
                     }
                 }

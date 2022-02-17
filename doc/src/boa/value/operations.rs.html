@@ -660,6 +660,8 @@
 <span id="659">659</span>
 <span id="660">660</span>
 <span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">Context</span>, <span class="ident">FromStr</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>, <span class="ident">Numeric</span>, <span class="ident">PreferredType</span>, <span class="ident">TryFrom</span>,
     <span class="ident">WellKnownSymbols</span>,
@@ -1203,7 +1205,8 @@
                             } <span class="kw">else</span> {
                                 <span class="ident">y</span>.<span class="ident">ceil</span>()
                             };
-                            (<span class="kw-2">*</span><span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">JsBigInt::try_from</span>(<span class="ident">n</span>).<span class="ident">unwrap</span>()).<span class="ident">into</span>()
+                            (<span class="kw-2">*</span><span class="ident">x</span> <span class="op">&lt;</span> <span class="ident">JsBigInt::try_from</span>(<span class="ident">n</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid conversion to BigInt&quot;</span>))
+                                .<span class="ident">into</span>()
                         }
                         (<span class="ident">Numeric::Number</span>(<span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
                             <span class="kw">if</span> <span class="ident">x</span>.<span class="ident">is_nan</span>() {
@@ -1217,7 +1220,8 @@
                             } <span class="kw">else</span> {
                                 <span class="ident">x</span>.<span class="ident">ceil</span>()
                             };
-                            (<span class="ident">JsBigInt::try_from</span>(<span class="ident">n</span>).<span class="ident">unwrap</span>() <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">y</span>).<span class="ident">into</span>()
+                            (<span class="ident">JsBigInt::try_from</span>(<span class="ident">n</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid conversion to BigInt&quot;</span>) <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">y</span>)
+                                .<span class="ident">into</span>()
                         }
                     },
                 }

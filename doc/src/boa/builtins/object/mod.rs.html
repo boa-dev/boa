@@ -1044,6 +1044,8 @@
 <span id="1043">1043</span>
 <span id="1044">1044</span>
 <span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Object` class represents one of JavaScript&#39;s data types.</span>
@@ -1651,7 +1653,9 @@
             <span class="comment">// 3.a. If nextSource is neither undefined nor null, then</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">source</span>.<span class="ident">is_null_or_undefined</span>() {
                 <span class="comment">// 3.a.i. Let from be ! ToObject(nextSource).</span>
-                <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">to_object</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>();
+                <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="ident">source</span>
+                    .<span class="ident">to_object</span>(<span class="ident">context</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;this ToObject call must not fail&quot;</span>);
                 <span class="comment">// 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().</span>
                 <span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">from</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// 3.a.iii. For each element nextKey of keys, do</span>
@@ -1971,7 +1975,7 @@
 
         <span class="comment">// 4. Let closure be a new Abstract Closure with parameters (key, value) that captures</span>
         <span class="comment">// obj and performs the following steps when called:</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">closure</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
+        <span class="kw">let</span> <span class="ident">closure</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
             <span class="ident">context</span>,
             <span class="op">|</span><span class="kw">_</span>, <span class="ident">args</span>, <span class="ident">obj</span>, <span class="ident">context</span><span class="op">|</span> {
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);

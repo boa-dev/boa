@@ -356,6 +356,7 @@
 <span id="355">355</span>
 <span id="356">356</span>
 <span id="357">357</span>
+<span id="358">358</span>
 </pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The idea behind using a string interner is that in most of the code, strings such as</span>
@@ -370,6 +371,7 @@
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
 )]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">forbid</span>(<span class="ident">clippy::unwrap_used</span>))]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
     <span class="ident">clippy::perf</span>,
     <span class="ident">clippy::single_match_else</span>,

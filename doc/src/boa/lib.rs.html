@@ -193,6 +193,7 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it</span>
 <span class="doccomment">//! has support for some of the language.</span>
 <span class="doccomment">//!</span>
@@ -205,6 +206,7 @@
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
 )]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">forbid</span>(<span class="ident">clippy::unwrap_used</span>))]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
     <span class="ident">clippy::perf</span>,
     <span class="ident">clippy::single_match_else</span>,

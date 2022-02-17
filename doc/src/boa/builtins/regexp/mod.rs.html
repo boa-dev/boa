@@ -1710,6 +1710,10 @@
 <span id="1709">1709</span>
 <span id="1710">1710</span>
 <span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -1914,7 +1918,9 @@
         <span class="comment">// 6. Else,</span>
         <span class="kw">let</span> (<span class="ident">p</span>, <span class="ident">f</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span> <span class="ident">pattern_is_regexp</span> {
             <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">pattern</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">as_regexp</span>().<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">obj</span>
+                .<span class="ident">as_regexp</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;already checked that IsRegExp returns true&quot;</span>);
 
             <span class="comment">// a. Let P be pattern.[[OriginalSource]].</span>
             <span class="comment">// b. If flags is undefined, let F be pattern.[[OriginalFlags]].</span>
@@ -2597,11 +2603,11 @@
 
         <span class="comment">// 20. Perform ! CreateDataPropertyOrThrow(A, &quot;index&quot;, 𝔽(lastIndex)).</span>
         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;index&quot;</span>, <span class="ident">match_value</span>.<span class="ident">start</span>(), <span class="ident">context</span>)
-            .<span class="ident">unwrap</span>();
+            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, &quot;input&quot;, S).</span>
         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;input&quot;</span>, <span class="ident">input</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)
-            .<span class="ident">unwrap</span>();
+            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 22. Let matchedSubstr be the substring of S from lastIndex to e.</span>
         <span class="kw">let</span> <span class="ident">matched_substr</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(<span class="ident">match_value</span>.<span class="ident">range</span>()) {
@@ -2612,7 +2618,7 @@
 
         <span class="comment">// 23. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, matchedSubstr).</span>
         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="number">0</span>, <span class="ident">matched_substr</span>, <span class="ident">context</span>)
-            .<span class="ident">unwrap</span>();
+            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 24. If R contains any GroupName, then</span>
         <span class="comment">// 25. Else,</span>
@@ -2636,7 +2642,7 @@
                     <span class="ident">groups</span>
                         .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
                         .<span class="ident">create_data_property_or_throw</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>)
-                        .<span class="ident">unwrap</span>();
+                        .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
                 }
             }
             <span class="ident">groups</span>
@@ -2647,7 +2653,7 @@
 
         <span class="comment">// 26. Perform ! CreateDataPropertyOrThrow(A, &quot;groups&quot;, groups).</span>
         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;groups&quot;</span>, <span class="ident">groups</span>, <span class="ident">context</span>)
-            .<span class="ident">unwrap</span>();
+            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">n</span> {
@@ -2670,7 +2676,7 @@
 
             <span class="comment">// e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).</span>
             <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">i</span>, <span class="ident">captured_value</span>, <span class="ident">context</span>)
-                .<span class="ident">unwrap</span>();
+                .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
         }
 
         <span class="comment">// 28. Return A.</span>
@@ -2731,7 +2737,8 @@
             <span class="ident">rx</span>.<span class="ident">set</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// d. Let A be ! ArrayCreate(0).</span>
-            <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">unwrap</span>();
+            <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span>
+                <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">expect</span>(<span class="string">&quot;this ArrayCreate call must not fail&quot;</span>);
 
             <span class="comment">// e. Let n be 0.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">n</span> <span class="op">=</span> <span class="number">0</span>;
@@ -2749,7 +2756,7 @@
 
                     <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), matchStr).</span>
                     <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">n</span>, <span class="ident">match_str</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)
-                        .<span class="ident">unwrap</span>();
+                        .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
                     <span class="comment">// 3. If matchStr is the empty String, then</span>
                     <span class="kw">if</span> <span class="ident">match_str</span>.<span class="ident">is_empty</span>() {
@@ -3242,11 +3249,12 @@
         )<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">splitter</span> <span class="op">=</span> <span class="ident">splitter</span>
             .<span class="ident">as_object</span>()
-            <span class="comment">// todo: remove when we handle realms on `get_prototype_from_constructor` and make `construct` always return a `JsObject`</span>
+            <span class="comment">// TODO: remove when we handle realms on `get_prototype_from_constructor` and make</span>
+            <span class="comment">// `construct` always return a `JsObject`</span>
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;constructor did not return an object&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 11. Let A be ! ArrayCreate(0).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>).<span class="ident">expect</span>(<span class="string">&quot;this ArrayCreate call must not fail&quot;</span>);
 
         <span class="comment">// 12. Let lengthA be 0.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length_a</span> <span class="op">=</span> <span class="number">0</span>;
@@ -3279,7 +3287,7 @@
 
             <span class="comment">// c. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, S).</span>
             <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="number">0</span>, <span class="ident">arg_str</span>, <span class="ident">context</span>)
-                .<span class="ident">unwrap</span>();
+                .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
             <span class="comment">// d. Return A.</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
@@ -3323,7 +3331,7 @@
 
                     <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
                     <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">arg_str_substring</span>, <span class="ident">context</span>)
-                        .<span class="ident">unwrap</span>();
+                        .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
                     <span class="comment">// 3. Set lengthA to lengthA + 1.</span>
                     <span class="ident">length_a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -3354,7 +3362,7 @@
 
                         <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).</span>
                         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">next_capture</span>, <span class="ident">context</span>)
-                            .<span class="ident">unwrap</span>();
+                            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
                         <span class="comment">// d. Set lengthA to lengthA + 1.</span>
                         <span class="ident">length_a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -3384,7 +3392,7 @@
 
         <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">arg_str_substring</span>, <span class="ident">context</span>)
-            .<span class="ident">unwrap</span>();
+            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 22. Return A.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>())

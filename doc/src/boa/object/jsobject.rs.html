@@ -789,6 +789,11 @@
 <span id="788">788</span>
 <span id="789">789</span>
 <span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JsObject` is a garbage collected Object.</span>
@@ -1002,7 +1007,9 @@
     {
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>();
         <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">Ref::map</span>(<span class="ident">object</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>()))
+            <span class="prelude-val">Some</span>(<span class="ident">Ref::map</span>(<span class="ident">object</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
+                <span class="ident">x</span>.<span class="ident">downcast_ref</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">expect</span>(<span class="string">&quot;downcasting reference failed&quot;</span>)
+            }))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }
@@ -1022,7 +1029,10 @@
     {
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow_mut</span>();
         <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">RefMut::map</span>(<span class="ident">object</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>()))
+            <span class="prelude-val">Some</span>(<span class="ident">RefMut::map</span>(<span class="ident">object</span>, <span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
+                <span class="ident">x</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;downcasting mutable reference failed&quot;</span>)
+            }))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         }

@@ -734,6 +734,13 @@
 <span id="733">733</span>
 <span id="734">734</span>
 <span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]</span>
@@ -906,7 +913,9 @@
                 <span class="comment">// ii. For each String P of keys, do</span>
                 <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">keys</span> {
                     <span class="comment">// This is safe, because EnumerableOwnPropertyNames with &#39;key&#39; type only returns strings.</span>
-                    <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_string</span>().<span class="ident">unwrap</span>();
+                    <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>
+                        .<span class="ident">as_string</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>);
 
                     <span class="comment">// 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).</span>
                     <span class="kw">let</span> <span class="ident">new_element</span> <span class="op">=</span>
@@ -1289,7 +1298,12 @@
             <span class="comment">// a. Let K be ? EnumerableOwnPropertyNames(value, key).</span>
             <span class="kw">let</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">enumerable_own_property_names</span>(<span class="ident">PropertyNameKind::Key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// Unwrap is safe, because EnumerableOwnPropertyNames with kind &quot;key&quot; only returns string values.</span>
-            <span class="ident">keys</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_string</span>(<span class="ident">context</span>).<span class="ident">unwrap</span>()).<span class="ident">collect</span>()
+            <span class="ident">keys</span>.<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
+                    <span class="ident">v</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)
+                        .<span class="ident">expect</span>(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
+                })
+                .<span class="ident">collect</span>()
         };
 
         <span class="comment">// 7. Let partial be a new empty List.</span>

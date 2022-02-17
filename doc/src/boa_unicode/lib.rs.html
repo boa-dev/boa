@@ -159,6 +159,7 @@
 <span id="158">158</span>
 <span id="159">159</span>
 <span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This library implements the extension to query if a char belongs to a particular unicode identifier property.</span>
 <span class="doccomment">//! Version: Unicode 13.0.0</span>
 <span class="doccomment">//!</span>
@@ -171,6 +172,7 @@
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,
     <span class="ident">html_favicon_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>
 )]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">forbid</span>(<span class="ident">clippy::unwrap_used</span>))]</span>
 <span class="attribute">#![<span class="ident">warn</span>(
     <span class="ident">clippy::perf</span>,
     <span class="ident">clippy::single_match_else</span>,

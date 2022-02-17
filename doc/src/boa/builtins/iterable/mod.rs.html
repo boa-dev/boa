@@ -403,10 +403,10 @@
 
     <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(obj, &quot;value&quot;, value).</span>
     <span class="ident">obj</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">value</span>, <span class="ident">context</span>)
-        .<span class="ident">unwrap</span>();
+        .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
     <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(obj, &quot;done&quot;, done).</span>
     <span class="ident">obj</span>.<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">done</span>, <span class="ident">context</span>)
-        .<span class="ident">unwrap</span>();
+        .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
     <span class="comment">// 5. Return obj.</span>
     <span class="ident">obj</span>.<span class="ident">into</span>()
 }

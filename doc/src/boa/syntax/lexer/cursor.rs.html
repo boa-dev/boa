@@ -520,6 +520,9 @@
 <span id="519">519</span>
 <span id="520">520</span>
 <span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">profiler::BoaProfiler</span>, <span class="ident">syntax::ast::Position</span>};
 <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">Bytes</span>, <span class="ident">Error</span>, <span class="ident">ErrorKind</span>, <span class="ident">Read</span>};
@@ -726,7 +729,10 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
             } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_char</span>()<span class="question-mark">?</span> {
                 <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">utf8_len</span>(<span class="ident">ch</span>) {
-                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">unwrap</span>());
+                    <span class="ident">buf</span>.<span class="ident">push</span>(
+                        <span class="self">self</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>
+                            .<span class="ident">expect</span>(<span class="string">&quot;already checked that the next character exists&quot;</span>),
+                    );
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// next_is_pred will return false if the next value is None so the None case should already be handled.</span>
