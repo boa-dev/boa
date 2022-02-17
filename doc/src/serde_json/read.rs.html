@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;serde_json-1.0.78&#x2F;src&#x2F;read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;serde_json-1.0.79&#x2F;src&#x2F;read.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>read.rs - source</title><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../light.css"  id="themeStyle"><link rel="stylesheet" type="text/css" href="../../dark.css" disabled ><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled ><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"><style type="text/css">#crate-search{background-image:url("../../down-arrow.svg");}</style></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a href='../../serde_json/index.html'><div class='logo-container rust-logo'><img src='../../rust-logo.png' alt='logo'></div></a></nav><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><nav class="sub"><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../wheel.svg"></a></div></form></nav><section id="main" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
 <span id="3">   3</span>
@@ -1003,25 +1003,6 @@
 <span id="1002">1002</span>
 <span id="1003">1003</span>
 <span id="1004">1004</span>
-<span id="1005">1005</span>
-<span id="1006">1006</span>
-<span id="1007">1007</span>
-<span id="1008">1008</span>
-<span id="1009">1009</span>
-<span id="1010">1010</span>
-<span id="1011">1011</span>
-<span id="1012">1012</span>
-<span id="1013">1013</span>
-<span id="1014">1014</span>
-<span id="1015">1015</span>
-<span id="1016">1016</span>
-<span id="1017">1017</span>
-<span id="1018">1018</span>
-<span id="1019">1019</span>
-<span id="1020">1020</span>
-<span id="1021">1021</span>
-<span id="1022">1022</span>
-<span id="1023">1023</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">Error</span>, <span class="ident">ErrorCode</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
 <span class="kw">use</span> <span class="ident">core::char</span>;
@@ -1978,34 +1959,15 @@
 
     <span class="kw">match</span> <span class="ident">ch</span> {
         <span class="string">b&#39;&quot;&#39;</span> <span class="op">|</span> <span class="string">b&#39;\\&#39;</span> <span class="op">|</span> <span class="string">b&#39;/&#39;</span> <span class="op">|</span> <span class="string">b&#39;b&#39;</span> <span class="op">|</span> <span class="string">b&#39;f&#39;</span> <span class="op">|</span> <span class="string">b&#39;n&#39;</span> <span class="op">|</span> <span class="string">b&#39;r&#39;</span> <span class="op">|</span> <span class="string">b&#39;t&#39;</span> =&gt; {}
-        <span class="string">b&#39;u&#39;</span> =&gt; <span class="kw">match</span> <span class="macro">tri!</span>(<span class="ident">read</span>.<span class="ident">decode_hex_escape</span>()) {
-            <span class="number">0xDC00</span>..<span class="op">=</span><span class="number">0xDFFF</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">error</span>(<span class="ident">read</span>, <span class="ident">ErrorCode::LoneLeadingSurrogateInHexEscape</span>);
-            }
+        <span class="string">b&#39;u&#39;</span> =&gt; {
+            <span class="comment">// At this point we don&#39;t care if the codepoint is valid. We just</span>
+            <span class="comment">// want to consume it. We don&#39;t actually know what is valid or not</span>
+            <span class="comment">// at this point, because that depends on if this string will</span>
+            <span class="comment">// ultimately be parsed into a string or a byte buffer in the &quot;real&quot;</span>
+            <span class="comment">// parse.</span>
 
-            <span class="comment">// Non-BMP characters are encoded as a sequence of</span>
-            <span class="comment">// two hex escapes, representing UTF-16 surrogates.</span>
-            <span class="ident">n1</span> @ <span class="number">0xD800</span>..<span class="op">=</span><span class="number">0xDBFF</span> =&gt; {
-                <span class="kw">if</span> <span class="macro">tri!</span>(<span class="ident">next_or_eof</span>(<span class="ident">read</span>)) <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;\\&#39;</span> {
-                    <span class="kw">return</span> <span class="ident">error</span>(<span class="ident">read</span>, <span class="ident">ErrorCode::UnexpectedEndOfHexEscape</span>);
-                }
-                <span class="kw">if</span> <span class="macro">tri!</span>(<span class="ident">next_or_eof</span>(<span class="ident">read</span>)) <span class="op">!</span><span class="op">=</span> <span class="string">b&#39;u&#39;</span> {
-                    <span class="kw">return</span> <span class="ident">error</span>(<span class="ident">read</span>, <span class="ident">ErrorCode::UnexpectedEndOfHexEscape</span>);
-                }
-
-                <span class="kw">let</span> <span class="ident">n2</span> <span class="op">=</span> <span class="macro">tri!</span>(<span class="ident">read</span>.<span class="ident">decode_hex_escape</span>());
-                <span class="kw">if</span> <span class="ident">n2</span> <span class="op">&lt;</span> <span class="number">0xDC00</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n2</span> <span class="op">&gt;</span> <span class="number">0xDFFF</span> {
-                    <span class="kw">return</span> <span class="ident">error</span>(<span class="ident">read</span>, <span class="ident">ErrorCode::LoneLeadingSurrogateInHexEscape</span>);
-                }
-
-                <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> (((<span class="ident">n1</span> <span class="op">-</span> <span class="number">0xD800</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">10</span> <span class="op">|</span> (<span class="ident">n2</span> <span class="op">-</span> <span class="number">0xDC00</span>) <span class="kw">as</span> <span class="ident">u32</span>) <span class="op">+</span> <span class="number">0x1_0000</span>;
-                <span class="kw">if</span> <span class="ident">char::from_u32</span>(<span class="ident">n</span>).<span class="ident">is_none</span>() {
-                    <span class="kw">return</span> <span class="ident">error</span>(<span class="ident">read</span>, <span class="ident">ErrorCode::InvalidUnicodeCodePoint</span>);
-                }
-            }
-
-            <span class="kw">_</span> =&gt; {}
-        },
+            <span class="macro">tri!</span>(<span class="ident">read</span>.<span class="ident">decode_hex_escape</span>());
+        }
         <span class="kw">_</span> =&gt; {
             <span class="kw">return</span> <span class="ident">error</span>(<span class="ident">read</span>, <span class="ident">ErrorCode::InvalidEscape</span>);
         }
