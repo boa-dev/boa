@@ -489,10 +489,6 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = BoaProfiler::global().start_event("Relation Expression", "Parsing");
 
-        // if None::<InputElement>.is_some() {
-        //     cursor.set_goal(None::<InputElement>.unwrap());
-        // }
-
         let mut lhs =
             ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
         while let Some(tok) = cursor.peek(0, interner)? {
