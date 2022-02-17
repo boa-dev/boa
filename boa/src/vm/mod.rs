@@ -55,7 +55,7 @@ impl Vm {
     #[inline]
     #[track_caller]
     pub(crate) fn pop(&mut self) -> JsValue {
-        self.stack.pop().unwrap()
+        self.stack.pop().expect("stack was empty")
     }
 
     #[track_caller]
@@ -66,14 +66,24 @@ impl Vm {
         value
     }
 
+    /// Retrieves the VM frame
+    ///
+    /// # Panics
+    ///
+    /// If there is no frame, then this will panic.
     #[inline]
     pub(crate) fn frame(&self) -> &CallFrame {
-        self.frame.as_ref().unwrap()
+        self.frame.as_ref().expect("no frame found")
     }
 
+    /// Retrieves the VM frame mutably
+    ///
+    /// # Panics
+    ///
+    /// If there is no frame, then this will panic.
     #[inline]
     pub(crate) fn frame_mut(&mut self) -> &mut CallFrame {
-        self.frame.as_mut().unwrap()
+        self.frame.as_mut().expect("no frame found")
     }
 
     #[inline]
@@ -661,10 +671,10 @@ impl Context {
                 let excluded_key_count = self.vm.read::<u32>();
                 let mut excluded_keys = Vec::with_capacity(excluded_key_count as usize);
                 for _ in 0..excluded_key_count {
-                    excluded_keys.push(self.vm.pop().as_string().unwrap().clone());
+                    excluded_keys.push(self.vm.pop().as_string().expect("not a string").clone());
                 }
                 let value = self.vm.pop();
-                let object = value.as_object().unwrap();
+                let object = value.as_object().expect("not an object");
                 let source = self.vm.pop();
                 object.copy_data_properties(&source, excluded_keys, self)?;
                 self.vm.push(value);
@@ -989,7 +999,7 @@ impl Context {
                 let done = self.vm.pop();
                 let next_function = self.vm.pop();
                 let iterator = self.vm.pop();
-                if !done.as_boolean().unwrap() {
+                if !done.as_boolean().expect("not a boolean") {
                     let iterator_record = IteratorRecord::new(iterator, next_function);
                     iterator_record.close(Ok(JsValue::Null), self)?;
                 }
@@ -1075,7 +1085,8 @@ impl Context {
                         args.push(self.vm.pop());
                     }
                     let array = Array::new_array(self);
-                    Array::add_to_array_object(&array, &args, self).unwrap();
+                    Array::add_to_array_object(&array, &args, self)
+                        .expect("could not add to array object");
                     self.vm.push(array);
                 } else {
                     self.vm.pop();
@@ -1139,7 +1150,13 @@ impl Context {
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
-                let opcode: Opcode = self.vm.frame().code.read::<u8>(pc).try_into().unwrap();
+                let opcode: Opcode = self
+                    .vm
+                    .frame()
+                    .code
+                    .read::<u8>(pc)
+                    .try_into()
+                    .expect("invalid opcode");
                 let operands = self.vm.frame().code.instruction_operands(&mut pc);
 
                 let instant = Instant::now();

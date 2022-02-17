@@ -211,7 +211,9 @@ impl JsObject {
     {
         let object = self.borrow();
         if object.is::<T>() {
-            Some(Ref::map(object, |x| x.downcast_ref::<T>().unwrap()))
+            Some(Ref::map(object, |x| {
+                x.downcast_ref::<T>().expect("downcasting reference failed")
+            }))
         } else {
             None
         }
@@ -231,7 +233,10 @@ impl JsObject {
     {
         let object = self.borrow_mut();
         if object.is::<T>() {
-            Some(RefMut::map(object, |x| x.downcast_mut::<T>().unwrap()))
+            Some(RefMut::map(object, |x| {
+                x.downcast_mut::<T>()
+                    .expect("downcasting mutable reference failed")
+            }))
         } else {
             None
         }

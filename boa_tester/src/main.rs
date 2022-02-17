@@ -2,6 +2,11 @@
 //!
 //! This crate will run the full ECMAScript test suite (Test262) and report compliance of the
 //! `boa` context.
+#![doc(
+    html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
+    html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
+)]
+#![cfg_attr(not(test), deny(clippy::unwrap_used))]
 #![warn(
     clippy::perf,
     clippy::single_match_else,

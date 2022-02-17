@@ -1238,7 +1238,7 @@ where
 #[derive(Debug)]
 pub struct FunctionBuilder<'context> {
     context: &'context mut Context,
-    function: Option<Function>,
+    function: Function,
     name: JsString,
     length: usize,
 }
@@ -1249,10 +1249,10 @@ impl<'context> FunctionBuilder<'context> {
     pub fn native(context: &'context mut Context, function: NativeFunctionSignature) -> Self {
         Self {
             context,
-            function: Some(Function::Native {
+            function: Function::Native {
                 function,
                 constructor: false,
-            }),
+            },
             name: JsString::default(),
             length: 0,
         }
@@ -1266,11 +1266,11 @@ impl<'context> FunctionBuilder<'context> {
     {
         Self {
             context,
-            function: Some(Function::Closure {
+            function: Function::Closure {
                 function: Box::new(move |this, args, _, context| function(this, args, context)),
                 constructor: false,
                 captures: Captures::new(()),
-            }),
+            },
             name: JsString::default(),
             length: 0,
         }
@@ -1294,7 +1294,7 @@ impl<'context> FunctionBuilder<'context> {
     {
         Self {
             context,
-            function: Some(Function::Closure {
+            function: Function::Closure {
                 function: Box::new(move |this, args, captures: Captures, context| {
                     let mut captures = captures.as_mut_any();
                     let captures = captures.downcast_mut::<C>().ok_or_else(|| {
@@ -1304,7 +1304,7 @@ impl<'context> FunctionBuilder<'context> {
                 }),
                 constructor: false,
                 captures: Captures::new(captures),
-            }),
+            },
             name: JsString::default(),
             length: 0,
         }
@@ -1314,7 +1314,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `""` (empty string).
     #[inline]
-    pub fn name<N>(&mut self, name: N) -> &mut Self
+    pub fn name<N>(mut self, name: N) -> Self
     where
         N: AsRef<str>,
     {
@@ -1328,7 +1328,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `0`.
     #[inline]
-    pub fn length(&mut self, length: usize) -> &mut Self {
+    pub fn length(mut self, length: usize) -> Self {
         self.length = length;
         self
     }
@@ -1337,40 +1337,47 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `false`.
     #[inline]
-    pub fn constructor(&mut self, yes: bool) -> &mut Self {
-        match self.function.as_mut() {
-            Some(Function::Native { constructor, .. } | Function::Closure { constructor, .. }) => {
+    pub fn constructor(mut self, yes: bool) -> Self {
+        match self.function {
+            Function::Native {
+                ref mut constructor,
+                ..
+            }
+            | Function::Closure {
+                ref mut constructor,
+                ..
+            } => {
                 *constructor = yes;
             }
-            _ => unreachable!(),
+            Function::VmOrdinary { .. } => unreachable!("function must be native or closure"),
         }
         self
     }
 
     /// Build the function object.
     #[inline]
-    pub fn build(&mut self) -> JsObject {
+    pub fn build(self) -> JsObject {
         let function = JsObject::from_proto_and_data(
             self.context
                 .standard_objects()
                 .function_object()
                 .prototype(),
-            ObjectData::function(self.function.take().unwrap()),
+            ObjectData::function(self.function),
         );
         let property = PropertyDescriptor::builder()
             .writable(false)
             .enumerable(false)
             .configurable(true);
         function.insert_property("length", property.clone().value(self.length));
-        function.insert_property("name", property.value(self.name.clone()));
+        function.insert_property("name", property.value(self.name));
 
         function
     }
 
     /// Initializes the `Function.prototype` function object.
-    pub(crate) fn build_function_prototype(&mut self, object: &JsObject) {
+    pub(crate) fn build_function_prototype(self, object: &JsObject) {
         let mut object = object.borrow_mut();
-        object.data = ObjectData::function(self.function.take().unwrap());
+        object.data = ObjectData::function(self.function);
         object.set_prototype(self.context.standard_objects().object_object().prototype());
 
         let property = PropertyDescriptor::builder()

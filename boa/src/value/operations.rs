@@ -541,7 +541,8 @@ impl JsValue {
                             } else {
                                 y.ceil()
                             };
-                            (*x < JsBigInt::try_from(n).unwrap()).into()
+                            (*x < JsBigInt::try_from(n).expect("invalid conversion to BigInt"))
+                                .into()
                         }
                         (Numeric::Number(x), Numeric::BigInt(ref y)) => {
                             if x.is_nan() {
@@ -555,7 +556,8 @@ impl JsValue {
                             } else {
                                 x.ceil()
                             };
-                            (JsBigInt::try_from(n).unwrap() < *y).into()
+                            (JsBigInt::try_from(n).expect("invalid conversion to BigInt") < *y)
+                                .into()
                         }
                     },
                 }

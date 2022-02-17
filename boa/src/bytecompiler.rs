@@ -261,7 +261,7 @@ impl<'b> ByteCompiler<'b> {
 
     #[inline]
     fn pop_loop_control_info(&mut self) {
-        let loop_info = self.jump_info.pop().unwrap();
+        let loop_info = self.jump_info.pop().expect("no jump informatiojn found");
 
         assert!(loop_info.kind == JumpControlInfoKind::Loop);
 
@@ -284,7 +284,7 @@ impl<'b> ByteCompiler<'b> {
 
     #[inline]
     fn pop_switch_control_info(&mut self) {
-        let info = self.jump_info.pop().unwrap();
+        let info = self.jump_info.pop().expect("no jump information found");
 
         assert!(info.kind == JumpControlInfoKind::Switch);
 
@@ -296,7 +296,11 @@ impl<'b> ByteCompiler<'b> {
     #[inline]
     fn push_try_control_info(&mut self) {
         if !self.jump_info.is_empty() {
-            let start_address = self.jump_info.last().unwrap().start_address;
+            let start_address = self
+                .jump_info
+                .last()
+                .expect("no jump information found")
+                .start_address;
 
             self.jump_info.push(JumpControlInfo {
                 label: None,
@@ -312,7 +316,7 @@ impl<'b> ByteCompiler<'b> {
     #[inline]
     fn pop_try_control_info(&mut self, finally_start_address: Option<u32>) {
         if !self.jump_info.is_empty() {
-            let mut info = self.jump_info.pop().unwrap();
+            let mut info = self.jump_info.pop().expect("no jump information found");
 
             assert!(info.kind == JumpControlInfoKind::Try);
 
@@ -1219,7 +1223,11 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::TryEnd);
                     self.emit(Opcode::FinallySetJump, &[start_address]);
                     let label = self.jump();
-                    self.jump_info.last_mut().unwrap().try_continues.push(label);
+                    self.jump_info
+                        .last_mut()
+                        .expect("no jump information found")
+                        .try_continues
+                        .push(label);
                 } else {
                     let mut items = self
                         .jump_info
@@ -1264,7 +1272,11 @@ impl<'b> ByteCompiler<'b> {
                 }
                 let label = self.jump();
                 if node.label().is_none() {
-                    self.jump_info.last_mut().unwrap().breaks.push(label);
+                    self.jump_info
+                        .last_mut()
+                        .expect("no jump information found")
+                        .breaks
+                        .push(label);
                 } else {
                     for info in self.jump_info.iter_mut().rev() {
                         if info.label == node.label() {

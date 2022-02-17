@@ -20,7 +20,8 @@ use serde::{Deserialize, Serialize};
 pub struct TemplateString {
     /// The template string of template literal with argument `raw` true.
     raw: Sym,
-    /// The start position of the template string. Used to make lexer error if `to_owned_cooked` failed.
+    /// The start position of the template string. Used to make lexer error if `to_owned_cooked`
+    /// failed.
     start_pos: Position,
 }
 
@@ -40,7 +41,8 @@ impl TemplateString {
         self.raw
     }
 
-    /// Creats a new cooked template string. Returns a lexer error if it fails to cook the template string.
+    /// Creats a new cooked template string. Returns a lexer error if it fails to cook the
+    /// template string.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -70,8 +72,8 @@ impl TemplateString {
                 }
                 Some(ch) => {
                     // The caller guarantees that sequences '`' and '${' never appear
-                    // LineTerminatorSequence <CR> <LF> is consumed by `cursor.next_char()` and returns <LF>,
-                    // which matches the TV of <CR> <LF>
+                    // LineTerminatorSequence <CR> <LF> is consumed by `cursor.next_char()` and
+                    // returns <LF>, which matches the TV of <CR> <LF>
                     buf.push_code_point(ch);
                 }
                 None => break,
@@ -119,7 +121,8 @@ impl<R> Tokenizer<R> for TemplateLiteral {
             })?;
 
             match ch {
-                0x0060 /* ` */ => {
+                // `
+                0x0060 => {
                     let raw = buf.to_string_lossy();
                     let raw_sym = interner.get_or_intern(raw);
                     let template_string = TemplateString::new(raw_sym, start_pos);
@@ -129,7 +132,8 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                         Span::new(start_pos, cursor.pos()),
                     ));
                 }
-                0x0024 /* $ */ if cursor.next_is(b'{')? => {
+                // $
+                0x0024 if cursor.next_is(b'{')? => {
                     let raw = buf.to_string_lossy();
                     let raw_sym = interner.get_or_intern(raw);
                     let template_string = TemplateString::new(raw_sym, start_pos);
@@ -139,7 +143,8 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                         Span::new(start_pos, cursor.pos()),
                     ));
                 }
-                0x005C /* \ */ => {
+                // \
+                0x005C => {
                     let escape_ch = cursor.peek()?.ok_or_else(|| {
                         Error::from(io::Error::new(
                             ErrorKind::UnexpectedEof,
@@ -149,7 +154,11 @@ impl<R> Tokenizer<R> for TemplateLiteral {
 
                     buf.push(u16::from(b'\\'));
                     match escape_ch {
-                        b'`' | b'$' | b'\\' => buf.push(u16::from(cursor.next_byte()?.unwrap())),
+                        b'`' | b'$' | b'\\' => {
+                            let next_byte =
+                                cursor.next_byte()?.expect("already checked next character");
+                            buf.push(u16::from(next_byte));
+                        }
                         _ => continue,
                     }
                 }

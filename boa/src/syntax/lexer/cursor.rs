@@ -204,7 +204,10 @@ where
                 return Ok(());
             } else if let Some(ch) = self.peek_char()? {
                 for _ in 0..utf8_len(ch) {
-                    buf.push(self.next_byte()?.unwrap());
+                    buf.push(
+                        self.next_byte()?
+                            .expect("already checked that the next character exists"),
+                    );
                 }
             } else {
                 // next_is_pred will return false if the next value is None so the None case should already be handled.

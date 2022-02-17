@@ -136,7 +136,7 @@ impl CodeBlock {
     ///
     /// Returns an empty `String` if no operands are present.
     pub(crate) fn instruction_operands(&self, pc: &mut usize) -> String {
-        let opcode: Opcode = self.code[*pc].try_into().unwrap();
+        let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
             Opcode::PushInt8 => {
@@ -313,7 +313,7 @@ impl ToInternedString for CodeBlock {
         let mut pc = 0;
         let mut count = 0;
         while pc < self.code.len() {
-            let opcode: Opcode = self.code[pc].try_into().unwrap();
+            let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
             let operands = self.instruction_operands(&mut pc);
             f.push_str(&format!(
                 "    {pc:06}    {count:04}    {:<27}\n{operands}",
@@ -406,7 +406,7 @@ impl JsVmFunction {
 
         prototype
             .define_property_or_throw("constructor", constructor_property, context)
-            .unwrap();
+            .expect("failed to define the constructor property of the function");
 
         let prototype_property = PropertyDescriptor::builder()
             .value(prototype)
@@ -417,13 +417,13 @@ impl JsVmFunction {
 
         constructor
             .define_property_or_throw("prototype", prototype_property, context)
-            .unwrap();
+            .expect("failed to define the prototype property of the function");
         constructor
             .define_property_or_throw("name", name_property, context)
-            .unwrap();
+            .expect("failed to define the name property of the function");
         constructor
             .define_property_or_throw("length", length_property, context)
-            .unwrap();
+            .expect("failed to define the length property of the function");
 
         constructor
     }
@@ -462,7 +462,7 @@ impl JsObject {
 
         let body = {
             let object = self.borrow();
-            let function = object.as_function().unwrap();
+            let function = object.as_function().expect("not a function");
 
             match function {
                 Function::Native {
@@ -633,7 +633,7 @@ impl JsObject {
 
         let body = {
             let object = self.borrow();
-            let function = object.as_function().unwrap();
+            let function = object.as_function().expect("not a function");
 
             match function {
                 Function::Native { function, .. } => FunctionBody::Native {

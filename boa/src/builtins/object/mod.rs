@@ -605,7 +605,9 @@ impl Object {
             // 3.a. If nextSource is neither undefined nor null, then
             if !source.is_null_or_undefined() {
                 // 3.a.i. Let from be ! ToObject(nextSource).
-                let from = source.to_object(context).unwrap();
+                let from = source
+                    .to_object(context)
+                    .expect("this ToObject call must not fail");
                 // 3.a.ii. Let keys be ? from.[[OwnPropertyKeys]]().
                 let keys = from.__own_property_keys__(context)?;
                 // 3.a.iii. For each element nextKey of keys, do
@@ -925,7 +927,7 @@ impl Object {
 
         // 4. Let closure be a new Abstract Closure with parameters (key, value) that captures
         // obj and performs the following steps when called:
-        let mut closure = FunctionBuilder::closure_with_captures(
+        let closure = FunctionBuilder::closure_with_captures(
             context,
             |_, args, obj, context| {
                 let key = args.get_or_undefined(0);
