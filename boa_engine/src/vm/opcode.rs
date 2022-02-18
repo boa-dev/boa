@@ -690,6 +690,13 @@ pub enum Opcode {
     /// Stack: **=>** func
     GetFunction,
 
+    /// Get generator function from the pre-compiled inner functions.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: **=>** func
+    GetGenerator,
+
     /// Call a function.
     ///
     /// Operands: argument_count: `u32`
@@ -867,6 +874,27 @@ pub enum Opcode {
     /// Stack: **=>**
     PopOnReturnSub,
 
+    /// Yield from the current execution.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>**
+    Yield,
+
+    /// Resumes the current generator function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: received **=>**
+    GeneratorNext,
+
+    /// Delegates the current generator function another generator.
+    ///
+    /// Operands: done_address: `u32`
+    ///
+    /// Stack: iterator, next_function, received **=>** iterator, next_function
+    GeneratorNextDelegate,
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -982,6 +1010,7 @@ impl Opcode {
             Opcode::Case => "Case",
             Opcode::Default => "Default",
             Opcode::GetFunction => "GetFunction",
+            Opcode::GetGenerator => "GetGenerator",
             Opcode::Call => "Call",
             Opcode::CallWithRest => "CallWithRest",
             Opcode::New => "New",
@@ -1007,6 +1036,9 @@ impl Opcode {
             Opcode::RestParameterPop => "RestParameterPop",
             Opcode::PopOnReturnAdd => "PopOnReturnAdd",
             Opcode::PopOnReturnSub => "PopOnReturnSub",
+            Opcode::Yield => "Yield",
+            Opcode::GeneratorNext => "GeneratorNext",
+            Opcode::GeneratorNextDelegate => "GeneratorNextDelegate",
             Opcode::Nop => "Nop",
         }
     }

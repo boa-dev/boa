@@ -1,6 +1,6 @@
 //! Async Generator Expression
 
-use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
+use crate::syntax::ast::node::{join_nodes, FormalParameterList, Node, StatementList};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -19,7 +19,7 @@ use super::block_to_string;
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncGeneratorExpr {
     name: Option<Sym>,
-    parameters: Box<[FormalParameter]>,
+    parameters: FormalParameterList,
     body: StatementList,
 }
 
@@ -28,7 +28,7 @@ impl AsyncGeneratorExpr {
     pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
     where
         N: Into<Option<Sym>>,
-        P: Into<Box<[FormalParameter]>>,
+        P: Into<FormalParameterList>,
         B: Into<StatementList>,
     {
         Self {
@@ -44,7 +44,7 @@ impl AsyncGeneratorExpr {
     }
 
     /// Gets the list of parameters of the async generator expression
-    pub fn parameters(&self) -> &[FormalParameter] {
+    pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
@@ -64,7 +64,7 @@ impl AsyncGeneratorExpr {
         }
         buf.push_str(&format!(
             "({}) {}",
-            join_nodes(interner, &self.parameters),
+            join_nodes(interner, &self.parameters.parameters),
             block_to_string(&self.body, interner, indentation)
         ));
 

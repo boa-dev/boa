@@ -340,6 +340,17 @@ impl JsObject {
         self.borrow().is_function()
     }
 
+    /// Checks if it's a `Generator` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_generator(&self) -> bool {
+        self.borrow().is_generator()
+    }
+
     /// Checks if it's a `Symbol` object.
     ///
     /// # Panics

@@ -1,7 +1,7 @@
 //! Object node.
 
 use crate::syntax::ast::node::{
-    declaration::block_to_string, join_nodes, MethodDefinitionKind, Node, PropertyDefinition,
+    declaration::block_to_string, join_nodes, MethodDefinition, Node, PropertyDefinition,
 };
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
@@ -66,20 +66,47 @@ impl Object {
                 PropertyDefinition::SpreadObject(key) => {
                     format!("{indentation}...{},\n", key.to_interned_string(interner))
                 }
-                PropertyDefinition::MethodDefinition(kind, key, node) => {
+                PropertyDefinition::MethodDefinition(method, key) => {
                     format!(
                         "{indentation}{}{}({}) {},\n",
-                        match &kind {
-                            MethodDefinitionKind::Get => "get ",
-                            MethodDefinitionKind::Set => "set ",
-                            MethodDefinitionKind::Ordinary
-                            | MethodDefinitionKind::Generator
-                            | MethodDefinitionKind::Async
-                            | MethodDefinitionKind::AsyncGenerator => "",
+                        match &method {
+                            MethodDefinition::Get(_) => "get ",
+                            MethodDefinition::Set(_) => "set ",
+                            _ => "",
                         },
                         key.to_interned_string(interner),
-                        join_nodes(interner, node.parameters()),
-                        block_to_string(node.body(), interner, indent_n + 1)
+                        match &method {
+                            MethodDefinition::Get(node)
+                            | MethodDefinition::Set(node)
+                            | MethodDefinition::Ordinary(node) => {
+                                join_nodes(interner, &node.parameters().parameters)
+                            }
+                            MethodDefinition::Generator(node) => {
+                                join_nodes(interner, &node.parameters().parameters)
+                            }
+                            MethodDefinition::AsyncGenerator(node) => {
+                                join_nodes(interner, &node.parameters().parameters)
+                            }
+                            MethodDefinition::Async(node) => {
+                                join_nodes(interner, &node.parameters().parameters)
+                            }
+                        },
+                        match &method {
+                            MethodDefinition::Get(node)
+                            | MethodDefinition::Set(node)
+                            | MethodDefinition::Ordinary(node) => {
+                                block_to_string(node.body(), interner, indent_n + 1)
+                            }
+                            MethodDefinition::Generator(node) => {
+                                block_to_string(node.body(), interner, indent_n + 1)
+                            }
+                            MethodDefinition::AsyncGenerator(node) => {
+                                block_to_string(node.body(), interner, indent_n + 1)
+                            }
+                            MethodDefinition::Async(node) => {
+                                block_to_string(node.body(), interner, indent_n + 1)
+                            }
+                        },
                     )
                 }
             });

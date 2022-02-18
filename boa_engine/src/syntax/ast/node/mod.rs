@@ -49,6 +49,7 @@ pub use self::{
     try_node::{Catch, Finally, Try},
 };
 use super::Const;
+use bitflags::bitflags;
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use std::cmp::Ordering;
@@ -348,6 +349,92 @@ where
     buf
 }
 
+/// `FormalParameterList` is a list of `FormalParameter`s that describes the parameters of a function.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Default, PartialEq, Trace, Finalize)]
+pub struct FormalParameterList {
+    pub(crate) parameters: Box<[FormalParameter]>,
+    #[unsafe_ignore_trace]
+    pub(crate) flags: FormalParameterListFlags,
+}
+
+#[allow(clippy::fn_params_excessive_bools)]
+impl FormalParameterList {
+    pub(crate) fn new(
+        parameters: Box<[FormalParameter]>,
+        is_simple: bool,
+        has_duplicates: bool,
+        has_rest_parameter: bool,
+        has_expressions: bool,
+        has_arguments: bool,
+    ) -> Self {
+        let mut flags = FormalParameterListFlags::empty();
+        if is_simple {
+            flags |= FormalParameterListFlags::IS_SIMPLE;
+        }
+        if has_duplicates {
+            flags |= FormalParameterListFlags::HAS_DUPLICATES;
+        }
+        if has_rest_parameter {
+            flags |= FormalParameterListFlags::HAS_REST_PARAMETER;
+        }
+        if has_expressions {
+            flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
+        }
+        if has_arguments {
+            flags |= FormalParameterListFlags::HAS_ARGUMENTS;
+        }
+        Self { parameters, flags }
+    }
+
+    pub(crate) fn is_simple(&self) -> bool {
+        self.flags.contains(FormalParameterListFlags::IS_SIMPLE)
+    }
+
+    pub(crate) fn has_duplicates(&self) -> bool {
+        self.flags
+            .contains(FormalParameterListFlags::HAS_DUPLICATES)
+    }
+
+    pub(crate) fn has_rest_parameter(&self) -> bool {
+        self.flags
+            .contains(FormalParameterListFlags::HAS_REST_PARAMETER)
+    }
+
+    pub(crate) fn has_expressions(&self) -> bool {
+        self.flags
+            .contains(FormalParameterListFlags::HAS_EXPRESSIONS)
+    }
+
+    pub(crate) fn has_arguments(&self) -> bool {
+        self.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
+    }
+}
+
+bitflags! {
+    /// Flags for a FormalParameterList.
+    #[allow(clippy::unsafe_derive_deserialize)]
+    #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+    pub(crate) struct FormalParameterListFlags: u8 {
+        const IS_SIMPLE = 0b0000_0001;
+        const HAS_DUPLICATES = 0b0000_0010;
+        const HAS_REST_PARAMETER = 0b0000_0100;
+        const HAS_EXPRESSIONS = 0b0000_1000;
+        const HAS_ARGUMENTS = 0b0001_0000;
+    }
+}
+
+impl Default for FormalParameterListFlags {
+    fn default() -> Self {
+        Self::empty().union(Self::IS_SIMPLE)
+    }
+}
+
 /// "Formal parameter" is a fancy way of saying "function parameter".
 ///
 /// In the declaration of a function, the parameters must be identifiers,
@@ -470,7 +557,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
-    MethodDefinition(MethodDefinitionKind, PropertyName, FunctionExpr),
+    MethodDefinition(MethodDefinition, PropertyName),
 
     /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
     /// It copies own enumerable properties from a provided object onto a new object.
@@ -502,11 +589,11 @@ impl PropertyDefinition {
     }
 
     /// Creates a `MethodDefinition`.
-    pub fn method_definition<N>(kind: MethodDefinitionKind, name: N, body: FunctionExpr) -> Self
+    pub fn method_definition<N>(kind: MethodDefinition, name: N) -> Self
     where
         N: Into<PropertyName>,
     {
-        Self::MethodDefinition(kind, name.into(), body)
+        Self::MethodDefinition(kind, name.into())
     }
 
     /// Creates a `SpreadObject`.
@@ -518,7 +605,7 @@ impl PropertyDefinition {
     }
 }
 
-/// Method definition kinds.
+/// Method definition.
 ///
 /// Starting with ECMAScript 2015, a shorter syntax for method definitions on objects initializers is introduced.
 /// It is a shorthand for a function assigned to the method's name.
@@ -530,8 +617,8 @@ impl PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Copy, Finalize)]
-pub enum MethodDefinitionKind {
+#[derive(Clone, Debug, PartialEq, Finalize, Trace)]
+pub enum MethodDefinition {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
     ///
     /// Sometimes it is desirable to allow access to a property that returns a dynamically computed value,
@@ -547,7 +634,7 @@ pub enum MethodDefinitionKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get
-    Get,
+    Get(FunctionExpr),
 
     /// The `set` syntax binds an object property to a function to be called when there is an attempt to set that property.
     ///
@@ -561,7 +648,7 @@ pub enum MethodDefinitionKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
-    Set,
+    Set(FunctionExpr),
 
     /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
     ///
@@ -571,7 +658,7 @@ pub enum MethodDefinitionKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
-    Ordinary,
+    Ordinary(FunctionExpr),
 
     /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
     ///
@@ -581,7 +668,7 @@ pub enum MethodDefinitionKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#generator_methods
-    Generator,
+    Generator(GeneratorExpr),
 
     /// Async generators can be used to define a method
     ///
@@ -591,7 +678,7 @@ pub enum MethodDefinitionKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_generator_methods
-    AsyncGenerator,
+    AsyncGenerator(AsyncGeneratorExpr),
 
     /// Async function can be used to define a method
     ///
@@ -601,11 +688,7 @@ pub enum MethodDefinitionKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_methods
-    Async,
-}
-
-unsafe impl Trace for MethodDefinitionKind {
-    unsafe_empty_trace!();
+    Async(AsyncFunctionExpr),
 }
 
 /// `PropertyName` can be either a literal or computed.
