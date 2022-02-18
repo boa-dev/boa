@@ -8,7 +8,6 @@ members = [
     "boa_tester",
     "boa_unicode",
     "boa_wasm",
-
 ]
 
 # The release profile, used for `cargo build --release`.
