@@ -141,7 +141,7 @@ impl DeclarativeEnvironmentStack {
     ///
     /// # Panics
     ///
-    /// Panics if the environment of binding index are out of range.
+    /// Panics if the environment or binding index are out of range.
     #[inline]
     pub(crate) fn get_value_optional(
         &self,
@@ -162,7 +162,7 @@ impl DeclarativeEnvironmentStack {
     ///
     /// # Panics
     ///
-    /// Panics if the environment of binding index are out of range.
+    /// Panics if the environment or binding index are out of range.
     #[inline]
     pub(crate) fn put_value(
         &mut self,
@@ -187,7 +187,7 @@ impl DeclarativeEnvironmentStack {
     ///
     /// # Panics
     ///
-    /// Panics if the environment of binding index are out of range.
+    /// Panics if the environment or binding index are out of range.
     #[inline]
     pub(crate) fn put_value_if_initialized(
         &mut self,
@@ -216,7 +216,7 @@ impl DeclarativeEnvironmentStack {
     ///
     /// # Panics
     ///
-    /// Panics if the environment of binding index are out of range.
+    /// Panics if the environment or binding index are out of range.
     #[inline]
     pub(crate) fn put_value_if_uninitialized(
         &mut self,
