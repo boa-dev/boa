@@ -1152,26 +1152,6 @@
 <span id="1151">1151</span>
 <span id="1152">1152</span>
 <span id="1153">1153</span>
-<span id="1154">1154</span>
-<span id="1155">1155</span>
-<span id="1156">1156</span>
-<span id="1157">1157</span>
-<span id="1158">1158</span>
-<span id="1159">1159</span>
-<span id="1160">1160</span>
-<span id="1161">1161</span>
-<span id="1162">1162</span>
-<span id="1163">1163</span>
-<span id="1164">1164</span>
-<span id="1165">1165</span>
-<span id="1166">1166</span>
-<span id="1167">1167</span>
-<span id="1168">1168</span>
-<span id="1169">1169</span>
-<span id="1170">1170</span>
-<span id="1171">1171</span>
-<span id="1172">1172</span>
-<span id="1173">1173</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.</span>
@@ -1187,13 +1167,12 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-number-object</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::string::is_trimmable_whitespace</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::context::StandardObjects</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::object::JsObject</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">BuiltIn</span>},
-    <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">builtins</span>::{<span class="ident">string::is_trimmable_whitespace</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
+    <span class="ident">context::StandardObjects</span>,
+    <span class="ident">object</span>::{
+        <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
+    },
     <span class="ident">property::Attribute</span>,
     <span class="ident">value</span>::{<span class="ident">AbstractRelation</span>, <span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">BoaProfiler</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>,
@@ -1212,12 +1191,6 @@
 <span class="doccomment">/// `Number` implementation.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Number</span>;
-
-<span class="doccomment">/// Maximum number of arguments expected to the builtin parseInt() function.</span>
-<span class="kw">const</span> <span class="ident">PARSE_INT_MAX_ARG_COUNT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">2</span>;
-
-<span class="doccomment">/// Maximum number of arguments expected to the builtin parseFloat() function.</span>
-<span class="kw">const</span> <span class="ident">PARSE_FLOAT_MAX_ARG_COUNT</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">1</span>;
 
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Number</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Number&quot;</span>;
@@ -1257,23 +1230,10 @@
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::number_is_integer</span>, <span class="string">&quot;isInteger&quot;</span>, <span class="number">1</span>)
         .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>();
-        <span class="ident">make_builtin_fn</span>(
-            <span class="ident"><span class="self">Self</span>::parse_int</span>,
-            <span class="string">&quot;parseInt&quot;</span>,
-            <span class="kw-2">&amp;</span><span class="ident">global</span>,
-            <span class="ident">PARSE_INT_MAX_ARG_COUNT</span>,
-            <span class="ident">context</span>,
-        );
-        <span class="ident">make_builtin_fn</span>(
-            <span class="ident"><span class="self">Self</span>::parse_float</span>,
-            <span class="string">&quot;parseFloat&quot;</span>,
-            <span class="kw-2">&amp;</span><span class="ident">global</span>,
-            <span class="ident">PARSE_FLOAT_MAX_ARG_COUNT</span>,
-            <span class="ident">context</span>,
-        );
-        <span class="ident">make_builtin_fn</span>(<span class="ident"><span class="self">Self</span>::global_is_finite</span>, <span class="string">&quot;isFinite&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">global</span>, <span class="number">1</span>, <span class="ident">context</span>);
-        <span class="ident">make_builtin_fn</span>(<span class="ident"><span class="self">Self</span>::global_is_nan</span>, <span class="string">&quot;isNaN&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">global</span>, <span class="number">1</span>, <span class="ident">context</span>);
+        <span class="ident">context</span>.<span class="ident">register_global_builtin_function</span>(<span class="string">&quot;parseInt&quot;</span>, <span class="number">2</span>, <span class="ident"><span class="self">Self</span>::parse_int</span>);
+        <span class="ident">context</span>.<span class="ident">register_global_builtin_function</span>(<span class="string">&quot;parseFloat&quot;</span>, <span class="number">1</span>, <span class="ident"><span class="self">Self</span>::parse_float</span>);
+        <span class="ident">context</span>.<span class="ident">register_global_builtin_function</span>(<span class="string">&quot;isFinite&quot;</span>, <span class="number">1</span>, <span class="ident"><span class="self">Self</span>::global_is_finite</span>);
+        <span class="ident">context</span>.<span class="ident">register_global_builtin_function</span>(<span class="string">&quot;isNaN&quot;</span>, <span class="number">1</span>, <span class="ident"><span class="self">Self</span>::global_is_nan</span>);
 
         <span class="ident">number_object</span>.<span class="ident">into</span>()
     }

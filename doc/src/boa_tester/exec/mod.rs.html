@@ -339,13 +339,6 @@
 <span id="338">338</span>
 <span id="339">339</span>
 <span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.</span>
 
 <span class="kw">mod</span> <span class="ident">js262</span>;
@@ -643,14 +636,7 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::default</span>();
 
         <span class="comment">// Register the print() function.</span>
-        <span class="ident">context</span>
-            .<span class="ident">register_global_function</span>(<span class="string">&quot;print&quot;</span>, <span class="number">1</span>, <span class="ident">test262_print</span>)
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
-                <span class="macro">format!</span>(
-                    <span class="string">&quot;could not register the global print() function:\n{}&quot;</span>,
-                    <span class="ident">e</span>.<span class="ident">display</span>()
-                )
-            })<span class="question-mark">?</span>;
+        <span class="ident">context</span>.<span class="ident">register_global_function</span>(<span class="string">&quot;print&quot;</span>, <span class="number">1</span>, <span class="ident">test262_print</span>);
 
         <span class="comment">// add the $262 object.</span>
         <span class="kw">let</span> <span class="ident">_js262</span> <span class="op">=</span> <span class="ident">js262::init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>);

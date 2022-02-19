@@ -113,7 +113,7 @@
 
 <span class="doccomment">/// Initializes the object in the context.</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
-    <span class="kw">let</span> <span class="ident">global_obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>();
+    <span class="kw">let</span> <span class="ident">global_obj</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>();
 
     <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
         .<span class="ident">function</span>(<span class="ident">create_realm</span>, <span class="string">&quot;createRealm&quot;</span>, <span class="number">0</span>)

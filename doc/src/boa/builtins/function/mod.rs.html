@@ -647,7 +647,6 @@
 <span id="646">646</span>
 <span id="647">647</span>
 <span id="648">648</span>
-<span id="649">649</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -661,11 +660,10 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-function-objects</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::BuiltIn</span>,
+    <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">context::StandardObjects</span>,
-    <span class="ident">environment::lexical_environment::Environment</span>,
+    <span class="ident">environments::DeclarativeEnvironmentStack</span>,
     <span class="ident">gc</span>::{<span class="self">self</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>},
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>,
@@ -827,7 +825,7 @@
     },
     <span class="ident">VmOrdinary</span> {
         <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
-        <span class="ident">environment</span>: <span class="ident">Environment</span>,
+        <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
     },
 }
 

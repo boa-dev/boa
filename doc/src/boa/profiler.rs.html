@@ -115,12 +115,12 @@
             .<span class="ident">start_recording_interval_event</span>(<span class="ident">kind</span>, <span class="ident">id</span>, <span class="ident">thread_id</span>)
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">BoaProfiler</span> {
-        <span class="kw">let</span> <span class="ident">profiler</span> <span class="op">=</span> <span class="ident">Profiler::new</span>(<span class="ident">Path::new</span>(<span class="string">&quot;./my_trace&quot;</span>)).<span class="ident">unwrap</span>();
-        <span class="ident">BoaProfiler</span> { <span class="ident">profiler</span> }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">profiler</span> <span class="op">=</span> <span class="ident">Profiler::new</span>(<span class="ident">Path::new</span>(<span class="string">&quot;./my_trace&quot;</span>)).<span class="ident">expect</span>(<span class="string">&quot;must be able to create file&quot;</span>);
+        <span class="self">Self</span> { <span class="ident">profiler</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">BoaProfiler</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="self">Self</span> {
         <span class="kw">unsafe</span> { <span class="ident">INSTANCE</span>.<span class="ident">get_or_init</span>(<span class="ident"><span class="self">Self</span>::default</span>) }
     }
 

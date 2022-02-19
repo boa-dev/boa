@@ -1854,6 +1854,7 @@
 <span id="1853">1853</span>
 <span id="1854">1854</span>
 <span id="1855">1855</span>
+<span id="1856">1856</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1895,6 +1896,7 @@
         <span class="ident">BOUND_CONSTRUCTOR_EXOTIC_INTERNAL_METHODS</span>, <span class="ident">BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS</span>,
     },
     <span class="ident">function</span>::{<span class="ident">CONSTRUCTOR_INTERNAL_METHODS</span>, <span class="ident">FUNCTION_INTERNAL_METHODS</span>},
+    <span class="ident">global::GLOBAL_INTERNAL_METHODS</span>,
     <span class="ident">integer_indexed::INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS</span>,
     <span class="ident">proxy</span>::{
         <span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_ALL</span>, <span class="ident">PROXY_EXOTIC_INTERNAL_METHODS_BASIC</span>,
@@ -2195,7 +2197,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">global</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind::Global</span>,
-            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">GLOBAL_INTERNAL_METHODS</span>,
         }
     }
 

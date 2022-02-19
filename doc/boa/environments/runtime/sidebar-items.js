@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["BindingLocator","A binding locator contains all information about a binding that is needed to resolve it at runtime."],["DeclarativeEnvironment","A declarative environment holds the bindings values at runtime."],["DeclarativeEnvironmentStack","A declarative environment stack holds all declarative environments at runtime."]]});

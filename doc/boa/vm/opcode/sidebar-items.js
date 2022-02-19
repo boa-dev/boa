@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Opcode","The opcodes of the vm."]],"struct":[["InvalidOpcodeError",""]]});
+initSidebarItems({"enum":[["BindingOpcode","Specific opcodes for bindings."],["Opcode","The opcodes of the vm."]],"struct":[["InvalidOpcodeError",""]]});

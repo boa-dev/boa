@@ -1019,6 +1019,43 @@
 <span id="1018">1018</span>
 <span id="1019">1019</span>
 <span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::convert::TryFrom</span>;
 
 <span class="doccomment">/// The opcodes of the vm.</span>
@@ -1431,7 +1468,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: name_index: `u32`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: value **=&gt;**</span>
+    <span class="doccomment">/// Stack: value, has_declarative_binding **=&gt;**</span>
     <span class="ident">DefInitVar</span>,
 
     <span class="doccomment">/// Declare `let` type variable.</span>
@@ -1750,7 +1787,7 @@
 
     <span class="doccomment">/// Push a declarative environment.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">/// Operands: num_bindings: `u32`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: **=&gt;**</span>
     <span class="ident">PushDeclarativeEnvironment</span>,
@@ -1768,6 +1805,27 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: **=&gt;**</span>
     <span class="ident">PopEnvironment</span>,
+
+    <span class="doccomment">/// Push loop start marker.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: **=&gt;**</span>
+    <span class="ident">LoopStart</span>,
+
+    <span class="doccomment">/// Clean up environments when a loop continues.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: **=&gt;**</span>
+    <span class="ident">LoopContinue</span>,
+
+    <span class="doccomment">/// Clean up environments at the end of a loop.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: **=&gt;**</span>
+    <span class="ident">LoopEnd</span>,
 
     <span class="doccomment">/// Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.</span>
     <span class="doccomment">///</span>
@@ -1992,6 +2050,9 @@
             <span class="ident">Opcode::PushDeclarativeEnvironment</span> =&gt; <span class="string">&quot;PushDeclarativeEnvironment&quot;</span>,
             <span class="ident">Opcode::PushFunctionEnvironment</span> =&gt; <span class="string">&quot;PushFunctionEnvironment&quot;</span>,
             <span class="ident">Opcode::PopEnvironment</span> =&gt; <span class="string">&quot;PopEnvironment&quot;</span>,
+            <span class="ident">Opcode::LoopStart</span> =&gt; <span class="string">&quot;LoopStart&quot;</span>,
+            <span class="ident">Opcode::LoopContinue</span> =&gt; <span class="string">&quot;LoopContinue&quot;</span>,
+            <span class="ident">Opcode::LoopEnd</span> =&gt; <span class="string">&quot;LoopEnd&quot;</span>,
             <span class="ident">Opcode::ForInLoopInitIterator</span> =&gt; <span class="string">&quot;ForInLoopInitIterator&quot;</span>,
             <span class="ident">Opcode::InitIterator</span> =&gt; <span class="string">&quot;InitIterator&quot;</span>,
             <span class="ident">Opcode::IteratorNext</span> =&gt; <span class="string">&quot;IteratorNext&quot;</span>,
@@ -2038,6 +2099,19 @@
 
         <span class="prelude-val">Ok</span>(<span class="ident">opcode</span>)
     }
+}
+
+<span class="doccomment">/// Specific opcodes for bindings.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This separate enum exists to make matching exhaustive where needed.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">BindingOpcode</span> {
+    <span class="ident">Var</span>,
+    <span class="ident">Let</span>,
+    <span class="ident">InitVar</span>,
+    <span class="ident">InitLet</span>,
+    <span class="ident">InitArg</span>,
+    <span class="ident">InitConst</span>,
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa" data-search-index-js="../../../search-index.js" data-search-js="../../../search.js"></div>

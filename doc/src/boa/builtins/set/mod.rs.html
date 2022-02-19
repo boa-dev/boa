@@ -762,7 +762,7 @@
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="comment">// TODO: if condition should also check that we are not in strict mode</span>
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">this_arg</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsValue::Object</span>(<span class="ident">context</span>.<span class="ident">global_object</span>())
+            <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>()
         } <span class="kw">else</span> {
             <span class="ident">this_arg</span>.<span class="ident">clone</span>()
         };
