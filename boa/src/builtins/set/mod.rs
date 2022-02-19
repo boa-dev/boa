@@ -330,7 +330,7 @@ impl Set {
         let this_arg = args.get_or_undefined(1);
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
-            JsValue::Object(context.global_object())
+            context.global_object().clone().into()
         } else {
             this_arg.clone()
         };

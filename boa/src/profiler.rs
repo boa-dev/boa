@@ -31,12 +31,12 @@ impl BoaProfiler {
             .start_recording_interval_event(kind, id, thread_id)
     }
 
-    pub fn default() -> BoaProfiler {
-        let profiler = Profiler::new(Path::new("./my_trace")).unwrap();
-        BoaProfiler { profiler }
+    pub fn default() -> Self {
+        let profiler = Profiler::new(Path::new("./my_trace")).expect("must be able to create file");
+        Self { profiler }
     }
 
-    pub fn global() -> &'static BoaProfiler {
+    pub fn global() -> &'static Self {
         unsafe { INSTANCE.get_or_init(Self::default) }
     }
 

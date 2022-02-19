@@ -8,10 +8,7 @@ use crate::{
         NativeFunctionSignature, ThisMode,
     },
     context::StandardObjects,
-    environment::{
-        function_environment_record::{BindingStatus, FunctionEnvironmentRecord},
-        lexical_environment::Environment,
-    },
+    environments::{BindingLocator, DeclarativeEnvironmentStack},
     gc::{Finalize, Gc, Trace},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     profiler::BoaProfiler,
@@ -76,14 +73,25 @@ pub struct CodeBlock {
     /// Literals
     pub(crate) literals: Vec<JsValue>,
 
-    /// Variables names
+    /// Property field names.
     pub(crate) variables: Vec<Sym>,
+
+    /// Locators for all bindings in the codeblock.
+    #[unsafe_ignore_trace]
+    pub(crate) bindings: Vec<BindingLocator>,
+
+    /// Number of binding for the function environment.
+    pub(crate) num_bindings: usize,
 
     /// Functions inside this function
     pub(crate) functions: Vec<Gc<CodeBlock>>,
 
     /// Indicates if the codeblock contains a lexical name `arguments`
     pub(crate) lexical_name_argument: bool,
+
+    /// The `arguments` binding location of the function, if set.
+    #[unsafe_ignore_trace]
+    pub(crate) arguments_binding: Option<BindingLocator>,
 }
 
 impl CodeBlock {
@@ -93,6 +101,8 @@ impl CodeBlock {
             code: Vec::new(),
             literals: Vec::new(),
             variables: Vec::new(),
+            bindings: Vec::new(),
+            num_bindings: 0,
             functions: Vec::new(),
             name,
             length,
@@ -101,6 +111,7 @@ impl CodeBlock {
             this_mode: ThisMode::Global,
             params: Vec::new().into_boxed_slice(),
             lexical_name_argument: false,
+            arguments_binding: None,
         }
     }
 
@@ -135,7 +146,7 @@ impl CodeBlock {
     /// Modifies the `pc` to point to the next instruction.
     ///
     /// Returns an empty `String` if no operands are present.
-    pub(crate) fn instruction_operands(&self, pc: &mut usize) -> String {
+    pub(crate) fn instruction_operands(&self, pc: &mut usize, interner: &Interner) -> String {
         let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
@@ -175,7 +186,10 @@ impl CodeBlock {
             | Opcode::New
             | Opcode::NewWithRest
             | Opcode::ForInLoopInitIterator
-            | Opcode::ForInLoopNext => {
+            | Opcode::ForInLoopNext
+            | Opcode::ConcatToString
+            | Opcode::CopyDataProperties
+            | Opcode::PushDeclarativeEnvironment => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
@@ -192,7 +206,8 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{:?}' (length: {})",
-                    self.functions[operand as usize].name, self.functions[operand as usize].length
+                    interner.resolve_expect(self.functions[operand as usize].name),
+                    self.functions[operand as usize].length
                 )
             }
             Opcode::DefInitArg
@@ -203,18 +218,27 @@ impl CodeBlock {
             | Opcode::DefInitConst
             | Opcode::GetName
             | Opcode::GetNameOrUndefined
-            | Opcode::SetName
-            | Opcode::GetPropertyByName
+            | Opcode::SetName => {
+                let operand = self.read::<u32>(*pc);
+                *pc += size_of::<u32>();
+                format!(
+                    "{:04}: '{}'",
+                    operand,
+                    interner.resolve_expect(self.bindings[operand as usize].name()),
+                )
+            }
+            Opcode::GetPropertyByName
             | Opcode::SetPropertyByName
             | Opcode::DefineOwnPropertyByName
             | Opcode::SetPropertyGetterByName
             | Opcode::SetPropertySetterByName
-            | Opcode::DeletePropertyByName
-            | Opcode::ConcatToString
-            | Opcode::CopyDataProperties => {
+            | Opcode::DeletePropertyByName => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
-                format!("{operand:04}: '{:?}'", self.variables[operand as usize])
+                format!(
+                    "{operand:04}: '{}'",
+                    interner.resolve_expect(self.variables[operand as usize]),
+                )
             }
             Opcode::Pop
             | Opcode::Dup
@@ -274,9 +298,11 @@ impl CodeBlock {
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Return
-            | Opcode::PushDeclarativeEnvironment
             | Opcode::PushFunctionEnvironment
             | Opcode::PopEnvironment
+            | Opcode::LoopStart
+            | Opcode::LoopContinue
+            | Opcode::LoopEnd
             | Opcode::InitIterator
             | Opcode::IteratorNext
             | Opcode::IteratorNextFull
@@ -314,7 +340,7 @@ impl ToInternedString for CodeBlock {
         let mut count = 0;
         while pc < self.code.len() {
             let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
-            let operands = self.instruction_operands(&mut pc);
+            let operands = self.instruction_operands(&mut pc, interner);
             f.push_str(&format!(
                 "    {pc:06}    {count:04}    {:<27}\n{operands}",
                 opcode.as_str(),
@@ -371,7 +397,7 @@ pub struct JsVmFunction {}
 
 impl JsVmFunction {
     #[allow(clippy::new_ret_no_self)]
-    pub fn new(code: Gc<CodeBlock>, environment: Environment, context: &mut Context) -> JsObject {
+    pub fn new(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
         let _timer = BoaProfiler::global().start_event("Identifier", "vm");
 
         let function_prototype = context.standard_objects().function_object().prototype();
@@ -392,7 +418,10 @@ impl JsVmFunction {
             .configurable(true)
             .build();
 
-        let function = Function::VmOrdinary { code, environment };
+        let function = Function::VmOrdinary {
+            code,
+            environments: context.realm.environments.clone(),
+        };
 
         let constructor =
             JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
@@ -432,7 +461,7 @@ impl JsVmFunction {
 pub(crate) enum FunctionBody {
     Ordinary {
         code: Gc<CodeBlock>,
-        environment: Environment,
+        environments: DeclarativeEnvironmentStack,
     },
     Native {
         function: NativeFunctionSignature,
@@ -483,9 +512,9 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environment } => FunctionBody::Ordinary {
+                Function::VmOrdinary { code, environments } => FunctionBody::Ordinary {
                     code: code.clone(),
-                    environment: environment.clone(),
+                    environments: environments.clone(),
                 },
             }
         };
@@ -498,71 +527,64 @@ impl JsObject {
             FunctionBody::Closure { function, captures } => {
                 (function)(this, args, captures, context)
             }
-            FunctionBody::Ordinary { code, environment } => {
+            FunctionBody::Ordinary {
+                code,
+                mut environments,
+            } => {
+                std::mem::swap(&mut environments, &mut context.realm.environments);
+
                 let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
-                // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
-                // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                let local_env = FunctionEnvironmentRecord::new(
-                    this_function_object.clone(),
-                    (!lexical_this_mode).then(|| this.clone()),
-                    Some(environment.clone()),
-                    // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                    if lexical_this_mode {
-                        BindingStatus::Lexical
+                let this = if lexical_this_mode {
+                    if let Some(this) = context.realm.environments.get_last_this() {
+                        this
                     } else {
-                        BindingStatus::Uninitialized
-                    },
-                    JsValue::undefined(),
-                    context,
-                )?;
+                        context.global_object().clone().into()
+                    }
+                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                    context.global_object().clone().into()
+                } else {
+                    this.clone()
+                };
 
-                // Turn local_env into Environment so it can be cloned
-                let local_env: Environment = local_env.into();
-
-                // Push the environment first so that it will be used by default parameters
-                context.push_environment(local_env.clone());
+                context
+                    .realm
+                    .environments
+                    .push_function(code.num_bindings, this.clone());
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
                 let mut has_parameter_expressions = false;
 
-                let arguments = Sym::ARGUMENTS;
                 for param in code.params.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.names().contains(&arguments);
+                        arguments_in_parameter_names || param.names().contains(&Sym::ARGUMENTS);
                     is_simple_parameter_list = is_simple_parameter_list
                         && !param.is_rest_param()
                         && param.is_identifier()
                         && param.init().is_none();
                 }
 
-                // An arguments object is added when all of the following conditions are met
-                // - If not in an arrow function (10.2.11.16)
-                // - If the parameter list does not contain `arguments` (10.2.11.17)
-                // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
-                //
-                // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-                if !lexical_this_mode
-                    && !arguments_in_parameter_names
-                    && (has_parameter_expressions || !code.lexical_name_argument)
-                {
-                    // Add arguments object
+                if let Some(binding) = code.arguments_binding {
                     let arguments_obj =
                         if context.strict() || code.strict || !is_simple_parameter_list {
                             Arguments::create_unmapped_arguments_object(args, context)
                         } else {
+                            let env = context.realm.environments.current();
                             Arguments::create_mapped_arguments_object(
                                 &this_function_object,
                                 &code.params,
                                 args,
-                                &local_env,
+                                &env,
                                 context,
                             )
                         };
-                    local_env.create_mutable_binding(arguments, false, true, context)?;
-                    local_env.initialize_binding(arguments, arguments_obj.into(), context)?;
+                    context.realm.environments.put_value(
+                        binding.environment_index(),
+                        binding.binding_index(),
+                        arguments_obj.into(),
+                    );
                 }
 
                 let arg_count = args.len();
@@ -582,16 +604,6 @@ impl JsObject {
 
                 let param_count = code.params.len();
 
-                let this = if this.is_null_or_undefined() {
-                    context
-                        .get_global_this_binding()
-                        .expect("global env must have this binding")
-                } else {
-                    this.to_object(context)
-                        .expect("conversion to object cannot fail here")
-                        .into()
-                };
-
                 context.vm.push_frame(CallFrame {
                     prev: None,
                     code,
@@ -601,17 +613,24 @@ impl JsObject {
                     finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
                     pop_on_return: 0,
-                    pop_env_on_return: 0,
+                    loop_env_stack: vec![0],
+                    try_env_stack: vec![crate::vm::TryStackEntry {
+                        num_env: 0,
+                        num_loop_stack_entries: 0,
+                    }],
                     param_count,
                     arg_count,
                 });
 
                 let result = context.run();
+                context.vm.pop_frame().expect("must have frame");
 
-                context.pop_environment();
+                context.realm.environments.pop();
                 if has_parameter_expressions {
-                    context.pop_environment();
+                    context.realm.environments.pop();
                 }
+
+                std::mem::swap(&mut environments, &mut context.realm.environments);
 
                 result
             }
@@ -645,9 +664,9 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environment } => FunctionBody::Ordinary {
+                Function::VmOrdinary { code, environments } => FunctionBody::Ordinary {
                     code: code.clone(),
-                    environment: environment.clone(),
+                    environments: environments.clone(),
                 },
             }
         };
@@ -657,7 +676,12 @@ impl JsObject {
             FunctionBody::Closure { function, captures } => {
                 (function)(this_target, args, captures, context)
             }
-            FunctionBody::Ordinary { code, environment } => {
+            FunctionBody::Ordinary {
+                code,
+                mut environments,
+            } => {
+                std::mem::swap(&mut environments, &mut context.realm.environments);
+
                 let this: JsValue = {
                     // If the prototype of the constructor is not an object, then use the default object
                     // prototype as prototype for the new object
@@ -670,29 +694,11 @@ impl JsObject {
                     )?;
                     Self::from_proto_and_data(prototype, ObjectData::ordinary()).into()
                 };
-                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
 
-                // Create a new Function environment whose parent is set to the scope of the function declaration (self.environment)
-                // <https://tc39.es/ecma262/#sec-prepareforordinarycall>
-                let local_env = FunctionEnvironmentRecord::new(
-                    this_function_object.clone(),
-                    Some(this.clone()),
-                    Some(environment),
-                    // Arrow functions do not have a this binding https://tc39.es/ecma262/#sec-function-environment-records
-                    if lexical_this_mode {
-                        BindingStatus::Lexical
-                    } else {
-                        BindingStatus::Uninitialized
-                    },
-                    JsValue::undefined(),
-                    context,
-                )?;
-
-                // Turn local_env into Environment so it can be cloned
-                let local_env: Environment = local_env.into();
-
-                // Push the environment first so that it will be used by default parameters
-                context.push_environment(local_env.clone());
+                context
+                    .realm
+                    .environments
+                    .push_function(code.num_bindings, this.clone());
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
@@ -708,31 +714,25 @@ impl JsObject {
                         && param.init().is_none();
                 }
 
-                // An arguments object is added when all of the following conditions are met
-                // - If not in an arrow function (10.2.11.16)
-                // - If the parameter list does not contain `arguments` (10.2.11.17)
-                // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
-                //
-                // https://tc39.es/ecma262/#sec-functiondeclarationinstantiation
-                if !lexical_this_mode
-                    && !arguments_in_parameter_names
-                    && (has_parameter_expressions || !code.lexical_name_argument)
-                {
-                    // Add arguments object
+                if let Some(binding) = code.arguments_binding {
                     let arguments_obj =
                         if context.strict() || code.strict || !is_simple_parameter_list {
                             Arguments::create_unmapped_arguments_object(args, context)
                         } else {
+                            let env = context.realm.environments.current();
                             Arguments::create_mapped_arguments_object(
                                 &this_function_object,
                                 &code.params,
                                 args,
-                                &local_env,
+                                &env,
                                 context,
                             )
                         };
-                    local_env.create_mutable_binding(Sym::ARGUMENTS, false, true, context)?;
-                    local_env.initialize_binding(Sym::ARGUMENTS, arguments_obj.into(), context)?;
+                    context.realm.environments.put_value(
+                        binding.environment_index(),
+                        binding.binding_index(),
+                        arguments_obj.into(),
+                    );
                 }
 
                 let arg_count = args.len();
@@ -752,14 +752,10 @@ impl JsObject {
 
                 let param_count = code.params.len();
 
-                let this = if this.is_null_or_undefined() {
-                    context
-                        .get_global_this_binding()
-                        .expect("global env must have this binding")
+                let this = if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                    context.global_object().clone().into()
                 } else {
-                    this.to_object(context)
-                        .expect("conversion to object cannot fail here")
-                        .into()
+                    this
                 };
 
                 context.vm.push_frame(CallFrame {
@@ -771,24 +767,34 @@ impl JsObject {
                     finally_return: FinallyReturn::None,
                     finally_jump: Vec::new(),
                     pop_on_return: 0,
-                    pop_env_on_return: 0,
+                    loop_env_stack: vec![0],
+                    try_env_stack: vec![crate::vm::TryStackEntry {
+                        num_env: 0,
+                        num_loop_stack_entries: 0,
+                    }],
                     param_count,
                     arg_count,
                 });
 
-                let result = context.run()?;
+                let result = context.run();
 
-                let this = context.get_this_binding();
+                let frame = context.vm.pop_frame().expect("must have frame");
 
-                context.pop_environment();
+                let this = frame.this;
+
+                context.realm.environments.pop();
                 if has_parameter_expressions {
-                    context.pop_environment();
+                    context.realm.environments.pop();
                 }
+
+                std::mem::swap(&mut environments, &mut context.realm.environments);
+
+                let result = result?;
 
                 if result.is_object() {
                     Ok(result)
                 } else {
-                    this
+                    Ok(this)
                 }
             }
         }

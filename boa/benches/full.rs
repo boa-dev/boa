@@ -47,7 +47,7 @@ macro_rules! full_benchmarks {
                     static CODE: &str = include_str!(concat!("bench_scripts/", stringify!($name), ".js"));
                     let mut context = Context::default();
                     let statement_list = context.parse(CODE).expect("parsing failed");
-                    let code_block = context.compile(&statement_list);
+                    let code_block = context.compile(&statement_list).unwrap();
                     c.bench_function(concat!($id, " (Execution)"), move |b| {
                         b.iter(|| {
                             context.execute(black_box(code_block.clone())).unwrap()

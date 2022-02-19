@@ -1,14 +1,15 @@
 use crate::{
     builtins::Array,
-    environment::lexical_environment::Environment,
+    environments::DeclarativeEnvironment,
     gc::{Finalize, Trace},
     object::{FunctionBuilder, JsObject, ObjectData},
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyKey},
     symbol::{self, WellKnownSymbols},
     syntax::ast::node::FormalParameter,
     Context, JsValue,
 };
-use rustc_hash::FxHashSet;
+use gc::Gc;
+use rustc_hash::FxHashMap;
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct MappedArguments(JsObject);
@@ -57,7 +58,7 @@ impl Arguments {
                 .configurable(true),
             context,
         )
-        .expect("DefinePropertyOrThrow must not fail per the spec");
+        .expect("Defining new own properties for a new ordinary object cannot fail");
 
         // 5. Let index be 0.
         // 6. Repeat, while index < len,
@@ -65,7 +66,7 @@ impl Arguments {
             // a. Let val be argumentsList[index].
             // b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
             obj.create_data_property_or_throw(index, value, context)
-                .expect("CreateDataPropertyOrThrow must not fail per the spec");
+                .expect("Defining new own properties for a new ordinary object cannot fail");
 
             // c. Set index to index + 1.
         }
@@ -82,7 +83,7 @@ impl Arguments {
                 .configurable(true),
             context,
         )
-        .expect("DefinePropertyOrThrow must not fail per the spec");
+        .expect("Defining new own properties for a new ordinary object cannot fail");
 
         let throw_type_error = context.intrinsics().throw_type_error();
 
@@ -98,7 +99,7 @@ impl Arguments {
                 .configurable(false),
             context,
         )
-        .expect("DefinePropertyOrThrow must not fail per the spec");
+        .expect("Defining new own properties for a new ordinary object cannot fail");
 
         // 9. Return obj.
         obj
@@ -111,7 +112,7 @@ impl Arguments {
         func: &JsObject,
         formals: &[FormalParameter],
         arguments_list: &[JsValue],
-        env: &Environment,
+        env: &Gc<DeclarativeEnvironment>,
         context: &mut Context,
     ) -> JsObject {
         // 1. Assert: formals does not contain a rest parameter, any binding patterns, or any initializers.
@@ -142,7 +143,7 @@ impl Arguments {
             // a. Let val be argumentsList[index].
             // b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
             obj.create_data_property_or_throw(index, val, context)
-                .expect("CreateDataPropertyOrThrow must not fail per the spec");
+                .expect("Defining new own properties for a new ordinary object cannot fail");
             // c. Set index to index + 1.
         }
 
@@ -157,89 +158,104 @@ impl Arguments {
                 .configurable(true),
             context,
         )
-        .expect("DefinePropertyOrThrow must not fail per the spec");
+        .expect("Defining new own properties for a new ordinary object cannot fail");
 
-        // 17. Let mappedNames be a new empty List.
-        // using a set to optimize `contains`
-        let mut mapped_names = FxHashSet::default();
+        // The section 17-19 differs from the spec, due to the way the runtime environments work.
+        //
+        // This section creates getters and setters for all mapped arguments.
+        // Getting and setting values on the `arguments` object will actually access the bindings in the environment:
+        // ```
+        // function f(a) {console.log(a); arguments[0] = 1; console.log(a)};
+        // f(0) // 0, 1
+        // ```
+        //
+        // The spec assumes, that identifiers are used at runtime to reference bindings in the environment.
+        // We use indices to access environment bindings at runtime.
+        // To map to function parameters to binding indices, we use the fact, that bindings in a
+        // function environment start with all of the arguments in order:
+        // `function f (a,b,c)`
+        // | binding index | `arguments` property key | identifier |
+        // | 0             | 0                        | a          |
+        // | 1             | 1                        | b          |
+        // | 2             | 2                        | c          |
+        //
+        // Notice that the binding index does not correspond to the argument index:
+        // `function f (a,a,b)` => binding indices 0 (a), 1 (b), 2 (c)
+        // | binding index | `arguments` property key | identifier |
+        // | -             | 0                        | -          |
+        // | 0             | 1                        | a          |
+        // | 1             | 2                        | b          |
+        // While the `arguments` object contains all arguments, they must not be all bound.
+        // In the case of duplicate parameter names, the last one is bound as the environment binding.
+        //
+        // The following logic implements the steps 17-19 adjusted for our environment structure.
 
-        // 12. Let parameterNames be the BoundNames of formals.
-        // 13. Let numberOfParameters be the number of elements in parameterNames.
-        // 18. Set index to numberOfParameters - 1.
-        // 19. Repeat, while index ≥ 0,
-        // a. Let name be parameterNames[index].
-
-        for (index, parameter_name_vec) in
-            formals.iter().map(FormalParameter::names).enumerate().rev()
-        {
-            for parameter_name in parameter_name_vec.iter().copied() {
-                // b. If name is not an element of mappedNames, then
-                if !mapped_names.contains(&parameter_name) {
-                    // i. Add name as an element of the list mappedNames.
-                    mapped_names.insert(parameter_name);
-                    // ii. If index < len, then
-                    if index < len {
-                        // 1. Let g be MakeArgGetter(name, env).
-                        // https://tc39.es/ecma262/#sec-makearggetter
-                        let g = {
-                            // 2. Let getter be ! CreateBuiltinFunction(getterClosure, 0, "", « »).
-                            // 3. NOTE: getter is never directly accessible to ECMAScript code.
-                            // 4. Return getter.
-                            FunctionBuilder::closure_with_captures(
-                                context,
-                                // 1. Let getterClosure be a new Abstract Closure with no parameters that captures
-                                // name and env and performs the following steps when called:
-                                |_, _, captures, context| {
-                                    captures.0.get_binding_value(captures.1, false, context)
-                                },
-                                (env.clone(), parameter_name),
-                            )
-                            .length(0)
-                            .name("")
-                            .build()
-                        };
-                        // 2. Let p be MakeArgSetter(name, env).
-                        // https://tc39.es/ecma262/#sec-makeargsetter
-                        let p = {
-                            // 2. Let setter be ! CreateBuiltinFunction(setterClosure, 1, "", « »).
-                            // 3. NOTE: setter is never directly accessible to ECMAScript code.
-                            // 4. Return setter.
-                            FunctionBuilder::closure_with_captures(
-                                context,
-                                // 1. Let setterClosure be a new Abstract Closure with parameters (value) that captures
-                                // name and env and performs the following steps when called:
-                                |_, args, captures, context| {
-                                    let value = args.get(0).cloned().unwrap_or_default();
-                                    // a. Return env.SetMutableBinding(name, value, false).
-                                    captures
-                                        .0
-                                        .set_mutable_binding(captures.1, value, false, context)
-                                        .map(|_| JsValue::Undefined)
-                                    // Ok(JsValue::Undefined)
-                                },
-                                (env.clone(), parameter_name),
-                            )
-                            .length(1)
-                            .name("")
-                            .build()
-                        };
-
-                        // 3. Perform map.[[DefineOwnProperty]](! ToString(𝔽(index)), PropertyDescriptor {
-                        // [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
-                        map.__define_own_property__(
-                            index.into(),
-                            PropertyDescriptor::builder()
-                                .set(p)
-                                .get(g)
-                                .enumerable(false)
-                                .configurable(true)
-                                .build(),
-                            context,
-                        )
-                        .expect("[[DefineOwnProperty]] must not fail per the spec");
-                    }
+        let mut bindings = FxHashMap::default();
+        let mut property_index = 0;
+        'outer: for formal in formals {
+            for name in formal.names() {
+                if property_index >= len {
+                    break 'outer;
                 }
+                let binding_index = bindings.len() + 1;
+                let entry = bindings
+                    .entry(name)
+                    .or_insert((binding_index, property_index));
+                entry.1 = property_index;
+                property_index += 1;
             }
+        }
+        for (binding_index, property_index) in bindings.values() {
+            // 19.b.ii.1. Let g be MakeArgGetter(name, env).
+            // https://tc39.es/ecma262/#sec-makearggetter
+            let g = {
+                // 2. Let getter be ! CreateBuiltinFunction(getterClosure, 0, "", « »).
+                // 3. NOTE: getter is never directly accessible to ECMAScript code.
+                // 4. Return getter.
+                FunctionBuilder::closure_with_captures(
+                    context,
+                    // 1. Let getterClosure be a new Abstract Closure with no parameters that captures
+                    // name and env and performs the following steps when called:
+                    |_, _, captures, _| Ok(captures.0.get(captures.1)),
+                    (env.clone(), *binding_index),
+                )
+                .length(0)
+                .build()
+            };
+            // 19.b.ii.2. Let p be MakeArgSetter(name, env).
+            // https://tc39.es/ecma262/#sec-makeargsetter
+            let p = {
+                // 2. Let setter be ! CreateBuiltinFunction(setterClosure, 1, "", « »).
+                // 3. NOTE: setter is never directly accessible to ECMAScript code.
+                // 4. Return setter.
+                FunctionBuilder::closure_with_captures(
+                    context,
+                    // 1. Let setterClosure be a new Abstract Closure with parameters (value) that captures
+                    // name and env and performs the following steps when called:
+                    |_, args, captures, _| {
+                        let value = args.get(0).cloned().unwrap_or_default();
+                        captures.0.set(captures.1, value);
+                        Ok(JsValue::undefined())
+                    },
+                    (env.clone(), *binding_index),
+                )
+                .length(1)
+                .build()
+            };
+
+            // 19.b.ii.3. Perform map.[[DefineOwnProperty]](! ToString(𝔽(index)), PropertyDescriptor {
+            // [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
+            map.__define_own_property__(
+                PropertyKey::from(*property_index),
+                PropertyDescriptor::builder()
+                    .set(p)
+                    .get(g)
+                    .enumerable(false)
+                    .configurable(true)
+                    .build(),
+                context,
+            )
+            .expect("Defining new own properties for a new ordinary object cannot fail");
         }
 
         // 20. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
@@ -254,7 +270,7 @@ impl Arguments {
                 .configurable(true),
             context,
         )
-        .expect("DefinePropertyOrThrow must not fail per the spec");
+        .expect("Defining new own properties for a new ordinary object cannot fail");
 
         // 21. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Value]]: func, [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
@@ -267,7 +283,7 @@ impl Arguments {
                 .configurable(true),
             context,
         )
-        .expect("DefinePropertyOrThrow must not fail per the spec");
+        .expect("Defining new own properties for a new ordinary object cannot fail");
 
         // 22. Return obj.
         obj

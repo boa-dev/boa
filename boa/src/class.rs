@@ -110,7 +110,7 @@ impl<T: Class> ClassConstructor for T {
             ));
         }
 
-        let class_constructor = context.global_object().get(T::NAME, context)?;
+        let class_constructor = context.global_object().clone().get(T::NAME, context)?;
         let class_constructor = if let JsValue::Object(ref obj) = class_constructor {
             obj
         } else {

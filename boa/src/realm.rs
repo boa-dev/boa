@@ -5,11 +5,8 @@
 //! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.
 
 use crate::{
-    environment::{
-        global_environment_record::GlobalEnvironmentRecord, lexical_environment::LexicalEnvironment,
-    },
-    gc::Gc,
-    object::{JsObject, ObjectData},
+    environments::{CompileTimeEnvironmentStack, DeclarativeEnvironmentStack},
+    object::{GlobalPropertyMap, JsObject, ObjectData, PropertyMap},
     BoaProfiler,
 };
 
@@ -18,27 +15,50 @@ use crate::{
 /// In the specification these are called Realm Records.
 #[derive(Debug)]
 pub struct Realm {
-    pub global_object: JsObject,
-    pub global_env: Gc<GlobalEnvironmentRecord>,
-    pub environment: LexicalEnvironment,
+    global_object: JsObject,
+    pub(crate) global_extensible: bool,
+    pub(crate) global_property_map: PropertyMap,
+    pub(crate) environments: DeclarativeEnvironmentStack,
+    pub(crate) compile_env: CompileTimeEnvironmentStack,
 }
 
 impl Realm {
-    #[allow(clippy::field_reassign_with_default)]
+    #[inline]
     pub fn create() -> Self {
         let _timer = BoaProfiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
         // Allow identification of the global object easily
-        let gc_global = JsObject::from_proto_and_data(None, ObjectData::global());
-
-        // We need to clone the global here because its referenced from separate places (only pointer is cloned)
-        let global_env = GlobalEnvironmentRecord::new(gc_global.clone(), gc_global.clone());
+        let global_object = JsObject::from_proto_and_data(None, ObjectData::global());
 
         Self {
-            global_object: gc_global.clone(),
-            global_env: Gc::new(global_env),
-            environment: LexicalEnvironment::new(gc_global),
+            global_object,
+            global_extensible: true,
+            global_property_map: PropertyMap::default(),
+            environments: DeclarativeEnvironmentStack::new(),
+            compile_env: CompileTimeEnvironmentStack::new(),
         }
+    }
+
+    #[inline]
+    pub(crate) fn global_object(&self) -> &JsObject {
+        &self.global_object
+    }
+
+    #[inline]
+    pub(crate) fn global_bindings(&self) -> &GlobalPropertyMap {
+        self.global_property_map.string_property_map()
+    }
+
+    #[inline]
+    pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
+        self.global_property_map.string_property_map_mut()
+    }
+
+    /// Set the number of bindings on the global environment.
+    #[inline]
+    pub(crate) fn set_global_binding_number(&mut self) {
+        let binding_number = self.compile_env.get_binding_number();
+        self.environments.set_global_binding_number(binding_number);
     }
 }

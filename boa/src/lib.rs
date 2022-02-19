@@ -72,7 +72,7 @@ pub mod builtins;
 pub mod bytecompiler;
 pub mod class;
 pub mod context;
-pub mod environment;
+pub mod environments;
 pub mod gc;
 pub mod object;
 pub mod profiler;

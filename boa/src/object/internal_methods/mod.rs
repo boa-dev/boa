@@ -19,6 +19,7 @@ pub(super) mod arguments;
 pub(super) mod array;
 pub(super) mod bound_function;
 pub(super) mod function;
+pub(crate) mod global;
 pub(super) mod integer_indexed;
 pub(super) mod proxy;
 pub(super) mod string;

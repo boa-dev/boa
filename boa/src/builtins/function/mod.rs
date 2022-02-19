@@ -11,11 +11,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-function-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function
 
-use super::JsArgs;
 use crate::{
-    builtins::BuiltIn,
+    builtins::{BuiltIn, JsArgs},
     context::StandardObjects,
-    environment::lexical_environment::Environment,
+    environments::DeclarativeEnvironmentStack,
     gc::{self, Finalize, Gc, Trace},
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
@@ -177,7 +176,7 @@ pub enum Function {
     },
     VmOrdinary {
         code: Gc<crate::vm::CodeBlock>,
-        environment: Environment,
+        environments: DeclarativeEnvironmentStack,
     },
 }
 

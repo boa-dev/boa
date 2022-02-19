@@ -101,11 +101,11 @@ fn init_builtin<B: BuiltIn>(context: &mut Context) {
         .value(value)
         .writable(B::ATTRIBUTE.writable())
         .enumerable(B::ATTRIBUTE.enumerable())
-        .configurable(B::ATTRIBUTE.configurable());
+        .configurable(B::ATTRIBUTE.configurable())
+        .build();
     context
-        .global_object()
-        .borrow_mut()
-        .insert(B::NAME, property);
+        .global_bindings_mut()
+        .insert(B::NAME.into(), property);
 }
 
 /// Initializes built-in objects and functions
