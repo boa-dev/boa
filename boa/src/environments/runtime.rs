@@ -241,7 +241,7 @@ impl DeclarativeEnvironmentStack {
 
 /// A binding locator contains all information about a binding that is needed to resolve it at runtime.
 ///
-/// Binding locators get created at compile time and are accessible at runtime via the [`crate::vm::CodeBlock`].
+/// Binding locators get created at bytecode compile time and are accessible at runtime via the [`crate::vm::CodeBlock`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub(crate) struct BindingLocator {
     name: Sym,

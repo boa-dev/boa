@@ -5,9 +5,9 @@ use crate::{
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
 
-/// A compile time binding represents a binding at compile time in a [`CompileTimeEnvironment`].
+/// A compile time binding represents a binding at bytecode compile time in a [`CompileTimeEnvironment`].
 ///
-/// It contains the binding index and a flag to indicate if this is an mutable binding or not.
+/// It contains the binding index and a flag to indicate if this is a mutable binding or not.
 #[derive(Debug)]
 struct CompileTimeBinding {
     index: usize,
@@ -31,11 +31,11 @@ impl CompileTimeEnvironment {
     }
 }
 
-/// The compile time environment stack contains a stack of all environments at compile time.
+/// The compile time environment stack contains a stack of all environments at bytecode compile time.
 ///
 /// The first environment on the stack represents the global environment.
 /// This is never being deleted and is tied to the existence of the realm.
-/// All other environments are being dropped once they are not needed anymore a compile time.
+/// All other environments are being dropped once they are not needed anymore.
 #[derive(Debug)]
 pub(crate) struct CompileTimeEnvironmentStack {
     stack: Vec<CompileTimeEnvironment>,
@@ -44,7 +44,7 @@ pub(crate) struct CompileTimeEnvironmentStack {
 impl CompileTimeEnvironmentStack {
     /// Creates a new compile time environment stack.
     ///
-    /// This function should one be used once on realm creation.
+    /// This function should only be used once, on realm creation.
     #[inline]
     pub(crate) fn new() -> Self {
         Self {
@@ -72,7 +72,7 @@ impl CompileTimeEnvironmentStack {
 impl Context {
     /// Push either a new declarative or function environment on the compile time environment stack.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn push_compile_time_environment(&mut self, function_scope: bool) {
         self.realm.compile_env.stack.push(CompileTimeEnvironment {
@@ -83,7 +83,7 @@ impl Context {
 
     /// Pop the last compile time environment from the stack.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     ///
     /// # Panics
     ///
@@ -103,7 +103,7 @@ impl Context {
 
     /// Get the number of bindings for the current compile time environment.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     ///
     /// # Panics
     ///
@@ -118,9 +118,9 @@ impl Context {
             .num_bindings()
     }
 
-    /// Get the binding locator of the binding at compile time.
+    /// Get the binding locator of the binding at bytecode compile time.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn get_binding_value(&self, name: Sym) -> BindingLocator {
         for (i, env) in self.realm.compile_env.stack.iter().enumerate().rev() {
@@ -131,10 +131,10 @@ impl Context {
         BindingLocator::global(name)
     }
 
-    /// Return if a declarative binding exists at compile time.
+    /// Return if a declarative binding exists at bytecode compile time.
     /// This does not include bindings on the global object.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn has_binding(&self, name: Sym) -> bool {
         for env in self.realm.compile_env.stack.iter().rev() {
@@ -145,10 +145,10 @@ impl Context {
         false
     }
 
-    /// Create a mutable binding at compile time.
+    /// Create a mutable binding at bytecode compile time.
     /// This function returns a syntax error, if the binding is a redeclaration.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     ///
     /// # Panics
     ///
@@ -219,9 +219,9 @@ impl Context {
         panic!("global environment must be function scoped")
     }
 
-    /// Initialize a mutable binding at compile time and return it's binding locator.
+    /// Initialize a mutable binding at bytecode compile time and return it's binding locator.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn initialize_mutable_binding(
         &self,
@@ -240,10 +240,10 @@ impl Context {
         BindingLocator::global(name)
     }
 
-    /// Create an immutable binding at compile time.
+    /// Create an immutable binding at bytecode compile time.
     /// This function returns a syntax error, if the binding is a redeclaration.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     ///
     /// # Panics
     ///
@@ -276,9 +276,9 @@ impl Context {
         }
     }
 
-    /// Initialize an immutable binding at compile time and return it's binding locator.
+    /// Initialize an immutable binding at bytecode compile time and return it's binding locator.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     ///
     /// # Panics
     ///
@@ -299,7 +299,7 @@ impl Context {
 
     /// Return the binding locator for a set operation on an existing binding.
     ///
-    /// Note: This function only works at compile time!
+    /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn set_mutable_binding(&self, name: Sym) -> BindingLocator {
         for (i, env) in self.realm.compile_env.stack.iter().enumerate().rev() {

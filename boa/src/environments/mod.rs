@@ -13,7 +13,7 @@
 //!
 //! To avoid these costs, hashmaps are not used at runtime.
 //! At runtime, environments are represented as fixed size lists of binding values.
-//! The positions of the bindings in these lists is determined at compile time.
+//! The positions of the bindings in these lists is determined at bytecode compile time.
 //!
 //! A binding is uniquely identified by two indices:
 //!  - An environment index, that identifies the environment in which the binding exists
