@@ -32,7 +32,7 @@ impl BoaProfiler {
     }
 
     pub fn default() -> Self {
-        let profiler = Profiler::new(Path::new("./my_trace")).expect("must be able to crate file");
+        let profiler = Profiler::new(Path::new("./my_trace")).expect("must be able to create file");
         Self { profiler }
     }
 
