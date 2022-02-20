@@ -745,13 +745,21 @@
 <span id="744">744</span>
 <span id="745">745</span>
 <span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::string::is_trimmable_whitespace</span>,
     <span class="ident">gc</span>::{<span class="ident">empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>},
 };
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">Layout</span>},
+    <span class="ident">alloc</span>::{<span class="ident">alloc</span>, <span class="ident">dealloc</span>, <span class="ident">handle_alloc_error</span>, <span class="ident">Layout</span>},
     <span class="ident">borrow::Borrow</span>,
     <span class="ident">cell::Cell</span>,
     <span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>},
@@ -921,6 +929,14 @@
     <span class="ident">max</span>
 };
 
+<span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_alloc</span>(<span class="ident">layout</span>: <span class="ident">Layout</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">u8</span> {
+    <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>);
+    <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
+        <span class="ident">handle_alloc_error</span>(<span class="ident">layout</span>);
+    }
+    <span class="ident">ptr</span>
+}
+
 <span class="macro">thread_local!</span> {
     <span class="kw">static</span> <span class="ident">CONSTANTS</span>: <span class="ident">FxHashSet</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="op">=</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constants</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
@@ -964,7 +980,7 @@
             .<span class="ident">expect</span>(<span class="string">&quot;failed to extend memory layout&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
+            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">try_alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
 
             <span class="comment">// Write the first part, the Inner.</span>
             <span class="ident">inner</span>.<span class="ident">write</span>(<span class="self">Self</span> {
@@ -1004,7 +1020,7 @@
             .<span class="ident">expect</span>(<span class="string">&quot;failed to extend memory layout&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
+            <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">try_alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
 
             <span class="comment">// Write the first part, the Inner.</span>
             <span class="ident">inner</span>.<span class="ident">write</span>(<span class="self">Self</span> {
