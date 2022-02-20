@@ -10,13 +10,36 @@ use serde_json::{Map, Value};
 
 impl JsValue {
     /// Converts a [`serde_json::Value`] to a `JsValue`.
-    pub fn from_json(json: Value, context: &mut Context) -> JsResult<Self> {
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use boa::{Context, JsValue};
+    ///
+    /// let data = r#"
+    ///     {
+    ///         "name": "John Doe",
+    ///         "age": 43,
+    ///         "phones": [
+    ///             "+44 1234567",
+    ///             "+44 2345678"
+    ///         ]
+    ///      }"#;
+    ///
+    /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
+    ///
+    /// let mut context = Context::default();
+    /// let value = JsValue::from_json(&json, &mut context).unwrap();
+    /// #
+    /// # assert_eq!(json, value.to_json(&mut context).unwrap());
+    /// ```
+    pub fn from_json(json: &Value, context: &mut Context) -> JsResult<Self> {
         /// Biggest possible integer, as i64.
         const MAX_INT: i64 = i32::MAX as i64;
 
         match json {
             Value::Null => Ok(Self::Null),
-            Value::Bool(b) => Ok(Self::Boolean(b)),
+            Value::Bool(b) => Ok(Self::Boolean(*b)),
             Value::Number(num) => match num.as_i64() {
                 Some(s @ 0..=MAX_INT) => Ok(Self::Integer(s as i32)),
                 Some(s) => Ok(Self::Rational(s as f64)),
@@ -32,7 +55,7 @@ impl JsValue {
                     }
                 }
             },
-            Value::String(string) => Ok(Self::from(string)),
+            Value::String(string) => Ok(Self::from(string.as_str())),
             Value::Array(vec) => {
                 let mut arr = Vec::with_capacity(vec.len());
                 for val in vec {
@@ -48,7 +71,7 @@ impl JsValue {
                         .writable(true)
                         .enumerable(true)
                         .configurable(true);
-                    js_obj.borrow_mut().insert(key, property);
+                    js_obj.borrow_mut().insert(key.as_str(), property);
                 }
 
                 Ok(js_obj.into())
@@ -57,6 +80,31 @@ impl JsValue {
     }
 
     /// Converts the `JsValue` to a [`serde_json::Value`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use boa::{Context, JsValue};
+    ///
+    /// let data = r#"
+    ///     {
+    ///         "name": "John Doe",
+    ///         "age": 43,
+    ///         "phones": [
+    ///             "+44 1234567",
+    ///             "+44 2345678"
+    ///         ]
+    ///      }"#;
+    ///
+    /// let json: serde_json::Value = serde_json::from_str(data).unwrap();
+    ///
+    /// let mut context = Context::default();
+    /// let value = JsValue::from_json(&json, &mut context).unwrap();
+    ///
+    /// let back_to_json = value.to_json(&mut context).unwrap();
+    /// #
+    /// # assert_eq!(json, back_to_json);
+    /// ```
     pub fn to_json(&self, context: &mut Context) -> JsResult<Value> {
         match self {
             Self::Null => Ok(Value::Null),
