@@ -21,14 +21,21 @@ pub struct ParameterMap {
 }
 
 impl ParameterMap {
+    /// Deletes the binding with the given index from the parameter map.
     pub(crate) fn delete(&mut self, index: usize) {
         if let Some(binding) = self.binding_indices.get_mut(index) {
             *binding = None;
         }
     }
 
-    // 10.4.4.7.1 MakeArgGetter ( name, env )
-    // https://tc39.es/ecma262/#sec-makearggetter
+    /// Get the value of the binding at the given index from the function environment.
+    ///
+    /// Note: This function is the abstract getter closure described in 10.4.4.7.1 `MakeArgGetter ( name, env )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-makearggetter
     pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
         if let Some(Some(binding_index)) = self.binding_indices.get(index) {
             return Some(self.environment.get(*binding_index));
@@ -36,8 +43,14 @@ impl ParameterMap {
         None
     }
 
-    // 10.4.4.7.2 MakeArgSetter ( name, env )
-    // https://tc39.es/ecma262/#sec-makeargsetter
+    /// Set the value of the binding at the given index in the function environment.
+    ///
+    /// Note: This function is the abstract setter closure described in 10.4.4.7.2 `MakeArgSetter ( name, env )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-makeargsetter
     pub(crate) fn set(&self, index: usize, value: &JsValue) {
         if let Some(Some(binding_index)) = self.binding_indices.get(index) {
             self.environment.set(*binding_index, value.clone());
