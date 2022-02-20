@@ -4,7 +4,7 @@ use crate::{
 };
 use rustc_hash::FxHashSet;
 use std::{
-    alloc::{alloc, dealloc, Layout},
+    alloc::{alloc, dealloc, handle_alloc_error, Layout},
     borrow::Borrow,
     cell::Cell,
     hash::{Hash, Hasher},
@@ -174,6 +174,14 @@ const MAX_CONSTANT_STRING_LENGTH: usize = {
     max
 };
 
+unsafe fn try_alloc(layout: Layout) -> *mut u8 {
+    let ptr = alloc(layout);
+    if ptr.is_null() {
+        handle_alloc_error(layout);
+    }
+    ptr
+}
+
 thread_local! {
     static CONSTANTS: FxHashSet<JsString> = {
         let mut constants = FxHashSet::default();
@@ -217,7 +225,7 @@ impl Inner {
             .expect("failed to extend memory layout");
 
         let inner = unsafe {
-            let inner = alloc(layout).cast::<Self>();
+            let inner = try_alloc(layout).cast::<Self>();
 
             // Write the first part, the Inner.
             inner.write(Self {
@@ -257,7 +265,7 @@ impl Inner {
             .expect("failed to extend memory layout");
 
         let inner = unsafe {
-            let inner = alloc(layout).cast::<Self>();
+            let inner = try_alloc(layout).cast::<Self>();
 
             // Write the first part, the Inner.
             inner.write(Self {
