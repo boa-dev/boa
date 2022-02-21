@@ -37,24 +37,22 @@ impl JsValue {
         /// Biggest possible integer, as i64.
         const MAX_INT: i64 = i32::MAX as i64;
 
+        /// Biggest possible integer, as i64.
+        const MIN_INT: i64 = i32::MIN as i64;
+
         match json {
             Value::Null => Ok(Self::Null),
             Value::Bool(b) => Ok(Self::Boolean(*b)),
-            Value::Number(num) => match num.as_i64() {
-                Some(s @ 0..=MAX_INT) => Ok(Self::Integer(s as i32)),
-                Some(s) => Ok(Self::Rational(s as f64)),
-                None => {
-                    if let Some(i) = num.as_u64() {
-                        Ok(Self::Rational(i as f64))
-                    } else {
-                        Ok(Self::Rational(num.as_f64().ok_or_else(|| {
-                            context.construct_type_error(format!(
-                                "could not convert JSON number {num} to JsValue"
-                            ))
-                        })?))
-                    }
-                }
-            },
+            Value::Number(num) => num
+                .as_i64()
+                .filter(|n| (MIN_INT..=MAX_INT).contains(n))
+                .map(|i| Self::Integer(i as i32))
+                .or_else(|| num.as_f64().map(Self::Rational))
+                .ok_or_else(|| {
+                    context.construct_type_error(format!(
+                        "could not convert JSON number {num} to JsValue"
+                    ))
+                }),
             Value::String(string) => Ok(Self::from(string.as_str())),
             Value::Array(vec) => {
                 let mut arr = Vec::with_capacity(vec.len());
@@ -153,5 +151,61 @@ impl JsValue {
             }
             Self::Symbol(_sym) => context.throw_type_error("cannot convert Symbol to JSON"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::object::JsArray;
+
+    #[test]
+    fn ut_json_conversions() {
+        use crate::{Context, JsValue};
+
+        let data = r#"
+         {
+             "name": "John Doe",
+             "age": 43,
+             "minor": false,
+             "adult": true,
+             "extra": {
+                 "address": null
+             },
+             "phones": [
+                 "+44 1234567",
+                 -45,
+                 {},
+                 true
+             ]
+          }"#;
+
+        let json: serde_json::Value = serde_json::from_str(data).unwrap();
+        assert!(json.is_object());
+
+        let mut context = Context::default();
+        let value = JsValue::from_json(&json, &mut context).unwrap();
+
+        let obj = value.as_object().unwrap();
+        assert_eq!(obj.get("name", &mut context).unwrap(), "John Doe".into());
+        assert_eq!(obj.get("age", &mut context).unwrap(), 43.into());
+        assert_eq!(obj.get("minor", &mut context).unwrap(), false.into());
+        assert_eq!(obj.get("adult", &mut context).unwrap(), true.into());
+        {
+            let extra = obj.get("extra", &mut context).unwrap();
+            let extra = extra.as_object().unwrap();
+            assert!(extra.get("address", &mut context).unwrap().is_null());
+        }
+        {
+            let phones = obj.get("phones", &mut context).unwrap();
+            let phones = phones.as_object().unwrap();
+
+            let arr = JsArray::from_object(phones.clone(), &mut context).unwrap();
+            assert_eq!(arr.at(0, &mut context).unwrap(), "+44 1234567".into());
+            assert_eq!(arr.at(1, &mut context).unwrap(), -45.into());
+            assert!(arr.at(2, &mut context).unwrap().is_object());
+            assert_eq!(arr.at(3, &mut context).unwrap(), true.into());
+        }
+
+        assert_eq!(json, value.to_json(&mut context).unwrap());
     }
 }
