@@ -7,8 +7,8 @@ use crate::{
         ast::{Position, Span},
         lexer::{Token, TokenKind},
     },
-    Interner, Sym,
 };
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::{self, ErrorKind, Read};
 

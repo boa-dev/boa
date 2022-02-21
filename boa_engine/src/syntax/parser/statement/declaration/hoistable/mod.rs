@@ -17,20 +17,18 @@ use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
     generator_decl::GeneratorDeclaration,
 };
-use crate::{
-    syntax::{
-        ast::node::{FormalParameter, StatementList},
-        ast::{Keyword, Node, Position, Punctuator},
-        lexer::TokenKind,
-        parser::{
-            function::{FormalParameters, FunctionBody},
-            statement::{BindingIdentifier, LexError},
-            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::node::{FormalParameter, StatementList},
+    ast::{Keyword, Node, Position, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        function::{FormalParameters, FunctionBody},
+        statement::{BindingIdentifier, LexError},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
-    Profiler,
 };
 use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(in crate::syntax::parser) use function_decl::FunctionDeclaration;

@@ -15,9 +15,10 @@ use crate::{
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_profiler::Profiler;
 use regexp::{advance_string_index, RegExp};
 
 // TODO: See todos in create_regexp_string_iterator and next.

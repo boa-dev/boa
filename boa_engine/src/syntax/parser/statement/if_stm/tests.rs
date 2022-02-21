@@ -1,13 +1,11 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{Block, If, Node},
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        node::{Block, If, Node},
+        Const,
     },
-    Interner,
+    parser::tests::check_parser,
 };
+use boa_interner::Interner;
 
 #[test]
 fn if_without_else_block() {

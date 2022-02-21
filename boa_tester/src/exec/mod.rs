@@ -6,7 +6,8 @@ use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
-use boa_engine::{syntax::Parser, Context, Interner, JsResult, JsValue};
+use boa_engine::{syntax::Parser, Context, JsResult, JsValue};
+use boa_interner::Interner;
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;

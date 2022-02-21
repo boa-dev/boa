@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v2.1.7
         with:
           path: |
-            ./boa/target
+            target
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}

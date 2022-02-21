@@ -10,15 +10,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-reflect-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect
 
+use super::{Array, JsArgs};
 use crate::{
     builtins::{self, BuiltIn},
     object::{JsObject, ObjectInitializer},
     property::Attribute,
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
-
-use super::{Array, JsArgs};
+use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;

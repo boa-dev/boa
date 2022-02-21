@@ -18,20 +18,18 @@
 #[cfg(test)]
 mod tests;
 
+use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     object::{ConstructorBuilder, FunctionBuilder},
     property::Attribute,
     symbol::{JsSymbol, WellKnownSymbols},
     value::JsValue,
-    Profiler, Context, JsResult, JsString,
+    Context, JsResult, JsString,
 };
-
-use std::cell::RefCell;
-
+use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
-
-use super::JsArgs;
+use std::cell::RefCell;
 
 thread_local! {
     static GLOBAL_SYMBOL_REGISTRY: RefCell<GlobalSymbolRegistry> = RefCell::new(GlobalSymbolRegistry::new());

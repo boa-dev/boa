@@ -10,20 +10,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::TokenKind;
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{node::Continue, Keyword, Punctuator},
-        parser::{
-            cursor::{Cursor, SemicolonResult},
-            statement::LabelIdentifier,
-            AllowAwait, AllowYield, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::Continue, Keyword, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        cursor::{Cursor, SemicolonResult},
+        statement::LabelIdentifier,
+        AllowAwait, AllowYield, ParseError, TokenParser,
     },
-    Profiler,
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// For statement parsing

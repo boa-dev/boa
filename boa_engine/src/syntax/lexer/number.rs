@@ -5,8 +5,9 @@ use crate::{
         ast::{Position, Span},
         lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer},
     },
-    Interner, JsBigInt,
+    JsBigInt,
 };
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::{io::Read, str};
 

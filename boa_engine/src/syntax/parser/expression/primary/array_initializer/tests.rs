@@ -1,14 +1,10 @@
 // ! Tests for array initializer parsing.
 
-use boa_interner::Sym;
-
-use crate::{
-    syntax::{
-        ast::{node::ArrayDecl, Const},
-        parser::tests::check_parser,
-    },
-    Interner,
+use crate::syntax::{
+    ast::{node::ArrayDecl, Const},
+    parser::tests::check_parser,
 };
+use boa_interner::{Interner, Sym};
 
 /// Checks an empty array.
 #[test]

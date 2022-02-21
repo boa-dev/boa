@@ -7,26 +7,24 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                declaration::{Declaration, DeclarationList},
-                Node,
-            },
-            Keyword, Punctuator,
+use crate::syntax::{
+    ast::{
+        node::{
+            declaration::{Declaration, DeclarationList},
+            Node,
         },
-        lexer::TokenKind,
-        parser::{
-            cursor::{Cursor, SemicolonResult},
-            expression::Initializer,
-            statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-            AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
-        },
+        Keyword, Punctuator,
     },
-    Profiler, Interner,
+    lexer::TokenKind,
+    parser::{
+        cursor::{Cursor, SemicolonResult},
+        expression::Initializer,
+        statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
+        AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
+    },
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses a lexical declaration.

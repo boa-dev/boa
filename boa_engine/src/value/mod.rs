@@ -13,9 +13,10 @@ use crate::{
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
-    Context, JsBigInt, JsResult, JsString, Profiler,
+    Context, JsBigInt, JsResult, JsString,
 };
 use boa_gc::{Finalize, Trace};
+use boa_profiler::Profiler;
 use num_bigint::BigInt;
 use num_integer::Integer;
 use num_traits::Zero;

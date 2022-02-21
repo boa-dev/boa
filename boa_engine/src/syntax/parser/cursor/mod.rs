@@ -2,13 +2,11 @@
 mod buffered_lexer;
 
 use super::ParseError;
-use crate::{
-    syntax::{
-        ast::{Position, Punctuator},
-        lexer::{InputElement, Lexer, Token, TokenKind},
-    },
-    Interner,
+use crate::syntax::{
+    ast::{Position, Punctuator},
+    lexer::{InputElement, Lexer, Token, TokenKind},
 };
+use boa_interner::Interner;
 use buffered_lexer::BufferedLexer;
 use std::io::Read;
 

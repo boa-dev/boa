@@ -13,15 +13,23 @@ updates:
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa/
-    schedule:
-      interval: daily
-  - package-ecosystem: cargo
     directory: /boa_cli/
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_wasm/
+    directory: /boa_engine/
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_gc/
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_interner/
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_profiler/
     schedule:
       interval: daily
   - package-ecosystem: cargo
@@ -29,10 +37,14 @@ updates:
     schedule:
       interval: daily
   - package-ecosystem: cargo
-    directory: /boa_interner/
+    directory: /boa_unicode/
+    schedule:
+      interval: daily
+  - package-ecosystem: cargo
+    directory: /boa_wasm/
     schedule:
       interval: daily
   - package-ecosystem: gitsubmodule
-    directory: /test262/
+    directory: /
     schedule:
       interval: weekly

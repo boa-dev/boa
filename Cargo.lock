@@ -68,6 +68,7 @@ name = "boa_cli"
 version = "0.13.0"
 dependencies = [
  "boa_engine",
+ "boa_interner",
  "colored",
  "jemallocator",
  "phf",
@@ -138,6 +139,7 @@ version = "0.13.0"
 dependencies = [
  "bitflags",
  "boa_engine",
+ "boa_interner",
  "colored",
  "fxhash",
  "gc",

@@ -8,24 +8,22 @@
 //! [spec]: https://tc39.es/ecma262/#prod-CallExpression
 
 use super::arguments::Arguments;
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                field::{GetConstField, GetField},
-                Call, Node,
-            },
-            Punctuator,
+use crate::syntax::{
+    ast::{
+        node::{
+            field::{GetConstField, GetField},
+            Call, Node,
         },
-        lexer::TokenKind,
-        parser::{
-            expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
-            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-        },
+        Punctuator,
     },
-    Interner, Profiler,
+    lexer::TokenKind,
+    parser::{
+        expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
+        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+    },
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses a call expression.

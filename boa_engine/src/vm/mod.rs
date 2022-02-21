@@ -7,9 +7,10 @@ use crate::{
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::Numeric,
     vm::{call_frame::CatchAddresses, code_block::Readable},
-    Profiler, Context, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsBigInt, JsResult, JsString, JsValue,
 };
 use boa_interner::ToInternedString;
+use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of, ops::Neg, time::Instant};
 
 mod call_frame;
@@ -117,8 +118,7 @@ impl Context {
             opcode
         };
 
-        let _timer =
-            Profiler::global().start_event(&format!("INST - {}", opcode.as_str()), "vm");
+        let _timer = Profiler::global().start_event(&format!("INST - {}", opcode.as_str()), "vm");
 
         match opcode {
             Opcode::Nop => {}

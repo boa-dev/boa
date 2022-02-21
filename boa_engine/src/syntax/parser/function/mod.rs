@@ -10,21 +10,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{node, node::declaration::Declaration, Punctuator},
-        lexer::{Error as LexError, InputElement, TokenKind},
-        parser::{
-            expression::Initializer,
-            statement::{
-                ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern, StatementList,
-            },
-            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node, node::declaration::Declaration, Punctuator},
+    lexer::{Error as LexError, InputElement, TokenKind},
+    parser::{
+        expression::Initializer,
+        statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern, StatementList},
+        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
-    Profiler, Interner,
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::io::Read;
 

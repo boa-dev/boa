@@ -7,15 +7,15 @@
 //!
 //! [spec]: https://tc39.es/ecma402/#intl-object
 
-use indexmap::IndexSet;
-
 use crate::{
     builtins::{Array, BuiltIn, JsArgs},
     object::ObjectInitializer,
     property::Attribute,
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
+use boa_profiler::Profiler;
+use indexmap::IndexSet;
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

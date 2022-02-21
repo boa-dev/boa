@@ -5,16 +5,15 @@
 
 #[cfg(test)]
 mod tests;
-use crate::{
-    syntax::{
-        ast::{node::AsyncGeneratorDecl, Keyword, Punctuator},
-        parser::{
-            statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-            AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
-        },
+
+use crate::syntax::{
+    ast::{node::AsyncGeneratorDecl, Keyword, Punctuator},
+    parser::{
+        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
-    Interner,
 };
+use boa_interner::Interner;
 use std::io::Read;
 
 /// Async Generator Declaration Parser

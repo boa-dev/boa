@@ -8,26 +8,24 @@
 //! [spec]: https://tc39.es/ecma262/#sec-arrow-function-definitions
 
 use super::AssignmentExpression;
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                declaration::Declaration, ArrowFunctionDecl, FormalParameter, Node, Return,
-                StatementList,
-            },
-            Position, Punctuator,
+use crate::syntax::{
+    ast::{
+        node::{
+            declaration::Declaration, ArrowFunctionDecl, FormalParameter, Node, Return,
+            StatementList,
         },
-        lexer::{Error as LexError, TokenKind},
-        parser::{
-            error::{ErrorContext, ParseError, ParseResult},
-            function::{FormalParameterList, FormalParameters, FunctionBody},
-            statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
-        },
+        Position, Punctuator,
     },
-    Interner, Profiler,
+    lexer::{Error as LexError, TokenKind},
+    parser::{
+        error::{ErrorContext, ParseError, ParseResult},
+        function::{FormalParameterList, FormalParameters, FunctionBody},
+        statement::BindingIdentifier,
+        AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+    },
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Arrow function parsing.

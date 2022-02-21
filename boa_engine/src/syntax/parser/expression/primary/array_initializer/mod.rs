@@ -10,20 +10,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{
-            node::{ArrayDecl, Node, Spread},
-            Const, Punctuator,
-        },
-        parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{ArrayDecl, Node, Spread},
+        Const, Punctuator,
     },
-    Interner, Profiler,
+    parser::{
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+    },
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses an array literal.

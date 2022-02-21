@@ -1,13 +1,11 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{AsyncFunctionExpr, Declaration, DeclarationList, Return, StatementList},
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        node::{AsyncFunctionExpr, Declaration, DeclarationList, Return, StatementList},
+        Const,
     },
-    Interner,
+    parser::tests::check_parser,
 };
+use boa_interner::Interner;
 
 /// Checks async expression parsing.
 #[test]

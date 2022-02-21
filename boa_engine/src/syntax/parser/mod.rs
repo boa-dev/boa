@@ -9,13 +9,10 @@ mod statement;
 mod tests;
 
 pub use self::error::{ParseError, ParseResult};
-use crate::{
-    syntax::{ast::node::StatementList, lexer::TokenKind},
-    Interner,
-};
 
-use cursor::Cursor;
-
+use self::cursor::Cursor;
+use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
+use boa_interner::Interner;
 use std::io::Read;
 
 /// Trait implemented by parsers.

@@ -1,22 +1,21 @@
 //! Variable statement parsing.
 
-use crate::{
-    syntax::{
-        ast::{
-            node::{Declaration, DeclarationList},
-            Keyword, Punctuator,
-        },
-        lexer::TokenKind,
-        parser::statement::{ArrayBindingPattern, ObjectBindingPattern},
-        parser::{
-            cursor::{Cursor, SemicolonResult},
-            expression::Initializer,
-            statement::BindingIdentifier,
-            AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{Declaration, DeclarationList},
+        Keyword, Punctuator,
     },
-    Profiler, Interner,
+    lexer::TokenKind,
+    parser::statement::{ArrayBindingPattern, ObjectBindingPattern},
+    parser::{
+        cursor::{Cursor, SemicolonResult},
+        expression::Initializer,
+        statement::BindingIdentifier,
+        AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
+    },
 };
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Variable statement parsing.

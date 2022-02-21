@@ -8,8 +8,9 @@
 use crate::{
     syntax::ast::{Keyword, Punctuator, Span},
     syntax::lexer::template::TemplateString,
-    Interner, JsBigInt, Sym,
+    JsBigInt,
 };
+use boa_interner::{Interner, Sym};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};

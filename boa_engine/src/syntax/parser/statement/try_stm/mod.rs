@@ -4,19 +4,15 @@ mod finally;
 #[cfg(test)]
 mod tests;
 
-use self::catch::Catch;
-use self::finally::Finally;
+use self::{catch::Catch, finally::Finally};
 use super::block::Block;
-use crate::syntax::lexer::TokenKind;
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{node::Try, Keyword},
-        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
-    },
-    Profiler,
+use crate::syntax::{
+    ast::{node::Try, Keyword},
+    lexer::TokenKind,
+    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Try...catch statement parsing

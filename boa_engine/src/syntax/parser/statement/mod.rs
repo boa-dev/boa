@@ -37,24 +37,22 @@ use self::{
     variable::VariableStatement,
 };
 use super::{AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                self,
-                declaration::{
-                    BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern,
-                    DeclarationPatternArray, DeclarationPatternObject,
-                },
+use crate::syntax::{
+    ast::{
+        node::{
+            self,
+            declaration::{
+                BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern,
+                DeclarationPatternArray, DeclarationPatternObject,
             },
-            Keyword, Node, Position, Punctuator,
         },
-        lexer::{Error as LexError, InputElement, TokenKind},
-        parser::expression::{await_expr::AwaitExpression, Initializer},
+        Keyword, Node, Position, Punctuator,
     },
-    Profiler,
+    lexer::{Error as LexError, InputElement, TokenKind},
+    parser::expression::{await_expr::AwaitExpression, Initializer},
 };
 use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::{collections::HashSet, io::Read, vec};
 
 /// Statement parsing.

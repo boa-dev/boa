@@ -1,20 +1,16 @@
 //! Tests for the parser.
 
-use boa_interner::Sym;
-
 use super::Parser;
-use crate::{
-    syntax::ast::{
-        node::{
-            field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration,
-            DeclarationList, FormalParameter, FunctionDecl, Identifier, If, New, Node, Object,
-            PropertyDefinition, Return, StatementList, UnaryOp,
-        },
-        op::{self, CompOp, LogOp, NumOp},
-        Const,
+use crate::syntax::ast::{
+    node::{
+        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration, DeclarationList,
+        FormalParameter, FunctionDecl, Identifier, If, New, Node, Object, PropertyDefinition,
+        Return, StatementList, UnaryOp,
     },
-    Interner,
+    op::{self, CompOp, LogOp, NumOp},
+    Const,
 };
+use boa_interner::{Interner, Sym};
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[allow(clippy::unwrap_used)]

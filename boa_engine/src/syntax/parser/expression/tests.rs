@@ -1,14 +1,12 @@
-use crate::{
-    syntax::{
-        ast::op::{AssignOp, BitOp, CompOp, LogOp, NumOp},
-        ast::{
-            node::{BinOp, Identifier},
-            Const,
-        },
-        parser::tests::{check_invalid, check_parser},
+use crate::syntax::{
+    ast::op::{AssignOp, BitOp, CompOp, LogOp, NumOp},
+    ast::{
+        node::{BinOp, Identifier},
+        Const,
     },
-    Interner,
+    parser::tests::{check_invalid, check_parser},
 };
+use boa_interner::Interner;
 
 /// Checks numeric operations
 #[test]

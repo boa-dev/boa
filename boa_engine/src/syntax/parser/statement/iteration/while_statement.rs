@@ -1,14 +1,12 @@
-use crate::{
-    syntax::{
-        ast::{node::WhileLoop, Keyword, Node, Punctuator},
-        parser::{
-            expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::WhileLoop, Keyword, Node, Punctuator},
+    parser::{
+        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
+        ParseError, TokenParser,
     },
-    Profiler, Interner,
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// While statement parsing

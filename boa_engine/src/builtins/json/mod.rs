@@ -13,6 +13,7 @@
 //! [json]: https://www.json.org/json-en.html
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
+use super::JsArgs;
 use crate::{
     builtins::{
         string::{is_leading_surrogate, is_trailing_surrogate},
@@ -22,11 +23,10 @@ use crate::{
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
-    Profiler, Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
+use boa_profiler::Profiler;
 use serde_json::{self, Value as JSONValue};
-
-use super::JsArgs;
 
 #[cfg(test)]
 mod tests;

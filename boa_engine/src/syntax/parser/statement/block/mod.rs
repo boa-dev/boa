@@ -11,14 +11,12 @@
 mod tests;
 
 use super::StatementList;
-use crate::{
-    syntax::{
-        ast::{node, Punctuator},
-        lexer::TokenKind,
-        parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
-    },
-    Interner,
+use crate::syntax::{
+    ast::{node, Punctuator},
+    lexer::TokenKind,
+    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
 };
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 

@@ -13,17 +13,13 @@ mod lexical;
 mod tests;
 
 use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
-
-use crate::syntax::lexer::TokenKind;
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{Keyword, Node},
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
-    },
-    Profiler,
+use crate::syntax::{
+    ast::{Keyword, Node},
+    lexer::TokenKind,
+    parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses a declaration.

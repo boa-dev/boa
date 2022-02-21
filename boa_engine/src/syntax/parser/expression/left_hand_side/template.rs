@@ -1,15 +1,13 @@
-use crate::{
-    syntax::{
-        ast::node::TaggedTemplate,
-        ast::{Node, Position, Punctuator},
-        lexer::TokenKind,
-        parser::{
-            cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError,
-            ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::node::TaggedTemplate,
+    ast::{Node, Position, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult,
+        TokenParser,
     },
-    Interner,
 };
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 

@@ -11,12 +11,12 @@
 //! [spec]: https://tc39.es/ecma262/#sec-math-object
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math
 
+use super::JsArgs;
 use crate::{
     builtins::BuiltIn, object::ObjectInitializer, property::Attribute, symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
-
-use super::JsArgs;
+use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;

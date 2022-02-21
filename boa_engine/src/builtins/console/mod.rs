@@ -21,8 +21,9 @@ use crate::{
     object::ObjectInitializer,
     property::Attribute,
     value::{display::display_obj, JsValue},
-    Profiler, Context, JsResult, JsString,
+    Context, JsResult, JsString,
 };
+use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
 

@@ -18,8 +18,9 @@ use crate::{
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, PreferredType},
-    Profiler, Context, JsBigInt, JsResult, JsValue,
+    Context, JsBigInt, JsResult, JsValue,
 };
+use boa_profiler::Profiler;
 use num_bigint::ToBigInt;
 
 #[cfg(test)]

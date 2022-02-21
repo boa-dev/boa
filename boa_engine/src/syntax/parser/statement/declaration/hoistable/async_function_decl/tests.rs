@@ -1,7 +1,5 @@
-use crate::{
-    syntax::{ast::node::AsyncFunctionDecl, parser::tests::check_parser},
-    Interner,
-};
+use crate::syntax::{ast::node::AsyncFunctionDecl, parser::tests::check_parser};
+use boa_interner::Interner;
 
 /// Async function declaration parsing.
 #[test]

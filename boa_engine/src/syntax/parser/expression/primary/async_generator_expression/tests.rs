@@ -1,13 +1,11 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{AsyncGeneratorExpr, Declaration, DeclarationList, Return, StatementList},
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        node::{AsyncGeneratorExpr, Declaration, DeclarationList, Return, StatementList},
+        Const,
     },
-    Interner,
+    parser::tests::check_parser,
 };
+use boa_interner::Interner;
 
 ///checks async generator expression parsing
 

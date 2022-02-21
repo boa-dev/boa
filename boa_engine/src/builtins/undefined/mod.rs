@@ -9,7 +9,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-undefined
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/undefined
 
-use crate::{builtins::BuiltIn, property::Attribute, Profiler, Context, JsValue};
+use crate::{builtins::BuiltIn, property::Attribute, Context, JsValue};
+use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;

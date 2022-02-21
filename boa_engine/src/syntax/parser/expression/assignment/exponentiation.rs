@@ -8,23 +8,20 @@
 //! [spec]: https://tc39.es/ecma262/#sec-exp-operator
 
 use super::ParseError;
-use crate::syntax::lexer::TokenKind;
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{
-            node::{BinOp, Node},
-            op::NumOp,
-            Keyword, Punctuator,
-        },
-        parser::{
-            expression::{unary::UnaryExpression, update::UpdateExpression},
-            AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{BinOp, Node},
+        op::NumOp,
+        Keyword, Punctuator,
     },
-    Profiler,
+    lexer::TokenKind,
+    parser::{
+        expression::{unary::UnaryExpression, update::UpdateExpression},
+        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
+    },
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses an exponentiation expression.

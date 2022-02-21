@@ -23,9 +23,10 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
     value::IntegerOrInfinity,
-    Context, JsResult, JsString, JsValue, Profiler,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, Trace};
+use boa_profiler::Profiler;
 use dyn_clone::DynClone;
 use std::{
     any::Any,

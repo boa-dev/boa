@@ -10,19 +10,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{node::AsyncGeneratorExpr, Keyword, Position, Punctuator},
-        lexer::{Error as LexError, TokenKind},
-        parser::{
-            function::{FormalParameters, FunctionBody},
-            statement::BindingIdentifier,
-            Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::AsyncGeneratorExpr, Keyword, Position, Punctuator},
+    lexer::{Error as LexError, TokenKind},
+    parser::{
+        function::{FormalParameters, FunctionBody},
+        statement::BindingIdentifier,
+        Cursor, ParseError, TokenParser,
     },
-    Interner, Profiler,
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Async Generator Expression Parsing

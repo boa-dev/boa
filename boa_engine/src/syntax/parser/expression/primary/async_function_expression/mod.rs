@@ -1,19 +1,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{node::AsyncFunctionExpr, Keyword, Position, Punctuator},
-        lexer::{Error as LexError, TokenKind},
-        parser::{
-            function::{FormalParameters, FunctionBody},
-            statement::BindingIdentifier,
-            AllowYield, Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::AsyncFunctionExpr, Keyword, Position, Punctuator},
+    lexer::{Error as LexError, TokenKind},
+    parser::{
+        function::{FormalParameters, FunctionBody},
+        statement::BindingIdentifier,
+        AllowYield, Cursor, ParseError, TokenParser,
     },
-    Interner, Profiler,
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Async Function expression parsing.

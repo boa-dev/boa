@@ -1,13 +1,11 @@
 //! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.
 
 use super::{Cursor, Error, Tokenizer};
-use crate::{
-    syntax::{
-        ast::{Keyword, Position, Span},
-        lexer::{StringLiteral, Token, TokenKind},
-    },
-    Interner,
+use crate::syntax::{
+    ast::{Keyword, Position, Span},
+    lexer::{StringLiteral, Token, TokenKind},
 };
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use boa_unicode::UnicodeProperties;
 use std::{io::Read, str};

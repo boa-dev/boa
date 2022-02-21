@@ -7,21 +7,18 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
 //! [spec]: https://tc39.es/ecma262/#prod-YieldExpression
 
-use crate::{
-    syntax::{
-        ast::{
-            node::{Node, Yield},
-            Keyword, Punctuator,
-        },
-        lexer::TokenKind,
-        parser::{cursor::SemicolonResult, AllowAwait, AllowIn, Cursor, ParseResult, TokenParser},
-    },
-    Interner, Profiler,
-};
-
-use std::io::Read;
-
 use super::AssignmentExpression;
+use crate::syntax::{
+    ast::{
+        node::{Node, Yield},
+        Keyword, Punctuator,
+    },
+    lexer::TokenKind,
+    parser::{cursor::SemicolonResult, AllowAwait, AllowIn, Cursor, ParseResult, TokenParser},
+};
+use boa_interner::Interner;
+use boa_profiler::Profiler;
+use std::io::Read;
 
 /// `YieldExpression` parsing.
 ///

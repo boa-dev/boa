@@ -21,8 +21,9 @@ use crate::{
     },
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
-    Profiler, Context, JsResult,
+    Context, JsResult,
 };
+use boa_profiler::Profiler;
 use num_traits::{float::FloatCore, Num};
 
 mod conversions;

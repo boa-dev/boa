@@ -1,10 +1,8 @@
-use crate::{
-    syntax::{
-        ast::{node::Throw, Const},
-        parser::tests::check_parser,
-    },
-    Interner,
+use crate::syntax::{
+    ast::{node::Throw, Const},
+    parser::tests::check_parser,
 };
+use boa_interner::Interner;
 
 #[test]
 fn check_throw_parsing() {

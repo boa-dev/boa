@@ -59,7 +59,8 @@
     rustdoc::missing_doc_code_examples
 )]
 
-use boa_engine::{syntax::ast::node::StatementList, Context, Interner};
+use boa_engine::{syntax::ast::node::StatementList, Context};
+use boa_interner::Interner;
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, io, path::PathBuf};

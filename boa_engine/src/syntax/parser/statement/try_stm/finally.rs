@@ -1,14 +1,12 @@
-use crate::{
-    syntax::{
-        ast::{node, Keyword},
-        parser::{
-            statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
-            TokenParser,
-        },
+use crate::syntax::{
+    ast::{node, Keyword},
+    parser::{
+        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+        TokenParser,
     },
-    Profiler, Interner,
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Finally parsing

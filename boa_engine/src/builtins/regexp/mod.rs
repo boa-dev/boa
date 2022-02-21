@@ -11,8 +11,8 @@
 
 pub mod regexp_string_iterator;
 
-use std::str::FromStr;
-
+use self::regexp_string_iterator::RegExpStringIterator;
+use super::JsArgs;
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     context::StandardObjects,
@@ -24,13 +24,12 @@ use crate::{
     symbol::WellKnownSymbols,
     syntax::lexer::regex::RegExpFlags,
     value::{IntegerOrInfinity, JsValue},
-    Profiler, Context, JsResult, JsString,
+    Context, JsResult, JsString,
 };
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
-use regexp_string_iterator::RegExpStringIterator;
+use boa_profiler::Profiler;
 use regress::Regex;
-
-use super::JsArgs;
+use std::str::FromStr;
 
 #[cfg(test)]
 mod tests;

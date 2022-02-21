@@ -1,16 +1,14 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
-                Block, Catch, Declaration, DeclarationList, Finally, Try,
-            },
-            Const,
+use crate::syntax::{
+    ast::{
+        node::{
+            declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
+            Block, Catch, Declaration, DeclarationList, Finally, Try,
         },
-        parser::tests::{check_invalid, check_parser},
+        Const,
     },
-    Interner,
+    parser::tests::{check_invalid, check_parser},
 };
+use boa_interner::Interner;
 
 #[test]
 fn check_inline_with_empty_try_catch() {

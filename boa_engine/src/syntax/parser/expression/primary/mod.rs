@@ -23,21 +23,18 @@ use self::{
     generator_expression::GeneratorExpression, object_initializer::ObjectLiteral,
 };
 use super::Expression;
-use crate::{
-    syntax::{
-        ast::{
-            node::{Call, Identifier, New, Node},
-            Const, Keyword, Punctuator,
-        },
-        lexer::{token::Numeric, InputElement, TokenKind},
-        parser::{
-            expression::primary::template::TemplateLiteral, AllowAwait, AllowYield, Cursor,
-            ParseError, ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{Call, Identifier, New, Node},
+        Const, Keyword, Punctuator,
     },
-    Interner,
+    lexer::{token::Numeric, InputElement, TokenKind},
+    parser::{
+        expression::primary::template::TemplateLiteral, AllowAwait, AllowYield, Cursor, ParseError,
+        ParseResult, TokenParser,
+    },
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 

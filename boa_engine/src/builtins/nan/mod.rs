@@ -13,7 +13,8 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{builtins::BuiltIn, property::Attribute, Profiler, Context, JsValue};
+use crate::{builtins::BuiltIn, property::Attribute, Context, JsValue};
+use boa_profiler::Profiler;
 
 /// JavaScript global `NaN` property.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]

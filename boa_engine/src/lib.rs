@@ -90,8 +90,6 @@ pub mod prelude {
     pub use crate::{object::JsObject, Context, JsBigInt, JsResult, JsString, JsValue};
 }
 
-pub use boa_interner::{Interner, Sym};
-pub(crate) use boa_profiler::Profiler;
 use std::result::Result as StdResult;
 
 // Export things to root level
@@ -125,6 +123,8 @@ where
 #[allow(clippy::unit_arg, clippy::drop_copy)]
 #[cfg(test)]
 pub(crate) fn forward_val<T: AsRef<[u8]>>(context: &mut Context, src: T) -> JsResult<JsValue> {
+    use boa_profiler::Profiler;
+
     let main_timer = Profiler::global().start_event("Main", "Main");
 
     let src_bytes: &[u8] = src.as_ref();

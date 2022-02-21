@@ -6,27 +6,24 @@
 //! [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 
 use super::arguments::Arguments;
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                field::{GetConstField, GetField},
-                Call, New, Node,
-            },
-            Keyword, Punctuator,
+use crate::syntax::{
+    ast::{
+        node::{
+            field::{GetConstField, GetField},
+            Call, New, Node,
         },
-        lexer::TokenKind,
-        parser::{
-            expression::{
-                left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression,
-                Expression,
-            },
-            AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-        },
+        Keyword, Punctuator,
     },
-    Profiler, Interner,
+    lexer::TokenKind,
+    parser::{
+        expression::{
+            left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
+        },
+        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+    },
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses a member expression.

@@ -12,6 +12,8 @@
 
 #![allow(clippy::mutable_key_type)]
 
+use self::{map_iterator::MapIterator, ordered_map::OrderedMap};
+use super::JsArgs;
 use crate::{
     builtins::{iterable::IteratorResult, BuiltIn},
     context::StandardObjects,
@@ -21,16 +23,12 @@ use crate::{
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
-use ordered_map::OrderedMap;
-
-pub mod map_iterator;
-use map_iterator::MapIterator;
-
-use super::JsArgs;
+use boa_profiler::Profiler;
 use num_traits::Zero;
 
+pub mod map_iterator;
 pub mod ordered_map;
 #[cfg(test)]
 mod tests;

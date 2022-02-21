@@ -3,9 +3,10 @@ use crate::{
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult,
+    Context, JsResult,
 };
 use boa_gc::{Finalize, Trace};
+use boa_profiler::Profiler;
 
 /// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
 ///

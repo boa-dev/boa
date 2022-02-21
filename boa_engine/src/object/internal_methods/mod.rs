@@ -5,15 +5,15 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-ordinary-object-internal-methods-and-internal-slots
 
+use super::{JsPrototype, PROTOTYPE};
 use crate::{
     context::{StandardConstructor, StandardObjects},
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
-    Profiler, Context, JsResult,
+    Context, JsResult,
 };
-
-use super::{JsPrototype, PROTOTYPE};
+use boa_profiler::Profiler;
 
 pub(super) mod arguments;
 pub(super) mod array;
@@ -481,8 +481,7 @@ pub(crate) fn ordinary_define_own_property(
     desc: PropertyDescriptor,
     context: &mut Context,
 ) -> JsResult<bool> {
-    let _timer =
-        Profiler::global().start_event("Object::ordinary_define_own_property", "object");
+    let _timer = Profiler::global().start_event("Object::ordinary_define_own_property", "object");
     // 1. Let current be ? O.[[GetOwnProperty]](P).
     let current = obj.__get_own_property__(&key, context)?;
 
@@ -796,8 +795,8 @@ pub(crate) fn validate_and_apply_property_descriptor(
     desc: PropertyDescriptor,
     current: Option<PropertyDescriptor>,
 ) -> bool {
-    let _timer = Profiler::global()
-        .start_event("Object::validate_and_apply_property_descriptor", "object");
+    let _timer =
+        Profiler::global().start_event("Object::validate_and_apply_property_descriptor", "object");
     // 1. Assert: If O is not undefined, then IsPropertyKey(P) is true.
 
     let mut current = if let Some(own) = current {
@@ -954,8 +953,7 @@ pub(crate) fn get_prototype_from_constructor<F>(
 where
     F: FnOnce(&StandardObjects) -> &StandardConstructor,
 {
-    let _timer =
-        Profiler::global().start_event("Object::get_prototype_from_constructor", "object");
+    let _timer = Profiler::global().start_event("Object::get_prototype_from_constructor", "object");
     // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic
     // object.
     // The corresponding object must be an intrinsic that is intended to be used

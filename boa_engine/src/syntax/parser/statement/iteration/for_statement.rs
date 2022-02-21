@@ -7,22 +7,21 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
-use crate::{
-    syntax::{
-        ast::{
-            node::{iteration::IterableLoopInitializer, ForInLoop, ForLoop, ForOfLoop, Node},
-            Const, Keyword, Position, Punctuator,
-        },
-        lexer::{Error as LexError, TokenKind},
-        parser::{
-            expression::Expression,
-            statement::declaration::Declaration,
-            statement::{variable::VariableDeclarationList, Statement},
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{iteration::IterableLoopInitializer, ForInLoop, ForLoop, ForOfLoop, Node},
+        Const, Keyword, Position, Punctuator,
     },
-    Interner, Profiler,
+    lexer::{Error as LexError, TokenKind},
+    parser::{
+        expression::Expression,
+        statement::declaration::Declaration,
+        statement::{variable::VariableDeclarationList, Statement},
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+    },
 };
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// For statement parsing

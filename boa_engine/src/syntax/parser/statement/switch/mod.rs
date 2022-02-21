@@ -1,18 +1,16 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{node, node::Switch, Keyword, Punctuator},
-        lexer::TokenKind,
-        parser::{
-            expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-            Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node, node::Switch, Keyword, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
+        Cursor, ParseError, TokenParser,
     },
-    Profiler, Interner,
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// The possible `TokenKind` which indicate the end of a case statement.

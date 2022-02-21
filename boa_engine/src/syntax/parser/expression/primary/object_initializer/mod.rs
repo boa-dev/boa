@@ -10,22 +10,20 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{
-            node::{self, FunctionExpr, Identifier, MethodDefinitionKind, Node, Object},
-            Keyword, Position, Punctuator,
-        },
-        lexer::{Error as LexError, TokenKind},
-        parser::{
-            expression::AssignmentExpression,
-            function::{FormalParameters, FunctionBody},
-            AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{self, FunctionExpr, Identifier, MethodDefinitionKind, Node, Object},
+        Keyword, Position, Punctuator,
     },
-    Interner, Profiler,
+    lexer::{Error as LexError, TokenKind},
+    parser::{
+        expression::AssignmentExpression,
+        function::{FormalParameters, FunctionBody},
+        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+    },
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses an object literal.

@@ -11,9 +11,10 @@ use crate::{
     property::Attribute,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
-    Profiler, Context, JsResult, JsString,
+    Context, JsResult, JsString,
 };
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
+use boa_profiler::Profiler;
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
 

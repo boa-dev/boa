@@ -10,6 +10,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-set-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set
 
+use self::{ordered_set::OrderedSet, set_iterator::SetIterator};
+use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     context::StandardObjects,
@@ -19,16 +21,12 @@ use crate::{
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
-use ordered_set::OrderedSet;
-
-pub mod set_iterator;
-use set_iterator::SetIterator;
-
-use super::JsArgs;
+use boa_profiler::Profiler;
 
 pub mod ordered_set;
+pub mod set_iterator;
 #[cfg(test)]
 mod tests;
 

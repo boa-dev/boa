@@ -1,13 +1,11 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{Declaration, DeclarationList, Node},
-            Const,
-        },
-        parser::tests::{check_invalid, check_parser},
+use crate::syntax::{
+    ast::{
+        node::{Declaration, DeclarationList, Node},
+        Const,
     },
-    Interner,
+    parser::tests::{check_invalid, check_parser},
 };
+use boa_interner::Interner;
 
 /// Checks `var` declaration parsing.
 #[test]

@@ -22,8 +22,9 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
+use boa_profiler::Profiler;
 use std::{char::from_u32, cmp::max, string::String as StdString};
 use unicode_normalization::UnicodeNormalization;
 

@@ -1,11 +1,9 @@
-use crate::{
-    syntax::{
-        ast::Position,
-        lexer::{InputElement, Lexer, Token, TokenKind},
-        parser::error::ParseError,
-    },
-    Interner,
+use crate::syntax::{
+    ast::Position,
+    lexer::{InputElement, Lexer, Token, TokenKind},
+    parser::error::ParseError,
 };
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 

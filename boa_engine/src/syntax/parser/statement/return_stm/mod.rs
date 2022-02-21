@@ -1,20 +1,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::lexer::TokenKind;
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{node::Return, Keyword, Node, Punctuator},
-        parser::{
-            cursor::{Cursor, SemicolonResult},
-            expression::Expression,
-            AllowAwait, AllowYield, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::Return, Keyword, Node, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        cursor::{Cursor, SemicolonResult},
+        expression::Expression,
+        AllowAwait, AllowYield, ParseError, TokenParser,
     },
-    Profiler,
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Return statement parsing

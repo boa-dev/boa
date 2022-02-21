@@ -6,8 +6,9 @@ use crate::{
     },
     object::{JsObject, ObjectInitializer},
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
+use boa_profiler::Profiler;
 
 #[derive(Debug, Default)]
 pub struct IteratorPrototypes {

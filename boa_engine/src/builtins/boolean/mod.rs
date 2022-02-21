@@ -19,8 +19,9 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    Profiler, Context, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
+use boa_profiler::Profiler;
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]

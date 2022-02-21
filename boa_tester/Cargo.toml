@@ -30,6 +30,7 @@ exclude = [
 
 [dependencies]
 boa_engine = { path = "../boa_engine" }
+boa_interner = { path = "../boa_interner" }
 structopt = "0.3.26"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_yaml = "0.8.23"

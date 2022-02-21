@@ -7,21 +7,19 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 //! [spec]: https://tc39.es/ecma262/#sec-unary-operators
 
-use crate::{
-    syntax::{
-        ast::{
-            node::{self, Node},
-            op::UnaryOp,
-            Keyword, Punctuator,
-        },
-        lexer::{Error as LexError, TokenKind},
-        parser::{
-            expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{self, Node},
+        op::UnaryOp,
+        Keyword, Punctuator,
     },
-    Interner,
+    lexer::{Error as LexError, TokenKind},
+    parser::{
+        expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
+        ParseResult, TokenParser,
+    },
 };
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 

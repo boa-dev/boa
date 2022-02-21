@@ -1,16 +1,14 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
-                Switch,
-            },
-            Const,
+use crate::syntax::{
+    ast::{
+        node::{
+            Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
+            Switch,
         },
-        parser::tests::{check_invalid, check_parser},
+        Const,
     },
-    Interner,
+    parser::tests::{check_invalid, check_parser},
 };
+use boa_interner::Interner;
 
 /// Checks parsing malformed switch with no closeblock.
 #[test]

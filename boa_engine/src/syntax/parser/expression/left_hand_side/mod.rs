@@ -13,14 +13,12 @@ mod member;
 mod template;
 
 use self::{call::CallExpression, member::MemberExpression};
-use crate::{
-    syntax::{
-        ast::{Node, Punctuator},
-        lexer::{InputElement, TokenKind},
-        parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
-    },
-    Interner,
+use crate::syntax::{
+    ast::{Node, Punctuator},
+    lexer::{InputElement, TokenKind},
+    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 

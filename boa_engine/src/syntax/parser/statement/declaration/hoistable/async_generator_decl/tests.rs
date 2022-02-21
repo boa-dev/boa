@@ -1,7 +1,5 @@
-use crate::{
-    syntax::{ast::node::AsyncGeneratorDecl, parser::tests::check_parser},
-    Interner,
-};
+use crate::syntax::{ast::node::AsyncGeneratorDecl, parser::tests::check_parser};
+use boa_interner::Interner;
 
 #[test]
 fn async_generator_function_declaration() {

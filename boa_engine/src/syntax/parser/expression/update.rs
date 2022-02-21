@@ -6,18 +6,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-update-expressions
 
 use super::left_hand_side::LeftHandSideExpression;
-use crate::{
-    syntax::{
-        ast::{node, op::UnaryOp, Node, Punctuator},
-        lexer::{Error as LexError, TokenKind},
-        parser::{
-            expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node, op::UnaryOp, Node, Punctuator},
+    lexer::{Error as LexError, TokenKind},
+    parser::{
+        expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
+        ParseResult, TokenParser,
     },
-    Interner,
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 

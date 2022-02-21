@@ -12,10 +12,11 @@ use crate::{
     realm::Realm,
     syntax::{ast::node::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, Vm},
-    Interner, JsResult, JsValue, Profiler,
+    JsResult, JsValue,
 };
 use boa_gc::Gc;
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;

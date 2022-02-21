@@ -1,17 +1,15 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                field::GetConstField, BinOp, Block, Break, Call, Declaration, DeclarationList,
-                DoWhileLoop, Identifier, UnaryOp, WhileLoop,
-            },
-            op::{self, AssignOp, CompOp},
-            Const,
+use crate::syntax::{
+    ast::{
+        node::{
+            field::GetConstField, BinOp, Block, Break, Call, Declaration, DeclarationList,
+            DoWhileLoop, Identifier, UnaryOp, WhileLoop,
         },
-        parser::tests::check_parser,
+        op::{self, AssignOp, CompOp},
+        Const,
     },
-    Interner,
+    parser::tests::check_parser,
 };
+use boa_interner::Interner;
 
 /// Checks do-while statement parsing.
 #[test]

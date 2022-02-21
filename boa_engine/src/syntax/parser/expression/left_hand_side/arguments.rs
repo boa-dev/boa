@@ -7,20 +7,15 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Argument
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
-use crate::syntax::lexer::TokenKind;
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{node::Spread, Node, Punctuator},
-        lexer::InputElement,
-        parser::{
-            expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError,
-            TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::Spread, Node, Punctuator},
+    lexer::{InputElement, TokenKind},
+    parser::{
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
-    Profiler,
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Parses a list of arguments.

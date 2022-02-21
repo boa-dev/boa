@@ -1,20 +1,18 @@
-use crate::{
-    syntax::{
-        ast::{Keyword, Node, Punctuator},
-        lexer::TokenKind,
-        parser::{
-            cursor::Cursor,
-            error::ParseError,
-            statement::{
-                declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn,
-                LabelIdentifier, Statement,
-            },
-            AllowYield, TokenParser,
+use crate::syntax::{
+    ast::{Keyword, Node, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        cursor::Cursor,
+        error::ParseError,
+        statement::{
+            declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn, LabelIdentifier,
+            Statement,
         },
+        AllowYield, TokenParser,
     },
-    Profiler,
 };
 use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Labelled Statement Parsing

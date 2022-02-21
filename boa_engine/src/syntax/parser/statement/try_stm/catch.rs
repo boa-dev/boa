@@ -1,20 +1,16 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{self, Identifier},
-            Keyword, Position, Punctuator,
-        },
-        lexer::TokenKind,
-        parser::{
-            statement::{
-                block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern,
-            },
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        node::{self, Identifier},
+        Keyword, Position, Punctuator,
     },
-    Profiler, Interner,
+    lexer::TokenKind,
+    parser::{
+        statement::{block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+    },
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::io::Read;
 

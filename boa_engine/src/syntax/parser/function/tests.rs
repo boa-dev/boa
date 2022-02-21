@@ -1,14 +1,12 @@
-use crate::{
-    syntax::{
-        ast::node::{
-            ArrowFunctionDecl, BinOp, Declaration, DeclarationList, FormalParameter, FunctionDecl,
-            Identifier, Node, Return,
-        },
-        ast::op::NumOp,
-        parser::{tests::check_parser, Parser},
+use crate::syntax::{
+    ast::node::{
+        ArrowFunctionDecl, BinOp, Declaration, DeclarationList, FormalParameter, FunctionDecl,
+        Identifier, Node, Return,
     },
-    Interner,
+    ast::op::NumOp,
+    parser::{tests::check_parser, Parser},
 };
+use boa_interner::Interner;
 
 /// Checks basic function declaration parsing.
 #[test]

@@ -7,19 +7,16 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_Operator
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
-use crate::syntax::lexer::TokenKind;
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{node::ConditionalOp, Node, Punctuator},
-        parser::{
-            expression::{AssignmentExpression, ShortCircuitExpression},
-            AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::ConditionalOp, Node, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        expression::{AssignmentExpression, ShortCircuitExpression},
+        AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
     },
-    Profiler,
 };
-
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Conditional expression parsing.

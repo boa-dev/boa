@@ -1,13 +1,11 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{Declaration, DeclarationList, GeneratorExpr, StatementList, Yield},
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        node::{Declaration, DeclarationList, GeneratorExpr, StatementList, Yield},
+        Const,
     },
-    Interner,
+    parser::tests::check_parser,
 };
+use boa_interner::Interner;
 
 #[test]
 fn check_generator_function_expression() {

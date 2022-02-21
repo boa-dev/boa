@@ -1,13 +1,11 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{Block, Continue, WhileLoop},
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        node::{Block, Continue, WhileLoop},
+        Const,
     },
-    Interner,
+    parser::tests::check_parser,
 };
+use boa_interner::Interner;
 
 #[test]
 fn inline() {

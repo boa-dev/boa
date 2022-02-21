@@ -1,8 +1,6 @@
 use super::BufferedLexer;
-use crate::{
-    syntax::lexer::{Token, TokenKind},
-    Interner,
-};
+use crate::syntax::lexer::{Token, TokenKind};
+use boa_interner::Interner;
 
 #[test]
 fn peek_skip_accending() {

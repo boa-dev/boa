@@ -27,9 +27,10 @@ use crate::{
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
-    Profiler, Context, JsResult, JsString,
+    Context, JsResult, JsString,
 };
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
+use boa_profiler::Profiler;
 use num_traits::{Signed, Zero};
 use std::cmp::Ordering;
 

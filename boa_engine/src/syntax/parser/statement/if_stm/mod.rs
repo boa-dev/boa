@@ -1,18 +1,17 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    syntax::{
-        ast::{node::If, Keyword, Node, Punctuator},
-        lexer::TokenKind,
-        parser::{
-            expression::Expression,
-            statement::{declaration::hoistable::FunctionDeclaration, Statement},
-            AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{node::If, Keyword, Node, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        expression::Expression,
+        statement::{declaration::hoistable::FunctionDeclaration, Statement},
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
     },
-    Profiler, Interner,
 };
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// If statement parsing.

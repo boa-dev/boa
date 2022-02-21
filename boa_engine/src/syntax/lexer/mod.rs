@@ -29,8 +29,6 @@ pub mod token;
 #[cfg(test)]
 mod tests;
 
-use boa_profiler::Profiler;
-
 use self::{
     comment::{HashbangComment, MultiLineComment, SingleLineComment},
     cursor::Cursor,
@@ -42,10 +40,9 @@ use self::{
     string::StringLiteral,
     template::TemplateLiteral,
 };
-use crate::{
-    syntax::ast::{Position, Punctuator, Span},
-    Interner,
-};
+use crate::syntax::ast::{Position, Punctuator, Span};
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 pub use self::{

@@ -4,9 +4,10 @@ use crate::{
     property::PropertyDescriptor,
     property::PropertyKey,
     symbol::WellKnownSymbols,
-    Profiler, Context, JsResult, JsString, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::collections::VecDeque;
 

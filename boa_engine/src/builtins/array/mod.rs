@@ -13,6 +13,9 @@ pub mod array_iterator;
 #[cfg(test)]
 mod tests;
 
+use boa_profiler::Profiler;
+
+use super::JsArgs;
 use crate::{
     builtins::array::array_iterator::ArrayIterator,
     builtins::BuiltIn,
@@ -25,11 +28,9 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
-    Profiler, Context, JsResult, JsString,
+    Context, JsResult, JsString,
 };
 use std::cmp::{max, min, Ordering};
-
-use super::JsArgs;
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]

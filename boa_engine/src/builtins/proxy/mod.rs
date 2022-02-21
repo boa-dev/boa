@@ -14,9 +14,10 @@ use crate::{
     builtins::{BuiltIn, JsArgs},
     object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
     property::Attribute,
-    Profiler, Context, JsResult, JsValue,
+    Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_profiler::Profiler;
 
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]

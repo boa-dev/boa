@@ -13,6 +13,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
+use super::Array;
 use crate::{
     builtins::{map, BuiltIn, JsArgs},
     context::StandardObjects,
@@ -23,10 +24,9 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::JsValue,
-    Profiler, Context, JsResult, JsString,
+    Context, JsResult, JsString,
 };
-
-use super::Array;
+use boa_profiler::Profiler;
 
 pub mod for_in_iterator;
 #[cfg(test)]

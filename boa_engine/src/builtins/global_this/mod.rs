@@ -10,7 +10,8 @@
 //! [spec]: https://tc39.es/ecma262/#sec-globalthis
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis
 
-use crate::{builtins::BuiltIn, property::Attribute, Profiler, Context, JsValue};
+use crate::{builtins::BuiltIn, property::Attribute, Context, JsValue};
+use boa_profiler::Profiler;
 
 #[cfg(test)]
 mod tests;

@@ -1,9 +1,5 @@
-use boa_interner::Sym;
-
-use crate::{
-    syntax::{ast::Const, parser::tests::check_parser},
-    Interner,
-};
+use crate::syntax::{ast::Const, parser::tests::check_parser};
+use boa_interner::{Interner, Sym};
 
 #[test]
 fn check_string() {

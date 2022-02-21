@@ -1,16 +1,14 @@
-use crate::{
-    syntax::{
-        ast::{
-            node::{
-                Declaration, DeclarationList, FormalParameter, FunctionExpr, Identifier,
-                MethodDefinitionKind, Object, PropertyDefinition,
-            },
-            Const,
+use crate::syntax::{
+    ast::{
+        node::{
+            Declaration, DeclarationList, FormalParameter, FunctionExpr, Identifier,
+            MethodDefinitionKind, Object, PropertyDefinition,
         },
-        parser::tests::{check_invalid, check_parser},
+        Const,
     },
-    Interner,
+    parser::tests::{check_invalid, check_parser},
 };
+use boa_interner::Interner;
 
 /// Checks object literal parsing.
 #[test]

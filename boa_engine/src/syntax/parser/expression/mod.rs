@@ -17,19 +17,16 @@ mod update;
 
 use self::assignment::ExponentiationExpression;
 use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
-use crate::{
-    syntax::{
-        ast::op::LogOp,
-        ast::{
-            node::{BinOp, Node},
-            Keyword, Punctuator,
-        },
-        lexer::{InputElement, TokenKind},
-        parser::ParseError,
+use crate::syntax::{
+    ast::op::LogOp,
+    ast::{
+        node::{BinOp, Node},
+        Keyword, Punctuator,
     },
-    Interner,
+    lexer::{InputElement, TokenKind},
+    parser::ParseError,
 };
-use boa_interner::Sym;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 

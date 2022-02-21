@@ -12,24 +12,22 @@ mod conditional;
 mod exponentiation;
 mod r#yield;
 
-use self::r#yield::YieldExpression;
-use self::{arrow_function::ArrowFunction, conditional::ConditionalExpression};
-use crate::syntax::lexer::{Error as LexError, InputElement, TokenKind};
-use crate::Interner;
-use crate::{
-    syntax::{
-        ast::{
-            node::{Assign, BinOp, Node},
-            Keyword, Punctuator,
-        },
-        parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
-    },
-    Profiler,
+use self::{
+    arrow_function::ArrowFunction, conditional::ConditionalExpression, r#yield::YieldExpression,
 };
-use boa_interner::Sym;
-pub(super) use exponentiation::ExponentiationExpression;
-
+use crate::syntax::{
+    ast::{
+        node::{Assign, BinOp, Node},
+        Keyword, Punctuator,
+    },
+    lexer::{Error as LexError, InputElement, TokenKind},
+    parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+};
+use boa_interner::{Interner, Sym};
+use boa_profiler::Profiler;
 use std::io::Read;
+
+pub(super) use exponentiation::ExponentiationExpression;
 
 /// Assignment expression parsing.
 ///

@@ -1,12 +1,13 @@
-use super::super::{expression::Expression, ParseResult};
-use crate::{
-    syntax::{
-        ast::{node::Node, Keyword, Punctuator},
-        lexer::TokenKind,
-        parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+use crate::syntax::{
+    ast::{node::Node, Keyword, Punctuator},
+    lexer::TokenKind,
+    parser::{
+        expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+        TokenParser,
     },
-    Profiler, Interner,
 };
+use boa_interner::Interner;
+use boa_profiler::Profiler;
 use std::io::Read;
 
 /// Expression statement parsing.
