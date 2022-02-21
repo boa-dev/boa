@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["FunctionDecl","The `function` declaration (function statement) defines a function with the specified parameters."]]});

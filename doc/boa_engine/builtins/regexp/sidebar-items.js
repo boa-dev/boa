@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["advance_string_index","`22.2.5.2.3 AdvanceStringIndex ( S, index, unicode )`"]],"mod":[["regexp_string_iterator","This module implements the global `RegExp String Iterator` object."]],"struct":[["RegExp","The internal representation on a `RegExp` object."]]});

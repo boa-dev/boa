@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AsyncFunctionDeclaration","Async Function declaration parsing."]]});

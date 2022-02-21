@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Math","Javascript `Math` object."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["FunctionExpression","Function expression parsing."]]});

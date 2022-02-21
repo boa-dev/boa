@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["function_call","Call this object."],["function_construct","Construct an instance of this object with the specified arguments."]],"static":[["CONSTRUCTOR_INTERNAL_METHODS",""],["FUNCTION_INTERNAL_METHODS","Definitions of the internal object methods for function objects."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["SpreadLiteral","Spread literal lexing."]]});

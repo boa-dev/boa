@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["StringTerminator","Terminator for the string."]],"struct":[["StringLiteral","String literal lexing."]],"trait":[["UTF16CodeUnitsBuffer","Extends a buffer type to store UTF-16 code units and convert to string."]]});

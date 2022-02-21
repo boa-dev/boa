@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["op","The `op` macro handles binary operations or assignment operations and converts them into tokens."],["vop","`vop` tests the next token to see if we’re on an assign operation of just a plain binary operation."]],"struct":[["Operator",""]]});

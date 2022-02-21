@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["is_assignable","Returns true if as per specspec the node can be assigned a value."]],"mod":[["arrow_function","Arrow function parsing."],["conditional","Conditional operator parsing."],["exponentiation","Exponentiation operator parsing."],["yield","`YieldExpression` parsing."]],"struct":[["AssignmentExpression","Assignment expression parsing."]]});

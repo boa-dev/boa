@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["UriError","JavaScript `URIError` impleentation."]]});

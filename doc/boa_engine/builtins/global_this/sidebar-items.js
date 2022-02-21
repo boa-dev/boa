@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["GlobalThis","The JavaScript `globalThis`."]]});

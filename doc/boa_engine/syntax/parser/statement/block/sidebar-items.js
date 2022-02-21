@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["BLOCK_BREAK_TOKENS","The possible `TokenKind` which indicate the end of a block statement."]],"struct":[["Block","Variable declaration list parsing."]],"type":[["BlockStatement","A `BlockStatement` is equivalent to a `Block`."]]});

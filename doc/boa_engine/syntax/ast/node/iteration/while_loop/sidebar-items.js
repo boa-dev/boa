@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["WhileLoop","The `while` statement creates a loop that executes a specified statement as long as the test condition evaluates to `true`."]]});

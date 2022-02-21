@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["TemplateLiteral","Parses a template literal."]]});

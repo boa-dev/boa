@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Undefined","JavaScript global `undefined` property."]]});
