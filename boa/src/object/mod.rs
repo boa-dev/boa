@@ -4,7 +4,7 @@ use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
         array_buffer::ArrayBuffer,
-        function::arguments::{Arguments, MappedArguments},
+        function::arguments::{Arguments, ParameterMap},
         function::{BoundFunction, Captures, Function, NativeFunctionSignature},
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
@@ -958,10 +958,22 @@ impl Object {
 
     /// Gets the mapped arguments data if this is a mapped arguments object.
     #[inline]
-    pub fn as_mapped_arguments(&self) -> Option<&MappedArguments> {
+    pub fn as_mapped_arguments(&self) -> Option<&ParameterMap> {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Arguments(Arguments::Mapped(ref args)),
+                ..
+            } => Some(args),
+            _ => None,
+        }
+    }
+
+    /// Gets the mutable mapped arguments data if this is a mapped arguments object.
+    #[inline]
+    pub fn as_mapped_arguments_mut(&mut self) -> Option<&mut ParameterMap> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Arguments(Arguments::Mapped(ref mut args)),
                 ..
             } => Some(args),
             _ => None,

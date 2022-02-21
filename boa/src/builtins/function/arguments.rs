@@ -2,8 +2,8 @@ use crate::{
     builtins::Array,
     environments::DeclarativeEnvironment,
     gc::{Finalize, Trace},
-    object::{FunctionBuilder, JsObject, ObjectData},
-    property::{PropertyDescriptor, PropertyKey},
+    object::{JsObject, ObjectData},
+    property::PropertyDescriptor,
     symbol::{self, WellKnownSymbols},
     syntax::ast::node::FormalParameter,
     Context, JsValue,
@@ -11,19 +11,57 @@ use crate::{
 use gc::Gc;
 use rustc_hash::FxHashMap;
 
+/// `ParameterMap` represents the `[[ParameterMap]]` internal slot on a Arguments exotic object.
+///
+/// This struct stores all the data to access mapped function parameters in their environment.
 #[derive(Debug, Clone, Trace, Finalize)]
-pub struct MappedArguments(JsObject);
+pub struct ParameterMap {
+    binding_indices: Vec<Option<usize>>,
+    environment: Gc<DeclarativeEnvironment>,
+}
 
-impl MappedArguments {
-    pub(crate) fn parameter_map(&self) -> JsObject {
-        self.0.clone()
+impl ParameterMap {
+    /// Deletes the binding with the given index from the parameter map.
+    pub(crate) fn delete(&mut self, index: usize) {
+        if let Some(binding) = self.binding_indices.get_mut(index) {
+            *binding = None;
+        }
+    }
+
+    /// Get the value of the binding at the given index from the function environment.
+    ///
+    /// Note: This function is the abstract getter closure described in 10.4.4.7.1 `MakeArgGetter ( name, env )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-makearggetter
+    pub(crate) fn get(&self, index: usize) -> Option<JsValue> {
+        if let Some(Some(binding_index)) = self.binding_indices.get(index) {
+            return Some(self.environment.get(*binding_index));
+        }
+        None
+    }
+
+    /// Set the value of the binding at the given index in the function environment.
+    ///
+    /// Note: This function is the abstract setter closure described in 10.4.4.7.2 `MakeArgSetter ( name, env )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-makeargsetter
+    pub(crate) fn set(&self, index: usize, value: &JsValue) {
+        if let Some(Some(binding_index)) = self.binding_indices.get(index) {
+            self.environment.set(*binding_index, value.clone());
+        }
     }
 }
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub enum Arguments {
     Unmapped,
-    Mapped(MappedArguments),
+    Mapped(ParameterMap),
 }
 
 impl Arguments {
@@ -128,38 +166,8 @@ impl Arguments {
         // 8. Set obj.[[Delete]] as specified in 10.4.4.5.
         // 9. Set obj.[[Prototype]] to %Object.prototype%.
 
-        // 10. Let map be ! OrdinaryObjectCreate(null).
-        let map = JsObject::empty();
-
-        // 11. Set obj.[[ParameterMap]] to map.
-        let obj = JsObject::from_proto_and_data(
-            context.standard_objects().object_object().prototype(),
-            ObjectData::arguments(Self::Mapped(MappedArguments(map.clone()))),
-        );
-
-        // 14. Let index be 0.
-        // 15. Repeat, while index < len,
-        for (index, val) in arguments_list.iter().cloned().enumerate() {
-            // a. Let val be argumentsList[index].
-            // b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
-            obj.create_data_property_or_throw(index, val, context)
-                .expect("Defining new own properties for a new ordinary object cannot fail");
-            // c. Set index to index + 1.
-        }
-
-        // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
-        // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
-        obj.define_property_or_throw(
-            "length",
-            PropertyDescriptor::builder()
-                .value(len)
-                .writable(true)
-                .enumerable(false)
-                .configurable(true),
-            context,
-        )
-        .expect("Defining new own properties for a new ordinary object cannot fail");
-
+        // Section 17-19 are done first, for easier object creation in 11.
+        //
         // The section 17-19 differs from the spec, due to the way the runtime environments work.
         //
         // This section creates getters and setters for all mapped arguments.
@@ -205,58 +213,53 @@ impl Arguments {
                 property_index += 1;
             }
         }
-        for (binding_index, property_index) in bindings.values() {
-            // 19.b.ii.1. Let g be MakeArgGetter(name, env).
-            // https://tc39.es/ecma262/#sec-makearggetter
-            let g = {
-                // 2. Let getter be ! CreateBuiltinFunction(getterClosure, 0, "", « »).
-                // 3. NOTE: getter is never directly accessible to ECMAScript code.
-                // 4. Return getter.
-                FunctionBuilder::closure_with_captures(
-                    context,
-                    // 1. Let getterClosure be a new Abstract Closure with no parameters that captures
-                    // name and env and performs the following steps when called:
-                    |_, _, captures, _| Ok(captures.0.get(captures.1)),
-                    (env.clone(), *binding_index),
-                )
-                .length(0)
-                .build()
-            };
-            // 19.b.ii.2. Let p be MakeArgSetter(name, env).
-            // https://tc39.es/ecma262/#sec-makeargsetter
-            let p = {
-                // 2. Let setter be ! CreateBuiltinFunction(setterClosure, 1, "", « »).
-                // 3. NOTE: setter is never directly accessible to ECMAScript code.
-                // 4. Return setter.
-                FunctionBuilder::closure_with_captures(
-                    context,
-                    // 1. Let setterClosure be a new Abstract Closure with parameters (value) that captures
-                    // name and env and performs the following steps when called:
-                    |_, args, captures, _| {
-                        let value = args.get(0).cloned().unwrap_or_default();
-                        captures.0.set(captures.1, value);
-                        Ok(JsValue::undefined())
-                    },
-                    (env.clone(), *binding_index),
-                )
-                .length(1)
-                .build()
-            };
 
-            // 19.b.ii.3. Perform map.[[DefineOwnProperty]](! ToString(𝔽(index)), PropertyDescriptor {
-            // [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).
-            map.__define_own_property__(
-                PropertyKey::from(*property_index),
+        let mut map = ParameterMap {
+            binding_indices: vec![None; property_index],
+            environment: env.clone(),
+        };
+
+        for (binding_index, property_index) in bindings.values() {
+            map.binding_indices[*property_index] = Some(*binding_index);
+        }
+
+        // 11. Set obj.[[ParameterMap]] to map.
+        let obj = JsObject::from_proto_and_data(
+            context.standard_objects().object_object().prototype(),
+            ObjectData::arguments(Self::Mapped(map)),
+        );
+
+        // 14. Let index be 0.
+        // 15. Repeat, while index < len,
+        for (index, val) in arguments_list.iter().cloned().enumerate() {
+            // a. Let val be argumentsList[index].
+            // b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).
+            // Note: Insert is used here because `CreateDataPropertyOrThrow` would cause a panic while executing
+            // exotic argument object set methods before the variables in the environment are initialized.
+            obj.insert(
+                index,
                 PropertyDescriptor::builder()
-                    .set(p)
-                    .get(g)
-                    .enumerable(false)
+                    .value(val)
+                    .writable(true)
+                    .enumerable(true)
                     .configurable(true)
                     .build(),
-                context,
-            )
-            .expect("Defining new own properties for a new ordinary object cannot fail");
+            );
+            // c. Set index to index + 1.
         }
+
+        // 16. Perform ! DefinePropertyOrThrow(obj, "length", PropertyDescriptor { [[Value]]: 𝔽(len),
+        // [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).
+        obj.define_property_or_throw(
+            "length",
+            PropertyDescriptor::builder()
+                .value(len)
+                .writable(true)
+                .enumerable(false)
+                .configurable(true),
+            context,
+        )
+        .expect("Defining new own properties for a new ordinary object cannot fail");
 
         // 20. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
         // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
