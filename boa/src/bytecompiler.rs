@@ -1471,19 +1471,26 @@ impl<'b> ByteCompiler<'b> {
                     self.emit(Opcode::FinallySetJump, &[u32::MAX]);
                 }
                 let label = self.jump();
-                if node.label().is_none() {
+                if let Some(label_name) = node.label() {
+                    let mut found = false;
+                    for info in self.jump_info.iter_mut().rev() {
+                        if info.label == Some(label_name) {
+                            info.breaks.push(label);
+                            found = true;
+                            break;
+                        }
+                    }
+                    assert!(
+                        found,
+                        "Undefined label '{}'",
+                        self.interner().resolve_expect(label_name)
+                    );
+                } else {
                     self.jump_info
                         .last_mut()
                         .expect("no jump information found")
                         .breaks
                         .push(label);
-                } else {
-                    for info in self.jump_info.iter_mut().rev() {
-                        if info.label == node.label() {
-                            info.breaks.push(label);
-                            break;
-                        }
-                    }
                 }
             }
             Node::Block(block) => {

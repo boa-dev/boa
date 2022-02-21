@@ -431,6 +431,18 @@ fn for_loop_iteration_variable_does_not_leak() {
 }
 
 #[test]
+#[should_panic]
+fn test_invalid_break_target() {
+    let src = r#"
+        while (false) {
+          break nonexistent;
+        }
+        "#;
+
+    let _ = &exec(src);
+}
+
+#[test]
 fn unary_pre() {
     let unary_inc = r#"
         let a = 5;
