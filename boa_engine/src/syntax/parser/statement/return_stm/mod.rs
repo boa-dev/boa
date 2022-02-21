@@ -1,6 +1,3 @@
-#[cfg(test)]
-mod tests;
-
 use crate::syntax::{
     ast::{node::Return, Keyword, Node, Punctuator},
     lexer::TokenKind,
