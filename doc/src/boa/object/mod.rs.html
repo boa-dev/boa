@@ -1867,6 +1867,14 @@
 <span id="1866">1866</span>
 <span id="1867">1867</span>
 <span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1922,9 +1930,17 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_methods</span>;
+<span class="kw">mod</span> <span class="ident">jsarray</span>;
 <span class="kw">mod</span> <span class="ident">jsobject</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">property_map</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsarray</span>::<span class="kw-2">*</span>;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">JsObjectType</span>:
+    <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Deref</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="ident">JsObject</span><span class="op">&gt;</span>
+{
+}
 
 <span class="doccomment">/// Static `prototype`, usually set on constructors as a key to point to their respective prototype object.</span>
 <span class="kw">pub</span> <span class="kw">static</span> <span class="ident">PROTOTYPE</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;prototype&quot;</span>;

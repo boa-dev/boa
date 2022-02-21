@@ -313,7 +313,7 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">match</span> <span class="ident">value</span> {
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">into</span>(),
-            <span class="prelude-val">None</span> =&gt; <span class="ident"><span class="self">Self</span>::null</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="ident"><span class="self">Self</span>::undefined</span>(),
         }
     }
 }

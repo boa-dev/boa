@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["JsArray","JavaScript `Array` rust object."]]});
