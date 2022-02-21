@@ -37,7 +37,7 @@ impl JsValue {
         /// Biggest possible integer, as i64.
         const MAX_INT: i64 = i32::MAX as i64;
 
-        /// Biggest possible integer, as i64.
+        /// Smallest possible integer, as i64.
         const MIN_INT: i64 = i32::MIN as i64;
 
         match json {
