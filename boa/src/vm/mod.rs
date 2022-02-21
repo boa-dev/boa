@@ -460,7 +460,7 @@ impl Context {
 
                     if !exists && (self.strict() || self.vm.frame().code.strict) {
                         return self
-                            .throw_reference_error(format!("binding already exists: {key}"));
+                            .throw_reference_error(format!("assignment to undeclared variable {key}"));
                     }
 
                     let success = crate::object::internal_methods::global::global_set_no_receiver(
