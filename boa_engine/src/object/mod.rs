@@ -456,17 +456,6 @@ impl Object {
         )
     }
 
-    #[inline]
-    pub fn as_array(&self) -> Option<()> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Array,
-                ..
-            } => Some(()),
-            _ => None,
-        }
-    }
-
     /// Checks if it is an `ArrayIterator` object.
     #[inline]
     pub fn is_array_iterator(&self) -> bool {
@@ -791,17 +780,6 @@ impl Object {
                 ..
             }
         )
-    }
-
-    #[inline]
-    pub fn as_error(&self) -> Option<()> {
-        match self.data {
-            ObjectData {
-                kind: ObjectKind::Error,
-                ..
-            } => Some(()),
-            _ => None,
-        }
     }
 
     /// Checks if it a Boolean object.
@@ -1159,7 +1137,10 @@ impl Object {
         &self.properties
     }
 
-    /// Helper function for property insertion.
+    /// Inserts a field in the object `properties` without checking if it's writable.
+    ///
+    /// If a field was already in the object with the same name, then a `Some` is returned
+    /// with that field's value, otherwise, `None` is returned.
     #[inline]
     pub(crate) fn insert<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
     where
@@ -1173,19 +1154,6 @@ impl Object {
     #[inline]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         self.properties.remove(key)
-    }
-
-    /// Inserts a field in the object `properties` without checking if it's writable.
-    ///
-    /// If a field was already in the object with the same name that a `Some` is returned
-    /// with that field, otherwise None is returned.
-    #[inline]
-    pub fn insert_property<K, P>(&mut self, key: K, property: P) -> Option<PropertyDescriptor>
-    where
-        K: Into<PropertyKey>,
-        P: Into<PropertyDescriptor>,
-    {
-        self.insert(key, property)
     }
 }
 
@@ -1406,8 +1374,8 @@ impl<'context> FunctionBuilder<'context> {
             .writable(false)
             .enumerable(false)
             .configurable(true);
-        object.insert_property("name", property.clone().value(self.name.clone()));
-        object.insert_property("length", property.value(self.length));
+        object.insert("name", property.clone().value(self.name.clone()));
+        object.insert("length", property.value(self.length));
     }
 }
 
@@ -1473,7 +1441,7 @@ impl<'context> ObjectInitializer<'context> {
             .constructor(false)
             .build();
 
-        self.object.borrow_mut().insert_property(
+        self.object.borrow_mut().insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -1595,7 +1563,7 @@ impl<'context> ConstructorBuilder<'context> {
             .constructor(false)
             .build();
 
-        self.prototype.borrow_mut().insert_property(
+        self.prototype.borrow_mut().insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -1624,7 +1592,7 @@ impl<'context> ConstructorBuilder<'context> {
             .constructor(false)
             .build();
 
-        self.constructor_object.borrow_mut().insert_property(
+        self.constructor_object.borrow_mut().insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -1842,7 +1810,7 @@ impl<'context> ConstructorBuilder<'context> {
             }
 
             if self.constructor_has_prototype {
-                constructor.insert_property(
+                constructor.insert(
                     PROTOTYPE,
                     PropertyDescriptor::builder()
                         .value(self.prototype.clone())
@@ -1855,7 +1823,7 @@ impl<'context> ConstructorBuilder<'context> {
 
         {
             let mut prototype = self.prototype.borrow_mut();
-            prototype.insert_property(
+            prototype.insert(
                 "constructor",
                 PropertyDescriptor::builder()
                     .value(self.constructor_object.clone())
