@@ -1855,13 +1855,25 @@
 <span id="1854">1854</span>
 <span id="1855">1855</span>
 <span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">array::array_iterator::ArrayIterator</span>,
         <span class="ident">array_buffer::ArrayBuffer</span>,
-        <span class="ident">function::arguments</span>::{<span class="ident">Arguments</span>, <span class="ident">MappedArguments</span>},
+        <span class="ident">function::arguments</span>::{<span class="ident">Arguments</span>, <span class="ident">ParameterMap</span>},
         <span class="ident">function</span>::{<span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>},
         <span class="ident">map::map_iterator::MapIterator</span>,
         <span class="ident">map::ordered_map::OrderedMap</span>,
@@ -2815,10 +2827,22 @@
 
     <span class="doccomment">/// Gets the mapped arguments data if this is a mapped arguments object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapped_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">MappedArguments</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapped_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ParameterMap</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData</span> {
                 <span class="ident">kind</span>: <span class="ident">ObjectKind::Arguments</span>(<span class="ident">Arguments::Mapped</span>(<span class="kw-2">ref</span> <span class="ident">args</span>)),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">args</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Gets the mutable mapped arguments data if this is a mapped arguments object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_mapped_arguments_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">ParameterMap</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Arguments</span>(<span class="ident">Arguments::Mapped</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">args</span>)),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(<span class="ident">args</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,

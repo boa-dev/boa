@@ -290,12 +290,15 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
     <span class="ident">environments::DeclarativeEnvironment</span>,
     <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>},
-    <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
-    <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
+    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">symbol</span>::{<span class="self">self</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">syntax::ast::node::FormalParameter</span>,
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
@@ -303,19 +306,57 @@
 <span class="kw">use</span> <span class="ident">gc::Gc</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
+<span class="doccomment">/// `ParameterMap` represents the `[[ParameterMap]]` internal slot on a Arguments exotic object.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This struct stores all the data to access mapped function parameters in their environment.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MappedArguments</span>(<span class="ident">JsObject</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ParameterMap</span> {
+    <span class="ident">binding_indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">environment</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">DeclarativeEnvironment</span><span class="op">&gt;</span>,
+}
 
-<span class="kw">impl</span> <span class="ident">MappedArguments</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parameter_map</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">clone</span>()
+<span class="kw">impl</span> <span class="ident">ParameterMap</span> {
+    <span class="doccomment">/// Deletes the binding with the given index from the parameter map.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delete</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">binding_indices</span>.<span class="ident">get_mut</span>(<span class="ident">index</span>) {
+            <span class="kw-2">*</span><span class="ident">binding</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        }
+    }
+
+    <span class="doccomment">/// Get the value of the binding at the given index from the function environment.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note: This function is the abstract getter closure described in 10.4.4.7.1 `MakeArgGetter ( name, env )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-makearggetter</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">binding_index</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">binding_indices</span>.<span class="ident">get</span>(<span class="ident">index</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">get</span>(<span class="kw-2">*</span><span class="ident">binding_index</span>));
+        }
+        <span class="prelude-val">None</span>
+    }
+
+    <span class="doccomment">/// Set the value of the binding at the given index in the function environment.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note: This function is the abstract setter closure described in 10.4.4.7.2 `MakeArgSetter ( name, env )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-makeargsetter</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">binding_index</span>)) <span class="op">=</span> <span class="self">self</span>.<span class="ident">binding_indices</span>.<span class="ident">get</span>(<span class="ident">index</span>) {
+            <span class="self">self</span>.<span class="ident">environment</span>.<span class="ident">set</span>(<span class="kw-2">*</span><span class="ident">binding_index</span>, <span class="ident">value</span>.<span class="ident">clone</span>());
+        }
     }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Arguments</span> {
     <span class="ident">Unmapped</span>,
-    <span class="ident">Mapped</span>(<span class="ident">MappedArguments</span>),
+    <span class="ident">Mapped</span>(<span class="ident">ParameterMap</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">Arguments</span> {
@@ -420,38 +461,8 @@
         <span class="comment">// 8. Set obj.[[Delete]] as specified in 10.4.4.5.</span>
         <span class="comment">// 9. Set obj.[[Prototype]] to %Object.prototype%.</span>
 
-        <span class="comment">// 10. Let map be ! OrdinaryObjectCreate(null).</span>
-        <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">JsObject::empty</span>();
-
-        <span class="comment">// 11. Set obj.[[ParameterMap]] to map.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>(),
-            <span class="ident">ObjectData::arguments</span>(<span class="ident"><span class="self">Self</span>::Mapped</span>(<span class="ident">MappedArguments</span>(<span class="ident">map</span>.<span class="ident">clone</span>()))),
-        );
-
-        <span class="comment">// 14. Let index be 0.</span>
-        <span class="comment">// 15. Repeat, while index &lt; len,</span>
-        <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">arguments_list</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">enumerate</span>() {
-            <span class="comment">// a. Let val be argumentsList[index].</span>
-            <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).</span>
-            <span class="ident">obj</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">index</span>, <span class="ident">val</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;Defining new own properties for a new ordinary object cannot fail&quot;</span>);
-            <span class="comment">// c. Set index to index + 1.</span>
-        }
-
-        <span class="comment">// 16. Perform ! DefinePropertyOrThrow(obj, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(len),</span>
-        <span class="comment">// [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).</span>
-        <span class="ident">obj</span>.<span class="ident">define_property_or_throw</span>(
-            <span class="string">&quot;length&quot;</span>,
-            <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">len</span>)
-                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
-                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-            <span class="ident">context</span>,
-        )
-        .<span class="ident">expect</span>(<span class="string">&quot;Defining new own properties for a new ordinary object cannot fail&quot;</span>);
-
+        <span class="comment">// Section 17-19 are done first, for easier object creation in 11.</span>
+        <span class="comment">//</span>
         <span class="comment">// The section 17-19 differs from the spec, due to the way the runtime environments work.</span>
         <span class="comment">//</span>
         <span class="comment">// This section creates getters and setters for all mapped arguments.</span>
@@ -497,58 +508,53 @@
                 <span class="ident">property_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
             }
         }
-        <span class="kw">for</span> (<span class="ident">binding_index</span>, <span class="ident">property_index</span>) <span class="kw">in</span> <span class="ident">bindings</span>.<span class="ident">values</span>() {
-            <span class="comment">// 19.b.ii.1. Let g be MakeArgGetter(name, env).</span>
-            <span class="comment">// https://tc39.es/ecma262/#sec-makearggetter</span>
-            <span class="kw">let</span> <span class="ident">g</span> <span class="op">=</span> {
-                <span class="comment">// 2. Let getter be ! CreateBuiltinFunction(getterClosure, 0, &quot;&quot;, « »).</span>
-                <span class="comment">// 3. NOTE: getter is never directly accessible to ECMAScript code.</span>
-                <span class="comment">// 4. Return getter.</span>
-                <span class="ident">FunctionBuilder::closure_with_captures</span>(
-                    <span class="ident">context</span>,
-                    <span class="comment">// 1. Let getterClosure be a new Abstract Closure with no parameters that captures</span>
-                    <span class="comment">// name and env and performs the following steps when called:</span>
-                    <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">captures</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">captures</span>.<span class="number">0</span>.<span class="ident">get</span>(<span class="ident">captures</span>.<span class="number">1</span>)),
-                    (<span class="ident">env</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">binding_index</span>),
-                )
-                .<span class="ident">length</span>(<span class="number">0</span>)
-                .<span class="ident">build</span>()
-            };
-            <span class="comment">// 19.b.ii.2. Let p be MakeArgSetter(name, env).</span>
-            <span class="comment">// https://tc39.es/ecma262/#sec-makeargsetter</span>
-            <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> {
-                <span class="comment">// 2. Let setter be ! CreateBuiltinFunction(setterClosure, 1, &quot;&quot;, « »).</span>
-                <span class="comment">// 3. NOTE: setter is never directly accessible to ECMAScript code.</span>
-                <span class="comment">// 4. Return setter.</span>
-                <span class="ident">FunctionBuilder::closure_with_captures</span>(
-                    <span class="ident">context</span>,
-                    <span class="comment">// 1. Let setterClosure be a new Abstract Closure with parameters (value) that captures</span>
-                    <span class="comment">// name and env and performs the following steps when called:</span>
-                    <span class="op">|</span><span class="kw">_</span>, <span class="ident">args</span>, <span class="ident">captures</span>, <span class="kw">_</span><span class="op">|</span> {
-                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>();
-                        <span class="ident">captures</span>.<span class="number">0</span>.<span class="ident">set</span>(<span class="ident">captures</span>.<span class="number">1</span>, <span class="ident">value</span>);
-                        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
-                    },
-                    (<span class="ident">env</span>.<span class="ident">clone</span>(), <span class="kw-2">*</span><span class="ident">binding_index</span>),
-                )
-                .<span class="ident">length</span>(<span class="number">1</span>)
-                .<span class="ident">build</span>()
-            };
 
-            <span class="comment">// 19.b.ii.3. Perform map.[[DefineOwnProperty]](! ToString(𝔽(index)), PropertyDescriptor {</span>
-            <span class="comment">// [[Set]]: p, [[Get]]: g, [[Enumerable]]: false, [[Configurable]]: true }).</span>
-            <span class="ident">map</span>.<span class="ident">__define_own_property__</span>(
-                <span class="ident">PropertyKey::from</span>(<span class="kw-2">*</span><span class="ident">property_index</span>),
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">ParameterMap</span> {
+            <span class="ident">binding_indices</span>: <span class="macro">vec!</span>[<span class="prelude-val">None</span>; <span class="ident">property_index</span>],
+            <span class="ident">environment</span>: <span class="ident">env</span>.<span class="ident">clone</span>(),
+        };
+
+        <span class="kw">for</span> (<span class="ident">binding_index</span>, <span class="ident">property_index</span>) <span class="kw">in</span> <span class="ident">bindings</span>.<span class="ident">values</span>() {
+            <span class="ident">map</span>.<span class="ident">binding_indices</span>[<span class="kw-2">*</span><span class="ident">property_index</span>] <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">binding_index</span>);
+        }
+
+        <span class="comment">// 11. Set obj.[[ParameterMap]] to map.</span>
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
+            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>(),
+            <span class="ident">ObjectData::arguments</span>(<span class="ident"><span class="self">Self</span>::Mapped</span>(<span class="ident">map</span>)),
+        );
+
+        <span class="comment">// 14. Let index be 0.</span>
+        <span class="comment">// 15. Repeat, while index &lt; len,</span>
+        <span class="kw">for</span> (<span class="ident">index</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">arguments_list</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">enumerate</span>() {
+            <span class="comment">// a. Let val be argumentsList[index].</span>
+            <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(obj, ! ToString(𝔽(index)), val).</span>
+            <span class="comment">// Note: Insert is used here because `CreateDataPropertyOrThrow` would cause a panic while executing</span>
+            <span class="comment">// exotic argument object set methods before the variables in the environment are initialized.</span>
+            <span class="ident">obj</span>.<span class="ident">insert</span>(
+                <span class="ident">index</span>,
                 <span class="ident">PropertyDescriptor::builder</span>()
-                    .<span class="ident">set</span>(<span class="ident">p</span>)
-                    .<span class="ident">get</span>(<span class="ident">g</span>)
-                    .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">value</span>(<span class="ident">val</span>)
+                    .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
                     .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
                     .<span class="ident">build</span>(),
-                <span class="ident">context</span>,
-            )
-            .<span class="ident">expect</span>(<span class="string">&quot;Defining new own properties for a new ordinary object cannot fail&quot;</span>);
+            );
+            <span class="comment">// c. Set index to index + 1.</span>
         }
+
+        <span class="comment">// 16. Perform ! DefinePropertyOrThrow(obj, &quot;length&quot;, PropertyDescriptor { [[Value]]: 𝔽(len),</span>
+        <span class="comment">// [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: true }).</span>
+        <span class="ident">obj</span>.<span class="ident">define_property_or_throw</span>(
+            <span class="string">&quot;length&quot;</span>,
+            <span class="ident">PropertyDescriptor::builder</span>()
+                .<span class="ident">value</span>(<span class="ident">len</span>)
+                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
+            <span class="ident">context</span>,
+        )
+        .<span class="ident">expect</span>(<span class="string">&quot;Defining new own properties for a new ordinary object cannot fail&quot;</span>);
 
         <span class="comment">// 20. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {</span>
         <span class="comment">// [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,</span>
