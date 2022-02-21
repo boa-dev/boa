@@ -1478,12 +1478,15 @@ impl<'b> ByteCompiler<'b> {
                         .breaks
                         .push(label);
                 } else {
+                    let mut found = false;
                     for info in self.jump_info.iter_mut().rev() {
                         if info.label == node.label() {
                             info.breaks.push(label);
+                            found = true;
                             break;
                         }
                     }
+                    assert!(found, "Undefined label {}", self.interner().resolve_expect(node.label().unwrap()));
                 }
             }
             Node::Block(block) => {
