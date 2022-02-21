@@ -131,6 +131,7 @@ name = "boa_profiler"
 version = "0.13.0"
 dependencies = [
  "measureme",
+ "once_cell",
 ]
 
 [[package]]

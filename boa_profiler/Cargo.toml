@@ -28,5 +28,9 @@ exclude = [
     "../.github/*",
 ]
 
+[features]
+profiler = ["measureme", "once_cell"]
+
 [dependencies]
 measureme = { version = "10.0.0", optional = true }
+once_cell = { version = "1.9.0", optional = true }

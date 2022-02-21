@@ -1,27 +1,28 @@
 #![allow(missing_copy_implementations, missing_debug_implementations)]
 
-#[cfg(feature = "measureme")]
-use measureme::{EventId, Profiler, TimingGuard};
-#[cfg(feature = "measureme")]
+#[cfg(feature = "profiler")]
+use measureme::{EventId, Profiler as MeasuremeProfiler, TimingGuard};
+#[cfg(feature = "profiler")]
 use once_cell::sync::OnceCell;
 use std::fmt::{self, Debug};
-#[cfg(feature = "measureme")]
+#[cfg(feature = "profiler")]
 use std::{
     path::Path,
     thread::{current, ThreadId},
 };
 
-#[cfg(feature = "measureme")]
+#[cfg(feature = "profiler")]
 pub struct Profiler {
-    profiler: Profiler,
+    profiler: MeasuremeProfiler,
 }
 
-/// This static instance should never be public, and its only access should be done through the `global()` and `drop()` methods
-/// This is because `get_or_init` manages synchronisation and the case of an empty value
-#[cfg(feature = "measureme")]
+/// This static instance must never be public, and its only access must be done through the
+/// `global()` and `drop()` methods. This is because `get_or_init` manages synchronization and the
+/// case of an empty value.
+#[cfg(feature = "profiler")]
 static mut INSTANCE: OnceCell<Profiler> = OnceCell::new();
 
-#[cfg(feature = "measureme")]
+#[cfg(feature = "profiler")]
 impl Profiler {
     pub fn start_event(&self, label: &str, category: &str) -> TimingGuard<'_> {
         let kind = self.profiler.alloc_string(category);
@@ -32,7 +33,8 @@ impl Profiler {
     }
 
     pub fn default() -> Self {
-        let profiler = Profiler::new(Path::new("./my_trace")).expect("must be able to create file");
+        let profiler =
+            MeasuremeProfiler::new(Path::new("./my_trace")).expect("must be able to create file");
         Self { profiler }
     }
 
@@ -67,11 +69,11 @@ impl Debug for Profiler {
     }
 }
 
-#[cfg(not(feature = "measureme"))]
+#[cfg(not(feature = "profiler"))]
 pub struct Profiler;
 
 #[allow(clippy::unused_unit, clippy::unused_self)]
-#[cfg(not(feature = "measureme"))]
+#[cfg(not(feature = "profiler"))]
 impl Profiler {
     pub fn start_event(&self, _label: &str, _category: &str) -> () {}
 

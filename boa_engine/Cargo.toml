@@ -29,7 +29,7 @@ exclude = [
 ]
 
 [features]
-profiler = ["boa_profiler/measureme"]
+profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde"]
 
 # Enable Boa's WHATWG console object implementation.
