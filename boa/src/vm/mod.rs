@@ -1381,6 +1381,7 @@ impl Context {
                         for _ in 0..self.vm.frame().pop_on_return {
                             self.vm.pop();
                         }
+                        self.vm.frame_mut().pop_on_return = 0;
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch.pop();
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
