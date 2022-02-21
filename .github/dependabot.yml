@@ -33,6 +33,6 @@ updates:
     schedule:
       interval: daily
   - package-ecosystem: gitsubmodule
-    directory: /test262/
+    directory: /
     schedule:
       interval: weekly
