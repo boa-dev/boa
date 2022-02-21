@@ -15,7 +15,7 @@ jobs:
           ref: ${{ github.sha }}
       - run: cargo login ${CARGO_REGISTRY_TOKEN}
       - run: cargo publish
-        working-directory: boa
+        working-directory: boa_engine
   doc-publish:
     needs: publish
     runs-on: ubuntu-latest
