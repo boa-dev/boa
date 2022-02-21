@@ -1,19 +1,37 @@
 [package]
 name = "boa_cli"
 version = "0.13.0"
+edition = "2021"
+rust-version = "1.58"
 authors = ["boa-dev"]
 description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
 repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "js", "cli"]
 categories = ["command-line-utilities"]
 license = "Unlicense/MIT"
-exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2021"
-rust-version = "1.58"
 default-run = "boa"
+exclude = [
+    "../.vscode/*",
+    "../.editorconfig",
+    "../test262/*",
+    "../node_modules/*",
+    "../target/*",
+    "../dist/*",
+    "../.github/*",
+    "../assets/*",
+    "../docs/*",
+    "../*.js",
+    "../test_ignore.txt",
+    "../yarn.lock",
+    "../package.json",
+    "../index.html",
+    "../tests/*",
+    "../.github/*",
+]
 
 [dependencies]
-Boa = { path = "../boa", features = ["deser", "console"] }
+boa_engine = { path = "../boa_engine", features = ["deser", "console"] }
+boa_interner = { path = "../boa_interner" }
 rustyline = "9.1.2"
 rustyline-derive = "0.6.0"
 structopt = "0.3.26"

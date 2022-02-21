@@ -59,7 +59,7 @@
     rustdoc::missing_doc_code_examples
 )]
 
-use boa::Context;
+use boa_engine::Context;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]

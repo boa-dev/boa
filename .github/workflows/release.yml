@@ -39,6 +39,8 @@ jobs:
             node_modules
             target
             boa_wasm/pkg
+            ~/.cargo/git
+            ~/.cargo/registry
           key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
       - uses: Borales/actions-yarn@v2.3.0
         with:

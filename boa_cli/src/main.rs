@@ -59,7 +59,8 @@
     rustdoc::missing_doc_code_examples
 )]
 
-use boa::{syntax::ast::node::StatementList, Context, Interner};
+use boa_engine::{syntax::ast::node::StatementList, Context};
+use boa_interner::Interner;
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, io, path::PathBuf};
@@ -146,7 +147,7 @@ fn parse_tokens<S>(src: S, interner: &mut Interner) -> Result<StatementList, Str
 where
     S: AsRef<[u8]>,
 {
-    use boa::syntax::parser::Parser;
+    use boa_engine::syntax::parser::Parser;
 
     let src_bytes = src.as_ref();
     Parser::new(src_bytes, false)
