@@ -373,7 +373,7 @@ impl Json {
         // 2. If Type(value) is Object or BigInt, then
         if value.is_object() || value.is_bigint() {
             // a. Let toJSON be ? GetV(value, "toJSON").
-            let to_json = value.get_field("toJSON", context)?;
+            let to_json = value.get_v("toJSON", context)?;
 
             // b. If IsCallable(toJSON) is true, then
             if let Some(obj) = to_json.as_object() {

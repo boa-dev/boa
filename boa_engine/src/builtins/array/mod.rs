@@ -273,32 +273,29 @@ impl Array {
         array
     }
 
-    /// Creates a new `Array` instance.
-    pub(crate) fn new_array(context: &mut Context) -> JsValue {
-        Self::array_create(0, None, context)
-            .expect("creating an empty array with the default prototype must not fail")
-            .into()
-    }
-
     /// Utility function for concatenating array objects.
     ///
     /// Returns a Boolean valued property that if `true` indicates that
     /// an object should be flattened to its array elements
     /// by `Array.prototype.concat`.
-    fn is_concat_spreadable(this: &JsValue, context: &mut Context) -> JsResult<bool> {
+    fn is_concat_spreadable(o: &JsValue, context: &mut Context) -> JsResult<bool> {
         // 1. If Type(O) is not Object, return false.
-        if !this.is_object() {
+        let o = if let Some(o) = o.as_object() {
+            o
+        } else {
             return Ok(false);
-        }
+        };
+
         // 2. Let spreadable be ? Get(O, @@isConcatSpreadable).
-        let spreadable = this.get_field(WellKnownSymbols::is_concat_spreadable(), context)?;
+        let spreadable = o.get(WellKnownSymbols::is_concat_spreadable(), context)?;
 
         // 3. If spreadable is not undefined, return ! ToBoolean(spreadable).
         if !spreadable.is_undefined() {
             return Ok(spreadable.to_boolean());
         }
+
         // 4. Return ? IsArray(O).
-        this.is_array(context)
+        o.is_array_abstract(context)
     }
 
     /// `get Array [ @@species ]`
@@ -372,37 +369,6 @@ impl Array {
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
         }
-    }
-
-    /// Utility function which takes an existing array object and puts additional
-    /// values on the end, correctly rewriting the length
-    pub(crate) fn add_to_array_object(
-        array_ptr: &JsValue,
-        add_values: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        let orig_length = array_ptr.get_field("length", context)?.to_length(context)?;
-
-        for (n, value) in add_values.iter().enumerate() {
-            let new_index = orig_length.wrapping_add(n);
-            array_ptr.set_property(
-                new_index,
-                PropertyDescriptor::builder()
-                    .value(value)
-                    .configurable(true)
-                    .enumerable(true)
-                    .writable(true),
-            );
-        }
-
-        array_ptr.set_field(
-            "length",
-            JsValue::new(orig_length.wrapping_add(add_values.len())),
-            false,
-            context,
-        )?;
-
-        Ok(array_ptr.clone())
     }
 
     /// `Array.isArray( arg )`

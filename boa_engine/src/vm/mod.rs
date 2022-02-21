@@ -176,7 +176,12 @@ impl Context {
             Opcode::PushValueToArray => {
                 let value = self.vm.pop();
                 let array = self.vm.pop();
-                let array = Array::add_to_array_object(&array, &[value], self)?;
+                let o = array.as_object().expect("should be an object");
+                let len = o
+                    .length_of_array_like(self)
+                    .expect("should have 'length' property");
+                o.create_data_property_or_throw(len, value, self)
+                    .expect("should be able to create new data property");
                 self.vm.push(array);
             }
             Opcode::PushIteratorToArray => {
@@ -191,7 +196,7 @@ impl Context {
                     if next.done {
                         break;
                     }
-                    Array::add_to_array_object(&array, &[next.value], self)?;
+                    Array::push(&array, &[next.value], self)?;
                 }
 
                 self.vm.push(array);
@@ -1169,10 +1174,7 @@ impl Context {
                     values.push(next.value);
                 }
 
-                let array = Array::array_create(0, None, self)
-                    .expect("Array creation with 0 length should never fail");
-
-                Array::add_to_array_object(&array.clone().into(), &values, self)?;
+                let array = Array::create_array_from_list(values, self);
 
                 self.vm.push(iterator);
                 self.vm.push(next_function);
@@ -1235,13 +1237,14 @@ impl Context {
                     for _ in 0..rest_count {
                         args.push(self.vm.pop());
                     }
-                    let array = Array::new_array(self);
-                    Array::add_to_array_object(&array, &args, self)
-                        .expect("could not add to array object");
+                    let array: _ = Array::create_array_from_list(args, self);
+
                     self.vm.push(array);
                 } else {
                     self.vm.pop();
-                    let array = Array::new_array(self);
+
+                    let array = Array::array_create(0, None, self)
+                        .expect("could not create an empty array");
                     self.vm.push(array);
                 }
             }
