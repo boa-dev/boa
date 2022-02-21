@@ -187,7 +187,7 @@ mod tests {
 
         let obj = value.as_object().unwrap();
         assert_eq!(obj.get("name", &mut context).unwrap(), "John Doe".into());
-        assert_eq!(obj.get("age", &mut context).unwrap(), 43.into());
+        assert_eq!(obj.get("age", &mut context).unwrap(), 43_i32.into());
         assert_eq!(obj.get("minor", &mut context).unwrap(), false.into());
         assert_eq!(obj.get("adult", &mut context).unwrap(), true.into());
         {
@@ -201,7 +201,7 @@ mod tests {
 
             let arr = JsArray::from_object(phones.clone(), &mut context).unwrap();
             assert_eq!(arr.at(0, &mut context).unwrap(), "+44 1234567".into());
-            assert_eq!(arr.at(1, &mut context).unwrap(), -45.into());
+            assert_eq!(arr.at(1, &mut context).unwrap(), JsValue::from(-45_i32));
             assert!(arr.at(2, &mut context).unwrap().is_object());
             assert_eq!(arr.at(3, &mut context).unwrap(), true.into());
         }
