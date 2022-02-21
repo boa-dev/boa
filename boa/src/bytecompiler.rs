@@ -1486,7 +1486,7 @@ impl<'b> ByteCompiler<'b> {
                             break;
                         }
                     }
-                    assert!(found, "Undefined label {}", self.interner().resolve_expect(node.label().unwrap()));
+                    assert!(found, "Undefined label '{}'", self.interner().resolve_expect(node.label().unwrap()));
                 }
             }
             Node::Block(block) => {
