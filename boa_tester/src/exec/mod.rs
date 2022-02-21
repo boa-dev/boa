@@ -6,7 +6,7 @@ use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
-use boa::{syntax::Parser, Context, Interner, JsValue};
+use boa_engine::{syntax::Parser, Context, Interner, JsResult, JsValue};
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;
@@ -335,6 +335,6 @@ impl Test {
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> boa::JsResult<JsValue> {
+fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     todo!("print() function");
 }

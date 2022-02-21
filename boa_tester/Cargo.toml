@@ -1,18 +1,35 @@
 [package]
 name = "boa_tester"
 version = "0.13.0"
-authors = ["boa-dev"]
-description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
-repository = "https://github.com/boa-dev/boa"
-keywords = ["javascript", "compiler", "test262", "tester", "js"]
-categories = ["parser-implementations", "wasm"]
-license = "Unlicense/MIT"
-exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
 edition = "2021"
 rust-version = "1.58"
+authors = ["boa-dev"]
+description = "Test runner for the Boa JavaScript engine."
+repository = "https://github.com/boa-dev/boa"
+keywords = ["javascript", "ECMASCript", "compiler", "test262", "tester"]
+categories = ["command-line-utilites"]
+license = "Unlicense/MIT"
+exclude = [
+    "../.vscode/*",
+    "../.editorconfig",
+    "../test262/*",
+    "../node_modules/*",
+    "../target/*",
+    "../dist/*",
+    "../.github/*",
+    "../assets/*",
+    "../docs/*",
+    "../*.js",
+    "../test_ignore.txt",
+    "../yarn.lock",
+    "../package.json",
+    "../index.html",
+    "../tests/*",
+    "../.github/*",
+]
 
 [dependencies]
-Boa = { path = "../boa" }
+boa_engine = { path = "../boa_engine" }
 structopt = "0.3.26"
 serde = { version = "1.0.136", features = ["derive"] }
 serde_yaml = "0.8.23"

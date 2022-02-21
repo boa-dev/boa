@@ -1,0 +1,75 @@
+[package]
+name = "boa_engine"
+version = "0.13.0"
+edition = "2021"
+rust-version = "1.58"
+authors = ["boa-dev"]
+description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
+repository = "https://github.com/boa-dev/boa"
+keywords = ["javascript", "js", "compiler", "lexer", "parser"]
+categories = ["parser-implementations", "compilers"]
+license = "Unlicense/MIT"
+exclude = [
+    "../.vscode/*",
+    "../.editorconfig",
+    "../test262/*",
+    "../node_modules/*",
+    "../target/*",
+    "../dist/*",
+    "../.github/*",
+    "../assets/*",
+    "../docs/*",
+    "../*.js",
+    "../test_ignore.txt",
+    "../yarn.lock",
+    "../package.json",
+    "../index.html",
+    "../tests/*",
+    "../.github/*",
+]
+
+[features]
+profiler = ["boa_gc/measureme"]
+deser = ["boa_interner/serde"]
+
+# Enable Boa's WHATWG console object implementation.
+console = []
+
+[dependencies]
+boa_unicode = { path = "../boa_unicode", version = "0.13.0" }
+boa_interner = { path = "../boa_interner", version = "0.13.0" }
+boa_gc = { path = "../boa_gc", version = "0.13.0" }
+gc = { version = "0.4.1" }
+boa_profiler = { path = "../boa_profiler", version = "0.13.0" }
+serde = { version = "1.0.136", features = ["derive", "rc"] }
+serde_json = "1.0.79"
+rand = "0.8.5"
+num-traits = "0.2.14"
+regress = "0.4.1"
+rustc-hash = "1.1.0"
+num-bigint = { version = "0.4.3", features = ["serde"] }
+num-integer = "0.1.44"
+bitflags = "1.3.2"
+indexmap = "1.8.0"
+ryu-js = "0.2.2"
+chrono = "0.4.19"
+fast-float = "0.2.0"
+unicode-normalization = "0.1.19"
+dyn-clone = "1.0.4"
+once_cell = "1.9.0"
+
+[dev-dependencies]
+criterion = "0.3.5"
+float-cmp = "0.9.0"
+
+[target.x86_64-unknown-linux-gnu.dev-dependencies]
+jemallocator = "0.3.2"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "boa_engine"
+bench = false
+
+[[bench]]
+name = "full"
+harness = false

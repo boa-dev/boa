@@ -1,15 +1,32 @@
 [package]
 name = "boa_unicode"
 version = "0.13.0"
+edition = "2021"
+rust-version = "1.58"
 authors = ["boa-dev"]
-description = "Boa is a Javascript lexer, parser and Just-in-Time compiler written in Rust. Currently, it has support for some of the language."
+description = "Unicode support for the Boa JavaScript engine."
 repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "unicode"]
 categories = ["parsing"]
 license = "Unlicense/MIT"
-exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2021"
-rust-version = "1.56"
+exclude = [
+    "../.vscode/*",
+    "../.editorconfig",
+    "../test262/*",
+    "../node_modules/*",
+    "../target/*",
+    "../dist/*",
+    "../.github/*",
+    "../assets/*",
+    "../docs/*",
+    "../*.js",
+    "../test_ignore.txt",
+    "../yarn.lock",
+    "../package.json",
+    "../index.html",
+    "../tests/*",
+    "../.github/*",
+]
 
 [dependencies]
 unicode-general-category = "0.5.1"
