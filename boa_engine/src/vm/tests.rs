@@ -1,4 +1,4 @@
-use crate::exec;
+use crate::{Context, exec};
 
 #[test]
 fn typeof_string() {
@@ -43,7 +43,7 @@ fn try_catch_finally_from_init() {
         }
     "#;
 
-    let _ = &exec(source);
+    assert!(matches!(Context::default().eval(source.as_bytes()), Err(_)));
 }
 
 #[test]
@@ -60,5 +60,5 @@ fn multiple_catches() {
         }
     "#;
 
-    let _ = &exec(source);
+    assert!(matches!(Context::default().eval(source.as_bytes()), Ok(_)));
 }
