@@ -1,4 +1,4 @@
-use crate::{Context, exec};
+use crate::{Context, exec, JsValue};
 
 #[test]
 fn typeof_string() {
@@ -43,7 +43,7 @@ fn try_catch_finally_from_init() {
         }
     "#;
 
-    assert!(matches!(Context::default().eval(source.as_bytes()), Err(_)));
+    assert_eq!(Context::default().eval(source.as_bytes()), Err("h".into()));
 }
 
 #[test]
@@ -60,5 +60,5 @@ fn multiple_catches() {
         }
     "#;
 
-    assert!(matches!(Context::default().eval(source.as_bytes()), Ok(_)));
+    assert_eq!(Context::default().eval(source.as_bytes()), Ok(JsValue::Undefined));
 }
