@@ -1,4 +1,4 @@
-use crate::{Context, exec, JsValue};
+use crate::{exec, Context, JsValue};
 
 #[test]
 fn typeof_string() {
@@ -60,5 +60,8 @@ fn multiple_catches() {
         }
     "#;
 
-    assert_eq!(Context::default().eval(source.as_bytes()), Ok(JsValue::Undefined));
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::Undefined)
+    );
 }
