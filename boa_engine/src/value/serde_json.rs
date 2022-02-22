@@ -14,7 +14,7 @@ impl JsValue {
     /// # Example
     ///
     /// ```
-    /// use boa::{Context, JsValue};
+    /// use boa_engine::{Context, JsValue};
     ///
     /// let data = r#"
     ///     {
@@ -82,7 +82,7 @@ impl JsValue {
     /// # Example
     ///
     /// ```
-    /// use boa::{Context, JsValue};
+    /// use boa_engine::{Context, JsValue};
     ///
     /// let data = r#"
     ///     {
