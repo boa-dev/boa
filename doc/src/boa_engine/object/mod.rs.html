@@ -1844,38 +1844,6 @@
 <span id="1843">1843</span>
 <span id="1844">1844</span>
 <span id="1845">1845</span>
-<span id="1846">1846</span>
-<span id="1847">1847</span>
-<span id="1848">1848</span>
-<span id="1849">1849</span>
-<span id="1850">1850</span>
-<span id="1851">1851</span>
-<span id="1852">1852</span>
-<span id="1853">1853</span>
-<span id="1854">1854</span>
-<span id="1855">1855</span>
-<span id="1856">1856</span>
-<span id="1857">1857</span>
-<span id="1858">1858</span>
-<span id="1859">1859</span>
-<span id="1860">1860</span>
-<span id="1861">1861</span>
-<span id="1862">1862</span>
-<span id="1863">1863</span>
-<span id="1864">1864</span>
-<span id="1865">1865</span>
-<span id="1866">1866</span>
-<span id="1867">1867</span>
-<span id="1868">1868</span>
-<span id="1869">1869</span>
-<span id="1870">1870</span>
-<span id="1871">1871</span>
-<span id="1872">1872</span>
-<span id="1873">1873</span>
-<span id="1874">1874</span>
-<span id="1875">1875</span>
-<span id="1876">1876</span>
-<span id="1877">1877</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2334,17 +2302,6 @@
         )
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
-            <span class="ident">ObjectData</span> {
-                <span class="ident">kind</span>: <span class="ident">ObjectKind::Array</span>,
-                ..
-            } =&gt; <span class="prelude-val">Some</span>(()),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
     <span class="doccomment">/// Checks if it is an `ArrayIterator` object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_array_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
@@ -2669,17 +2626,6 @@
                 ..
             }
         )
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
-            <span class="ident">ObjectData</span> {
-                <span class="ident">kind</span>: <span class="ident">ObjectKind::Error</span>,
-                ..
-            } =&gt; <span class="prelude-val">Some</span>(()),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
     }
 
     <span class="doccomment">/// Checks if it a Boolean object.</span>
@@ -3037,7 +2983,10 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">properties</span>
     }
 
-    <span class="doccomment">/// Helper function for property insertion.</span>
+    <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If a field was already in the object with the same name, then a `Some` is returned</span>
+    <span class="doccomment">/// with that field&#39;s value, otherwise, `None` is returned.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">insert</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -3051,19 +3000,6 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">remove</span>(<span class="ident">key</span>)
-    }
-
-    <span class="doccomment">/// Inserts a field in the object `properties` without checking if it&#39;s writable.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If a field was already in the object with the same name that a `Some` is returned</span>
-    <span class="doccomment">/// with that field, otherwise None is returned.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert_property</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">P</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">property</span>: <span class="ident">P</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-        <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
-    {
-        <span class="self">self</span>.<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>)
     }
 }
 
@@ -3284,8 +3220,8 @@
             .<span class="ident">writable</span>(<span class="bool-val">false</span>)
             .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
             .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
-        <span class="ident">object</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">property</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>()));
-        <span class="ident">object</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">property</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">length</span>));
+        <span class="ident">object</span>.<span class="ident">insert</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">property</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">clone</span>()));
+        <span class="ident">object</span>.<span class="ident">insert</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">property</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">length</span>));
     }
 }
 
@@ -3351,7 +3287,7 @@
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert_property</span>(
+        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
             <span class="ident">binding</span>.<span class="ident">binding</span>,
             <span class="ident">PropertyDescriptor::builder</span>()
                 .<span class="ident">value</span>(<span class="ident">function</span>)
@@ -3473,7 +3409,7 @@
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert_property</span>(
+        <span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
             <span class="ident">binding</span>.<span class="ident">binding</span>,
             <span class="ident">PropertyDescriptor::builder</span>()
                 .<span class="ident">value</span>(<span class="ident">function</span>)
@@ -3502,7 +3438,7 @@
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert_property</span>(
+        <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
             <span class="ident">binding</span>.<span class="ident">binding</span>,
             <span class="ident">PropertyDescriptor::builder</span>()
                 .<span class="ident">value</span>(<span class="ident">function</span>)
@@ -3720,7 +3656,7 @@
             }
 
             <span class="kw">if</span> <span class="self">self</span>.<span class="ident">constructor_has_prototype</span> {
-                <span class="ident">constructor</span>.<span class="ident">insert_property</span>(
+                <span class="ident">constructor</span>.<span class="ident">insert</span>(
                     <span class="ident">PROTOTYPE</span>,
                     <span class="ident">PropertyDescriptor::builder</span>()
                         .<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">clone</span>())
@@ -3733,7 +3669,7 @@
 
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">prototype</span>.<span class="ident">borrow_mut</span>();
-            <span class="ident">prototype</span>.<span class="ident">insert_property</span>(
+            <span class="ident">prototype</span>.<span class="ident">insert</span>(
                 <span class="string">&quot;constructor&quot;</span>,
                 <span class="ident">PropertyDescriptor::builder</span>()
                     .<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">clone</span>())
