@@ -43,7 +43,10 @@ jobs:
       - name: Cache cargo
         uses: actions/cache@v2.1.7
         with:
-          path: target
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:

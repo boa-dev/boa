@@ -1,13 +1,32 @@
 [package]
 name = "boa_interner"
 version = "0.13.0"
+edition = "2021"
+rust-version = "1.58"
 authors = ["boa-dev"]
 description = "String interner used in Boa."
 repository = "https://github.com/boa-dev/boa"
+keywords = ["javascript", "js", "string", "interner"]
+categories = ["data-structures"]
 license = "Unlicense/MIT"
-exclude = ["../.vscode/*", "../Dockerfile", "../Makefile", "../.editorConfig"]
-edition = "2021"
-rust-version = "1.56"
+exclude = [
+    "../.vscode/*",
+    "../.editorconfig",
+    "../test262/*",
+    "../node_modules/*",
+    "../target/*",
+    "../dist/*",
+    "../.github/*",
+    "../assets/*",
+    "../docs/*",
+    "../*.js",
+    "../test_ignore.txt",
+    "../yarn.lock",
+    "../package.json",
+    "../index.html",
+    "../tests/*",
+    "../.github/*",
+]
 
 [dependencies]
 string-interner = "0.14.0"
