@@ -127,16 +127,6 @@ impl From<JsObject> for JsValue {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
-pub struct TryFromObjectError;
-
-impl Display for TryFromObjectError {
-    #[inline]
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Could not convert value to an Object type")
-    }
-}
-
 impl From<()> for JsValue {
     #[inline]
     fn from(_: ()) -> Self {
