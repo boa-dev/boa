@@ -488,12 +488,7 @@ fn unary_pre() {
 #[test]
 fn invalid_unary_access() {
     let mut context = Context::default();
-    let test_cases = [
-        "++[];",
-        "[]++;",
-        "--[];",
-        "[]--;",
-    ];
+    let test_cases = ["++[];", "[]++;", "--[];", "[]--;"];
 
     for case in &test_cases {
         let string = dbg!(forward(&mut context, case));
@@ -1348,7 +1343,15 @@ fn assignment_to_non_assignable_ctd() {
     let mut context = Context::default();
 
     let test_cases = [
-        "(()=>{})() -= 5", "(()=>{})() *= 5", "(()=>{})() /= 5", "(()=>{})() %= 5", "(()=>{})() &= 5", "(()=>{})() ^= 5", "(()=>{})() |= 5", "(()=>{})() += 5", "(()=>{})() = 5",
+        "(()=>{})() -= 5",
+        "(()=>{})() *= 5",
+        "(()=>{})() /= 5",
+        "(()=>{})() %= 5",
+        "(()=>{})() &= 5",
+        "(()=>{})() ^= 5",
+        "(()=>{})() |= 5",
+        "(()=>{})() += 5",
+        "(()=>{})() = 5",
     ];
 
     for case in &test_cases {
@@ -1407,7 +1410,12 @@ fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
     let mut context = Context::default();
 
     // Disabled - awaiting implementation.
-    let test_cases = ["(()=>{})() >>>= 5", "(()=>{})() &&= 5", "(()=>{})() ||= 5", "(()=>{})() ??= 5"];
+    let test_cases = [
+        "(()=>{})() >>>= 5",
+        "(()=>{})() &&= 5",
+        "(()=>{})() ||= 5",
+        "(()=>{})() ??= 5",
+    ];
 
     for case in &test_cases {
         let string = dbg!(forward(&mut context, case));
