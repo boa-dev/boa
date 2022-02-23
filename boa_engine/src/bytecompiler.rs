@@ -1488,7 +1488,11 @@ impl<'b> ByteCompiler<'b> {
                 } else {
                     self.jump_info
                         .last_mut()
-                        .ok_or_else(|| self.context.construct_syntax_error("unlabeled break must be inside loop or switch"))?
+                        .ok_or_else(|| {
+                            self.context.construct_syntax_error(
+                                "unlabeled break must be inside loop or switch"
+                            )
+                        })?
                         .breaks
                         .push(label);
                 }
