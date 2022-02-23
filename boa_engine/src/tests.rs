@@ -486,6 +486,23 @@ fn unary_pre() {
 }
 
 #[test]
+fn invalid_unary_access() {
+    let mut context = Context::default();
+    let test_cases = [
+        "++[];",
+        "[]++;",
+        "--[];",
+        "[]--;",
+    ];
+
+    for case in &test_cases {
+        let string = dbg!(forward(&mut context, case));
+
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    }
+}
+
+#[test]
 fn typeof_string() {
     let typeof_string = r#"
         const a = String();
@@ -1327,6 +1344,21 @@ fn assignment_to_non_assignable() {
 }
 
 #[test]
+fn assignment_to_non_assignable_ctd() {
+    let mut context = Context::default();
+
+    let test_cases = [
+        "(()=>{})() -= 5", "(()=>{})() *= 5", "(()=>{})() /= 5", "(()=>{})() %= 5", "(()=>{})() &= 5", "(()=>{})() ^= 5", "(()=>{})() |= 5", "(()=>{})() += 5", "(()=>{})() = 5",
+    ];
+
+    for case in &test_cases {
+        let string = forward(&mut context, case);
+
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    }
+}
+
+#[test]
 fn multicharacter_assignment_to_non_assignable() {
     // Relates to the behaviour described at
     // https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
@@ -1343,6 +1375,19 @@ fn multicharacter_assignment_to_non_assignable() {
 }
 
 #[test]
+fn multicharacter_assignment_to_non_assignable_ctd() {
+    let mut context = Context::default();
+
+    let test_cases = ["(()=>{})() **= 5", "(()=>{})() <<= 5", "(()=>{})() >>= 5"];
+
+    for case in &test_cases {
+        let string = dbg!(forward(&mut context, case));
+
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+    }
+}
+
+#[test]
 fn multicharacter_bitwise_assignment_to_non_assignable() {
     let mut context = Context::default();
 
@@ -1354,6 +1399,20 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
+    }
+}
+
+#[test]
+fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
+    let mut context = Context::default();
+
+    // Disabled - awaiting implementation.
+    let test_cases = ["(()=>{})() >>>= 5", "(()=>{})() &&= 5", "(()=>{})() ||= 5", "(()=>{})() ??= 5"];
+
+    for case in &test_cases {
+        let string = dbg!(forward(&mut context, case));
+
+        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
     }
 }
 
