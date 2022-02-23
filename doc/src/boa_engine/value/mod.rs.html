@@ -1159,6 +1159,12 @@
 <span id="1158">1158</span>
 <span id="1159">1159</span>
 <span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1655,6 +1661,9 @@
 
     <span class="doccomment">/// Returns an object that implements `Display`.</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// By default the internals are not shown, but they can be toggled</span>
+    <span class="doccomment">/// with [`ValueDisplay::internals`] method.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
@@ -1666,7 +1675,10 @@
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-        <span class="ident">ValueDisplay</span> { <span class="ident">value</span>: <span class="self">self</span> }
+        <span class="ident">ValueDisplay</span> {
+            <span class="ident">value</span>: <span class="self">self</span>,
+            <span class="ident">internals</span>: <span class="bool-val">false</span>,
+        }
     }
 
     <span class="doccomment">/// Converts the value to a string.</span>

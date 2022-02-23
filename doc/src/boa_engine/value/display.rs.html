@@ -296,6 +296,20 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::ObjectKind</span>, <span class="ident">property::PropertyDescriptor</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">fmt</span>, <span class="ident">Display</span>, <span class="ident">HashSet</span>, <span class="ident">JsValue</span>, <span class="ident">PropertyKey</span>};
@@ -304,6 +318,18 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;value</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;value</span> <span class="ident">JsValue</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">internals</span>: <span class="ident">bool</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">ValueDisplay</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Display internal information about value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// By default this is `false`.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">internals</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">internals</span> <span class="op">=</span> <span class="ident">yes</span>;
+        <span class="self">self</span>
+    }
 }
 
 <span class="doccomment">/// A helper macro for printing objects</span>
@@ -573,7 +599,9 @@
             },
             <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;\&quot;{v}\&quot;&quot;</span>),
             <span class="ident">JsValue::Rational</span>(<span class="ident">v</span>) =&gt; <span class="ident">format_rational</span>(<span class="kw-2">*</span><span class="ident">v</span>, <span class="ident">f</span>),
-            <span class="ident">JsValue::Object</span>(<span class="kw">_</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>)),
+            <span class="ident">JsValue::Object</span>(<span class="kw">_</span>) =&gt; {
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">log_string_from</span>(<span class="self">self</span>.<span class="ident">value</span>, <span class="self">self</span>.<span class="ident">internals</span>, <span class="bool-val">true</span>))
+            }
             <span class="ident">JsValue::Integer</span>(<span class="ident">v</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{v}&quot;</span>),
             <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{num}n&quot;</span>),
         }
