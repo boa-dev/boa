@@ -494,6 +494,9 @@ impl JsValue {
 
     /// Returns an object that implements `Display`.
     ///
+    /// By default the internals are not shown, but they can be toggled
+    /// with [`ValueDisplay::internals`] method.
+    ///
     /// # Examples
     ///
     /// ```
@@ -505,7 +508,10 @@ impl JsValue {
     /// ```
     #[inline]
     pub fn display(&self) -> ValueDisplay<'_> {
-        ValueDisplay { value: self }
+        ValueDisplay {
+            value: self,
+            internals: false,
+        }
     }
 
     /// Converts the value to a string.

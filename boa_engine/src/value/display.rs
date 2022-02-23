@@ -6,6 +6,18 @@ use super::{fmt, Display, HashSet, JsValue, PropertyKey};
 #[derive(Debug, Clone, Copy)]
 pub struct ValueDisplay<'value> {
     pub(super) value: &'value JsValue,
+    pub(super) internals: bool,
+}
+
+impl ValueDisplay<'_> {
+    /// Display internal information about value.
+    ///
+    /// By default this is `false`.
+    #[inline]
+    pub fn internals(mut self, yes: bool) -> Self {
+        self.internals = yes;
+        self
+    }
 }
 
 /// A helper macro for printing objects
@@ -275,7 +287,9 @@ impl Display for ValueDisplay<'_> {
             },
             JsValue::String(ref v) => write!(f, "\"{v}\""),
             JsValue::Rational(v) => format_rational(*v, f),
-            JsValue::Object(_) => write!(f, "{}", log_string_from(self.value, true, true)),
+            JsValue::Object(_) => {
+                write!(f, "{}", log_string_from(self.value, self.internals, true))
+            }
             JsValue::Integer(v) => write!(f, "{v}"),
             JsValue::BigInt(ref num) => write!(f, "{num}n"),
         }
