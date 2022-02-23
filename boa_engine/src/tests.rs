@@ -443,6 +443,15 @@ fn test_invalid_break_target() {
 }
 
 #[test]
+fn test_invalid_break() {
+    let src = r#"
+        break;
+        "#;
+
+    assert!(matches!(Context::default().eval(src.as_bytes()), Err(_)));
+}
+
+#[test]
 fn unary_pre() {
     let unary_inc = r#"
         let a = 5;

@@ -1488,7 +1488,7 @@ impl<'b> ByteCompiler<'b> {
                 } else {
                     self.jump_info
                         .last_mut()
-                        .expect("no jump information found")
+                        .ok_or_else(|| self.context.construct_syntax_error("unlabeled break must be inside loop or switch"))?
                         .breaks
                         .push(label);
                 }
