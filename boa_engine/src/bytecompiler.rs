@@ -554,7 +554,7 @@ impl<'b> ByteCompiler<'b> {
                     )),
                     Const::Int(v) => self.emit_push_integer(*v),
                     Const::Num(v) => self.emit_push_rational(*v),
-                    Const::BigInt(v) => self.emit_push_literal(Literal::BigInt(v.clone())),
+                    Const::BigInt(v) => self.emit_push_literal(Literal::BigInt(v.clone().into())),
                     Const::Bool(true) => self.emit(Opcode::PushTrue, &[]),
                     Const::Bool(false) => self.emit(Opcode::PushFalse, &[]),
                     Const::Null => self.emit(Opcode::PushNull, &[]),

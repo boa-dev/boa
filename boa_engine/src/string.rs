@@ -9,6 +9,7 @@ use std::{
     marker::PhantomData,
     ops::Deref,
     ptr::{copy_nonoverlapping, NonNull},
+    rc::Rc,
 };
 
 const CONSTANTS_ARRAY: [&str; 127] = [
@@ -314,7 +315,7 @@ impl Inner {
 #[derive(Finalize)]
 pub struct JsString {
     inner: NonNull<Inner>,
-    _marker: PhantomData<std::rc::Rc<str>>,
+    _marker: PhantomData<Rc<str>>,
 }
 
 impl Default for JsString {
