@@ -13,8 +13,9 @@ mod tests;
 use crate::syntax::{
     ast::{
         node::{
-            self, AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
-            GeneratorExpr, Identifier, MethodDefinition, Node, Object,
+            object::{self, MethodDefinition},
+            AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
+            GeneratorExpr, Identifier, Node, Object,
         },
         Keyword, Position, Punctuator,
     },
@@ -130,7 +131,7 @@ impl<R> TokenParser<R> for PropertyDefinition
 where
     R: Read,
 {
-    type Output = node::PropertyDefinition;
+    type Output = object::PropertyDefinition;
 
     fn parse(
         self,
@@ -190,7 +191,7 @@ where
                         ));
                     }
                 };
-                return Ok(node::PropertyDefinition::property(ident.sym(), ident));
+                return Ok(object::PropertyDefinition::property(ident.sym(), ident));
             }
         }
 
@@ -198,7 +199,7 @@ where
         if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
             let node = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
-            return Ok(node::PropertyDefinition::SpreadObject(node));
+            return Ok(object::PropertyDefinition::SpreadObject(node));
         }
 
         //Async [AsyncMethod, AsyncGeneratorMethod] object methods
@@ -281,7 +282,7 @@ where
                     }
                 }
 
-                return Ok(node::PropertyDefinition::method_definition(
+                return Ok(object::PropertyDefinition::method_definition(
                     MethodDefinition::AsyncGenerator(AsyncGeneratorExpr::new(None, params, body)),
                     property_name,
                 ));
@@ -348,7 +349,7 @@ where
                     }
                 }
             }
-            return Ok(node::PropertyDefinition::method_definition(
+            return Ok(object::PropertyDefinition::method_definition(
                 MethodDefinition::Async(AsyncFunctionExpr::new(None, params, body)),
                 property_name,
             ));
@@ -428,7 +429,7 @@ where
                 }
             }
 
-            return Ok(node::PropertyDefinition::method_definition(
+            return Ok(object::PropertyDefinition::method_definition(
                 MethodDefinition::Generator(GeneratorExpr::new(None, params, body)),
                 property_name,
             ));
@@ -441,7 +442,7 @@ where
         if cursor.next_if(Punctuator::Colon, interner)?.is_some() {
             let value = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
-            return Ok(node::PropertyDefinition::property(property_name, value));
+            return Ok(object::PropertyDefinition::property(property_name, value));
         }
 
         let ordinary_method = cursor
@@ -452,7 +453,7 @@ where
 
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
-            node::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
+            object::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -479,7 +480,7 @@ where
                     interner,
                 )?;
 
-                Ok(node::PropertyDefinition::method_definition(
+                Ok(object::PropertyDefinition::method_definition(
                     MethodDefinition::Get(FunctionExpr::new(
                         None,
                         FormalParameterList::default(),
@@ -489,7 +490,7 @@ where
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
-            node::PropertyName::Literal(str) if str == Sym::SET && !ordinary_method => {
+            object::PropertyName::Literal(str) if str == Sym::SET && !ordinary_method => {
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -536,7 +537,7 @@ where
                     )));
                 }
 
-                Ok(node::PropertyDefinition::method_definition(
+                Ok(object::PropertyDefinition::method_definition(
                     MethodDefinition::Set(FunctionExpr::new(None, params, body)),
                     property_name,
                 ))
@@ -588,7 +589,7 @@ where
                     )));
                 }
 
-                Ok(node::PropertyDefinition::method_definition(
+                Ok(object::PropertyDefinition::method_definition(
                     MethodDefinition::Ordinary(FunctionExpr::new(None, params, body)),
                     property_name,
                 ))
@@ -627,7 +628,7 @@ impl<R> TokenParser<R> for PropertyName
 where
     R: Read,
 {
-    type Output = node::PropertyName;
+    type Output = object::PropertyName;
 
     fn parse(
         self,

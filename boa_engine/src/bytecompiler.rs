@@ -5,9 +5,9 @@ use crate::{
         node::{
             declaration::{BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern},
             iteration::IterableLoopInitializer,
+            object::{MethodDefinition, PropertyDefinition, PropertyName},
             template::TemplateElement,
-            Declaration, GetConstField, GetField, MethodDefinition, PropertyDefinition,
-            PropertyName, StatementList,
+            Declaration, GetConstField, GetField, StatementList,
         },
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
@@ -1681,7 +1681,6 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             // TODO: implement AsyncFunctionDecl
-            // TODO: implement GeneratorDecl
             Node::GeneratorDecl(_) => self.function(node, false)?,
             // TODO: implement AsyncGeneratorDecl
             Node::AsyncFunctionDecl(_) | Node::AsyncGeneratorDecl(_) => {

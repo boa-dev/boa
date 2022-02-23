@@ -3,9 +3,10 @@
 use super::Parser;
 use crate::syntax::ast::{
     node::{
-        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration, DeclarationList,
-        FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionDecl, Identifier,
-        If, New, Node, Object, PropertyDefinition, Return, StatementList, UnaryOp,
+        field::GetConstField, object::PropertyDefinition, ArrowFunctionDecl, Assign, BinOp, Call,
+        Declaration, DeclarationList, FormalParameter, FormalParameterList,
+        FormalParameterListFlags, FunctionDecl, Identifier, If, New, Node, Object, Return,
+        StatementList, UnaryOp,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,

@@ -1,9 +1,9 @@
 use crate::syntax::{
     ast::{
         node::{
+            object::{MethodDefinition, PropertyDefinition},
             AsyncFunctionExpr, AsyncGeneratorExpr, Declaration, DeclarationList, FormalParameter,
-            FormalParameterList, FunctionExpr, Identifier, MethodDefinition, Object,
-            PropertyDefinition,
+            FormalParameterList, FormalParameterListFlags, FunctionExpr, Identifier, Object,
         },
         Const,
     },
@@ -92,7 +92,7 @@ fn check_object_short_function_arguments() {
                         ),
                         false,
                     )]),
-                    flags: Default::default(),
+                    flags: FormalParameterListFlags::default(),
                 },
                 vec![],
             )),
@@ -169,7 +169,7 @@ fn check_object_setter() {
                         ),
                         false,
                     )]),
-                    flags: Default::default(),
+                    flags: FormalParameterListFlags::default(),
                 },
                 vec![],
             )),

@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator
 
 use crate::{
-    builtins::{BuiltIn, JsArgs},
+    builtins::{iterable::create_iter_result_object, BuiltIn, JsArgs},
     environments::DeclarativeEnvironmentStack,
     object::{ConstructorBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
@@ -22,8 +22,7 @@ use crate::{
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 
-use super::iterable::create_iter_result_object;
-
+/// Indicates the state of a generator.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum GeneratorState {
     Undefined,
@@ -33,6 +32,10 @@ pub(crate) enum GeneratorState {
     Completed,
 }
 
+/// Holds all information that a generator needs to continue it's execution.
+///
+/// All of the fields must be changed with those that are currently present in the
+/// context/vm before the generator execution starts/resumes and after it has ended/yielded.
 #[derive(Debug, Clone, Finalize, Trace)]
 pub(crate) struct GeneratorContext {
     pub(crate) environments: DeclarativeEnvironmentStack,
@@ -75,8 +78,8 @@ impl BuiltIn for Generator {
         .length(Self::LENGTH)
         .property(
             WellKnownSymbols::to_string_tag(),
-            "Generator",
-            Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+            Self::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .method(Self::next, "next", 1)
         .method(Self::r#return, "return", 1)

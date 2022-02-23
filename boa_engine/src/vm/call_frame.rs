@@ -94,12 +94,15 @@ pub(crate) struct TryStackEntry {
     pub(crate) num_loop_stack_entries: usize,
 }
 
-#[derive(Clone, Debug)]
+/// Tracks the address that should be jumped to when an error is caught.
+/// Additionally the address of a finally block is tracked, to allow for special handling if it exists.
+#[derive(Copy, Clone, Debug)]
 pub(crate) struct CatchAddresses {
     pub(crate) next: u32,
     pub(crate) finally: Option<u32>,
 }
 
+/// Indicates if a function should return or throw at the end of a finally block.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum FinallyReturn {
     None,
@@ -107,6 +110,7 @@ pub(crate) enum FinallyReturn {
     Err,
 }
 
+/// Indicates how a generator function that has been called/resumed should return.
 #[derive(Copy, Clone, Debug)]
 pub(crate) enum GeneratorResumeKind {
     Normal,

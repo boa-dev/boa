@@ -12,8 +12,8 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::declaration::Declaration,
         node::{self, FormalParameterList},
+        node::{declaration::Declaration, FormalParameterListFlags},
         Punctuator,
     },
     lexer::{Error as LexError, InputElement, TokenKind},
@@ -81,11 +81,7 @@ where
         if next_token.kind() == &TokenKind::Punctuator(Punctuator::CloseParen) {
             return Ok(FormalParameterList::new(
                 params.into_boxed_slice(),
-                is_simple,
-                has_duplicates,
-                has_rest_parameter,
-                has_expressions,
-                has_arguments,
+                FormalParameterListFlags::IS_SIMPLE,
             ));
         }
         let start_position = next_token.span().start();
@@ -160,14 +156,24 @@ where
             )));
         }
 
-        Ok(FormalParameterList::new(
-            params.into_boxed_slice(),
-            is_simple,
-            has_duplicates,
-            has_rest_parameter,
-            has_expressions,
-            has_arguments,
-        ))
+        let mut flags = FormalParameterListFlags::empty();
+        if is_simple {
+            flags |= FormalParameterListFlags::IS_SIMPLE;
+        }
+        if has_duplicates {
+            flags |= FormalParameterListFlags::HAS_DUPLICATES;
+        }
+        if has_rest_parameter {
+            flags |= FormalParameterListFlags::HAS_REST_PARAMETER;
+        }
+        if has_expressions {
+            flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
+        }
+        if has_arguments {
+            flags |= FormalParameterListFlags::HAS_ARGUMENTS;
+        }
+
+        Ok(FormalParameterList::new(params.into_boxed_slice(), flags))
     }
 }
 

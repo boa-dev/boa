@@ -398,133 +398,122 @@ impl ToInternedString for CodeBlock {
     }
 }
 
-#[derive(Debug)]
-#[allow(missing_copy_implementations)]
-pub struct JsVmFunction {}
+/// Creates a new function object.
+pub(crate) fn create_function_object(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
+    let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
 
-impl JsVmFunction {
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
-        let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
+    let function_prototype = context.standard_objects().function_object().prototype();
 
-        let function_prototype = context.standard_objects().function_object().prototype();
+    let prototype = context.construct_object();
 
-        let prototype = context.construct_object();
+    let name_property = PropertyDescriptor::builder()
+        .value(context.interner().resolve_expect(code.name))
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let name_property = PropertyDescriptor::builder()
-            .value(context.interner().resolve_expect(code.name))
-            .writable(false)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    let length_property = PropertyDescriptor::builder()
+        .value(code.length)
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let length_property = PropertyDescriptor::builder()
-            .value(code.length)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    let function = Function::Ordinary {
+        code,
+        environments: context.realm.environments.clone(),
+    };
 
-        let function = Function::VmOrdinary {
-            code,
-            environments: context.realm.environments.clone(),
-        };
+    let constructor =
+        JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
 
-        let constructor =
-            JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
+    let constructor_property = PropertyDescriptor::builder()
+        .value(constructor.clone())
+        .writable(true)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let constructor_property = PropertyDescriptor::builder()
-            .value(constructor.clone())
-            .writable(true)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    prototype
+        .define_property_or_throw("constructor", constructor_property, context)
+        .expect("failed to define the constructor property of the function");
 
-        prototype
-            .define_property_or_throw("constructor", constructor_property, context)
-            .expect("failed to define the constructor property of the function");
+    let prototype_property = PropertyDescriptor::builder()
+        .value(prototype)
+        .writable(true)
+        .enumerable(false)
+        .configurable(false)
+        .build();
 
-        let prototype_property = PropertyDescriptor::builder()
-            .value(prototype)
-            .writable(true)
-            .enumerable(false)
-            .configurable(false)
-            .build();
+    constructor
+        .define_property_or_throw("prototype", prototype_property, context)
+        .expect("failed to define the prototype property of the function");
+    constructor
+        .define_property_or_throw("name", name_property, context)
+        .expect("failed to define the name property of the function");
+    constructor
+        .define_property_or_throw("length", length_property, context)
+        .expect("failed to define the length property of the function");
 
-        constructor
-            .define_property_or_throw("prototype", prototype_property, context)
-            .expect("failed to define the prototype property of the function");
-        constructor
-            .define_property_or_throw("name", name_property, context)
-            .expect("failed to define the name property of the function");
-        constructor
-            .define_property_or_throw("length", length_property, context)
-            .expect("failed to define the length property of the function");
-
-        constructor
-    }
+    constructor
 }
 
-#[derive(Debug)]
-#[allow(missing_copy_implementations)]
-pub(crate) struct JsVmGeneratorFunction;
+/// Creates a new generator function object.
+pub(crate) fn create_generator_function_object(
+    code: Gc<CodeBlock>,
+    context: &mut Context,
+) -> JsObject {
+    let function_prototype = context
+        .standard_objects()
+        .generator_function_object()
+        .prototype();
 
-impl JsVmGeneratorFunction {
-    #[allow(clippy::new_ret_no_self)]
-    pub(crate) fn new(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
-        let function_prototype = context
-            .standard_objects()
-            .generator_function_object()
-            .prototype();
+    let name_property = PropertyDescriptor::builder()
+        .value(context.interner().resolve_expect(code.name))
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let name_property = PropertyDescriptor::builder()
-            .value(context.interner().resolve_expect(code.name))
-            .writable(false)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    let length_property = PropertyDescriptor::builder()
+        .value(code.length)
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let length_property = PropertyDescriptor::builder()
-            .value(code.length)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    let prototype = JsObject::from_proto_and_data(
+        context.standard_objects().generator_object().prototype(),
+        ObjectData::ordinary(),
+    );
 
-        let prototype = JsObject::from_proto_and_data(
-            context.standard_objects().generator_object().prototype(),
-            ObjectData::ordinary(),
-        );
+    let function = Function::Generator {
+        code,
+        environments: context.realm.environments.clone(),
+    };
 
-        let function = Function::VmGenerator {
-            code,
-            environments: context.realm.environments.clone(),
-        };
+    let constructor =
+        JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function));
 
-        let constructor = JsObject::from_proto_and_data(
-            function_prototype,
-            ObjectData::generator_function(function),
-        );
+    let prototype_property = PropertyDescriptor::builder()
+        .value(prototype)
+        .writable(true)
+        .enumerable(false)
+        .configurable(false)
+        .build();
 
-        let prototype_property = PropertyDescriptor::builder()
-            .value(prototype)
-            .writable(true)
-            .enumerable(false)
-            .configurable(false)
-            .build();
+    constructor
+        .define_property_or_throw("prototype", prototype_property, context)
+        .expect("failed to define the prototype property of the generator function");
+    constructor
+        .define_property_or_throw("name", name_property, context)
+        .expect("failed to define the name property of the generator function");
+    constructor
+        .define_property_or_throw("length", length_property, context)
+        .expect("failed to define the length property of the generator function");
 
-        constructor
-            .define_property_or_throw("prototype", prototype_property, context)
-            .expect("failed to define the prototype property of the generator function");
-        constructor
-            .define_property_or_throw("name", name_property, context)
-            .expect("failed to define the name property of the generator function");
-        constructor
-            .define_property_or_throw("length", length_property, context)
-            .expect("failed to define the length property of the generator function");
-
-        constructor
-    }
+    constructor
 }
 
 pub(crate) enum FunctionBody {
@@ -583,11 +572,11 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environments } => FunctionBody::Ordinary {
+                Function::Ordinary { code, environments } => FunctionBody::Ordinary {
                     code: code.clone(),
                     environments: environments.clone(),
                 },
-                Function::VmGenerator { code, environments } => FunctionBody::Generator {
+                Function::Generator { code, environments } => FunctionBody::Generator {
                     code: code.clone(),
                     environments: environments.clone(),
                 },
@@ -635,7 +624,7 @@ impl JsObject {
                             let env = context.realm.environments.current();
                             Arguments::create_mapped_arguments_object(
                                 &this_function_object,
-                                &code.params.parameters,
+                                &code.params,
                                 args,
                                 &env,
                                 context,
@@ -734,7 +723,7 @@ impl JsObject {
                             let env = context.realm.environments.current();
                             Arguments::create_mapped_arguments_object(
                                 &this_function_object,
-                                &code.params.parameters,
+                                &code.params,
                                 args,
                                 &env,
                                 context,
@@ -849,11 +838,11 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environments } => FunctionBody::Ordinary {
+                Function::Ordinary { code, environments } => FunctionBody::Ordinary {
                     code: code.clone(),
                     environments: environments.clone(),
                 },
-                Function::VmGenerator { .. } => {
+                Function::Generator { .. } => {
                     unreachable!("generator function cannot be a constructor")
                 }
             }
@@ -910,7 +899,7 @@ impl JsObject {
                             let env = context.realm.environments.current();
                             Arguments::create_mapped_arguments_object(
                                 &this_function_object,
-                                &code.params.parameters,
+                                &code.params,
                                 args,
                                 &env,
                                 context,

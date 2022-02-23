@@ -4,7 +4,7 @@ use crate::{
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::{self, WellKnownSymbols},
-    syntax::ast::node::FormalParameter,
+    syntax::ast::node::FormalParameterList,
     Context, JsValue,
 };
 use boa_gc::{Finalize, Gc, Trace};
@@ -147,7 +147,7 @@ impl Arguments {
     /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
     pub(crate) fn create_mapped_arguments_object(
         func: &JsObject,
-        formals: &[FormalParameter],
+        formals: &FormalParameterList,
         arguments_list: &[JsValue],
         env: &Gc<DeclarativeEnvironment>,
         context: &mut Context,
@@ -199,7 +199,7 @@ impl Arguments {
 
         let mut bindings = FxHashMap::default();
         let mut property_index = 0;
-        'outer: for formal in formals {
+        'outer: for formal in formals.parameters.iter() {
             for name in formal.names() {
                 if property_index >= len {
                     break 'outer;

@@ -787,6 +787,7 @@ impl Object {
         )
     }
 
+    /// Returns a reference to the generator data on the object.
     #[inline]
     pub fn as_generator(&self) -> Option<&Generator> {
         match self.data {
@@ -798,6 +799,7 @@ impl Object {
         }
     }
 
+    /// Returns a mutable reference to the generator data on the object.
     #[inline]
     pub fn as_generator_mut(&mut self) -> Option<&mut Generator> {
         match self.data {
@@ -1401,7 +1403,9 @@ impl<'context> FunctionBuilder<'context> {
             } => {
                 *constructor = yes;
             }
-            _ => unreachable!("function must be native or closure"),
+            Function::Ordinary { .. } | Function::Generator { .. } => {
+                unreachable!("function must be native or closure");
+            }
         }
         self
     }

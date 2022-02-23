@@ -8,7 +8,7 @@ use crate::{
     value::Numeric,
     vm::{
         call_frame::CatchAddresses,
-        code_block::{JsVmGeneratorFunction, Readable},
+        code_block::{create_function_object, create_generator_function_object, Readable},
     },
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
@@ -20,12 +20,12 @@ mod call_frame;
 mod code_block;
 mod opcode;
 
-pub use call_frame::CallFrame;
-pub(crate) use call_frame::GeneratorResumeKind;
-pub(crate) use call_frame::{FinallyReturn, TryStackEntry};
-pub use code_block::{CodeBlock, JsVmFunction};
-pub(crate) use opcode::BindingOpcode;
-pub use opcode::Opcode;
+pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
+
+pub(crate) use {
+    call_frame::{FinallyReturn, GeneratorResumeKind, TryStackEntry},
+    opcode::BindingOpcode,
+};
 
 #[cfg(test)]
 mod tests;
@@ -102,12 +102,16 @@ impl Vm {
     }
 }
 
+/// Indicates if the execution should continue, exit or yield.
+#[derive(Debug, Clone, Copy)]
 enum ShouldExit {
     True,
     False,
     Yield,
 }
 
+/// Indicates if the execution of a codeblock has ended normally or has been yielded.
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum ReturnType {
     Normal,
     Yield,
@@ -908,13 +912,13 @@ impl Context {
             Opcode::GetFunction => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let function = JsVmFunction::new(code, self);
+                let function = create_function_object(code, self);
                 self.vm.push(function);
             }
             Opcode::GetGenerator => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let function = JsVmGeneratorFunction::new(code, self);
+                let function = create_generator_function_object(code, self);
                 self.vm.push(function);
             }
             Opcode::Call => {

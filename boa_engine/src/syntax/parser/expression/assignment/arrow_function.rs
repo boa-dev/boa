@@ -12,7 +12,7 @@ use crate::syntax::{
     ast::{
         node::{
             declaration::Declaration, ArrowFunctionDecl, FormalParameter, FormalParameterList,
-            Node, Return, StatementList,
+            FormalParameterListFlags, Node, Return, StatementList,
         },
         Position, Punctuator,
     },
@@ -99,17 +99,17 @@ where
                     .parse(cursor, interner)
                     .context("arrow function")?;
                 let has_arguments = param == Sym::ARGUMENTS;
+                let mut flags = FormalParameterListFlags::IS_SIMPLE;
+                if has_arguments {
+                    flags |= FormalParameterListFlags::HAS_ARGUMENTS;
+                }
                 (
                     FormalParameterList::new(
                         Box::new([FormalParameter::new(
                             Declaration::new_with_identifier(param, None),
                             false,
                         )]),
-                        true,
-                        false,
-                        false,
-                        false,
-                        has_arguments,
+                        flags,
                     ),
                     params_start_position,
                 )
