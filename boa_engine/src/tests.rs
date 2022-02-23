@@ -431,15 +431,14 @@ fn for_loop_iteration_variable_does_not_leak() {
 }
 
 #[test]
-#[should_panic]
 fn test_invalid_break_target() {
     let src = r#"
-        while (false) {
+        while (true) {
           break nonexistent;
         }
         "#;
 
-    let _ = &exec(src);
+    assert!(matches!(Context::default().eval(src.as_bytes()), Err(_)));
 }
 
 #[test]
