@@ -1424,6 +1424,7 @@
 <span id="1423">1423</span>
 <span id="1424">1424</span>
 <span id="1425">1425</span>
+<span id="1426">1426</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -2808,6 +2809,7 @@
                         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">pop_on_return</span> {
                             <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                         }
+                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pop_on_return</span> <span class="op">=</span> <span class="number">0</span>;
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pc</span> <span class="op">=</span> <span class="ident">address</span> <span class="kw">as</span> <span class="ident">usize</span>;
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">catch</span>.<span class="ident">pop</span>();
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">finally_return</span> <span class="op">=</span> <span class="ident">FinallyReturn::Err</span>;
