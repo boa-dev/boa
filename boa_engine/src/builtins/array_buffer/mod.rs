@@ -402,12 +402,12 @@ impl ArrayBuffer {
         // 2. Return false.
         matches!(
             t,
-            TypedArrayName::Int8Array
-                | TypedArrayName::Uint8Array
-                | TypedArrayName::Int16Array
-                | TypedArrayName::Uint16Array
-                | TypedArrayName::Int32Array
-                | TypedArrayName::Uint32Array
+            TypedArrayName::Int8
+                | TypedArrayName::Uint8
+                | TypedArrayName::Int16
+                | TypedArrayName::Uint16
+                | TypedArrayName::Int32
+                | TypedArrayName::Uint32
         )
     }
 
@@ -420,10 +420,7 @@ impl ArrayBuffer {
     fn is_big_int_element_type(t: TypedArrayName) -> bool {
         // 1. If type is BigUint64 or BigInt64, return true.
         // 2. Return false.
-        matches!(
-            t,
-            TypedArrayName::BigUint64Array | TypedArrayName::BigInt64Array
-        )
+        matches!(t, TypedArrayName::BigUint64 | TypedArrayName::BigInt64)
     }
 
     /// `25.1.2.8 IsNoTearConfiguration ( type, order )`
@@ -462,21 +459,21 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-rawbytestonumeric
     fn raw_bytes_to_numeric(t: TypedArrayName, bytes: &[u8], is_little_endian: bool) -> JsValue {
         let n: Numeric = match t {
-            TypedArrayName::Int8Array => {
+            TypedArrayName::Int8 => {
                 if is_little_endian {
                     i8::from_le_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 } else {
                     i8::from_be_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 }
             }
-            TypedArrayName::Uint8Array | TypedArrayName::Uint8ClampedArray => {
+            TypedArrayName::Uint8 | TypedArrayName::Uint8Clamped => {
                 if is_little_endian {
                     u8::from_le_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 } else {
                     u8::from_be_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 }
             }
-            TypedArrayName::Int16Array => {
+            TypedArrayName::Int16 => {
                 if is_little_endian {
                     i16::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -485,7 +482,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Uint16Array => {
+            TypedArrayName::Uint16 => {
                 if is_little_endian {
                     u16::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -494,7 +491,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Int32Array => {
+            TypedArrayName::Int32 => {
                 if is_little_endian {
                     i32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -503,7 +500,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Uint32Array => {
+            TypedArrayName::Uint32 => {
                 if is_little_endian {
                     u32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -512,7 +509,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::BigInt64Array => {
+            TypedArrayName::BigInt64 => {
                 if is_little_endian {
                     i64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -521,7 +518,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::BigUint64Array => {
+            TypedArrayName::BigUint64 => {
                 if is_little_endian {
                     u64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -530,7 +527,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Float32Array => {
+            TypedArrayName::Float32 => {
                 if is_little_endian {
                     f32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -539,7 +536,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Float64Array => {
+            TypedArrayName::Float64 => {
                 if is_little_endian {
                     f64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -606,37 +603,35 @@ impl ArrayBuffer {
         context: &mut Context,
     ) -> JsResult<Vec<u8>> {
         Ok(match t {
-            TypedArrayName::Int8Array if is_little_endian => {
+            TypedArrayName::Int8 if is_little_endian => {
                 value.to_int8(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Int8Array => value.to_int8(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint8Array if is_little_endian => {
+            TypedArrayName::Int8 => value.to_int8(context)?.to_be_bytes().to_vec(),
+            TypedArrayName::Uint8 if is_little_endian => {
                 value.to_uint8(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint8Array => value.to_uint8(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint8ClampedArray if is_little_endian => {
+            TypedArrayName::Uint8 => value.to_uint8(context)?.to_be_bytes().to_vec(),
+            TypedArrayName::Uint8Clamped if is_little_endian => {
                 value.to_uint8_clamp(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint8ClampedArray => {
-                value.to_uint8_clamp(context)?.to_be_bytes().to_vec()
-            }
-            TypedArrayName::Int16Array if is_little_endian => {
+            TypedArrayName::Uint8Clamped => value.to_uint8_clamp(context)?.to_be_bytes().to_vec(),
+            TypedArrayName::Int16 if is_little_endian => {
                 value.to_int16(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Int16Array => value.to_int16(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint16Array if is_little_endian => {
+            TypedArrayName::Int16 => value.to_int16(context)?.to_be_bytes().to_vec(),
+            TypedArrayName::Uint16 if is_little_endian => {
                 value.to_uint16(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint16Array => value.to_uint16(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Int32Array if is_little_endian => {
+            TypedArrayName::Uint16 => value.to_uint16(context)?.to_be_bytes().to_vec(),
+            TypedArrayName::Int32 if is_little_endian => {
                 value.to_i32(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Int32Array => value.to_i32(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint32Array if is_little_endian => {
+            TypedArrayName::Int32 => value.to_i32(context)?.to_be_bytes().to_vec(),
+            TypedArrayName::Uint32 if is_little_endian => {
                 value.to_u32(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint32Array => value.to_u32(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::BigInt64Array if is_little_endian => {
+            TypedArrayName::Uint32 => value.to_u32(context)?.to_be_bytes().to_vec(),
+            TypedArrayName::BigInt64 if is_little_endian => {
                 let big_int = value.to_big_int64(context)?;
                 big_int
                     .to_i64()
@@ -650,7 +645,7 @@ impl ArrayBuffer {
                     .to_le_bytes()
                     .to_vec()
             }
-            TypedArrayName::BigInt64Array => {
+            TypedArrayName::BigInt64 => {
                 let big_int = value.to_big_int64(context)?;
                 big_int
                     .to_i64()
@@ -664,23 +659,23 @@ impl ArrayBuffer {
                     .to_be_bytes()
                     .to_vec()
             }
-            TypedArrayName::BigUint64Array if is_little_endian => value
+            TypedArrayName::BigUint64 if is_little_endian => value
                 .to_big_uint64(context)?
                 .to_u64()
                 .unwrap_or(u64::MAX)
                 .to_le_bytes()
                 .to_vec(),
-            TypedArrayName::BigUint64Array => value
+            TypedArrayName::BigUint64 => value
                 .to_big_uint64(context)?
                 .to_u64()
                 .unwrap_or(u64::MAX)
                 .to_be_bytes()
                 .to_vec(),
-            TypedArrayName::Float32Array => match value.to_number(context)? {
+            TypedArrayName::Float32 => match value.to_number(context)? {
                 f if is_little_endian => (f as f32).to_le_bytes().to_vec(),
                 f => (f as f32).to_be_bytes().to_vec(),
             },
-            TypedArrayName::Float64Array => match value.to_number(context)? {
+            TypedArrayName::Float64 => match value.to_number(context)? {
                 f if is_little_endian => f.to_le_bytes().to_vec(),
                 f => f.to_be_bytes().to_vec(),
             },

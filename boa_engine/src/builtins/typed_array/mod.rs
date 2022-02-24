@@ -797,7 +797,7 @@ impl TypedArray {
                 // i. Let value be GetValueFromBuffer(buffer, fromByteIndex, Uint8, true, Unordered).
                 let value = buffer.get_value_from_buffer(
                     from_byte_index as usize,
-                    TypedArrayName::Uint8Array,
+                    TypedArrayName::Uint8,
                     true,
                     SharedMemoryOrder::Unordered,
                     None,
@@ -806,7 +806,7 @@ impl TypedArray {
                 // ii. Perform SetValueInBuffer(buffer, toByteIndex, Uint8, value, true, Unordered).
                 buffer.set_value_in_buffer(
                     to_byte_index as usize,
-                    TypedArrayName::Uint8Array,
+                    TypedArrayName::Uint8,
                     &value,
                     SharedMemoryOrder::Unordered,
                     None,
@@ -2054,7 +2054,7 @@ impl TypedArray {
                 // i. Let value be GetValueFromBuffer(srcBuffer, srcByteIndex, Uint8, true, Unordered).
                 let value = src_buffer.get_value_from_buffer(
                     src_byte_index,
-                    TypedArrayName::Uint8Array,
+                    TypedArrayName::Uint8,
                     true,
                     SharedMemoryOrder::Unordered,
                     None,
@@ -2067,7 +2067,7 @@ impl TypedArray {
                     .expect("Must be an array buffer")
                     .set_value_in_buffer(
                         target_byte_index,
-                        TypedArrayName::Uint8Array,
+                        TypedArrayName::Uint8,
                         &value,
                         SharedMemoryOrder::Unordered,
                         None,
@@ -2367,7 +2367,7 @@ impl TypedArray {
                     // 1. Let value be GetValueFromBuffer(srcBuffer, srcByteIndex, Uint8, true, Unordered).
                     let value = src_buffer.get_value_from_buffer(
                         src_byte_index,
-                        TypedArrayName::Uint8Array,
+                        TypedArrayName::Uint8,
                         true,
                         SharedMemoryOrder::Unordered,
                         None,
@@ -2376,7 +2376,7 @@ impl TypedArray {
                     // 2. Perform SetValueInBuffer(targetBuffer, targetByteIndex, Uint8, value, true, Unordered).
                     target_buffer.set_value_in_buffer(
                         target_byte_index,
-                        TypedArrayName::Uint8Array,
+                        TypedArrayName::Uint8,
                         &value,
                         SharedMemoryOrder::Unordered,
                         None,
@@ -2815,17 +2815,17 @@ impl TypedArray {
     ) -> JsResult<JsObject> {
         // 1. Let defaultConstructor be the intrinsic object listed in column one of Table 73 for exemplar.[[TypedArrayName]].
         let default_constructor = match typed_array_name {
-            TypedArrayName::Int8Array => StandardObjects::typed_int8_array_object,
-            TypedArrayName::Uint8Array => StandardObjects::typed_uint8_array_object,
-            TypedArrayName::Uint8ClampedArray => StandardObjects::typed_uint8clamped_array_object,
-            TypedArrayName::Int16Array => StandardObjects::typed_int16_array_object,
-            TypedArrayName::Uint16Array => StandardObjects::typed_uint16_array_object,
-            TypedArrayName::Int32Array => StandardObjects::typed_int32_array_object,
-            TypedArrayName::Uint32Array => StandardObjects::typed_uint32_array_object,
-            TypedArrayName::BigInt64Array => StandardObjects::typed_bigint64_array_object,
-            TypedArrayName::BigUint64Array => StandardObjects::typed_biguint64_array_object,
-            TypedArrayName::Float32Array => StandardObjects::typed_float32_array_object,
-            TypedArrayName::Float64Array => StandardObjects::typed_float64_array_object,
+            TypedArrayName::Int8 => StandardObjects::typed_int8_array_object,
+            TypedArrayName::Uint8 => StandardObjects::typed_uint8_array_object,
+            TypedArrayName::Uint8Clamped => StandardObjects::typed_uint8clamped_array_object,
+            TypedArrayName::Int16 => StandardObjects::typed_int16_array_object,
+            TypedArrayName::Uint16 => StandardObjects::typed_uint16_array_object,
+            TypedArrayName::Int32 => StandardObjects::typed_int32_array_object,
+            TypedArrayName::Uint32 => StandardObjects::typed_uint32_array_object,
+            TypedArrayName::BigInt64 => StandardObjects::typed_bigint64_array_object,
+            TypedArrayName::BigUint64 => StandardObjects::typed_biguint64_array_object,
+            TypedArrayName::Float32 => StandardObjects::typed_float32_array_object,
+            TypedArrayName::Float64 => StandardObjects::typed_float64_array_object,
         };
 
         // 2. Let constructor be ? SpeciesConstructor(exemplar, defaultConstructor).
@@ -3288,17 +3288,17 @@ impl TypedArray {
 /// Names of all the typed arrays.
 #[derive(Debug, Clone, Copy, Finalize, PartialEq)]
 pub(crate) enum TypedArrayName {
-    Int8Array,
-    Uint8Array,
-    Uint8ClampedArray,
-    Int16Array,
-    Uint16Array,
-    Int32Array,
-    Uint32Array,
-    BigInt64Array,
-    BigUint64Array,
-    Float32Array,
-    Float64Array,
+    Int8,
+    Uint8,
+    Uint8Clamped,
+    Int16,
+    Uint16,
+    Int32,
+    Uint32,
+    BigInt64,
+    BigUint64,
+    Float32,
+    Float64,
 }
 
 unsafe impl Trace for TypedArrayName {
@@ -3313,10 +3313,10 @@ impl TypedArrayName {
     #[inline]
     pub(crate) const fn element_size(self) -> usize {
         match self {
-            Self::Int8Array | Self::Uint8Array | Self::Uint8ClampedArray => 1,
-            Self::Int16Array | Self::Uint16Array => 2,
-            Self::Int32Array | Self::Uint32Array | Self::Float32Array => 4,
-            Self::BigInt64Array | Self::BigUint64Array | Self::Float64Array => 8,
+            Self::Int8 | Self::Uint8 | Self::Uint8Clamped => 1,
+            Self::Int16 | Self::Uint16 => 2,
+            Self::Int32 | Self::Uint32 | Self::Float32 => 4,
+            Self::BigInt64 | Self::BigUint64 | Self::Float64 => 8,
         }
     }
 
@@ -3324,7 +3324,7 @@ impl TypedArrayName {
     #[inline]
     pub(crate) const fn content_type(self) -> ContentType {
         match self {
-            Self::BigInt64Array | Self::BigUint64Array => ContentType::BigInt,
+            Self::BigInt64 | Self::BigUint64 => ContentType::BigInt,
             _ => ContentType::Number,
         }
     }
@@ -3333,44 +3333,44 @@ impl TypedArrayName {
     #[inline]
     pub(crate) const fn name(&self) -> &str {
         match self {
-            TypedArrayName::Int8Array => "Int8Array",
-            TypedArrayName::Uint8Array => "Uint8Array",
-            TypedArrayName::Uint8ClampedArray => "Uint8ClampedArray",
-            TypedArrayName::Int16Array => "Int16Array",
-            TypedArrayName::Uint16Array => "Uint16Array",
-            TypedArrayName::Int32Array => "Int32Array",
-            TypedArrayName::Uint32Array => "Uint32Array",
-            TypedArrayName::BigInt64Array => "BigInt64Array",
-            TypedArrayName::BigUint64Array => "BigUint64Array",
-            TypedArrayName::Float32Array => "Float32Array",
-            TypedArrayName::Float64Array => "Float64Array",
+            TypedArrayName::Int8 => "Int8Array",
+            TypedArrayName::Uint8 => "Uint8Array",
+            TypedArrayName::Uint8Clamped => "Uint8ClampedArray",
+            TypedArrayName::Int16 => "Int16Array",
+            TypedArrayName::Uint16 => "Uint16Array",
+            TypedArrayName::Int32 => "Int32Array",
+            TypedArrayName::Uint32 => "Uint32Array",
+            TypedArrayName::BigInt64 => "BigInt64Array",
+            TypedArrayName::BigUint64 => "BigUint64Array",
+            TypedArrayName::Float32 => "Float32Array",
+            TypedArrayName::Float64 => "Float64Array",
         }
     }
 
     pub(crate) fn is_big_int_element_type(self) -> bool {
         matches!(
             self,
-            TypedArrayName::BigUint64Array | TypedArrayName::BigInt64Array
+            TypedArrayName::BigUint64 | TypedArrayName::BigInt64
         )
     }
 }
 
-typed_array!(Int8Array, "Int8Array", typed_int8_array_object);
-typed_array!(Uint8Array, "Uint8Array", typed_uint8_array_object);
+typed_array!(Int8, "Int8Array", typed_int8_array_object);
+typed_array!(Uint8, "Uint8Array", typed_uint8_array_object);
 typed_array!(
-    Uint8ClampedArray,
+    Uint8Clamped,
     "Uint8ClampedArray",
     typed_uint8clamped_array_object
 );
-typed_array!(Int16Array, "Int16Array", typed_int16_array_object);
-typed_array!(Uint16Array, "Uint16Array", typed_uint16_array_object);
-typed_array!(Int32Array, "Int32Array", typed_int32_array_object);
-typed_array!(Uint32Array, "Uint32Array", typed_uint32_array_object);
-typed_array!(BigInt64Array, "BigInt64Array", typed_bigint64_array_object);
+typed_array!(Int16, "Int16Array", typed_int16_array_object);
+typed_array!(Uint16, "Uint16Array", typed_uint16_array_object);
+typed_array!(Int32, "Int32Array", typed_int32_array_object);
+typed_array!(Uint32, "Uint32Array", typed_uint32_array_object);
+typed_array!(BigInt64, "BigInt64Array", typed_bigint64_array_object);
 typed_array!(
-    BigUint64Array,
+    BigUint64,
     "BigUint64Array",
     typed_biguint64_array_object
 );
-typed_array!(Float32Array, "Float32Array", typed_float32_array_object);
-typed_array!(Float64Array, "Float64Array", typed_float64_array_object);
+typed_array!(Float32, "Float32Array", typed_float32_array_object);
+typed_array!(Float64, "Float64Array", typed_float64_array_object);
