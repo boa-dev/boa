@@ -216,6 +216,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
+    #[must_use]
     pub fn into_accessor_defaulted(mut self) -> Self {
         self.kind = DescriptorKind::Accessor {
             get: self.get().cloned(),
@@ -226,6 +227,7 @@ impl PropertyDescriptor {
             .build()
     }
 
+    #[must_use]
     pub fn into_data_defaulted(mut self) -> Self {
         self.kind = DescriptorKind::Data {
             value: self.value().cloned(),
@@ -237,6 +239,7 @@ impl PropertyDescriptor {
     }
 
     #[inline]
+    #[must_use]
     pub fn complete_property_descriptor(self) -> Self {
         PropertyDescriptorBuilder { inner: self }
             .complete_with_defaults()
@@ -297,6 +300,7 @@ impl PropertyDescriptorBuilder {
         Self::default()
     }
 
+    #[must_use]
     pub fn value<V: Into<JsValue>>(mut self, value: V) -> Self {
         match self.inner.kind {
             DescriptorKind::Data {
@@ -313,6 +317,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn writable(mut self, writable: bool) -> Self {
         match self.inner.kind {
             DescriptorKind::Data {
@@ -330,6 +335,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn get<V: Into<JsValue>>(mut self, get: V) -> Self {
         match self.inner.kind {
             DescriptorKind::Accessor { get: ref mut g, .. } => *g = Some(get.into()),
@@ -344,6 +350,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn set<V: Into<JsValue>>(mut self, set: V) -> Self {
         match self.inner.kind {
             DescriptorKind::Accessor { set: ref mut s, .. } => *s = Some(set.into()),
@@ -358,6 +365,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn maybe_enumerable(mut self, enumerable: Option<bool>) -> Self {
         if let Some(enumerable) = enumerable {
             self = self.enumerable(enumerable);
@@ -365,6 +373,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn maybe_configurable(mut self, configurable: Option<bool>) -> Self {
         if let Some(configurable) = configurable {
             self = self.configurable(configurable);
@@ -372,6 +381,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn maybe_value<V: Into<JsValue>>(mut self, value: Option<V>) -> Self {
         if let Some(value) = value {
             self = self.value(value);
@@ -379,6 +389,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn maybe_writable(mut self, writable: Option<bool>) -> Self {
         if let Some(writable) = writable {
             self = self.writable(writable);
@@ -386,6 +397,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn maybe_get<V: Into<JsValue>>(mut self, get: Option<V>) -> Self {
         if let Some(get) = get {
             self = self.get(get);
@@ -393,6 +405,7 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn maybe_set<V: Into<JsValue>>(mut self, set: Option<V>) -> Self {
         if let Some(set) = set {
             self = self.set(set);
@@ -400,15 +413,19 @@ impl PropertyDescriptorBuilder {
         self
     }
 
+    #[must_use]
     pub fn enumerable(mut self, enumerable: bool) -> Self {
         self.inner.enumerable = Some(enumerable);
         self
     }
+
+    #[must_use]
     pub fn configurable(mut self, configurable: bool) -> Self {
         self.inner.configurable = Some(configurable);
         self
     }
 
+    #[must_use]
     pub fn complete_with_defaults(mut self) -> Self {
         match self.inner.kind {
             DescriptorKind::Generic => {

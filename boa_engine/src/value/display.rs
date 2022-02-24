@@ -14,6 +14,7 @@ impl ValueDisplay<'_> {
     ///
     /// By default this is `false`.
     #[inline]
+    #[must_use]
     pub fn internals(mut self, yes: bool) -> Self {
         self.internals = yes;
         self
