@@ -456,7 +456,7 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn compile_access<'a>(&mut self, node: &'a Node) -> Access<'a> {
+    fn compile_access(node: &'_ Node) -> Access<'_> {
         match node {
             Node::Identifier(name) => Access::Variable { name: name.sym() },
             Node::GetConstField(node) => Access::ByName { node },
@@ -571,7 +571,7 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::Inc, &[]);
 
-                        let access = self.compile_access(unary.target());
+                        let access = Self::compile_access(unary.target());
                         self.access_set(access, None, true)?;
                         None
                     }
@@ -579,7 +579,7 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::Dec, &[]);
 
-                        let access = self.compile_access(unary.target());
+                        let access = Self::compile_access(unary.target());
                         self.access_set(access, None, true)?;
                         None
                     }
@@ -587,7 +587,7 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::Dup, &[]);
                         self.emit(Opcode::Inc, &[]);
-                        let access = self.compile_access(unary.target());
+                        let access = Self::compile_access(unary.target());
                         self.access_set(access, None, false)?;
 
                         None
@@ -596,7 +596,7 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::Dup, &[]);
                         self.emit(Opcode::Dec, &[]);
-                        let access = self.compile_access(unary.target());
+                        let access = Self::compile_access(unary.target());
                         self.access_set(access, None, false)?;
 
                         None
@@ -744,7 +744,7 @@ impl<'b> ByteCompiler<'b> {
                             AssignOp::BoolAnd => {
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalAnd);
                                 self.compile_expr(binary.rhs(), true)?;
-                                let access = self.compile_access(binary.lhs());
+                                let access = Self::compile_access(binary.lhs());
                                 self.access_set(access, None, use_expr)?;
                                 self.patch_jump(exit);
                                 None
@@ -752,7 +752,7 @@ impl<'b> ByteCompiler<'b> {
                             AssignOp::BoolOr => {
                                 let exit = self.jump_with_custom_opcode(Opcode::LogicalOr);
                                 self.compile_expr(binary.rhs(), true)?;
-                                let access = self.compile_access(binary.lhs());
+                                let access = Self::compile_access(binary.lhs());
                                 self.access_set(access, None, use_expr)?;
                                 self.patch_jump(exit);
                                 None
@@ -760,7 +760,7 @@ impl<'b> ByteCompiler<'b> {
                             AssignOp::Coalesce => {
                                 let exit = self.jump_with_custom_opcode(Opcode::Coalesce);
                                 self.compile_expr(binary.rhs(), true)?;
-                                let access = self.compile_access(binary.lhs());
+                                let access = Self::compile_access(binary.lhs());
                                 self.access_set(access, None, use_expr)?;
                                 self.patch_jump(exit);
                                 None
@@ -770,7 +770,7 @@ impl<'b> ByteCompiler<'b> {
                         if let Some(opcode) = opcode {
                             self.compile_expr(binary.rhs(), true)?;
                             self.emit(opcode, &[]);
-                            let access = self.compile_access(binary.lhs());
+                            let access = Self::compile_access(binary.lhs());
                             self.access_set(access, None, use_expr)?;
                         }
                     }
@@ -891,7 +891,7 @@ impl<'b> ByteCompiler<'b> {
                 if let Node::Object(_) = assign.lhs() {
                     self.emit_opcode(Opcode::PushUndefined);
                 } else {
-                    let access = self.compile_access(assign.lhs());
+                    let access = Self::compile_access(assign.lhs());
                     self.access_set(access, Some(assign.rhs()), use_expr)?;
                 }
             }
