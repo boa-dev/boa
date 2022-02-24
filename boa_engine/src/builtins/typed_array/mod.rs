@@ -3348,10 +3348,7 @@ impl TypedArrayName {
     }
 
     pub(crate) fn is_big_int_element_type(self) -> bool {
-        matches!(
-            self,
-            TypedArrayName::BigUint64 | TypedArrayName::BigInt64
-        )
+        matches!(self, TypedArrayName::BigUint64 | TypedArrayName::BigInt64)
     }
 }
 
@@ -3367,10 +3364,6 @@ typed_array!(Uint16, "Uint16Array", typed_uint16_array_object);
 typed_array!(Int32, "Int32Array", typed_int32_array_object);
 typed_array!(Uint32, "Uint32Array", typed_uint32_array_object);
 typed_array!(BigInt64, "BigInt64Array", typed_bigint64_array_object);
-typed_array!(
-    BigUint64,
-    "BigUint64Array",
-    typed_biguint64_array_object
-);
+typed_array!(BigUint64, "BigUint64Array", typed_biguint64_array_object);
 typed_array!(Float32, "Float32Array", typed_float32_array_object);
 typed_array!(Float64, "Float64Array", typed_float64_array_object);
