@@ -76,10 +76,10 @@ impl JsValue {
             },
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(x), _) => return other.equals(&Self::new(*x as i32), context),
+            (Self::Boolean(x), _) => return other.equals(&Self::new(i32::from(*x)), context),
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(y)) => return self.equals(&Self::new(*y as i32), context),
+            (_, Self::Boolean(y)) => return self.equals(&Self::new(i32::from(*y)), context),
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).

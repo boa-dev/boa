@@ -1304,6 +1304,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `""` (empty string).
     #[inline]
+    #[must_use]
     pub fn name<N>(mut self, name: N) -> Self
     where
         N: AsRef<str>,
@@ -1318,6 +1319,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `0`.
     #[inline]
+    #[must_use]
     pub fn length(mut self, length: usize) -> Self {
         self.length = length;
         self
@@ -1327,6 +1329,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `false`.
     #[inline]
+    #[must_use]
     pub fn constructor(mut self, yes: bool) -> Self {
         match self.function {
             Function::Native {
