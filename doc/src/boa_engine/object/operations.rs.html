@@ -795,6 +795,8 @@
 <span id="793">793</span>
 <span id="794">794</span>
 <span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
     <span class="ident">context</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardObjects</span>},
@@ -1246,12 +1248,14 @@
         }
 
         <span class="comment">// 4. If Type(C) is not Object, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_object</span>() {
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_object</span>() {
+            <span class="ident">c</span>
+        } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;property &#39;constructor&#39; is not an object&quot;</span>);
-        }
+        };
 
         <span class="comment">// 5. Let S be ? Get(C, @@species).</span>
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols::species</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">get</span>(<span class="ident">WellKnownSymbols::species</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. If S is either undefined or null, return defaultConstructor.</span>
         <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_null_or_undefined</span>() {

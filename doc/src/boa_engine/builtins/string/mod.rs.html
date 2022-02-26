@@ -2152,6 +2152,9 @@
 <span id="2150">2150</span>
 <span id="2151">2151</span>
 <span id="2152">2152</span>
+<span id="2153">2153</span>
+<span id="2154">2154</span>
+<span id="2155">2155</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `String` global object is a constructor for strings or a sequence of characters.</span>
@@ -4219,6 +4222,9 @@
                         <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="string">&quot;$&lt;&quot;</span>);
                     } <span class="kw">else</span> {
                         <span class="comment">// a. Assert: Type(namedCaptures) is Object.</span>
+                        <span class="kw">let</span> <span class="ident">named_captures</span> <span class="op">=</span> <span class="ident">named_captures</span>
+                            .<span class="ident">as_object</span>()
+                            .<span class="ident">expect</span>(<span class="string">&quot;should be an object according to spec&quot;</span>);
 
                         <span class="comment">// b. Scan until the next &gt; U+003E (GREATER-THAN SIGN).</span>
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group_name</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
@@ -4243,7 +4249,7 @@
                         } <span class="kw">else</span> {
                             <span class="comment">// i. Let groupName be the enclosed substring.</span>
                             <span class="comment">// ii. Let capture be ? Get(namedCaptures, groupName).</span>
-                            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="ident">named_captures</span>.<span class="ident">get_field</span>(<span class="ident">group_name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="ident">named_captures</span>.<span class="ident">get</span>(<span class="ident">group_name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                             <span class="comment">// iii. If capture is undefined, replace the text through &gt; with the empty String.</span>
                             <span class="comment">// iv. Otherwise, replace the text through &gt; with ? ToString(capture).</span>

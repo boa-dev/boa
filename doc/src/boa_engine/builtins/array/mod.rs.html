@@ -2697,40 +2697,6 @@
 <span id="2695">2695</span>
 <span id="2696">2696</span>
 <span id="2697">2697</span>
-<span id="2698">2698</span>
-<span id="2699">2699</span>
-<span id="2700">2700</span>
-<span id="2701">2701</span>
-<span id="2702">2702</span>
-<span id="2703">2703</span>
-<span id="2704">2704</span>
-<span id="2705">2705</span>
-<span id="2706">2706</span>
-<span id="2707">2707</span>
-<span id="2708">2708</span>
-<span id="2709">2709</span>
-<span id="2710">2710</span>
-<span id="2711">2711</span>
-<span id="2712">2712</span>
-<span id="2713">2713</span>
-<span id="2714">2714</span>
-<span id="2715">2715</span>
-<span id="2716">2716</span>
-<span id="2717">2717</span>
-<span id="2718">2718</span>
-<span id="2719">2719</span>
-<span id="2720">2720</span>
-<span id="2721">2721</span>
-<span id="2722">2722</span>
-<span id="2723">2723</span>
-<span id="2724">2724</span>
-<span id="2725">2725</span>
-<span id="2726">2726</span>
-<span id="2727">2727</span>
-<span id="2728">2728</span>
-<span id="2729">2729</span>
-<span id="2730">2730</span>
-<span id="2731">2731</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -3006,32 +2972,29 @@
         <span class="ident">array</span>
     }
 
-    <span class="doccomment">/// Creates a new `Array` instance.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new_array</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
-        <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;creating an empty array with the default prototype must not fail&quot;</span>)
-            .<span class="ident">into</span>()
-    }
-
     <span class="doccomment">/// Utility function for concatenating array objects.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns a Boolean valued property that if `true` indicates that</span>
     <span class="doccomment">/// an object should be flattened to its array elements</span>
     <span class="doccomment">/// by `Array.prototype.concat`.</span>
-    <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">is_concat_spreadable</span>(<span class="ident">o</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(O) is not Object, return false.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">this</span>.<span class="ident">is_object</span>() {
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_object</span>() {
+            <span class="ident">o</span>
+        } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>);
-        }
+        };
+
         <span class="comment">// 2. Let spreadable be ? Get(O, @@isConcatSpreadable).</span>
-        <span class="kw">let</span> <span class="ident">spreadable</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get_field</span>(<span class="ident">WellKnownSymbols::is_concat_spreadable</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">spreadable</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">WellKnownSymbols::is_concat_spreadable</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If spreadable is not undefined, return ! ToBoolean(spreadable).</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">spreadable</span>.<span class="ident">is_undefined</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">spreadable</span>.<span class="ident">to_boolean</span>());
         }
+
         <span class="comment">// 4. Return ? IsArray(O).</span>
-        <span class="ident">this</span>.<span class="ident">is_array</span>(<span class="ident">context</span>)
+        <span class="ident">o</span>.<span class="ident">is_array_abstract</span>(<span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get Array [ @@species ]`</span>
@@ -3105,37 +3068,6 @@
         } <span class="kw">else</span> {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
         }
-    }
-
-    <span class="doccomment">/// Utility function which takes an existing array object and puts additional</span>
-    <span class="doccomment">/// values on the end, correctly rewriting the length</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">add_to_array_object</span>(
-        <span class="ident">array_ptr</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">add_values</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">orig_length</span> <span class="op">=</span> <span class="ident">array_ptr</span>.<span class="ident">get_field</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">for</span> (<span class="ident">n</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="ident">add_values</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">new_index</span> <span class="op">=</span> <span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">n</span>);
-            <span class="ident">array_ptr</span>.<span class="ident">set_property</span>(
-                <span class="ident">new_index</span>,
-                <span class="ident">PropertyDescriptor::builder</span>()
-                    .<span class="ident">value</span>(<span class="ident">value</span>)
-                    .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                    .<span class="ident">writable</span>(<span class="bool-val">true</span>),
-            );
-        }
-
-        <span class="ident">array_ptr</span>.<span class="ident">set_field</span>(
-            <span class="string">&quot;length&quot;</span>,
-            <span class="ident">JsValue::new</span>(<span class="ident">orig_length</span>.<span class="ident">wrapping_add</span>(<span class="ident">add_values</span>.<span class="ident">len</span>())),
-            <span class="bool-val">false</span>,
-            <span class="ident">context</span>,
-        )<span class="question-mark">?</span>;
-
-        <span class="prelude-val">Ok</span>(<span class="ident">array_ptr</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// `Array.isArray( arg )`</span>
