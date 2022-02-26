@@ -15,7 +15,7 @@ repository.</p>
     <span class="ident">Cred::ssh_key</span>(
       <span class="ident">username_from_url</span>.<span class="ident">unwrap</span>(),
       <span class="prelude-val">None</span>,
-      <span class="ident">std::path::Path::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/.ssh/id_rsa&quot;</span>, <span class="ident">env::var</span>(<span class="string">&quot;HOME&quot;</span>).<span class="ident">unwrap</span>())),
+      <span class="ident">Path::new</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}/.ssh/id_rsa&quot;</span>, <span class="ident">env::var</span>(<span class="string">&quot;HOME&quot;</span>).<span class="ident">unwrap</span>())),
       <span class="prelude-val">None</span>,
     )
   });
