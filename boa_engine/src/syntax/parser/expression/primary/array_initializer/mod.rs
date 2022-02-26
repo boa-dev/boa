@@ -13,7 +13,7 @@ mod tests;
 use crate::syntax::{
     ast::{
         node::{ArrayDecl, Node, Spread},
-        Const, Punctuator,
+        Punctuator,
     },
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
@@ -68,7 +68,7 @@ where
         loop {
             // TODO: Support all features.
             while cursor.next_if(Punctuator::Comma, interner)?.is_some() {
-                elements.push(Node::Const(Const::Undefined));
+                elements.push(Node::Empty);
             }
 
             if cursor

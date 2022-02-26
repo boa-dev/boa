@@ -933,6 +933,11 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::PopOnReturnAdd);
 
                 for element in array.as_ref() {
+                    if let Node::Empty = element {
+                        self.emit_opcode(Opcode::PushElisionToArray);
+                        continue;
+                    }
+
                     self.compile_expr(element, true)?;
                     if let Node::Spread(_) = element {
                         self.emit_opcode(Opcode::InitIterator);

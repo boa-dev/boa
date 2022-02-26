@@ -318,6 +318,7 @@ impl CodeBlock {
             | Opcode::RestParameterInit
             | Opcode::RestParameterPop
             | Opcode::PushValueToArray
+            | Opcode::PushElisionToArray
             | Opcode::PushIteratorToArray
             | Opcode::PushNewArray
             | Opcode::PopOnReturnAdd
