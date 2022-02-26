@@ -1543,8 +1543,12 @@ fn get_relative_end() {
 fn array_length_is_not_enumerable() {
     let mut context = Context::default();
 
-    let array = Array::new_array(&mut context);
-    let desc = array.get_property("length").unwrap();
+    let array =
+        Array::array_create(0, None, &mut context).expect("could not create an empty array");
+    let desc = array
+        .__get_own_property__(&"length".into(), &mut context)
+        .expect("accessing length property on array should not throw")
+        .expect("there should always be a length property on arrays");
     assert!(!desc.expect_enumerable());
 }
 

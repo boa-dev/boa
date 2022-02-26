@@ -17,7 +17,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
 
@@ -108,33 +108,46 @@ impl Error {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if !this.is_object() {
+        // 1. Let O be the this value.
+        let o = if let Some(o) = this.as_object() {
+            o
+        // 2. If Type(O) is not Object, throw a TypeError exception.
+        } else {
             return context.throw_type_error("'this' is not an Object");
-        }
-        let name = this.get_field("name", context)?;
-        let name_to_string;
+        };
+
+        // 3. Let name be ? Get(O, "name").
+        let name = o.get("name", context)?;
+
+        // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
         let name = if name.is_undefined() {
-            "Error"
+            JsString::new("Error")
         } else {
-            name_to_string = name.to_string(context)?;
-            name_to_string.as_str()
+            name.to_string(context)?
         };
 
-        let message = this.get_field("message", context)?;
-        let message_to_string;
-        let message = if message.is_undefined() {
-            ""
+        // 5. Let msg be ? Get(O, "message").
+        let msg = o.get("message", context)?;
+
+        // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
+        let msg = if msg.is_undefined() {
+            JsString::empty()
         } else {
-            message_to_string = message.to_string(context)?;
-            message_to_string.as_str()
+            msg.to_string(context)?
         };
 
+        // 7. If name is the empty String, return msg.
         if name.is_empty() {
-            Ok(message.into())
-        } else if message.is_empty() {
-            Ok(name.into())
-        } else {
-            Ok(format!("{name}: {message}").into())
+            return Ok(msg.into());
         }
+
+        // 8. If msg is the empty String, return name.
+        if msg.is_empty() {
+            return Ok(name.into());
+        }
+
+        // 9. Return the string-concatenation of name, the code unit 0x003A (COLON),
+        // the code unit 0x0020 (SPACE), and msg.
+        Ok(format!("{name}: {msg}").into())
     }
 }

@@ -2065,6 +2065,9 @@ pub(crate) fn get_substitution(
                         result.push_str("$<");
                     } else {
                         // a. Assert: Type(namedCaptures) is Object.
+                        let named_captures = named_captures
+                            .as_object()
+                            .expect("should be an object according to spec");
 
                         // b. Scan until the next > U+003E (GREATER-THAN SIGN).
                         let mut group_name = StdString::new();
@@ -2089,7 +2092,7 @@ pub(crate) fn get_substitution(
                         } else {
                             // i. Let groupName be the enclosed substring.
                             // ii. Let capture be ? Get(namedCaptures, groupName).
-                            let capture = named_captures.get_field(group_name, context)?;
+                            let capture = named_captures.get(group_name, context)?;
 
                             // iii. If capture is undefined, replace the text through > with the empty String.
                             // iv. Otherwise, replace the text through > with ? ToString(capture).

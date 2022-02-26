@@ -449,12 +449,14 @@ impl JsObject {
         }
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
-        if !c.is_object() {
+        let c = if let Some(c) = c.as_object() {
+            c
+        } else {
             return context.throw_type_error("property 'constructor' is not an object");
-        }
+        };
 
         // 5. Let S be ? Get(C, @@species).
-        let s = c.get_field(WellKnownSymbols::species(), context)?;
+        let s = c.get(WellKnownSymbols::species(), context)?;
 
         // 6. If S is either undefined or null, return defaultConstructor.
         if s.is_null_or_undefined() {
