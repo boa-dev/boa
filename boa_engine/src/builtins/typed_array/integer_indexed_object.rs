@@ -9,7 +9,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-integer-indexed-exotic-objects
 
 use crate::{
-    builtins::typed_array::TypedArrayName,
+    builtins::typed_array::TypedArrayKind,
     object::{JsObject, ObjectData},
     Context,
 };
@@ -31,7 +31,7 @@ unsafe impl Trace for ContentType {
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct IntegerIndexed {
     viewed_array_buffer: Option<JsObject>,
-    typed_array_name: TypedArrayName,
+    typed_array_name: TypedArrayKind,
     byte_offset: usize,
     byte_length: usize,
     array_length: usize,
@@ -40,7 +40,7 @@ pub struct IntegerIndexed {
 impl IntegerIndexed {
     pub(crate) fn new(
         viewed_array_buffer: Option<JsObject>,
-        typed_array_name: TypedArrayName,
+        typed_array_name: TypedArrayKind,
         byte_offset: usize,
         byte_length: usize,
         array_length: usize,
@@ -115,7 +115,7 @@ impl IntegerIndexed {
     }
 
     /// Get the integer indexed object's typed array name.
-    pub(crate) fn typed_array_name(&self) -> TypedArrayName {
+    pub(crate) fn typed_array_name(&self) -> TypedArrayKind {
         self.typed_array_name
     }
 

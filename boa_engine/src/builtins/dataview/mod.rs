@@ -1,5 +1,5 @@
 use crate::{
-    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayName, BuiltIn, JsArgs},
+    builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -300,7 +300,7 @@ impl DataView {
         view: &JsValue,
         request_index: &JsValue,
         is_little_endian: &JsValue,
-        t: TypedArrayName,
+        t: TypedArrayKind,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
@@ -378,7 +378,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::BigInt64,
+            TypedArrayKind::BigInt64,
             context,
         )
     }
@@ -407,7 +407,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::BigUint64,
+            TypedArrayKind::BigUint64,
             context,
         )
     }
@@ -436,7 +436,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Float32,
+            TypedArrayKind::Float32,
             context,
         )
     }
@@ -465,7 +465,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Float64,
+            TypedArrayKind::Float64,
             context,
         )
     }
@@ -494,7 +494,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Int8,
+            TypedArrayKind::Int8,
             context,
         )
     }
@@ -523,7 +523,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Int16,
+            TypedArrayKind::Int16,
             context,
         )
     }
@@ -552,7 +552,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Int32,
+            TypedArrayKind::Int32,
             context,
         )
     }
@@ -581,7 +581,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Uint8,
+            TypedArrayKind::Uint8,
             context,
         )
     }
@@ -610,7 +610,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Uint16,
+            TypedArrayKind::Uint16,
             context,
         )
     }
@@ -639,7 +639,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Uint32,
+            TypedArrayKind::Uint32,
             context,
         )
     }
@@ -658,7 +658,7 @@ impl DataView {
         view: &JsValue,
         request_index: &JsValue,
         is_little_endian: &JsValue,
-        t: TypedArrayName,
+        t: TypedArrayKind,
         value: &JsValue,
         context: &mut Context,
     ) -> JsResult<JsValue> {
@@ -747,7 +747,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::BigInt64,
+            TypedArrayKind::BigInt64,
             value,
             context,
         )
@@ -778,7 +778,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::BigUint64,
+            TypedArrayKind::BigUint64,
             value,
             context,
         )
@@ -809,7 +809,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Float32,
+            TypedArrayKind::Float32,
             value,
             context,
         )
@@ -840,7 +840,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Float64,
+            TypedArrayKind::Float64,
             value,
             context,
         )
@@ -871,7 +871,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Int8,
+            TypedArrayKind::Int8,
             value,
             context,
         )
@@ -902,7 +902,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Int16,
+            TypedArrayKind::Int16,
             value,
             context,
         )
@@ -933,7 +933,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Int32,
+            TypedArrayKind::Int32,
             value,
             context,
         )
@@ -964,7 +964,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Uint8,
+            TypedArrayKind::Uint8,
             value,
             context,
         )
@@ -995,7 +995,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Uint16,
+            TypedArrayKind::Uint16,
             value,
             context,
         )
@@ -1026,7 +1026,7 @@ impl DataView {
             this,
             byte_offset,
             is_little_endian,
-            TypedArrayName::Uint32,
+            TypedArrayKind::Uint32,
             value,
             context,
         )
