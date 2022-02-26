@@ -50,7 +50,7 @@ pub struct Generator {
     #[unsafe_ignore_trace]
     pub(crate) state: GeneratorState,
 
-    // The `[[GeneratorContext]]` internal slot.
+    /// The `[[GeneratorContext]]` internal slot.
     pub(crate) context: Option<Gc<Cell<GeneratorContext>>>,
 }
 
