@@ -2228,6 +2228,7 @@
 <span id="2226">2226</span>
 <span id="2227">2227</span>
 <span id="2228">2228</span>
+<span id="2229">2229</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -3745,11 +3746,12 @@
                             <span class="kw">break</span>;
                         }
                     }
-                    <span class="macro">assert!</span>(
-                        <span class="ident">found</span>,
-                        <span class="string">&quot;Undefined label &#39;{}&#39;&quot;</span>,
-                        <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">label_name</span>)
-                    );
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">found</span> {
+                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
+                            <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
+                            <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">label_name</span>)
+                        ));
+                    }
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">jump_info</span>
                         .<span class="ident">last_mut</span>()
