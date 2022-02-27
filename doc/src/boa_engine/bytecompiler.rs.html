@@ -2223,6 +2223,11 @@
 <span id="2221">2221</span>
 <span id="2222">2222</span>
 <span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -3158,6 +3163,11 @@
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopOnReturnAdd</span>);
 
                 <span class="kw">for</span> <span class="ident">element</span> <span class="kw">in</span> <span class="ident">array</span>.<span class="ident">as_ref</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Empty</span> <span class="op">=</span> <span class="ident">element</span> {
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushElisionToArray</span>);
+                        <span class="kw">continue</span>;
+                    }
+
                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">element</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Spread</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">element</span> {
                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);

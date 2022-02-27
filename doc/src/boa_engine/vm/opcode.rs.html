@@ -1087,6 +1087,14 @@
 <span id="1085">1085</span>
 <span id="1086">1086</span>
 <span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -1233,6 +1241,13 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: array, value **=&gt;** array</span>
     <span class="ident">PushValueToArray</span>,
+
+    <span class="doccomment">/// Push an empty element/hole to an array.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: array **=&gt;** array</span>
+    <span class="ident">PushElisionToArray</span>,
 
     <span class="doccomment">/// Push all iterator values to an array.</span>
     <span class="doccomment">///</span>
@@ -2026,6 +2041,7 @@
             <span class="ident">Opcode::PushEmptyObject</span> =&gt; <span class="string">&quot;PushEmptyObject&quot;</span>,
             <span class="ident">Opcode::PushNewArray</span> =&gt; <span class="string">&quot;PushNewArray&quot;</span>,
             <span class="ident">Opcode::PushValueToArray</span> =&gt; <span class="string">&quot;PushValueToArray&quot;</span>,
+            <span class="ident">Opcode::PushElisionToArray</span> =&gt; <span class="string">&quot;PushElisionToArray&quot;</span>,
             <span class="ident">Opcode::PushIteratorToArray</span> =&gt; <span class="string">&quot;PushIteratorToArray&quot;</span>,
             <span class="ident">Opcode::Add</span> =&gt; <span class="string">&quot;Add&quot;</span>,
             <span class="ident">Opcode::Sub</span> =&gt; <span class="string">&quot;Sub&quot;</span>,

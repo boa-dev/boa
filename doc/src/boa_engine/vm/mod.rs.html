@@ -1570,6 +1570,17 @@
 <span id="1568">1568</span>
 <span id="1569">1569</span>
 <span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -1773,6 +1784,17 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;should have &#39;length&#39; property&quot;</span>);
                 <span class="ident">o</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">len</span>, <span class="ident">value</span>, <span class="self">self</span>)
                     .<span class="ident">expect</span>(<span class="string">&quot;should be able to create new data property&quot;</span>);
+                <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">array</span>);
+            }
+            <span class="ident">Opcode::PushElisionToArray</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">array</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;should always be an object&quot;</span>);
+
+                <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>
+                    .<span class="ident">length_of_array_like</span>(<span class="self">self</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;arrays should always have a &#39;length&#39; property&quot;</span>);
+
+                <span class="ident">o</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">len</span> <span class="op">+</span> <span class="number">1</span>, <span class="bool-val">true</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">array</span>);
             }
             <span class="ident">Opcode::PushIteratorToArray</span> =&gt; {

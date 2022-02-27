@@ -114,7 +114,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{<span class="ident">ArrayDecl</span>, <span class="ident">Node</span>, <span class="ident">Spread</span>},
-        <span class="ident">Const</span>, <span class="ident">Punctuator</span>,
+        <span class="ident">Punctuator</span>,
     },
     <span class="ident">parser</span>::{
         <span class="ident">expression::AssignmentExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
@@ -169,7 +169,7 @@
         <span class="kw">loop</span> {
             <span class="comment">// TODO: Support all features.</span>
             <span class="kw">while</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Comma</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
-                <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">Node::Const</span>(<span class="ident">Const::Undefined</span>));
+                <span class="ident">elements</span>.<span class="ident">push</span>(<span class="ident">Node::Empty</span>);
             }
 
             <span class="kw">if</span> <span class="ident">cursor</span>
