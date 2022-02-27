@@ -417,7 +417,7 @@ impl JsValue {
         if !target.is_object() {
             return context.throw_type_error(format!(
                 "right-hand side of 'instanceof' should be an object, got {}",
-                target.type_of().as_std_string_lossy()
+                target.type_of().to_std_string_escaped()
             ));
         }
 

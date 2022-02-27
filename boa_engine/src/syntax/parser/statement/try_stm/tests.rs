@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -240,7 +241,7 @@ fn check_catch_with_var_redeclaration() {
                 vec![DeclarationList::Var(
                     vec![Declaration::new_with_identifier(
                         interner.get_or_intern_static("e"),
-                        Some(Const::from(interner.get_or_intern_static("oh")).into()),
+                        Some(Const::from(interner.get_or_intern_static(utf16!("oh"))).into()),
                     )]
                     .into(),
                 )

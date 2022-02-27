@@ -77,7 +77,7 @@ impl Json {
             .cloned()
             .unwrap_or_default()
             .to_string(context)?
-            .as_std_string()
+            .to_std_string()
             .map_err(|e| context.construct_syntax_error(e.to_string()))?;
 
         // 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.

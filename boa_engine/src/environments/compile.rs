@@ -290,7 +290,10 @@ impl Context {
             .borrow_mut()
             .create_mutable_binding(name, function_scope)
         {
-            let name_str = JsString::from(self.interner().resolve_expect(name));
+            let name_str = self
+                .interner()
+                .resolve_expect(name)
+                .into_common::<JsString>();
             let desc = self
                 .realm
                 .global_property_map

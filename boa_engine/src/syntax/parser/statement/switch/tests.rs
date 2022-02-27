@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -110,7 +111,7 @@ fn check_switch_seperated_defaults() {
 
 /// Example of JS code <https://jsfiddle.net/zq6jx47h/4/>.
 #[test]
-fn check_seperated_switch() {
+fn check_separated_switch() {
     let s = r#"
         let a = 10;
 
@@ -194,7 +195,7 @@ fn check_seperated_switch() {
                 Some(vec![Call::new(
                     GetConstField::new(Identifier::new(console), log),
                     vec![Node::from(Const::from(
-                        interner.get_or_intern_static("Default"),
+                        interner.get_or_intern_static(utf16!("Default").as_slice()),
                     ))],
                 )
                 .into()]),

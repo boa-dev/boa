@@ -395,7 +395,7 @@ impl Date {
             Ok(dt) => dt.0,
             _ => match value.to_primitive(context, PreferredType::Default)? {
                 JsValue::String(ref str) => str
-                    .as_std_string()
+                    .to_std_string()
                     .ok()
                     .and_then(|s| chrono::DateTime::parse_from_rfc3339(s.as_str()).ok())
                     .map(|dt| dt.naive_utc()),
@@ -1855,7 +1855,7 @@ impl Date {
         let date = date.to_string(context)?;
 
         Ok(JsValue::new(
-            date.as_std_string()
+            date.to_std_string()
                 .ok()
                 .and_then(|s| DateTime::parse_from_rfc3339(s.as_str()).ok())
                 .map_or(f64::NAN, |v| v.naive_utc().timestamp_millis() as f64),

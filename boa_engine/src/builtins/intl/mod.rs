@@ -281,7 +281,7 @@ fn unicode_extension_components(extension: &str) -> UniExtRecord {
 
         // b. If e = -1, let len be size - k; else let len be e - k.
         let len = match e {
-            Some(pos) => pos - k,
+            Some(pos) => pos,
             None => size - k,
         };
 
@@ -468,7 +468,7 @@ fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult
             // v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.
             let mut tag = k_value
                 .to_string(context)?
-                .as_std_string()
+                .to_std_string()
                 .ok()
                 .and_then(|tag| tag.parse().ok())
                 .ok_or_else(|| {
@@ -670,7 +670,7 @@ fn resolve_locale(
             let options_val_str = options_value
                 .to_string(context)
                 .unwrap_or_else(|_| "".into())
-                .as_std_string_lossy();
+                .to_std_string_escaped();
             if key_locale_data.iter().any(|s| s == &options_val_str) {
                 // 1. If SameValue(optionsValue, value) is false, then
                 if !options_value.eq(&value) {
@@ -752,7 +752,7 @@ pub(crate) fn get_option(
     value = match r#type {
         GetOptionType::Boolean => JsValue::Boolean(value.to_boolean()),
         GetOptionType::String => {
-            let string_value = value.to_string(context)?.as_std_string_lossy();
+            let string_value = value.to_string(context)?.to_std_string_escaped();
             if !values.is_empty() && !values.contains(&string_value.as_str()) {
                 return context.throw_range_error("GetOption: values array does not contain value");
             }

@@ -23,10 +23,9 @@ use crate::{
             function::{FormalParameters, FunctionStatementList},
         },
     },
-    Context,
+    Context, JsString,
 };
 use boa_interner::{Interner, Sym};
-use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
@@ -269,7 +268,14 @@ impl Script {
                 match tok.kind() {
                     // Set the strict mode
                     TokenKind::StringLiteral(string)
-                        if context.interner_mut().resolve_expect(*string) == "use strict" =>
+                        if context.interner_mut().resolve_expect(*string).join(
+                            |s| s == "use strict",
+                            |g| {
+                                String::from_utf16(g)
+                                    .map(|s| s == "use strict")
+                                    .unwrap_or_default()
+                            },
+                        ) =>
                     {
                         cursor.set_strict_mode(true);
                         strict = true;
@@ -317,7 +323,7 @@ impl Script {
                             .realm
                             .global_property_map
                             .string_property_map()
-                            .get(name_str.encode_utf16().collect_vec().as_slice());
+                            .get(&name_str.into_common::<JsString>());
                         let non_configurable_binding_exists = match desc {
                             Some(desc) => !matches!(desc.configurable(), Some(true)),
                             None => false,

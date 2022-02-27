@@ -103,7 +103,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
             // which type of Object it represents for special printing
             match v.borrow().kind() {
                 ObjectKind::String(ref string) => {
-                    format!("String {{ \"{}\" }}", string.as_std_string_lossy())
+                    format!("String {{ \"{}\" }}", string.to_std_string_escaped())
                 }
                 ObjectKind::Boolean(boolean) => format!("Boolean {{ {boolean} }}"),
                 ObjectKind::Number(rational) => {
@@ -285,9 +285,9 @@ impl Display for ValueDisplay<'_> {
             JsValue::Undefined => write!(f, "undefined"),
             JsValue::Boolean(v) => write!(f, "{v}"),
             JsValue::Symbol(ref symbol) => {
-                write!(f, "{}", symbol.descriptive_string().as_std_string_lossy())
+                write!(f, "{}", symbol.descriptive_string().to_std_string_escaped())
             }
-            JsValue::String(ref v) => write!(f, "\"{}\"", v.as_std_string_lossy()),
+            JsValue::String(ref v) => write!(f, "\"{}\"", v.to_std_string_escaped()),
             JsValue::Rational(v) => format_rational(*v, f),
             JsValue::Object(_) => {
                 write!(f, "{}", log_string_from(self.value, self.internals, true))

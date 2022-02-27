@@ -134,6 +134,8 @@ dependencies = [
 name = "boa_interner"
 version = "0.16.0"
 dependencies = [
+ "byte-slice-cast",
+ "const-utf16",
  "phf",
  "rustc-hash",
  "serde",
@@ -190,6 +192,12 @@ name = "bumpalo"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1ad822118d20d2c234f427000d5acc36eabe1e29a348c89b63dd60b13f28e5d"
+
+[[package]]
+name = "byte-slice-cast"
+version = "1.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87c5fdd0166095e1d463fc6cc01aa8ce547ad77a4e84d42eb6762b084e28067e"
 
 [[package]]
 name = "byteorder"

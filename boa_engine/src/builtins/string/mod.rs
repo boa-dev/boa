@@ -630,7 +630,7 @@ impl String {
             // 4. If n < 0 or n is +∞, throw a RangeError exception.
             _ => context.throw_range_error(
                 "repeat count must be a positive finite number \
-                        that doesn't overflow the maximum string length",
+                        that doesn't overflow the maximum string length (2^32 - 1)",
             ),
         }
     }

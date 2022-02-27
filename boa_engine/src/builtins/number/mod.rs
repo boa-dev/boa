@@ -885,7 +885,7 @@ impl Number {
     ) -> JsResult<JsValue> {
         if let Some(val) = args.get(0) {
             // TODO: parse float with optimal utf16 algorithm
-            let input_string = val.to_string(context)?.as_std_string_lossy();
+            let input_string = val.to_string(context)?.to_std_string_escaped();
             let s = input_string.trim_start_matches(is_trimmable_whitespace);
             let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
 

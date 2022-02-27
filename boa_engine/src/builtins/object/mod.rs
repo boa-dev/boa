@@ -607,7 +607,7 @@ impl Object {
             val => {
                 return ctx.throw_type_error(format!(
                     "expected an object or null, got {}",
-                    val.type_of().as_std_string_lossy()
+                    val.type_of().to_std_string_escaped()
                 ))
             }
         };

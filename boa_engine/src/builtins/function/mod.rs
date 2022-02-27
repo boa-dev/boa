@@ -542,7 +542,7 @@ impl BuiltInFunctionObject {
             let body_arg = body_arg.to_string(context)?;
 
             // TODO: make parser generic to u32 iterators
-            let body = match Parser::new(String::from_utf16_lossy(&body_arg).as_bytes())
+            let body = match Parser::new(body_arg.to_std_string_escaped().as_bytes())
                 .parse_function_body(context.interner_mut(), generator, r#async)
             {
                 Ok(statement_list) => statement_list,

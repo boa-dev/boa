@@ -1,5 +1,5 @@
 //! Object node.
-
+use crate::string::ToStringEscaped;
 use crate::syntax::ast::{
     node::{
         declaration::block_to_string, join_nodes, AsyncFunctionExpr, AsyncGeneratorExpr,
@@ -420,7 +420,9 @@ impl PropertyName {
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            PropertyName::Literal(key) => interner.resolve_expect(*key).to_owned(),
+            PropertyName::Literal(key) => interner
+                .resolve_expect(*key)
+                .join(String::from, ToStringEscaped::to_string_escaped),
             PropertyName::Computed(key) => key.to_interned_string(interner),
         }
     }

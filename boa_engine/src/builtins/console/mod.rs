@@ -60,11 +60,11 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
 
     match data.len() {
         0 => Ok(String::new()),
-        1 => Ok(target.as_std_string_lossy()),
+        1 => Ok(target.to_std_string_escaped()),
         _ => {
             let mut formatted = String::new();
             let mut arg_index = 1;
-            let target = target.as_std_string_lossy();
+            let target = target.to_std_string_escaped();
             let mut chars = target.chars();
             while let Some(c) = chars.next() {
                 if c == '%' {
@@ -98,7 +98,7 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                                 .cloned()
                                 .unwrap_or_default()
                                 .to_string(context)?
-                                .as_std_string_lossy();
+                                .to_std_string_escaped();
                             formatted.push_str(&arg);
                             arg_index += 1;
                         }
@@ -118,7 +118,7 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
             for rest in data.iter().skip(arg_index) {
                 formatted.push_str(&format!(
                     " {}",
-                    rest.to_string(context)?.as_std_string_lossy()
+                    rest.to_string(context)?.to_std_string_escaped()
                 ));
             }
 
@@ -305,7 +305,7 @@ impl Console {
                 context
                     .interner()
                     .resolve_expect(frame.code.name)
-                    .to_owned(),
+                    .to_string(),
             );
         }
 
@@ -370,7 +370,7 @@ impl Console {
             None => "default".into(),
         };
 
-        let msg = format!("count {}:", label.as_std_string_lossy());
+        let msg = format!("count {}:", label.to_std_string_escaped());
         let c = context.console_mut().count_map.entry(label).or_insert(0);
         *c += 1;
 
@@ -401,7 +401,7 @@ impl Console {
         context.console_mut().count_map.remove(&label);
 
         logger(
-            LogMessage::Warn(format!("countReset {}", label.as_std_string_lossy())),
+            LogMessage::Warn(format!("countReset {}", label.to_std_string_escaped())),
             context.console(),
         );
 
@@ -436,7 +436,7 @@ impl Console {
             logger(
                 LogMessage::Warn(format!(
                     "Timer '{}' already exist",
-                    label.as_std_string_lossy()
+                    label.to_std_string_escaped()
                 )),
                 context.console(),
             );
@@ -470,7 +470,7 @@ impl Console {
 
         if let Some(t) = context.console().timer_map.get(&label) {
             let time = Self::system_time_in_ms();
-            let mut concat = format!("{}: {} ms", label.as_std_string_lossy(), time - t);
+            let mut concat = format!("{}: {} ms", label.to_std_string_escaped(), time - t);
             for msg in args.iter().skip(1) {
                 concat = concat + " " + &msg.display().to_string();
             }
@@ -479,7 +479,7 @@ impl Console {
             logger(
                 LogMessage::Warn(format!(
                     "Timer '{}' doesn't exist",
-                    label.as_std_string_lossy()
+                    label.to_std_string_escaped()
                 )),
                 context.console(),
             );
@@ -513,7 +513,7 @@ impl Console {
             logger(
                 LogMessage::Info(format!(
                     "{}: {} ms - timer removed",
-                    label.as_std_string_lossy(),
+                    label.to_std_string_escaped(),
                     time - t
                 )),
                 context.console(),
@@ -522,7 +522,7 @@ impl Console {
             logger(
                 LogMessage::Warn(format!(
                     "Timer '{}' doesn't exist",
-                    label.as_std_string_lossy()
+                    label.to_std_string_escaped()
                 )),
                 context.console(),
             );

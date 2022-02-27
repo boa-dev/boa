@@ -79,7 +79,7 @@ fn main() -> Result<(), JsValue> {
             // We can also mutate the moved data inside the closure.
             captures.greeting = js_string!(&captures.greeting, utf16!(" Hello!"));
 
-            println!("{}", message.as_std_string_lossy());
+            println!("{}", message.to_std_string_escaped());
             println!();
 
             // We convert `message` into `JsValue` to be able to return it.

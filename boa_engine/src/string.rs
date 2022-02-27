@@ -910,19 +910,12 @@ impl JsString {
 
     /// Decode a `JsString` into a [`String`], replacing invalid data with
     /// its escaped representation in 4 digit hexadecimal.
-    pub fn as_std_string_lossy(&self) -> String {
-        let mut result = String::new();
-        for code_point in self.to_code_points() {
-            match code_point {
-                CodePoint::Unicode(c) => result.push(c),
-                CodePoint::UnpairedSurrogate(surr) => result.push_str(&format!("\\u{surr:04X}")),
-            }
-        }
-        result
+    pub fn to_std_string_escaped(&self) -> String {
+        self.to_string_escaped()
     }
 
     /// Decode a `JsString` into a [`String`], returning [`Err`] if it contains any invalid data.
-    pub fn as_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
+    pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
         String::from_utf16(self)
     }
 
@@ -1021,7 +1014,7 @@ impl JsString {
     pub(crate) fn to_number(&self) -> f64 {
         // 1. Let text be ! StringToCodePoints(str).
         // 2. Let literal be ParseText(text, StringNumericLiteral).
-        let string = if let Ok(string) = self.as_std_string() {
+        let string = if let Ok(string) = self.to_std_string() {
             string
         } else {
             // 3. If literal is a List of errors, return NaN.
@@ -1088,7 +1081,7 @@ impl JsString {
         // 4. Let mv be the MV of literal.
         // 5. Assert: mv is an integer.
         // 6. Return ℤ(mv).
-        JsBigInt::from_string(self.as_std_string().ok().as_ref()?)
+        JsBigInt::from_string(self.to_std_string().ok().as_ref()?)
     }
 }
 
@@ -1325,6 +1318,20 @@ impl Utf16Trim for [u16] {
     }
 }
 
+pub(crate) trait ToStringEscaped {
+    fn to_string_escaped(&self) -> String;
+}
+
+impl ToStringEscaped for [u16] {
+    fn to_string_escaped(&self) -> String {
+        char::decode_utf16(self.iter().copied())
+            .map(|r| match r {
+                Ok(c) => String::from(c),
+                Err(e) => format!("\\u{:04X}", e.unpaired_surrogate()),
+            })
+            .collect()
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::{InnerKind, JsString};

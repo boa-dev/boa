@@ -2,11 +2,13 @@
 #![allow(clippy::indexing_slicing)]
 
 use boa_interner::Sym;
+use itertools::Itertools;
 
 // use super::regex::RegExpFlags;
 use super::token::Numeric;
 use super::*;
 use super::{Error, Position};
+use crate::string::utf16;
 use crate::syntax::ast::Keyword;
 use crate::syntax::lexer::template::TemplateString;
 use std::str;
@@ -137,8 +139,8 @@ fn check_string() {
     let mut lexer = Lexer::new(s.as_bytes());
     let mut interner = Interner::default();
 
-    let a_sym = interner.get_or_intern_static("aaa");
-    let b_sym = interner.get_or_intern_static("bbb");
+    let a_sym = interner.get_or_intern_static(utf16!("aaa").as_slice());
+    let b_sym = interner.get_or_intern_static(utf16!("bbb").as_slice());
     let expected = [
         TokenKind::string_literal(a_sym),
         TokenKind::string_literal(b_sym),
@@ -153,7 +155,7 @@ fn check_template_literal_simple() {
     let mut lexer = Lexer::new(s.as_bytes());
     let mut interner = Interner::default();
 
-    let sym = interner.get_or_intern_static("I'm a template literal");
+    let sym = interner.get_or_intern_static(utf16!("I'm a template literal").as_slice());
 
     assert_eq!(
         lexer.next(&mut interner).unwrap().unwrap().kind(),
@@ -297,7 +299,7 @@ fn check_variable_definition_tokens() {
     let mut interner = Interner::default();
 
     let a_sym = interner.get_or_intern_static("a");
-    let hello_sym = interner.get_or_intern_static("hello");
+    let hello_sym = interner.get_or_intern_static(utf16!("hello").as_slice());
     let expected = [
         TokenKind::Keyword((Keyword::Let, false)),
         TokenKind::identifier(a_sym),
@@ -940,7 +942,7 @@ fn string_unicode() {
     let mut lexer = Lexer::new(s.as_bytes());
     let mut interner = Interner::default();
 
-    let sym = interner.get_or_intern_static("中文");
+    let sym = interner.get_or_intern_static(utf16!("中文").as_slice());
     let expected = [
         TokenKind::StringLiteral(sym),
         TokenKind::Punctuator(Punctuator::Semicolon),
@@ -954,7 +956,7 @@ fn string_unicode_escape_with_braces() {
     let mut lexer = Lexer::new(&br#"'{\u{20ac}\u{a0}\u{a0}}'"#[..]);
     let mut interner = Interner::default();
 
-    let sym = interner.get_or_intern_static("{\u{20ac}\u{a0}\u{a0}}");
+    let sym = interner.get_or_intern_static(utf16!("{\u{20ac}\u{a0}\u{a0}}").as_slice());
     let expected = [TokenKind::StringLiteral(sym)];
 
     expect_tokens(&mut lexer, &expected, &mut interner);
@@ -989,7 +991,7 @@ fn string_unicode_escape_with_braces_2() {
     let mut lexer = Lexer::new(s.as_bytes());
     let mut interner = Interner::default();
 
-    let sym = interner.get_or_intern_static("\u{20ac}\u{a0}\u{a0}");
+    let sym = interner.get_or_intern_static(utf16!("\u{20ac}\u{a0}\u{a0}").as_slice());
     let expected = [TokenKind::StringLiteral(sym)];
 
     expect_tokens(&mut lexer, &expected, &mut interner);
@@ -1002,7 +1004,7 @@ fn string_with_single_escape() {
     let mut lexer = Lexer::new(s.as_bytes());
     let mut interner = Interner::default();
 
-    let sym = interner.get_or_intern_static("Б");
+    let sym = interner.get_or_intern_static(utf16!("Б").as_slice());
     let expected = [TokenKind::StringLiteral(sym)];
 
     expect_tokens(&mut lexer, &expected, &mut interner);
@@ -1024,7 +1026,7 @@ fn string_legacy_octal_escape() {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
-        let sym = interner.get_or_intern(expected);
+        let sym = interner.get_or_intern(expected.encode_utf16().collect_vec().as_slice());
         let expected_tokens = [TokenKind::StringLiteral(sym)];
 
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);
@@ -1054,7 +1056,7 @@ fn string_zero_escape() {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
-        let sym = interner.get_or_intern(expected);
+        let sym = interner.get_or_intern(expected.encode_utf16().collect_vec().as_slice());
         let expected_tokens = [TokenKind::StringLiteral(sym)];
 
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);
@@ -1069,7 +1071,7 @@ fn string_non_octal_decimal_escape() {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
-        let sym = interner.get_or_intern(expected);
+        let sym = interner.get_or_intern(expected.encode_utf16().collect_vec().as_slice());
         let expected_tokens = [TokenKind::StringLiteral(sym)];
 
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);
@@ -1098,7 +1100,7 @@ fn string_line_continuation() {
     let mut lexer = Lexer::new(s.as_bytes());
     let mut interner = Interner::default();
 
-    let sym = interner.get_or_intern_static("hello world");
+    let sym = interner.get_or_intern_static(utf16!("hello world").as_slice());
     let expected_tokens = [TokenKind::StringLiteral(sym)];
 
     expect_tokens(&mut lexer, &expected_tokens, &mut interner);

@@ -13,7 +13,7 @@ fn main() {
         Ok(res) => {
             println!(
                 "{}",
-                res.to_string(&mut context).unwrap().as_std_string_lossy()
+                res.to_string(&mut context).unwrap().to_std_string_escaped()
             );
         }
         Err(e) => {

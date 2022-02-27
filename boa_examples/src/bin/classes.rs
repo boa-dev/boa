@@ -37,7 +37,7 @@ impl Person {
                 // and print a message to stdout.
                 println!(
                     "Hello my name is {}, I'm {} years old",
-                    person.name.as_std_string_lossy(),
+                    person.name.to_std_string_escaped(),
                     person.age // Here we can access the native rust fields of the struct.
                 );
                 return Ok(JsValue::undefined());

@@ -416,7 +416,7 @@ impl Array {
             _ => {
                 return context.throw_type_error(format!(
                     "{} is not a function",
-                    mapfn.type_of().as_std_string_lossy()
+                    mapfn.type_of().to_std_string_escaped()
                 ))
             }
         };

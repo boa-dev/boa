@@ -966,7 +966,7 @@ fn char_at() {
     assert_eq!(forward(&mut context, "'abc'.charAt(9)"), "\"\"");
     assert_eq!(forward(&mut context, "'abc'.charAt()"), "\"a\"");
     assert_eq!(forward(&mut context, "'abc'.charAt(null)"), "\"a\"");
-    assert_eq!(forward(&mut context, "'\\uDBFF'.charAt(0)"), "\"\u{FFFD}\"");
+    assert_eq!(forward(&mut context, "'\\uDBFF'.charAt(0)"), r#""\uDBFF""#);
 }
 
 #[test]

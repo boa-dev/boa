@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{ast::Const, parser::tests::check_parser};
 use boa_interner::{Interner, Sym};
 
@@ -14,7 +15,7 @@ fn check_string() {
     let mut interner = Interner::default();
     check_parser(
         "\"hello\"",
-        vec![Const::from(interner.get_or_intern_static("hello")).into()],
+        vec![Const::from(interner.get_or_intern_static(utf16!("hello"))).into()],
         interner,
     );
 }

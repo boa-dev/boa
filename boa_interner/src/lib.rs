@@ -78,13 +78,131 @@ mod sym;
 #[cfg(test)]
 mod tests;
 
+use byte_slice_cast::AsByteSlice;
 use fixed_string::FixedString;
 pub use sym::*;
 
-use std::fmt::{Debug, Display};
-
 use interned_str::InternedStr;
 use rustc_hash::FxHashMap;
+
+/// The types of encodings [`Interner`] can store.
+#[derive(Debug, Clone, Copy)]
+enum Encoding {
+    Utf8,
+    Utf16,
+}
+
+/// An enumeration of all slice types [`Interner`] can
+/// internally store.
+///
+/// This struct allows us to return either `UTF-8` or `UTF-16` str
+/// references, which are the two encodings [`Interner`] can store.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum JStrRef<'a> {
+    Utf8(&'a str),
+    Utf16(&'a [u16]),
+}
+
+impl<'a> JStrRef<'a> {
+    /// Joins the result of both possible strings into a common
+    /// type, calling `f` if `self` is a [`str`], or
+    /// calling `g` if `self` is a [`\[u16\]`].
+    pub fn join<F, G, T>(self, f: F, g: G) -> T
+    where
+        F: FnOnce(&'a str) -> T,
+        G: FnOnce(&'a [u16]) -> T,
+    {
+        match self {
+            JStrRef::Utf8(s) => f(s),
+            JStrRef::Utf16(js) => g(js),
+        }
+    }
+
+    /// Same as [`join`][`JStrRef::join`], but where you can pass an
+    /// additional context.
+    ///
+    /// Useful when you have a `&mut Context` context that cannot
+    /// be borrowed by both closures at the same time.
+    pub fn join_with_context<C, F, G, T>(self, ctx: C, f: F, g: G) -> T
+    where
+        F: FnOnce(C, &'a str) -> T,
+        G: FnOnce(C, &'a [u16]) -> T,
+    {
+        match self {
+            JStrRef::Utf8(s) => f(ctx, s),
+            JStrRef::Utf16(js) => g(ctx, js),
+        }
+    }
+
+    /// Converts both string types into a common type `C`.
+    #[allow(clippy::trait_duplication_in_bounds)]
+    pub fn into_common<C>(self) -> C
+    where
+        C: From<&'a str> + From<&'a [u16]>,
+    {
+        self.join(Into::into, Into::into)
+    }
+
+    /// Gets a byte slice to the inner data of both strings.
+    fn as_byte_slice(&self) -> &[u8] {
+        self.join(str::as_bytes, AsByteSlice::as_byte_slice)
+    }
+
+    /// Gets the length in bytes of both strings.
+    fn byte_len(&self) -> usize {
+        self.as_byte_slice().len()
+    }
+
+    /// Gets the length in elements ([`u8`] for [`str`] and [`u16`] for [`\[u16\]`])
+    /// of both possible strings.
+    fn slice_len(&self) -> usize {
+        self.join(str::len, <[_]>::len)
+    }
+
+    /// Gets the encoding of both strings
+    fn encoding(&self) -> Encoding {
+        match self {
+            JStrRef::Utf8(_) => Encoding::Utf8,
+            JStrRef::Utf16(_) => Encoding::Utf16,
+        }
+    }
+}
+
+impl<'a> From<&'a str> for JStrRef<'a> {
+    fn from(s: &'a str) -> Self {
+        JStrRef::Utf8(s)
+    }
+}
+
+impl<'a> From<&'a [u16]> for JStrRef<'a> {
+    fn from(s: &'a [u16]) -> Self {
+        JStrRef::Utf16(s)
+    }
+}
+
+impl<'a, const N: usize> From<&'a [u16; N]> for JStrRef<'a> {
+    fn from(s: &'a [u16; N]) -> Self {
+        JStrRef::Utf16(s)
+    }
+}
+
+impl<'a> std::fmt::Display for JStrRef<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.join_with_context(
+            f,
+            |f, s| s.fmt(f),
+            |f, js| {
+                char::decode_utf16(js.iter().copied())
+                    .map(|r| match r {
+                        Ok(c) => String::from(c),
+                        Err(e) => format!("\\u{:04X}", e.unpaired_surrogate()),
+                    })
+                    .collect::<String>()
+                    .fmt(f)
+            },
+        )
+    }
+}
 
 /// The string interner for Boa.
 #[derive(Debug, Default)]
@@ -140,12 +258,12 @@ impl Interner {
     /// Returns the symbol for the given string if any.
     ///
     /// Can be used to query if a string has already been interned without interning.
-    pub fn get<T>(&self, string: T) -> Option<Sym>
+    pub fn get<'a, T>(&self, string: T) -> Option<Sym>
     where
-        T: AsRef<str>,
+        T: Into<JStrRef<'a>>,
     {
-        let string = string.as_ref();
-        Self::get_common(string).or_else(|| self.symbols.get(string).copied())
+        let string = string.into();
+        Self::get_common(string).or_else(|| self.symbols.get(&string.into()).copied())
     }
 
     /// Interns the given string.
@@ -155,11 +273,11 @@ impl Interner {
     /// # Panics
     ///
     /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
-    pub fn get_or_intern<T>(&mut self, string: T) -> Sym
+    pub fn get_or_intern<'a, T>(&mut self, string: T) -> Sym
     where
-        T: AsRef<str>,
+        T: Into<JStrRef<'a>>,
     {
-        let string = string.as_ref();
+        let string = string.into();
         if let Some(sym) = self.get(string) {
             return sym;
         }
@@ -193,7 +311,7 @@ impl Interner {
         let interned_str = unsafe {
             self.head.push(string).unwrap_or_else(|| {
                 let new_cap =
-                    (usize::max(self.head.capacity(), string.len()) + 1).next_power_of_two();
+                    (usize::max(self.head.capacity(), string.byte_len()) + 1).next_power_of_two();
                 let new_head = FixedString::new(new_cap);
                 let old_head = std::mem::replace(&mut self.head, new_head);
 
@@ -229,25 +347,33 @@ impl Interner {
     ///
     /// If the interner already interns the maximum number of strings possible
     /// by the chosen symbol type.
-    pub fn get_or_intern_static(&mut self, string: &'static str) -> Sym {
+    pub fn get_or_intern_static<T>(&mut self, string: T) -> Sym
+    where
+        T: Into<JStrRef<'static>>,
+    {
+        let string = string.into();
         self.get(string).unwrap_or_else(|| {
             // SAFETY: a static `str` is always alive, so its pointer
             // should therefore always be valid.
-            unsafe { self.generate_symbol(InternedStr::new(string.into())) }
+            unsafe { self.generate_symbol(string.into()) }
         })
     }
 
     /// Returns the string for the given symbol if any.
     #[inline]
-    pub fn resolve(&self, symbol: Sym) -> Option<&str> {
+    pub fn resolve(&self, symbol: Sym) -> Option<JStrRef<'_>> {
         let index = symbol.get() - 1;
 
-        COMMON_STRINGS.index(index).copied().or_else(|| {
-            self.spans.get(index - COMMON_STRINGS.len()).map(|ptr|
+        COMMON_STRINGS
+            .index(index)
+            .copied()
+            .map(JStrRef::from)
+            .or_else(|| {
+                self.spans.get(index - COMMON_STRINGS.len()).map(|ptr|
                 // SAFETY: We always ensure the stored `InternedStr`s always
                 // reference memory inside `head` and `full`
-                unsafe {ptr.as_str()})
-        })
+                unsafe {ptr.as_jstr_ref()})
+            })
     }
 
     /// Returns the string for the given symbol.
@@ -256,20 +382,41 @@ impl Interner {
     ///
     /// If the interner cannot resolve the given symbol.
     #[inline]
-    pub fn resolve_expect(&self, symbol: Sym) -> &str {
+    pub fn resolve_expect(&self, symbol: Sym) -> JStrRef<'_> {
         self.resolve(symbol).expect("string disappeared")
     }
 
     /// Gets the symbol of the common string if one of them
-    fn get_common(string: &str) -> Option<Sym> {
-        COMMON_STRINGS.get_index(string).map(|idx|
-            // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
-            // In this case, we don't need to worry about overflows
-            // because we have a static assertion in place checking that
-            // `COMMON_STRINGS.len() < usize::MAX`.
-            unsafe {
-                Sym::new_unchecked(idx + 1)
-            })
+    fn get_common<'a, T>(string: T) -> Option<Sym>
+    where
+        T: Into<JStrRef<'a>>,
+    {
+        match string.into() {
+            JStrRef::Utf8(s) => COMMON_STRINGS.get_index(s).map(|idx|
+                // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
+                // In this case, we don't need to worry about overflows
+                // because we have a static assertion in place checking that
+                // `COMMON_STRINGS.len() < usize::MAX`.
+                unsafe {
+                    Sym::new_unchecked(idx + 1)
+                }),
+            JStrRef::Utf16(s) => {
+                // TODO: Fix this slow path. The alternative would be to maintain two separate
+                // `COMMON_STRINGS` arrays for each encoding... however,
+                // we can hold the implementation for now, since the UTF-16 path
+                // is already very slow (`eval/Function constructor`).
+                String::from_utf16(s).ok().and_then(|s| {
+                    COMMON_STRINGS.get_index(&s).map(|idx|
+                        // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
+                        // In this case, we don't need to worry about overflows
+                        // because we have a static assertion in place checking that
+                        // `COMMON_STRINGS.len() < usize::MAX`.
+                        unsafe {
+                            Sym::new_unchecked(idx + 1)
+                        })
+                })
+            }
+        }
     }
 
     /// Generates a new symbol for the provided [`str`] pointer.
@@ -295,7 +442,7 @@ pub trait ToInternedString {
 
 impl<T> ToInternedString for T
 where
-    T: Display,
+    T: std::fmt::Display,
 {
     fn to_interned_string(&self, _interner: &Interner) -> String {
         self.to_string()

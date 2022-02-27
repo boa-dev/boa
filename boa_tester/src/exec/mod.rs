@@ -395,7 +395,7 @@ fn test262_print(
 ) -> JsResult<JsValue> {
     if let Some(message) = args.get_or_undefined(0).as_string() {
         *captures.result.borrow_mut() =
-            Some(message.as_std_string_lossy() == "Test262:AsyncTestComplete");
+            Some(message.to_std_string_escaped() == "Test262:AsyncTestComplete");
     } else {
         *captures.result.borrow_mut() = Some(false);
     }

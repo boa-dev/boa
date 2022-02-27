@@ -498,7 +498,7 @@ pub enum PropertyKey {
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        if let Some(index) = string.as_std_string().ok().and_then(|s| s.parse().ok()) {
+        if let Some(index) = string.to_std_string().ok().and_then(|s| s.parse().ok()) {
             Self::Index(index)
         } else {
             Self::String(string)
@@ -550,8 +550,8 @@ impl fmt::Display for PropertyKey {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::String(ref string) => string.as_std_string_lossy().fmt(f),
-            Self::Symbol(ref symbol) => symbol.descriptive_string().as_std_string_lossy().fmt(f),
+            Self::String(ref string) => string.to_std_string_escaped().fmt(f),
+            Self::Symbol(ref symbol) => symbol.descriptive_string().to_std_string_escaped().fmt(f),
             Self::Index(index) => index.fmt(f),
         }
     }

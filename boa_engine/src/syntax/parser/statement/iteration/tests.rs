@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -55,7 +56,10 @@ fn check_do_while_semicolon_insertion() {
                         Identifier::new(interner.get_or_intern_static("console")),
                         interner.get_or_intern_static("log"),
                     ),
-                    vec![Const::from(interner.get_or_intern_static("hello")).into()],
+                    vec![
+                        Const::from(interner.get_or_intern_static(utf16!("hello").as_slice()))
+                            .into(),
+                    ],
                 )
                 .into()]),
                 BinOp::new(
@@ -73,7 +77,7 @@ fn check_do_while_semicolon_insertion() {
                     Identifier::new(interner.get_or_intern_static("console")),
                     interner.get_or_intern_static("log"),
                 ),
-                vec![Const::from(interner.get_or_intern_static("end")).into()],
+                vec![Const::from(interner.get_or_intern_static(utf16!("end").as_slice())).into()],
             )
             .into(),
         ],
@@ -104,7 +108,10 @@ fn check_do_while_semicolon_insertion_no_space() {
                         Identifier::new(interner.get_or_intern_static("console")),
                         interner.get_or_intern_static("log"),
                     ),
-                    vec![Const::from(interner.get_or_intern_static("hello")).into()],
+                    vec![
+                        Const::from(interner.get_or_intern_static(utf16!("hello").as_slice()))
+                            .into(),
+                    ],
                 )
                 .into()]),
                 BinOp::new(
@@ -122,7 +129,7 @@ fn check_do_while_semicolon_insertion_no_space() {
                     Identifier::new(interner.get_or_intern_static("console")),
                     interner.get_or_intern_static("log"),
                 ),
-                vec![Const::from(interner.get_or_intern_static("end")).into()],
+                vec![Const::from(interner.get_or_intern_static(utf16!("end").as_slice())).into()],
             )
             .into(),
         ],

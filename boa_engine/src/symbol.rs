@@ -30,7 +30,7 @@ use std::{
 ///# use boa_engine::symbol::WellKnownSymbols;
 ///
 /// let iterator = WellKnownSymbols::iterator();
-/// assert_eq!(iterator.description().unwrap().as_std_string_lossy(), "Symbol.iterator");
+/// assert_eq!(iterator.description().unwrap().to_std_string_escaped(), "Symbol.iterator");
 /// ```
 /// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.
 #[derive(Debug, Clone)]
@@ -313,7 +313,7 @@ impl std::fmt::Display for JsSymbol {
     #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match &self.inner.description {
-            Some(desc) => write!(f, "Symbol({})", desc.as_std_string_lossy()),
+            Some(desc) => write!(f, "Symbol({})", desc.to_std_string_escaped()),
             None => write!(f, "Symbol()"),
         }
     }
