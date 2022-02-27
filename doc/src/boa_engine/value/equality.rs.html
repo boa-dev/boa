@@ -182,6 +182,24 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsBigInt</span>, <span class="ident">JsObject</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>, <span class="ident">PreferredType</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::Number</span>, <span class="ident">Context</span>};
 
@@ -267,16 +285,34 @@
 
             <span class="comment">// 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result</span>
             <span class="comment">// of the comparison x == ? ToPrimitive(y).</span>
-            (<span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>), <span class="kw">_</span>) =&gt; {
+            (
+                <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>),
+                <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>),
+            ) =&gt; {
                 <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Default</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="ident">other</span>, <span class="ident">context</span>);
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">primitive</span>
+                    .<span class="ident">equals</span>(<span class="ident">other</span>, <span class="ident">context</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;should not fail according to spec&quot;</span>));
             }
 
             <span class="comment">// 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result</span>
             <span class="comment">// of the comparison ? ToPrimitive(x) == y.</span>
-            (<span class="kw">_</span>, <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>)) =&gt; {
+            (
+                <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>)
+                <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>),
+                <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>),
+            ) =&gt; {
                 <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Default</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="ident">primitive</span>.<span class="ident">equals</span>(<span class="self">self</span>, <span class="ident">context</span>);
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">primitive</span>
+                    .<span class="ident">equals</span>(<span class="self">self</span>, <span class="ident">context</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;should not fail according to spec&quot;</span>));
             }
 
             <span class="comment">// 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then</span>
