@@ -431,7 +431,6 @@ fn for_loop_iteration_variable_does_not_leak() {
 }
 
 #[test]
-#[should_panic]
 fn test_invalid_break_target() {
     let src = r#"
         while (false) {
@@ -439,7 +438,7 @@ fn test_invalid_break_target() {
         }
         "#;
 
-    let _ = &exec(src);
+    assert!(Context::default().eval(src).is_err());
 }
 
 #[test]
