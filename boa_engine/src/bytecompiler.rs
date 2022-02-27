@@ -1510,11 +1510,12 @@ impl<'b> ByteCompiler<'b> {
                             break;
                         }
                     }
-                    assert!(
-                        found,
-                        "Undefined label '{}'",
-                        self.interner().resolve_expect(label_name)
-                    );
+                    if !found {
+                        return self.context.throw_syntax_error(format!(
+                            "Cannot use the undeclared label '{}",
+                            self.interner().resolve_expect(label_name)
+                        ));
+                    }
                 } else {
                     self.jump_info
                         .last_mut()
