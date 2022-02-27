@@ -415,6 +415,8 @@
 <span id="413">413</span>
 <span id="414">414</span>
 <span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for number literals (123, 787) used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -426,6 +428,8 @@
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
+<span class="kw">use</span> <span class="ident">num_traits::Zero</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io::Read</span>, <span class="ident">str</span>};
 
 <span class="doccomment">/// Number literal lexing.</span>
@@ -668,7 +672,7 @@
 
                         <span class="comment">// DecimalBigIntegerLiteral &#39;0n&#39;</span>
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
-                            <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::BigInt</span>(<span class="number">0</span>.<span class="ident">into</span>())),
+                            <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">Numeric::BigInt</span>(<span class="ident">BigInt::zero</span>().<span class="ident">into</span>())),
                             <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
                         ));
                     }
@@ -797,7 +801,7 @@
         <span class="kw">let</span> <span class="ident">num</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span> {
             <span class="ident">NumericKind::BigInt</span>(<span class="ident">base</span>) =&gt; {
                 <span class="ident">Numeric::BigInt</span>(
-                    <span class="ident">JsBigInt::from_string_radix</span>(<span class="ident">num_str</span>, <span class="ident">base</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not convert to BigInt&quot;</span>)
+                    <span class="ident">BigInt::parse_bytes</span>(<span class="ident">num_str</span>.<span class="ident">as_bytes</span>(), <span class="ident">base</span>).<span class="ident">expect</span>(<span class="string">&quot;Could not convert to BigInt&quot;</span>).<span class="ident">into</span>()
                     )
             }
             <span class="ident">NumericKind::Rational</span> <span class="comment">/* base: 10 */</span> =&gt; {

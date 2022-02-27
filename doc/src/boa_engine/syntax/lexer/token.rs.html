@@ -275,7 +275,6 @@
 <span id="273">273</span>
 <span id="274">274</span>
 <span id="275">275</span>
-<span id="276">276</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -283,13 +282,12 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-tokens</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">syntax::ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
-    <span class="ident">syntax::lexer::template::TemplateString</span>,
-    <span class="ident">JsBigInt</span>,
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
+    <span class="ident">ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
+    <span class="ident">lexer::template::TemplateString</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
-
+<span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -349,7 +347,7 @@
     <span class="ident">Integer</span>(<span class="ident">i32</span>),
 
     <span class="comment">// A BigInt</span>
-    <span class="ident">BigInt</span>(<span class="ident">JsBigInt</span>),
+    <span class="ident">BigInt</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
@@ -366,10 +364,10 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">BigInt</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Numeric</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">JsBigInt</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">n</span>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="ident">BigInt</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">Box::new</span>(<span class="ident">n</span>))
     }
 }
 
