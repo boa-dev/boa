@@ -203,6 +203,17 @@ impl Context {
                     .expect("should be able to create new data property");
                 self.vm.push(array);
             }
+            Opcode::PushElisionToArray => {
+                let array = self.vm.pop();
+                let o = array.as_object().expect("should always be an object");
+
+                let len = o
+                    .length_of_array_like(self)
+                    .expect("arrays should always have a 'length' property");
+
+                o.set("length", len + 1, true, self)?;
+                self.vm.push(array);
+            }
             Opcode::PushIteratorToArray => {
                 let next_function = self.vm.pop();
                 let iterator = self.vm.pop();

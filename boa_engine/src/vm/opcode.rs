@@ -145,6 +145,13 @@ pub enum Opcode {
     /// Stack: array, value **=>** array
     PushValueToArray,
 
+    /// Push an empty element/hole to an array.
+    ///
+    /// Operands:
+    ///
+    /// Stack: array **=>** array
+    PushElisionToArray,
+
     /// Push all iterator values to an array.
     ///
     /// Operands:
@@ -937,6 +944,7 @@ impl Opcode {
             Opcode::PushEmptyObject => "PushEmptyObject",
             Opcode::PushNewArray => "PushNewArray",
             Opcode::PushValueToArray => "PushValueToArray",
+            Opcode::PushElisionToArray => "PushElisionToArray",
             Opcode::PushIteratorToArray => "PushIteratorToArray",
             Opcode::Add => "Add",
             Opcode::Sub => "Sub",

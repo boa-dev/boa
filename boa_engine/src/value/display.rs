@@ -134,16 +134,18 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                             .map(|i| {
                                 // Introduce recursive call to stringify any objects
                                 // which are part of the Array
-                                log_string_from(
-                                    v.borrow()
-                                        .properties()
-                                        .get(&i.into())
-                                        // FIXME: handle accessor descriptors
-                                        .and_then(PropertyDescriptor::value)
-                                        .unwrap_or(&JsValue::Undefined),
-                                    print_internals,
-                                    false,
-                                )
+
+                                // FIXME: handle accessor descriptors
+                                if let Some(value) = v
+                                    .borrow()
+                                    .properties()
+                                    .get(&i.into())
+                                    .and_then(PropertyDescriptor::value)
+                                {
+                                    log_string_from(value, print_internals, false)
+                                } else {
+                                    String::from("<empty>")
+                                }
                             })
                             .collect::<Vec<String>>()
                             .join(", ");
