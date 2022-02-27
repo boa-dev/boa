@@ -944,8 +944,12 @@ impl JsString {
         let len = self.len();
 
         // 5. If searchValue is the empty String and fromIndex ≤ len, return fromIndex.
-        if search_value.is_empty() && from_index <= len {
-            return Some(from_index);
+        if search_value.is_empty() {
+            return if from_index <= len {
+                Some(from_index)
+            } else {
+                None
+            };
         }
 
         // 6. Let searchLen be the length of searchValue.

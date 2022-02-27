@@ -169,9 +169,9 @@ impl JsObject {
         };
 
         // 5. For each name in methodNames in List order, do
-        for name in &method_names {
+        for name in method_names {
             // a. Let method be ? Get(O, name).
-            let method = self.get(*name, context)?;
+            let method = self.get(name, context)?;
 
             // b. If IsCallable(method) is true, then
             if let Some(method) = method.as_callable() {
