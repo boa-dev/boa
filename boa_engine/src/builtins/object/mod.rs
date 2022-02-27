@@ -198,28 +198,34 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = args.get_or_undefined(0).to_object(context)?;
+        // 1. Let obj be ? ToObject(O).
+        let obj = args.get_or_undefined(0).to_object(context)?;
+
+        // 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().
+        let own_keys = obj.__own_property_keys__(context)?;
+
+        // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
         let descriptors = context.construct_object();
 
-        for key in object.borrow().properties().keys() {
-            let descriptor = {
-                let desc = object.__get_own_property__(&key, context)?;
-                Self::from_property_descriptor(desc, context)
-            };
+        // 4. For each element key of ownKeys, do
+        for key in own_keys {
+            // a. Let desc be ? obj.[[GetOwnProperty]](key).
+            let desc = obj.__get_own_property__(&key, context)?;
 
+            // b. Let descriptor be FromPropertyDescriptor(desc).
+            let descriptor = Self::from_property_descriptor(desc, context);
+
+            // c. If descriptor is not undefined,
+            //    perform ! CreateDataPropertyOrThrow(descriptors, key, descriptor).
             if !descriptor.is_undefined() {
-                descriptors.borrow_mut().insert(
-                    key,
-                    PropertyDescriptor::builder()
-                        .value(descriptor)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(true),
-                );
+                descriptors
+                    .create_data_property_or_throw(key, descriptor, context)
+                    .expect("should not fail according to spec");
             }
         }
 
-        Ok(JsValue::Object(descriptors))
+        // 5. Return descriptors.
+        Ok(descriptors.into())
     }
 
     /// The abstract operation `FromPropertyDescriptor`.
