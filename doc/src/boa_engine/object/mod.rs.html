@@ -1848,6 +1848,72 @@
 <span id="1846">1846</span>
 <span id="1847">1847</span>
 <span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -1878,6 +1944,7 @@
         <span class="ident">function</span>::{
             <span class="ident">arguments::ParameterMap</span>, <span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>,
         },
+        <span class="ident">generator::Generator</span>,
         <span class="ident">map::map_iterator::MapIterator</span>,
         <span class="ident">map::ordered_map::OrderedMap</span>,
         <span class="ident">object::for_in_iterator::ForInIterator</span>,
@@ -1980,6 +2047,8 @@
     <span class="ident">ForInIterator</span>(<span class="ident">ForInIterator</span>),
     <span class="ident">Function</span>(<span class="ident">Function</span>),
     <span class="ident">BoundFunction</span>(<span class="ident">BoundFunction</span>),
+    <span class="ident">Generator</span>(<span class="ident">Generator</span>),
+    <span class="ident">GeneratorFunction</span>(<span class="ident">Function</span>),
     <span class="ident">Set</span>(<span class="ident">OrderedSet</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>),
     <span class="ident">SetIterator</span>(<span class="ident">SetIterator</span>),
     <span class="ident">String</span>(<span class="ident">JsString</span>),
@@ -2106,6 +2175,26 @@
             } <span class="kw">else</span> {
                 <span class="kw-2">&amp;</span><span class="ident">BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS</span>
             },
+        }
+    }
+
+    <span class="doccomment">/// Create the `Generator` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator</span>(<span class="ident">generator</span>: <span class="ident">Generator</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::Generator</span>(<span class="ident">generator</span>),
+            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+        }
+    }
+
+    <span class="doccomment">/// Create the `GeneratorFunction` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator_function</span>(<span class="ident">function</span>: <span class="ident">Function</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">internal_methods</span>: <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_constructor</span>() {
+                <span class="kw-2">&amp;</span><span class="ident">CONSTRUCTOR_INTERNAL_METHODS</span>
+            } <span class="kw">else</span> {
+                <span class="kw-2">&amp;</span><span class="ident">FUNCTION_INTERNAL_METHODS</span>
+            },
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::GeneratorFunction</span>(<span class="ident">function</span>),
         }
     }
 
@@ -2241,6 +2330,8 @@
             <span class="ident"><span class="self">Self</span>::ForInIterator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;ForInIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Function</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Function&quot;</span>,
             <span class="ident"><span class="self">Self</span>::BoundFunction</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;BoundFunction&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Generator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Generator&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GeneratorFunction</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;GeneratorFunction&quot;</span>,
             <span class="ident"><span class="self">Self</span>::RegExp</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;RegExp&quot;</span>,
             <span class="ident"><span class="self">Self</span>::RegExpStringIterator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;RegExpStringIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Map</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Map&quot;</span>,
@@ -2568,7 +2659,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_function</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Function</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData</span> {
-                <span class="ident">kind</span>: <span class="ident">ObjectKind::Function</span>(<span class="kw-2">ref</span> <span class="ident">function</span>),
+                <span class="ident">kind</span>:
+                    <span class="ident">ObjectKind::Function</span>(<span class="kw-2">ref</span> <span class="ident">function</span>) <span class="op">|</span> <span class="ident">ObjectKind::GeneratorFunction</span>(<span class="kw-2">ref</span> <span class="ident">function</span>),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(<span class="ident">function</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
@@ -2579,7 +2671,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_function_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Function</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
             <span class="ident">ObjectData</span> {
-                <span class="ident">kind</span>: <span class="ident">ObjectKind::Function</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">function</span>),
+                <span class="ident">kind</span>:
+                    <span class="ident">ObjectKind::Function</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">function</span>)
+                    <span class="op">|</span> <span class="ident">ObjectKind::GeneratorFunction</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">function</span>),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(<span class="ident">function</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
@@ -2593,6 +2687,42 @@
                 <span class="ident">kind</span>: <span class="ident">ObjectKind::BoundFunction</span>(<span class="kw-2">ref</span> <span class="ident">bound_function</span>),
                 ..
             } =&gt; <span class="prelude-val">Some</span>(<span class="ident">bound_function</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Checks if it&#39;s a `Generator` object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Generator</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Returns a reference to the generator data on the object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Generator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Generator</span>(<span class="kw-2">ref</span> <span class="ident">generator</span>),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">generator</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Returns a mutable reference to the generator data on the object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_generator_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Generator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Generator</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">generator</span>),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">generator</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -3192,7 +3322,9 @@
             } =&gt; {
                 <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>;
             }
-            <span class="ident">Function::VmOrdinary</span> { .. } =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;function must be native or closure&quot;</span>),
+            <span class="ident">Function::Ordinary</span> { .. } <span class="op">|</span> <span class="ident">Function::Generator</span> { .. } =&gt; {
+                <span class="macro">unreachable!</span>(<span class="string">&quot;function must be native or closure&quot;</span>);
+            }
         }
         <span class="self">self</span>
     }

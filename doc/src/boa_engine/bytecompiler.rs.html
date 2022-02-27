@@ -2172,6 +2172,57 @@
 <span id="2170">2170</span>
 <span id="2171">2171</span>
 <span id="2172">2172</span>
+<span id="2173">2173</span>
+<span id="2174">2174</span>
+<span id="2175">2175</span>
+<span id="2176">2176</span>
+<span id="2177">2177</span>
+<span id="2178">2178</span>
+<span id="2179">2179</span>
+<span id="2180">2180</span>
+<span id="2181">2181</span>
+<span id="2182">2182</span>
+<span id="2183">2183</span>
+<span id="2184">2184</span>
+<span id="2185">2185</span>
+<span id="2186">2186</span>
+<span id="2187">2187</span>
+<span id="2188">2188</span>
+<span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
+<span id="2194">2194</span>
+<span id="2195">2195</span>
+<span id="2196">2196</span>
+<span id="2197">2197</span>
+<span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -2179,9 +2230,9 @@
         <span class="ident">node</span>::{
             <span class="ident">declaration</span>::{<span class="ident">BindingPatternTypeArray</span>, <span class="ident">BindingPatternTypeObject</span>, <span class="ident">DeclarationPattern</span>},
             <span class="ident">iteration::IterableLoopInitializer</span>,
+            <span class="ident">object</span>::{<span class="ident">MethodDefinition</span>, <span class="ident">PropertyDefinition</span>, <span class="ident">PropertyName</span>},
             <span class="ident">template::TemplateElement</span>,
-            <span class="ident">Declaration</span>, <span class="ident">GetConstField</span>, <span class="ident">GetField</span>, <span class="ident">MethodDefinitionKind</span>, <span class="ident">PropertyDefinition</span>,
-            <span class="ident">PropertyName</span>, <span class="ident">StatementList</span>,
+            <span class="ident">Declaration</span>, <span class="ident">GetConstField</span>, <span class="ident">GetField</span>, <span class="ident">StatementList</span>,
         },
         <span class="ident">op</span>::{<span class="ident">AssignOp</span>, <span class="ident">BinOp</span>, <span class="ident">BitOp</span>, <span class="ident">CompOp</span>, <span class="ident">LogOp</span>, <span class="ident">NumOp</span>, <span class="ident">UnaryOp</span>},
         <span class="ident">Const</span>, <span class="ident">Node</span>,
@@ -2980,53 +3031,65 @@
                                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
                             }
                         },
-                        <span class="ident">PropertyDefinition::MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">func</span>) =&gt; {
+                        <span class="ident">PropertyDefinition::MethodDefinition</span>(<span class="ident">kind</span>, <span class="ident">name</span>) =&gt; {
                             <span class="kw">match</span> <span class="ident">kind</span> {
-                                <span class="ident">MethodDefinitionKind::Get</span> =&gt; <span class="kw">match</span> <span class="ident">name</span> {
+                                <span class="ident">MethodDefinition::Get</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                     <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
-                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyGetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                     }
                                     <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::SetPropertyGetterByValue</span>);
                                     }
                                 },
-                                <span class="ident">MethodDefinitionKind::Set</span> =&gt; <span class="kw">match</span> <span class="ident">name</span> {
+                                <span class="ident">MethodDefinition::Set</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                     <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
-                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertySetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                     }
                                     <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::SetPropertySetterByValue</span>);
                                     }
                                 },
-                                <span class="ident">MethodDefinitionKind::Ordinary</span> =&gt; <span class="kw">match</span> <span class="ident">name</span> {
+                                <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                     <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
-                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                     }
                                     <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="kw-2">&amp;</span><span class="ident">func</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
                                     }
                                 },
-                                <span class="ident">MethodDefinitionKind::Generator</span>
-                                <span class="op">|</span> <span class="ident">MethodDefinitionKind::Async</span>
-                                <span class="op">|</span> <span class="ident">MethodDefinitionKind::AsyncGenerator</span> =&gt; {
-                                    <span class="comment">// TODO: Implement generators</span>
+                                <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
+                                    <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                                    }
+                                    <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
+                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
+                                    }
+                                },
+                                <span class="comment">// TODO: Implement async</span>
+                                <span class="comment">// TODO: Implement async generators</span>
+                                <span class="ident">MethodDefinition::Async</span>(<span class="kw">_</span>)
+                                <span class="op">|</span> <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; {
                                     <span class="comment">// TODO: Implement async</span>
-                                    <span class="comment">// TODO: Implement async generators</span>
                                     <span class="kw">match</span> <span class="ident">name</span> {
                                         <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
@@ -3139,15 +3202,33 @@
             }
             <span class="comment">// TODO: implement AsyncFunctionExpr</span>
             <span class="comment">// TODO: implement AwaitExpr</span>
-            <span class="comment">// TODO: implement GeneratorExpr</span>
             <span class="comment">// TODO: implement AsyncGeneratorExpr</span>
-            <span class="comment">// TODO: implement Yield</span>
-            <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::AwaitExpr</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::GeneratorExpr</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::AsyncGeneratorExpr</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::Yield</span>(<span class="kw">_</span>) =&gt; {
+            <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AwaitExpr</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncGeneratorExpr</span>(<span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
+            }
+            <span class="ident">Node::GeneratorExpr</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>,
+            <span class="ident">Node::Yield</span>(<span class="ident">r#yield</span>) =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">r#yield</span>.<span class="ident">expr</span>() {
+                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
+                }
+
+                <span class="kw">if</span> <span class="ident">r#yield</span>.<span class="ident">delegate</span>() {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
+                    <span class="kw">let</span> <span class="ident">start_address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
+                    <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::GeneratorNextDelegate</span>);
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Jump</span>, <span class="kw-2">&amp;</span>[<span class="ident">start_address</span>]);
+                    <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">start</span>);
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Yield</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GeneratorNext</span>);
+                }
+
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
+                }
             }
             <span class="ident">Node::TaggedTemplate</span>(<span class="ident">template</span>) =&gt; {
                 <span class="kw">match</span> <span class="ident">template</span>.<span class="ident">tag</span>() {
@@ -3825,9 +3906,9 @@
                 }
             }
             <span class="comment">// TODO: implement AsyncFunctionDecl</span>
-            <span class="comment">// TODO: implement GeneratorDecl</span>
+            <span class="ident">Node::GeneratorDecl</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
             <span class="comment">// TODO: implement AsyncGeneratorDecl</span>
-            <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::GeneratorDecl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncGeneratorDecl</span>(<span class="kw">_</span>) =&gt; {
+            <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncGeneratorDecl</span>(<span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
             }
             <span class="ident">Node::Empty</span> =&gt; {}
@@ -3844,35 +3925,56 @@
             <span class="ident">Arrow</span>,
         }
 
-        <span class="kw">let</span> (<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">function</span> {
+        <span class="kw">let</span> (<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>, <span class="ident">generator</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">function</span> {
             <span class="ident">Node::FunctionDecl</span>(<span class="ident">function</span>) =&gt; (
                 <span class="ident">FunctionKind::Declaration</span>,
                 <span class="prelude-val">Some</span>(<span class="ident">function</span>.<span class="ident">name</span>()),
                 <span class="ident">function</span>.<span class="ident">parameters</span>(),
                 <span class="ident">function</span>.<span class="ident">body</span>(),
+                <span class="bool-val">false</span>,
+            ),
+            <span class="ident">Node::GeneratorDecl</span>(<span class="ident">generator</span>) =&gt; (
+                <span class="ident">FunctionKind::Declaration</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">generator</span>.<span class="ident">name</span>()),
+                <span class="ident">generator</span>.<span class="ident">parameters</span>(),
+                <span class="ident">generator</span>.<span class="ident">body</span>(),
+                <span class="bool-val">true</span>,
             ),
             <span class="ident">Node::FunctionExpr</span>(<span class="ident">function</span>) =&gt; (
                 <span class="ident">FunctionKind::Expression</span>,
                 <span class="ident">function</span>.<span class="ident">name</span>(),
                 <span class="ident">function</span>.<span class="ident">parameters</span>(),
                 <span class="ident">function</span>.<span class="ident">body</span>(),
+                <span class="bool-val">false</span>,
+            ),
+            <span class="ident">Node::GeneratorExpr</span>(<span class="ident">generator</span>) =&gt; (
+                <span class="ident">FunctionKind::Expression</span>,
+                <span class="ident">generator</span>.<span class="ident">name</span>(),
+                <span class="ident">generator</span>.<span class="ident">parameters</span>(),
+                <span class="ident">generator</span>.<span class="ident">body</span>(),
+                <span class="bool-val">true</span>,
             ),
             <span class="ident">Node::ArrowFunctionDecl</span>(<span class="ident">function</span>) =&gt; (
                 <span class="ident">FunctionKind::Arrow</span>,
                 <span class="ident">function</span>.<span class="ident">name</span>(),
                 <span class="ident">function</span>.<span class="ident">params</span>(),
                 <span class="ident">function</span>.<span class="ident">body</span>(),
+                <span class="bool-val">false</span>,
             ),
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">strict</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">strict</span>;
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">CodeBlock::new</span>(<span class="ident">name</span>.<span class="ident">unwrap_or</span>(<span class="ident">Sym::EMPTY_STRING</span>), <span class="ident">length</span>, <span class="ident">strict</span>, <span class="bool-val">true</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">FunctionKind::Arrow</span> <span class="op">=</span> <span class="ident">kind</span> {
             <span class="ident">code</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="bool-val">false</span>;
             <span class="ident">code</span>.<span class="ident">this_mode</span> <span class="op">=</span> <span class="ident">ThisMode::Lexical</span>;
+        }
+
+        <span class="kw">if</span> <span class="ident">generator</span> {
+            <span class="ident">code</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="bool-val">false</span>;
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">ByteCompiler</span> {
@@ -3886,18 +3988,12 @@
 
         <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">true</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span> {
-            <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span>
-                <span class="ident">arguments_in_parameter_names</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parameter</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::ARGUMENTS</span>);
-        }
-
         <span class="comment">// An arguments object is added when all of the following conditions are met</span>
         <span class="comment">// - If not in an arrow function (10.2.11.16)</span>
         <span class="comment">// - If the parameter list does not contain `arguments` (10.2.11.17)</span>
         <span class="comment">// Note: This following just means, that we add an extra environment for the arguments.</span>
         <span class="comment">// - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)</span>
-        <span class="kw">if</span> <span class="op">!</span>(<span class="ident">kind</span> <span class="op">==</span> <span class="ident">FunctionKind::Arrow</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">arguments_in_parameter_names</span> {
+        <span class="kw">if</span> <span class="op">!</span>(<span class="ident">kind</span> <span class="op">==</span> <span class="ident">FunctionKind::Arrow</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">has_arguments</span>() {
             <span class="ident">compiler</span>
                 .<span class="ident">context</span>
                 .<span class="ident">create_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -3908,16 +4004,8 @@
             );
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_rest_parameter</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="bool-val">false</span>;
-
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span> {
-            <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="ident">has_parameter_expressions</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parameter</span>.<span class="ident">init</span>().<span class="ident">is_some</span>();
-            <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span>
-                <span class="ident">arguments_in_parameter_names</span> <span class="op">|</span><span class="op">|</span> <span class="ident">parameter</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::ARGUMENTS</span>);
-
+        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
             <span class="kw">if</span> <span class="ident">parameter</span>.<span class="ident">is_rest_param</span>() {
-                <span class="ident">has_rest_parameter</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RestParameterInit</span>);
             }
 
@@ -3944,17 +4032,23 @@
             }
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">has_rest_parameter</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">has_rest_parameter</span>() {
             <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RestParameterPop</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">env_label</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">has_parameter_expressions</span> {
+        <span class="kw">let</span> <span class="ident">env_label</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">parameters</span>.<span class="ident">has_expressions</span>() {
             <span class="ident">compiler</span>.<span class="ident">code_block</span>.<span class="ident">num_bindings</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">get_binding_number</span>();
             <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">true</span>);
             <span class="prelude-val">Some</span>(<span class="ident">compiler</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::PushFunctionEnvironment</span>))
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
         };
+
+        <span class="comment">// When a generator object is created from a generator function, the generator executes until here to init parameters.</span>
+        <span class="kw">if</span> <span class="ident">generator</span> {
+            <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
+            <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Yield</span>);
+        }
 
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">items</span>() {
             <span class="ident">compiler</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
@@ -3976,7 +4070,7 @@
                 .<span class="ident">num_bindings</span>();
         }
 
-        <span class="ident">compiler</span>.<span class="ident">code_block</span>.<span class="ident">params</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">to_owned</span>().<span class="ident">into_boxed_slice</span>();
+        <span class="ident">compiler</span>.<span class="ident">code_block</span>.<span class="ident">params</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">clone</span>();
 
         <span class="comment">// TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn&#39;t</span>
         <span class="ident">compiler</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushUndefined</span>, <span class="kw-2">&amp;</span>[]);
@@ -3987,7 +4081,11 @@
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">functions</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
         <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">functions</span>.<span class="ident">push</span>(<span class="ident">code</span>);
 
-        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetFunction</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+        <span class="kw">if</span> <span class="ident">generator</span> {
+            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetGenerator</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetFunction</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+        }
 
         <span class="kw">match</span> <span class="ident">kind</span> {
             <span class="ident">FunctionKind::Declaration</span> =&gt; {
@@ -4022,13 +4120,17 @@
         <span class="kw">match</span> <span class="ident">call</span>.<span class="ident">expr</span>() {
             <span class="ident">Node::GetConstField</span>(<span class="ident">field</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                }
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">field</span>.<span class="ident">field</span>());
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
             <span class="ident">Node::GetField</span>(<span class="ident">field</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                }
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>.<span class="ident">field</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Swap</span>, <span class="kw-2">&amp;</span>[]);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);

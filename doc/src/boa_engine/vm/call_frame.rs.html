@@ -103,21 +103,39 @@
 <span id="101">101</span>
 <span id="102">102</span>
 <span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module will provides everything needed to implement the `CallFrame`</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::CodeBlock</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::JsValue</span>;
-<span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CallFrame</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">prev</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">pc</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">this</span>: <span class="ident">JsValue</span>,
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">catch</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CatchAddresses</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">finally_return</span>: <span class="ident">FinallyReturn</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">finally_jump</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">pop_on_return</span>: <span class="ident">usize</span>,
@@ -128,10 +146,13 @@
 
     <span class="comment">// Tracks the number of environments in the current try-catch-finally block.</span>
     <span class="comment">// On abrupt returns this is used to decide how many environments need to be pop&#39;ed.</span>
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">try_env_stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TryStackEntry</span><span class="op">&gt;</span>,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">param_count</span>: <span class="ident">usize</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">arg_count</span>: <span class="ident">usize</span>,
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CallFrame</span> {
@@ -194,17 +215,28 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">num_loop_stack_entries</span>: <span class="ident">usize</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="doccomment">/// Tracks the address that should be jumped to when an error is caught.</span>
+<span class="doccomment">/// Additionally the address of a finally block is tracked, to allow for special handling if it exists.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">CatchAddresses</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">next</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">finally</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>,
 }
 
+<span class="doccomment">/// Indicates if a function should return or throw at the end of a finally block.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">FinallyReturn</span> {
     <span class="prelude-val">None</span>,
     <span class="prelude-val">Ok</span>,
     <span class="prelude-val">Err</span>,
+}
+
+<span class="doccomment">/// Indicates how a generator function that has been called/resumed should return.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">GeneratorResumeKind</span> {
+    <span class="ident">Normal</span>,
+    <span class="ident">Throw</span>,
+    <span class="ident">Return</span>,
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>

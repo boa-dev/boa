@@ -649,6 +649,14 @@
 <span id="647">647</span>
 <span id="648">648</span>
 <span id="649">649</span>
+<span id="650">650</span>
+<span id="651">651</span>
+<span id="652">652</span>
+<span id="653">653</span>
+<span id="654">654</span>
+<span id="655">655</span>
+<span id="656">656</span>
+<span id="657">657</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -826,7 +834,11 @@
         <span class="ident">constructor</span>: <span class="ident">bool</span>,
         <span class="ident">captures</span>: <span class="ident">Captures</span>,
     },
-    <span class="ident">VmOrdinary</span> {
+    <span class="ident">Ordinary</span> {
+        <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
+        <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
+    },
+    <span class="ident">Generator</span> {
         <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
         <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
     },
@@ -843,7 +855,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
-            <span class="ident"><span class="self">Self</span>::VmOrdinary</span> { <span class="ident">code</span>, .. } =&gt; <span class="ident">code</span>.<span class="ident">constructor</span>,
+            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">code</span>, .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Generator</span> { <span class="ident">code</span>, .. } =&gt; <span class="ident">code</span>.<span class="ident">constructor</span>,
         }
     }
 }
@@ -1105,11 +1117,15 @@
                 },
                 <span class="prelude-val">Some</span>(<span class="ident">name</span>),
             ) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;function {name}() {{\n  [native Code]\n}}&quot;</span>).<span class="ident">into</span>()),
-            (<span class="ident">Function::VmOrdinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_empty</span>() =&gt; {
+            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_empty</span>() =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>.<span class="ident">into</span>())
             }
-            (<span class="ident">Function::VmOrdinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;[Function: {name}]&quot;</span>).<span class="ident">into</span>()),
-            (<span class="ident">Function::VmOrdinary</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>.<span class="ident">into</span>()),
+            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;[Function: {name}]&quot;</span>).<span class="ident">into</span>()),
+            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>.<span class="ident">into</span>()),
+            (<span class="ident">Function::Generator</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;[Function*: {}]&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">into</span>())
+            }
+            (<span class="ident">Function::Generator</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;[Function* (anonymous)]&quot;</span>.<span class="ident">into</span>()),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;TODO&quot;</span>.<span class="ident">into</span>()),
         }
     }

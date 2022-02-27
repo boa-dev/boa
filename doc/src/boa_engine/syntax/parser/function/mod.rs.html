@@ -458,6 +458,7 @@
 <span id="456">456</span>
 <span id="457">457</span>
 <span id="458">458</span>
+<span id="459">459</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -471,7 +472,11 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">node::declaration::Declaration</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">ast</span>::{
+        <span class="ident">node</span>::{<span class="self">self</span>, <span class="ident">FormalParameterList</span>},
+        <span class="ident">node</span>::{<span class="ident">declaration::Declaration</span>, <span class="ident">FormalParameterListFlags</span>},
+        <span class="ident">Punctuator</span>,
+    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::Initializer</span>,
@@ -483,13 +488,6 @@
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
-
-<span class="doccomment">/// Intermediate type for a list of `FormalParameters` with some meta information.</span>
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">FormalParameterList</span> {
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="ident">parameters</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">node::FormalParameter</span>]<span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="ident">is_simple</span>: <span class="ident">bool</span>,
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="ident">has_duplicates</span>: <span class="ident">bool</span>,
-}
 
 <span class="doccomment">/// Formal parameters parsing.</span>
 <span class="doccomment">///</span>
@@ -533,17 +531,15 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;FormalParameters&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
 
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">FormalParameterListFlags::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_simple</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_duplicates</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>) {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FormalParameterList</span> {
-                <span class="ident">parameters</span>: <span class="ident">params</span>.<span class="ident">into_boxed_slice</span>(),
-                <span class="ident">is_simple</span>,
-                <span class="ident">has_duplicates</span>,
-            });
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">FormalParameterList::new</span>(
+                <span class="ident">params</span>.<span class="ident">into_boxed_slice</span>(),
+                <span class="ident">FormalParameterListFlags::IS_SIMPLE</span>,
+            ));
         }
         <span class="kw">let</span> <span class="ident">start_position</span> <span class="op">=</span> <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
 
@@ -555,6 +551,7 @@
             <span class="kw">let</span> <span class="ident">next_param</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Spread</span>) =&gt; {
                     <span class="ident">rest_param</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_REST_PARAMETER</span>;
                     <span class="ident">FunctionRestParameter::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                 }
@@ -569,15 +566,22 @@
                 )));
             }
 
+            <span class="kw">if</span> <span class="ident">next_param</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
+                <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_EXPRESSIONS</span>;
+            }
+            <span class="kw">if</span> <span class="ident">next_param</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::ARGUMENTS</span>) {
+                <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_ARGUMENTS</span>;
+            }
+
             <span class="kw">if</span> <span class="ident">next_param</span>.<span class="ident">is_rest_param</span>()
                 <span class="op">|</span><span class="op">|</span> <span class="ident">next_param</span>.<span class="ident">init</span>().<span class="ident">is_some</span>()
                 <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">next_param</span>.<span class="ident">is_identifier</span>()
             {
-                <span class="ident">is_simple</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                <span class="ident">flags</span>.<span class="ident">remove</span>(<span class="ident">FormalParameterListFlags::IS_SIMPLE</span>);
             }
             <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">next_param</span>.<span class="ident">names</span>() {
                 <span class="kw">if</span> <span class="ident">parameter_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">param_name</span>) {
-                    <span class="ident">has_duplicates</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="ident">flags</span> <span class="op">|</span><span class="op">=</span> <span class="ident">FormalParameterListFlags::HAS_DUPLICATES</span>;
                 }
                 <span class="ident">parameter_names</span>.<span class="ident">insert</span>(<span class="ident">Box::from</span>(<span class="ident">param_name</span>));
             }
@@ -606,18 +610,16 @@
 
         <span class="comment">// Early Error: It is a Syntax Error if IsSimpleParameterList of FormalParameterList is false</span>
         <span class="comment">// and BoundNames of FormalParameterList contains any duplicate elements.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">is_simple</span> <span class="op">&amp;&amp;</span> <span class="ident">has_duplicates</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::IS_SIMPLE</span>)
+            <span class="op">&amp;&amp;</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_DUPLICATES</span>)
+        {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                 <span class="string">&quot;Duplicate parameter name not allowed in this context&quot;</span>.<span class="ident">into</span>(),
                 <span class="ident">start_position</span>,
             )));
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">FormalParameterList</span> {
-            <span class="ident">parameters</span>: <span class="ident">params</span>.<span class="ident">into_boxed_slice</span>(),
-            <span class="ident">is_simple</span>,
-            <span class="ident">has_duplicates</span>,
-        })
+        <span class="prelude-val">Ok</span>(<span class="ident">FormalParameterList::new</span>(<span class="ident">params</span>.<span class="ident">into_boxed_slice</span>(), <span class="ident">flags</span>))
     }
 }
 

@@ -1050,6 +1050,22 @@
 <span id="1048">1048</span>
 <span id="1049">1049</span>
 <span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1063,7 +1079,7 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">realm::Realm</span>,
     <span class="ident">syntax</span>::{<span class="ident">ast::node::StatementList</span>, <span class="ident">parser::ParseError</span>, <span class="ident">Parser</span>},
-    <span class="ident">vm</span>::{<span class="ident">CallFrame</span>, <span class="ident">CodeBlock</span>, <span class="ident">FinallyReturn</span>, <span class="ident">Vm</span>},
+    <span class="ident">vm</span>::{<span class="ident">CallFrame</span>, <span class="ident">CodeBlock</span>, <span class="ident">FinallyReturn</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">Vm</span>},
     <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
@@ -1121,6 +1137,8 @@
     <span class="ident">object</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">proxy</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">function</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">generator</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">generator_function</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">array</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">bigint</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">number</span>: <span class="ident">StandardConstructor</span>,
@@ -1159,6 +1177,8 @@
             <span class="ident">object</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">proxy</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">function</span>: <span class="ident">StandardConstructor::default</span>(),
+            <span class="ident">generator</span>: <span class="ident">StandardConstructor::default</span>(),
+            <span class="ident">generator_function</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">array</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">bigint</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">number</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
@@ -1216,6 +1236,16 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">function_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">function</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">generator</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generator_function_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">generator_function</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1476,8 +1506,8 @@
             .<span class="ident">clone</span>();
         <span class="ident">context</span>.<span class="ident">typed_array_constructor</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="ident">typed_array_constructor_constructor</span>;
         <span class="ident">context</span>.<span class="ident">typed_array_constructor</span>.<span class="ident">prototype</span> <span class="op">=</span> <span class="ident">typed_array_constructor_prototype</span>;
-        <span class="ident">context</span>.<span class="ident">create_intrinsics</span>();
         <span class="ident">context</span>.<span class="ident">iterator_prototypes</span> <span class="op">=</span> <span class="ident">IteratorPrototypes::init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>);
+        <span class="ident">context</span>.<span class="ident">create_intrinsics</span>();
         <span class="ident">context</span>.<span class="ident">intrinsic_objects</span> <span class="op">=</span> <span class="ident">IntrinsicObjects::init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>);
         <span class="ident">context</span>
     }
@@ -2063,12 +2093,14 @@
             }],
             <span class="ident">param_count</span>: <span class="number">0</span>,
             <span class="ident">arg_count</span>: <span class="number">0</span>,
+            <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,
         });
 
         <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">set_global_binding_number</span>();
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>();
         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop_frame</span>();
-        <span class="ident">result</span>
+        <span class="kw">let</span> (<span class="ident">result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
     }
 
     <span class="doccomment">/// Return the cached iterator prototypes.</span>

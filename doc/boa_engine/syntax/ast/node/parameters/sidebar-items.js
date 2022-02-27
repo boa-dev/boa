@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["FormalParameter","“Formal parameter” is a fancy way of saying “function parameter”."],["FormalParameterList","`FormalParameterList` is a list of `FormalParameter`s that describes the parameters of a function."],["FormalParameterListFlags","Flags for a [`FormalParameterList`]."]]});

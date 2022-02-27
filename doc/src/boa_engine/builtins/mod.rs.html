@@ -189,6 +189,13 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
@@ -201,6 +208,8 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">date</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">generator</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">generator_function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">global_this</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">infinity</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intl</span>;
@@ -255,7 +264,9 @@
 };
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::array_buffer::ArrayBuffer</span>,
+    <span class="ident">builtins</span>::{
+        <span class="ident">array_buffer::ArrayBuffer</span>, <span class="ident">generator::Generator</span>, <span class="ident">generator_function::GeneratorFunction</span>,
+    },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
@@ -352,6 +363,9 @@
         <span class="ident">UriError</span>,
         <span class="ident">Reflect</span>
     };
+
+    <span class="ident">Generator::init</span>(<span class="ident">context</span>);
+    <span class="ident">GeneratorFunction::init</span>(<span class="ident">context</span>);
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
     <span class="ident">init_builtin</span>::<span class="op">&lt;</span><span class="ident">console::Console</span><span class="op">&gt;</span>(<span class="ident">context</span>);

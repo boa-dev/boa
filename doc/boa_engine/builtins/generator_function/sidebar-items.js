@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["GeneratorFunction","The internal representation on a `Generator` object."]]});

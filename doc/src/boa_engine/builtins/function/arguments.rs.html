@@ -299,7 +299,7 @@
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">symbol</span>::{<span class="self">self</span>, <span class="ident">WellKnownSymbols</span>},
-    <span class="ident">syntax::ast::node::FormalParameter</span>,
+    <span class="ident">syntax::ast::node::FormalParameterList</span>,
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
@@ -442,7 +442,7 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-createmappedargumentsobject&gt;</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_mapped_arguments_object</span>(
         <span class="ident">func</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">formals</span>: <span class="kw-2">&amp;</span>[<span class="ident">FormalParameter</span>],
+        <span class="ident">formals</span>: <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span>,
         <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">env</span>: <span class="kw-2">&amp;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">DeclarativeEnvironment</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
@@ -494,7 +494,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property_index</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">formal</span> <span class="kw">in</span> <span class="ident">formals</span> {
+        <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">formal</span> <span class="kw">in</span> <span class="ident">formals</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
             <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">formal</span>.<span class="ident">names</span>() {
                 <span class="kw">if</span> <span class="ident">property_index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span> {
                     <span class="kw">break</span> <span class="lifetime">&#39;outer</span>;
