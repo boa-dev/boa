@@ -5,13 +5,12 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
-use crate::{
-    syntax::ast::{Keyword, Punctuator, Span},
-    syntax::lexer::template::TemplateString,
-    JsBigInt,
+use crate::syntax::{
+    ast::{Keyword, Punctuator, Span},
+    lexer::template::TemplateString,
 };
 use boa_interner::{Interner, Sym};
-
+use num_bigint::BigInt;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
@@ -71,7 +70,7 @@ pub enum Numeric {
     Integer(i32),
 
     // A BigInt
-    BigInt(JsBigInt),
+    BigInt(Box<BigInt>),
 }
 
 impl From<f64> for Numeric {
@@ -88,10 +87,10 @@ impl From<i32> for Numeric {
     }
 }
 
-impl From<JsBigInt> for Numeric {
+impl From<BigInt> for Numeric {
     #[inline]
-    fn from(n: JsBigInt) -> Self {
-        Self::BigInt(n)
+    fn from(n: BigInt) -> Self {
+        Self::BigInt(Box::new(n))
     }
 }
 
