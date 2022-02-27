@@ -1512,7 +1512,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     if !found {
                         return self.context.throw_syntax_error(format!(
-                            "Cannot use the undeclared label '{}",
+                            "Cannot use the undeclared label '{}'",
                             self.interner().resolve_expect(label_name)
                         ));
                     }
