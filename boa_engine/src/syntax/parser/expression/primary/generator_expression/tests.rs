@@ -1,6 +1,8 @@
 use crate::syntax::{
     ast::{
-        node::{Declaration, DeclarationList, GeneratorExpr, StatementList, Yield},
+        node::{
+            Declaration, DeclarationList, FormalParameterList, GeneratorExpr, StatementList, Yield,
+        },
         Const,
     },
     parser::tests::check_parser,
@@ -21,7 +23,7 @@ fn check_generator_function_expression() {
                 Some(
                     GeneratorExpr::new::<_, _, StatementList>(
                         None,
-                        [],
+                        FormalParameterList::default(),
                         vec![Yield::new(Const::from(1), false).into()].into(),
                     )
                     .into(),
@@ -48,7 +50,7 @@ fn check_generator_function_delegate_yield_expression() {
                 Some(
                     GeneratorExpr::new::<_, _, StatementList>(
                         None,
-                        [],
+                        FormalParameterList::default(),
                         vec![Yield::new(Const::from(1), true).into()].into(),
                     )
                     .into(),

@@ -10,6 +10,8 @@ pub mod dataview;
 pub mod date;
 pub mod error;
 pub mod function;
+pub mod generator;
+pub mod generator_function;
 pub mod global_this;
 pub mod infinity;
 pub mod intl;
@@ -64,7 +66,9 @@ pub(crate) use self::{
 };
 
 use crate::{
-    builtins::array_buffer::ArrayBuffer,
+    builtins::{
+        array_buffer::ArrayBuffer, generator::Generator, generator_function::GeneratorFunction,
+    },
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
 };
@@ -161,6 +165,9 @@ pub fn init(context: &mut Context) {
         UriError,
         Reflect
     };
+
+    Generator::init(context);
+    GeneratorFunction::init(context);
 
     #[cfg(feature = "console")]
     init_builtin::<console::Console>(context);

@@ -1,5 +1,7 @@
 //! This module implements the `Node` structure, which composes the AST.
 
+mod parameters;
+
 pub mod array;
 pub mod await_expr;
 pub mod block;
@@ -39,6 +41,7 @@ pub use self::{
     new::New,
     object::Object,
     operator::{Assign, BinOp, UnaryOp},
+    parameters::{FormalParameter, FormalParameterList},
     r#yield::Yield,
     return_smt::Return,
     spread::Spread,
@@ -48,9 +51,12 @@ pub use self::{
     throw::Throw,
     try_node::{Catch, Finally, Try},
 };
+
+pub(crate) use self::parameters::FormalParameterListFlags;
+
 use super::Const;
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_gc::{Finalize, Trace};
+use boa_interner::{Interner, ToInternedString};
 use std::cmp::Ordering;
 
 #[cfg(feature = "deser")]
@@ -346,316 +352,6 @@ where
         buf.push_str(&e.to_interned_string(interner));
     }
     buf
-}
-
-/// "Formal parameter" is a fancy way of saying "function parameter".
-///
-/// In the declaration of a function, the parameters must be identifiers,
-/// not any value like numbers, strings, or objects.
-///```text
-///function foo(formalParameter1, formalParameter2) {
-///}
-///```
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
-pub struct FormalParameter {
-    declaration: Declaration,
-    is_rest_param: bool,
-}
-
-impl FormalParameter {
-    /// Creates a new formal parameter.
-    pub(in crate::syntax) fn new<D>(declaration: D, is_rest_param: bool) -> Self
-    where
-        D: Into<Declaration>,
-    {
-        Self {
-            declaration: declaration.into(),
-            is_rest_param,
-        }
-    }
-
-    /// Gets the name of the formal parameter.
-    pub fn names(&self) -> Vec<Sym> {
-        match &self.declaration {
-            Declaration::Identifier { ident, .. } => vec![ident.sym()],
-            Declaration::Pattern(pattern) => match pattern {
-                DeclarationPattern::Object(object_pattern) => object_pattern.idents(),
-
-                DeclarationPattern::Array(array_pattern) => array_pattern.idents(),
-            },
-        }
-    }
-
-    /// Get the declaration of the formal parameter
-    pub fn declaration(&self) -> &Declaration {
-        &self.declaration
-    }
-
-    /// Gets the initialization node of the formal parameter, if any.
-    pub fn init(&self) -> Option<&Node> {
-        self.declaration.init()
-    }
-
-    /// Gets wether the parameter is a rest parameter.
-    pub fn is_rest_param(&self) -> bool {
-        self.is_rest_param
-    }
-
-    pub fn is_identifier(&self) -> bool {
-        matches!(&self.declaration, Declaration::Identifier { .. })
-    }
-}
-
-impl ToInternedString for FormalParameter {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        let mut buf = if self.is_rest_param {
-            "...".to_owned()
-        } else {
-            String::new()
-        };
-        buf.push_str(&self.declaration.to_interned_string(interner));
-        buf
-    }
-}
-
-/// A JavaScript property is a characteristic of an object, often describing attributes associated with a data structure.
-///
-/// A property has a name (a string) and a value (primitive, method, or object reference).
-/// Note that when we say that "a property holds an object", that is shorthand for "a property holds an object reference".
-/// This distinction matters because the original referenced object remains unchanged when you change the property's value.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
-// TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
-pub enum PropertyDefinition {
-    /// Puts a variable into an object.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-IdentifierReference
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    IdentifierReference(Sym),
-
-    /// Binds a property name to a JavaScript value.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    Property(PropertyName, Node),
-
-    /// A property of an object can also refer to a function or a getter or setter method.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
-    MethodDefinition(MethodDefinitionKind, PropertyName, FunctionExpr),
-
-    /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
-    /// It copies own enumerable properties from a provided object onto a new object.
-    ///
-    /// Shallow-cloning (excluding `prototype`) or merging objects is now possible using a shorter syntax than `Object.assign()`.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties
-    SpreadObject(Node),
-}
-
-impl PropertyDefinition {
-    /// Creates an `IdentifierReference` property definition.
-    pub fn identifier_reference(ident: Sym) -> Self {
-        Self::IdentifierReference(ident)
-    }
-
-    /// Creates a `Property` definition.
-    pub fn property<N, V>(name: N, value: V) -> Self
-    where
-        N: Into<PropertyName>,
-        V: Into<Node>,
-    {
-        Self::Property(name.into(), value.into())
-    }
-
-    /// Creates a `MethodDefinition`.
-    pub fn method_definition<N>(kind: MethodDefinitionKind, name: N, body: FunctionExpr) -> Self
-    where
-        N: Into<PropertyName>,
-    {
-        Self::MethodDefinition(kind, name.into(), body)
-    }
-
-    /// Creates a `SpreadObject`.
-    pub fn spread_object<O>(obj: O) -> Self
-    where
-        O: Into<Node>,
-    {
-        Self::SpreadObject(obj.into())
-    }
-}
-
-/// Method definition kinds.
-///
-/// Starting with ECMAScript 2015, a shorter syntax for method definitions on objects initializers is introduced.
-/// It is a shorthand for a function assigned to the method's name.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Copy, Finalize)]
-pub enum MethodDefinitionKind {
-    /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
-    ///
-    /// Sometimes it is desirable to allow access to a property that returns a dynamically computed value,
-    /// or you may want to reflect the status of an internal variable without requiring the use of explicit method calls.
-    /// In JavaScript, this can be accomplished with the use of a getter.
-    ///
-    /// It is not possible to simultaneously have a getter bound to a property and have that property actually hold a value,
-    /// although it is possible to use a getter and a setter in conjunction to create a type of pseudo-property.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get
-    Get,
-
-    /// The `set` syntax binds an object property to a function to be called when there is an attempt to set that property.
-    ///
-    /// In JavaScript, a setter can be used to execute a function whenever a specified property is attempted to be changed.
-    /// Setters are most often used in conjunction with getters to create a type of pseudo-property.
-    /// It is not possible to simultaneously have a setter on a property that holds an actual value.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set
-    Set,
-
-    /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions#Method_definition_syntax
-    Ordinary,
-
-    /// Starting with ECMAScript 2015, you are able to define own methods in a shorter syntax, similar to the getters and setters.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#generator_methods
-    Generator,
-
-    /// Async generators can be used to define a method
-    ///
-    /// More information
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_generator_methods
-    AsyncGenerator,
-
-    /// Async function can be used to define a method
-    ///
-    /// More information
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions#async_methods
-    Async,
-}
-
-unsafe impl Trace for MethodDefinitionKind {
-    unsafe_empty_trace!();
-}
-
-/// `PropertyName` can be either a literal or computed.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-PropertyName
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Finalize)]
-pub enum PropertyName {
-    /// A `Literal` property name can be either an identifier, a string or a numeric literal.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName
-    Literal(Sym),
-    /// A `Computed` property name is an expression that gets evaluated and converted into a property name.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
-    Computed(Node),
-}
-
-impl ToInternedString for PropertyName {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        match self {
-            PropertyName::Literal(key) => interner.resolve_expect(*key).to_owned(),
-            PropertyName::Computed(key) => key.to_interned_string(interner),
-        }
-    }
-}
-
-impl From<Sym> for PropertyName {
-    fn from(name: Sym) -> Self {
-        Self::Literal(name)
-    }
-}
-
-impl From<Node> for PropertyName {
-    fn from(name: Node) -> Self {
-        Self::Computed(name)
-    }
-}
-
-unsafe impl Trace for PropertyName {
-    unsafe_empty_trace!();
 }
 
 /// This parses the given source code, and then makes sure that

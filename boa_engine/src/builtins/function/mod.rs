@@ -175,7 +175,11 @@ pub enum Function {
         constructor: bool,
         captures: Captures,
     },
-    VmOrdinary {
+    Ordinary {
+        code: Gc<crate::vm::CodeBlock>,
+        environments: DeclarativeEnvironmentStack,
+    },
+    Generator {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
     },
@@ -192,7 +196,7 @@ impl Function {
     pub fn is_constructor(&self) -> bool {
         match self {
             Self::Native { constructor, .. } | Self::Closure { constructor, .. } => *constructor,
-            Self::VmOrdinary { code, .. } => code.constructor,
+            Self::Ordinary { code, .. } | Self::Generator { code, .. } => code.constructor,
         }
     }
 }
@@ -454,11 +458,15 @@ impl BuiltInFunctionObject {
                 },
                 Some(name),
             ) => Ok(format!("function {name}() {{\n  [native Code]\n}}").into()),
-            (Function::VmOrdinary { .. }, Some(name)) if name.is_empty() => {
+            (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
                 Ok("[Function (anonymous)]".into())
             }
-            (Function::VmOrdinary { .. }, Some(name)) => Ok(format!("[Function: {name}]").into()),
-            (Function::VmOrdinary { .. }, None) => Ok("[Function (anonymous)]".into()),
+            (Function::Ordinary { .. }, Some(name)) => Ok(format!("[Function: {name}]").into()),
+            (Function::Ordinary { .. }, None) => Ok("[Function (anonymous)]".into()),
+            (Function::Generator { .. }, Some(name)) => {
+                Ok(format!("[Function*: {}]", &name).into())
+            }
+            (Function::Generator { .. }, None) => Ok("[Function* (anonymous)]".into()),
             _ => Ok("TODO".into()),
         }
     }

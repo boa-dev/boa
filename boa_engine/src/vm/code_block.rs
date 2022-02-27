@@ -3,19 +3,23 @@
 //! This module is for the `CodeBlock` which implements a function representation in the VM
 
 use crate::{
-    builtins::function::{
-        arguments::Arguments, Captures, ClosureFunctionSignature, Function,
-        NativeFunctionSignature, ThisMode,
+    builtins::{
+        function::{
+            arguments::Arguments, Captures, ClosureFunctionSignature, Function,
+            NativeFunctionSignature, ThisMode,
+        },
+        generator::{Generator, GeneratorContext, GeneratorState},
     },
     context::StandardObjects,
     environments::{BindingLocator, DeclarativeEnvironmentStack},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
-    syntax::ast::node::FormalParameter,
+    syntax::ast::node::FormalParameterList,
+    vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsValue,
 };
-use boa_gc::{Finalize, Gc, Trace};
+use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
 use std::{convert::TryInto, mem::size_of};
@@ -65,7 +69,7 @@ pub struct CodeBlock {
     pub(crate) this_mode: ThisMode,
 
     /// Parameters passed to this function.
-    pub(crate) params: Box<[FormalParameter]>,
+    pub(crate) params: FormalParameterList,
 
     /// Bytecode
     pub(crate) code: Vec<u8>,
@@ -109,7 +113,7 @@ impl CodeBlock {
             strict,
             constructor,
             this_mode: ThisMode::Global,
-            params: Vec::new().into_boxed_slice(),
+            params: FormalParameterList::default(),
             lexical_name_argument: false,
             arguments_binding: None,
         }
@@ -189,6 +193,7 @@ impl CodeBlock {
             | Opcode::ForInLoopNext
             | Opcode::ConcatToString
             | Opcode::CopyDataProperties
+            | Opcode::GeneratorNextDelegate
             | Opcode::PushDeclarativeEnvironment => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
@@ -201,7 +206,7 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!("{operand1}, {operand2}")
             }
-            Opcode::GetFunction => {
+            Opcode::GetFunction | Opcode::GetGenerator => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
@@ -317,6 +322,8 @@ impl CodeBlock {
             | Opcode::PushNewArray
             | Opcode::PopOnReturnAdd
             | Opcode::PopOnReturnSub
+            | Opcode::Yield
+            | Opcode::GeneratorNext
             | Opcode::Nop => String::new(),
         }
     }
@@ -391,71 +398,122 @@ impl ToInternedString for CodeBlock {
     }
 }
 
-#[derive(Debug)]
-#[allow(missing_copy_implementations)]
-pub struct JsVmFunction {}
+/// Creates a new function object.
+pub(crate) fn create_function_object(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
+    let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
 
-impl JsVmFunction {
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
-        let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
+    let function_prototype = context.standard_objects().function_object().prototype();
 
-        let function_prototype = context.standard_objects().function_object().prototype();
+    let prototype = context.construct_object();
 
-        let prototype = context.construct_object();
+    let name_property = PropertyDescriptor::builder()
+        .value(context.interner().resolve_expect(code.name))
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let name_property = PropertyDescriptor::builder()
-            .value(context.interner().resolve_expect(code.name))
-            .writable(false)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    let length_property = PropertyDescriptor::builder()
+        .value(code.length)
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let length_property = PropertyDescriptor::builder()
-            .value(code.length)
-            .writable(false)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    let function = Function::Ordinary {
+        code,
+        environments: context.realm.environments.clone(),
+    };
 
-        let function = Function::VmOrdinary {
-            code,
-            environments: context.realm.environments.clone(),
-        };
+    let constructor =
+        JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
 
-        let constructor =
-            JsObject::from_proto_and_data(function_prototype, ObjectData::function(function));
+    let constructor_property = PropertyDescriptor::builder()
+        .value(constructor.clone())
+        .writable(true)
+        .enumerable(false)
+        .configurable(true)
+        .build();
 
-        let constructor_property = PropertyDescriptor::builder()
-            .value(constructor.clone())
-            .writable(true)
-            .enumerable(false)
-            .configurable(true)
-            .build();
+    prototype
+        .define_property_or_throw("constructor", constructor_property, context)
+        .expect("failed to define the constructor property of the function");
 
-        prototype
-            .define_property_or_throw("constructor", constructor_property, context)
-            .expect("failed to define the constructor property of the function");
+    let prototype_property = PropertyDescriptor::builder()
+        .value(prototype)
+        .writable(true)
+        .enumerable(false)
+        .configurable(false)
+        .build();
 
-        let prototype_property = PropertyDescriptor::builder()
-            .value(prototype)
-            .writable(true)
-            .enumerable(false)
-            .configurable(false)
-            .build();
+    constructor
+        .define_property_or_throw("prototype", prototype_property, context)
+        .expect("failed to define the prototype property of the function");
+    constructor
+        .define_property_or_throw("name", name_property, context)
+        .expect("failed to define the name property of the function");
+    constructor
+        .define_property_or_throw("length", length_property, context)
+        .expect("failed to define the length property of the function");
 
-        constructor
-            .define_property_or_throw("prototype", prototype_property, context)
-            .expect("failed to define the prototype property of the function");
-        constructor
-            .define_property_or_throw("name", name_property, context)
-            .expect("failed to define the name property of the function");
-        constructor
-            .define_property_or_throw("length", length_property, context)
-            .expect("failed to define the length property of the function");
+    constructor
+}
 
-        constructor
-    }
+/// Creates a new generator function object.
+pub(crate) fn create_generator_function_object(
+    code: Gc<CodeBlock>,
+    context: &mut Context,
+) -> JsObject {
+    let function_prototype = context
+        .standard_objects()
+        .generator_function_object()
+        .prototype();
+
+    let name_property = PropertyDescriptor::builder()
+        .value(context.interner().resolve_expect(code.name))
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
+
+    let length_property = PropertyDescriptor::builder()
+        .value(code.length)
+        .writable(false)
+        .enumerable(false)
+        .configurable(true)
+        .build();
+
+    let prototype = JsObject::from_proto_and_data(
+        context.standard_objects().generator_object().prototype(),
+        ObjectData::ordinary(),
+    );
+
+    let function = Function::Generator {
+        code,
+        environments: context.realm.environments.clone(),
+    };
+
+    let constructor =
+        JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function));
+
+    let prototype_property = PropertyDescriptor::builder()
+        .value(prototype)
+        .writable(true)
+        .enumerable(false)
+        .configurable(false)
+        .build();
+
+    constructor
+        .define_property_or_throw("prototype", prototype_property, context)
+        .expect("failed to define the prototype property of the generator function");
+    constructor
+        .define_property_or_throw("name", name_property, context)
+        .expect("failed to define the name property of the generator function");
+    constructor
+        .define_property_or_throw("length", length_property, context)
+        .expect("failed to define the length property of the generator function");
+
+    constructor
 }
 
 pub(crate) enum FunctionBody {
@@ -470,9 +528,12 @@ pub(crate) enum FunctionBody {
         function: Box<dyn ClosureFunctionSignature>,
         captures: Captures,
     },
+    Generator {
+        code: Gc<CodeBlock>,
+        environments: DeclarativeEnvironmentStack,
+    },
 }
 
-// TODO: this should be modified to not take `exit_on_return` and then moved to `internal_methods`
 impl JsObject {
     pub(crate) fn call_internal(
         &self,
@@ -481,7 +542,6 @@ impl JsObject {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let this_function_object = self.clone();
-        // let mut has_parameter_expressions = false;
 
         if !self.is_callable() {
             return context.throw_type_error("not a callable function");
@@ -512,7 +572,11 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environments } => FunctionBody::Ordinary {
+                Function::Ordinary { code, environments } => FunctionBody::Ordinary {
+                    code: code.clone(),
+                    environments: environments.clone(),
+                },
+                Function::Generator { code, environments } => FunctionBody::Generator {
                     code: code.clone(),
                     environments: environments.clone(),
                 },
@@ -552,23 +616,9 @@ impl JsObject {
                     .environments
                     .push_function(code.num_bindings, this.clone());
 
-                let mut arguments_in_parameter_names = false;
-                let mut is_simple_parameter_list = true;
-                let mut has_parameter_expressions = false;
-
-                for param in code.params.iter() {
-                    has_parameter_expressions = has_parameter_expressions || param.init().is_some();
-                    arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.names().contains(&Sym::ARGUMENTS);
-                    is_simple_parameter_list = is_simple_parameter_list
-                        && !param.is_rest_param()
-                        && param.is_identifier()
-                        && param.init().is_none();
-                }
-
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj =
-                        if context.strict() || code.strict || !is_simple_parameter_list {
+                        if context.strict() || code.strict || !code.params.is_simple() {
                             Arguments::create_unmapped_arguments_object(args, context)
                         } else {
                             let env = context.realm.environments.current();
@@ -590,9 +640,12 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let args = if code.params.len() > args.len() {
+                let args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
-                    v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                    v.extend(vec![
+                        JsValue::Undefined;
+                        code.params.parameters.len() - args.len()
+                    ]);
                     v
                 } else {
                     args.to_vec()
@@ -602,7 +655,8 @@ impl JsObject {
                     context.vm.push(arg);
                 }
 
-                let param_count = code.params.len();
+                let param_count = code.params.parameters.len();
+                let has_expressions = code.params.has_expressions();
 
                 context.vm.push_frame(CallFrame {
                     prev: None,
@@ -620,19 +674,139 @@ impl JsObject {
                     }],
                     param_count,
                     arg_count,
+                    generator_resume_kind: GeneratorResumeKind::Normal,
                 });
 
                 let result = context.run();
                 context.vm.pop_frame().expect("must have frame");
 
                 context.realm.environments.pop();
-                if has_parameter_expressions {
+                if has_expressions {
                     context.realm.environments.pop();
                 }
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
-                result
+                let (result, _) = result?;
+                Ok(result)
+            }
+            FunctionBody::Generator {
+                code,
+                mut environments,
+            } => {
+                std::mem::swap(&mut environments, &mut context.realm.environments);
+
+                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+
+                let this = if lexical_this_mode {
+                    if let Some(this) = context.realm.environments.get_last_this() {
+                        this
+                    } else {
+                        context.global_object().clone().into()
+                    }
+                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                    context.global_object().clone().into()
+                } else {
+                    this.clone()
+                };
+
+                context
+                    .realm
+                    .environments
+                    .push_function(code.num_bindings, this.clone());
+
+                if let Some(binding) = code.arguments_binding {
+                    let arguments_obj =
+                        if context.strict() || code.strict || !code.params.is_simple() {
+                            Arguments::create_unmapped_arguments_object(args, context)
+                        } else {
+                            let env = context.realm.environments.current();
+                            Arguments::create_mapped_arguments_object(
+                                &this_function_object,
+                                &code.params,
+                                args,
+                                &env,
+                                context,
+                            )
+                        };
+                    context.realm.environments.put_value(
+                        binding.environment_index(),
+                        binding.binding_index(),
+                        arguments_obj.into(),
+                    );
+                }
+
+                let arg_count = args.len();
+
+                // Push function arguments to the stack.
+                let mut args = if code.params.parameters.len() > args.len() {
+                    let mut v = args.to_vec();
+                    v.extend(vec![
+                        JsValue::Undefined;
+                        code.params.parameters.len() - args.len()
+                    ]);
+                    v
+                } else {
+                    args.to_vec()
+                };
+                args.reverse();
+
+                let param_count = code.params.parameters.len();
+
+                let call_frame = CallFrame {
+                    prev: None,
+                    code,
+                    this,
+                    pc: 0,
+                    catch: Vec::new(),
+                    finally_return: FinallyReturn::None,
+                    finally_jump: Vec::new(),
+                    pop_on_return: 0,
+                    loop_env_stack: vec![0],
+                    try_env_stack: vec![crate::vm::TryStackEntry {
+                        num_env: 0,
+                        num_loop_stack_entries: 0,
+                    }],
+                    param_count,
+                    arg_count,
+                    generator_resume_kind: GeneratorResumeKind::Normal,
+                };
+                let mut stack = args;
+
+                std::mem::swap(&mut context.vm.stack, &mut stack);
+                context.vm.push_frame(call_frame);
+
+                let init_result = context.run();
+
+                let call_frame = context.vm.pop_frame().expect("frame must exist");
+                std::mem::swap(&mut environments, &mut context.realm.environments);
+                std::mem::swap(&mut context.vm.stack, &mut stack);
+
+                let prototype = if let Some(prototype) = this_function_object
+                    .get("prototype", context)
+                    .expect("GeneratorFunction must have a prototype property")
+                    .as_object()
+                {
+                    prototype.clone()
+                } else {
+                    context.standard_objects().generator_object().prototype()
+                };
+
+                let generator = Self::from_proto_and_data(
+                    prototype,
+                    ObjectData::generator(Generator {
+                        state: GeneratorState::SuspendedStart,
+                        context: Some(Gc::new(Cell::new(GeneratorContext {
+                            environments,
+                            call_frame: *call_frame,
+                            stack,
+                        }))),
+                    }),
+                );
+
+                init_result?;
+
+                Ok(generator.into())
             }
         }
     }
@@ -664,10 +838,13 @@ impl JsObject {
                     function: function.clone(),
                     captures: captures.clone(),
                 },
-                Function::VmOrdinary { code, environments } => FunctionBody::Ordinary {
+                Function::Ordinary { code, environments } => FunctionBody::Ordinary {
                     code: code.clone(),
                     environments: environments.clone(),
                 },
+                Function::Generator { .. } => {
+                    unreachable!("generator function cannot be a constructor")
+                }
             }
         };
 
@@ -704,7 +881,7 @@ impl JsObject {
                 let mut is_simple_parameter_list = true;
                 let mut has_parameter_expressions = false;
 
-                for param in code.params.iter() {
+                for param in code.params.parameters.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names =
                         arguments_in_parameter_names || param.names().contains(&Sym::ARGUMENTS);
@@ -716,7 +893,7 @@ impl JsObject {
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj =
-                        if context.strict() || code.strict || !is_simple_parameter_list {
+                        if context.strict() || code.strict || !code.params.is_simple() {
                             Arguments::create_unmapped_arguments_object(args, context)
                         } else {
                             let env = context.realm.environments.current();
@@ -738,9 +915,12 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let args = if code.params.len() > args.len() {
+                let args = if code.params.parameters.len() > args.len() {
                     let mut v = args.to_vec();
-                    v.extend(vec![JsValue::Undefined; code.params.len() - args.len()]);
+                    v.extend(vec![
+                        JsValue::Undefined;
+                        code.params.parameters.len() - args.len()
+                    ]);
                     v
                 } else {
                     args.to_vec()
@@ -750,7 +930,7 @@ impl JsObject {
                     context.vm.push(arg);
                 }
 
-                let param_count = code.params.len();
+                let param_count = code.params.parameters.len();
 
                 let this = if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
                     context.global_object().clone().into()
@@ -774,13 +954,12 @@ impl JsObject {
                     }],
                     param_count,
                     arg_count,
+                    generator_resume_kind: GeneratorResumeKind::Normal,
                 });
 
                 let result = context.run();
 
                 let frame = context.vm.pop_frame().expect("must have frame");
-
-                let this = frame.this;
 
                 context.realm.environments.pop();
                 if has_parameter_expressions {
@@ -789,13 +968,16 @@ impl JsObject {
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
-                let result = result?;
+                let (result, _) = result?;
 
                 if result.is_object() {
                     Ok(result)
                 } else {
-                    Ok(this)
+                    Ok(frame.this.clone())
                 }
+            }
+            FunctionBody::Generator { .. } => {
+                unreachable!("generator function cannot be a constructor")
             }
         }
     }

@@ -1,6 +1,6 @@
 //! Async Function Expression.
 
-use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
+use crate::syntax::ast::node::{join_nodes, FormalParameterList, Node, StatementList};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncFunctionExpr {
     name: Option<Sym>,
-    parameters: Box<[FormalParameter]>,
+    parameters: FormalParameterList,
     body: StatementList,
 }
 
@@ -29,7 +29,7 @@ impl AsyncFunctionExpr {
     pub(in crate::syntax) fn new<N, P, B>(name: N, parameters: P, body: B) -> Self
     where
         N: Into<Option<Sym>>,
-        P: Into<Box<[FormalParameter]>>,
+        P: Into<FormalParameterList>,
         B: Into<StatementList>,
     {
         Self {
@@ -45,13 +45,13 @@ impl AsyncFunctionExpr {
     }
 
     /// Gets the list of parameters of the function declaration.
-    pub fn parameters(&self) -> &[FormalParameter] {
+    pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the function declaration.
-    pub fn body(&self) -> &[Node] {
-        self.body.items()
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
@@ -64,8 +64,11 @@ impl AsyncFunctionExpr {
         if let Some(name) = self.name {
             buf.push_str(&format!(" {}", interner.resolve_expect(name)));
         }
-        buf.push_str(&format!("({}", join_nodes(interner, &self.parameters)));
-        if self.body().is_empty() {
+        buf.push_str(&format!(
+            "({}",
+            join_nodes(interner, &self.parameters.parameters)
+        ));
+        if self.body().items().is_empty() {
             buf.push_str(") {}");
         } else {
             buf.push_str(&format!(

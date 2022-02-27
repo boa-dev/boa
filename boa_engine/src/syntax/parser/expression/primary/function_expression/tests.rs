@@ -1,11 +1,13 @@
 use crate::syntax::{
     ast::{
-        node::{Declaration, DeclarationList, FunctionExpr, Return, StatementList},
+        node::{
+            Declaration, DeclarationList, FormalParameterList, FunctionExpr, Return, StatementList,
+        },
         Const,
     },
     parser::tests::check_parser,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 
 /// Checks async expression parsing.
 #[test]
@@ -22,8 +24,8 @@ fn check_function_expression() {
                 Some(
                     FunctionExpr::new::<_, _, StatementList>(
                         None,
-                        [],
-                        vec![Return::new(Const::from(1), None).into()].into(),
+                        FormalParameterList::default(),
+                        vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
                     )
                     .into(),
                 ),
@@ -51,15 +53,20 @@ fn check_nested_function_expression() {
                 Some(
                     FunctionExpr::new::<_, _, StatementList>(
                         None,
-                        [],
+                        FormalParameterList::default(),
                         vec![DeclarationList::Const(
                             vec![Declaration::new_with_identifier(
                                 interner.get_or_intern_static("b"),
                                 Some(
                                     FunctionExpr::new::<_, _, StatementList>(
                                         None,
-                                        [],
-                                        vec![Return::new(Const::from(1), None).into()].into(),
+                                        FormalParameterList::default(),
+                                        vec![Return::new::<_, _, Option<Sym>>(
+                                            Const::from(1),
+                                            None,
+                                        )
+                                        .into()]
+                                        .into(),
                                     )
                                     .into(),
                                 ),

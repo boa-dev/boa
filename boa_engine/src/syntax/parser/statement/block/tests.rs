@@ -3,8 +3,8 @@
 use crate::syntax::{
     ast::{
         node::{
-            Assign, Block, Call, Declaration, DeclarationList, FunctionDecl, Identifier, Node,
-            Return, UnaryOp,
+            Assign, Block, Call, Declaration, DeclarationList, FormalParameterList, FunctionDecl,
+            Identifier, Node, Return, UnaryOp,
         },
         op, Const,
     },
@@ -65,7 +65,7 @@ fn non_empty() {
         vec![
             FunctionDecl::new(
                 hello,
-                vec![],
+                FormalParameterList::default(),
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
@@ -98,7 +98,7 @@ fn hoisting() {
         vec![
             FunctionDecl::new(
                 hello,
-                vec![],
+                FormalParameterList::default(),
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
