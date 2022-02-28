@@ -1047,6 +1047,12 @@
 <span id="1045">1045</span>
 <span id="1046">1046</span>
 <span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Object` class represents one of JavaScript&#39;s data types.</span>
@@ -1247,28 +1253,34 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 1. Let obj be ? ToObject(O).</span>
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().</span>
+        <span class="kw">let</span> <span class="ident">own_keys</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).</span>
         <span class="kw">let</span> <span class="ident">descriptors</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
-        <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>().<span class="ident">keys</span>() {
-            <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> {
-                <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-                <span class="ident"><span class="self">Self</span>::from_property_descriptor</span>(<span class="ident">desc</span>, <span class="ident">context</span>)
-            };
+        <span class="comment">// 4. For each element key of ownKeys, do</span>
+        <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">own_keys</span> {
+            <span class="comment">// a. Let desc be ? obj.[[GetOwnProperty]](key).</span>
+            <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
+            <span class="comment">// b. Let descriptor be FromPropertyDescriptor(desc).</span>
+            <span class="kw">let</span> <span class="ident">descriptor</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::from_property_descriptor</span>(<span class="ident">desc</span>, <span class="ident">context</span>);
+
+            <span class="comment">// c. If descriptor is not undefined,</span>
+            <span class="comment">//    perform ! CreateDataPropertyOrThrow(descriptors, key, descriptor).</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">descriptor</span>.<span class="ident">is_undefined</span>() {
-                <span class="ident">descriptors</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
-                    <span class="ident">key</span>,
-                    <span class="ident">PropertyDescriptor::builder</span>()
-                        .<span class="ident">value</span>(<span class="ident">descriptor</span>)
-                        .<span class="ident">writable</span>(<span class="bool-val">true</span>)
-                        .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                        .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
-                );
+                <span class="ident">descriptors</span>
+                    .<span class="ident">create_data_property_or_throw</span>(<span class="ident">key</span>, <span class="ident">descriptor</span>, <span class="ident">context</span>)
+                    .<span class="ident">expect</span>(<span class="string">&quot;should not fail according to spec&quot;</span>);
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::Object</span>(<span class="ident">descriptors</span>))
+        <span class="comment">// 5. Return descriptors.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">descriptors</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// The abstract operation `FromPropertyDescriptor`.</span>
