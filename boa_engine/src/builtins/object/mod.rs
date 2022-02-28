@@ -57,7 +57,7 @@ impl BuiltIn for Object {
         .method(Self::has_own_property, "hasOwnProperty", 1)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
         .method(Self::to_string, "toString", 0)
-        .method(Self::to_string, "toLocaleString", 0)
+        .method(Self::to_locale_string, "toLocaleString", 0)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::is_prototype_of, "isPrototypeOf", 1)
         .static_method(Self::create, "create", 2)
