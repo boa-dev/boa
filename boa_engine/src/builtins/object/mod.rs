@@ -57,6 +57,7 @@ impl BuiltIn for Object {
         .method(Self::has_own_property, "hasOwnProperty", 1)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
         .method(Self::to_string, "toString", 0)
+        .method(Self::to_locale_string, "toLocaleString", 0)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::is_prototype_of, "isPrototypeOf", 1)
         .static_method(Self::create, "create", 2)
@@ -527,6 +528,25 @@ impl Object {
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
         Ok(format!("[object {tag_str}]").into())
+    }
+
+    /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toLocaleString
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_locale_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Return ? Invoke(O, "toString").
+        this.invoke("toString", &[], context)
     }
 
     /// `Object.prototype.hasOwnProperty( property )`
