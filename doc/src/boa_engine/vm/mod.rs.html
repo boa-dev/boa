@@ -1581,6 +1581,12 @@
 <span id="1579">1579</span>
 <span id="1580">1580</span>
 <span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -3033,6 +3039,8 @@
             );
         }
 
+        <span class="kw">let</span> <span class="ident">start_stack_size</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>();
+
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">pc</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">code</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">trace</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pc</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">pc</span>;
@@ -3079,6 +3087,7 @@
             <span class="kw">match</span> <span class="ident">result</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::True</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                    <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">result</span>, <span class="ident">ReturnType::Normal</span>));
                 }
                 <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>) =&gt; {}
@@ -3126,6 +3135,7 @@
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">finally_return</span> <span class="op">=</span> <span class="ident">FinallyReturn::Err</span>;
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">e</span>);
                     } <span class="kw">else</span> {
+                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>);
                     }
                 }
@@ -3159,7 +3169,9 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="ident">JsValue::undefined</span>(), <span class="ident">ReturnType::Normal</span>));
         }
 
-        <span class="prelude-val">Ok</span>((<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>(), <span class="ident">ReturnType::Normal</span>))
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
+        <span class="prelude-val">Ok</span>((<span class="ident">result</span>, <span class="ident">ReturnType::Normal</span>))
     }
 }
 </code></pre></div>
