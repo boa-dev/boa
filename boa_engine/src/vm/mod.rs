@@ -1450,6 +1450,8 @@ impl Context {
             );
         }
 
+        let start_stack_size = self.vm.stack.len();
+
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
@@ -1496,6 +1498,7 @@ impl Context {
             match result {
                 Ok(ShouldExit::True) => {
                     let result = self.vm.pop();
+                    self.vm.stack.truncate(start_stack_size);
                     return Ok((result, ReturnType::Normal));
                 }
                 Ok(ShouldExit::False) => {}
@@ -1543,6 +1546,7 @@ impl Context {
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         self.vm.push(e);
                     } else {
+                        self.vm.stack.truncate(start_stack_size);
                         return Err(e);
                     }
                 }
@@ -1576,6 +1580,8 @@ impl Context {
             return Ok((JsValue::undefined(), ReturnType::Normal));
         }
 
-        Ok((self.vm.pop(), ReturnType::Normal))
+        let result = self.vm.pop();
+        self.vm.stack.truncate(start_stack_size);
+        Ok((result, ReturnType::Normal))
     }
 }
