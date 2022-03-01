@@ -643,21 +643,23 @@ impl Number {
         let x = Self::this_number_value(this, context)?;
 
         // 2. If radix is undefined, let radixNumber be 10.
+        let radix = args.get_or_undefined(0);
+        let radix_number = if radix.is_undefined() {
+            10.0
         // 3. Else, let radixNumber be ? ToInteger(radix).
-        let radix = args
-            .get(0)
-            .map(|arg| arg.to_integer(context))
-            .transpose()?
-            .map_or(10, |radix| radix as u8);
+        } else {
+            radix.to_integer(context)?
+        };
 
         // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
-        if !(2..=36).contains(&radix) {
+        if !(2.0..=36.0).contains(&radix_number) {
             return context
                 .throw_range_error("radix must be an integer at least 2 and no greater than 36");
         }
+        let radix_number = radix_number as u8;
 
         // 5. If radixNumber = 10, return ! ToString(x).
-        if radix == 10 {
+        if radix_number == 10 {
             return Ok(JsValue::new(Self::to_native_string(x)));
         }
 
@@ -680,7 +682,7 @@ impl Number {
         // }
 
         // 6. Return the String representation of this Number value using the radix specified by radixNumber.
-        Ok(JsValue::new(Self::to_native_string_radix(x, radix)))
+        Ok(JsValue::new(Self::to_native_string_radix(x, radix_number)))
     }
 
     /// `Number.prototype.toString()`
