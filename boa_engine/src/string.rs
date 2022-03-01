@@ -474,30 +474,16 @@ impl JsString {
 
         match string {
             "" => return 0.0,
-            "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan" => return f64::NAN,
-            "Infinity" | "+Infinity" => return f64::INFINITY,
             "-Infinity" => return f64::NEG_INFINITY,
+            "Infinity" | "+Infinity" => return f64::INFINITY,
             _ => {}
         }
 
-        let mut s = string.bytes().peekable();
-
-        let sign = match s.peek() {
-            Some(b'+') => Some(1.0),
-            Some(b'-') => Some(-1.0),
-            Some(_) => None,
-            None => return f64::NAN,
-        };
-
-        // If it has a sign (+ or -) then it must be a float.
-        if sign.is_some() {
-            return fast_float::parse(string).unwrap_or(f64::NAN);
-        }
-
-        let base = match (s.next(), s.next().as_ref().map(u8::to_ascii_lowercase)) {
-            (Some(b'0'), Some(b'b')) => Some(2),
-            (Some(b'0'), Some(b'o')) => Some(8),
-            (Some(b'0'), Some(b'x')) => Some(16),
+        let mut s = string.bytes();
+        let base = match (s.next(), s.next()) {
+            (Some(b'0'), Some(b'b' | b'B')) => Some(2),
+            (Some(b'0'), Some(b'o' | b'O')) => Some(8),
+            (Some(b'0'), Some(b'x' | b'X')) => Some(16),
             _ => None,
         };
 
@@ -525,7 +511,11 @@ impl JsString {
             return value;
         }
 
-        fast_float::parse(string).unwrap_or(f64::NAN)
+        match string {
+            // Handle special cases so `fast_float` does not return infinity.
+            "inf" | "+inf" | "-inf" => f64::NAN,
+            string => fast_float::parse(string).unwrap_or(f64::NAN),
+        }
     }
 }
 
