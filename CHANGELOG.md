@@ -7,49 +7,61 @@
 
 # [0.14.0 (TBD) - ](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
 
-### Feature Enhancements
-* Implement functions for vm by @HalidOdat in https://github.com/boa-dev/boa/pull/1433
-* Implement Object.getOwnPropertyNames and Object.getOwnPropertySymbols by @kevinputera in https://github.com/boa-dev/boa/pull/1606
-* Implement `Symbol.prototype.valueOf` by @hle0 in https://github.com/boa-dev/boa/pull/1618
-* Implement Array.prototype.at() by @nekevss in https://github.com/boa-dev/boa/pull/1613
-* Implement String.fromCharCode by @hle0 in https://github.com/boa-dev/boa/pull/1619
-* Implement Typed Arrays by @Razican in https://github.com/boa-dev/boa/pull/1552
-* Implement arguments exotic objects by @jedel1043 in https://github.com/boa-dev/boa/pull/1522
-* Allow destructuring in catch parameter by @lowr in https://github.com/boa-dev/boa/pull/1628
-* Implement `Symbol.prototype[ @@toPrimitive ]` by @Nimpruda in https://github.com/boa-dev/boa/pull/1634
-* Implement Generator parsing by @raskad in https://github.com/boa-dev/boa/pull/1575
-* Implement Object.hasOwn and improve Object.prototype.hasOwnProperty by @kevinputera in https://github.com/boa-dev/boa/pull/1639
-* Hashbang lexer support by @nekevss in https://github.com/boa-dev/boa/pull/1631
-* Implement `delete` operator in the vm by @raskad in https://github.com/boa-dev/boa/pull/1649
-* Implement Object.fromEntries by @kevinputera in https://github.com/boa-dev/boa/pull/1660
-* Initial implementation for increment/decrement in VM by @abhishekc-sharma in https://github.com/boa-dev/boa/pull/1621
-* Implement `Proxy` object by @raskad in https://github.com/boa-dev/boa/pull/1664
-* Implement object literals for vm by @raskad in https://github.com/boa-dev/boa/pull/1668
-* Implement Array findLast and findLastIndex by @bsinky in https://github.com/boa-dev/boa/pull/1665
-* Implement `DataView` built-in object  by @Nimpruda in https://github.com/boa-dev/boa/pull/1662
-* Clean-up contribution guidelines, dependencies, Test262, MSRV by @Razican in https://github.com/boa-dev/boa/pull/1683
-* Implement Async Generator Parsing by @nekevss in https://github.com/boa-dev/boa/pull/1669
-* Document CodeBlock by @TheDoctor314 in https://github.com/boa-dev/boa/pull/1691
-* Rename "Boa" to boa_engine, moved GC and profiler to their crates by @Razican in https://github.com/boa-dev/boa/pull/1844
-### Bug Fixes
-* Fix broken structure links in documentation by @abhishekc-sharma in https://github.com/boa-dev/boa/pull/1612
-* Fix integer parsing by @nrabulinski in https://github.com/boa-dev/boa/pull/1614
-* Fix `Number.toExponential` and `Number.toFixed` by @nrabulinski in https://github.com/boa-dev/boa/pull/1620
-* Fix non-conformant Math methods by @Nimpruda in https://github.com/boa-dev/boa/pull/1630
-* Badge updates by @atouchet in https://github.com/boa-dev/boa/pull/1638
+<!-- Release notes generated using configuration in .github/release.yml at main -->
 
-### New Contributors
-* @abhishekc-sharma made their first contribution in https://github.com/boa-dev/boa/pull/1612
-* @kevinputera made their first contribution in https://github.com/boa-dev/boa/pull/1606
-* @nrabulinski made their first contribution in https://github.com/boa-dev/boa/pull/1614
-* @hle0 made their first contribution in https://github.com/boa-dev/boa/pull/1618
-* @nekevss made their first contribution in https://github.com/boa-dev/boa/pull/1613
-* @lowr made their first contribution in https://github.com/boa-dev/boa/pull/1628
-* @Nimpruda made their first contribution in https://github.com/boa-dev/boa/pull/1634
-* @atouchet made their first contribution in https://github.com/boa-dev/boa/pull/1638
-* @praveenbakkal made their first contribution in https://github.com/boa-dev/boa/pull/1680
-* @bsinky made their first contribution in https://github.com/boa-dev/boa/pull/1665
-* @TheDoctor314 made their first contribution in https://github.com/boa-dev/boa/pull/1691
+## What's Changed
+### Feature Enhancements
+* Implement functions for vm by @HalidOdat in [#1433](https://github.com/boa-dev/boa/pull/1433)
+* Implement Object.getOwnPropertyNames and Object.getOwnPropertySymbols by @kevinputera in [#1606](https://github.com/boa-dev/boa/pull/1606)
+* Implement `Symbol.prototype.valueOf` by @hle0 in [#1618](https://github.com/boa-dev/boa/pull/1618)
+* Implement Array.prototype.at() by @nekevss in [#1613](https://github.com/boa-dev/boa/pull/1613)
+* Implement String.fromCharCode by @hle0 in [#1619](https://github.com/boa-dev/boa/pull/1619)
+* Implement Typed Arrays by @Razican in [#1552](https://github.com/boa-dev/boa/pull/1552)
+* Implement arguments exotic objects by @jedel1043 in [#1522](https://github.com/boa-dev/boa/pull/1522)
+* Allow destructuring in catch parameter by @lowr in [#1628](https://github.com/boa-dev/boa/pull/1628)
+* Implement `Symbol.prototype[ @@toPrimitive ]` by @Nimpruda in [#1634](https://github.com/boa-dev/boa/pull/1634)
+* Implement Generator parsing by @raskad in [#1575](https://github.com/boa-dev/boa/pull/1575)
+* Implement Object.hasOwn and improve Object.prototype.hasOwnProperty by @kevinputera in [#1639](https://github.com/boa-dev/boa/pull/1639)
+* Hashbang lexer support by @nekevss in [#1631](https://github.com/boa-dev/boa/pull/1631)
+* Implement `delete` operator in the vm by @raskad in [#1649](https://github.com/boa-dev/boa/pull/1649)
+* Implement Object.fromEntries by @kevinputera in [#1660](https://github.com/boa-dev/boa/pull/1660)
+* Initial implementation for increment/decrement in VM by @abhishekc-sharma in [#1621](https://github.com/boa-dev/boa/pull/1621)
+* Implement `Proxy` object by @raskad in [#1664](https://github.com/boa-dev/boa/pull/1664)
+* Implement object literals for vm by @raskad in [#1668](https://github.com/boa-dev/boa/pull/1668)
+* Implement Array findLast and findLastIndex by @bsinky in [#1665](https://github.com/boa-dev/boa/pull/1665)
+* Implement `DataView` built-in object  by @Nimpruda in [#1662](https://github.com/boa-dev/boa/pull/1662)
+* Clean-up contribution guidelines, dependencies, Test262, MSRV by @Razican in [#1683](https://github.com/boa-dev/boa/pull/1683)
+* Implement Async Generator Parsing by @nekevss in [#1669](https://github.com/boa-dev/boa/pull/1669)
+* Document CodeBlock by @TheDoctor314 in [#1691](https://github.com/boa-dev/boa/pull/1691)
+* Rename "Boa" to boa_engine, moved GC and profiler to their crates by @Razican in [#1844](https://github.com/boa-dev/boa/pull/1844)
+### Bug Fixes
+* Fix broken structure links in documentation by @abhishekc-sharma in [#1612](https://github.com/boa-dev/boa/pull/1612)
+* Fix integer parsing by @nrabulinski in [#1614](https://github.com/boa-dev/boa/pull/1614)
+* Fix `Number.toExponential` and `Number.toFixed` by @nrabulinski in [#1620](https://github.com/boa-dev/boa/pull/1620)
+* Fix non-conformant Math methods by @Nimpruda in [#1630](https://github.com/boa-dev/boa/pull/1630)
+* Badge updates by @atouchet in [#1638](https://github.com/boa-dev/boa/pull/1638)
+### Internal Improvements
+* Rewrite initialization of builtins to use the `BuiltIn` trait by @jedel1043 in [#1586](https://github.com/boa-dev/boa/pull/1586)
+* Unify object creation with `empty` and `from_proto_and_data` methods by @jedel1043 in [#1567](https://github.com/boa-dev/boa/pull/1567)
+* VM Tidy Up by @jasonwilliams in [#1610](https://github.com/boa-dev/boa/pull/1610)
+* Fix master refs to main by @jasonwilliams in [#1637](https://github.com/boa-dev/boa/pull/1637)
+* Change type of prototypes of objects to `Option<JsObject>` by @jedel1043 in [#1640](https://github.com/boa-dev/boa/pull/1640)
+* change that verbosity comparison to > 2 by @praveenbakkal in [#1680](https://github.com/boa-dev/boa/pull/1680)
+* Respect rust 1.56 by @RageKnify in [#1681](https://github.com/boa-dev/boa/pull/1681)
+* Start removing non-VM path by @jasonwilliams in [#1747](https://github.com/boa-dev/boa/pull/1747)
+
+## New Contributors
+* @abhishekc-sharma made their first contribution in [#1612](https://github.com/boa-dev/boa/pull/1612)
+* @kevinputera made their first contribution in [#1606](https://github.com/boa-dev/boa/pull/1606)
+* @nrabulinski made their first contribution in [#1614](https://github.com/boa-dev/boa/pull/1614)
+* @hle0 made their first contribution in [#1618](https://github.com/boa-dev/boa/pull/1618)
+* @nekevss made their first contribution in [#1613](https://github.com/boa-dev/boa/pull/1613)
+* @lowr made their first contribution in [#1628](https://github.com/boa-dev/boa/pull/1628)
+* @Nimpruda made their first contribution in [#1634](https://github.com/boa-dev/boa/pull/1634)
+* @atouchet made their first contribution in [#1638](https://github.com/boa-dev/boa/pull/1638)
+* @praveenbakkal made their first contribution in [#1680](https://github.com/boa-dev/boa/pull/1680)
+* @bsinky made their first contribution in [#1665](https://github.com/boa-dev/boa/pull/1665)
+* @TheDoctor314 made their first contribution in [#1691](https://github.com/boa-dev/boa/pull/1691)
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.13...v0.14
 
