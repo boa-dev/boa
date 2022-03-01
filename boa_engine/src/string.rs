@@ -501,10 +501,15 @@ impl JsString {
             _ => None,
         };
 
-        // Parse number that begin with `0b`, `0o` and `0x`.
+        // Parse numbers that begin with `0b`, `0o` and `0x`.
         if let Some(base) = base {
+            let string = &string[2..];
+            if string.is_empty() {
+                return f64::NAN;
+            }
+
             // Fast path
-            if let Ok(value) = u32::from_str_radix(&string[2..], base) {
+            if let Ok(value) = u32::from_str_radix(string, base) {
                 return f64::from(value);
             }
 
