@@ -10,7 +10,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
 
 use crate::{
-    builtins::BuiltIn,
+    builtins::{BuiltIn, JsArgs},
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
@@ -19,6 +19,8 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+
+use super::Error;
 
 /// JavaScript `RangeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -62,14 +64,29 @@ impl RangeError {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::error_object, context)?;
-        let obj = JsObject::from_proto_and_data(prototype, ObjectData::error());
-        if let Some(message) = args.get(0) {
-            if !message.is_undefined() {
-                obj.set("message", message.to_string(context)?, false, context)?;
-            }
+        // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
+        let prototype = get_prototype_from_constructor(
+            new_target,
+            StandardObjects::range_error_object,
+            context,
+        )?;
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
+
+        // 3. If message is not undefined, then
+        let message = args.get_or_undefined(0);
+        if !message.is_undefined() {
+            // a. Let msg be ? ToString(message).
+            let msg = message.to_string(context)?;
+
+            // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
+            o.create_non_enumerable_data_property_or_throw("message", msg, context);
         }
-        Ok(obj.into())
+
+        // 4. Perform ? InstallErrorCause(O, options).
+        Error::install_error_cause(&o, args.get_or_undefined(1), context)?;
+
+        // 5. Return O.
+        Ok(o.into())
     }
 }
