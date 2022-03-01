@@ -1,5 +1,58 @@
 # CHANGELOG
 
+
+<!-- Release notes generated using configuration in .github/release.yml at main -->
+
+## What's Changed
+
+# [0.14.0 (TBD) - ](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
+
+### Feature Enhancements
+* Implement functions for vm by @HalidOdat in https://github.com/boa-dev/boa/pull/1433
+* Implement Object.getOwnPropertyNames and Object.getOwnPropertySymbols by @kevinputera in https://github.com/boa-dev/boa/pull/1606
+* Implement `Symbol.prototype.valueOf` by @hle0 in https://github.com/boa-dev/boa/pull/1618
+* Implement Array.prototype.at() by @nekevss in https://github.com/boa-dev/boa/pull/1613
+* Implement String.fromCharCode by @hle0 in https://github.com/boa-dev/boa/pull/1619
+* Implement Typed Arrays by @Razican in https://github.com/boa-dev/boa/pull/1552
+* Implement arguments exotic objects by @jedel1043 in https://github.com/boa-dev/boa/pull/1522
+* Allow destructuring in catch parameter by @lowr in https://github.com/boa-dev/boa/pull/1628
+* Implement `Symbol.prototype[ @@toPrimitive ]` by @Nimpruda in https://github.com/boa-dev/boa/pull/1634
+* Implement Generator parsing by @raskad in https://github.com/boa-dev/boa/pull/1575
+* Implement Object.hasOwn and improve Object.prototype.hasOwnProperty by @kevinputera in https://github.com/boa-dev/boa/pull/1639
+* Hashbang lexer support by @nekevss in https://github.com/boa-dev/boa/pull/1631
+* Implement `delete` operator in the vm by @raskad in https://github.com/boa-dev/boa/pull/1649
+* Implement Object.fromEntries by @kevinputera in https://github.com/boa-dev/boa/pull/1660
+* Initial implementation for increment/decrement in VM by @abhishekc-sharma in https://github.com/boa-dev/boa/pull/1621
+* Implement `Proxy` object by @raskad in https://github.com/boa-dev/boa/pull/1664
+* Implement object literals for vm by @raskad in https://github.com/boa-dev/boa/pull/1668
+* Implement Array findLast and findLastIndex by @bsinky in https://github.com/boa-dev/boa/pull/1665
+* Implement `DataView` built-in object  by @Nimpruda in https://github.com/boa-dev/boa/pull/1662
+* Clean-up contribution guidelines, dependencies, Test262, MSRV by @Razican in https://github.com/boa-dev/boa/pull/1683
+* Implement Async Generator Parsing by @nekevss in https://github.com/boa-dev/boa/pull/1669
+* Document CodeBlock by @TheDoctor314 in https://github.com/boa-dev/boa/pull/1691
+* Rename "Boa" to boa_engine, moved GC and profiler to their crates by @Razican in https://github.com/boa-dev/boa/pull/1844
+### Bug Fixes
+* Fix broken structure links in documentation by @abhishekc-sharma in https://github.com/boa-dev/boa/pull/1612
+* Fix integer parsing by @nrabulinski in https://github.com/boa-dev/boa/pull/1614
+* Fix `Number.toExponential` and `Number.toFixed` by @nrabulinski in https://github.com/boa-dev/boa/pull/1620
+* Fix non-conformant Math methods by @Nimpruda in https://github.com/boa-dev/boa/pull/1630
+* Badge updates by @atouchet in https://github.com/boa-dev/boa/pull/1638
+
+### New Contributors
+* @abhishekc-sharma made their first contribution in https://github.com/boa-dev/boa/pull/1612
+* @kevinputera made their first contribution in https://github.com/boa-dev/boa/pull/1606
+* @nrabulinski made their first contribution in https://github.com/boa-dev/boa/pull/1614
+* @hle0 made their first contribution in https://github.com/boa-dev/boa/pull/1618
+* @nekevss made their first contribution in https://github.com/boa-dev/boa/pull/1613
+* @lowr made their first contribution in https://github.com/boa-dev/boa/pull/1628
+* @Nimpruda made their first contribution in https://github.com/boa-dev/boa/pull/1634
+* @atouchet made their first contribution in https://github.com/boa-dev/boa/pull/1638
+* @praveenbakkal made their first contribution in https://github.com/boa-dev/boa/pull/1680
+* @bsinky made their first contribution in https://github.com/boa-dev/boa/pull/1665
+* @TheDoctor314 made their first contribution in https://github.com/boa-dev/boa/pull/1691
+
+**Full Changelog**: https://github.com/boa-dev/boa/compare/v0.13...v0.14
+
 # [0.13.0 (2021-09-30) - Many new features and refactors](https://github.com/boa-dev/boa/compare/v0.12.0...v0.13.0)
 
 Feature Enhancements:
