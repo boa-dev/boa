@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1646084684969,
+  "lastUpdate": 1646138862976,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -32315,6 +32315,432 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Execution)",
             "value": 1170745,
             "range": "± 24907",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "distinct": false,
+          "id": "d7ed2fe5c91ccd15eca73a4bdebcffa50e4c6042",
+          "message": "Bump git2 from 0.14.0 to 0.14.1 (#1878)\n\nBumps [git2](https://github.com/rust-lang/git2-rs) from 0.14.0 to 0.14.1.\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/d7757f170d098517a24a76a7982da3f897c0255b\"><code>d7757f1</code></a> Bump versions</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/a56acdc68af15153f04aad40b1eacdf74f744ef5\"><code>a56acdc</code></a> Fix dangling pointer in format_email.</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/f6e90a79f6521427a5067c1ca7a1c519bcbaebb6\"><code>f6e90a7</code></a> Add support for zlib-ng</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/c2a26133731d152f67a4fb11b35c4e139441e60c\"><code>c2a2613</code></a> Use cc 1.0.43 or later (<a href=\"https://github-redirect.dependabot.com/rust-lang/git2-rs/issues/608\">#608</a>)</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/97a855443f5678b6f71db59cfaf03b857ec38fac\"><code>97a8554</code></a> Make the calls to <code>crate::init()</code> consistent (<a href=\"https://github-redirect.dependabot.com/rust-lang/git2-rs/issues/604\">#604</a>)</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/a9d86f47021886147d46e2a8d9248f94edc45321\"><code>a9d86f4</code></a> Add bindings for <code>git_index_version()</code> and <code>git_index_set_version()</code> (<a href=\"https://github-redirect.dependabot.com/rust-lang/git2-rs/issues/597\">#597</a>)</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/892dc1a9a1c9b724533fa4802f7581b4b6b630da\"><code>892dc1a</code></a> Bump versions</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/e245130e5ae243059d0582b023a0649ece9cb647\"><code>e245130</code></a> Re-update libgit2 to master branch</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/c19cc75de917447825d18bba8d8d9f81bda07162\"><code>c19cc75</code></a> Depend on latest libgit2-sys</li>\n<li><a href=\"https://github.com/rust-lang/git2-rs/commit/f89075b297679ec1c450993675c15b47a4478480\"><code>f89075b</code></a> Bump versions</li>\n<li>Additional commits viewable in <a href=\"https://github.com/rust-lang/git2-rs/compare/git2-curl-0.14.0...git2-curl-0.14.1\">compare view</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility score](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=git2&package-manager=cargo&previous-version=0.14.0&new-version=0.14.1)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after your CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge and block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating it. You can achieve the same result by closing it manually\n- `@dependabot ignore this major version` will close this PR and stop Dependabot creating any more for this major version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop Dependabot creating any more for this minor version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop Dependabot creating any more for this dependency (unless you reopen the PR or upgrade to it yourself)\n\n\n</details>",
+          "timestamp": "2022-03-01T12:10:37Z",
+          "tree_id": "9080bc64c0e729abc0f1654523fb94f5a841d27b",
+          "url": "https://github.com/boa-dev/boa/commit/d7ed2fe5c91ccd15eca73a4bdebcffa50e4c6042"
+        },
+        "date": 1646138799952,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 338,
+            "range": "± 19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Parser)",
+            "value": 5200,
+            "range": "± 395",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 15728,
+            "range": "± 796",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Parser)",
+            "value": 18431,
+            "range": "± 941",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Parser)",
+            "value": 10703,
+            "range": "± 563",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Parser)",
+            "value": 11512,
+            "range": "± 618",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Parser)",
+            "value": 11998,
+            "range": "± 696",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Parser)",
+            "value": 7302,
+            "range": "± 494",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Parser)",
+            "value": 9612,
+            "range": "± 469",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Parser)",
+            "value": 9464,
+            "range": "± 600",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Parser)",
+            "value": 11488,
+            "range": "± 723",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Parser)",
+            "value": 13533,
+            "range": "± 1198",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Parser)",
+            "value": 15153,
+            "range": "± 961",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Parser)",
+            "value": 158712,
+            "range": "± 8736",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Parser)",
+            "value": 8800,
+            "range": "± 477",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Parser)",
+            "value": 12633,
+            "range": "± 894",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Parser)",
+            "value": 6381,
+            "range": "± 334",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Parser)",
+            "value": 12879,
+            "range": "± 1117",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Parser)",
+            "value": 16536,
+            "range": "± 1189",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Parser)",
+            "value": 16879,
+            "range": "± 794",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Parser)",
+            "value": 6364,
+            "range": "± 584",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 33156,
+            "range": "± 2277",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 29159,
+            "range": "± 2076",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Compiler)",
+            "value": 1241,
+            "range": "± 80",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Compiler)",
+            "value": 2509,
+            "range": "± 177",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Compiler)",
+            "value": 2964,
+            "range": "± 133",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Compiler)",
+            "value": 1796,
+            "range": "± 105",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Compiler)",
+            "value": 1797,
+            "range": "± 93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Compiler)",
+            "value": 2099,
+            "range": "± 137",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Compiler)",
+            "value": 1856,
+            "range": "± 249",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Compiler)",
+            "value": 1810,
+            "range": "± 111",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Compiler)",
+            "value": 2039,
+            "range": "± 196",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Compiler)",
+            "value": 2078,
+            "range": "± 105",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Compiler)",
+            "value": 1691,
+            "range": "± 99",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Compiler)",
+            "value": 2349,
+            "range": "± 174",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Compiler)",
+            "value": 4649,
+            "range": "± 276",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Compiler)",
+            "value": 2104,
+            "range": "± 110",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Compiler)",
+            "value": 2718,
+            "range": "± 150",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Compiler)",
+            "value": 1744,
+            "range": "± 127",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Compiler)",
+            "value": 1306,
+            "range": "± 76",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Compiler)",
+            "value": 1353,
+            "range": "± 86",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Compiler)",
+            "value": 1796,
+            "range": "± 93",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Compiler)",
+            "value": 685,
+            "range": "± 47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Compiler)",
+            "value": 4359,
+            "range": "± 268",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Compiler)",
+            "value": 4237,
+            "range": "± 253",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 5839,
+            "range": "± 277",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 51842,
+            "range": "± 2868",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 2276727,
+            "range": "± 139838",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Execution)",
+            "value": 7888,
+            "range": "± 525",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Execution)",
+            "value": 7980,
+            "range": "± 379",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Execution)",
+            "value": 8931,
+            "range": "± 947",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Execution)",
+            "value": 11841,
+            "range": "± 914",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Execution)",
+            "value": 11708,
+            "range": "± 1357",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Execution)",
+            "value": 15762,
+            "range": "± 1049",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 15846,
+            "range": "± 813",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Execution)",
+            "value": 12119,
+            "range": "± 673",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Execution)",
+            "value": 3642272,
+            "range": "± 205073",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1601249,
+            "range": "± 176230",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Execution)",
+            "value": 6668,
+            "range": "± 540",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Execution)",
+            "value": 7654,
+            "range": "± 534",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 6038,
+            "range": "± 406",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Execution)",
+            "value": 5745,
+            "range": "± 282",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Execution)",
+            "value": 7509,
+            "range": "± 687",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Execution)",
+            "value": 9324,
+            "range": "± 656",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Execution)",
+            "value": 2308,
+            "range": "± 117",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 1296171,
+            "range": "± 71577",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 1203337,
+            "range": "± 70040",
             "unit": "ns/iter"
           }
         ]
