@@ -1154,6 +1154,8 @@
 <span id="1152">1152</span>
 <span id="1153">1153</span>
 <span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.</span>
@@ -1799,21 +1801,23 @@
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If radix is undefined, let radixNumber be 10.</span>
+        <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">radix_number</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">radix</span>.<span class="ident">is_undefined</span>() {
+            <span class="number">10.0</span>
         <span class="comment">// 3. Else, let radixNumber be ? ToInteger(radix).</span>
-        <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>))
-            .<span class="ident">transpose</span>()<span class="question-mark">?</span>
-            .<span class="ident">map_or</span>(<span class="number">10</span>, <span class="op">|</span><span class="ident">radix</span><span class="op">|</span> <span class="ident">radix</span> <span class="kw">as</span> <span class="ident">u8</span>);
+        } <span class="kw">else</span> {
+            <span class="ident">radix</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+        };
 
         <span class="comment">// 4. If radixNumber &lt; 2 or radixNumber &gt; 36, throw a RangeError exception.</span>
-        <span class="kw">if</span> <span class="op">!</span>(<span class="number">2</span>..<span class="op">=</span><span class="number">36</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">radix</span>) {
+        <span class="kw">if</span> <span class="op">!</span>(<span class="number">2.0</span>..<span class="op">=</span><span class="number">36.0</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">radix_number</span>) {
             <span class="kw">return</span> <span class="ident">context</span>
                 .<span class="ident">throw_range_error</span>(<span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>);
         }
+        <span class="kw">let</span> <span class="ident">radix_number</span> <span class="op">=</span> <span class="ident">radix_number</span> <span class="kw">as</span> <span class="ident">u8</span>;
 
         <span class="comment">// 5. If radixNumber = 10, return ! ToString(x).</span>
-        <span class="kw">if</span> <span class="ident">radix</span> <span class="op">==</span> <span class="number">10</span> {
+        <span class="kw">if</span> <span class="ident">radix_number</span> <span class="op">==</span> <span class="number">10</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident"><span class="self">Self</span>::to_native_string</span>(<span class="ident">x</span>)));
         }
 
@@ -1836,7 +1840,7 @@
         <span class="comment">// }</span>
 
         <span class="comment">// 6. Return the String representation of this Number value using the radix specified by radixNumber.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident"><span class="self">Self</span>::to_native_string_radix</span>(<span class="ident">x</span>, <span class="ident">radix</span>)))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident"><span class="self">Self</span>::to_native_string_radix</span>(<span class="ident">x</span>, <span class="ident">radix_number</span>)))
     }
 
     <span class="doccomment">/// `Number.prototype.toString()`</span>
