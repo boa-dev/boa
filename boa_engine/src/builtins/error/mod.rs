@@ -38,6 +38,8 @@ pub(crate) use self::reference::ReferenceError;
 pub(crate) use self::syntax::SyntaxError;
 pub(crate) use self::uri::UriError;
 
+use super::JsArgs;
+
 /// Built-in `Error` object.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Error;
@@ -73,7 +75,27 @@ impl Error {
     /// The amount of arguments this function object takes.
     pub(crate) const LENGTH: usize = 1;
 
-    /// `Error( message )`
+    pub(crate) fn install_error_cause(
+        o: &JsObject,
+        options: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<()> {
+        // 1. If Type(options) is Object and ? HasProperty(options, "cause") is true, then
+        if let Some(options) = options.as_object() {
+            if options.has_property("cause", context)? {
+                // a. Let cause be ? Get(options, "cause").
+                let cause = options.get("cause", context)?;
+
+                // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "cause", cause).
+                o.create_non_enumerable_data_property_or_throw("cause", cause, context);
+            }
+        }
+
+        // 2. Return unused.
+        Ok(())
+    }
+
+    /// `Error( message [ , options ] )`
     ///
     /// Create a new error object.
     pub(crate) fn constructor(
@@ -81,15 +103,28 @@ impl Error {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+
+        // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%Error.prototype%", « [[ErrorData]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::error_object, context)?;
-        let obj = JsObject::from_proto_and_data(prototype, ObjectData::error());
-        if let Some(message) = args.get(0) {
-            if !message.is_undefined() {
-                obj.set("message", message.to_string(context)?, false, context)?;
-            }
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
+
+        // 3. If message is not undefined, then
+        let message = args.get_or_undefined(0);
+        if !message.is_undefined() {
+            // a. Let msg be ? ToString(message).
+            let msg = message.to_string(context)?;
+
+            // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
+            o.create_non_enumerable_data_property_or_throw("message", msg, context);
         }
-        Ok(obj.into())
+
+        // 4. Perform ? InstallErrorCause(O, options).
+        Self::install_error_cause(&o, args.get_or_undefined(1), context)?;
+
+        // 5. Return O.
+        Ok(o.into())
     }
 
     /// `Error.prototype.toString()`

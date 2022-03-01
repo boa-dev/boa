@@ -2,7 +2,7 @@ use crate::{
     builtins::Array,
     context::{StandardConstructor, StandardObjects},
     object::JsObject,
-    property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::Type,
     Context, JsResult, JsValue,
@@ -154,6 +154,43 @@ impl JsObject {
         }
         // 5. Return success.
         Ok(success)
+    }
+
+    /// Create non-enumerable data property or throw
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createnonenumerabledatapropertyinfallibly
+    pub(crate) fn create_non_enumerable_data_property_or_throw<K, V>(
+        &self,
+        key: K,
+        value: V,
+        context: &mut Context,
+    ) where
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
+    {
+        // 1. Assert: O is an ordinary, extensible object with no non-configurable properties.
+
+        // 2. Let newDesc be the PropertyDescriptor {
+        //    [[Value]]: V,
+        //    [[Writable]]: true,
+        //    [[Enumerable]]: false,
+        //    [[Configurable]]: true
+        //  }.
+        let new_desc = PropertyDescriptorBuilder::new()
+            .value(value)
+            .writable(true)
+            .enumerable(false)
+            .configurable(true)
+            .build();
+
+        // 3. Perform ! DefinePropertyOrThrow(O, P, newDesc).
+        self.define_property_or_throw(key, new_desc, context)
+            .expect("should not fail according to spec");
+
+        // 4. Return unused.
     }
 
     /// Define property or throw.
