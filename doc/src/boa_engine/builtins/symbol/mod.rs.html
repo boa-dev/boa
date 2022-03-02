@@ -341,6 +341,9 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The data type symbol is a primitive data type.</span>
@@ -553,8 +556,11 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let sym be ? thisSymbolValue(this value).</span>
         <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">to_string</span>().<span class="ident">into</span>())
+
+        <span class="comment">// 2. Return SymbolDescriptiveString(sym).</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">descriptive_string</span>().<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Symbol.prototype.valueOf()`</span>

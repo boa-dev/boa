@@ -1713,7 +1713,6 @@
 <span id="1711">1711</span>
 <span id="1712">1712</span>
 <span id="1713">1713</span>
-<span id="1714">1714</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -3423,8 +3422,7 @@
     }
 
     <span class="comment">// 5. Let cp be ! CodePointAt(S, index).</span>
-    <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>, <span class="kw">_</span>) <span class="op">=</span>
-        <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span> <span class="kw">as</span> <span class="ident">i64</span>).<span class="ident">expect</span>(<span class="string">&quot;Failed to get code point&quot;</span>);
+    <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span>);
 
     <span class="ident">index</span> <span class="op">+</span> <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">usize</span>
 }

@@ -1086,29 +1086,6 @@
 <span id="1084">1084</span>
 <span id="1085">1085</span>
 <span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
-<span id="1089">1089</span>
-<span id="1090">1090</span>
-<span id="1091">1091</span>
-<span id="1092">1092</span>
-<span id="1093">1093</span>
-<span id="1094">1094</span>
-<span id="1095">1095</span>
-<span id="1096">1096</span>
-<span id="1097">1097</span>
-<span id="1098">1098</span>
-<span id="1099">1099</span>
-<span id="1100">1100</span>
-<span id="1101">1101</span>
-<span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
-<span id="1105">1105</span>
-<span id="1106">1106</span>
-<span id="1107">1107</span>
-<span id="1108">1108</span>
-<span id="1109">1109</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1143,6 +1120,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">display</span>;
 <span class="kw">mod</span> <span class="ident">equality</span>;
 <span class="kw">mod</span> <span class="ident">hash</span>;
+<span class="kw">mod</span> <span class="ident">integer</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">serde_json</span>;
 <span class="kw">mod</span> <span class="ident">r#type</span>;
@@ -1151,6 +1129,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">display::ValueDisplay</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">equality</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">hash</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">integer::IntegerOrInfinity</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operations</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#type</span><span class="ident">::Type</span>;
 
@@ -1185,14 +1164,6 @@
     <span class="ident">Object</span>(<span class="ident">JsObject</span>),
     <span class="doccomment">/// `Symbol` - A Symbol Primitive type.</span>
     <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
-}
-
-<span class="doccomment">/// Represents the result of `ToIntegerOrInfinity` operation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IntegerOrInfinity</span> {
-    <span class="ident">Integer</span>(<span class="ident">i64</span>),
-    <span class="ident">PositiveInfinity</span>,
-    <span class="ident">NegativeInfinity</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">JsValue</span> {
@@ -1725,7 +1696,7 @@
         }
 
         <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">floor</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let int8bit be int modulo 2^8.</span>
         <span class="kw">let</span> <span class="ident">int_8_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">8</span>);
@@ -1754,7 +1725,7 @@
         }
 
         <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">floor</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let int8bit be int modulo 2^8.</span>
         <span class="kw">let</span> <span class="ident">int_8_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">8</span>);
@@ -1826,7 +1797,7 @@
         }
 
         <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">floor</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let int16bit be int modulo 2^16.</span>
         <span class="kw">let</span> <span class="ident">int_16_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">16</span>);
@@ -1855,7 +1826,7 @@
         }
 
         <span class="comment">// 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).</span>
-        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">floor</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">int</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let int16bit be int modulo 2^16.</span>
         <span class="kw">let</span> <span class="ident">int_16_bit</span> <span class="op">=</span> <span class="ident">int</span> <span class="op">%</span> <span class="number">2i64</span>.<span class="ident">pow</span>(<span class="number">16</span>);
@@ -1907,21 +1878,29 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toindex&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If value is undefined, then</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_undefined</span>() {
+            <span class="comment">// a. Return 0.</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">integer_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 2. Else,</span>
+        <span class="comment">// a. Let integer be ? ToIntegerOrInfinity(value).</span>
+        <span class="kw">let</span> <span class="ident">integer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">if</span> <span class="ident">integer_index</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Integer index must be &gt;= 0&quot;</span>);
+        <span class="comment">// b. Let clamped be ! ToLength(𝔽(integer)).</span>
+        <span class="kw">let</span> <span class="ident">clamped</span> <span class="op">=</span> <span class="ident">integer</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>);
+
+        <span class="comment">// c. If ! SameValue(𝔽(integer), clamped) is false, throw a RangeError exception.</span>
+        <span class="kw">if</span> <span class="ident">integer</span> <span class="op">!</span><span class="op">=</span> <span class="ident">clamped</span> {
+            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Index must be between 0 and  2^53 - 1&quot;</span>);
         }
 
-        <span class="kw">if</span> <span class="ident">integer_index</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Integer index must be less than 2**(53) - 1&quot;</span>);
-        }
+        <span class="comment">// d. Assert: 0 ≤ integer ≤ 2^53 - 1.</span>
+        <span class="macro">debug_assert!</span>(<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">clamped</span> <span class="op">&amp;&amp;</span> <span class="ident">clamped</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>);
 
-        <span class="prelude-val">Ok</span>(<span class="ident">integer_index</span> <span class="kw">as</span> <span class="ident">usize</span>)
+        <span class="comment">// e. Return integer.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">clamped</span> <span class="kw">as</span> <span class="ident">usize</span>)
     }
 
     <span class="doccomment">/// Converts argument to an integer suitable for use as the length of an array-like object.</span>
@@ -1929,37 +1908,43 @@
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tolength&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let len be ? ToInteger(argument).</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_integer</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
         <span class="comment">// 2. If len ≤ +0, return +0.</span>
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0</span>);
-        }
-
         <span class="comment">// 3. Return min(len, 2^53 - 1).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">len</span>.<span class="ident">min</span>(<span class="ident">Number::MAX_SAFE_INTEGER</span>) <span class="kw">as</span> <span class="ident">usize</span>)
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>
+            .<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+            .<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>)
     }
 
-    <span class="doccomment">/// Converts a value to an integral Number value.</span>
+    <span class="doccomment">/// Abstract operation `ToIntegerOrInfinity ( argument )`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tointeger&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_integer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// This method converts a `Value` to an integer representing its `Number` value with</span>
+    <span class="doccomment">/// fractional part truncated, or to +∞ or -∞ when that `Number` value is infinite.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">/// - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tointegerorinfinity</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_integer_or_infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">IntegerOrInfinity</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
         <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 2. If number is +∞ or -∞, return number.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">number</span>.<span class="ident">is_finite</span>() {
-            <span class="comment">// 3. If number is NaN, +0, or -0, return +0.</span>
-            <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() {
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="number">0.0</span>);
-            }
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">number</span>);
-        }
+        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span> <span class="op">==</span> <span class="number">0.0</span> {
+            <span class="comment">// 2. If number is NaN, +0𝔽, or -0𝔽, return 0.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="number">0</span>))
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">number</span> <span class="op">==</span> <span class="ident">f64::INFINITY</span> {
+            <span class="comment">// 3. If number is +∞𝔽, return +∞.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::PositiveInfinity</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">number</span> <span class="op">==</span> <span class="ident">f64::NEG_INFINITY</span> {
+            <span class="comment">// 4. If number is -∞𝔽, return -∞.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::NegativeInfinity</span>)
+        } <span class="kw">else</span> {
+            <span class="comment">// 5. Let integer be floor(abs(ℝ(number))).</span>
+            <span class="comment">// 6. If number &lt; +0𝔽, set integer to -integer.</span>
+            <span class="kw">let</span> <span class="ident">integer</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>().<span class="ident">copysign</span>(<span class="ident">number</span>) <span class="kw">as</span> <span class="ident">i64</span>;
 
-        <span class="comment">// 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).</span>
-        <span class="comment">// 5. If integer is -0, return +0.</span>
-        <span class="comment">// 6. Return integer.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">number</span>.<span class="ident">trunc</span>() <span class="op">+</span> <span class="number">0.0</span>) <span class="comment">// We add 0.0 to convert -0.0 to +0.0</span>
+            <span class="comment">// 7. Return integer.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">integer</span>))
+        }
     }
 
     <span class="doccomment">/// Converts a value to a double precision floating point.</span>
@@ -2027,37 +2012,6 @@
                 )
             })
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>))
-    }
-
-    <span class="doccomment">/// Converts argument to an integer, +∞, or -∞.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tointegerorinfinity&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_integer_or_infinity</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">IntegerOrInfinity</span><span class="op">&gt;</span> {
-        <span class="comment">// 1. Let number be ? ToNumber(argument).</span>
-        <span class="kw">let</span> <span class="ident">number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 2. If number is NaN, +0𝔽, or -0𝔽, return 0.</span>
-        <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_nan</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">number</span> <span class="op">==</span> <span class="number">0.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">number</span> <span class="op">==</span> <span class="op">-</span><span class="number">0.0</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="number">0</span>))
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() <span class="op">&amp;&amp;</span> <span class="ident">number</span>.<span class="ident">is_sign_positive</span>() {
-            <span class="comment">// 3. If number is +∞𝔽, return +∞.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::PositiveInfinity</span>)
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">number</span>.<span class="ident">is_infinite</span>() <span class="op">&amp;&amp;</span> <span class="ident">number</span>.<span class="ident">is_sign_negative</span>() {
-            <span class="comment">// 4. If number is -∞𝔽, return -∞.</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::NegativeInfinity</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// 5. Let integer be floor(abs(ℝ(number))).</span>
-            <span class="kw">let</span> <span class="ident">integer</span> <span class="op">=</span> <span class="ident">number</span>.<span class="ident">abs</span>().<span class="ident">floor</span>();
-            <span class="kw">let</span> <span class="ident">integer</span> <span class="op">=</span> <span class="ident">integer</span>.<span class="ident">min</span>(<span class="ident">Number::MAX_SAFE_INTEGER</span>) <span class="kw">as</span> <span class="ident">i64</span>;
-
-            <span class="comment">// 6. If number &lt; +0𝔽, set integer to -integer.</span>
-            <span class="comment">// 7. Return integer.</span>
-            <span class="kw">if</span> <span class="ident">number</span> <span class="op">&lt;</span> <span class="number">0.0</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="op">-</span><span class="ident">integer</span>))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">integer</span>))
-            }
-        }
     }
 
     <span class="doccomment">/// `typeof` operator. Returns a string representing the type of the</span>
