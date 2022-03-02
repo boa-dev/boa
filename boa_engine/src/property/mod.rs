@@ -580,13 +580,7 @@ impl From<PropertyKey> for JsValue {
         match property_key {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
-            PropertyKey::Index(index) => {
-                if let Ok(integer) = i32::try_from(index) {
-                    Self::new(integer)
-                } else {
-                    Self::new(index)
-                }
-            }
+            PropertyKey::Index(index) => index.to_string().into(),
         }
     }
 }
