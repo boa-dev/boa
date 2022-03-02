@@ -21,6 +21,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
+pub(crate) mod aggregate;
 pub(crate) mod eval;
 pub(crate) mod range;
 pub(crate) mod reference;
@@ -31,6 +32,7 @@ pub(crate) mod uri;
 #[cfg(test)]
 mod tests;
 
+pub(crate) use self::aggregate::AggregateError;
 pub(crate) use self::eval::EvalError;
 pub(crate) use self::r#type::TypeError;
 pub(crate) use self::range::RangeError;

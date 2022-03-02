@@ -38,7 +38,10 @@ pub(crate) use self::{
     boolean::Boolean,
     dataview::DataView,
     date::Date,
-    error::{Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, UriError},
+    error::{
+        AggregateError, Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError,
+        UriError,
+    },
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
@@ -163,6 +166,7 @@ pub fn init(context: &mut Context) {
         SyntaxError,
         EvalError,
         UriError,
+        AggregateError,
         Reflect
     };
 

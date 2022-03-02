@@ -85,6 +85,7 @@ pub struct StandardObjects {
     syntax_error: StandardConstructor,
     eval_error: StandardConstructor,
     uri_error: StandardConstructor,
+    aggregate_error: StandardConstructor,
     map: StandardConstructor,
     set: StandardConstructor,
     typed_array: StandardConstructor,
@@ -134,6 +135,7 @@ impl Default for StandardObjects {
             syntax_error: StandardConstructor::default(),
             eval_error: StandardConstructor::default(),
             uri_error: StandardConstructor::default(),
+            aggregate_error: StandardConstructor::default(),
             map: StandardConstructor::default(),
             set: StandardConstructor::default(),
             typed_array: StandardConstructor::default(),
@@ -248,6 +250,11 @@ impl StandardObjects {
     #[inline]
     pub fn uri_error_object(&self) -> &StandardConstructor {
         &self.uri_error
+    }
+
+    #[inline]
+    pub fn aggregate_error_object(&self) -> &StandardConstructor {
+        &self.aggregate_error
     }
 
     #[inline]
