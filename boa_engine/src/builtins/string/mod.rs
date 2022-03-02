@@ -41,6 +41,7 @@ pub(crate) enum Placement {
 
 pub(crate) fn code_point_at(string: &JsString, position: usize) -> (u32, u8, bool) {
     let mut encoded = string.encode_utf16();
+    let size = encoded.clone().count();
 
     let first = encoded
         .nth(position)
@@ -48,8 +49,6 @@ pub(crate) fn code_point_at(string: &JsString, position: usize) -> (u32, u8, boo
     if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
         return (u32::from(first), 1, false);
     }
-
-    let size = encoded.clone().count();
 
     if is_trailing_surrogate(first) || position + 1 == size {
         return (u32::from(first), 1, true);
@@ -688,7 +687,7 @@ impl String {
             // 4. If n < 0 or n is +∞, throw a RangeError exception.
             _ => context.throw_range_error(
                 "repeat count must be a positive finite number \
-                        that doesn't overflow the maximum string length",
+                        that doesn't overflow the maximum string length (2^32 - 1)",
             ),
         }
     }
@@ -1768,7 +1767,7 @@ impl String {
         let substring_utf16: Vec<u16> = string
             .encode_utf16()
             .skip(int_start)
-            .take(int_start - int_end)
+            .take(int_end - int_start)
             .collect();
         let substring = StdString::from_utf16_lossy(&substring_utf16);
 

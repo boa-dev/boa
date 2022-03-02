@@ -147,7 +147,8 @@ fn repeat_throws_when_count_is_negative() {
         }
     "#
         ),
-        "\"RangeError: repeat count cannot be a negative number\""
+        "\"RangeError: repeat count must be a positive finite number \
+        that doesn't overflow the maximum string length (2^32 - 1)\""
     );
 }
 
@@ -166,7 +167,8 @@ fn repeat_throws_when_count_is_infinity() {
         }
     "#
         ),
-        "\"RangeError: repeat count cannot be infinity\""
+        "\"RangeError: repeat count must be a positive finite number \
+        that doesn't overflow the maximum string length (2^32 - 1)\""
     );
 }
 
@@ -185,7 +187,8 @@ fn repeat_throws_when_count_overflows_max_length() {
         }
     "#
         ),
-        "\"RangeError: repeat count must not overflow maximum string length\""
+        "\"RangeError: repeat count must be a positive finite number \
+        that doesn't overflow the maximum string length (2^32 - 1)\""
     );
 }
 
