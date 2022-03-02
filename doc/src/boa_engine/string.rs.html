@@ -753,6 +753,30 @@
 <span id="751">751</span>
 <span id="752">752</span>
 <span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builtins::string::is_trimmable_whitespace</span>;
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
@@ -1227,25 +1251,49 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_to_number</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">f64</span> {
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>);
 
-        <span class="comment">// TODO: write our own lexer to match syntax StrDecimalLiteral</span>
         <span class="kw">match</span> <span class="ident">string</span> {
-            <span class="string">&quot;&quot;</span> =&gt; <span class="number">0.0</span>,
-            <span class="string">&quot;Infinity&quot;</span> <span class="op">|</span> <span class="string">&quot;+Infinity&quot;</span> =&gt; <span class="ident">f64::INFINITY</span>,
-            <span class="string">&quot;-Infinity&quot;</span> =&gt; <span class="ident">f64::NEG_INFINITY</span>,
-            <span class="kw">_</span> <span class="kw">if</span> <span class="macro">matches!</span>(
-                <span class="ident">string</span>
-                    .<span class="ident">chars</span>()
-                    .<span class="ident">take</span>(<span class="number">4</span>)
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()
-                    .<span class="ident">to_ascii_lowercase</span>()
-                    .<span class="ident">as_str</span>(),
-                <span class="string">&quot;inf&quot;</span> <span class="op">|</span> <span class="string">&quot;+inf&quot;</span> <span class="op">|</span> <span class="string">&quot;-inf&quot;</span> <span class="op">|</span> <span class="string">&quot;nan&quot;</span> <span class="op">|</span> <span class="string">&quot;+nan&quot;</span> <span class="op">|</span> <span class="string">&quot;-nan&quot;</span>
-            ) =&gt;
-            {
-                <span class="comment">// Prevent fast_float from parsing &quot;inf&quot;, &quot;+inf&quot; as Infinity and &quot;-inf&quot; as -Infinity</span>
-                <span class="ident">f64::NAN</span>
+            <span class="string">&quot;&quot;</span> =&gt; <span class="kw">return</span> <span class="number">0.0</span>,
+            <span class="string">&quot;-Infinity&quot;</span> =&gt; <span class="kw">return</span> <span class="ident">f64::NEG_INFINITY</span>,
+            <span class="string">&quot;Infinity&quot;</span> <span class="op">|</span> <span class="string">&quot;+Infinity&quot;</span> =&gt; <span class="kw">return</span> <span class="ident">f64::INFINITY</span>,
+            <span class="kw">_</span> =&gt; {}
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">bytes</span>();
+        <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">s</span>.<span class="ident">next</span>(), <span class="ident">s</span>.<span class="ident">next</span>()) {
+            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;b&#39;</span> <span class="op">|</span> <span class="string">b&#39;B&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">2</span>),
+            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;o&#39;</span> <span class="op">|</span> <span class="string">b&#39;O&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">8</span>),
+            (<span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>), <span class="prelude-val">Some</span>(<span class="string">b&#39;x&#39;</span> <span class="op">|</span> <span class="string">b&#39;X&#39;</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="number">16</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        };
+
+        <span class="comment">// Parse numbers that begin with `0b`, `0o` and `0x`.</span>
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">base</span>) <span class="op">=</span> <span class="ident">base</span> {
+            <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="number">2</span>..];
+            <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">is_empty</span>() {
+                <span class="kw">return</span> <span class="ident">f64::NAN</span>;
             }
-            <span class="kw">_</span> =&gt; <span class="ident">fast_float::parse</span>(<span class="ident">string</span>).<span class="ident">unwrap_or</span>(<span class="ident">f64::NAN</span>),
+
+            <span class="comment">// Fast path</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">u32::from_str_radix</span>(<span class="ident">string</span>, <span class="ident">base</span>) {
+                <span class="kw">return</span> <span class="ident">f64::from</span>(<span class="ident">value</span>);
+            }
+
+            <span class="comment">// Slow path</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="number">0.0</span>;
+            <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">s</span> {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">digit</span>) <span class="op">=</span> <span class="ident">char::from</span>(<span class="ident">c</span>).<span class="ident">to_digit</span>(<span class="ident">base</span>) {
+                    <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span> <span class="op">*</span> <span class="ident">f64::from</span>(<span class="ident">base</span>) <span class="op">+</span> <span class="ident">f64::from</span>(<span class="ident">digit</span>);
+                } <span class="kw">else</span> {
+                    <span class="kw">return</span> <span class="ident">f64::NAN</span>;
+                }
+            }
+            <span class="kw">return</span> <span class="ident">value</span>;
+        }
+
+        <span class="kw">match</span> <span class="ident">string</span> {
+            <span class="comment">// Handle special cases so `fast_float` does not return infinity.</span>
+            <span class="string">&quot;inf&quot;</span> <span class="op">|</span> <span class="string">&quot;+inf&quot;</span> <span class="op">|</span> <span class="string">&quot;-inf&quot;</span> =&gt; <span class="ident">f64::NAN</span>,
+            <span class="ident">string</span> =&gt; <span class="ident">fast_float::parse</span>(<span class="ident">string</span>).<span class="ident">unwrap_or</span>(<span class="ident">f64::NAN</span>),
         }
     }
 }
