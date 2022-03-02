@@ -316,23 +316,6 @@ impl JsValue {
         }
     }
 
-    /**
-    Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn't exist
-    `get_field` receives a Property from get_prop(). It should then return the `[[Get]]` result value if that's set, otherwise fall back to `[[Value]]`
-    */
-    pub(crate) fn get_field<K>(&self, key: K, context: &mut Context) -> JsResult<Self>
-    where
-        K: Into<PropertyKey>,
-    {
-        let _timer = Profiler::global().start_event("Value::get_field", "value");
-        if let Self::Object(ref obj) = *self {
-            obj.clone()
-                .__get__(&key.into(), obj.clone().into(), context)
-        } else {
-            Ok(Self::undefined())
-        }
-    }
-
     /// Set the kind of an object.
     #[inline]
     pub fn set_data(&self, data: ObjectData) {

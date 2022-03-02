@@ -118,53 +118,53 @@ impl Set {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1
+        // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
             return context
                 .throw_type_error("calling a builtin Set constructor without new is forbidden");
         }
 
-        // 2
+        // 2. Let set be ? OrdinaryCreateFromConstructor(NewTarget, "%Set.prototype%", « [[SetData]] »).
+        // 3. Set set.[[SetData]] to a new empty List.
         let prototype =
             get_prototype_from_constructor(new_target, StandardObjects::set_object, context)?;
+        let set = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::default()));
 
-        let obj = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::default()));
-
+        // 4. If iterable is either undefined or null, return set.
         let iterable = args.get_or_undefined(0);
-        // 4
         if iterable.is_null_or_undefined() {
-            return Ok(obj.into());
+            return Ok(set.into());
         }
 
-        // 5
-        let adder = obj.get("add", context)?;
+        // 5. Let adder be ? Get(set, "add").
+        let adder = set.get("add", context)?;
 
-        // 6
+        // 6. If IsCallable(adder) is false, throw a TypeError exception.
         let adder = adder.as_callable().ok_or_else(|| {
             context.construct_type_error("'add' of 'newTarget' is not a function")
         })?;
 
-        // 7
+        // 7. Let iteratorRecord be ? GetIterator(iterable).
         let iterator_record = iterable.clone().get_iterator(context, None, None)?;
 
-        // 8.a
-        let mut next = iterator_record.next(context)?;
-
-        // 8
-        while !next.done {
+        // 8. Repeat,
+        //     a. Let next be ? IteratorStep(iteratorRecord).
+        //     b. If next is false, return set.
+        //     c. Let nextValue be ? IteratorValue(next).
+        //     d. Let status be Completion(Call(adder, set, « nextValue »)).
+        //     e. IfAbruptCloseIterator(status, iteratorRecord).
+        while let Some(next) = iterator_record.step(context)? {
             // c
-            let next_value = next.value;
+            let next_value = next.value(context)?;
 
             // d, e
-            if let Err(status) = adder.call(&obj.clone().into(), &[next_value], context) {
+            if let Err(status) = adder.call(&set.clone().into(), &[next_value], context) {
                 return iterator_record.close(Err(status), context);
             }
-
-            next = iterator_record.next(context)?;
         }
 
         // 8.b
-        Ok(obj.into())
+        Ok(set.into())
     }
 
     /// `get Set [ @@species ]`

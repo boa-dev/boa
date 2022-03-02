@@ -220,13 +220,8 @@ impl Context {
                 let array = self.vm.pop();
 
                 let iterator = IteratorRecord::new(iterator, next_function);
-                loop {
-                    let next = iterator.next(self)?;
-
-                    if next.done {
-                        break;
-                    }
-                    Array::push(&array, &[next.value], self)?;
+                while let Some(next) = iterator.step(self)? {
+                    Array::push(&array, &[next.value(self)?], self)?;
                 }
 
                 self.vm.push(array);
@@ -980,12 +975,8 @@ impl Context {
 
                 let iterator_record = rest_argument.get_iterator(self, None, None)?;
                 let mut rest_arguments = Vec::new();
-                loop {
-                    let next = iterator_record.next(self)?;
-                    if next.done {
-                        break;
-                    }
-                    rest_arguments.push(next.value);
+                while let Some(next) = iterator_record.step(self)? {
+                    rest_arguments.push(next.value(self)?);
                 }
                 arguments.append(&mut rest_arguments);
 
@@ -1036,12 +1027,8 @@ impl Context {
 
                 let iterator_record = rest_argument.get_iterator(self, None, None)?;
                 let mut rest_arguments = Vec::new();
-                loop {
-                    let next = iterator_record.next(self)?;
-                    if next.done {
-                        break;
-                    }
-                    rest_arguments.push(next.value);
+                while let Some(next) = iterator_record.step(self)? {
+                    rest_arguments.push(next.value(self)?);
                 }
                 arguments.append(&mut rest_arguments);
 
@@ -1171,23 +1158,34 @@ impl Context {
                 let iterator = self.vm.pop();
 
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
-                let iterator_result = iterator_record.next(self)?;
+                let next = iterator_record.step(self)?;
 
                 self.vm.push(iterator);
                 self.vm.push(next_function);
-                self.vm.push(iterator_result.value);
+                if let Some(next) = next {
+                    let value = next.value(self)?;
+                    self.vm.push(value);
+                } else {
+                    self.vm.push(JsValue::undefined());
+                }
             }
             Opcode::IteratorNextFull => {
                 let next_function = self.vm.pop();
                 let iterator = self.vm.pop();
 
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
-                let iterator_result = iterator_record.next(self)?;
+                let next = iterator_record.step(self)?;
 
                 self.vm.push(iterator);
                 self.vm.push(next_function);
-                self.vm.push(iterator_result.done);
-                self.vm.push(iterator_result.value);
+                if let Some(next) = next {
+                    let value = next.value(self)?;
+                    self.vm.push(false);
+                    self.vm.push(value);
+                } else {
+                    self.vm.push(true);
+                    self.vm.push(JsValue::undefined());
+                }
             }
             Opcode::IteratorClose => {
                 let done = self.vm.pop();
@@ -1205,12 +1203,8 @@ impl Context {
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
                 let mut values = Vec::new();
 
-                loop {
-                    let next = iterator_record.next(self)?;
-                    if next.done {
-                        break;
-                    }
-                    values.push(next.value);
+                while let Some(result) = iterator_record.step(self)? {
+                    values.push(result.value(self)?);
                 }
 
                 let array = Array::create_array_from_list(values, self);
@@ -1226,18 +1220,18 @@ impl Context {
                 let iterator = self.vm.pop();
 
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
-                let iterator_result = iterator_record.next(self)?;
-                if iterator_result.done {
+                if let Some(next) = iterator_record.step(self)? {
+                    self.vm.push(iterator);
+                    self.vm.push(next_function);
+                    let value = next.value(self)?;
+                    self.vm.push(value);
+                } else {
                     self.vm.frame_mut().pc = address as usize;
                     self.vm.frame_mut().loop_env_stack_dec();
                     self.vm.frame_mut().try_env_stack_dec();
                     self.realm.environments.pop();
                     self.vm.push(iterator);
                     self.vm.push(next_function);
-                } else {
-                    self.vm.push(iterator);
-                    self.vm.push(next_function);
-                    self.vm.push(iterator_result.value);
                 }
             }
             Opcode::ConcatToString => {
