@@ -37,7 +37,9 @@ impl BuiltIn for UriError {
     fn init(context: &mut Context) -> JsValue {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        let error_constructor = context.standard_objects().error_object().constructor();
         let error_prototype = context.standard_objects().error_object().prototype();
+
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         let uri_error_object = ConstructorBuilder::with_standard_object(
             context,
@@ -47,6 +49,7 @@ impl BuiltIn for UriError {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .inherit(error_prototype)
+        .custom_prototype(error_constructor)
         .property("name", Self::NAME, attribute)
         .property("message", "", attribute)
         .build();
