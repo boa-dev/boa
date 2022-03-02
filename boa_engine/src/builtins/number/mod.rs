@@ -192,7 +192,7 @@ impl Number {
         let precision = match args.get(0) {
             None | Some(JsValue::Undefined) => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
-            Some(n) => Some(n.to_integer(context)? as i32),
+            Some(n) => Some(n.to_integer_or_infinity(context)?),
         };
         // 4. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
@@ -200,15 +200,17 @@ impl Number {
         }
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
-        let this_str_num = if let Some(precision) = precision {
+        let this_str_num = match precision {
+            None => f64_to_exponential(this_num),
+            Some(IntegerOrInfinity::Integer(precision)) if (0..=100).contains(&precision) =>
             // 5. If f < 0 or f > 100, throw a RangeError exception.
-            if !(0..=100).contains(&precision) {
-                return context
-                    .throw_range_error("toExponential() argument must be between 0 and 100");
+            {
+                f64_to_exponential_with_precision(this_num, precision as usize)
             }
-            f64_to_exponential_with_precision(this_num, precision as usize)
-        } else {
-            f64_to_exponential(this_num)
+            _ => {
+                return context
+                    .throw_range_error("toExponential() argument must be between 0 and 100")
+            }
         };
         Ok(JsValue::new(this_str_num))
     }
@@ -231,19 +233,19 @@ impl Number {
     ) -> JsResult<JsValue> {
         // 1. Let this_num be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
-        let precision = match args.get(0) {
-            // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
-            Some(n) => match n.to_integer(context)? as i32 {
-                0..=100 => n.to_integer(context)? as usize,
-                // 4, 5. If f < 0 or f > 100, throw a RangeError exception.
-                _ => {
-                    return context
-                        .throw_range_error("toFixed() digits argument must be between 0 and 100")
-                }
-            },
-            // 3. If fractionDigits is undefined, then f is 0.
-            None => 0,
-        };
+
+        // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
+        // 3. Assert: If fractionDigits is undefined, then f is 0.
+        let precision = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+
+        // 4, 5. If f < 0 or f > 100, throw a RangeError exception.
+        let precision = precision
+            .as_integer()
+            .filter(|i| (0..=100).contains(i))
+            .ok_or_else(|| {
+                context.construct_range_error("toFixed() digits argument must be between 0 and 100")
+            })? as usize;
+
         // 6. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
             Ok(JsValue::new(Self::to_native_string(this_num)))
@@ -642,21 +644,23 @@ impl Number {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, context)?;
 
-        // 2. If radix is undefined, let radixNumber be 10.
         let radix = args.get_or_undefined(0);
         let radix_number = if radix.is_undefined() {
-            10.0
-        // 3. Else, let radixNumber be ? ToInteger(radix).
+            // 2. If radix is undefined, let radixNumber be 10.
+            10
         } else {
-            radix.to_integer(context)?
-        };
-
-        // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
-        if !(2.0..=36.0).contains(&radix_number) {
-            return context
-                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
-        }
-        let radix_number = radix_number as u8;
+            // 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
+            radix
+                .to_integer_or_infinity(context)?
+                .as_integer()
+                // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
+                .filter(|i| (2..=36).contains(i))
+                .ok_or_else(|| {
+                    context.construct_range_error(
+                        "radix must be an integer at least 2 and no greater than 36",
+                    )
+                })?
+        } as u8;
 
         // 5. If radixNumber = 10, return ! ToString(x).
         if radix_number == 10 {

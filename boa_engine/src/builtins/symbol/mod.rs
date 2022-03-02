@@ -210,8 +210,11 @@ impl Symbol {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let sym be ? thisSymbolValue(this value).
         let symbol = Self::this_symbol_value(this, context)?;
-        Ok(symbol.to_string().into())
+
+        // 2. Return SymbolDescriptiveString(sym).
+        Ok(symbol.descriptive_string().into())
     }
 
     /// `Symbol.prototype.valueOf()`

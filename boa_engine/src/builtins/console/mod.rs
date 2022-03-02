@@ -20,7 +20,7 @@ use crate::{
     builtins::{BuiltIn, JsArgs},
     object::ObjectInitializer,
     property::Attribute,
-    value::{display::display_obj, JsValue},
+    value::{display::display_obj, JsValue, Numeric},
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
@@ -71,21 +71,16 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                     match fmt {
                         /* integer */
                         'd' | 'i' => {
-                            let arg = data
-                                .get(arg_index)
-                                .cloned()
-                                .unwrap_or_default()
-                                .to_integer(context)?;
-                            formatted.push_str(&arg.to_string());
+                            let arg = match data.get_or_undefined(arg_index).to_numeric(context)? {
+                                Numeric::Number(r) => (r.floor() + 0.0).to_string(),
+                                Numeric::BigInt(int) => int.to_string(),
+                            };
+                            formatted.push_str(&arg);
                             arg_index += 1;
                         }
                         /* float */
                         'f' => {
-                            let arg = data
-                                .get(arg_index)
-                                .cloned()
-                                .unwrap_or_default()
-                                .to_number(context)?;
+                            let arg = data.get_or_undefined(arg_index).to_number(context)?;
                             formatted.push_str(&format!("{arg:.6}"));
                             arg_index += 1;
                         }

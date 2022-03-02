@@ -32,6 +32,7 @@ mod conversions;
 pub(crate) mod display;
 mod equality;
 mod hash;
+mod integer;
 mod operations;
 mod serde_json;
 mod r#type;
@@ -40,6 +41,7 @@ pub use conversions::*;
 pub use display::ValueDisplay;
 pub use equality::*;
 pub use hash::*;
+pub use integer::IntegerOrInfinity;
 pub use operations::*;
 pub use r#type::Type;
 
@@ -74,14 +76,6 @@ pub enum JsValue {
     Object(JsObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(JsSymbol),
-}
-
-/// Represents the result of `ToIntegerOrInfinity` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum IntegerOrInfinity {
-    Integer(i64),
-    PositiveInfinity,
-    NegativeInfinity,
 }
 
 impl JsValue {
@@ -614,7 +608,7 @@ impl JsValue {
         }
 
         // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.floor() as i64;
+        let int = number.abs().floor().copysign(number) as i64;
 
         // 4. Let int8bit be int modulo 2^8.
         let int_8_bit = int % 2i64.pow(8);
@@ -643,7 +637,7 @@ impl JsValue {
         }
 
         // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.floor() as i64;
+        let int = number.abs().floor().copysign(number) as i64;
 
         // 4. Let int8bit be int modulo 2^8.
         let int_8_bit = int % 2i64.pow(8);
@@ -715,7 +709,7 @@ impl JsValue {
         }
 
         // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.floor() as i64;
+        let int = number.abs().floor().copysign(number) as i64;
 
         // 4. Let int16bit be int modulo 2^16.
         let int_16_bit = int % 2i64.pow(16);
@@ -744,7 +738,7 @@ impl JsValue {
         }
 
         // 3. Let int be the mathematical value whose sign is the sign of number and whose magnitude is floor(abs(ℝ(number))).
-        let int = number.floor() as i64;
+        let int = number.abs().floor().copysign(number) as i64;
 
         // 4. Let int16bit be int modulo 2^16.
         let int_16_bit = int % 2i64.pow(16);
@@ -796,21 +790,29 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-toindex>
     pub fn to_index(&self, context: &mut Context) -> JsResult<usize> {
+        // 1. If value is undefined, then
         if self.is_undefined() {
+            // a. Return 0.
             return Ok(0);
         }
 
-        let integer_index = self.to_integer(context)?;
+        // 2. Else,
+        // a. Let integer be ? ToIntegerOrInfinity(value).
+        let integer = self.to_integer_or_infinity(context)?;
 
-        if integer_index < 0.0 {
-            return context.throw_range_error("Integer index must be >= 0");
+        // b. Let clamped be ! ToLength(𝔽(integer)).
+        let clamped = integer.clamp_finite(0, Number::MAX_SAFE_INTEGER as i64);
+
+        // c. If ! SameValue(𝔽(integer), clamped) is false, throw a RangeError exception.
+        if integer != clamped {
+            return context.throw_range_error("Index must be between 0 and  2^53 - 1");
         }
 
-        if integer_index > Number::MAX_SAFE_INTEGER {
-            return context.throw_range_error("Integer index must be less than 2**(53) - 1");
-        }
+        // d. Assert: 0 ≤ integer ≤ 2^53 - 1.
+        debug_assert!(0 <= clamped && clamped <= Number::MAX_SAFE_INTEGER as i64);
 
-        Ok(integer_index as usize)
+        // e. Return integer.
+        Ok(clamped as usize)
     }
 
     /// Converts argument to an integer suitable for use as the length of an array-like object.
@@ -818,37 +820,43 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-tolength>
     pub fn to_length(&self, context: &mut Context) -> JsResult<usize> {
         // 1. Let len be ? ToInteger(argument).
-        let len = self.to_integer(context)?;
-
         // 2. If len ≤ +0, return +0.
-        if len < 0.0 {
-            return Ok(0);
-        }
-
         // 3. Return min(len, 2^53 - 1).
-        Ok(len.min(Number::MAX_SAFE_INTEGER) as usize)
+        Ok(self
+            .to_integer_or_infinity(context)?
+            .clamp_finite(0, Number::MAX_SAFE_INTEGER as i64) as usize)
     }
 
-    /// Converts a value to an integral Number value.
+    /// Abstract operation `ToIntegerOrInfinity ( argument )`
     ///
-    /// See: <https://tc39.es/ecma262/#sec-tointeger>
-    pub fn to_integer(&self, context: &mut Context) -> JsResult<f64> {
+    /// This method converts a `Value` to an integer representing its `Number` value with
+    /// fractional part truncated, or to +∞ or -∞ when that `Number` value is infinite.
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-tointegerorinfinity
+    pub fn to_integer_or_infinity(&self, context: &mut Context) -> JsResult<IntegerOrInfinity> {
         // 1. Let number be ? ToNumber(argument).
         let number = self.to_number(context)?;
 
-        // 2. If number is +∞ or -∞, return number.
-        if !number.is_finite() {
-            // 3. If number is NaN, +0, or -0, return +0.
-            if number.is_nan() {
-                return Ok(0.0);
-            }
-            return Ok(number);
-        }
+        if number.is_nan() || number == 0.0 {
+            // 2. If number is NaN, +0𝔽, or -0𝔽, return 0.
+            Ok(IntegerOrInfinity::Integer(0))
+        } else if number == f64::INFINITY {
+            // 3. If number is +∞𝔽, return +∞.
+            Ok(IntegerOrInfinity::PositiveInfinity)
+        } else if number == f64::NEG_INFINITY {
+            // 4. If number is -∞𝔽, return -∞.
+            Ok(IntegerOrInfinity::NegativeInfinity)
+        } else {
+            // 5. Let integer be floor(abs(ℝ(number))).
+            // 6. If number < +0𝔽, set integer to -integer.
+            let integer = number.abs().floor().copysign(number) as i64;
 
-        // 4. Let integer be the Number value that is the same sign as number and whose magnitude is floor(abs(number)).
-        // 5. If integer is -0, return +0.
-        // 6. Return integer.
-        Ok(number.trunc() + 0.0) // We add 0.0 to convert -0.0 to +0.0
+            // 7. Return integer.
+            Ok(IntegerOrInfinity::Integer(integer))
+        }
     }
 
     /// Converts a value to a double precision floating point.
@@ -916,37 +924,6 @@ impl JsValue {
                 )
             })
             .and_then(|obj| obj.to_property_descriptor(context))
-    }
-
-    /// Converts argument to an integer, +∞, or -∞.
-    ///
-    /// See: <https://tc39.es/ecma262/#sec-tointegerorinfinity>
-    pub fn to_integer_or_infinity(&self, context: &mut Context) -> JsResult<IntegerOrInfinity> {
-        // 1. Let number be ? ToNumber(argument).
-        let number = self.to_number(context)?;
-
-        // 2. If number is NaN, +0𝔽, or -0𝔽, return 0.
-        if number.is_nan() || number == 0.0 || number == -0.0 {
-            Ok(IntegerOrInfinity::Integer(0))
-        } else if number.is_infinite() && number.is_sign_positive() {
-            // 3. If number is +∞𝔽, return +∞.
-            Ok(IntegerOrInfinity::PositiveInfinity)
-        } else if number.is_infinite() && number.is_sign_negative() {
-            // 4. If number is -∞𝔽, return -∞.
-            Ok(IntegerOrInfinity::NegativeInfinity)
-        } else {
-            // 5. Let integer be floor(abs(ℝ(number))).
-            let integer = number.abs().floor();
-            let integer = integer.min(Number::MAX_SAFE_INTEGER) as i64;
-
-            // 6. If number < +0𝔽, set integer to -integer.
-            // 7. Return integer.
-            if number < 0.0 {
-                Ok(IntegerOrInfinity::Integer(-integer))
-            } else {
-                Ok(IntegerOrInfinity::Integer(integer))
-            }
-        }
     }
 
     /// `typeof` operator. Returns a string representing the type of the

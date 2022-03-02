@@ -289,6 +289,16 @@ impl JsSymbol {
     pub fn hash(&self) -> u64 {
         self.inner.hash
     }
+
+    /// Abstract operation `SymbolDescriptiveString ( sym )`
+    ///
+    /// More info:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
+    pub fn descriptive_string(&self) -> JsString {
+        self.to_string().into()
+    }
 }
 
 impl Finalize for JsSymbol {}
