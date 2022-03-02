@@ -685,12 +685,6 @@
 <span id="683">683</span>
 <span id="684">684</span>
 <span id="685">685</span>
-<span id="686">686</span>
-<span id="687">687</span>
-<span id="688">688</span>
-<span id="689">689</span>
-<span id="690">690</span>
-<span id="691">691</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Property Descriptor.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The Property Descriptor type is used to explain the manipulation and reification of `Object`</span>
@@ -1273,13 +1267,7 @@
         <span class="kw">match</span> <span class="ident">property_key</span> {
             <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
             <span class="ident">PropertyKey::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">integer</span>) <span class="op">=</span> <span class="ident">i32::try_from</span>(<span class="ident">index</span>) {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">integer</span>)
-                } <span class="kw">else</span> {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">index</span>)
-                }
-            }
+            <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>.<span class="ident">to_string</span>().<span class="ident">into</span>(),
         }
     }
 }
