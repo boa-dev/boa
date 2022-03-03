@@ -1,10 +1,11 @@
 //! Javascript context.
 
+pub mod intrinsics;
+
+use intrinsics::{IntrinsicObjects, Intrinsics};
+
 use crate::{
-    builtins::{
-        self, function::NativeFunctionSignature, intrinsics::IntrinsicObjects,
-        iterable::IteratorPrototypes, typed_array::TypedArray,
-    },
+    builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
@@ -20,323 +21,6 @@ use boa_profiler::Profiler;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
-
-/// Store a builtin constructor (such as `Object`) and its corresponding prototype.
-#[derive(Debug, Clone)]
-pub struct StandardConstructor {
-    pub(crate) constructor: JsObject,
-    pub(crate) prototype: JsObject,
-}
-
-impl Default for StandardConstructor {
-    fn default() -> Self {
-        Self {
-            constructor: JsObject::empty(),
-            prototype: JsObject::empty(),
-        }
-    }
-}
-
-impl StandardConstructor {
-    /// Build a constructor with a defined prototype.
-    fn with_prototype(prototype: JsObject) -> Self {
-        Self {
-            constructor: JsObject::empty(),
-            prototype,
-        }
-    }
-
-    /// Return the constructor object.
-    ///
-    /// This is the same as `Object`, `Array`, etc.
-    #[inline]
-    pub fn constructor(&self) -> JsObject {
-        self.constructor.clone()
-    }
-
-    /// Return the prototype of the constructor object.
-    ///
-    /// This is the same as `Object.prototype`, `Array.prototype`, etc
-    #[inline]
-    pub fn prototype(&self) -> JsObject {
-        self.prototype.clone()
-    }
-}
-
-/// Cached core standard objects.
-#[derive(Debug, Clone)]
-pub struct StandardObjects {
-    object: StandardConstructor,
-    proxy: StandardConstructor,
-    function: StandardConstructor,
-    generator: StandardConstructor,
-    generator_function: StandardConstructor,
-    array: StandardConstructor,
-    bigint: StandardConstructor,
-    number: StandardConstructor,
-    boolean: StandardConstructor,
-    string: StandardConstructor,
-    regexp: StandardConstructor,
-    symbol: StandardConstructor,
-    error: StandardConstructor,
-    type_error: StandardConstructor,
-    reference_error: StandardConstructor,
-    range_error: StandardConstructor,
-    syntax_error: StandardConstructor,
-    eval_error: StandardConstructor,
-    uri_error: StandardConstructor,
-    aggregate_error: StandardConstructor,
-    map: StandardConstructor,
-    set: StandardConstructor,
-    typed_array: StandardConstructor,
-    typed_int8_array: StandardConstructor,
-    typed_uint8_array: StandardConstructor,
-    typed_uint8clamped_array: StandardConstructor,
-    typed_int16_array: StandardConstructor,
-    typed_uint16_array: StandardConstructor,
-    typed_int32_array: StandardConstructor,
-    typed_uint32_array: StandardConstructor,
-    typed_bigint64_array: StandardConstructor,
-    typed_biguint64_array: StandardConstructor,
-    typed_float32_array: StandardConstructor,
-    typed_float64_array: StandardConstructor,
-    array_buffer: StandardConstructor,
-    data_view: StandardConstructor,
-}
-
-impl Default for StandardObjects {
-    fn default() -> Self {
-        Self {
-            object: StandardConstructor::default(),
-            proxy: StandardConstructor::default(),
-            function: StandardConstructor::default(),
-            generator: StandardConstructor::default(),
-            generator_function: StandardConstructor::default(),
-            array: StandardConstructor::default(),
-            bigint: StandardConstructor::default(),
-            number: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::number(0.0),
-            )),
-            boolean: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::boolean(false),
-            )),
-            string: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
-                None,
-                ObjectData::string("".into()),
-            )),
-            regexp: StandardConstructor::default(),
-            symbol: StandardConstructor::default(),
-            error: StandardConstructor::default(),
-            type_error: StandardConstructor::default(),
-            reference_error: StandardConstructor::default(),
-            range_error: StandardConstructor::default(),
-            syntax_error: StandardConstructor::default(),
-            eval_error: StandardConstructor::default(),
-            uri_error: StandardConstructor::default(),
-            aggregate_error: StandardConstructor::default(),
-            map: StandardConstructor::default(),
-            set: StandardConstructor::default(),
-            typed_array: StandardConstructor::default(),
-            typed_int8_array: StandardConstructor::default(),
-            typed_uint8_array: StandardConstructor::default(),
-            typed_uint8clamped_array: StandardConstructor::default(),
-            typed_int16_array: StandardConstructor::default(),
-            typed_uint16_array: StandardConstructor::default(),
-            typed_int32_array: StandardConstructor::default(),
-            typed_uint32_array: StandardConstructor::default(),
-            typed_bigint64_array: StandardConstructor::default(),
-            typed_biguint64_array: StandardConstructor::default(),
-            typed_float32_array: StandardConstructor::default(),
-            typed_float64_array: StandardConstructor::default(),
-            array_buffer: StandardConstructor::default(),
-            data_view: StandardConstructor::default(),
-        }
-    }
-}
-
-impl StandardObjects {
-    #[inline]
-    pub fn object_object(&self) -> &StandardConstructor {
-        &self.object
-    }
-
-    #[inline]
-    pub fn proxy_object(&self) -> &StandardConstructor {
-        &self.proxy
-    }
-
-    #[inline]
-    pub fn function_object(&self) -> &StandardConstructor {
-        &self.function
-    }
-
-    #[inline]
-    pub fn generator_object(&self) -> &StandardConstructor {
-        &self.generator
-    }
-
-    #[inline]
-    pub fn generator_function_object(&self) -> &StandardConstructor {
-        &self.generator_function
-    }
-
-    #[inline]
-    pub fn array_object(&self) -> &StandardConstructor {
-        &self.array
-    }
-
-    #[inline]
-    pub fn bigint_object(&self) -> &StandardConstructor {
-        &self.bigint
-    }
-
-    #[inline]
-    pub fn number_object(&self) -> &StandardConstructor {
-        &self.number
-    }
-
-    #[inline]
-    pub fn boolean_object(&self) -> &StandardConstructor {
-        &self.boolean
-    }
-
-    #[inline]
-    pub fn string_object(&self) -> &StandardConstructor {
-        &self.string
-    }
-
-    #[inline]
-    pub fn regexp_object(&self) -> &StandardConstructor {
-        &self.regexp
-    }
-
-    #[inline]
-    pub fn symbol_object(&self) -> &StandardConstructor {
-        &self.symbol
-    }
-
-    #[inline]
-    pub fn error_object(&self) -> &StandardConstructor {
-        &self.error
-    }
-
-    #[inline]
-    pub fn reference_error_object(&self) -> &StandardConstructor {
-        &self.reference_error
-    }
-
-    #[inline]
-    pub fn type_error_object(&self) -> &StandardConstructor {
-        &self.type_error
-    }
-
-    #[inline]
-    pub fn range_error_object(&self) -> &StandardConstructor {
-        &self.range_error
-    }
-
-    #[inline]
-    pub fn syntax_error_object(&self) -> &StandardConstructor {
-        &self.syntax_error
-    }
-
-    #[inline]
-    pub fn eval_error_object(&self) -> &StandardConstructor {
-        &self.eval_error
-    }
-
-    #[inline]
-    pub fn uri_error_object(&self) -> &StandardConstructor {
-        &self.uri_error
-    }
-
-    #[inline]
-    pub fn aggregate_error_object(&self) -> &StandardConstructor {
-        &self.aggregate_error
-    }
-
-    #[inline]
-    pub fn map_object(&self) -> &StandardConstructor {
-        &self.map
-    }
-
-    #[inline]
-    pub fn set_object(&self) -> &StandardConstructor {
-        &self.set
-    }
-
-    #[inline]
-    pub fn typed_array_object(&self) -> &StandardConstructor {
-        &self.typed_array
-    }
-
-    #[inline]
-    pub fn typed_int8_array_object(&self) -> &StandardConstructor {
-        &self.typed_int8_array
-    }
-
-    #[inline]
-    pub fn typed_uint8_array_object(&self) -> &StandardConstructor {
-        &self.typed_uint8_array
-    }
-
-    #[inline]
-    pub fn typed_uint8clamped_array_object(&self) -> &StandardConstructor {
-        &self.typed_uint8clamped_array
-    }
-
-    #[inline]
-    pub fn typed_int16_array_object(&self) -> &StandardConstructor {
-        &self.typed_int16_array
-    }
-
-    #[inline]
-    pub fn typed_uint16_array_object(&self) -> &StandardConstructor {
-        &self.typed_uint16_array
-    }
-
-    #[inline]
-    pub fn typed_uint32_array_object(&self) -> &StandardConstructor {
-        &self.typed_uint32_array
-    }
-
-    #[inline]
-    pub fn typed_int32_array_object(&self) -> &StandardConstructor {
-        &self.typed_int32_array
-    }
-
-    #[inline]
-    pub fn typed_bigint64_array_object(&self) -> &StandardConstructor {
-        &self.typed_bigint64_array
-    }
-
-    #[inline]
-    pub fn typed_biguint64_array_object(&self) -> &StandardConstructor {
-        &self.typed_biguint64_array
-    }
-
-    #[inline]
-    pub fn typed_float32_array_object(&self) -> &StandardConstructor {
-        &self.typed_float32_array
-    }
-
-    #[inline]
-    pub fn typed_float64_array_object(&self) -> &StandardConstructor {
-        &self.typed_float64_array
-    }
-
-    #[inline]
-    pub fn array_buffer_object(&self) -> &StandardConstructor {
-        &self.array_buffer
-    }
-
-    #[inline]
-    pub fn data_view_object(&self) -> &StandardConstructor {
-        &self.data_view
-    }
-}
 
 /// Javascript context. It is the primary way to interact with the runtime.
 ///
@@ -395,17 +79,8 @@ pub struct Context {
     #[cfg(feature = "console")]
     console: Console,
 
-    /// Cached iterator prototypes.
-    iterator_prototypes: IteratorPrototypes,
-
-    /// Cached TypedArray constructor.
-    typed_array_constructor: StandardConstructor,
-
-    /// Cached standard objects and their prototypes.
-    standard_objects: StandardObjects,
-
-    /// Cached intrinsic objects
-    intrinsic_objects: IntrinsicObjects,
+    /// Intrinsic objects
+    intrinsics: Intrinsics,
 
     /// Whether or not global strict mode is active.
     strict: bool,
@@ -420,10 +95,7 @@ impl Default for Context {
             interner: Interner::default(),
             #[cfg(feature = "console")]
             console: Console::default(),
-            iterator_prototypes: IteratorPrototypes::default(),
-            typed_array_constructor: StandardConstructor::default(),
-            standard_objects: StandardObjects::default(),
-            intrinsic_objects: IntrinsicObjects::default(),
+            intrinsics: Intrinsics::default(),
             strict: false,
             vm: Vm {
                 frame: None,
@@ -436,18 +108,8 @@ impl Default for Context {
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
-        let typed_array_constructor_constructor = TypedArray::init(&mut context);
-        let typed_array_constructor_prototype = typed_array_constructor_constructor
-            .get("prototype", &mut context)
-            .expect("prototype must exist")
-            .as_object()
-            .expect("prototype must be object")
-            .clone();
-        context.typed_array_constructor.constructor = typed_array_constructor_constructor;
-        context.typed_array_constructor.prototype = typed_array_constructor_prototype;
-        context.iterator_prototypes = IteratorPrototypes::init(&mut context);
         context.create_intrinsics();
-        context.intrinsic_objects = IntrinsicObjects::init(&mut context);
+        context.intrinsics.objects = IntrinsicObjects::init(&mut context);
         context
     }
 }
@@ -511,7 +173,10 @@ impl Context {
     #[inline]
     pub fn construct_object(&self) -> JsObject {
         JsObject::from_proto_and_data(
-            self.standard_objects().object_object().prototype(),
+            self.intrinsics()
+                .standard_constructors()
+                .object()
+                .prototype(),
             ObjectData::ordinary(),
         )
     }
@@ -561,7 +226,12 @@ impl Context {
         M: Into<Box<str>>,
     {
         crate::builtins::error::Error::constructor(
-            &self.standard_objects().error_object().constructor().into(),
+            &self
+                .intrinsics()
+                .standard_constructors()
+                .error()
+                .constructor()
+                .into(),
             &[message.into().into()],
             self,
         )
@@ -585,8 +255,9 @@ impl Context {
     {
         crate::builtins::error::RangeError::constructor(
             &self
-                .standard_objects()
-                .range_error_object()
+                .intrinsics()
+                .standard_constructors()
+                .range_error()
                 .constructor()
                 .into(),
             &[message.into().into()],
@@ -612,8 +283,9 @@ impl Context {
     {
         crate::builtins::error::TypeError::constructor(
             &self
-                .standard_objects()
-                .type_error_object()
+                .intrinsics()
+                .standard_constructors()
+                .type_error()
                 .constructor()
                 .into(),
             &[message.into().into()],
@@ -639,8 +311,9 @@ impl Context {
     {
         crate::builtins::error::ReferenceError::constructor(
             &self
-                .standard_objects()
-                .reference_error_object()
+                .intrinsics()
+                .standard_constructors()
+                .reference_error()
                 .constructor()
                 .into(),
             &[message.into().into()],
@@ -666,8 +339,9 @@ impl Context {
     {
         crate::builtins::error::SyntaxError::constructor(
             &self
-                .standard_objects()
-                .syntax_error_object()
+                .intrinsics()
+                .standard_constructors()
+                .syntax_error()
                 .constructor()
                 .into(),
             &[message.into().into()],
@@ -692,8 +366,9 @@ impl Context {
     {
         crate::builtins::error::EvalError::constructor(
             &self
-                .standard_objects()
-                .eval_error_object()
+                .intrinsics()
+                .standard_constructors()
+                .eval_error()
                 .constructor()
                 .into(),
             &[message.into().into()],
@@ -709,8 +384,9 @@ impl Context {
     {
         crate::builtins::error::UriError::constructor(
             &self
-                .standard_objects()
-                .uri_error_object()
+                .intrinsics()
+                .standard_constructors()
+                .uri_error()
                 .constructor()
                 .into(),
             &[message.into().into()],
@@ -1042,28 +718,10 @@ impl Context {
         Ok(result)
     }
 
-    /// Return the cached iterator prototypes.
+    /// Return the intrinsic constructors and objects.
     #[inline]
-    pub fn iterator_prototypes(&self) -> &IteratorPrototypes {
-        &self.iterator_prototypes
-    }
-
-    /// Return the cached `TypedArray` constructor.
-    #[inline]
-    pub(crate) fn typed_array_constructor(&self) -> &StandardConstructor {
-        &self.typed_array_constructor
-    }
-
-    /// Return the core standard objects.
-    #[inline]
-    pub fn standard_objects(&self) -> &StandardObjects {
-        &self.standard_objects
-    }
-
-    /// Return the intrinsic objects.
-    #[inline]
-    pub fn intrinsics(&self) -> &IntrinsicObjects {
-        &self.intrinsic_objects
+    pub fn intrinsics(&self) -> &Intrinsics {
+        &self.intrinsics
     }
 
     /// Set the value of trace on the context

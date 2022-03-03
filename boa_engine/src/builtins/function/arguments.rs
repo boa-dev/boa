@@ -122,7 +122,7 @@ impl Arguments {
         )
         .expect("Defining new own properties for a new ordinary object cannot fail");
 
-        let throw_type_error = context.intrinsics().throw_type_error();
+        let throw_type_error = context.intrinsics().objects().throw_type_error();
 
         // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
@@ -224,7 +224,11 @@ impl Arguments {
 
         // 11. Set obj.[[ParameterMap]] to map.
         let obj = JsObject::from_proto_and_data(
-            context.standard_objects().object_object().prototype(),
+            context
+                .intrinsics()
+                .standard_constructors()
+                .object()
+                .prototype(),
             ObjectData::arguments(Self::Mapped(map)),
         );
 

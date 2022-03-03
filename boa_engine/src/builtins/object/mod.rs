@@ -16,17 +16,18 @@
 use super::Array;
 use crate::{
     builtins::{map, BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
-    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 pub mod for_in_iterator;
 #[cfg(test)]
@@ -39,17 +40,17 @@ pub struct Object;
 impl BuiltIn for Object {
     const NAME: &'static str = "Object";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().object_object().clone(),
+            context
+                .intrinsics()
+                .standard_constructors()
+                .object()
+                .clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -90,9 +91,9 @@ impl BuiltIn for Object {
         .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
         .static_method(Self::has_own, "hasOwn", 2)
         .static_method(Self::from_entries, "fromEntries", 1)
-        .build();
-
-        object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -105,11 +106,8 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if !new_target.is_undefined() {
-            let prototype = get_prototype_from_constructor(
-                new_target,
-                StandardObjects::object_object,
-                context,
-            )?;
+            let prototype =
+                get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
             let object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
             return Ok(object.into());
         }
@@ -597,13 +595,16 @@ impl Object {
         };
 
         let key = key.to_property_key(context)?;
-        let own_property = this
+        let own_prop = this
             .to_object(context)?
             .__get_own_property__(&key, context)?;
 
-        Ok(own_property.map_or(JsValue::new(false), |own_prop| {
-            JsValue::new(own_prop.enumerable())
-        }))
+        own_prop
+            .as_ref()
+            .and_then(PropertyDescriptor::enumerable)
+            .unwrap_or_default()
+            .conv::<JsValue>()
+            .pipe(Ok)
     }
 
     /// `Object.assign( target, ...sources )`

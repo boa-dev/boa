@@ -30,6 +30,7 @@ use crate::{
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 use std::cell::RefCell;
+use tap::{Conv, Pipe};
 
 thread_local! {
     static GLOBAL_SYMBOL_REGISTRY: RefCell<GlobalSymbolRegistry> = RefCell::new(GlobalSymbolRegistry::new());
@@ -74,11 +75,7 @@ pub struct Symbol;
 impl BuiltIn for Symbol {
     const NAME: &'static str = "Symbol";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_async_iterator = WellKnownSymbols::async_iterator();
@@ -108,10 +105,14 @@ impl BuiltIn for Symbol {
             .constructor(false)
             .build();
 
-        let symbol_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().symbol_object().clone(),
+            context
+                .intrinsics()
+                .standard_constructors()
+                .symbol()
+                .clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -150,9 +151,9 @@ impl BuiltIn for Symbol {
             to_primitive,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .build();
-
-        symbol_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 

@@ -59,20 +59,29 @@ impl BuiltIn for Generator {
 
     const ATTRIBUTE: Attribute = Attribute::NON_ENUMERABLE.union(Attribute::CONFIGURABLE);
 
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let iterator_prototype = context.iterator_prototypes().iterator_prototype();
+        let iterator_prototype = context
+            .intrinsics()
+            .objects()
+            .iterator_prototypes()
+            .iterator_prototype();
 
         let generator_function_prototype = context
-            .standard_objects()
-            .generator_function_object()
+            .intrinsics()
+            .standard_constructors()
+            .generator_function()
             .prototype();
 
-        let obj = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().generator_object().clone(),
+            context
+                .intrinsics()
+                .standard_constructors()
+                .generator()
+                .clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -88,8 +97,9 @@ impl BuiltIn for Generator {
         .build();
 
         context
-            .standard_objects()
-            .generator_object()
+            .intrinsics()
+            .standard_constructors()
+            .generator()
             .prototype
             .insert_property(
                 "constructor",
@@ -100,7 +110,7 @@ impl BuiltIn for Generator {
                     .configurable(true),
             );
 
-        obj.into()
+        None
     }
 }
 
@@ -113,7 +123,11 @@ impl Generator {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let prototype = context.standard_objects().generator_object().prototype();
+        let prototype = context
+            .intrinsics()
+            .standard_constructors()
+            .generator()
+            .prototype();
 
         let this = JsObject::from_proto_and_data(
             prototype,

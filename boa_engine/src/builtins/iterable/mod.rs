@@ -12,12 +12,19 @@ use boa_profiler::Profiler;
 
 #[derive(Debug, Default)]
 pub struct IteratorPrototypes {
+    /// %IteratorPrototype%
     iterator_prototype: JsObject,
+    /// %MapIteratorPrototype%
     array_iterator: JsObject,
+    /// %SetIteratorPrototype%
     set_iterator: JsObject,
+    /// %StringIteratorPrototype%
     string_iterator: JsObject,
+    /// %RegExpStringIteratorPrototype%
     regexp_string_iterator: JsObject,
+    /// %MapIteratorPrototype%
     map_iterator: JsObject,
+    /// %ForInIteratorPrototype%
     for_in_iterator: JsObject,
 }
 

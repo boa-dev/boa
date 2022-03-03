@@ -15,7 +15,7 @@
 
 use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -30,6 +30,7 @@ use num_traits::{float::FloatCore, Num};
 mod conversions;
 
 pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
+use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -43,11 +44,7 @@ pub(crate) struct Number;
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let parse_int = FunctionBuilder::native(context, Self::parse_int)
@@ -62,11 +59,30 @@ impl BuiltIn for Number {
             .constructor(false)
             .build();
 
+        context.register_global_property(
+            "parseInt",
+            parse_int,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        context.register_global_property(
+            "parseFloat",
+            parse_float,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+
+        context.register_global_builtin_function("isFinite", 1, Self::global_is_finite);
+        context.register_global_builtin_function("isNaN", 1, Self::global_is_nan);
+
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let number_object = ConstructorBuilder::with_standard_object(
+
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().number_object().clone(),
+            context
+                .intrinsics()
+                .standard_constructors()
+                .number()
+                .clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -98,23 +114,9 @@ impl BuiltIn for Number {
         .method(Self::to_precision, "toPrecision", 1)
         .method(Self::to_string, "toString", 1)
         .method(Self::value_of, "valueOf", 0)
-        .build();
-
-        context.register_global_property(
-            "parseInt",
-            parse_int,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-        context.register_global_property(
-            "parseFloat",
-            parse_float,
-            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-        );
-
-        context.register_global_builtin_function("isFinite", 1, Self::global_is_finite);
-        context.register_global_builtin_function("isNaN", 1, Self::global_is_nan);
-
-        number_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -182,7 +184,7 @@ impl Number {
             return Ok(JsValue::new(data));
         }
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::number, context)?;
         let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
         Ok(this.into())
     }

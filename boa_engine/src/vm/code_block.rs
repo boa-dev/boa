@@ -10,7 +10,7 @@ use crate::{
         },
         generator::{Generator, GeneratorContext, GeneratorState},
     },
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     environments::{BindingLocator, DeclarativeEnvironmentStack},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::PropertyDescriptor,
@@ -403,7 +403,11 @@ impl ToInternedString for CodeBlock {
 pub(crate) fn create_function_object(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
     let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
 
-    let function_prototype = context.standard_objects().function_object().prototype();
+    let function_prototype = context
+        .intrinsics()
+        .standard_constructors()
+        .function()
+        .prototype();
 
     let prototype = context.construct_object();
 
@@ -466,8 +470,9 @@ pub(crate) fn create_generator_function_object(
     context: &mut Context,
 ) -> JsObject {
     let function_prototype = context
-        .standard_objects()
-        .generator_function_object()
+        .intrinsics()
+        .standard_constructors()
+        .generator_function()
         .prototype();
 
     let name_property = PropertyDescriptor::builder()
@@ -485,7 +490,11 @@ pub(crate) fn create_generator_function_object(
         .build();
 
     let prototype = JsObject::from_proto_and_data(
-        context.standard_objects().generator_object().prototype(),
+        context
+            .intrinsics()
+            .standard_constructors()
+            .generator()
+            .prototype(),
         ObjectData::ordinary(),
     );
 
@@ -790,7 +799,11 @@ impl JsObject {
                 {
                     prototype.clone()
                 } else {
-                    context.standard_objects().generator_object().prototype()
+                    context
+                        .intrinsics()
+                        .standard_constructors()
+                        .generator()
+                        .prototype()
                 };
 
                 let generator = Self::from_proto_and_data(
@@ -867,7 +880,7 @@ impl JsObject {
                     // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
                     let prototype = get_prototype_from_constructor(
                         this_target,
-                        StandardObjects::object_object,
+                        StandardConstructors::object,
                         context,
                     )?;
                     Self::from_proto_and_data(prototype, ObjectData::ordinary()).into()

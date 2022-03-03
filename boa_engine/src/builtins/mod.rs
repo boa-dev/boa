@@ -15,7 +15,6 @@ pub mod generator_function;
 pub mod global_this;
 pub mod infinity;
 pub mod intl;
-pub mod intrinsics;
 pub mod iterable;
 pub mod json;
 pub mod map;
@@ -71,6 +70,7 @@ pub(crate) use self::{
 use crate::{
     builtins::{
         array_buffer::ArrayBuffer, generator::Generator, generator_function::GeneratorFunction,
+        typed_array::TypedArray,
     },
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
@@ -91,28 +91,36 @@ pub(crate) trait BuiltIn {
 
     /// Property attribute flags of the built-in.
     /// Check [Attribute] for more information.
-    const ATTRIBUTE: Attribute;
+    const ATTRIBUTE: Attribute = Attribute::WRITABLE
+        .union(Attribute::NON_ENUMERABLE)
+        .union(Attribute::CONFIGURABLE);
 
     /// Initialization code for the built-in.
     /// This is where the methods, properties, static methods and the constructor
     /// of a built-in must be initialized to be accessible from Javascript.
-    fn init(context: &mut Context) -> JsValue;
+    ///
+    /// # Note
+    ///
+    /// A return value of `None` indicates that the value must not be added as
+    /// a global attribute for the global object.
+    fn init(context: &mut Context) -> Option<JsValue>;
 }
 
 /// Utility function that checks if a type implements `BuiltIn` before
 /// initializing it as a global built-in.
 #[inline]
 fn init_builtin<B: BuiltIn>(context: &mut Context) {
-    let value = B::init(context);
-    let property = PropertyDescriptor::builder()
-        .value(value)
-        .writable(B::ATTRIBUTE.writable())
-        .enumerable(B::ATTRIBUTE.enumerable())
-        .configurable(B::ATTRIBUTE.configurable())
-        .build();
-    context
-        .global_bindings_mut()
-        .insert(B::NAME.into(), property);
+    if let Some(value) = B::init(context) {
+        let property = PropertyDescriptor::builder()
+            .value(value)
+            .writable(B::ATTRIBUTE.writable())
+            .enumerable(B::ATTRIBUTE.enumerable())
+            .configurable(B::ATTRIBUTE.configurable())
+            .build();
+        context
+            .global_bindings_mut()
+            .insert(B::NAME.into(), property);
+    }
 }
 
 /// Initializes built-in objects and functions
@@ -147,6 +155,7 @@ pub fn init(context: &mut Context) {
         Set,
         String,
         RegExp,
+        TypedArray,
         Int8Array,
         Uint8Array,
         Uint8ClampedArray,
@@ -167,11 +176,10 @@ pub fn init(context: &mut Context) {
         EvalError,
         UriError,
         AggregateError,
-        Reflect
+        Reflect,
+        Generator,
+        GeneratorFunction
     };
-
-    Generator::init(context);
-    GeneratorFunction::init(context);
 
     #[cfg(feature = "console")]
     init_builtin::<console::Console>(context);

@@ -19,7 +19,7 @@ use crate::{
         typed_array::integer_indexed_object::{ContentType, IntegerIndexed},
         Array, ArrayIterator, BuiltIn, JsArgs,
     },
-    context::{StandardConstructor, StandardObjects},
+    context::intrinsics::{StandardConstructor, StandardConstructors},
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -33,6 +33,8 @@ use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::{Signed, Zero};
 use std::cmp::Ordering;
+
+use tap::{Conv, Pipe};
 
 pub mod integer_indexed_object;
 
@@ -49,21 +51,33 @@ macro_rules! typed_array {
                 .union(Attribute::NON_ENUMERABLE)
                 .union(Attribute::CONFIGURABLE);
 
-            fn init(context: &mut Context) -> JsValue {
+            fn init(context: &mut Context) -> Option<JsValue> {
                 let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-                let typed_array_constructor = context.typed_array_constructor().constructor();
-                let typed_array_constructor_proto = context.typed_array_constructor().prototype();
+                let typed_array_constructor = context
+                    .intrinsics()
+                    .standard_constructors()
+                    .typed_array()
+                    .constructor();
+                let typed_array_constructor_proto = context
+                    .intrinsics()
+                    .standard_constructors()
+                    .typed_array()
+                    .prototype();
 
                 let get_species = FunctionBuilder::native(context, TypedArray::get_species)
                     .name("get [Symbol.species]")
                     .constructor(false)
                     .build();
 
-                ConstructorBuilder::with_standard_object(
+                ConstructorBuilder::with_standard_constructor(
                     context,
                     Self::constructor,
-                    context.standard_objects().$global_object_name().clone(),
+                    context
+                        .intrinsics()
+                        .standard_constructors()
+                        .$global_object_name()
+                        .clone(),
                 )
                 .name(Self::NAME)
                 .length(Self::LENGTH)
@@ -86,7 +100,8 @@ macro_rules! typed_array {
                 .custom_prototype(typed_array_constructor)
                 .inherit(typed_array_constructor_proto)
                 .build()
-                .into()
+                .conv::<JsValue>()
+                .pipe(Some)
             }
         }
 
@@ -116,7 +131,7 @@ macro_rules! typed_array {
                 let constructor_name = TypedArrayKind::$variant;
 
                 // 3. Let proto be "%TypedArray.prototype%".
-                let proto = StandardObjects::$global_object_name;
+                let proto = StandardConstructors::$global_object_name;
 
                 // 4. Let numberOfArgs be the number of elements in args.
                 let number_of_args = args.len();
@@ -229,12 +244,9 @@ macro_rules! typed_array {
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct TypedArray;
 
-impl TypedArray {
+impl BuiltIn for TypedArray {
     const NAME: &'static str = "TypedArray";
-
-    const LENGTH: usize = 0;
-
-    pub(crate) fn init(context: &mut Context) -> JsObject {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
             .constructor(false)
@@ -271,10 +283,14 @@ impl TypedArray {
             .constructor(false)
             .build();
 
-        let object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().typed_array_object().clone(),
+            context
+                .intrinsics()
+                .standard_constructors()
+                .typed_array()
+                .clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -356,8 +372,11 @@ impl TypedArray {
         .method(Array::to_string, "toString", 0)
         .build();
 
-        object
+        None
     }
+}
+impl TypedArray {
+    const LENGTH: usize = 0;
 
     /// `23.2.1.1 %TypedArray% ( )`
     ///
@@ -2011,8 +2030,9 @@ impl TypedArray {
             // b. Set srcBuffer to ? CloneArrayBuffer(srcBuffer, srcByteOffset, srcByteLength, %ArrayBuffer%).
             // c. NOTE: %ArrayBuffer% is used to clone srcBuffer because is it known to not have any observable side-effects.
             let array_buffer_constructor = context
-                .standard_objects()
-                .array_buffer_object()
+                .intrinsics()
+                .standard_constructors()
+                .array_buffer()
                 .constructor()
                 .into();
             let s = src_buffer_obj
@@ -2815,17 +2835,17 @@ impl TypedArray {
     ) -> JsResult<JsObject> {
         // 1. Let defaultConstructor be the intrinsic object listed in column one of Table 73 for exemplar.[[TypedArrayName]].
         let default_constructor = match typed_array_name {
-            TypedArrayKind::Int8 => StandardObjects::typed_int8_array_object,
-            TypedArrayKind::Uint8 => StandardObjects::typed_uint8_array_object,
-            TypedArrayKind::Uint8Clamped => StandardObjects::typed_uint8clamped_array_object,
-            TypedArrayKind::Int16 => StandardObjects::typed_int16_array_object,
-            TypedArrayKind::Uint16 => StandardObjects::typed_uint16_array_object,
-            TypedArrayKind::Int32 => StandardObjects::typed_int32_array_object,
-            TypedArrayKind::Uint32 => StandardObjects::typed_uint32_array_object,
-            TypedArrayKind::BigInt64 => StandardObjects::typed_bigint64_array_object,
-            TypedArrayKind::BigUint64 => StandardObjects::typed_biguint64_array_object,
-            TypedArrayKind::Float32 => StandardObjects::typed_float32_array_object,
-            TypedArrayKind::Float64 => StandardObjects::typed_float64_array_object,
+            TypedArrayKind::Int8 => StandardConstructors::typed_int8_array,
+            TypedArrayKind::Uint8 => StandardConstructors::typed_uint8_array,
+            TypedArrayKind::Uint8Clamped => StandardConstructors::typed_uint8clamped_array,
+            TypedArrayKind::Int16 => StandardConstructors::typed_int16_array,
+            TypedArrayKind::Uint16 => StandardConstructors::typed_uint16_array,
+            TypedArrayKind::Int32 => StandardConstructors::typed_int32_array,
+            TypedArrayKind::Uint32 => StandardConstructors::typed_uint32_array,
+            TypedArrayKind::BigInt64 => StandardConstructors::typed_bigint64_array,
+            TypedArrayKind::BigUint64 => StandardConstructors::typed_biguint64_array,
+            TypedArrayKind::Float32 => StandardConstructors::typed_float32_array,
+            TypedArrayKind::Float64 => StandardConstructors::typed_float64_array,
         };
 
         // 2. Let constructor be ? SpeciesConstructor(exemplar, defaultConstructor).
@@ -2912,8 +2932,9 @@ impl TypedArray {
         // 5. Let data be ? AllocateArrayBuffer(%ArrayBuffer%, byteLength).
         let data = ArrayBuffer::allocate(
             &context
-                .standard_objects()
-                .array_buffer_object()
+                .intrinsics()
+                .standard_constructors()
+                .array_buffer()
                 .constructor()
                 .into(),
             byte_length,
@@ -2982,7 +3003,7 @@ impl TypedArray {
         context: &mut Context,
     ) -> JsResult<JsObject>
     where
-        P: FnOnce(&StandardObjects) -> &StandardConstructor,
+        P: FnOnce(&StandardConstructors) -> &StandardConstructor,
     {
         // 1. Let proto be ? GetPrototypeFromConstructor(newTarget, defaultProto).
         let proto = get_prototype_from_constructor(new_target, default_proto, context)?;
@@ -3062,7 +3083,7 @@ impl TypedArray {
         // 13. Else,
         // a. Let bufferConstructor be %ArrayBuffer%.
         let buffer_constructor =
-            src_data_obj.species_constructor(StandardObjects::array_buffer_object, context)?;
+            src_data_obj.species_constructor(StandardConstructors::array_buffer, context)?;
 
         let src_data_obj_b = src_data_obj.borrow();
         let src_data = src_data_obj_b
@@ -3352,49 +3373,29 @@ impl TypedArrayKind {
     }
 }
 
-typed_array!(Int8Array, Int8, "Int8Array", typed_int8_array_object);
-typed_array!(Uint8Array, Uint8, "Uint8Array", typed_uint8_array_object);
+typed_array!(Int8Array, Int8, "Int8Array", typed_int8_array);
+typed_array!(Uint8Array, Uint8, "Uint8Array", typed_uint8_array);
 typed_array!(
     Uint8ClampedArray,
     Uint8Clamped,
     "Uint8ClampedArray",
-    typed_uint8clamped_array_object
+    typed_uint8clamped_array
 );
-typed_array!(Int16Array, Int16, "Int16Array", typed_int16_array_object);
-typed_array!(
-    Uint16Array,
-    Uint16,
-    "Uint16Array",
-    typed_uint16_array_object
-);
-typed_array!(Int32Array, Int32, "Int32Array", typed_int32_array_object);
-typed_array!(
-    Uint32Array,
-    Uint32,
-    "Uint32Array",
-    typed_uint32_array_object
-);
+typed_array!(Int16Array, Int16, "Int16Array", typed_int16_array);
+typed_array!(Uint16Array, Uint16, "Uint16Array", typed_uint16_array);
+typed_array!(Int32Array, Int32, "Int32Array", typed_int32_array);
+typed_array!(Uint32Array, Uint32, "Uint32Array", typed_uint32_array);
 typed_array!(
     BigInt64Array,
     BigInt64,
     "BigInt64Array",
-    typed_bigint64_array_object
+    typed_bigint64_array
 );
 typed_array!(
     BigUint64Array,
     BigUint64,
     "BigUint64Array",
-    typed_biguint64_array_object
+    typed_biguint64_array
 );
-typed_array!(
-    Float32Array,
-    Float32,
-    "Float32Array",
-    typed_float32_array_object
-);
-typed_array!(
-    Float64Array,
-    Float64,
-    "Float64Array",
-    typed_float64_array_object
-);
+typed_array!(Float32Array, Float32, "Float32Array", typed_float32_array);
+typed_array!(Float64Array, Float64, "Float64Array", typed_float64_array);

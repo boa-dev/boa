@@ -12,7 +12,7 @@
 
 use crate::{
     builtins::BuiltIn,
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -20,6 +20,7 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 pub(crate) mod aggregate;
 pub(crate) mod eval;
@@ -49,27 +50,23 @@ pub(crate) struct Error;
 impl BuiltIn for Error {
     const NAME: &'static str = "Error";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        let error_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().error_object().clone(),
+            context.intrinsics().standard_constructors().error().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
         .property("name", Self::NAME, attribute)
         .property("message", "", attribute)
         .method(Self::to_string, "toString", 0)
-        .build();
-
-        error_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -105,11 +102,11 @@ impl Error {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        // 1. If NewTarget is undefined, let newTarget be the active functionerrore let newTarget be NewTarget.
 
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%Error.prototype%", « [[ErrorData]] »).
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::error_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::error, context)?;
         let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
 
         // 3. If message is not undefined, then

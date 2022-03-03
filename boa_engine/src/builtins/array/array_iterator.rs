@@ -48,7 +48,11 @@ impl ArrayIterator {
         context: &Context,
     ) -> JsValue {
         let array_iterator = JsObject::from_proto_and_data(
-            context.iterator_prototypes().array_iterator(),
+            context
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .array_iterator(),
             ObjectData::array_iterator(Self::new(array, kind)),
         );
         array_iterator.into()

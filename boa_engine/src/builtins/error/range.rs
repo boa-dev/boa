@@ -11,7 +11,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -19,6 +19,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 use super::Error;
 
@@ -29,21 +30,29 @@ pub(crate) struct RangeError;
 impl BuiltIn for RangeError {
     const NAME: &'static str = "RangeError";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context.standard_objects().error_object().constructor();
-        let error_prototype = context.standard_objects().error_object().prototype();
+        let error_constructor = context
+            .intrinsics()
+            .standard_constructors()
+            .error()
+            .constructor();
+        let error_prototype = context
+            .intrinsics()
+            .standard_constructors()
+            .error()
+            .prototype();
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        let range_error_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().range_error_object().clone(),
+            context
+                .intrinsics()
+                .standard_constructors()
+                .range_error()
+                .clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -51,9 +60,9 @@ impl BuiltIn for RangeError {
         .custom_prototype(error_constructor)
         .property("name", Self::NAME, attribute)
         .property("message", "", attribute)
-        .build();
-
-        range_error_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -69,11 +78,8 @@ impl RangeError {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
-        let prototype = get_prototype_from_constructor(
-            new_target,
-            StandardObjects::range_error_object,
-            context,
-        )?;
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::range_error, context)?;
         let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
 
         // 3. If message is not undefined, then

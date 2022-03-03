@@ -19,6 +19,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -30,16 +31,12 @@ pub(crate) struct Reflect;
 impl BuiltIn for Reflect {
     const NAME: &'static str = "Reflect";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
 
-        let object = ObjectInitializer::new(context)
+        ObjectInitializer::new(context)
             .function(Self::apply, "apply", 3)
             .function(Self::construct, "construct", 2)
             .function(Self::define_property, "defineProperty", 3)
@@ -62,8 +59,9 @@ impl BuiltIn for Reflect {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .build();
-        object.into()
+            .build()
+            .conv::<JsValue>()
+            .pipe(Some)
     }
 }
 
