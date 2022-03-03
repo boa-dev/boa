@@ -108,8 +108,8 @@ impl Default for Context {
         // Add new builtIns to Context Realm
         // At a later date this can be removed from here and called explicitly,
         // but for now we almost always want these default builtins
-        context.create_intrinsics();
         context.intrinsics.objects = IntrinsicObjects::init(&mut context);
+        context.create_intrinsics();
         context
     }
 }

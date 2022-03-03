@@ -57,8 +57,6 @@ pub struct Generator {
 impl BuiltIn for Generator {
     const NAME: &'static str = "Generator";
 
-    const ATTRIBUTE: Attribute = Attribute::NON_ENUMERABLE.union(Attribute::CONFIGURABLE);
-
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 

@@ -232,7 +232,7 @@ impl RegExp {
     /// `22.2.3.2.1 RegExpAlloc ( newTarget )`
     ///
     /// More information:
-    ///  - [ECMAScript reference][spec]regexp
+    ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
     fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {

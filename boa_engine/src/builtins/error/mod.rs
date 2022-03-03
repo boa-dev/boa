@@ -102,7 +102,7 @@ impl Error {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. If NewTarget is undefined, let newTarget be the active functionerrore let newTarget be NewTarget.
+        // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
 
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%Error.prototype%", « [[ErrorData]] »).
         let prototype =

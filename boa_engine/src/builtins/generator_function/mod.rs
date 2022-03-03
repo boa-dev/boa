@@ -14,7 +14,7 @@ use crate::{
     builtins::{function::Function, BuiltIn},
     context::intrinsics::StandardConstructors,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::{Attribute, PropertyDescriptor},
+    property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult,
@@ -27,8 +27,6 @@ pub struct GeneratorFunction;
 
 impl BuiltIn for GeneratorFunction {
     const NAME: &'static str = "GeneratorFunction";
-
-    const ATTRIBUTE: Attribute = Attribute::NON_ENUMERABLE.union(Attribute::WRITABLE);
 
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
