@@ -110,6 +110,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_examples"
+version = "0.11.0"
+dependencies = [
+ "boa_engine",
+]
+
+[[package]]
 name = "boa_gc"
 version = "0.13.0"
 dependencies = [
@@ -132,13 +139,6 @@ version = "0.13.0"
 dependencies = [
  "measureme",
  "once_cell",
-]
-
-[[package]]
-name = "boa_examples"
-version = "0.11.0"
-dependencies = [
- "boa_engine",
 ]
 
 [[package]]
