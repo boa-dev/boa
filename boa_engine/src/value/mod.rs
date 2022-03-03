@@ -573,6 +573,16 @@ pub(crate) unsafe trait PointerType {
     unsafe fn into_void_ptr(ty: ManuallyDrop<Self>) -> *mut ();
 }
 
+/// Represents a reference to a boxed pointer type inside a [`JsValue`]
+///
+/// This is exclusively used to return references to [`JsString`], [`JsObject`],
+/// [`JsSymbol`] and [`JsBigInt`], since NaN boxing makes returning proper references
+/// difficult. It is mainly returned by the [`JsValue::variant`] method and the
+/// `as_` methods for checked casts to pointer types.
+///
+/// [`Ref`] implements [`Deref`][`std::ops::Deref`], which facilitates conversion
+/// to a proper [`reference`] by using the `ref` keyword or the
+/// [`Option::as_deref`][`std::option::Option::as_deref`] method.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Ref<'a, T> {
     inner: ManuallyDrop<T>,
