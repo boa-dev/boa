@@ -108,11 +108,11 @@ impl JsValue {
             JsVariant::Null => Ok(Value::Null),
             JsVariant::Undefined => todo!("undefined to JSON"),
             JsVariant::Boolean(b) => Ok(b.into()),
-            JsVariant::String(ref string) => Ok(string.as_str().into()),
+            JsVariant::String(string) => Ok(string.as_str().into()),
             JsVariant::Rational(rat) => Ok(rat.into()),
             JsVariant::Integer(int) => Ok(int.into()),
             JsVariant::BigInt(_bigint) => context.throw_type_error("cannot convert bigint to JSON"),
-            JsVariant::Object(ref obj) => {
+            JsVariant::Object(obj) => {
                 if obj.is_array() {
                     let len = obj.length_of_array_like(context)?;
                     let mut arr = Vec::with_capacity(len);
@@ -202,7 +202,7 @@ mod tests {
             let phones = obj.get("phones", &mut context).unwrap();
             let phones = phones.as_object().unwrap();
 
-            let arr = JsArray::from_object(phones, &mut context).unwrap();
+            let arr = JsArray::from_object(phones.clone(), &mut context).unwrap();
             assert_eq!(arr.at(0, &mut context).unwrap(), "+44 1234567".into());
             assert_eq!(arr.at(1, &mut context).unwrap(), JsValue::from(-45_i32));
             assert!(arr.at(2, &mut context).unwrap().is_object());

@@ -67,8 +67,7 @@ impl MapIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%mapiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let map_iterator = this.as_object();
-        let mut map_iterator = map_iterator.as_ref().map(JsObject::borrow_mut);
+        let mut map_iterator = this.as_object().map(JsObject::borrow_mut);
         let map_iterator = map_iterator
             .as_mut()
             .and_then(|obj| obj.as_map_iterator_mut())

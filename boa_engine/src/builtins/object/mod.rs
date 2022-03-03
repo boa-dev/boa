@@ -136,9 +136,10 @@ impl Object {
         let properties = args.get_or_undefined(1);
 
         let obj = match prototype.variant() {
-            JsVariant::Object(_) | JsVariant::Null => {
-                JsObject::from_proto_and_data(prototype.as_object(), ObjectData::ordinary())
-            }
+            JsVariant::Object(_) | JsVariant::Null => JsObject::from_proto_and_data(
+                prototype.as_object().cloned(),
+                ObjectData::ordinary(),
+            ),
             _ => {
                 return context.throw_type_error(format!(
                     "Object prototype may only be an Object or null: {}",
@@ -349,7 +350,7 @@ impl Object {
 
         let proto = args.get_or_undefined(1);
         let proto = match proto.variant() {
-            JsVariant::Object(ref obj) => Some(obj.clone()),
+            JsVariant::Object(obj) => Some(obj.clone()),
             JsVariant::Null => None,
             // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
             _ => {
@@ -454,7 +455,7 @@ impl Object {
         let arg = args.get_or_undefined(0);
         if let Some(obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
-            object_define_properties(&obj, props, context)?;
+            object_define_properties(obj, props, context)?;
             Ok(arg.clone())
         } else {
             context.throw_type_error("Expected an object")
@@ -530,8 +531,7 @@ impl Object {
         let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string();
-        let tag_str = tag_str.as_ref().map_or(builtin_tag, JsString::as_str);
+        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
         Ok(format!("[object {tag_str}]").into())

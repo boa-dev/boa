@@ -190,6 +190,7 @@ impl Symbol {
     fn this_symbol_value(value: &JsValue, context: &mut Context) -> JsResult<JsSymbol> {
         value
             .as_symbol()
+            .cloned()
             .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
             .ok_or_else(|| context.construct_type_error("'this' is not a Symbol"))
     }
@@ -312,7 +313,7 @@ impl Symbol {
             // 4. Return undefined.
             let symbol = GLOBAL_SYMBOL_REGISTRY.with(move |registry| {
                 let registry = registry.borrow();
-                registry.get_symbol(&sym)
+                registry.get_symbol(sym)
             });
 
             Ok(symbol.map(JsValue::from).unwrap_or_default())

@@ -178,14 +178,14 @@ impl RegExp {
         let flags = args.get_or_undefined(1);
 
         // 1. Let patternIsRegExp be ? IsRegExp(pattern).
-        let pattern_is_regexp = pattern.as_object().filter(JsObject::is_regexp);
+        let pattern_is_regexp = pattern.as_object().filter(|obj| obj.is_regexp());
 
         // 2. If NewTarget is undefined, then
         // 3. Else, let newTarget be NewTarget.
         if new_target.is_undefined() {
             // a. Let newTarget be the active function object.
             // b. If patternIsRegExp is true and flags is undefined, then
-            if let Some(ref pattern) = pattern_is_regexp {
+            if let Some(pattern) = pattern_is_regexp {
                 if flags.is_undefined() {
                     // i. Let patternConstructor be ? Get(pattern, "constructor").
                     let pattern_constructor = pattern.get("constructor", context)?;
@@ -348,7 +348,7 @@ impl RegExp {
             }
 
             if JsObject::equals(
-                &object,
+                object,
                 &context.standard_objects().regexp_object().prototype,
             ) {
                 return Ok(JsValue::undefined());
@@ -652,7 +652,7 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let match be ? RegExpExec(R, string).
-        let m = Self::abstract_exec(&this, arg_str, context)?;
+        let m = Self::abstract_exec(this, arg_str, context)?;
 
         // 5. If match is not null, return true; else return false.
         if m.is_some() {
@@ -683,7 +683,7 @@ impl RegExp {
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
         let obj = this
             .as_object()
-            .filter(JsObject::is_regexp)
+            .filter(|obj| obj.is_regexp())
             .ok_or_else(|| {
                 context.construct_type_error("RegExp.prototype.exec called with invalid value")
             })?;
@@ -692,7 +692,7 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Return ? RegExpBuiltinExec(R, S).
-        if let Some(v) = Self::abstract_builtin_exec(&obj, &arg_str, context)? {
+        if let Some(v) = Self::abstract_builtin_exec(obj, &arg_str, context)? {
             Ok(v.into())
         } else {
             Ok(JsValue::null())
@@ -727,7 +727,7 @@ impl RegExp {
             }
 
             // c. Return result.
-            return Ok(result.as_object());
+            return Ok(result.as_object().cloned());
         }
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
@@ -1004,7 +1004,7 @@ impl RegExp {
         #[allow(clippy::if_not_else)]
         if !global {
             // a. Return ? RegExpExec(rx, S).
-            if let Some(v) = Self::abstract_exec(&rx, arg_str, context)? {
+            if let Some(v) = Self::abstract_exec(rx, arg_str, context)? {
                 Ok(v.into())
             } else {
                 Ok(JsValue::null())
@@ -1029,7 +1029,7 @@ impl RegExp {
             // f. Repeat,
             loop {
                 // i. Let result be ? RegExpExec(rx, S).
-                let result = Self::abstract_exec(&rx, arg_str.clone(), context)?;
+                let result = Self::abstract_exec(rx, arg_str.clone(), context)?;
 
                 // ii. If result is null, then
                 // iii. Else,
@@ -1208,7 +1208,6 @@ impl RegExp {
         let mut replace_value = args.get_or_undefined(1).clone();
         let functional_replace = replace_value
             .as_object()
-            .as_ref()
             .map(JsObject::is_callable)
             .unwrap_or_default();
 
@@ -1238,7 +1237,7 @@ impl RegExp {
         // 11. Repeat, while done is false,
         loop {
             // a. Let result be ? RegExpExec(rx, S).
-            let result = Self::abstract_exec(&rx, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(rx, arg_str.clone(), context)?;
 
             // b. If result is null, set done to true.
             // c. Else,
@@ -1456,7 +1455,7 @@ impl RegExp {
         }
 
         // 6. Let result be ? RegExpExec(rx, S).
-        let result = Self::abstract_exec(&rx, arg_str, context)?;
+        let result = Self::abstract_exec(rx, arg_str, context)?;
 
         // 7. Let currentLastIndex be ? Get(rx, "lastIndex").
         let current_last_index = rx.get("lastIndex", context)?;
@@ -1562,7 +1561,7 @@ impl RegExp {
         // 16. If size is 0, then
         if size == 0 {
             // a. Let z be ? RegExpExec(splitter, S).
-            let result = Self::abstract_exec(&splitter, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(splitter, arg_str.clone(), context)?;
 
             // b. If z is not null, return A.
             if result.is_some() {
@@ -1588,7 +1587,7 @@ impl RegExp {
             splitter.set("lastIndex", JsValue::new(q), true, context)?;
 
             // b. Let z be ? RegExpExec(splitter, S).
-            let result = Self::abstract_exec(&splitter, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(splitter, arg_str.clone(), context)?;
 
             // c. If z is null, set q to AdvanceStringIndex(S, q, unicodeMatching).
             // d. Else,

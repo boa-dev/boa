@@ -363,7 +363,8 @@ impl Array {
             Ok(
                 c.construct(&[JsValue::new(length)], &c.clone().into(), context)?
                     .as_object()
-                    .expect("constructing an object should always return an object"),
+                    .expect("constructing an object should always return an object")
+                    .clone(),
             )
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
@@ -415,6 +416,7 @@ impl Array {
             Some(constructor) => constructor
                 .construct(&[len.into()], this, context)?
                 .as_object()
+                .cloned()
                 .ok_or_else(|| {
                     context.construct_type_error("object constructor didn't return an object")
                 })?,
@@ -1535,7 +1537,7 @@ impl Array {
             source_len as u64,
             0,
             1,
-            Some(&mapper_function),
+            Some(mapper_function),
             args.get_or_undefined(1),
             context,
         )?;
@@ -1625,7 +1627,7 @@ impl Array {
                     // 4. Set targetIndex to ? FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
                         target,
-                        &element,
+                        element,
                         element_len as u64,
                         target_index,
                         new_depth,
@@ -2191,7 +2193,7 @@ impl Array {
                 }
 
                 // 4. If comparefn is not undefined, then
-                if let Some(ref cmp) = comparefn {
+                if let Some(cmp) = comparefn {
                     let args = [x.clone(), y.clone()];
                     // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
                     let v = cmp

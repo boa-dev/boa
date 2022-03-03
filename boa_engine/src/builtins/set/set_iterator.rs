@@ -62,8 +62,7 @@ impl SetIterator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%setiteratorprototype%.next
     pub(crate) fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let set_iterator = this.as_object();
-        let mut set_iterator = set_iterator.as_ref().map(JsObject::borrow_mut);
+        let mut set_iterator = this.as_object().map(JsObject::borrow_mut);
 
         let set_iterator = set_iterator
             .as_mut()
@@ -82,8 +81,7 @@ impl SetIterator {
                 ));
             }
 
-            let entries = m.as_object();
-            let entries = entries.as_ref().map(JsObject::borrow);
+            let entries = m.as_object().map(JsObject::borrow);
             let entries = entries
                 .as_ref()
                 .and_then(|obj| obj.as_set_ref())
