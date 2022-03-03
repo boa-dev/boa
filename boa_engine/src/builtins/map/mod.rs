@@ -15,7 +15,7 @@
 use self::{map_iterator::MapIterator, ordered_map::OrderedMap};
 use super::JsArgs;
 use crate::{
-    builtins::{iterable::IteratorResult, BuiltIn},
+    builtins::BuiltIn,
     context::StandardObjects,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -547,19 +547,20 @@ pub(crate) fn add_entries_from_iterable(
     // 3. Repeat,
     loop {
         // a. Let next be ? IteratorStep(iteratorRecord).
-        // c. Let nextItem be ? IteratorValue(next).
-        let IteratorResult { value, done } = iterator_record.next(context)?;
+        let next = iterator_record.step(context)?;
 
         // b. If next is false, return target.
-        if done {
+        // c. Let nextItem be ? IteratorValue(next).
+        let next_item = if let Some(next) = next {
+            next.value(context)?
+        } else {
             return Ok(target.clone().into());
-        }
+        };
 
-        let next_item = if let Some(obj) = value.as_object() {
+        let next_item = if let Some(obj) = next_item.as_object() {
             obj
-        }
         // d. If Type(nextItem) is not Object, then
-        else {
+        } else {
             // i. Let error be ThrowCompletion(a newly created TypeError object).
             let err = context
                 .throw_type_error("cannot get key and value from primitive item of `iterable`");
