@@ -593,6 +593,7 @@
 <span id="591">591</span>
 <span id="592">592</span>
 <span id="593">593</span>
+<span id="594">594</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Map` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Map` class is a global object that is used in the construction of maps; which</span>
@@ -610,7 +611,7 @@
 <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">map_iterator::MapIterator</span>, <span class="ident">ordered_map::OrderedMap</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">iterable::IteratorResult</span>, <span class="ident">BuiltIn</span>},
+    <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::StandardObjects</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
@@ -1142,19 +1143,20 @@
     <span class="comment">// 3. Repeat,</span>
     <span class="kw">loop</span> {
         <span class="comment">// a. Let next be ? IteratorStep(iteratorRecord).</span>
-        <span class="comment">// c. Let nextItem be ? IteratorValue(next).</span>
-        <span class="kw">let</span> <span class="ident">IteratorResult</span> { <span class="ident">value</span>, <span class="ident">done</span> } <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">next</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// b. If next is false, return target.</span>
-        <span class="kw">if</span> <span class="ident">done</span> {
+        <span class="comment">// c. Let nextItem be ? IteratorValue(next).</span>
+        <span class="kw">let</span> <span class="ident">next_item</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">next</span> {
+            <span class="ident">next</span>.<span class="ident">value</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+        } <span class="kw">else</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
-        }
+        };
 
-        <span class="kw">let</span> <span class="ident">next_item</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>() {
+        <span class="kw">let</span> <span class="ident">next_item</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="op">=</span> <span class="ident">next_item</span>.<span class="ident">as_object</span>() {
             <span class="ident">obj</span>
-        }
         <span class="comment">// d. If Type(nextItem) is not Object, then</span>
-        <span class="kw">else</span> {
+        } <span class="kw">else</span> {
             <span class="comment">// i. Let error be ThrowCompletion(a newly created TypeError object).</span>
             <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">context</span>
                 .<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot get key and value from primitive item of `iterable`&quot;</span>);

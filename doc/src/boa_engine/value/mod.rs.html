@@ -1069,23 +1069,6 @@
 <span id="1067">1067</span>
 <span id="1068">1068</span>
 <span id="1069">1069</span>
-<span id="1070">1070</span>
-<span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
-<span id="1077">1077</span>
-<span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1401,23 +1384,6 @@
                     .<span class="ident">get_property</span>(<span class="ident">key</span>)
             }
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="doccomment">/**
-    Resolve the property in the object and get its value, or undefined if this is not an object or the field doesn&#39;t exist
-    `get_field` receives a Property from get_prop(). It should then return the `[[Get]]` result value if that&#39;s set, otherwise fall back to `[[Value]]`
-    */</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_field</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">K</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span>,
-    {
-        <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Value::get_field&quot;</span>, <span class="string">&quot;value&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">obj</span>.<span class="ident">clone</span>()
-                .<span class="ident">__get__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">into</span>(), <span class="ident">obj</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::undefined</span>())
         }
     }
 
