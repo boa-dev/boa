@@ -1066,6 +1066,13 @@
 <span id="1064">1064</span>
 <span id="1065">1065</span>
 <span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -1153,6 +1160,7 @@
     <span class="ident">syntax_error</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">eval_error</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">uri_error</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">aggregate_error</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">map</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">set</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">typed_array</span>: <span class="ident">StandardConstructor</span>,
@@ -1202,6 +1210,7 @@
             <span class="ident">syntax_error</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">eval_error</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">uri_error</span>: <span class="ident">StandardConstructor::default</span>(),
+            <span class="ident">aggregate_error</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">map</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">set</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">typed_array</span>: <span class="ident">StandardConstructor::default</span>(),
@@ -1316,6 +1325,11 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">uri_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">uri_error</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">aggregate_error_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aggregate_error</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
