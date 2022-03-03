@@ -33,7 +33,8 @@ impl StringIterator {
     }
 
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut string_iterator = this.as_object().map(JsObject::borrow_mut);
+        let string_iterator = this.as_object();
+        let mut string_iterator = string_iterator.as_ref().map(JsObject::borrow_mut);
         let string_iterator = string_iterator
             .as_mut()
             .and_then(|obj| obj.as_string_iterator_mut())

@@ -91,7 +91,9 @@ fn bound_function_exotic_construct(
 
     // 5. If SameValue(F, newTarget) is true, set newTarget to target.
     let new_target = match new_target.variant() {
-        JsVariant::Object(new_target) if JsObject::equals(obj, new_target) => target.clone().into(),
+        JsVariant::Object(ref new_target) if JsObject::equals(obj, new_target) => {
+            target.clone().into()
+        }
         _ => new_target.clone(),
     };
 

@@ -77,7 +77,8 @@ impl RegExpStringIterator {
     }
 
     pub fn next(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let mut iterator = this.as_object().map(JsObject::borrow_mut);
+        let iterator = this.as_object();
+        let mut iterator = iterator.as_ref().map(JsObject::borrow_mut);
         let iterator = iterator
             .as_mut()
             .and_then(|obj| obj.as_regexp_string_iterator_mut())

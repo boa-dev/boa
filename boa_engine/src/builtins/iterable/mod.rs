@@ -285,7 +285,7 @@ impl IteratorRecord {
         // 3. If Type(result) is not Object, throw a TypeError exception.
         // 4. Return result.
         if let Some(o) = result.as_object() {
-            Ok(IteratorResult { object: o.clone() })
+            Ok(IteratorResult { object: o })
         } else {
             context.throw_type_error("next value should be an object")
         }

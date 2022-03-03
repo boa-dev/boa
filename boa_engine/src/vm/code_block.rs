@@ -788,7 +788,7 @@ impl JsObject {
                     .expect("GeneratorFunction must have a prototype property")
                     .as_object()
                 {
-                    prototype.clone()
+                    prototype
                 } else {
                     context.standard_objects().generator_object().prototype()
                 };

@@ -60,6 +60,6 @@ fn instances_have_correct_proto_set() {
 
     assert_eq!(
         &*bool_instance.as_object().unwrap().prototype(),
-        &bool_prototype.as_object().cloned()
+        &bool_prototype.as_object()
     );
 }

@@ -566,7 +566,7 @@ impl Context {
 
                 let value = self.vm.pop();
                 let object = if let Some(object) = value.as_object() {
-                    object.clone()
+                    object
                 } else {
                     value.to_object(self)?
                 };
@@ -581,7 +581,7 @@ impl Context {
                 let object = self.vm.pop();
                 let key = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object.clone()
+                    object
                 } else {
                     object.to_object(self)?
                 };
@@ -597,7 +597,7 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object.clone()
+                    object
                 } else {
                     object.to_object(self)?
                 };
@@ -618,7 +618,7 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object.clone()
+                    object
                 } else {
                     object.to_object(self)?
                 };
@@ -642,7 +642,7 @@ impl Context {
                 let key = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object.clone()
+                    object
                 } else {
                     object.to_object(self)?
                 };
@@ -660,7 +660,7 @@ impl Context {
                 let key = self.vm.pop();
                 let object = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
-                    object.clone()
+                    object
                 } else {
                     object.to_object(self)?
                 };
@@ -981,7 +981,7 @@ impl Context {
                 arguments.append(&mut rest_arguments);
 
                 let object = match func.variant() {
-                    JsVariant::Object(object) if object.is_callable() => object.clone(),
+                    JsVariant::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
 

@@ -98,7 +98,7 @@ macro_rules! print_obj_value {
 pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children: bool) -> String {
     match x.variant() {
         // We don't want to print private (compiler) or prototype properties
-        JsVariant::Object(v) => {
+        JsVariant::Object(ref v) => {
             // Can use the private "type" field of an Object to match on
             // which type of Object it represents for special printing
             match v.borrow().kind() {
@@ -284,17 +284,17 @@ impl Display for ValueDisplay<'_> {
             JsVariant::Null => write!(f, "null"),
             JsVariant::Undefined => write!(f, "undefined"),
             JsVariant::Boolean(v) => write!(f, "{v}"),
-            JsVariant::Symbol(symbol) => match symbol.description() {
+            JsVariant::Symbol(ref symbol) => match symbol.description() {
                 Some(description) => write!(f, "Symbol({description})"),
                 None => write!(f, "Symbol()"),
             },
-            JsVariant::String(v) => write!(f, "\"{v}\""),
+            JsVariant::String(ref v) => write!(f, "\"{v}\""),
             JsVariant::Rational(v) => format_rational(v, f),
             JsVariant::Object(_) => {
                 write!(f, "{}", log_string_from(self.value, self.internals, true))
             }
             JsVariant::Integer(v) => write!(f, "{v}"),
-            JsVariant::BigInt(num) => write!(f, "{num}n"),
+            JsVariant::BigInt(ref num) => write!(f, "{num}n"),
         }
     }
 }

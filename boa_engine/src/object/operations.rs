@@ -503,7 +503,7 @@ impl JsObject {
         // 7. If IsConstructor(S) is true, return S.
         // 8. Throw a TypeError exception.
         match s.as_object() {
-            Some(obj) if obj.is_constructor() => Ok(obj.clone()),
+            Some(obj) if obj.is_constructor() => Ok(obj),
             _ => context.throw_type_error("property 'constructor' is not a constructor"),
         }
     }
@@ -594,7 +594,7 @@ impl JsObject {
             // 3. If func is either undefined or null, return undefined.
             JsVariant::Undefined | JsVariant::Null => Ok(None),
             // 5. Return func.
-            JsVariant::Object(object) if object.is_callable() => Ok(Some(object.clone())),
+            JsVariant::Object(ref object) if object.is_callable() => Ok(Some(object.clone())),
             // 4. If IsCallable(func) is false, throw a TypeError exception.
             _ => {
                 context.throw_type_error("value returned for property of object is not a function")
@@ -802,7 +802,7 @@ impl JsValue {
         }
 
         let mut object = if let Some(obj) = object.as_object() {
-            obj.clone()
+            obj
         } else {
             // 3. If Type(O) is not Object, return false.
             return Ok(false);
@@ -829,7 +829,7 @@ impl JsValue {
             };
 
             // c. If SameValue(P, O) is true, return true.
-            if JsObject::equals(&object, prototype) {
+            if JsObject::equals(&object, &prototype) {
                 return Ok(true);
             }
         }

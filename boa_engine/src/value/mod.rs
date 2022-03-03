@@ -253,21 +253,12 @@ impl JsValue {
     ///
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsObject`] is undefined behaviour.
-    pub unsafe fn as_object_unchecked(&self) -> &JsObject {
+    pub unsafe fn as_object_unchecked(&self) -> JsObject {
         // SAFETY: The safety contract must be upheld by the caller
-        let object = unsafe {
-            JsObject::from_void_ptr(self.as_pointer());
-        };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&object` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&object) }
+        unsafe { JsObject::clone(&JsObject::from_void_ptr(self.as_pointer())) }
     }
 
-    pub fn as_object(&self) -> Option<&JsObject> {
+    pub fn as_object(&self) -> Option<JsObject> {
         if self.is_object() {
             return unsafe { Some(self.as_object_unchecked()) };
         }
@@ -288,23 +279,14 @@ impl JsValue {
     ///
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsString`] is undefined behaviour.
-    pub unsafe fn as_string_unchecked(&self) -> &JsString {
+    pub unsafe fn as_string_unchecked(&self) -> JsString {
         // SAFETY: The safety contract must be upheld by the caller
-        let string = unsafe {
-            JsString::from_void_ptr(self.as_pointer());
-        };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&string` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&string) }
+        unsafe { JsString::clone(&JsString::from_void_ptr(self.as_pointer())) }
     }
 
     /// Returns the string if the values is a string, otherwise `None`.
     #[inline]
-    pub fn as_string(&self) -> Option<&JsString> {
+    pub fn as_string(&self) -> Option<JsString> {
         if self.is_string() {
             return unsafe { Some(self.as_string_unchecked()) };
         }
@@ -323,19 +305,12 @@ impl JsValue {
     ///
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsSymbol`] is undefined behaviour.
-    pub unsafe fn as_symbol_unchecked(&self) -> &JsSymbol {
+    pub unsafe fn as_symbol_unchecked(&self) -> JsSymbol {
         // SAFETY: The safety contract must be upheld by the caller
-        let symbol = unsafe { JsSymbol::from_void_ptr(self.as_pointer()) };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&symbol` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&symbol) }
+        unsafe { JsSymbol::clone(&JsSymbol::from_void_ptr(self.as_pointer())) }
     }
 
-    pub fn as_symbol(&self) -> Option<&JsSymbol> {
+    pub fn as_symbol(&self) -> Option<JsSymbol> {
         if self.is_symbol() {
             return unsafe { Some(self.as_symbol_unchecked()) };
         }
@@ -357,21 +332,12 @@ impl JsValue {
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsBigInt`] is undefined behaviour.
     #[inline]
-    pub unsafe fn as_bigint_unchecked(&self) -> &JsBigInt {
+    pub unsafe fn as_bigint_unchecked(&self) -> JsBigInt {
         // SAFETY: The safety contract must be upheld by the caller
-        let bigint = unsafe {
-            JsBigInt::from_void_ptr(self.as_pointer());
-        };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&bigint` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&bigint) }
+        unsafe { JsBigInt::clone(&JsBigInt::from_void_ptr(self.as_pointer())) }
     }
 
-    pub fn as_bigint(&self) -> Option<&JsBigInt> {
+    pub fn as_bigint(&self) -> Option<JsBigInt> {
         if self.is_bigint() {
             return unsafe { Some(self.as_bigint_unchecked()) };
         }
@@ -379,7 +345,7 @@ impl JsValue {
         None
     }
 
-    pub fn variant(&self) -> JsVariant<'_> {
+    pub fn variant(&self) -> JsVariant {
         unsafe {
             match self.tag() {
                 ValueTag::Null => JsVariant::Null,
@@ -397,16 +363,16 @@ impl JsValue {
 }
 
 #[derive(Debug, Clone)]
-pub enum JsVariant<'a> {
+pub enum JsVariant {
     Null,
     Undefined,
     Rational(f64),
     Integer(i32),
     Boolean(bool),
-    String(&'a JsString),
-    Symbol(&'a JsSymbol),
-    BigInt(&'a JsBigInt),
-    Object(&'a JsObject),
+    String(JsString),
+    Symbol(JsSymbol),
+    BigInt(JsBigInt),
+    Object(JsObject),
 }
 
 impl From<bool> for JsValue {
@@ -609,8 +575,24 @@ pub(crate) unsafe trait PointerType {
     unsafe fn into_void_ptr(ty: ManuallyDrop<Self>) -> *mut ();
 }
 
-impl Drop for JsValue {
+impl Clone for JsValue {
     #[inline]
+    fn clone(&self) -> Self {
+        unsafe {
+            match self.tag() {
+                ValueTag::Object => Self::new(self.as_object_unchecked()),
+                ValueTag::String => Self::new(self.as_string_unchecked()),
+                ValueTag::Symbol => Self::new(self.as_symbol_unchecked()),
+                ValueTag::BigInt => Self::new(self.as_bigint_unchecked()),
+                _ => Self {
+                    value: Cell::new(self.value.get()),
+                },
+            }
+        }
+    }
+}
+
+impl Drop for JsValue {
     fn drop(&mut self) {
         unsafe {
             match self.tag() {
@@ -632,47 +614,41 @@ impl Drop for JsValue {
     }
 }
 
-impl Clone for JsValue {
-    #[inline]
-    fn clone(&self) -> Self {
-        unsafe {
-            match self.tag() {
-                ValueTag::Object => Self::new(self.as_object_unchecked().clone()),
-                ValueTag::String => Self::new(self.as_string_unchecked().clone()),
-                ValueTag::Symbol => Self::new(self.as_symbol_unchecked().clone()),
-                ValueTag::BigInt => Self::new(self.as_bigint_unchecked().clone()),
-                _ => Self {
-                    value: Cell::new(self.value.get()),
-                },
-            }
-        }
-    }
-}
-
 impl Finalize for JsValue {}
 
 unsafe impl Trace for JsValue {
-    #[inline]
     unsafe fn trace(&self) {
         if let Some(o) = self.as_object() {
             // SAFETY: `self.as_object()` must always return a valid `JsObject
-            unsafe { o.trace() }
+            unsafe {
+                o.trace();
+            }
         }
     }
 
-    #[inline]
     unsafe fn root(&self) {
-        if let Some(o) = self.as_object() {
-            // SAFETY: `self.as_object()` must always return a valid `JsObject
-            unsafe { o.root() }
+        if self.tag() == ValueTag::Object {
+            // SAFETY: Implementors of `PointerType` must guarantee the
+            // safety of both `from_void_ptr` and `into_void_ptr`
+            unsafe {
+                let o = JsObject::from_void_ptr(self.as_pointer());
+                o.root();
+                self.value
+                    .set(OBJECT_TYPE | (JsObject::into_void_ptr(o) as u64));
+            }
         }
     }
 
-    #[inline]
     unsafe fn unroot(&self) {
-        if let Some(o) = self.as_object() {
-            // SAFETY: `self.as_object()` must always return a valid `JsObject
-            unsafe { o.unroot() }
+        if self.tag() == ValueTag::Object {
+            // SAFETY: Implementors of `PointerType` must guarantee the
+            // safety of both `from_void_ptr` and `into_void_ptr`
+            unsafe {
+                let o = JsObject::from_void_ptr(self.as_pointer());
+                o.unroot();
+                self.value
+                    .set(OBJECT_TYPE | (JsObject::into_void_ptr(o) as u64));
+            }
         }
     }
 
@@ -705,7 +681,7 @@ mod tests_nan_box {
 
         let bigint = value.as_bigint().unwrap();
 
-        assert_eq!(bigint, &JsBigInt::new(12345));
+        assert_eq!(&bigint, &JsBigInt::new(12345));
     }
 
     #[test]
@@ -744,7 +720,7 @@ mod tests_nan_box {
 
         let string = value.as_string().unwrap();
 
-        assert_eq!(JsString::refcount(string), 2);
+        assert_eq!(JsString::refcount(&string), 2);
 
         assert_eq!(string, "I am a string :)");
     }
@@ -768,7 +744,7 @@ mod tests_nan_box {
         assert!(value.is_object());
 
         let o2 = value.as_object().unwrap();
-        assert!(JsObject::equals(&o1, o2));
+        assert!(JsObject::equals(&o1, &o2));
     }
 
     #[test]
@@ -890,23 +866,27 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     pub fn is_callable(&self) -> bool {
-        self.as_object().map_or(false, JsObject::is_callable)
+        self.as_object()
+            .as_ref()
+            .map_or(false, JsObject::is_callable)
     }
 
     #[inline]
-    pub fn as_callable(&self) -> Option<&JsObject> {
-        self.as_object().filter(|obj| obj.is_callable())
+    pub fn as_callable(&self) -> Option<JsObject> {
+        self.as_object().filter(JsObject::is_callable)
     }
 
     /// Returns true if the value is a constructor object
     #[inline]
     pub fn is_constructor(&self) -> bool {
-        self.as_object().map_or(false, JsObject::is_constructor)
+        self.as_object()
+            .as_ref()
+            .map_or(false, JsObject::is_constructor)
     }
 
     #[inline]
-    pub fn as_constructor(&self) -> Option<&JsObject> {
-        self.as_object().filter(|obj| obj.is_constructor())
+    pub fn as_constructor(&self) -> Option<JsObject> {
+        self.as_object().filter(JsObject::is_constructor)
     }
 
     /// Returns true if the value is a 64-bit floating-point number.
@@ -957,10 +937,10 @@ impl JsValue {
         match self.variant() {
             JsVariant::Undefined | JsVariant::Null => false,
             JsVariant::Symbol(_) | JsVariant::Object(_) => true,
-            JsVariant::String(s) if !s.is_empty() => true,
+            JsVariant::String(ref s) if !s.is_empty() => true,
             JsVariant::Rational(n) if n != 0.0 && !n.is_nan() => true,
             JsVariant::Integer(n) if n != 0 => true,
-            JsVariant::BigInt(n) if !n.is_zero() => true,
+            JsVariant::BigInt(ref n) if !n.is_zero() => true,
             JsVariant::Boolean(v) => v,
             _ => false,
         }
@@ -1065,7 +1045,7 @@ impl JsValue {
             JsVariant::Undefined => {
                 context.throw_type_error("cannot convert undefined to a BigInt")
             }
-            JsVariant::String(string) => {
+            JsVariant::String(ref string) => {
                 if let Some(value) = JsBigInt::from_string(string) {
                     Ok(value)
                 } else {
@@ -1079,7 +1059,7 @@ impl JsValue {
             JsVariant::Integer(_) | JsVariant::Rational(_) => {
                 context.throw_type_error("cannot convert Number to a BigInt")
             }
-            JsVariant::BigInt(b) => Ok(b.clone()),
+            JsVariant::BigInt(ref b) => Ok(b.clone()),
             JsVariant::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::Number)?;
                 primitive.to_bigint(context)
@@ -1120,9 +1100,9 @@ impl JsValue {
             JsVariant::Boolean(boolean) => Ok(boolean.to_string().into()),
             JsVariant::Rational(rational) => Ok(Number::to_native_string(rational).into()),
             JsVariant::Integer(integer) => Ok(integer.to_string().into()),
-            JsVariant::String(string) => Ok(string.clone()),
+            JsVariant::String(ref string) => Ok(string.clone()),
             JsVariant::Symbol(_) => context.throw_type_error("can't convert symbol to string"),
-            JsVariant::BigInt(bigint) => Ok(bigint.to_string().into()),
+            JsVariant::BigInt(ref bigint) => Ok(bigint.to_string().into()),
             JsVariant::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::String)?;
                 primitive.to_string(context)
@@ -1161,7 +1141,7 @@ impl JsValue {
                     ObjectData::number(rational),
                 ))
             }
-            JsVariant::String(string) => {
+            JsVariant::String(ref string) => {
                 let prototype = context.standard_objects().string_object().prototype();
 
                 let object =
@@ -1177,21 +1157,21 @@ impl JsValue {
                 );
                 Ok(object)
             }
-            JsVariant::Symbol(symbol) => {
+            JsVariant::Symbol(ref symbol) => {
                 let prototype = context.standard_objects().symbol_object().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::symbol(symbol.clone()),
                 ))
             }
-            JsVariant::BigInt(bigint) => {
+            JsVariant::BigInt(ref bigint) => {
                 let prototype = context.standard_objects().bigint_object().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::big_int(bigint.clone()),
                 ))
             }
-            JsVariant::Object(jsobject) => Ok(jsobject.clone()),
+            JsVariant::Object(ref jsobject) => Ok(jsobject.clone()),
         }
     }
 
@@ -1201,14 +1181,14 @@ impl JsValue {
     pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
         Ok(match self.variant() {
             // Fast path:
-            JsVariant::String(string) => string.clone().into(),
-            JsVariant::Symbol(symbol) => symbol.clone().into(),
+            JsVariant::String(ref string) => string.clone().into(),
+            JsVariant::Symbol(ref symbol) => symbol.clone().into(),
             // Slow path:
             _ => {
                 let primitive = self.to_primitive(context, PreferredType::String)?;
                 match primitive.variant() {
-                    JsVariant::String(string) => string.clone().into(),
-                    JsVariant::Symbol(symbol) => symbol.clone().into(),
+                    JsVariant::String(ref string) => string.clone().into(),
+                    JsVariant::Symbol(ref symbol) => symbol.clone().into(),
                     _ => primitive.to_string(context)?.into(),
                 }
             }
@@ -1221,7 +1201,7 @@ impl JsValue {
     pub fn to_numeric(&self, context: &mut Context) -> JsResult<Numeric> {
         let primitive = self.to_primitive(context, PreferredType::Number)?;
         if let Some(bigint) = primitive.as_bigint() {
-            return Ok(bigint.clone().into());
+            return Ok(bigint.into());
         }
         Ok(self.to_number(context)?.into())
     }
@@ -1531,7 +1511,7 @@ impl JsValue {
             JsVariant::Null => Ok(0.0),
             JsVariant::Undefined => Ok(f64::NAN),
             JsVariant::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            JsVariant::String(string) => Ok(string.string_to_number()),
+            JsVariant::String(ref string) => Ok(string.string_to_number()),
             JsVariant::Rational(number) => Ok(number),
             JsVariant::Integer(integer) => Ok(f64::from(integer)),
             JsVariant::Symbol(_) => context.throw_type_error("argument must not be a symbol"),
@@ -1604,7 +1584,7 @@ impl JsValue {
             JsVariant::Null => "object",
             JsVariant::Undefined => "undefined",
             JsVariant::BigInt(_) => "bigint",
-            JsVariant::Object(object) => {
+            JsVariant::Object(ref object) => {
                 if object.is_callable() {
                     "function"
                 } else {

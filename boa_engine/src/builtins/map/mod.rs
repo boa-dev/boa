@@ -434,7 +434,7 @@ impl Map {
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         let map = this
             .as_object()
-            .filter(|obj| obj.is_map())
+            .filter(JsObject::is_map)
             .ok_or_else(|| context.construct_type_error("`this` is not a Map"))?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.

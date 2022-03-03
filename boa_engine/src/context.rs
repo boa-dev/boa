@@ -434,8 +434,7 @@ impl Default for Context {
             .get("prototype", &mut context)
             .expect("prototype must exist")
             .as_object()
-            .expect("prototype must be object")
-            .clone();
+            .expect("prototype must be object");
         context.typed_array_constructor.constructor = typed_array_constructor_constructor;
         context.typed_array_constructor.prototype = typed_array_constructor_prototype;
         context.iterator_prototypes = IteratorPrototypes::init(&mut context);

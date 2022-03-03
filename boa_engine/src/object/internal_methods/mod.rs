@@ -961,7 +961,7 @@ where
     // 2. Let proto be ? Get(constructor, "prototype").
     if let Some(object) = constructor.as_object() {
         if let Some(proto) = object.get(PROTOTYPE, context)?.as_object() {
-            return Ok(proto.clone());
+            return Ok(proto);
         }
     }
     // 3. If Type(proto) is not Object, then

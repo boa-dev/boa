@@ -25,7 +25,7 @@ impl JsValue {
             (_, JsVariant::String(ref y)) => {
                 Self::new(JsString::concat(self.to_string(context)?, y))
             }
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::add(x, y)),
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => Self::new(JsBigInt::add(x, y)),
 
             // Slow path:
             (_, _) => {
@@ -65,7 +65,7 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x) - y),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x - f64::from(y)),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::sub(x, y)),
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => Self::new(JsBigInt::sub(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -91,7 +91,7 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x) * y),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x * f64::from(y)),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::mul(x, y)),
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => Self::new(JsBigInt::mul(x, y)),
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -117,7 +117,7 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x) / y),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x / f64::from(y)),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => {
                 if y.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
@@ -164,7 +164,7 @@ impl JsValue {
             (JsVariant::Rational(x), JsVariant::Integer(y)) => {
                 Self::new((x % f64::from(y)).copysign(x))
             }
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => {
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => {
                 if y.is_zero() {
                     return context.throw_range_error("BigInt division by zero");
                 }
@@ -197,7 +197,7 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(f64::from(x).powf(y)),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(x.powi(y)),
 
-            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
+            (JsVariant::BigInt(ref a), JsVariant::BigInt(ref b)) => {
                 Self::new(JsBigInt::pow(a, b, context)?)
             }
 
@@ -227,7 +227,9 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(x & f64_to_int32(y)),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(f64_to_int32(x) & y),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitand(x, y)),
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => {
+                Self::new(JsBigInt::bitand(x, y))
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -257,7 +259,9 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(x | f64_to_int32(y)),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(f64_to_int32(x) | y),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitor(x, y)),
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => {
+                Self::new(JsBigInt::bitor(x, y))
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -287,7 +291,9 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Self::new(x ^ f64_to_int32(y)),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Self::new(f64_to_int32(x) ^ y),
 
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => Self::new(JsBigInt::bitxor(x, y)),
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => {
+                Self::new(JsBigInt::bitxor(x, y))
+            }
 
             // Slow path:
             (_, _) => match (self.to_numeric(context)?, other.to_numeric(context)?) {
@@ -321,7 +327,7 @@ impl JsValue {
                 Self::new(f64_to_int32(x).wrapping_shl(y as u32))
             }
 
-            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
+            (JsVariant::BigInt(ref a), JsVariant::BigInt(ref b)) => {
                 Self::new(JsBigInt::shift_left(a, b, context)?)
             }
 
@@ -357,7 +363,7 @@ impl JsValue {
                 Self::new(f64_to_int32(x).wrapping_shr(y as u32))
             }
 
-            (JsVariant::BigInt(a), JsVariant::BigInt(b)) => {
+            (JsVariant::BigInt(ref a), JsVariant::BigInt(ref b)) => {
                 Self::new(JsBigInt::shift_right(a, b, context)?)
             }
 
@@ -457,7 +463,7 @@ impl JsValue {
                 Ok(num) => -num,
                 Err(_) => f64::NAN,
             }),
-            JsVariant::String(str) => Self::new(match f64::from_str(str) {
+            JsVariant::String(ref str) => Self::new(match f64::from_str(str) {
                 Ok(num) => -num,
                 Err(_) => f64::NAN,
             }),
@@ -466,7 +472,7 @@ impl JsValue {
             JsVariant::Integer(num) => Self::new(-num),
             JsVariant::Boolean(true) => Self::new(1),
             JsVariant::Boolean(false) | JsVariant::Null => Self::new(0),
-            JsVariant::BigInt(x) => Self::new(JsBigInt::neg(x)),
+            JsVariant::BigInt(ref x) => Self::new(JsBigInt::neg(x)),
         })
     }
 
@@ -504,7 +510,7 @@ impl JsValue {
             (JsVariant::Integer(x), JsVariant::Rational(y)) => Number::less_than(f64::from(x), y),
             (JsVariant::Rational(x), JsVariant::Integer(y)) => Number::less_than(x, f64::from(y)),
             (JsVariant::Rational(x), JsVariant::Rational(y)) => Number::less_than(x, y),
-            (JsVariant::BigInt(x), JsVariant::BigInt(y)) => (x < y).into(),
+            (JsVariant::BigInt(ref x), JsVariant::BigInt(ref y)) => (x < y).into(),
 
             // Slow path:
             (_, _) => {
@@ -520,7 +526,7 @@ impl JsValue {
                 };
 
                 match (px.variant(), py.variant()) {
-                    (JsVariant::String(x), JsVariant::String(y)) => {
+                    (JsVariant::String(ref x), JsVariant::String(ref y)) => {
                         if x.starts_with(y.as_str()) {
                             return Ok(AbstractRelation::False);
                         }
@@ -534,14 +540,14 @@ impl JsValue {
                         }
                         unreachable!()
                     }
-                    (JsVariant::BigInt(x), JsVariant::String(y)) => {
+                    (JsVariant::BigInt(ref x), JsVariant::String(ref y)) => {
                         if let Some(y) = JsBigInt::from_string(y) {
                             (*x < y).into()
                         } else {
                             AbstractRelation::Undefined
                         }
                     }
-                    (JsVariant::String(x), JsVariant::BigInt(y)) => {
+                    (JsVariant::String(ref x), JsVariant::BigInt(ref y)) => {
                         if let Some(x) = JsBigInt::from_string(x) {
                             (x < *y).into()
                         } else {

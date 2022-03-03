@@ -98,7 +98,7 @@ pub(crate) fn proxy_exotic_get_prototype_of(
 
     // 8. If Type(handlerProto) is neither Object nor Null, throw a TypeError exception.
     let handler_proto = match handler_proto.variant() {
-        JsVariant::Object(obj) => Some(obj.clone()),
+        JsVariant::Object(ref obj) => Some(obj.clone()),
         JsVariant::Null => None,
         _ => return context.throw_type_error("Proxy trap result is neither object nor null"),
     };
@@ -826,7 +826,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
     let mut trap_result = Vec::new();
     for value in &trap_result_raw {
         match value.variant() {
-            JsVariant::String(s) => {
+            JsVariant::String(ref s) => {
                 if !unchecked_result_keys.insert(s.clone().into()) {
                     return context.throw_type_error(
                         "Proxy trap result contains duplicate string property keys",
@@ -834,7 +834,7 @@ pub(crate) fn proxy_exotic_own_property_keys(
                 }
                 trap_result.push(s.clone().into());
             }
-            JsVariant::Symbol(s) => {
+            JsVariant::Symbol(ref s) => {
                 if !unchecked_result_keys.insert(s.clone().into()) {
                     return context.throw_type_error(
                         "Proxy trap result contains duplicate symbol property keys",

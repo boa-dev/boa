@@ -246,7 +246,7 @@ fn closure_capture_clone() {
                 object
                     .__get_own_property__(&"key".into(), context)?
                     .and_then(|prop| prop.value().cloned())
-                    .and_then(|val| val.as_string().cloned())
+                    .and_then(|val| val.as_string())
                     .ok_or_else(|| context.construct_type_error("invalid `key` property"))?,
             );
             Ok(hw.into())

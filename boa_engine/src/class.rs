@@ -121,7 +121,7 @@ impl<T: Class> ClassConstructor for T {
         };
         let class_prototype =
             if let Some(object) = class_constructor.get(PROTOTYPE, context)?.as_object() {
-                object.clone()
+                object
             } else {
                 return context.throw_type_error(format!(
                     "invalid default prototype for native class `{}`",
@@ -131,11 +131,7 @@ impl<T: Class> ClassConstructor for T {
 
         let prototype = this
             .as_object()
-            .cloned()
-            .map(|obj| {
-                obj.get(PROTOTYPE, context)
-                    .map(|val| val.as_object().cloned())
-            })
+            .map(|obj| obj.get(PROTOTYPE, context).map(|val| val.as_object()))
             .transpose()?
             .flatten()
             .unwrap_or(class_prototype);
