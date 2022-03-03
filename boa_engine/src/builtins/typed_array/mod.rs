@@ -421,7 +421,7 @@ impl TypedArray {
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-            let target_obj = Self::create(constructor, &[values.len().into()], context)?;
+            let target_obj = Self::create(&constructor, &[values.len().into()], context)?;
 
             // d. Let k be 0.
             // e. Repeat, while k < len,
@@ -457,7 +457,7 @@ impl TypedArray {
         let len = array_like.length_of_array_like(context)?;
 
         // 10. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let target_obj = Self::create(constructor, &[len.into()], context)?;
+        let target_obj = Self::create(&constructor, &[len.into()], context)?;
 
         // 11. Let k be 0.
         // 12. Repeat, while k < len,
@@ -503,7 +503,7 @@ impl TypedArray {
         };
 
         // 4. Let newObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let new_obj = Self::create(constructor, &[args.len().into()], context)?;
+        let new_obj = Self::create(&constructor, &[args.len().into()], context)?;
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -1063,7 +1063,7 @@ impl TypedArray {
         }
 
         // 9. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(captured) »).
-        let a = Self::species_create(obj, o.typed_array_name(), &[captured.into()], context)?;
+        let a = Self::species_create(&obj, o.typed_array_name(), &[captured.into()], context)?;
 
         // 10. Let n be 0.
         // 11. For each element e of kept, do
@@ -1622,7 +1622,7 @@ impl TypedArray {
         };
 
         // 5. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(len) »).
-        let a = Self::species_create(obj, o.typed_array_name(), &[len.into()], context)?;
+        let a = Self::species_create(&obj, o.typed_array_name(), &[len.into()], context)?;
 
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
@@ -1894,12 +1894,12 @@ impl TypedArray {
             // 6. If source is an Object that has a [[TypedArrayName]] internal slot, then
             JsVariant::Object(source) if source.is_typed_array() => {
                 // a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).
-                Self::set_typed_array_from_typed_array(target, target_offset, source, context)?;
+                Self::set_typed_array_from_typed_array(&target, target_offset, &source, context)?;
             }
             // 7. Else,
             _ => {
                 // a. Perform ? SetTypedArrayFromArrayLike(target, targetOffset, source).
-                Self::set_typed_array_from_array_like(target, target_offset, source, context)?;
+                Self::set_typed_array_from_array_like(&target, target_offset, source, context)?;
             }
         }
 
@@ -2291,7 +2291,7 @@ impl TypedArray {
         let count = std::cmp::max(r#final - k, 0) as usize;
 
         // 13. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(count) »).
-        let a = Self::species_create(obj, o.typed_array_name(), &[count.into()], context)?;
+        let a = Self::species_create(&obj, o.typed_array_name(), &[count.into()], context)?;
         let a_borrow = a.borrow();
         let a_array = a_borrow
             .as_typed_array()
@@ -2637,7 +2637,7 @@ impl TypedArray {
         let mut sort_err = Ok(());
         items.sort_by(|x, y| {
             if sort_err.is_ok() {
-                sort_compare(x, y, compare_fn, context).unwrap_or_else(|err| {
+                sort_compare(x, y, compare_fn.as_deref(), context).unwrap_or_else(|err| {
                     sort_err = Err(err);
                     Ordering::Equal
                 })
@@ -2737,7 +2737,7 @@ impl TypedArray {
         // 19. Let argumentsList be « buffer, 𝔽(beginByteOffset), 𝔽(newLength) ».
         // 20. Return ? TypedArraySpeciesCreate(O, argumentsList).
         Ok(Self::species_create(
-            obj,
+            &obj,
             o.typed_array_name(),
             &[
                 buffer.clone().into(),

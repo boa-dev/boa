@@ -144,7 +144,7 @@ impl Generator {
     ) -> JsResult<JsValue> {
         // 1. Return ? GeneratorResume(this value, value, empty).
         match this.as_object() {
-            Some(obj) if obj.is_generator() => {
+            Some(ref obj) if obj.is_generator() => {
                 Self::generator_resume(obj, args.get_or_undefined(0), context)
             }
             _ => context.throw_type_error("Generator.prototype.next called on non generator"),

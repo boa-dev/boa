@@ -190,6 +190,7 @@ impl Symbol {
     fn this_symbol_value(value: &JsValue, context: &mut Context) -> JsResult<JsSymbol> {
         value
             .as_symbol()
+            .as_deref()
             .cloned()
             .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
             .ok_or_else(|| context.construct_type_error("'this' is not a Symbol"))
@@ -306,7 +307,7 @@ impl Symbol {
     ) -> JsResult<JsValue> {
         let sym = args.get_or_undefined(0);
         // 1. If Type(sym) is not Symbol, throw a TypeError exception.
-        if let Some(sym) = sym.as_symbol() {
+        if let Some(ref sym) = sym.as_symbol() {
             // 2. For each element e of the GlobalSymbolRegistry List (see 20.4.2.2), do
             //     a. If SameValue(e.[[Symbol]], sym) is true, return e.[[Key]].
             // 3. Assert: GlobalSymbolRegistry does not currently contain an entry for sym.

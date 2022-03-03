@@ -40,13 +40,13 @@ impl Hash for JsValue {
         match self.variant() {
             JsVariant::Undefined => UndefinedHashable.hash(state),
             JsVariant::Null => NullHashable.hash(state),
-            JsVariant::String(ref string) => string.hash(state),
+            JsVariant::String(string) => string.hash(state),
             JsVariant::Boolean(boolean) => boolean.hash(state),
             JsVariant::Integer(integer) => RationalHashable(f64::from(integer)).hash(state),
-            JsVariant::BigInt(ref bigint) => bigint.hash(state),
+            JsVariant::BigInt(bigint) => bigint.hash(state),
             JsVariant::Rational(rational) => RationalHashable(rational).hash(state),
-            JsVariant::Symbol(ref symbol) => Hash::hash(symbol, state),
-            JsVariant::Object(ref object) => std::ptr::hash(object.as_ref(), state),
+            JsVariant::Symbol(symbol) => Hash::hash(symbol.as_ref(), state),
+            JsVariant::Object(object) => std::ptr::hash(object.as_ref(), state),
         }
     }
 }

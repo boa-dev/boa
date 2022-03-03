@@ -26,6 +26,7 @@ use std::{
     cell::Cell,
     collections::HashSet,
     fmt::{self, Display},
+    marker::PhantomData,
     mem::ManuallyDrop,
     ops::Sub,
     str::FromStr,
@@ -253,21 +254,11 @@ impl JsValue {
     ///
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsObject`] is undefined behaviour.
-    pub unsafe fn as_object_unchecked(&self) -> &JsObject {
-        // SAFETY: The safety contract must be upheld by the caller
-        let object = unsafe {
-            JsObject::from_void_ptr(self.as_pointer());
-        };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&object` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&object) }
+    pub unsafe fn as_object_unchecked(&self) -> Ref<'_, JsObject> {
+        unsafe { Ref::new(JsObject::from_void_ptr(self.as_pointer())) }
     }
 
-    pub fn as_object(&self) -> Option<&JsObject> {
+    pub fn as_object(&self) -> Option<Ref<'_, JsObject>> {
         if self.is_object() {
             return unsafe { Some(self.as_object_unchecked()) };
         }
@@ -288,23 +279,13 @@ impl JsValue {
     ///
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsString`] is undefined behaviour.
-    pub unsafe fn as_string_unchecked(&self) -> &JsString {
-        // SAFETY: The safety contract must be upheld by the caller
-        let string = unsafe {
-            JsString::from_void_ptr(self.as_pointer());
-        };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&string` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&string) }
+    pub unsafe fn as_string_unchecked(&self) -> Ref<'_, JsString> {
+        unsafe { Ref::new(JsString::from_void_ptr(self.as_pointer())) }
     }
 
     /// Returns the string if the values is a string, otherwise `None`.
     #[inline]
-    pub fn as_string(&self) -> Option<&JsString> {
+    pub fn as_string(&self) -> Option<Ref<'_, JsString>> {
         if self.is_string() {
             return unsafe { Some(self.as_string_unchecked()) };
         }
@@ -323,19 +304,11 @@ impl JsValue {
     ///
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsSymbol`] is undefined behaviour.
-    pub unsafe fn as_symbol_unchecked(&self) -> &JsSymbol {
-        // SAFETY: The safety contract must be upheld by the caller
-        let symbol = unsafe { JsSymbol::from_void_ptr(self.as_pointer()) };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&symbol` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&symbol) }
+    pub unsafe fn as_symbol_unchecked(&self) -> Ref<'_, JsSymbol> {
+        unsafe { Ref::new(JsSymbol::from_void_ptr(self.as_pointer())) }
     }
 
-    pub fn as_symbol(&self) -> Option<&JsSymbol> {
+    pub fn as_symbol(&self) -> Option<Ref<'_, JsSymbol>> {
         if self.is_symbol() {
             return unsafe { Some(self.as_symbol_unchecked()) };
         }
@@ -357,21 +330,12 @@ impl JsValue {
     /// Calling this method with a [`JsValue`] that doesn't box
     /// a [`JsBigInt`] is undefined behaviour.
     #[inline]
-    pub unsafe fn as_bigint_unchecked(&self) -> &JsBigInt {
+    pub unsafe fn as_bigint_unchecked(&self) -> Ref<'_, JsBigInt> {
         // SAFETY: The safety contract must be upheld by the caller
-        let bigint = unsafe {
-            JsBigInt::from_void_ptr(self.as_pointer());
-        };
-
-        // SAFETY: Assuming the above is safe, this is safe because
-        // we currently are manipulating a [`ManuallyDrop`] that is
-        // manually dropped until this [`JsValue`] is dropped,
-        // which implies that the lifetime of `&bigint` can be extended
-        // to the lifetime of `&self`.
-        unsafe { std::mem::transmute(&bigint) }
+        unsafe { Ref::new(JsBigInt::from_void_ptr(self.as_pointer())) }
     }
 
-    pub fn as_bigint(&self) -> Option<&JsBigInt> {
+    pub fn as_bigint(&self) -> Option<Ref<'_, JsBigInt>> {
         if self.is_bigint() {
             return unsafe { Some(self.as_bigint_unchecked()) };
         }
@@ -396,17 +360,17 @@ impl JsValue {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum JsVariant<'a> {
     Null,
     Undefined,
     Rational(f64),
     Integer(i32),
     Boolean(bool),
-    String(&'a JsString),
-    Symbol(&'a JsSymbol),
-    BigInt(&'a JsBigInt),
-    Object(&'a JsObject),
+    String(Ref<'a, JsString>),
+    Symbol(Ref<'a, JsSymbol>),
+    BigInt(Ref<'a, JsBigInt>),
+    Object(Ref<'a, JsObject>),
 }
 
 impl From<bool> for JsValue {
@@ -609,6 +573,49 @@ pub(crate) unsafe trait PointerType {
     unsafe fn into_void_ptr(ty: ManuallyDrop<Self>) -> *mut ();
 }
 
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Ref<'a, T> {
+    inner: ManuallyDrop<T>,
+    _marker: PhantomData<&'a T>,
+}
+
+impl<T> Ref<'_, T> {
+    #[inline]
+    fn new(inner: ManuallyDrop<T>) -> Self {
+        Self {
+            inner,
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<T> std::borrow::Borrow<T> for Ref<'_, T> {
+    fn borrow(&self) -> &T {
+        &*self.inner
+    }
+}
+
+impl<T> AsRef<T> for Ref<'_, T> {
+    fn as_ref(&self) -> &T {
+        &*self.inner
+    }
+}
+
+impl<T> std::ops::Deref for Ref<'_, T> {
+    type Target = T;
+
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &*self.inner
+    }
+}
+
+impl<T: PartialEq> PartialEq<T> for Ref<'_, T> {
+    fn eq(&self, other: &T) -> bool {
+        &*self.inner == other
+    }
+}
+
 impl Drop for JsValue {
     #[inline]
     fn drop(&mut self) {
@@ -652,27 +659,38 @@ impl Clone for JsValue {
 impl Finalize for JsValue {}
 
 unsafe impl Trace for JsValue {
-    #[inline]
     unsafe fn trace(&self) {
         if let Some(o) = self.as_object() {
             // SAFETY: `self.as_object()` must always return a valid `JsObject
-            unsafe { o.trace() }
+            unsafe {
+                o.trace();
+            }
         }
     }
 
-    #[inline]
     unsafe fn root(&self) {
-        if let Some(o) = self.as_object() {
-            // SAFETY: `self.as_object()` must always return a valid `JsObject
-            unsafe { o.root() }
+        if self.tag() == ValueTag::Object {
+            // SAFETY: Implementors of `PointerType` must guarantee the
+            // safety of both `from_void_ptr` and `into_void_ptr`
+            unsafe {
+                let o = JsObject::from_void_ptr(self.as_pointer());
+                o.root();
+                self.value
+                    .set(OBJECT_TYPE | (JsObject::into_void_ptr(o) as u64));
+            }
         }
     }
 
-    #[inline]
     unsafe fn unroot(&self) {
-        if let Some(o) = self.as_object() {
-            // SAFETY: `self.as_object()` must always return a valid `JsObject
-            unsafe { o.unroot() }
+        if self.tag() == ValueTag::Object {
+            // SAFETY: Implementors of `PointerType` must guarantee the
+            // safety of both `from_void_ptr` and `into_void_ptr`
+            unsafe {
+                let o = JsObject::from_void_ptr(self.as_pointer());
+                o.unroot();
+                self.value
+                    .set(OBJECT_TYPE | (JsObject::into_void_ptr(o) as u64));
+            }
         }
     }
 
@@ -705,7 +723,9 @@ mod tests_nan_box {
 
         let bigint = value.as_bigint().unwrap();
 
-        assert_eq!(bigint, &JsBigInt::new(12345));
+        println!("pass!");
+
+        assert_eq!(&bigint, &JsBigInt::new(12345));
     }
 
     #[test]
@@ -744,9 +764,9 @@ mod tests_nan_box {
 
         let string = value.as_string().unwrap();
 
-        assert_eq!(JsString::refcount(string), 2);
+        assert_eq!(JsString::refcount(&string), 1);
 
-        assert_eq!(string, "I am a string :)");
+        assert_eq!(*string, "I am a string :)");
     }
 
     #[test]
@@ -768,7 +788,7 @@ mod tests_nan_box {
         assert!(value.is_object());
 
         let o2 = value.as_object().unwrap();
-        assert!(JsObject::equals(&o1, o2));
+        assert!(JsObject::equals(&o1, &o2));
     }
 
     #[test]
@@ -890,22 +910,26 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-iscallable
     #[inline]
     pub fn is_callable(&self) -> bool {
-        self.as_object().map_or(false, JsObject::is_callable)
+        self.as_object()
+            .as_deref()
+            .map_or(false, JsObject::is_callable)
     }
 
     #[inline]
-    pub fn as_callable(&self) -> Option<&JsObject> {
+    pub fn as_callable(&self) -> Option<Ref<'_, JsObject>> {
         self.as_object().filter(|obj| obj.is_callable())
     }
 
     /// Returns true if the value is a constructor object
     #[inline]
     pub fn is_constructor(&self) -> bool {
-        self.as_object().map_or(false, JsObject::is_constructor)
+        self.as_object()
+            .as_deref()
+            .map_or(false, JsObject::is_constructor)
     }
 
     #[inline]
-    pub fn as_constructor(&self) -> Option<&JsObject> {
+    pub fn as_constructor(&self) -> Option<Ref<'_, JsObject>> {
         self.as_object().filter(|obj| obj.is_constructor())
     }
 
@@ -1066,6 +1090,7 @@ impl JsValue {
                 context.throw_type_error("cannot convert undefined to a BigInt")
             }
             JsVariant::String(string) => {
+                let string = &*string;
                 if let Some(value) = JsBigInt::from_string(string) {
                     Ok(value)
                 } else {

@@ -829,7 +829,7 @@ impl JsValue {
             };
 
             // c. If SameValue(P, O) is true, return true.
-            if JsObject::equals(&object, prototype) {
+            if JsObject::equals(&object, &prototype) {
                 return Ok(true);
             }
         }

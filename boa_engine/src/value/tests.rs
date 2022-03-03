@@ -643,7 +643,7 @@ mod cyclic_conversions {
 
         let value = forward_val(&mut context, src).unwrap();
         let result = value.as_string().unwrap();
-        assert_eq!(result, "[[],[]]",);
+        assert_eq!(*result, "[[],[]]",);
     }
 
     // These tests don't throw errors. Instead we mirror Chrome / Firefox behavior for these
@@ -660,7 +660,7 @@ mod cyclic_conversions {
 
         let value = forward_val(&mut context, src).unwrap();
         let result = value.as_string().unwrap();
-        assert_eq!(result, "");
+        assert_eq!(*result, "");
     }
 
     #[test]

@@ -131,10 +131,10 @@ impl<T: Class> ClassConstructor for T {
 
         let prototype = this
             .as_object()
-            .cloned()
+            .as_deref()
             .map(|obj| {
                 obj.get(PROTOTYPE, context)
-                    .map(|val| val.as_object().cloned())
+                    .map(|val| val.as_object().as_deref().cloned())
             })
             .transpose()?
             .flatten()

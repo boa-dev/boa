@@ -236,7 +236,7 @@ impl ArrayBuffer {
         let new = ctor.construct(&[new_len.into()], &ctor.clone().into(), context)?;
 
         // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
-        let new_obj = new.as_object().cloned().ok_or_else(|| {
+        let new_obj = new.as_object().as_deref().cloned().ok_or_else(|| {
             context.construct_type_error("ArrayBuffer constructor returned non-object value")
         })?;
 

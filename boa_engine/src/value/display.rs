@@ -288,13 +288,13 @@ impl Display for ValueDisplay<'_> {
                 Some(description) => write!(f, "Symbol({description})"),
                 None => write!(f, "Symbol()"),
             },
-            JsVariant::String(v) => write!(f, "\"{v}\""),
+            JsVariant::String(v) => write!(f, "\"{}\"", *v),
             JsVariant::Rational(v) => format_rational(v, f),
             JsVariant::Object(_) => {
                 write!(f, "{}", log_string_from(self.value, self.internals, true))
             }
             JsVariant::Integer(v) => write!(f, "{v}"),
-            JsVariant::BigInt(num) => write!(f, "{num}n"),
+            JsVariant::BigInt(num) => write!(f, "{}n", *num),
         }
     }
 }

@@ -137,7 +137,7 @@ impl Object {
 
         let obj = match prototype.variant() {
             JsVariant::Object(_) | JsVariant::Null => JsObject::from_proto_and_data(
-                prototype.as_object().cloned(),
+                prototype.as_object().as_deref().cloned(),
                 ObjectData::ordinary(),
             ),
             _ => {
@@ -453,7 +453,7 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
-        if let Some(obj) = arg.as_object() {
+        if let Some(ref obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
             object_define_properties(obj, props, context)?;
             Ok(arg.clone())
@@ -531,7 +531,8 @@ impl Object {
         let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
+        let tag_str = tag.as_string();
+        let tag_str = tag_str.as_deref().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
         Ok(format!("[object {tag_str}]").into())

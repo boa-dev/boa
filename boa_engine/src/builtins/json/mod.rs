@@ -98,7 +98,7 @@ impl Json {
         let unfiltered = context.eval(script_string.as_bytes())?;
 
         // 11. If IsCallable(reviver) is true, then
-        if let Some(obj) = args.get_or_undefined(1).as_callable() {
+        if let Some(ref obj) = args.get_or_undefined(1).as_callable() {
             // a. Let root be ! OrdinaryObjectCreate(%Object.prototype%).
             let root = context.construct_object();
 
@@ -132,7 +132,7 @@ impl Json {
         let val = holder.get(name.clone(), context)?;
 
         // 2. If Type(val) is Object, then
-        if let Some(obj) = val.as_object() {
+        if let Some(ref obj) = val.as_object() {
             // a. Let isArray be ? IsArray(val).
             // b. If isArray is true, then
             if obj.is_array_abstract(context)? {
@@ -391,7 +391,7 @@ impl Json {
         }
 
         // 4. If Type(value) is Object, then
-        if let Some(obj) = value.as_object().cloned() {
+        if let Some(obj) = value.as_object().as_deref().cloned() {
             // a. If value has a [[NumberData]] internal slot, then
             if obj.is_number() {
                 // i. Set value to ? ToNumber(value).
@@ -430,7 +430,7 @@ impl Json {
         }
 
         // 8. If Type(value) is String, return QuoteJSONString(value).
-        if let Some(s) = value.as_string() {
+        if let Some(ref s) = value.as_string() {
             return Ok(Some(Self::quote_json_string(s)));
         }
 
@@ -455,7 +455,7 @@ impl Json {
         }
 
         // 11. If Type(value) is Object and IsCallable(value) is false, then
-        if let Some(obj) = value.as_object() {
+        if let Some(ref obj) = value.as_object() {
             if !obj.is_callable() {
                 // a. Let isArray be ? IsArray(value).
                 // b. If isArray is true, return ? SerializeJSONArray(state, value).

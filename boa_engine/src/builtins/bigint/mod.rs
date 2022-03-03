@@ -127,6 +127,7 @@ impl BigInt {
         value
             // 1. If Type(value) is BigInt, return value.
             .as_bigint()
+            .as_deref()
             .cloned()
             // 2. If Type(value) is Object and value has a [[BigIntData]] internal slot, then
             //    a. Assert: Type(value.[[BigIntData]]) is BigInt.

@@ -404,7 +404,7 @@ impl Date {
             dt.0
         } else {
             let tv = value.to_primitive(context, PreferredType::Default)?;
-            if let JsVariant::String(str) = tv.variant() {
+            if let JsVariant::String(ref str) = tv.variant() {
                 match chrono::DateTime::parse_from_rfc3339(str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
@@ -523,7 +523,7 @@ impl Date {
 
         let hint = args.get_or_undefined(0);
 
-        let try_first = match hint.as_string().map(JsString::as_str) {
+        let try_first = match hint.as_string().as_deref().map(JsString::as_str) {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
             Some("string" | "default") => PreferredType::String,
