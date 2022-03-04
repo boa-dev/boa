@@ -56,7 +56,7 @@ impl BuiltIn for Reflect {
             .function(Self::own_keys, "ownKeys", 1)
             .function(Self::prevent_extensions, "preventExtensions", 1)
             .function(Self::set, "set", 3)
-            .function(Self::set_prototype_of, "setPrototypeOf", 3)
+            .function(Self::set_prototype_of, "setPrototypeOf", 2)
             .property(
                 to_string_tag,
                 Self::NAME,
