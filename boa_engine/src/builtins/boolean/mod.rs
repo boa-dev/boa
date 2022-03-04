@@ -14,14 +14,14 @@ mod tests;
 
 use crate::{
     builtins::BuiltIn,
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
-    property::Attribute,
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]
@@ -31,25 +31,21 @@ impl BuiltIn for Boolean {
     /// The name of the object.
     const NAME: &'static str = "Boolean";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let boolean_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().boolean_object().clone(),
+            context.intrinsics().constructors().boolean().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
         .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
-        .build();
-
-        boolean_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -71,7 +67,7 @@ impl Boolean {
             return Ok(JsValue::new(data));
         }
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::boolean_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::boolean, context)?;
         let boolean = JsObject::from_proto_and_data(prototype, ObjectData::boolean(data));
 
         Ok(boolean.into())

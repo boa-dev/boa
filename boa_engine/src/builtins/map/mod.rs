@@ -16,7 +16,7 @@ use self::{map_iterator::MapIterator, ordered_map::OrderedMap};
 use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -27,6 +27,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 use num_traits::Zero;
+use tap::{Conv, Pipe};
 
 pub mod map_iterator;
 pub mod ordered_map;
@@ -39,11 +40,7 @@ pub(crate) struct Map(OrderedMap<JsValue>);
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -63,10 +60,10 @@ impl BuiltIn for Map {
             .constructor(false)
             .build();
 
-        let map_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().map_object().clone(),
+            context.intrinsics().constructors().map().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -100,9 +97,9 @@ impl BuiltIn for Map {
         .method(Self::set, "set", 2)
         .method(Self::values, "values", 0)
         .accessor("size", Some(get_size), None, Attribute::CONFIGURABLE)
-        .build();
-
-        map_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -133,7 +130,7 @@ impl Map {
         // 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, "%Map.prototype%", « [[MapData]] »).
         // 3. Set map.[[MapData]] to a new empty List.
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::map_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::map, context)?;
         let map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
 
         // 4. If iterable is either undefined or null, return map.

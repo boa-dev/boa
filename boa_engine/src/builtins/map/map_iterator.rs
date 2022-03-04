@@ -49,7 +49,11 @@ impl MapIterator {
                     lock,
                 };
                 let map_iterator = JsObject::from_proto_and_data(
-                    context.iterator_prototypes().map_iterator(),
+                    context
+                        .intrinsics()
+                        .objects()
+                        .iterator_prototypes()
+                        .map_iterator(),
                     ObjectData::map_iterator(iter),
                 );
                 return Ok(map_iterator.into());

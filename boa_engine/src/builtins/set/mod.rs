@@ -14,7 +14,7 @@ use self::{ordered_set::OrderedSet, set_iterator::SetIterator};
 use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -24,6 +24,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 pub mod ordered_set;
 pub mod set_iterator;
@@ -36,11 +37,7 @@ pub(crate) struct Set(OrderedSet<JsValue>);
 impl BuiltIn for Set {
     const NAME: &'static str = "Set";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -63,10 +60,10 @@ impl BuiltIn for Set {
             .constructor(false)
             .build();
 
-        let set_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().set_object().clone(),
+            context.intrinsics().constructors().set().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -103,9 +100,9 @@ impl BuiltIn for Set {
             Self::NAME,
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
-        .build();
-
-        set_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -127,7 +124,7 @@ impl Set {
         // 2. Let set be ? OrdinaryCreateFromConstructor(NewTarget, "%Set.prototype%", « [[SetData]] »).
         // 3. Set set.[[SetData]] to a new empty List.
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::set_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::set, context)?;
         let set = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::default()));
 
         // 4. If iterable is either undefined or null, return set.

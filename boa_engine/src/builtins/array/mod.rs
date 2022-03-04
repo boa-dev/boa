@@ -14,13 +14,14 @@ pub mod array_iterator;
 mod tests;
 
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 use super::JsArgs;
 use crate::{
     builtins::array::array_iterator::ArrayIterator,
     builtins::BuiltIn,
     builtins::Number,
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -39,11 +40,7 @@ pub(crate) struct Array;
 impl BuiltIn for Array {
     const NAME: &'static str = "Array";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
@@ -55,10 +52,10 @@ impl BuiltIn for Array {
 
         let values_function = Self::values_intrinsic(context);
 
-        let array = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().array_object().clone(),
+            context.intrinsics().constructors().array().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -118,9 +115,9 @@ impl BuiltIn for Array {
         // Static Methods
         .static_method(Self::is_array, "isArray", 1)
         .static_method(Self::of, "of", 0)
-        .build();
-
-        array.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -135,7 +132,7 @@ impl Array {
         // If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let proto be ? GetPrototypeFromConstructor(newTarget, "%Array.prototype%").
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::array_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::array, context)?;
 
         // 3. Let numberOfArgs be the number of elements in values.
         let number_of_args = args.len();
@@ -226,7 +223,7 @@ impl Array {
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
         let prototype = match prototype {
             Some(prototype) => prototype,
-            None => context.standard_objects().array_object().prototype(),
+            None => context.intrinsics().constructors().array().prototype(),
         };
         let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 

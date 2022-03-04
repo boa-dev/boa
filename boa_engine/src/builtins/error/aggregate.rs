@@ -9,7 +9,7 @@
 
 use crate::{
     builtins::{iterable::iterable_to_list, Array, BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -17,6 +17,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 use super::Error;
 
@@ -26,21 +27,22 @@ pub(crate) struct AggregateError;
 impl BuiltIn for AggregateError {
     const NAME: &'static str = "AggregateError";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context.standard_objects().error_object().constructor();
-        let error_prototype = context.standard_objects().error_object().prototype();
+        let error_constructor = context.intrinsics().constructors().error().constructor();
+        let error_prototype = context.intrinsics().constructors().error().prototype();
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        let aggregate_error_object = ConstructorBuilder::with_standard_object(
+
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().aggregate_error_object().clone(),
+            context
+                .intrinsics()
+                .constructors()
+                .aggregate_error()
+                .clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -48,9 +50,9 @@ impl BuiltIn for AggregateError {
         .custom_prototype(error_constructor)
         .property("name", Self::NAME, attribute)
         .property("message", "", attribute)
-        .build();
-
-        aggregate_error_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -68,7 +70,7 @@ impl AggregateError {
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%AggregateError.prototype%", « [[ErrorData]] »).
         let prototype = get_prototype_from_constructor(
             new_target,
-            StandardObjects::aggregate_error_object,
+            StandardConstructors::aggregate_error,
             context,
         )?;
         let o = JsObject::from_proto_and_data(prototype, ObjectData::error());

@@ -17,6 +17,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -28,16 +29,12 @@ pub(crate) struct Math;
 impl BuiltIn for Math {
     const NAME: &'static str = "Math";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
         let string_tag = WellKnownSymbols::to_string_tag();
-        let object = ObjectInitializer::new(context)
+        ObjectInitializer::new(context)
             .property("E", std::f64::consts::E, attribute)
             .property("LN10", std::f64::consts::LN_10, attribute)
             .property("LN2", std::f64::consts::LN_2, attribute)
@@ -86,9 +83,9 @@ impl BuiltIn for Math {
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .build();
-
-        object.into()
+            .build()
+            .conv::<JsValue>()
+            .pipe(Some)
     }
 }
 

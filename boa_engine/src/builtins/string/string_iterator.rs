@@ -26,7 +26,11 @@ impl StringIterator {
 
     pub fn create_string_iterator(string: JsValue, context: &mut Context) -> JsResult<JsValue> {
         let string_iterator = JsObject::from_proto_and_data(
-            context.iterator_prototypes().string_iterator(),
+            context
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .string_iterator(),
             ObjectData::string_iterator(Self::new(string)),
         );
         Ok(string_iterator.into())

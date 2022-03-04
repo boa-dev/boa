@@ -48,7 +48,11 @@ impl ForInIterator {
     /// [spec]: https://tc39.es/ecma262/#sec-createforiniterator
     pub(crate) fn create_for_in_iterator(object: JsValue, context: &Context) -> JsValue {
         let for_in_iterator = JsObject::from_proto_and_data(
-            context.iterator_prototypes().for_in_iterator(),
+            context
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .for_in_iterator(),
             ObjectData::for_in_iterator(Self::new(object)),
         );
         for_in_iterator.into()

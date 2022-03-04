@@ -12,9 +12,9 @@
 
 use crate::{
     builtins::{function::Function, BuiltIn},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::{Attribute, PropertyDescriptor},
+    property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult,
@@ -28,22 +28,22 @@ pub struct GeneratorFunction;
 impl BuiltIn for GeneratorFunction {
     const NAME: &'static str = "GeneratorFunction";
 
-    const ATTRIBUTE: Attribute = Attribute::NON_ENUMERABLE.union(Attribute::WRITABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let prototype = &context
-            .standard_objects()
-            .generator_function_object()
+            .intrinsics()
+            .constructors()
+            .generator_function()
             .prototype;
         let constructor = &context
-            .standard_objects()
-            .generator_function_object()
+            .intrinsics()
+            .constructors()
+            .generator_function()
             .constructor;
 
         constructor.set_prototype(Some(
-            context.standard_objects().function_object().constructor(),
+            context.intrinsics().constructors().function().constructor(),
         ));
         let property = PropertyDescriptor::builder()
             .value(1)
@@ -60,8 +60,9 @@ impl BuiltIn for GeneratorFunction {
         let property = PropertyDescriptor::builder()
             .value(
                 context
-                    .standard_objects()
-                    .generator_function_object()
+                    .intrinsics()
+                    .constructors()
+                    .generator_function()
                     .prototype(),
             )
             .writable(false)
@@ -74,13 +75,14 @@ impl BuiltIn for GeneratorFunction {
         });
 
         prototype.set_prototype(Some(
-            context.standard_objects().function_object().prototype(),
+            context.intrinsics().constructors().function().prototype(),
         ));
         let property = PropertyDescriptor::builder()
             .value(
                 context
-                    .standard_objects()
-                    .generator_function_object()
+                    .intrinsics()
+                    .constructors()
+                    .generator_function()
                     .constructor(),
             )
             .writable(false)
@@ -88,7 +90,7 @@ impl BuiltIn for GeneratorFunction {
             .configurable(true);
         prototype.borrow_mut().insert("constructor", property);
         let property = PropertyDescriptor::builder()
-            .value(context.standard_objects().generator_object().prototype())
+            .value(context.intrinsics().constructors().generator().prototype())
             .writable(false)
             .enumerable(false)
             .configurable(true);
@@ -102,7 +104,7 @@ impl BuiltIn for GeneratorFunction {
             .borrow_mut()
             .insert(WellKnownSymbols::to_string_tag(), property);
 
-        JsValue::Null
+        None
     }
 }
 
@@ -114,7 +116,7 @@ impl GeneratorFunction {
     ) -> JsResult<JsValue> {
         let prototype = get_prototype_from_constructor(
             new_target,
-            StandardObjects::generator_function_object,
+            StandardConstructors::generator_function,
             context,
         )?;
 

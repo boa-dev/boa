@@ -422,11 +422,17 @@ fn json_parse_sets_prototypes() {
         .prototype()
         .clone();
     let global_object_prototype = context
-        .standard_objects()
-        .object_object()
+        .intrinsics()
+        .constructors()
+        .object()
         .prototype()
         .into();
-    let global_array_prototype = context.standard_objects().array_object().prototype().into();
+    let global_array_prototype = context
+        .intrinsics()
+        .constructors()
+        .array()
+        .prototype()
+        .into();
     assert_eq!(object_prototype, global_object_prototype);
     assert_eq!(array_prototype, global_array_prototype);
 }

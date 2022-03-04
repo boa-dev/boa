@@ -69,7 +69,11 @@ impl RegExpStringIterator {
         // 5. Return ! CreateIteratorFromClosure(closure, "%RegExpStringIteratorPrototype%", %RegExpStringIteratorPrototype%).
 
         let regexp_string_iterator = JsObject::from_proto_and_data(
-            context.iterator_prototypes().regexp_string_iterator(),
+            context
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .regexp_string_iterator(),
             ObjectData::reg_exp_string_iterator(Self::new(matcher, string, global, unicode)),
         );
 

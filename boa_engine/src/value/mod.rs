@@ -465,28 +465,28 @@ impl JsValue {
                 context.throw_type_error("cannot convert 'null' or 'undefined' to object")
             }
             JsValue::Boolean(boolean) => {
-                let prototype = context.standard_objects().boolean_object().prototype();
+                let prototype = context.intrinsics().constructors().boolean().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::boolean(*boolean),
                 ))
             }
             JsValue::Integer(integer) => {
-                let prototype = context.standard_objects().number_object().prototype();
+                let prototype = context.intrinsics().constructors().number().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(f64::from(*integer)),
                 ))
             }
             JsValue::Rational(rational) => {
-                let prototype = context.standard_objects().number_object().prototype();
+                let prototype = context.intrinsics().constructors().number().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(*rational),
                 ))
             }
             JsValue::String(ref string) => {
-                let prototype = context.standard_objects().string_object().prototype();
+                let prototype = context.intrinsics().constructors().string().prototype();
 
                 let object =
                     JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
@@ -502,14 +502,18 @@ impl JsValue {
                 Ok(object)
             }
             JsValue::Symbol(ref symbol) => {
-                let prototype = context.standard_objects().symbol_object().prototype();
+                let prototype = context.intrinsics().constructors().symbol().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::symbol(symbol.clone()),
                 ))
             }
             JsValue::BigInt(ref bigint) => {
-                let prototype = context.standard_objects().bigint_object().prototype();
+                let prototype = context
+                    .intrinsics()
+                    .constructors()
+                    .bigint_object()
+                    .prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::big_int(bigint.clone()),

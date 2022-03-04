@@ -3,7 +3,7 @@ mod tests;
 
 use crate::{
     builtins::{typed_array::TypedArrayKind, BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -16,6 +16,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::{Signed, ToPrimitive};
+use tap::{Conv, Pipe};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct ArrayBuffer {
@@ -33,11 +34,7 @@ impl ArrayBuffer {
 impl BuiltIn for ArrayBuffer {
     const NAME: &'static str = "ArrayBuffer";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -45,10 +42,10 @@ impl BuiltIn for ArrayBuffer {
             .constructor(false)
             .build();
 
-        ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().array_buffer_object().clone(),
+            context.intrinsics().constructors().array_buffer().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -67,7 +64,8 @@ impl BuiltIn for ArrayBuffer {
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .build()
-        .into()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -230,7 +228,7 @@ impl ArrayBuffer {
         let new_len = std::cmp::max(r#final - first, 0) as usize;
 
         // 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).
-        let ctor = obj.species_constructor(StandardObjects::array_buffer_object, context)?;
+        let ctor = obj.species_constructor(StandardConstructors::array_buffer, context)?;
 
         // 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
         let new = ctor.construct(&[new_len.into()], &ctor.clone().into(), context)?;
@@ -310,7 +308,7 @@ impl ArrayBuffer {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
         let prototype = get_prototype_from_constructor(
             constructor,
-            StandardObjects::array_buffer_object,
+            StandardConstructors::array_buffer,
             context,
         )?;
         let obj = context.construct_object();

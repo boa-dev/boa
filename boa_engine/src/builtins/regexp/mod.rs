@@ -15,7 +15,7 @@ use self::regexp_string_iterator::RegExpStringIterator;
 use super::JsArgs;
 use crate::{
     builtins::{array::Array, string, BuiltIn},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -30,6 +30,7 @@ use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use regress::Regex;
 use std::str::FromStr;
+use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -52,11 +53,7 @@ unsafe impl Trace for RegExp {
 impl BuiltIn for RegExp {
     const NAME: &'static str = "RegExp";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -98,10 +95,10 @@ impl BuiltIn for RegExp {
             .name("get source")
             .constructor(false)
             .build();
-        let regexp_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().regexp_object().clone(),
+            context.intrinsics().constructors().regexp().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -148,11 +145,10 @@ impl BuiltIn for RegExp {
         .accessor("sticky", Some(get_sticky), None, flag_attributes)
         .accessor("flags", Some(get_flags), None, flag_attributes)
         .accessor("source", Some(get_source), None, flag_attributes)
-        .build();
-
         // TODO: add them RegExp accessor properties
-
-        regexp_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -236,7 +232,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
     fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let proto = get_prototype_from_constructor(this, StandardObjects::regexp_object, context)?;
+        let proto = get_prototype_from_constructor(this, StandardConstructors::regexp, context)?;
 
         Ok(JsObject::from_proto_and_data(proto, ObjectData::ordinary()).into())
     }
@@ -349,7 +345,7 @@ impl RegExp {
 
             if JsObject::equals(
                 object,
-                &context.standard_objects().regexp_object().prototype,
+                &context.intrinsics().constructors().regexp().prototype,
             ) {
                 return Ok(JsValue::undefined());
             }
@@ -570,7 +566,7 @@ impl RegExp {
                     // b. Otherwise, throw a TypeError exception.
                     if JsValue::same_value(
                         this,
-                        &JsValue::new(context.standard_objects().regexp_object().prototype()),
+                        &JsValue::new(context.intrinsics().constructors().regexp().prototype()),
                     ) {
                         Ok(JsValue::new("(?:)"))
                     } else {
@@ -1128,7 +1124,7 @@ impl RegExp {
         let arg_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let C be ? SpeciesConstructor(R, %RegExp%).
-        let c = regexp.species_constructor(StandardObjects::regexp_object, context)?;
+        let c = regexp.species_constructor(StandardConstructors::regexp, context)?;
 
         // 5. Let flags be ? ToString(? Get(R, "flags")).
         let flags = regexp.get("flags", context)?.to_string(context)?;
@@ -1507,7 +1503,7 @@ impl RegExp {
             .to_string(context)?;
 
         // 4. Let C be ? SpeciesConstructor(rx, %RegExp%).
-        let constructor = rx.species_constructor(StandardObjects::regexp_object, context)?;
+        let constructor = rx.species_constructor(StandardConstructors::regexp, context)?;
 
         // 5. Let flags be ? ToString(? Get(rx, "flags")).
         let flags = rx.get("flags", context)?.to_string(context)?;

@@ -16,7 +16,7 @@ mod tests;
 use super::JsArgs;
 use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, Number, RegExp},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -31,6 +31,7 @@ use std::{
     cmp::{max, min},
     string::String as StdString,
 };
+use tap::{Conv, Pipe};
 use unicode_normalization::UnicodeNormalization;
 
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -100,20 +101,16 @@ pub(crate) struct String;
 impl BuiltIn for String {
     const NAME: &'static str = "String";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let string_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().string_object().clone(),
+            context.intrinsics().constructors().string().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -152,9 +149,9 @@ impl BuiltIn for String {
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
         .method(Self::search, "search", 1)
         .method(Self::at, "at", 1)
-        .build();
-
-        string_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -197,9 +194,7 @@ impl String {
         }
 
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::string_object, context)?;
-
-        // 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, "%String.prototype%")).
+            get_prototype_from_constructor(new_target, StandardConstructors::string, context)?;
         Ok(Self::string_create(string, prototype, context).into())
     }
 

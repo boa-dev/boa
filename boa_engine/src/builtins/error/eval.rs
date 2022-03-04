@@ -13,7 +13,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -21,6 +21,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 use super::Error;
 
@@ -31,21 +32,17 @@ pub(crate) struct EvalError;
 impl BuiltIn for EvalError {
     const NAME: &'static str = "EvalError";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context.standard_objects().error_object().constructor();
-        let error_prototype = context.standard_objects().error_object().prototype();
+        let error_constructor = context.intrinsics().constructors().error().constructor();
+        let error_prototype = context.intrinsics().constructors().error().prototype();
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        let eval_error_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().eval_error_object().clone(),
+            context.intrinsics().constructors().eval_error().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -53,9 +50,9 @@ impl BuiltIn for EvalError {
         .custom_prototype(error_constructor)
         .property("name", Self::NAME, attribute)
         .property("message", "", attribute)
-        .build();
-
-        eval_error_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -71,11 +68,8 @@ impl EvalError {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
-        let prototype = get_prototype_from_constructor(
-            new_target,
-            StandardObjects::eval_error_object,
-            context,
-        )?;
+        let prototype =
+            get_prototype_from_constructor(new_target, StandardConstructors::eval_error, context)?;
         let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
 
         // 3. If message is not undefined, then
