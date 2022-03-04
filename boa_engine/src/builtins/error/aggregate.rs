@@ -56,7 +56,7 @@ impl BuiltIn for AggregateError {
 
 impl AggregateError {
     /// The amount of arguments this function object takes.
-    pub(crate) const LENGTH: usize = 1;
+    pub(crate) const LENGTH: usize = 2;
 
     /// Create a new aggregate error object.
     pub(crate) fn constructor(
