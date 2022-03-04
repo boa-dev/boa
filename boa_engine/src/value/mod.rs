@@ -576,7 +576,7 @@ pub(crate) unsafe trait PointerType {
 /// Represents a reference to a boxed pointer type inside a [`JsValue`]
 ///
 /// This is exclusively used to return references to [`JsString`], [`JsObject`],
-/// [`JsSymbol`] and [`JsBigInt`], since NaN boxing makes returning proper references
+/// [`JsSymbol`] and [`JsBigInt`], since `NaN` boxing makes returning proper references
 /// difficult. It is mainly returned by the [`JsValue::variant`] method and the
 /// `as_` methods for checked casts to pointer types.
 ///
@@ -600,14 +600,16 @@ impl<T> Ref<'_, T> {
 }
 
 impl<T> std::borrow::Borrow<T> for Ref<'_, T> {
+    #[inline]
     fn borrow(&self) -> &T {
-        &*self.inner
+        &**self
     }
 }
 
 impl<T> AsRef<T> for Ref<'_, T> {
+    #[inline]
     fn as_ref(&self) -> &T {
-        &*self.inner
+        &**self
     }
 }
 
@@ -621,8 +623,9 @@ impl<T> std::ops::Deref for Ref<'_, T> {
 }
 
 impl<T: PartialEq> PartialEq<T> for Ref<'_, T> {
+    #[inline]
     fn eq(&self, other: &T) -> bool {
-        &*self.inner == other
+        &**self == other
     }
 }
 
@@ -732,8 +735,6 @@ mod tests_nan_box {
         assert!(value.is_bigint());
 
         let bigint = value.as_bigint().unwrap();
-
-        println!("pass!");
 
         assert_eq!(&bigint, &JsBigInt::new(12345));
     }
