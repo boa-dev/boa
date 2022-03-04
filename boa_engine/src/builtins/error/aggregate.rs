@@ -30,16 +30,8 @@ impl BuiltIn for AggregateError {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context
-            .intrinsics()
-            .standard_constructors()
-            .error()
-            .constructor();
-        let error_prototype = context
-            .intrinsics()
-            .standard_constructors()
-            .error()
-            .prototype();
+        let error_constructor = context.intrinsics().constructors().error().constructor();
+        let error_prototype = context.intrinsics().constructors().error().prototype();
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
@@ -48,7 +40,7 @@ impl BuiltIn for AggregateError {
             Self::constructor,
             context
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .aggregate_error()
                 .clone(),
         )

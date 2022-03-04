@@ -61,12 +61,12 @@ impl BuiltIn for Number {
 
         context.register_global_property(
             "parseInt",
-            parse_int,
+            parse_int.clone(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
         context.register_global_property(
             "parseFloat",
-            parse_float,
+            parse_float.clone(),
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
 
@@ -92,12 +92,12 @@ impl BuiltIn for Number {
         .static_property("NaN", f64::NAN, attribute)
         .static_property(
             "parseInt",
-            parse_int.clone(),
+            parse_int,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .static_property(
             "parseFloat",
-            parse_float.clone(),
+            parse_float,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .static_method(Self::number_is_finite, "isFinite", 1)
