@@ -3,7 +3,7 @@ use boa_engine::{
     Context, JsValue,
 };
 
-fn main() -> Result<(), JsValue> {
+pub fn run() -> Result<(), JsValue> {
     // We create a new `Context` to create a new Javascript executor.
     let context = &mut Context::default();
 

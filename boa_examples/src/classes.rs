@@ -1,10 +1,10 @@
 // NOTE: this example requires the `console` feature to run correctly.
-
 use boa_engine::{
     class::{Class, ClassBuilder},
     property::Attribute,
     Context, JsResult, JsValue,
 };
+
 use boa_gc::{Finalize, Trace};
 
 // We create a new struct that is going to represent a person.
@@ -123,7 +123,7 @@ impl Class for Person {
     }
 }
 
-fn main() {
+pub fn run() {
     // First we need to create a Javascript context.
     let mut context = Context::default();
 
