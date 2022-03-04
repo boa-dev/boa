@@ -35,7 +35,7 @@ impl BuiltIn for Proxy {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.intrinsics().standard_constructors().proxy().clone(),
+            context.intrinsics().constructors().proxy().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -111,11 +111,7 @@ impl Proxy {
         // 6. Set P.[[ProxyTarget]] to target.
         // 7. Set P.[[ProxyHandler]] to handler.
         let p = JsObject::from_proto_and_data(
-            context
-                .intrinsics()
-                .standard_constructors()
-                .object()
-                .prototype(),
+            context.intrinsics().constructors().object().prototype(),
             ObjectData::proxy(
                 Self::new(target.clone(), handler.clone()),
                 target.is_callable(),

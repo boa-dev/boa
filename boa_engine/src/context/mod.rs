@@ -173,10 +173,7 @@ impl Context {
     #[inline]
     pub fn construct_object(&self) -> JsObject {
         JsObject::from_proto_and_data(
-            self.intrinsics()
-                .standard_constructors()
-                .object()
-                .prototype(),
+            self.intrinsics().constructors().object().prototype(),
             ObjectData::ordinary(),
         )
     }
@@ -228,7 +225,7 @@ impl Context {
         crate::builtins::error::Error::constructor(
             &self
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .error()
                 .constructor()
                 .into(),
@@ -256,7 +253,7 @@ impl Context {
         crate::builtins::error::RangeError::constructor(
             &self
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .range_error()
                 .constructor()
                 .into(),
@@ -284,7 +281,7 @@ impl Context {
         crate::builtins::error::TypeError::constructor(
             &self
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .type_error()
                 .constructor()
                 .into(),
@@ -312,7 +309,7 @@ impl Context {
         crate::builtins::error::ReferenceError::constructor(
             &self
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .reference_error()
                 .constructor()
                 .into(),
@@ -340,7 +337,7 @@ impl Context {
         crate::builtins::error::SyntaxError::constructor(
             &self
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .syntax_error()
                 .constructor()
                 .into(),
@@ -367,7 +364,7 @@ impl Context {
         crate::builtins::error::EvalError::constructor(
             &self
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .eval_error()
                 .constructor()
                 .into(),
@@ -385,7 +382,7 @@ impl Context {
         crate::builtins::error::UriError::constructor(
             &self
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .uri_error()
                 .constructor()
                 .into(),

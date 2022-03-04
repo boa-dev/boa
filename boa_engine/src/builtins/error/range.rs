@@ -33,26 +33,14 @@ impl BuiltIn for RangeError {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context
-            .intrinsics()
-            .standard_constructors()
-            .error()
-            .constructor();
-        let error_prototype = context
-            .intrinsics()
-            .standard_constructors()
-            .error()
-            .prototype();
+        let error_constructor = context.intrinsics().constructors().error().constructor();
+        let error_prototype = context.intrinsics().constructors().error().prototype();
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .range_error()
-                .clone(),
+            context.intrinsics().constructors().range_error().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

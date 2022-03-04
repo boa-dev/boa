@@ -56,12 +56,12 @@ macro_rules! typed_array {
 
                 let typed_array_constructor = context
                     .intrinsics()
-                    .standard_constructors()
+                    .constructors()
                     .typed_array()
                     .constructor();
                 let typed_array_constructor_proto = context
                     .intrinsics()
-                    .standard_constructors()
+                    .constructors()
                     .typed_array()
                     .prototype();
 
@@ -75,7 +75,7 @@ macro_rules! typed_array {
                     Self::constructor,
                     context
                         .intrinsics()
-                        .standard_constructors()
+                        .constructors()
                         .$global_object_name()
                         .clone(),
                 )
@@ -286,11 +286,7 @@ impl BuiltIn for TypedArray {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .typed_array()
-                .clone(),
+            context.intrinsics().constructors().typed_array().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -2031,7 +2027,7 @@ impl TypedArray {
             // c. NOTE: %ArrayBuffer% is used to clone srcBuffer because is it known to not have any observable side-effects.
             let array_buffer_constructor = context
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .array_buffer()
                 .constructor()
                 .into();
@@ -2933,7 +2929,7 @@ impl TypedArray {
         let data = ArrayBuffer::allocate(
             &context
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .array_buffer()
                 .constructor()
                 .into(),

@@ -63,7 +63,7 @@ impl BuiltIn for Map {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.intrinsics().standard_constructors().map().clone(),
+            context.intrinsics().constructors().map().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

@@ -482,9 +482,7 @@ impl JsObject {
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {
-            return Ok(
-                default_constructor(context.intrinsics().standard_constructors()).constructor(),
-            );
+            return Ok(default_constructor(context.intrinsics().constructors()).constructor());
         }
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
@@ -499,9 +497,7 @@ impl JsObject {
 
         // 6. If S is either undefined or null, return defaultConstructor.
         if s.is_null_or_undefined() {
-            return Ok(
-                default_constructor(context.intrinsics().standard_constructors()).constructor(),
-            );
+            return Ok(default_constructor(context.intrinsics().constructors()).constructor());
         }
 
         // 7. If IsConstructor(S) is true, return S.

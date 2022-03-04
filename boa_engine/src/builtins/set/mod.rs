@@ -63,7 +63,7 @@ impl BuiltIn for Set {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.intrinsics().standard_constructors().set().clone(),
+            context.intrinsics().constructors().set().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

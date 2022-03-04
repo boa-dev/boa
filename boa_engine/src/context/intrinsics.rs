@@ -7,7 +7,7 @@ use crate::{
 #[derive(Debug, Default)]
 pub struct Intrinsics {
     /// Cached standard constructors
-    pub(super) standard_constructors: StandardConstructors,
+    pub(super) constructors: StandardConstructors,
     /// Cached intrinsic objects
     pub(super) objects: IntrinsicObjects,
 }
@@ -19,10 +19,10 @@ impl Intrinsics {
         &self.objects
     }
 
-    /// Return the core standard objects.
+    /// Return the cached standard constructors.
     #[inline]
-    pub fn standard_constructors(&self) -> &StandardConstructors {
-        &self.standard_constructors
+    pub fn constructors(&self) -> &StandardConstructors {
+        &self.constructors
     }
 }
 

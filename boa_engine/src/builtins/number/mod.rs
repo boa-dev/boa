@@ -78,11 +78,7 @@ impl BuiltIn for Number {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .number()
-                .clone(),
+            context.intrinsics().constructors().number().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

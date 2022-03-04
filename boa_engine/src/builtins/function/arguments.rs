@@ -224,11 +224,7 @@ impl Arguments {
 
         // 11. Set obj.[[ParameterMap]] to map.
         let obj = JsObject::from_proto_and_data(
-            context
-                .intrinsics()
-                .standard_constructors()
-                .object()
-                .prototype(),
+            context.intrinsics().constructors().object().prototype(),
             ObjectData::arguments(Self::Mapped(map)),
         );
 

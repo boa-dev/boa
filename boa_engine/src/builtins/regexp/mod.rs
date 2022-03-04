@@ -98,11 +98,7 @@ impl BuiltIn for RegExp {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .regexp()
-                .clone(),
+            context.intrinsics().constructors().regexp().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -349,11 +345,7 @@ impl RegExp {
 
             if JsObject::equals(
                 object,
-                &context
-                    .intrinsics()
-                    .standard_constructors()
-                    .regexp()
-                    .prototype,
+                &context.intrinsics().constructors().regexp().prototype,
             ) {
                 return Ok(JsValue::undefined());
             }
@@ -574,13 +566,7 @@ impl RegExp {
                     // b. Otherwise, throw a TypeError exception.
                     if JsValue::same_value(
                         this,
-                        &JsValue::new(
-                            context
-                                .intrinsics()
-                                .standard_constructors()
-                                .regexp()
-                                .prototype(),
-                        ),
+                        &JsValue::new(context.intrinsics().constructors().regexp().prototype()),
                     ) {
                         Ok(JsValue::new("(?:)"))
                     } else {

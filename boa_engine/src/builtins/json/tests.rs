@@ -423,13 +423,13 @@ fn json_parse_sets_prototypes() {
         .clone();
     let global_object_prototype = context
         .intrinsics()
-        .standard_constructors()
+        .constructors()
         .object()
         .prototype()
         .into();
     let global_array_prototype = context
         .intrinsics()
-        .standard_constructors()
+        .constructors()
         .array()
         .prototype()
         .into();

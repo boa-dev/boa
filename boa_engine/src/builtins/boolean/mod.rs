@@ -37,11 +37,7 @@ impl BuiltIn for Boolean {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .boolean()
-                .clone(),
+            context.intrinsics().constructors().boolean().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

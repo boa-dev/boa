@@ -57,7 +57,7 @@ impl BuiltIn for Error {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.intrinsics().standard_constructors().error().clone(),
+            context.intrinsics().constructors().error().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

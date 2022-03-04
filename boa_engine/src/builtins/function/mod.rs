@@ -236,7 +236,7 @@ pub(crate) fn make_builtin_fn<N>(
     let function = JsObject::from_proto_and_data(
         interpreter
             .intrinsics()
-            .standard_constructors()
+            .constructors()
             .function()
             .prototype(),
         ObjectData::function(Function::Native {
@@ -500,11 +500,7 @@ impl BuiltIn for BuiltInFunctionObject {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event("function", "init");
 
-        let function_prototype = context
-            .intrinsics()
-            .standard_constructors()
-            .function()
-            .prototype();
+        let function_prototype = context.intrinsics().constructors().function().prototype();
         FunctionBuilder::native(context, Self::prototype)
             .name("")
             .length(0)
@@ -522,11 +518,7 @@ impl BuiltIn for BuiltInFunctionObject {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .function()
-                .clone(),
+            context.intrinsics().constructors().function().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

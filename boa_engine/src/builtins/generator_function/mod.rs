@@ -33,21 +33,17 @@ impl BuiltIn for GeneratorFunction {
 
         let prototype = &context
             .intrinsics()
-            .standard_constructors()
+            .constructors()
             .generator_function()
             .prototype;
         let constructor = &context
             .intrinsics()
-            .standard_constructors()
+            .constructors()
             .generator_function()
             .constructor;
 
         constructor.set_prototype(Some(
-            context
-                .intrinsics()
-                .standard_constructors()
-                .function()
-                .constructor(),
+            context.intrinsics().constructors().function().constructor(),
         ));
         let property = PropertyDescriptor::builder()
             .value(1)
@@ -65,7 +61,7 @@ impl BuiltIn for GeneratorFunction {
             .value(
                 context
                     .intrinsics()
-                    .standard_constructors()
+                    .constructors()
                     .generator_function()
                     .prototype(),
             )
@@ -79,17 +75,13 @@ impl BuiltIn for GeneratorFunction {
         });
 
         prototype.set_prototype(Some(
-            context
-                .intrinsics()
-                .standard_constructors()
-                .function()
-                .prototype(),
+            context.intrinsics().constructors().function().prototype(),
         ));
         let property = PropertyDescriptor::builder()
             .value(
                 context
                     .intrinsics()
-                    .standard_constructors()
+                    .constructors()
                     .generator_function()
                     .constructor(),
             )
@@ -98,13 +90,7 @@ impl BuiltIn for GeneratorFunction {
             .configurable(true);
         prototype.borrow_mut().insert("constructor", property);
         let property = PropertyDescriptor::builder()
-            .value(
-                context
-                    .intrinsics()
-                    .standard_constructors()
-                    .generator()
-                    .prototype(),
-            )
+            .value(context.intrinsics().constructors().generator().prototype())
             .writable(false)
             .enumerable(false)
             .configurable(true);

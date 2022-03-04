@@ -110,11 +110,7 @@ impl BuiltIn for String {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .string()
-                .clone(),
+            context.intrinsics().constructors().string().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

@@ -55,7 +55,7 @@ impl BuiltIn for Array {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.intrinsics().standard_constructors().array().clone(),
+            context.intrinsics().constructors().array().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -223,11 +223,7 @@ impl Array {
         // 5. Set A.[[DefineOwnProperty]] as specified in 10.4.2.1.
         let prototype = match prototype {
             Some(prototype) => prototype,
-            None => context
-                .intrinsics()
-                .standard_constructors()
-                .array()
-                .prototype(),
+            None => context.intrinsics().constructors().array().prototype(),
         };
         let array = JsObject::from_proto_and_data(prototype, ObjectData::array());
 

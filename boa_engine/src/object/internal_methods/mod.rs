@@ -968,5 +968,5 @@ where
     // TODO: handle realms
     // a. Let realm be ? GetFunctionRealm(constructor).
     // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
-    Ok(default(context.intrinsics().standard_constructors()).prototype())
+    Ok(default(context.intrinsics().constructors()).prototype())
 }

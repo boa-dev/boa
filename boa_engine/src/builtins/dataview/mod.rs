@@ -41,11 +41,7 @@ impl BuiltIn for DataView {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .data_view()
-                .clone(),
+            context.intrinsics().constructors().data_view().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

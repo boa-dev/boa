@@ -39,26 +39,14 @@ impl BuiltIn for TypeError {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_constructor = context
-            .intrinsics()
-            .standard_constructors()
-            .error()
-            .constructor();
-        let error_prototype = context
-            .intrinsics()
-            .standard_constructors()
-            .error()
-            .prototype();
+        let error_constructor = context.intrinsics().constructors().error().constructor();
+        let error_prototype = context.intrinsics().constructors().error().prototype();
 
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .type_error()
-                .clone(),
+            context.intrinsics().constructors().type_error().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -112,11 +100,7 @@ pub(crate) fn create_throw_type_error(context: &mut Context) -> JsObject {
     }
 
     let function = JsObject::from_proto_and_data(
-        context
-            .intrinsics()
-            .standard_constructors()
-            .function()
-            .prototype(),
+        context.intrinsics().constructors().function().prototype(),
         ObjectData::function(Function::Native {
             function: throw_type_error,
             constructor: false,

@@ -46,11 +46,7 @@ impl BuiltIn for Object {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .object()
-                .clone(),
+            context.intrinsics().constructors().object().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

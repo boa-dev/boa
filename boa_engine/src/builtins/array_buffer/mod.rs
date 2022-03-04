@@ -45,11 +45,7 @@ impl BuiltIn for ArrayBuffer {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .array_buffer()
-                .clone(),
+            context.intrinsics().constructors().array_buffer().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

@@ -42,11 +42,7 @@ impl BuiltIn for BigInt {
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .bigint_object()
-                .clone(),
+            context.intrinsics().constructors().bigint_object().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)

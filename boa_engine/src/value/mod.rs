@@ -465,44 +465,28 @@ impl JsValue {
                 context.throw_type_error("cannot convert 'null' or 'undefined' to object")
             }
             JsValue::Boolean(boolean) => {
-                let prototype = context
-                    .intrinsics()
-                    .standard_constructors()
-                    .boolean()
-                    .prototype();
+                let prototype = context.intrinsics().constructors().boolean().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::boolean(*boolean),
                 ))
             }
             JsValue::Integer(integer) => {
-                let prototype = context
-                    .intrinsics()
-                    .standard_constructors()
-                    .number()
-                    .prototype();
+                let prototype = context.intrinsics().constructors().number().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(f64::from(*integer)),
                 ))
             }
             JsValue::Rational(rational) => {
-                let prototype = context
-                    .intrinsics()
-                    .standard_constructors()
-                    .number()
-                    .prototype();
+                let prototype = context.intrinsics().constructors().number().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(*rational),
                 ))
             }
             JsValue::String(ref string) => {
-                let prototype = context
-                    .intrinsics()
-                    .standard_constructors()
-                    .string()
-                    .prototype();
+                let prototype = context.intrinsics().constructors().string().prototype();
 
                 let object =
                     JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
@@ -518,11 +502,7 @@ impl JsValue {
                 Ok(object)
             }
             JsValue::Symbol(ref symbol) => {
-                let prototype = context
-                    .intrinsics()
-                    .standard_constructors()
-                    .symbol()
-                    .prototype();
+                let prototype = context.intrinsics().constructors().symbol().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::symbol(symbol.clone()),
@@ -531,7 +511,7 @@ impl JsValue {
             JsValue::BigInt(ref bigint) => {
                 let prototype = context
                     .intrinsics()
-                    .standard_constructors()
+                    .constructors()
                     .bigint_object()
                     .prototype();
                 Ok(JsObject::from_proto_and_data(

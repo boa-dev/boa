@@ -403,11 +403,7 @@ impl ToInternedString for CodeBlock {
 pub(crate) fn create_function_object(code: Gc<CodeBlock>, context: &mut Context) -> JsObject {
     let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
 
-    let function_prototype = context
-        .intrinsics()
-        .standard_constructors()
-        .function()
-        .prototype();
+    let function_prototype = context.intrinsics().constructors().function().prototype();
 
     let prototype = context.construct_object();
 
@@ -471,7 +467,7 @@ pub(crate) fn create_generator_function_object(
 ) -> JsObject {
     let function_prototype = context
         .intrinsics()
-        .standard_constructors()
+        .constructors()
         .generator_function()
         .prototype();
 
@@ -490,11 +486,7 @@ pub(crate) fn create_generator_function_object(
         .build();
 
     let prototype = JsObject::from_proto_and_data(
-        context
-            .intrinsics()
-            .standard_constructors()
-            .generator()
-            .prototype(),
+        context.intrinsics().constructors().generator().prototype(),
         ObjectData::ordinary(),
     );
 
@@ -799,11 +791,7 @@ impl JsObject {
                 {
                     prototype.clone()
                 } else {
-                    context
-                        .intrinsics()
-                        .standard_constructors()
-                        .generator()
-                        .prototype()
+                    context.intrinsics().constructors().generator().prototype()
                 };
 
                 let generator = Self::from_proto_and_data(

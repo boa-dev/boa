@@ -68,18 +68,14 @@ impl BuiltIn for Generator {
 
         let generator_function_prototype = context
             .intrinsics()
-            .standard_constructors()
+            .constructors()
             .generator_function()
             .prototype();
 
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context
-                .intrinsics()
-                .standard_constructors()
-                .generator()
-                .clone(),
+            context.intrinsics().constructors().generator().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -96,7 +92,7 @@ impl BuiltIn for Generator {
 
         context
             .intrinsics()
-            .standard_constructors()
+            .constructors()
             .generator()
             .prototype
             .insert_property(
@@ -121,11 +117,7 @@ impl Generator {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let prototype = context
-            .intrinsics()
-            .standard_constructors()
-            .generator()
-            .prototype();
+        let prototype = context.intrinsics().constructors().generator().prototype();
 
         let this = JsObject::from_proto_and_data(
             prototype,

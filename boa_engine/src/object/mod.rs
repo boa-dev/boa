@@ -1419,7 +1419,7 @@ impl<'context> FunctionBuilder<'context> {
         let function = JsObject::from_proto_and_data(
             self.context
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .function()
                 .prototype(),
             ObjectData::function(self.function),
@@ -1441,7 +1441,7 @@ impl<'context> FunctionBuilder<'context> {
         object.set_prototype(
             self.context
                 .intrinsics()
-                .standard_constructors()
+                .constructors()
                 .object()
                 .prototype(),
         );
@@ -1881,7 +1881,7 @@ impl<'context> ConstructorBuilder<'context> {
                 constructor.set_prototype(
                     self.context
                         .intrinsics()
-                        .standard_constructors()
+                        .constructors()
                         .function()
                         .prototype(),
                 );
@@ -1916,7 +1916,7 @@ impl<'context> ConstructorBuilder<'context> {
                 prototype.set_prototype(
                     self.context
                         .intrinsics()
-                        .standard_constructors()
+                        .constructors()
                         .object()
                         .prototype(),
                 );
