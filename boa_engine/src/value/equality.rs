@@ -76,23 +76,41 @@ impl JsValue {
             },
 
             // 8. If Type(x) is Boolean, return the result of the comparison ! ToNumber(x) == y.
-            (Self::Boolean(x), _) => return other.equals(&Self::new(*x as i32), context),
+            (Self::Boolean(x), _) => return other.equals(&Self::new(i32::from(*x)), context),
 
             // 9. If Type(y) is Boolean, return the result of the comparison x == ! ToNumber(y).
-            (_, Self::Boolean(y)) => return self.equals(&Self::new(*y as i32), context),
+            (_, Self::Boolean(y)) => return self.equals(&Self::new(i32::from(*y)), context),
 
             // 10. If Type(x) is either String, Number, BigInt, or Symbol and Type(y) is Object, return the result
             // of the comparison x == ? ToPrimitive(y).
-            (Self::Object(_), _) => {
+            (
+                Self::Object(_),
+                Self::String(_)
+                | Self::Rational(_)
+                | Self::Integer(_)
+                | Self::BigInt(_)
+                | Self::Symbol(_),
+            ) => {
                 let primitive = self.to_primitive(context, PreferredType::Default)?;
-                return primitive.equals(other, context);
+                return Ok(primitive
+                    .equals(other, context)
+                    .expect("should not fail according to spec"));
             }
 
             // 11. If Type(x) is Object and Type(y) is either String, Number, BigInt, or Symbol, return the result
             // of the comparison ? ToPrimitive(x) == y.
-            (_, Self::Object(_)) => {
+            (
+                Self::String(_)
+                | Self::Rational(_)
+                | Self::Integer(_)
+                | Self::BigInt(_)
+                | Self::Symbol(_),
+                Self::Object(_),
+            ) => {
                 let primitive = other.to_primitive(context, PreferredType::Default)?;
-                return primitive.equals(self, context);
+                return Ok(primitive
+                    .equals(self, context)
+                    .expect("should not fail according to spec"));
             }
 
             // 12. If Type(x) is BigInt and Type(y) is Number, or if Type(x) is Number and Type(y) is BigInt, then

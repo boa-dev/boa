@@ -1,6 +1,7 @@
 use crate::{
     builtins::Array,
     object::{JsObject, JsObjectType},
+    value::IntoOrUndefined,
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
@@ -116,7 +117,12 @@ impl JsArray {
 
     #[inline]
     pub fn join(&self, separator: Option<JsString>, context: &mut Context) -> JsResult<JsString> {
-        Array::join(&self.inner.clone().into(), &[separator.into()], context).map(|x| {
+        Array::join(
+            &self.inner.clone().into(),
+            &[separator.into_or_undefined()],
+            context,
+        )
+        .map(|x| {
             x.as_string()
                 .cloned()
                 .expect("Array.prototype.join always returns string")
@@ -136,7 +142,11 @@ impl JsArray {
     {
         Array::fill(
             &self.inner.clone().into(),
-            &[value.into(), start.into(), end.into()],
+            &[
+                value.into(),
+                start.into_or_undefined(),
+                end.into_or_undefined(),
+            ],
             context,
         )?;
         Ok(self.clone())
@@ -154,7 +164,7 @@ impl JsArray {
     {
         let index = Array::index_of(
             &self.inner.clone().into(),
-            &[search_element.into(), from_index.into()],
+            &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
         .as_number()
@@ -180,7 +190,7 @@ impl JsArray {
     {
         let index = Array::last_index_of(
             &self.inner.clone().into(),
-            &[search_element.into(), from_index.into()],
+            &[search_element.into(), from_index.into_or_undefined()],
             context,
         )?
         .as_number()
@@ -203,7 +213,7 @@ impl JsArray {
     ) -> JsResult<JsValue> {
         Array::find(
             &self.inner.clone().into(),
-            &[predicate.into(), this_arg.into()],
+            &[predicate.into(), this_arg.into_or_undefined()],
             context,
         )
     }
@@ -217,7 +227,7 @@ impl JsArray {
     ) -> JsResult<Self> {
         let object = Array::filter(
             &self.inner.clone().into(),
-            &[callback.into(), this_arg.into()],
+            &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?
         .as_object()
@@ -236,7 +246,7 @@ impl JsArray {
     ) -> JsResult<Self> {
         let object = Array::map(
             &self.inner.clone().into(),
-            &[callback.into(), this_arg.into()],
+            &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?
         .as_object()
@@ -255,7 +265,7 @@ impl JsArray {
     ) -> JsResult<bool> {
         let result = Array::every(
             &self.inner.clone().into(),
-            &[callback.into(), this_arg.into()],
+            &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?
         .as_boolean()
@@ -273,7 +283,7 @@ impl JsArray {
     ) -> JsResult<bool> {
         let result = Array::some(
             &self.inner.clone().into(),
-            &[callback.into(), this_arg.into()],
+            &[callback.into(), this_arg.into_or_undefined()],
             context,
         )?
         .as_boolean()
@@ -284,7 +294,11 @@ impl JsArray {
 
     #[inline]
     pub fn sort(&self, compare_fn: Option<JsObject>, context: &mut Context) -> JsResult<Self> {
-        Array::sort(&self.inner.clone().into(), &[compare_fn.into()], context)?;
+        Array::sort(
+            &self.inner.clone().into(),
+            &[compare_fn.into_or_undefined()],
+            context,
+        )?;
 
         Ok(self.clone())
     }
@@ -298,7 +312,7 @@ impl JsArray {
     ) -> JsResult<Self> {
         let object = Array::slice(
             &self.inner.clone().into(),
-            &[start.into(), end.into()],
+            &[start.into_or_undefined(), end.into_or_undefined()],
             context,
         )?
         .as_object()
@@ -317,7 +331,7 @@ impl JsArray {
     ) -> JsResult<JsValue> {
         Array::reduce(
             &self.inner.clone().into(),
-            &[callback.into(), initial_value.into()],
+            &[callback.into(), initial_value.into_or_undefined()],
             context,
         )
     }
@@ -331,7 +345,7 @@ impl JsArray {
     ) -> JsResult<JsValue> {
         Array::reduce_right(
             &self.inner.clone().into(),
-            &[callback.into(), initial_value.into()],
+            &[callback.into(), initial_value.into_or_undefined()],
             context,
         )
     }

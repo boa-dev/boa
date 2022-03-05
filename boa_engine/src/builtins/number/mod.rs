@@ -15,9 +15,10 @@
 
 use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
-        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
+        JsObject, ObjectData,
     },
     property::Attribute,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
@@ -29,6 +30,7 @@ use num_traits::{float::FloatCore, Num};
 mod conversions;
 
 pub(crate) use conversions::{f64_to_int32, f64_to_uint32};
+use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -42,18 +44,41 @@ pub(crate) struct Number;
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        let parse_int = FunctionBuilder::native(context, Self::parse_int)
+            .name("parseInt")
+            .length(2)
+            .constructor(false)
+            .build();
+
+        let parse_float = FunctionBuilder::native(context, Self::parse_float)
+            .name("parseFloat")
+            .length(1)
+            .constructor(false)
+            .build();
+
+        context.register_global_property(
+            "parseInt",
+            parse_int.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+        context.register_global_property(
+            "parseFloat",
+            parse_float.clone(),
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+
+        context.register_global_builtin_function("isFinite", 1, Self::global_is_finite);
+        context.register_global_builtin_function("isNaN", 1, Self::global_is_nan);
+
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let number_object = ConstructorBuilder::with_standard_object(
+
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().number_object().clone(),
+            context.intrinsics().constructors().number().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -65,24 +90,29 @@ impl BuiltIn for Number {
         .static_property("NEGATIVE_INFINITY", f64::NEG_INFINITY, attribute)
         .static_property("POSITIVE_INFINITY", f64::INFINITY, attribute)
         .static_property("NaN", f64::NAN, attribute)
+        .static_property(
+            "parseInt",
+            parse_int,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .static_property(
+            "parseFloat",
+            parse_float,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .static_method(Self::number_is_finite, "isFinite", 1)
+        .static_method(Self::number_is_nan, "isNaN", 1)
+        .static_method(Self::is_safe_integer, "isSafeInteger", 1)
+        .static_method(Self::number_is_integer, "isInteger", 1)
         .method(Self::to_exponential, "toExponential", 1)
         .method(Self::to_fixed, "toFixed", 1)
         .method(Self::to_locale_string, "toLocaleString", 0)
         .method(Self::to_precision, "toPrecision", 1)
         .method(Self::to_string, "toString", 1)
         .method(Self::value_of, "valueOf", 0)
-        .static_method(Self::number_is_finite, "isFinite", 1)
-        .static_method(Self::number_is_nan, "isNaN", 1)
-        .static_method(Self::is_safe_integer, "isSafeInteger", 1)
-        .static_method(Self::number_is_integer, "isInteger", 1)
-        .build();
-
-        context.register_global_builtin_function("parseInt", 2, Self::parse_int);
-        context.register_global_builtin_function("parseFloat", 1, Self::parse_float);
-        context.register_global_builtin_function("isFinite", 1, Self::global_is_finite);
-        context.register_global_builtin_function("isNaN", 1, Self::global_is_nan);
-
-        number_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -150,7 +180,7 @@ impl Number {
             return Ok(JsValue::new(data));
         }
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::number_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::number, context)?;
         let this = JsObject::from_proto_and_data(prototype, ObjectData::number(data));
         Ok(this.into())
     }
@@ -192,7 +222,7 @@ impl Number {
         let precision = match args.get(0) {
             None | Some(JsValue::Undefined) => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
-            Some(n) => Some(n.to_integer(context)? as i32),
+            Some(n) => Some(n.to_integer_or_infinity(context)?),
         };
         // 4. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
@@ -200,15 +230,17 @@ impl Number {
         }
         // Get rid of the '-' sign for -0.0
         let this_num = if this_num == 0. { 0. } else { this_num };
-        let this_str_num = if let Some(precision) = precision {
+        let this_str_num = match precision {
+            None => f64_to_exponential(this_num),
+            Some(IntegerOrInfinity::Integer(precision)) if (0..=100).contains(&precision) =>
             // 5. If f < 0 or f > 100, throw a RangeError exception.
-            if !(0..=100).contains(&precision) {
-                return context
-                    .throw_range_error("toExponential() argument must be between 0 and 100");
+            {
+                f64_to_exponential_with_precision(this_num, precision as usize)
             }
-            f64_to_exponential_with_precision(this_num, precision as usize)
-        } else {
-            f64_to_exponential(this_num)
+            _ => {
+                return context
+                    .throw_range_error("toExponential() argument must be between 0 and 100")
+            }
         };
         Ok(JsValue::new(this_str_num))
     }
@@ -231,19 +263,19 @@ impl Number {
     ) -> JsResult<JsValue> {
         // 1. Let this_num be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
-        let precision = match args.get(0) {
-            // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
-            Some(n) => match n.to_integer(context)? as i32 {
-                0..=100 => n.to_integer(context)? as usize,
-                // 4, 5. If f < 0 or f > 100, throw a RangeError exception.
-                _ => {
-                    return context
-                        .throw_range_error("toFixed() digits argument must be between 0 and 100")
-                }
-            },
-            // 3. If fractionDigits is undefined, then f is 0.
-            None => 0,
-        };
+
+        // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
+        // 3. Assert: If fractionDigits is undefined, then f is 0.
+        let precision = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+
+        // 4, 5. If f < 0 or f > 100, throw a RangeError exception.
+        let precision = precision
+            .as_integer()
+            .filter(|i| (0..=100).contains(i))
+            .ok_or_else(|| {
+                context.construct_range_error("toFixed() digits argument must be between 0 and 100")
+            })? as usize;
+
         // 6. If x is not finite, return ! Number::toString(x).
         if !this_num.is_finite() {
             Ok(JsValue::new(Self::to_native_string(this_num)))
@@ -642,22 +674,26 @@ impl Number {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, context)?;
 
-        // 2. If radix is undefined, let radixNumber be 10.
-        // 3. Else, let radixNumber be ? ToInteger(radix).
-        let radix = args
-            .get(0)
-            .map(|arg| arg.to_integer(context))
-            .transpose()?
-            .map_or(10, |radix| radix as u8);
-
-        // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
-        if !(2..=36).contains(&radix) {
-            return context
-                .throw_range_error("radix must be an integer at least 2 and no greater than 36");
-        }
+        let radix = args.get_or_undefined(0);
+        let radix_number = if radix.is_undefined() {
+            // 2. If radix is undefined, let radixNumber be 10.
+            10
+        } else {
+            // 3. Else, let radixMV be ? ToIntegerOrInfinity(radix).
+            radix
+                .to_integer_or_infinity(context)?
+                .as_integer()
+                // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
+                .filter(|i| (2..=36).contains(i))
+                .ok_or_else(|| {
+                    context.construct_range_error(
+                        "radix must be an integer at least 2 and no greater than 36",
+                    )
+                })?
+        } as u8;
 
         // 5. If radixNumber = 10, return ! ToString(x).
-        if radix == 10 {
+        if radix_number == 10 {
             return Ok(JsValue::new(Self::to_native_string(x)));
         }
 
@@ -680,7 +716,7 @@ impl Number {
         // }
 
         // 6. Return the String representation of this Number value using the radix specified by radixNumber.
-        Ok(JsValue::new(Self::to_native_string_radix(x, radix)))
+        Ok(JsValue::new(Self::to_native_string_radix(x, radix_number)))
     }
 
     /// `Number.prototype.toString()`

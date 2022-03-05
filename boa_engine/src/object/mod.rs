@@ -28,6 +28,7 @@ use crate::{
         function::{
             arguments::ParameterMap, BoundFunction, Captures, Function, NativeFunctionSignature,
         },
+        generator::Generator,
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         object::for_in_iterator::ForInIterator,
@@ -39,7 +40,7 @@ use crate::{
         typed_array::integer_indexed_object::IntegerIndexed,
         DataView, Date, RegExp,
     },
-    context::StandardConstructor,
+    context::intrinsics::StandardConstructor,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -130,6 +131,8 @@ pub enum ObjectKind {
     ForInIterator(ForInIterator),
     Function(Function),
     BoundFunction(BoundFunction),
+    Generator(Generator),
+    GeneratorFunction(Function),
     Set(OrderedSet<JsValue>),
     SetIterator(SetIterator),
     String(JsString),
@@ -256,6 +259,26 @@ impl ObjectData {
             } else {
                 &BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS
             },
+        }
+    }
+
+    /// Create the `Generator` object data
+    pub fn generator(generator: Generator) -> Self {
+        Self {
+            kind: ObjectKind::Generator(generator),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `GeneratorFunction` object data
+    pub fn generator_function(function: Function) -> Self {
+        Self {
+            internal_methods: if function.is_constructor() {
+                &CONSTRUCTOR_INTERNAL_METHODS
+            } else {
+                &FUNCTION_INTERNAL_METHODS
+            },
+            kind: ObjectKind::GeneratorFunction(function),
         }
     }
 
@@ -391,6 +414,8 @@ impl Display for ObjectKind {
             Self::ForInIterator(_) => "ForInIterator",
             Self::Function(_) => "Function",
             Self::BoundFunction(_) => "BoundFunction",
+            Self::Generator(_) => "Generator",
+            Self::GeneratorFunction(_) => "GeneratorFunction",
             Self::RegExp(_) => "RegExp",
             Self::RegExpStringIterator(_) => "RegExpStringIterator",
             Self::Map(_) => "Map",
@@ -718,7 +743,8 @@ impl Object {
     pub fn as_function(&self) -> Option<&Function> {
         match self.data {
             ObjectData {
-                kind: ObjectKind::Function(ref function),
+                kind:
+                    ObjectKind::Function(ref function) | ObjectKind::GeneratorFunction(ref function),
                 ..
             } => Some(function),
             _ => None,
@@ -729,7 +755,9 @@ impl Object {
     pub fn as_function_mut(&mut self) -> Option<&mut Function> {
         match self.data {
             ObjectData {
-                kind: ObjectKind::Function(ref mut function),
+                kind:
+                    ObjectKind::Function(ref mut function)
+                    | ObjectKind::GeneratorFunction(ref mut function),
                 ..
             } => Some(function),
             _ => None,
@@ -743,6 +771,42 @@ impl Object {
                 kind: ObjectKind::BoundFunction(ref bound_function),
                 ..
             } => Some(bound_function),
+            _ => None,
+        }
+    }
+
+    /// Checks if it's a `Generator` object.
+    #[inline]
+    pub fn is_generator(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Generator(_),
+                ..
+            }
+        )
+    }
+
+    /// Returns a reference to the generator data on the object.
+    #[inline]
+    pub fn as_generator(&self) -> Option<&Generator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Generator(ref generator),
+                ..
+            } => Some(generator),
+            _ => None,
+        }
+    }
+
+    /// Returns a mutable reference to the generator data on the object.
+    #[inline]
+    pub fn as_generator_mut(&mut self) -> Option<&mut Generator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Generator(ref mut generator),
+                ..
+            } => Some(generator),
             _ => None,
         }
     }
@@ -1304,6 +1368,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `""` (empty string).
     #[inline]
+    #[must_use]
     pub fn name<N>(mut self, name: N) -> Self
     where
         N: AsRef<str>,
@@ -1318,6 +1383,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `0`.
     #[inline]
+    #[must_use]
     pub fn length(mut self, length: usize) -> Self {
         self.length = length;
         self
@@ -1327,6 +1393,7 @@ impl<'context> FunctionBuilder<'context> {
     ///
     /// The default is `false`.
     #[inline]
+    #[must_use]
     pub fn constructor(mut self, yes: bool) -> Self {
         match self.function {
             Function::Native {
@@ -1339,7 +1406,9 @@ impl<'context> FunctionBuilder<'context> {
             } => {
                 *constructor = yes;
             }
-            Function::VmOrdinary { .. } => unreachable!("function must be native or closure"),
+            Function::Ordinary { .. } | Function::Generator { .. } => {
+                unreachable!("function must be native or closure");
+            }
         }
         self
     }
@@ -1349,8 +1418,9 @@ impl<'context> FunctionBuilder<'context> {
     pub fn build(self) -> JsObject {
         let function = JsObject::from_proto_and_data(
             self.context
-                .standard_objects()
-                .function_object()
+                .intrinsics()
+                .constructors()
+                .function()
                 .prototype(),
             ObjectData::function(self.function),
         );
@@ -1368,7 +1438,13 @@ impl<'context> FunctionBuilder<'context> {
     pub(crate) fn build_function_prototype(self, object: &JsObject) {
         let mut object = object.borrow_mut();
         object.data = ObjectData::function(self.function);
-        object.set_prototype(self.context.standard_objects().object_object().prototype());
+        object.set_prototype(
+            self.context
+                .intrinsics()
+                .constructors()
+                .object()
+                .prototype(),
+        );
 
         let property = PropertyDescriptor::builder()
             .writable(false)
@@ -1478,9 +1554,9 @@ impl<'context> ObjectInitializer<'context> {
 /// Builder for creating constructors objects, like `Array`.
 pub struct ConstructorBuilder<'context> {
     context: &'context mut Context,
-    constructor_function: NativeFunctionSignature,
-    constructor_object: JsObject,
-    constructor_has_prototype: bool,
+    function: NativeFunctionSignature,
+    object: JsObject,
+    has_prototype_property: bool,
     prototype: JsObject,
     name: JsString,
     length: usize,
@@ -1495,8 +1571,8 @@ impl Debug for ConstructorBuilder<'_> {
         f.debug_struct("ConstructorBuilder")
             .field("name", &self.name)
             .field("length", &self.length)
-            .field("constructor", &self.constructor_object)
-            .field("constructor_has_prototype", &self.constructor_has_prototype)
+            .field("constructor", &self.object)
+            .field("constructor_has_prototype", &self.has_prototype_property)
             .field("prototype", &self.prototype)
             .field("inherit", &self.inherit)
             .field("callable", &self.callable)
@@ -1508,11 +1584,11 @@ impl Debug for ConstructorBuilder<'_> {
 impl<'context> ConstructorBuilder<'context> {
     /// Create a new `ConstructorBuilder`.
     #[inline]
-    pub fn new(context: &'context mut Context, constructor: NativeFunctionSignature) -> Self {
+    pub fn new(context: &'context mut Context, function: NativeFunctionSignature) -> Self {
         Self {
             context,
-            constructor_function: constructor,
-            constructor_object: JsObject::empty(),
+            function,
+            object: JsObject::empty(),
             prototype: JsObject::empty(),
             length: 0,
             name: JsString::default(),
@@ -1520,22 +1596,22 @@ impl<'context> ConstructorBuilder<'context> {
             constructor: true,
             inherit: None,
             custom_prototype: None,
-            constructor_has_prototype: true,
+            has_prototype_property: true,
         }
     }
 
     #[inline]
-    pub(crate) fn with_standard_object(
+    pub(crate) fn with_standard_constructor(
         context: &'context mut Context,
-        constructor: NativeFunctionSignature,
-        object: StandardConstructor,
+        function: NativeFunctionSignature,
+        standard_constructor: StandardConstructor,
     ) -> Self {
         Self {
             context,
-            constructor_function: constructor,
-            constructor_object: object.constructor,
-            constructor_has_prototype: true,
-            prototype: object.prototype,
+            function,
+            object: standard_constructor.constructor,
+            has_prototype_property: true,
+            prototype: standard_constructor.prototype,
             length: 0,
             name: JsString::default(),
             callable: true,
@@ -1592,7 +1668,7 @@ impl<'context> ConstructorBuilder<'context> {
             .constructor(false)
             .build();
 
-        self.constructor_object.borrow_mut().insert(
+        self.object.borrow_mut().insert(
             binding.binding,
             PropertyDescriptor::builder()
                 .value(function)
@@ -1631,7 +1707,7 @@ impl<'context> ConstructorBuilder<'context> {
             .writable(attribute.writable())
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.constructor_object.borrow_mut().insert(key, property);
+        self.object.borrow_mut().insert(key, property);
         self
     }
 
@@ -1673,7 +1749,7 @@ impl<'context> ConstructorBuilder<'context> {
             .maybe_set(set)
             .enumerable(attribute.enumerable())
             .configurable(attribute.configurable());
-        self.constructor_object.borrow_mut().insert(key, property);
+        self.object.borrow_mut().insert(key, property);
         self
     }
 
@@ -1697,7 +1773,7 @@ impl<'context> ConstructorBuilder<'context> {
         P: Into<PropertyDescriptor>,
     {
         let property = property.into();
-        self.constructor_object.borrow_mut().insert(key, property);
+        self.object.borrow_mut().insert(key, property);
         self
     }
 
@@ -1740,7 +1816,8 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
-    /// Specify the prototype this constructor object inherits from.
+    /// Specify the parent prototype which objects created by this constructor
+    /// inherit from.
     ///
     /// Default is `Object.prototype`
     #[inline]
@@ -1749,7 +1826,7 @@ impl<'context> ConstructorBuilder<'context> {
         self
     }
 
-    /// Specify the __proto__ for this constructor.
+    /// Specify the `[[Prototype]]` internal field of this constructor.
     ///
     /// Default is `Function.prototype`
     #[inline]
@@ -1762,8 +1839,8 @@ impl<'context> ConstructorBuilder<'context> {
     ///
     /// Default is `true`
     #[inline]
-    pub fn constructor_has_prototype(&mut self, constructor_has_prototype: bool) -> &mut Self {
-        self.constructor_has_prototype = constructor_has_prototype;
+    pub fn has_prototype_property(&mut self, has_prototype_property: bool) -> &mut Self {
+        self.has_prototype_property = has_prototype_property;
         self
     }
 
@@ -1777,7 +1854,7 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn build(&mut self) -> JsObject {
         // Create the native function
         let function = Function::Native {
-            function: self.constructor_function,
+            function: self.function,
             constructor: self.constructor,
         };
 
@@ -1793,7 +1870,7 @@ impl<'context> ConstructorBuilder<'context> {
             .configurable(true);
 
         {
-            let mut constructor = self.constructor_object.borrow_mut();
+            let mut constructor = self.object.borrow_mut();
             constructor.data = ObjectData::function(function);
             constructor.insert("length", length);
             constructor.insert("name", name);
@@ -1803,13 +1880,14 @@ impl<'context> ConstructorBuilder<'context> {
             } else {
                 constructor.set_prototype(
                     self.context
-                        .standard_objects()
-                        .function_object()
+                        .intrinsics()
+                        .constructors()
+                        .function()
                         .prototype(),
                 );
             }
 
-            if self.constructor_has_prototype {
+            if self.has_prototype_property {
                 constructor.insert(
                     PROTOTYPE,
                     PropertyDescriptor::builder()
@@ -1826,7 +1904,7 @@ impl<'context> ConstructorBuilder<'context> {
             prototype.insert(
                 "constructor",
                 PropertyDescriptor::builder()
-                    .value(self.constructor_object.clone())
+                    .value(self.object.clone())
                     .writable(true)
                     .enumerable(false)
                     .configurable(true),
@@ -1835,11 +1913,16 @@ impl<'context> ConstructorBuilder<'context> {
             if let Some(proto) = self.inherit.take() {
                 prototype.set_prototype(proto);
             } else {
-                prototype
-                    .set_prototype(self.context.standard_objects().object_object().prototype());
+                prototype.set_prototype(
+                    self.context
+                        .intrinsics()
+                        .constructors()
+                        .object()
+                        .prototype(),
+                );
             }
         }
 
-        self.constructor_object.clone()
+        self.object.clone()
     }
 }

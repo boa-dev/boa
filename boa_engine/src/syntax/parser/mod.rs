@@ -3,7 +3,7 @@
 mod cursor;
 pub mod error;
 mod expression;
-mod function;
+pub(crate) mod function;
 mod statement;
 #[cfg(test)]
 mod tests;

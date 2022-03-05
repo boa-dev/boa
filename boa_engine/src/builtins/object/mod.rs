@@ -16,17 +16,18 @@
 use super::Array;
 use crate::{
     builtins::{map, BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
-    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 pub mod for_in_iterator;
 #[cfg(test)]
@@ -39,17 +40,13 @@ pub struct Object;
 impl BuiltIn for Object {
     const NAME: &'static str = "Object";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().object_object().clone(),
+            context.intrinsics().constructors().object().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -57,6 +54,7 @@ impl BuiltIn for Object {
         .method(Self::has_own_property, "hasOwnProperty", 1)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
         .method(Self::to_string, "toString", 0)
+        .method(Self::to_locale_string, "toLocaleString", 0)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::is_prototype_of, "isPrototypeOf", 1)
         .static_method(Self::create, "create", 2)
@@ -89,9 +87,9 @@ impl BuiltIn for Object {
         .static_method(Self::get_own_property_symbols, "getOwnPropertySymbols", 1)
         .static_method(Self::has_own, "hasOwn", 2)
         .static_method(Self::from_entries, "fromEntries", 1)
-        .build();
-
-        object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -104,11 +102,8 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if !new_target.is_undefined() {
-            let prototype = get_prototype_from_constructor(
-                new_target,
-                StandardObjects::object_object,
-                context,
-            )?;
+            let prototype =
+                get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
             let object = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
             return Ok(object.into());
         }
@@ -198,28 +193,34 @@ impl Object {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let object = args.get_or_undefined(0).to_object(context)?;
+        // 1. Let obj be ? ToObject(O).
+        let obj = args.get_or_undefined(0).to_object(context)?;
+
+        // 2. Let ownKeys be ? obj.[[OwnPropertyKeys]]().
+        let own_keys = obj.__own_property_keys__(context)?;
+
+        // 3. Let descriptors be OrdinaryObjectCreate(%Object.prototype%).
         let descriptors = context.construct_object();
 
-        for key in object.borrow().properties().keys() {
-            let descriptor = {
-                let desc = object.__get_own_property__(&key, context)?;
-                Self::from_property_descriptor(desc, context)
-            };
+        // 4. For each element key of ownKeys, do
+        for key in own_keys {
+            // a. Let desc be ? obj.[[GetOwnProperty]](key).
+            let desc = obj.__get_own_property__(&key, context)?;
 
+            // b. Let descriptor be FromPropertyDescriptor(desc).
+            let descriptor = Self::from_property_descriptor(desc, context);
+
+            // c. If descriptor is not undefined,
+            //    perform ! CreateDataPropertyOrThrow(descriptors, key, descriptor).
             if !descriptor.is_undefined() {
-                descriptors.borrow_mut().insert(
-                    key,
-                    PropertyDescriptor::builder()
-                        .value(descriptor)
-                        .writable(true)
-                        .enumerable(true)
-                        .configurable(true),
-                );
+                descriptors
+                    .create_data_property_or_throw(key, descriptor, context)
+                    .expect("should not fail according to spec");
             }
         }
 
-        Ok(JsValue::Object(descriptors))
+        // 5. Return descriptors.
+        Ok(descriptors.into())
     }
 
     /// The abstract operation `FromPropertyDescriptor`.
@@ -523,6 +524,25 @@ impl Object {
         Ok(format!("[object {tag_str}]").into())
     }
 
+    /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.tolocalestring
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/toLocaleString
+    #[allow(clippy::wrong_self_convention)]
+    pub fn to_locale_string(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be the this value.
+        // 2. Return ? Invoke(O, "toString").
+        this.invoke("toString", &[], context)
+    }
+
     /// `Object.prototype.hasOwnProperty( property )`
     ///
     /// The method returns a boolean indicating whether the object has the specified property
@@ -571,13 +591,16 @@ impl Object {
         };
 
         let key = key.to_property_key(context)?;
-        let own_property = this
+        let own_prop = this
             .to_object(context)?
             .__get_own_property__(&key, context)?;
 
-        Ok(own_property.map_or(JsValue::new(false), |own_prop| {
-            JsValue::new(own_prop.enumerable())
-        }))
+        own_prop
+            .as_ref()
+            .and_then(PropertyDescriptor::enumerable)
+            .unwrap_or_default()
+            .conv::<JsValue>()
+            .pipe(Ok)
     }
 
     /// `Object.assign( target, ...sources )`

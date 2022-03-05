@@ -16,6 +16,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 use indexmap::IndexSet;
+use tap::{Conv, Pipe};
 
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -24,24 +25,20 @@ pub(crate) struct Intl;
 impl BuiltIn for Intl {
     const NAME: &'static str = "Intl";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let string_tag = WellKnownSymbols::to_string_tag();
-        let object = ObjectInitializer::new(context)
+        ObjectInitializer::new(context)
             .function(Self::get_canonical_locales, "getCanonicalLocales", 1)
             .property(
                 string_tag,
                 Self::NAME,
                 Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
-            .build();
-
-        object.into()
+            .build()
+            .conv::<JsValue>()
+            .pipe(Some)
     }
 }
 

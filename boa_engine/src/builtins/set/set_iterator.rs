@@ -47,7 +47,11 @@ impl SetIterator {
         context: &Context,
     ) -> JsValue {
         let set_iterator = JsObject::from_proto_and_data(
-            context.iterator_prototypes().set_iterator(),
+            context
+                .intrinsics()
+                .objects()
+                .iterator_prototypes()
+                .set_iterator(),
             ObjectData::set_iterator(Self::new(set, kind)),
         );
         set_iterator.into()

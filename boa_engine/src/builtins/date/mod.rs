@@ -4,11 +4,10 @@ mod tests;
 use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
-    property::Attribute,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
     Context, JsResult, JsString,
@@ -17,6 +16,7 @@ use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
+use tap::{Conv, Pipe};
 
 /// The number of nanoseconds in a millisecond.
 const NANOS_PER_MS: i64 = 1_000_000;
@@ -88,14 +88,10 @@ impl Default for Date {
 impl BuiltIn for Date {
     const NAME: &'static str = "Date";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let date_object = ConstructorBuilder::new(context, Self::constructor)
+        ConstructorBuilder::new(context, Self::constructor)
             .name(Self::NAME)
             .length(Self::LENGTH)
             .method(getter_method!(get_date), "getDate", 0)
@@ -154,9 +150,9 @@ impl BuiltIn for Date {
             .static_method(Self::now, "now", 0)
             .static_method(Self::parse, "parse", 1)
             .static_method(Self::utc, "UTC", 7)
-            .build();
-
-        date_object.into()
+            .build()
+            .conv::<JsValue>()
+            .pipe(Some)
     }
 }
 
@@ -340,11 +336,8 @@ impl Date {
         if new_target.is_undefined() {
             Ok(Self::make_date_string())
         } else {
-            let prototype = get_prototype_from_constructor(
-                new_target,
-                StandardObjects::object_object,
-                context,
-            )?;
+            let prototype =
+                get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
             Ok(if args.is_empty() {
                 Self::make_date_now(prototype)
             } else if args.len() == 1 {

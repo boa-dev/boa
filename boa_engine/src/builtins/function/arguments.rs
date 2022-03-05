@@ -4,7 +4,7 @@ use crate::{
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::{self, WellKnownSymbols},
-    syntax::ast::node::FormalParameter,
+    syntax::ast::node::FormalParameterList,
     Context, JsValue,
 };
 use boa_gc::{Finalize, Gc, Trace};
@@ -122,7 +122,7 @@ impl Arguments {
         )
         .expect("Defining new own properties for a new ordinary object cannot fail");
 
-        let throw_type_error = context.intrinsics().throw_type_error();
+        let throw_type_error = context.intrinsics().objects().throw_type_error();
 
         // 8. Perform ! DefinePropertyOrThrow(obj, "callee", PropertyDescriptor {
         // [[Get]]: %ThrowTypeError%, [[Set]]: %ThrowTypeError%, [[Enumerable]]: false,
@@ -147,7 +147,7 @@ impl Arguments {
     /// <https://tc39.es/ecma262/#sec-createmappedargumentsobject>
     pub(crate) fn create_mapped_arguments_object(
         func: &JsObject,
-        formals: &[FormalParameter],
+        formals: &FormalParameterList,
         arguments_list: &[JsValue],
         env: &Gc<DeclarativeEnvironment>,
         context: &mut Context,
@@ -199,7 +199,7 @@ impl Arguments {
 
         let mut bindings = FxHashMap::default();
         let mut property_index = 0;
-        'outer: for formal in formals {
+        'outer: for formal in formals.parameters.iter() {
             for name in formal.names() {
                 if property_index >= len {
                     break 'outer;
@@ -224,7 +224,7 @@ impl Arguments {
 
         // 11. Set obj.[[ParameterMap]] to map.
         let obj = JsObject::from_proto_and_data(
-            context.standard_objects().object_object().prototype(),
+            context.intrinsics().constructors().object().prototype(),
             ObjectData::arguments(Self::Mapped(map)),
         );
 

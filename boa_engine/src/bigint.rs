@@ -3,8 +3,7 @@
 use crate::{builtins::Number, Context, JsValue};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use num_integer::Integer;
-use num_traits::pow::Pow;
-use num_traits::{FromPrimitive, One, ToPrimitive, Zero};
+use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
 use std::{
     fmt::{self, Display},
     ops::{Add, BitAnd, BitOr, BitXor, Div, Mul, Neg, Rem, Shl, Shr, Sub},
@@ -286,6 +285,15 @@ impl From<RawBigInt> for JsBigInt {
     fn from(value: RawBigInt) -> Self {
         Self {
             inner: Rc::new(value),
+        }
+    }
+}
+
+impl From<Box<RawBigInt>> for JsBigInt {
+    #[inline]
+    fn from(value: Box<RawBigInt>) -> Self {
+        Self {
+            inner: value.into(),
         }
     }
 }

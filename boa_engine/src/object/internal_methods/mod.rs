@@ -7,7 +7,7 @@
 
 use super::{JsPrototype, PROTOTYPE};
 use crate::{
-    context::{StandardConstructor, StandardObjects},
+    context::intrinsics::{StandardConstructor, StandardConstructors},
     object::JsObject,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
@@ -951,7 +951,7 @@ pub(crate) fn get_prototype_from_constructor<F>(
     context: &mut Context,
 ) -> JsResult<JsObject>
 where
-    F: FnOnce(&StandardObjects) -> &StandardConstructor,
+    F: FnOnce(&StandardConstructors) -> &StandardConstructor,
 {
     let _timer = Profiler::global().start_event("Object::get_prototype_from_constructor", "object");
     // 1. Assert: intrinsicDefaultProto is this specification's name of an intrinsic
@@ -968,5 +968,5 @@ where
     // TODO: handle realms
     // a. Let realm be ? GetFunctionRealm(constructor).
     // b. Set proto to realm's intrinsic object named intrinsicDefaultProto.
-    Ok(default(context.standard_objects()).prototype())
+    Ok(default(context.intrinsics().constructors()).prototype())
 }

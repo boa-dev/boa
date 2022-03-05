@@ -11,7 +11,11 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node, node::declaration::Declaration, Punctuator},
+    ast::{
+        node::{self, FormalParameterList},
+        node::{declaration::Declaration, FormalParameterListFlags},
+        Punctuator,
+    },
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
         expression::Initializer,
@@ -23,13 +27,6 @@ use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::io::Read;
-
-/// Intermediate type for a list of `FormalParameters` with some meta information.
-pub(in crate::syntax::parser) struct FormalParameterList {
-    pub(in crate::syntax::parser) parameters: Box<[node::FormalParameter]>,
-    pub(in crate::syntax::parser) is_simple: bool,
-    pub(in crate::syntax::parser) has_duplicates: bool,
-}
 
 /// Formal parameters parsing.
 ///
@@ -73,17 +70,15 @@ where
         let _timer = Profiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
+        let mut flags = FormalParameterListFlags::default();
         let mut params = Vec::new();
-        let mut is_simple = true;
-        let mut has_duplicates = false;
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         if next_token.kind() == &TokenKind::Punctuator(Punctuator::CloseParen) {
-            return Ok(FormalParameterList {
-                parameters: params.into_boxed_slice(),
-                is_simple,
-                has_duplicates,
-            });
+            return Ok(FormalParameterList::new(
+                params.into_boxed_slice(),
+                FormalParameterListFlags::IS_SIMPLE,
+            ));
         }
         let start_position = next_token.span().start();
 
@@ -95,6 +90,7 @@ where
             let next_param = match cursor.peek(0, interner)? {
                 Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Spread) => {
                     rest_param = true;
+                    flags |= FormalParameterListFlags::HAS_REST_PARAMETER;
                     FunctionRestParameter::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                 }
@@ -109,15 +105,22 @@ where
                 )));
             }
 
+            if next_param.init().is_some() {
+                flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
+            }
+            if next_param.names().contains(&Sym::ARGUMENTS) {
+                flags |= FormalParameterListFlags::HAS_ARGUMENTS;
+            }
+
             if next_param.is_rest_param()
                 || next_param.init().is_some()
                 || !next_param.is_identifier()
             {
-                is_simple = false;
+                flags.remove(FormalParameterListFlags::IS_SIMPLE);
             }
             for param_name in next_param.names() {
                 if parameter_names.contains(&param_name) {
-                    has_duplicates = true;
+                    flags |= FormalParameterListFlags::HAS_DUPLICATES;
                 }
                 parameter_names.insert(Box::from(param_name));
             }
@@ -146,18 +149,16 @@ where
 
         // Early Error: It is a Syntax Error if IsSimpleParameterList of FormalParameterList is false
         // and BoundNames of FormalParameterList contains any duplicate elements.
-        if !is_simple && has_duplicates {
+        if !flags.contains(FormalParameterListFlags::IS_SIMPLE)
+            && flags.contains(FormalParameterListFlags::HAS_DUPLICATES)
+        {
             return Err(ParseError::lex(LexError::Syntax(
                 "Duplicate parameter name not allowed in this context".into(),
                 start_position,
             )));
         }
 
-        Ok(FormalParameterList {
-            parameters: params.into_boxed_slice(),
-            is_simple,
-            has_duplicates,
-        })
+        Ok(FormalParameterList::new(params.into_boxed_slice(), flags))
     }
 }
 

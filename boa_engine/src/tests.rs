@@ -1,5 +1,6 @@
 use crate::{
-    builtins::Number, check_output, exec, forward, forward_val, Context, JsValue, TestAction,
+    builtins::Number, check_output, exec, forward, forward_val, value::IntegerOrInfinity, Context,
+    JsValue, TestAction,
 };
 
 #[test]
@@ -431,7 +432,6 @@ fn for_loop_iteration_variable_does_not_leak() {
 }
 
 #[test]
-#[should_panic]
 fn test_invalid_break_target() {
     let src = r#"
         while (false) {
@@ -439,7 +439,7 @@ fn test_invalid_break_target() {
         }
         "#;
 
-    let _ = &exec(src);
+    assert!(Context::default().eval(src).is_err());
 }
 
 #[test]
@@ -955,40 +955,49 @@ fn to_index() {
 }
 
 #[test]
-fn to_integer() {
+fn to_integer_or_infinity() {
     let mut context = Context::default();
 
-    assert!(Number::equal(
-        JsValue::nan().to_integer(&mut context).unwrap(),
-        0.0
-    ));
-    assert!(Number::equal(
+    assert_eq!(
+        JsValue::nan().to_integer_or_infinity(&mut context).unwrap(),
+        0
+    );
+    assert_eq!(
         JsValue::new(f64::NEG_INFINITY)
-            .to_integer(&mut context)
+            .to_integer_or_infinity(&mut context)
             .unwrap(),
-        f64::NEG_INFINITY
-    ));
-    assert!(Number::equal(
+        IntegerOrInfinity::NegativeInfinity
+    );
+    assert_eq!(
         JsValue::new(f64::INFINITY)
-            .to_integer(&mut context)
+            .to_integer_or_infinity(&mut context)
             .unwrap(),
-        f64::INFINITY
-    ));
-    assert!(Number::equal(
-        JsValue::new(0.0).to_integer(&mut context).unwrap(),
-        0.0
-    ));
-    let number = JsValue::new(-0.0).to_integer(&mut context).unwrap();
-    assert!(!number.is_sign_negative());
-    assert!(Number::equal(number, 0.0));
-    assert!(Number::equal(
-        JsValue::new(20.9).to_integer(&mut context).unwrap(),
-        20.0
-    ));
-    assert!(Number::equal(
-        JsValue::new(-20.9).to_integer(&mut context).unwrap(),
-        -20.0
-    ));
+        IntegerOrInfinity::PositiveInfinity
+    );
+    assert_eq!(
+        JsValue::new(0.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        0
+    );
+    assert_eq!(
+        JsValue::new(-0.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        0
+    );
+    assert_eq!(
+        JsValue::new(20.9)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        20
+    );
+    assert_eq!(
+        JsValue::new(-20.9)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        -20
+    );
 }
 
 #[test]

@@ -343,7 +343,7 @@ fn json_parse_array_with_reviver() {
     .unwrap();
     assert_eq!(
         result
-            .get_field("0", &mut context)
+            .get_v("0", &mut context)
             .unwrap()
             .to_number(&mut context)
             .unwrap() as u8,
@@ -351,7 +351,7 @@ fn json_parse_array_with_reviver() {
     );
     assert_eq!(
         result
-            .get_field("1", &mut context)
+            .get_v("1", &mut context)
             .unwrap()
             .to_number(&mut context)
             .unwrap() as u8,
@@ -359,7 +359,7 @@ fn json_parse_array_with_reviver() {
     );
     assert_eq!(
         result
-            .get_field("2", &mut context)
+            .get_v("2", &mut context)
             .unwrap()
             .to_number(&mut context)
             .unwrap() as u8,
@@ -367,7 +367,7 @@ fn json_parse_array_with_reviver() {
     );
     assert_eq!(
         result
-            .get_field("3", &mut context)
+            .get_v("3", &mut context)
             .unwrap()
             .to_number(&mut context)
             .unwrap() as u8,
@@ -422,11 +422,17 @@ fn json_parse_sets_prototypes() {
         .prototype()
         .clone();
     let global_object_prototype = context
-        .standard_objects()
-        .object_object()
+        .intrinsics()
+        .constructors()
+        .object()
         .prototype()
         .into();
-    let global_array_prototype = context.standard_objects().array_object().prototype().into();
+    let global_array_prototype = context
+        .intrinsics()
+        .constructors()
+        .array()
+        .prototype()
+        .into();
     assert_eq!(object_prototype, global_object_prototype);
     assert_eq!(array_prototype, global_array_prototype);
 }
