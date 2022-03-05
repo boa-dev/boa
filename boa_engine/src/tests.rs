@@ -1340,25 +1340,17 @@ fn assignment_to_non_assignable() {
 
 #[test]
 fn assignment_to_non_assignable_ctd() {
-    let mut context = Context::default();
-
-    let test_cases = [
-        "(()=>{})() -= 5",
-        "(()=>{})() *= 5",
-        "(()=>{})() /= 5",
-        "(()=>{})() %= 5",
-        "(()=>{})() &= 5",
-        "(()=>{})() ^= 5",
-        "(()=>{})() |= 5",
-        "(()=>{})() += 5",
-        "(()=>{})() = 5",
-    ];
-
-    for case in &test_cases {
-        let string = forward(&mut context, case);
-
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
-    }
+    check_output(&[
+        TestAction::TestStartsWith("(()=>{})() -= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() *= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() /= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() %= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() &= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() ^= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() |= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() += 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() = 5", "Uncaught \"SyntaxError\": "),
+    ]);
 }
 
 #[test]
@@ -1379,15 +1371,11 @@ fn multicharacter_assignment_to_non_assignable() {
 
 #[test]
 fn multicharacter_assignment_to_non_assignable_ctd() {
-    let mut context = Context::default();
-
-    let test_cases = ["(()=>{})() **= 5", "(()=>{})() <<= 5", "(()=>{})() >>= 5"];
-
-    for case in &test_cases {
-        let string = forward(&mut context, case);
-
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
-    }
+    check_output(&[
+        TestAction::TestStartsWith("(()=>{})() **= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() <<= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() >>= 5", "Uncaught \"SyntaxError\": "),
+    ]);
 }
 
 #[test]
@@ -1407,21 +1395,12 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 
 #[test]
 fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
-    let mut context = Context::default();
-
-    // Disabled - awaiting implementation.
-    let test_cases = [
-        "(()=>{})() >>>= 5",
-        "(()=>{})() &&= 5",
-        "(()=>{})() ||= 5",
-        "(()=>{})() ??= 5",
-    ];
-
-    for case in &test_cases {
-        let string = forward(&mut context, case);
-
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
-    }
+    check_output(&[
+        TestAction::TestStartsWith("(()=>{})() >>>= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() &&= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() ||= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() ??= 5", "Uncaught \"SyntaxError\": "),
+    ]);
 }
 
 #[test]
