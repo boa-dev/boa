@@ -284,16 +284,16 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">IntoOrUndefined</span> {
+    <span class="kw">fn</span> <span class="ident">into_or_undefined</span>(<span class="self">self</span>) -&gt; <span class="ident">JsValue</span>;
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">IntoOrUndefined</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
 {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">match</span> <span class="ident">value</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">into</span>(),
-            <span class="prelude-val">None</span> =&gt; <span class="ident"><span class="self">Self</span>::undefined</span>(),
-        }
+    <span class="kw">fn</span> <span class="ident">into_or_undefined</span>(<span class="self">self</span>) -&gt; <span class="ident">JsValue</span> {
+        <span class="self">self</span>.<span class="ident">map_or_else</span>(<span class="ident">JsValue::undefined</span>, <span class="ident">Into::into</span>)
     }
 }
 </code></pre></div>

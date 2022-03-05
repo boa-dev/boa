@@ -657,6 +657,7 @@
 <span id="655">655</span>
 <span id="656">656</span>
 <span id="657">657</span>
+<span id="658">658</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -672,7 +673,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">context::StandardObjects</span>,
+    <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">environments::DeclarativeEnvironmentStack</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>,
@@ -693,6 +694,7 @@
     <span class="ident">fmt</span>,
     <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
 };
+<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">arguments</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -892,7 +894,11 @@
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;make_builtin_fn: {name}&quot;</span>), <span class="string">&quot;init&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-        <span class="ident">interpreter</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">prototype</span>(),
+        <span class="ident">interpreter</span>
+            .<span class="ident">intrinsics</span>()
+            .<span class="ident">constructors</span>()
+            .<span class="ident">function</span>()
+            .<span class="ident">prototype</span>(),
         <span class="ident">ObjectData::function</span>(<span class="ident">Function::Native</span> {
             <span class="ident">function</span>,
             <span class="ident">constructor</span>: <span class="bool-val">false</span>,
@@ -927,7 +933,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::function_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::function</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
             <span class="ident">prototype</span>,
@@ -1151,14 +1157,10 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">BuiltInFunctionObject</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Function&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;function&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">prototype</span>();
+        <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">function</span>().<span class="ident">prototype</span>();
         <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::prototype</span>)
             .<span class="ident">name</span>(<span class="string">&quot;&quot;</span>)
             .<span class="ident">length</span>(<span class="number">0</span>)
@@ -1173,10 +1175,10 @@
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
+        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
             <span class="ident">context</span>,
             <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">clone</span>(),
+            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">function</span>().<span class="ident">clone</span>(),
         )
         .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
         .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
@@ -1185,9 +1187,9 @@
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::call</span>, <span class="string">&quot;call&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
         .<span class="ident">property</span>(<span class="ident">symbol_has_instance</span>, <span class="ident">has_instance</span>, <span class="ident">Attribute::default</span>())
-        .<span class="ident">build</span>();
-
-        <span class="ident">function_object</span>.<span class="ident">into</span>()
+        .<span class="ident">build</span>()
+        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 

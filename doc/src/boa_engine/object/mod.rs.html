@@ -1914,6 +1914,20 @@
 <span id="1912">1912</span>
 <span id="1913">1913</span>
 <span id="1914">1914</span>
+<span id="1915">1915</span>
+<span id="1916">1916</span>
+<span id="1917">1917</span>
+<span id="1918">1918</span>
+<span id="1919">1919</span>
+<span id="1920">1920</span>
+<span id="1921">1921</span>
+<span id="1922">1922</span>
+<span id="1923">1923</span>
+<span id="1924">1924</span>
+<span id="1925">1925</span>
+<span id="1926">1926</span>
+<span id="1927">1927</span>
+<span id="1928">1928</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -1956,7 +1970,7 @@
         <span class="ident">typed_array::integer_indexed_object::IntegerIndexed</span>,
         <span class="ident">DataView</span>, <span class="ident">Date</span>, <span class="ident">RegExp</span>,
     },
-    <span class="ident">context::StandardConstructor</span>,
+    <span class="ident">context::intrinsics::StandardConstructor</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
@@ -3334,8 +3348,9 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
             <span class="self">self</span>.<span class="ident">context</span>
-                .<span class="ident">standard_objects</span>()
-                .<span class="ident">function_object</span>()
+                .<span class="ident">intrinsics</span>()
+                .<span class="ident">constructors</span>()
+                .<span class="ident">function</span>()
                 .<span class="ident">prototype</span>(),
             <span class="ident">ObjectData::function</span>(<span class="self">self</span>.<span class="ident">function</span>),
         );
@@ -3353,7 +3368,13 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">build_function_prototype</span>(<span class="self">self</span>, <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>) {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>();
         <span class="ident">object</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::function</span>(<span class="self">self</span>.<span class="ident">function</span>);
-        <span class="ident">object</span>.<span class="ident">set_prototype</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>());
+        <span class="ident">object</span>.<span class="ident">set_prototype</span>(
+            <span class="self">self</span>.<span class="ident">context</span>
+                .<span class="ident">intrinsics</span>()
+                .<span class="ident">constructors</span>()
+                .<span class="ident">object</span>()
+                .<span class="ident">prototype</span>(),
+        );
 
         <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
             .<span class="ident">writable</span>(<span class="bool-val">false</span>)
@@ -3463,9 +3484,9 @@
 <span class="doccomment">/// Builder for creating constructors objects, like `Array`.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ConstructorBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
     <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>,
-    <span class="ident">constructor_function</span>: <span class="ident">NativeFunctionSignature</span>,
-    <span class="ident">constructor_object</span>: <span class="ident">JsObject</span>,
-    <span class="ident">constructor_has_prototype</span>: <span class="ident">bool</span>,
+    <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
+    <span class="ident">object</span>: <span class="ident">JsObject</span>,
+    <span class="ident">has_prototype_property</span>: <span class="ident">bool</span>,
     <span class="ident">prototype</span>: <span class="ident">JsObject</span>,
     <span class="ident">name</span>: <span class="ident">JsString</span>,
     <span class="ident">length</span>: <span class="ident">usize</span>,
@@ -3480,8 +3501,8 @@
         <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;ConstructorBuilder&quot;</span>)
             .<span class="ident">field</span>(<span class="string">&quot;name&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span>)
             .<span class="ident">field</span>(<span class="string">&quot;length&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">length</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constructor_object</span>)
-            .<span class="ident">field</span>(<span class="string">&quot;constructor_has_prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">constructor_has_prototype</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;constructor&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">object</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;constructor_has_prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">has_prototype_property</span>)
             .<span class="ident">field</span>(<span class="string">&quot;prototype&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">prototype</span>)
             .<span class="ident">field</span>(<span class="string">&quot;inherit&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inherit</span>)
             .<span class="ident">field</span>(<span class="string">&quot;callable&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">callable</span>)
@@ -3493,11 +3514,11 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> <span class="ident">ConstructorBuilder</span><span class="op">&lt;</span><span class="lifetime">&#39;context</span><span class="op">&gt;</span> {
     <span class="doccomment">/// Create a new `ConstructorBuilder`.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">constructor</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>, <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">context</span>,
-            <span class="ident">constructor_function</span>: <span class="ident">constructor</span>,
-            <span class="ident">constructor_object</span>: <span class="ident">JsObject::empty</span>(),
+            <span class="ident">function</span>,
+            <span class="ident">object</span>: <span class="ident">JsObject::empty</span>(),
             <span class="ident">prototype</span>: <span class="ident">JsObject::empty</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
@@ -3505,22 +3526,22 @@
             <span class="ident">constructor</span>: <span class="bool-val">true</span>,
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
             <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
-            <span class="ident">constructor_has_prototype</span>: <span class="bool-val">true</span>,
+            <span class="ident">has_prototype_property</span>: <span class="bool-val">true</span>,
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_standard_object</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_standard_constructor</span>(
         <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;context</span> <span class="kw-2">mut</span> <span class="ident">Context</span>,
-        <span class="ident">constructor</span>: <span class="ident">NativeFunctionSignature</span>,
-        <span class="ident">object</span>: <span class="ident">StandardConstructor</span>,
+        <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
+        <span class="ident">standard_constructor</span>: <span class="ident">StandardConstructor</span>,
     ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">context</span>,
-            <span class="ident">constructor_function</span>: <span class="ident">constructor</span>,
-            <span class="ident">constructor_object</span>: <span class="ident">object</span>.<span class="ident">constructor</span>,
-            <span class="ident">constructor_has_prototype</span>: <span class="bool-val">true</span>,
-            <span class="ident">prototype</span>: <span class="ident">object</span>.<span class="ident">prototype</span>,
+            <span class="ident">function</span>,
+            <span class="ident">object</span>: <span class="ident">standard_constructor</span>.<span class="ident">constructor</span>,
+            <span class="ident">has_prototype_property</span>: <span class="bool-val">true</span>,
+            <span class="ident">prototype</span>: <span class="ident">standard_constructor</span>.<span class="ident">prototype</span>,
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
@@ -3577,7 +3598,7 @@
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
+        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(
             <span class="ident">binding</span>.<span class="ident">binding</span>,
             <span class="ident">PropertyDescriptor::builder</span>()
                 .<span class="ident">value</span>(<span class="ident">function</span>)
@@ -3616,7 +3637,7 @@
             .<span class="ident">writable</span>(<span class="ident">attribute</span>.<span class="ident">writable</span>())
             .<span class="ident">enumerable</span>(<span class="ident">attribute</span>.<span class="ident">enumerable</span>())
             .<span class="ident">configurable</span>(<span class="ident">attribute</span>.<span class="ident">configurable</span>());
-        <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>);
+        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>);
         <span class="self">self</span>
     }
 
@@ -3658,7 +3679,7 @@
             .<span class="ident">maybe_set</span>(<span class="ident">set</span>)
             .<span class="ident">enumerable</span>(<span class="ident">attribute</span>.<span class="ident">enumerable</span>())
             .<span class="ident">configurable</span>(<span class="ident">attribute</span>.<span class="ident">configurable</span>());
-        <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>);
+        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>);
         <span class="self">self</span>
     }
 
@@ -3682,7 +3703,7 @@
         <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">property</span> <span class="op">=</span> <span class="ident">property</span>.<span class="ident">into</span>();
-        <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>);
+        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="ident">key</span>, <span class="ident">property</span>);
         <span class="self">self</span>
     }
 
@@ -3725,7 +3746,8 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Specify the prototype this constructor object inherits from.</span>
+    <span class="doccomment">/// Specify the parent prototype which objects created by this constructor</span>
+    <span class="doccomment">/// inherit from.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is `Object.prototype`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3734,7 +3756,7 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Specify the __proto__ for this constructor.</span>
+    <span class="doccomment">/// Specify the `[[Prototype]]` internal field of this constructor.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is `Function.prototype`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3747,8 +3769,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Default is `true`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor_has_prototype</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">constructor_has_prototype</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">constructor_has_prototype</span> <span class="op">=</span> <span class="ident">constructor_has_prototype</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_prototype_property</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">has_prototype_property</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">has_prototype_property</span> <span class="op">=</span> <span class="ident">has_prototype_property</span>;
         <span class="self">self</span>
     }
 
@@ -3762,7 +3784,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="comment">// Create the native function</span>
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Function::Native</span> {
-            <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">constructor_function</span>,
+            <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">function</span>,
             <span class="ident">constructor</span>: <span class="self">self</span>.<span class="ident">constructor</span>,
         };
 
@@ -3778,7 +3800,7 @@
             .<span class="ident">configurable</span>(<span class="bool-val">true</span>);
 
         {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">borrow_mut</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">borrow_mut</span>();
             <span class="ident">constructor</span>.<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::function</span>(<span class="ident">function</span>);
             <span class="ident">constructor</span>.<span class="ident">insert</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length</span>);
             <span class="ident">constructor</span>.<span class="ident">insert</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name</span>);
@@ -3788,13 +3810,14 @@
             } <span class="kw">else</span> {
                 <span class="ident">constructor</span>.<span class="ident">set_prototype</span>(
                     <span class="self">self</span>.<span class="ident">context</span>
-                        .<span class="ident">standard_objects</span>()
-                        .<span class="ident">function_object</span>()
+                        .<span class="ident">intrinsics</span>()
+                        .<span class="ident">constructors</span>()
+                        .<span class="ident">function</span>()
                         .<span class="ident">prototype</span>(),
                 );
             }
 
-            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">constructor_has_prototype</span> {
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">has_prototype_property</span> {
                 <span class="ident">constructor</span>.<span class="ident">insert</span>(
                     <span class="ident">PROTOTYPE</span>,
                     <span class="ident">PropertyDescriptor::builder</span>()
@@ -3811,7 +3834,7 @@
             <span class="ident">prototype</span>.<span class="ident">insert</span>(
                 <span class="string">&quot;constructor&quot;</span>,
                 <span class="ident">PropertyDescriptor::builder</span>()
-                    .<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">clone</span>())
+                    .<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">object</span>.<span class="ident">clone</span>())
                     .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                     .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
                     .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
@@ -3820,12 +3843,17 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">proto</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">inherit</span>.<span class="ident">take</span>() {
                 <span class="ident">prototype</span>.<span class="ident">set_prototype</span>(<span class="ident">proto</span>);
             } <span class="kw">else</span> {
-                <span class="ident">prototype</span>
-                    .<span class="ident">set_prototype</span>(<span class="self">self</span>.<span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">object_object</span>().<span class="ident">prototype</span>());
+                <span class="ident">prototype</span>.<span class="ident">set_prototype</span>(
+                    <span class="self">self</span>.<span class="ident">context</span>
+                        .<span class="ident">intrinsics</span>()
+                        .<span class="ident">constructors</span>()
+                        .<span class="ident">object</span>()
+                        .<span class="ident">prototype</span>(),
+                );
             }
         }
 
-        <span class="self">self</span>.<span class="ident">constructor_object</span>.<span class="ident">clone</span>()
+        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">clone</span>()
     }
 }
 </code></pre></div>

@@ -406,6 +406,13 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
@@ -420,12 +427,19 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorPrototypes</span> {
+    <span class="doccomment">/// %IteratorPrototype%</span>
     <span class="ident">iterator_prototype</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %MapIteratorPrototype%</span>
     <span class="ident">array_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %SetIteratorPrototype%</span>
     <span class="ident">set_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %StringIteratorPrototype%</span>
     <span class="ident">string_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %RegExpStringIteratorPrototype%</span>
     <span class="ident">regexp_string_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %MapIteratorPrototype%</span>
     <span class="ident">map_iterator</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %ForInIteratorPrototype%</span>
     <span class="ident">for_in_iterator</span>: <span class="ident">JsObject</span>,
 }
 

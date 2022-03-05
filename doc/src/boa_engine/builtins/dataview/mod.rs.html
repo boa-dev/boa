@@ -1031,12 +1031,9 @@
 <span id="1029">1029</span>
 <span id="1030">1030</span>
 <span id="1031">1031</span>
-<span id="1032">1032</span>
-<span id="1033">1033</span>
-<span id="1034">1034</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">array_buffer::SharedMemoryOrder</span>, <span class="ident">typed_array::TypedArrayKind</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">context::StandardObjects</span>,
+    <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -1047,6 +1044,7 @@
     <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataView</span> {
@@ -1058,11 +1056,7 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">DataView</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;DataView&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">flag_attributes</span> <span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span>;
 
         <span class="kw">let</span> <span class="ident">get_buffer</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_buffer</span>)
@@ -1077,10 +1071,10 @@
             .<span class="ident">name</span>(<span class="string">&quot;get byteOffset&quot;</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">dataview_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
+        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
             <span class="ident">context</span>,
             <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">data_view_object</span>().<span class="ident">clone</span>(),
+            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">data_view</span>().<span class="ident">clone</span>(),
         )
         .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
         .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
@@ -1112,9 +1106,9 @@
             <span class="ident"><span class="self">Self</span>::NAME</span>,
             <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
         )
-        .<span class="ident">build</span>();
-
-        <span class="ident">dataview_object</span>.<span class="ident">into</span>()
+        .<span class="ident">build</span>()
+        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 
@@ -1187,7 +1181,7 @@
 
         <span class="comment">// 9. Let O be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%DataView.prototype%&quot;, « [[DataView]], [[ViewedArrayBuffer]], [[ByteLength]], [[ByteOffset]] »).</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::data_view_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::data_view</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 10. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">buffer_obj</span>

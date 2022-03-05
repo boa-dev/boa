@@ -341,9 +341,6 @@
 <span id="339">339</span>
 <span id="340">340</span>
 <span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The data type symbol is a primitive data type.</span>
@@ -376,6 +373,7 @@
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std::cell::RefCell</span>;
+<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 
 <span class="macro">thread_local!</span> {
     <span class="kw">static</span> <span class="ident">GLOBAL_SYMBOL_REGISTRY</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">GlobalSymbolRegistry</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RefCell::new</span>(<span class="ident">GlobalSymbolRegistry::new</span>());
@@ -420,11 +418,7 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Symbol</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Symbol&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">symbol_async_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::async_iterator</span>();
@@ -454,10 +448,10 @@
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">symbol_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
+        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
             <span class="ident">context</span>,
             <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">symbol_object</span>().<span class="ident">clone</span>(),
+            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">symbol</span>().<span class="ident">clone</span>(),
         )
         .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
         .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
@@ -496,9 +490,9 @@
             <span class="ident">to_primitive</span>,
             <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
         )
-        .<span class="ident">build</span>();
-
-        <span class="ident">symbol_object</span>.<span class="ident">into</span>()
+        .<span class="ident">build</span>()
+        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 

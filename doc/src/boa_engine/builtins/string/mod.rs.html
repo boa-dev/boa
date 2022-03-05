@@ -2346,11 +2346,6 @@
 <span id="2344">2344</span>
 <span id="2345">2345</span>
 <span id="2346">2346</span>
-<span id="2347">2347</span>
-<span id="2348">2348</span>
-<span id="2349">2349</span>
-<span id="2350">2350</span>
-<span id="2351">2351</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `String` global object is a constructor for strings or a sequence of characters.</span>
@@ -2369,7 +2364,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">Array</span>, <span class="ident">BuiltIn</span>, <span class="ident">Number</span>, <span class="ident">RegExp</span>},
-    <span class="ident">context::StandardObjects</span>,
+    <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
@@ -2384,6 +2379,7 @@
     <span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>},
     <span class="ident">string::String</span> <span class="kw">as</span> <span class="ident">StdString</span>,
 };
+<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 <span class="kw">use</span> <span class="ident">unicode_normalization::UnicodeNormalization</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
@@ -2453,20 +2449,16 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">String</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;String&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();
 
         <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>;
-        <span class="kw">let</span> <span class="ident">string_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
+        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
             <span class="ident">context</span>,
             <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">string_object</span>().<span class="ident">clone</span>(),
+            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">string</span>().<span class="ident">clone</span>(),
         )
         .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
         .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
@@ -2505,9 +2497,9 @@
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::iterator</span>, (<span class="ident">symbol_iterator</span>, <span class="string">&quot;[Symbol.iterator]&quot;</span>), <span class="number">0</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::search</span>, <span class="string">&quot;search&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::at</span>, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
-        .<span class="ident">build</span>();
-
-        <span class="ident">string_object</span>.<span class="ident">into</span>()
+        .<span class="ident">build</span>()
+        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 
@@ -2550,9 +2542,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::string_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, &quot;%String.prototype%&quot;)).</span>
+            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::string</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::string_create</span>(<span class="ident">string</span>, <span class="ident">prototype</span>, <span class="ident">context</span>).<span class="ident">into</span>())
     }
 

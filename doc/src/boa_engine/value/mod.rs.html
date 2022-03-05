@@ -1069,6 +1069,10 @@
 <span id="1067">1067</span>
 <span id="1068">1068</span>
 <span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1536,28 +1540,28 @@
                 <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
             }
             <span class="ident">JsValue::Boolean</span>(<span class="ident">boolean</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">boolean_object</span>().<span class="ident">prototype</span>();
+                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">boolean</span>().<span class="ident">prototype</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
                     <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::boolean</span>(<span class="kw-2">*</span><span class="ident">boolean</span>),
                 ))
             }
             <span class="ident">JsValue::Integer</span>(<span class="ident">integer</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">number_object</span>().<span class="ident">prototype</span>();
+                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">number</span>().<span class="ident">prototype</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
                     <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::number</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">integer</span>)),
                 ))
             }
             <span class="ident">JsValue::Rational</span>(<span class="ident">rational</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">number_object</span>().<span class="ident">prototype</span>();
+                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">number</span>().<span class="ident">prototype</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
                     <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::number</span>(<span class="kw-2">*</span><span class="ident">rational</span>),
                 ))
             }
             <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">string_object</span>().<span class="ident">prototype</span>();
+                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">string</span>().<span class="ident">prototype</span>();
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span>
                     <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::string</span>(<span class="ident">string</span>.<span class="ident">clone</span>()));
@@ -1573,14 +1577,18 @@
                 <span class="prelude-val">Ok</span>(<span class="ident">object</span>)
             }
             <span class="ident">JsValue::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">symbol_object</span>().<span class="ident">prototype</span>();
+                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">symbol</span>().<span class="ident">prototype</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
                     <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::symbol</span>(<span class="ident">symbol</span>.<span class="ident">clone</span>()),
                 ))
             }
             <span class="ident">JsValue::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">bigint_object</span>().<span class="ident">prototype</span>();
+                <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>
+                    .<span class="ident">intrinsics</span>()
+                    .<span class="ident">constructors</span>()
+                    .<span class="ident">bigint_object</span>()
+                    .<span class="ident">prototype</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
                     <span class="ident">prototype</span>,
                     <span class="ident">ObjectData::big_int</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>()),

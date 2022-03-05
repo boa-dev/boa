@@ -889,9 +889,6 @@
 <span id="887">887</span>
 <span id="888">888</span>
 <span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Math` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `Math` is a built-in object that has properties and methods for mathematical constants and functions. It’s not a function object.</span>
@@ -911,6 +908,7 @@
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -922,16 +920,12 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Math</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Math&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::PERMANENT</span>;
         <span class="kw">let</span> <span class="ident">string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
+        <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
             .<span class="ident">property</span>(<span class="string">&quot;E&quot;</span>, <span class="ident">std::f64::consts::E</span>, <span class="ident">attribute</span>)
             .<span class="ident">property</span>(<span class="string">&quot;LN10&quot;</span>, <span class="ident">std::f64::consts::LN_10</span>, <span class="ident">attribute</span>)
             .<span class="ident">property</span>(<span class="string">&quot;LN2&quot;</span>, <span class="ident">std::f64::consts::LN_2</span>, <span class="ident">attribute</span>)
@@ -980,9 +974,9 @@
                 <span class="ident"><span class="self">Self</span>::NAME</span>,
                 <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
             )
-            .<span class="ident">build</span>();
-
-        <span class="ident">object</span>.<span class="ident">into</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+            .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 

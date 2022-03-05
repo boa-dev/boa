@@ -985,6 +985,7 @@
 <span id="983">983</span>
 <span id="984">984</span>
 <span id="985">985</span>
+<span id="986">986</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -997,7 +998,7 @@
         },
         <span class="ident">generator</span>::{<span class="ident">Generator</span>, <span class="ident">GeneratorContext</span>, <span class="ident">GeneratorState</span>},
     },
-    <span class="ident">context::StandardObjects</span>,
+    <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">DeclarativeEnvironmentStack</span>},
     <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
@@ -1390,7 +1391,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_function_object</span>(<span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;JsVmFunction::new&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">function_object</span>().<span class="ident">prototype</span>();
+    <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">function</span>().<span class="ident">prototype</span>();
 
     <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
@@ -1453,8 +1454,9 @@
     <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) -&gt; <span class="ident">JsObject</span> {
     <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="ident">context</span>
-        .<span class="ident">standard_objects</span>()
-        .<span class="ident">generator_function_object</span>()
+        .<span class="ident">intrinsics</span>()
+        .<span class="ident">constructors</span>()
+        .<span class="ident">generator_function</span>()
         .<span class="ident">prototype</span>();
 
     <span class="kw">let</span> <span class="ident">name_property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
@@ -1472,7 +1474,7 @@
         .<span class="ident">build</span>();
 
     <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-        <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">generator_object</span>().<span class="ident">prototype</span>(),
+        <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">generator</span>().<span class="ident">prototype</span>(),
         <span class="ident">ObjectData::ordinary</span>(),
     );
 
@@ -1777,7 +1779,7 @@
                 {
                     <span class="ident">prototype</span>.<span class="ident">clone</span>()
                 } <span class="kw">else</span> {
-                    <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">generator_object</span>().<span class="ident">prototype</span>()
+                    <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">generator</span>().<span class="ident">prototype</span>()
                 };
 
                 <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::from_proto_and_data</span>(
@@ -1854,7 +1856,7 @@
                     <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-getprototypefromconstructor&gt;</span>
                     <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(
                         <span class="ident">this_target</span>,
-                        <span class="ident">StandardObjects::object_object</span>,
+                        <span class="ident">StandardConstructors::object</span>,
                         <span class="ident">context</span>,
                     )<span class="question-mark">?</span>;
                     <span class="ident"><span class="self">Self</span>::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::ordinary</span>()).<span class="ident">into</span>()

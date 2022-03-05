@@ -123,10 +123,6 @@
 <span id="121">121</span>
 <span id="122">122</span>
 <span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
-<span id="127">127</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Boolean` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Boolean` object is an object wrapper for a boolean value.</span>
@@ -143,14 +139,14 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
-    <span class="ident">context::StandardObjects</span>,
+    <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
-    <span class="ident">property::Attribute</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 
 <span class="doccomment">/// Boolean implementation.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
@@ -160,25 +156,21 @@
     <span class="doccomment">/// The name of the object.</span>
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;Boolean&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">boolean_object</span> <span class="op">=</span> <span class="ident">ConstructorBuilder::with_standard_object</span>(
+        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
             <span class="ident">context</span>,
             <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">context</span>.<span class="ident">standard_objects</span>().<span class="ident">boolean_object</span>().<span class="ident">clone</span>(),
+            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">boolean</span>().<span class="ident">clone</span>(),
         )
         .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
         .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::value_of</span>, <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-        .<span class="ident">build</span>();
-
-        <span class="ident">boolean_object</span>.<span class="ident">into</span>()
+        .<span class="ident">build</span>()
+        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 
@@ -200,7 +192,7 @@
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">data</span>));
         }
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardObjects::boolean_object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::boolean</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">boolean</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::boolean</span>(<span class="ident">data</span>));
 
         <span class="prelude-val">Ok</span>(<span class="ident">boolean</span>.<span class="ident">into</span>())

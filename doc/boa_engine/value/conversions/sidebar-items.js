@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TryFromCharError",""]]});
+initSidebarItems({"struct":[["TryFromCharError",""]],"trait":[["IntoOrUndefined",""]]});

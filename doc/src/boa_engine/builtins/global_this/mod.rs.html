@@ -30,10 +30,6 @@
 <span id="28">28</span>
 <span id="29">29</span>
 <span id="30">30</span>
-<span id="31">31</span>
-<span id="32">32</span>
-<span id="33">33</span>
-<span id="34">34</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `globalThis` property.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The global globalThis property contains the global this value,</span>
@@ -46,7 +42,7 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-globalthis</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/globalThis</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::BuiltIn</span>, <span class="ident">property::Attribute</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::BuiltIn</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -58,14 +54,10 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">GlobalThis</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;globalThis&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>()
+        <span class="prelude-val">Some</span>(<span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>())
     }
 }
 </code></pre></div>

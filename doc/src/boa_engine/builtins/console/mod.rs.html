@@ -579,10 +579,6 @@
 <span id="577">577</span>
 <span id="578">578</span>
 <span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `console` object can be accessed from any global object.</span>
@@ -604,13 +600,13 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">object::ObjectInitializer</span>,
-    <span class="ident">property::Attribute</span>,
     <span class="ident">value</span>::{<span class="ident">display::display_obj</span>, <span class="ident">JsValue</span>, <span class="ident">Numeric</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std::time::SystemTime</span>;
+<span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 
 <span class="doccomment">/// This represents the different types of log messages.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -718,13 +714,9 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Console</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::WRITABLE</span>
-        .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::CONFIGURABLE</span>);
-
-    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
-        <span class="kw">let</span> <span class="ident">console</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
+        <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::assert</span>, <span class="string">&quot;assert&quot;</span>, <span class="number">0</span>)
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::clear</span>, <span class="string">&quot;clear&quot;</span>, <span class="number">0</span>)
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::debug</span>, <span class="string">&quot;debug&quot;</span>, <span class="number">0</span>)
@@ -744,9 +736,9 @@
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::time_end</span>, <span class="string">&quot;timeEnd&quot;</span>, <span class="number">0</span>)
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::dir</span>, <span class="string">&quot;dir&quot;</span>, <span class="number">0</span>)
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::dir</span>, <span class="string">&quot;dirxml&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">build</span>();
-
-        <span class="ident">console</span>.<span class="ident">into</span>()
+            .<span class="ident">build</span>()
+            .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+            .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 
