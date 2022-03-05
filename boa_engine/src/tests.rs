@@ -487,14 +487,12 @@ fn unary_pre() {
 
 #[test]
 fn invalid_unary_access() {
-    let mut context = Context::default();
-    let test_cases = ["++[];", "[]++;", "--[];", "[]--;"];
-
-    for case in &test_cases {
-        let string = forward(&mut context, case);
-
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
-    }
+    check_output(&[
+        TestAction::TestStartsWith("++[];", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("[]++;", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("--[];", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("[]--;", "Uncaught \"SyntaxError\": "),
+    ]);
 }
 
 #[test]
@@ -702,6 +700,7 @@ fn unary_delete() {
 mod in_operator {
     use super::*;
     use crate::forward_val;
+
     #[test]
     fn propery_in_object() {
         let p_in_o = r#"
