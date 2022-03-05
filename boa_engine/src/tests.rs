@@ -491,7 +491,7 @@ fn invalid_unary_access() {
     let test_cases = ["++[];", "[]++;", "--[];", "[]--;"];
 
     for case in &test_cases {
-        let string = dbg!(forward(&mut context, case));
+        let string = forward(&mut context, case);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
     }
@@ -1384,7 +1384,7 @@ fn multicharacter_assignment_to_non_assignable_ctd() {
     let test_cases = ["(()=>{})() **= 5", "(()=>{})() <<= 5", "(()=>{})() >>= 5"];
 
     for case in &test_cases {
-        let string = dbg!(forward(&mut context, case));
+        let string = forward(&mut context, case);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
     }
@@ -1418,7 +1418,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
     ];
 
     for case in &test_cases {
-        let string = dbg!(forward(&mut context, case));
+        let string = forward(&mut context, case);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
     }
