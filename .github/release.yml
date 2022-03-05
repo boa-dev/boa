@@ -13,4 +13,4 @@ changelog:
         - bug
     - title: Internal Improvements
       labels:
-        - internal
+        - Internal

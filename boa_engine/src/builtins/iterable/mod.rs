@@ -12,17 +12,26 @@ use boa_profiler::Profiler;
 
 #[derive(Debug, Default)]
 pub struct IteratorPrototypes {
+    /// %IteratorPrototype%
     iterator_prototype: JsObject,
+    /// %MapIteratorPrototype%
     array_iterator: JsObject,
+    /// %SetIteratorPrototype%
     set_iterator: JsObject,
+    /// %StringIteratorPrototype%
     string_iterator: JsObject,
+    /// %RegExpStringIteratorPrototype%
     regexp_string_iterator: JsObject,
+    /// %MapIteratorPrototype%
     map_iterator: JsObject,
+    /// %ForInIteratorPrototype%
     for_in_iterator: JsObject,
 }
 
 impl IteratorPrototypes {
     pub(crate) fn init(context: &mut Context) -> Self {
+        let _timer = Profiler::global().start_event("IteratorPrototypes::init", "init");
+
         let iterator_prototype = create_iterator_prototype(context);
         Self {
             array_iterator: ArrayIterator::create_prototype(iterator_prototype.clone(), context),
@@ -77,7 +86,10 @@ impl IteratorPrototypes {
 /// `CreateIterResultObject( value, done )`
 ///
 /// Generates an object supporting the `IteratorResult` interface.
+#[inline]
 pub fn create_iter_result_object(value: JsValue, done: bool, context: &mut Context) -> JsValue {
+    let _timer = Profiler::global().start_event("create_iter_result_object", "init");
+
     // 1. Assert: Type(done) is Boolean.
     // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
     let obj = context.construct_object();
@@ -106,6 +118,7 @@ impl JsValue {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-getiterator
+    #[inline]
     pub fn get_iterator(
         &self,
         context: &mut Context,
@@ -168,6 +181,7 @@ impl JsValue {
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-%iteratorprototype%-object
+#[inline]
 fn create_iterator_prototype(context: &mut Context) -> JsObject {
     let _timer = Profiler::global().start_event("Iterator Prototype", "init");
 
@@ -183,12 +197,57 @@ fn create_iterator_prototype(context: &mut Context) -> JsObject {
 }
 
 #[derive(Debug)]
+pub struct IteratorResult {
+    object: JsObject,
+}
+
+impl IteratorResult {
+    /// Get `done` property of iterator result object.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorclose
+    #[inline]
+    pub fn complete(&self, context: &mut Context) -> JsResult<bool> {
+        // 1. Return ToBoolean(? Get(iterResult, "done")).
+        Ok(self.object.get("done", context)?.to_boolean())
+    }
+
+    /// Get `value` property of iterator result object.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorvalue
+    #[inline]
+    pub fn value(&self, context: &mut Context) -> JsResult<JsValue> {
+        // 1. Return ? Get(iterResult, "value").
+        self.object.get("value", context)
+    }
+}
+/// An Iterator Record is a Record value used to encapsulate an
+/// `Iterator` or `AsyncIterator` along with the next method.
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]:https://tc39.es/ecma262/#table-iterator-record-fields
+#[derive(Debug)]
 pub struct IteratorRecord {
+    /// `[[Iterator]]`
+    ///
+    /// An object that conforms to the Iterator or AsyncIterator interface.
     iterator_object: JsValue,
+
+    /// `[[NextMethod]]`
+    ///
+    /// The next method of the `[[Iterator]]` object.
     next_function: JsValue,
 }
 
 impl IteratorRecord {
+    #[inline]
     pub fn new(iterator_object: JsValue, next_function: JsValue) -> Self {
         Self {
             iterator_object,
@@ -196,10 +255,12 @@ impl IteratorRecord {
         }
     }
 
+    #[inline]
     pub(crate) fn iterator_object(&self) -> &JsValue {
         &self.iterator_object
     }
 
+    #[inline]
     pub(crate) fn next_function(&self) -> &JsValue {
         &self.next_function
     }
@@ -210,12 +271,50 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-iteratornext
-    pub(crate) fn next(&self, context: &mut Context) -> JsResult<IteratorResult> {
-        let next = context.call(&self.next_function, &self.iterator_object, &[])?;
-        let done = next.get_field("done", context)?.to_boolean();
+    #[inline]
+    pub(crate) fn next(
+        &self,
+        value: Option<JsValue>,
+        context: &mut Context,
+    ) -> JsResult<IteratorResult> {
+        let _timer = Profiler::global().start_event("IteratorRecord::next", "iterator");
 
-        let value = next.get_field("value", context)?;
-        Ok(IteratorResult { value, done })
+        // 1. If value is not present, then
+        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
+        // 2. Else,
+        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
+        let result = if let Some(value) = value {
+            context.call(&self.next_function, &self.iterator_object, &[value])?
+        } else {
+            context.call(&self.next_function, &self.iterator_object, &[])?
+        };
+
+        // 3. If Type(result) is not Object, throw a TypeError exception.
+        // 4. Return result.
+        if let Some(o) = result.as_object() {
+            Ok(IteratorResult { object: o.clone() })
+        } else {
+            context.throw_type_error("next value should be an object")
+        }
+    }
+
+    #[inline]
+    pub(crate) fn step(&self, context: &mut Context) -> JsResult<Option<IteratorResult>> {
+        let _timer = Profiler::global().start_event("IteratorRecord::step", "iterator");
+
+        // 1. Let result be ? IteratorNext(iteratorRecord).
+        let result = self.next(None, context)?;
+
+        // 2. Let done be ? IteratorComplete(result).
+        let done = result.complete(context)?;
+
+        // 3. If done is true, return false.
+        if done {
+            return Ok(None);
+        }
+
+        // 4. Return result.
+        Ok(Some(result))
     }
 
     /// Cleanup the iterator
@@ -224,16 +323,18 @@ impl IteratorRecord {
     ///  - [ECMA reference][spec]
     ///
     ///  [spec]: https://tc39.es/ecma262/#sec-iteratorclose
+    #[inline]
     pub(crate) fn close(
         &self,
         completion: JsResult<JsValue>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        let _timer = Profiler::global().start_event("IteratorRecord::close", "iterator");
+
         // 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
         // 2. Let iterator be iteratorRecord.[[Iterator]].
         // 3. Let innerResult be GetMethod(iterator, "return").
         let inner_result = self.iterator_object.get_method("return", context);
-        //let mut inner_result = self.iterator_object.get_field("return", context);
 
         // 4. If innerResult.[[Type]] is normal, then
         if let Ok(inner_value) = inner_result {
@@ -281,6 +382,8 @@ pub(crate) fn iterable_to_list(
     items: &JsValue,
     method: Option<JsValue>,
 ) -> JsResult<Vec<JsValue>> {
+    let _timer = Profiler::global().start_event("iterable_to_list", "iterator");
+
     // 1. If method is present, then
     let iterator_record = if let Some(method) = method {
         // a. Let iteratorRecord be ? GetIterator(items, sync, method).
@@ -300,21 +403,11 @@ pub(crate) fn iterable_to_list(
     //     b. If next is not false, then
     //         i. Let nextValue be ? IteratorValue(next).
     //         ii. Append nextValue to the end of the List values.
-    loop {
-        let next = iterator_record.next(context)?;
-        if next.done {
-            break;
-        }
-
-        values.push(next.value);
+    while let Some(next) = iterator_record.step(context)? {
+        let next_value = next.value(context)?;
+        values.push(next_value);
     }
 
     // 6. Return values.
     Ok(values)
-}
-
-#[derive(Debug)]
-pub struct IteratorResult {
-    pub value: JsValue,
-    pub done: bool,
 }

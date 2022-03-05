@@ -15,39 +15,54 @@ mod tests;
 
 use super::JsArgs;
 use crate::{
-    builtins::{string::string_iterator::StringIterator, Array, BuiltIn, Number, RegExp, Symbol},
-    context::StandardObjects,
+    builtins::{string::string_iterator::StringIterator, Array, BuiltIn, Number, RegExp},
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
+    value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
-use std::{char::from_u32, cmp::max, string::String as StdString};
+use std::{
+    char::from_u32,
+    cmp::{max, min},
+    string::String as StdString,
+};
+use tap::{Conv, Pipe};
 use unicode_normalization::UnicodeNormalization;
 
-pub(crate) fn code_point_at(string: &JsString, position: i64) -> Option<(u32, u8, bool)> {
-    let size = string.encode_utf16().count();
-    if position < 0 || position >= size as i64 {
-        return None;
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub(crate) enum Placement {
+    Start,
+    End,
+}
+
+pub(crate) fn code_point_at(string: &JsString, position: usize) -> (u32, u8, bool) {
+    let mut encoded = string.encode_utf16();
+    let size = encoded.clone().count();
+
+    let first = encoded
+        .nth(position)
+        .expect("The callers of this function must've already checked bounds.");
+    if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
+        return (u32::from(first), 1, false);
     }
 
-    let mut encoded = string.encode_utf16();
-    let first = encoded.nth(position as usize)?;
-    if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
-        return Some((u32::from(first), 1, false));
+    if is_trailing_surrogate(first) || position + 1 == size {
+        return (u32::from(first), 1, true);
     }
-    if is_trailing_surrogate(first) || position + 1 == size as i64 {
-        return Some((u32::from(first), 1, true));
-    }
-    let second = encoded.next()?;
+
+    let second = encoded
+        .next()
+        .expect("The callers of this function must've already checked bounds.");
     if !is_trailing_surrogate(second) {
-        return Some((u32::from(first), 1, true));
+        return (u32::from(first), 1, true);
     }
     let cp = (u32::from(first) - 0xD800) * 0x400 + (u32::from(second) - 0xDC00) + 0x10000;
-    Some((cp, 2, false))
+    (cp, 2, false)
 }
 
 /// Helper function to check if a `char` is trimmable.
@@ -86,20 +101,16 @@ pub(crate) struct String;
 impl BuiltIn for String {
     const NAME: &'static str = "String";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
 
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::PERMANENT;
-        let string_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().string_object().clone(),
+            context.intrinsics().constructors().string().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -138,9 +149,9 @@ impl BuiltIn for String {
         .method(Self::iterator, (symbol_iterator, "[Symbol.iterator]"), 0)
         .method(Self::search, "search", 1)
         .method(Self::at, "at", 1)
-        .build();
-
-        string_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -153,7 +164,7 @@ impl String {
     ///
     /// The resulting string can also not be larger than the maximum string size,
     /// which can differ in JavaScript engines. In Boa it is `2^32 - 1`
-    pub(crate) const MAX_STRING_LENGTH: f64 = u32::MAX as f64;
+    pub(crate) const MAX_STRING_LENGTH: usize = u32::MAX as usize;
 
     /// `String( value )`
     ///
@@ -166,22 +177,24 @@ impl String {
         // This value is used by console.log and other routines to match Object type
         // to its Javascript Identifier (global constructor method name)
         let string = match args.get(0) {
-            Some(value) if value.is_symbol() && new_target.is_undefined() => {
-                Symbol::to_string(value, &[], context)?
-                    .as_string()
-                    .expect("'Symbol::to_string' returns 'Value::String'")
-                    .clone()
+            // 2. Else,
+            // a. If NewTarget is undefined and Type(value) is Symbol, return SymbolDescriptiveString(value).
+            Some(JsValue::Symbol(ref sym)) if new_target.is_undefined() => {
+                return Ok(sym.descriptive_string().into())
             }
+            // b. Let s be ? ToString(value).
             Some(value) => value.to_string(context)?,
+            // 1. If value is not present, let s be the empty String.
             None => JsString::default(),
         };
 
+        // 3. If NewTarget is undefined, return s.
         if new_target.is_undefined() {
             return Ok(string.into());
         }
 
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::string_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::string, context)?;
         Ok(Self::string_create(string, prototype, context).into())
     }
 
@@ -222,10 +235,22 @@ impl String {
         s
     }
 
+    /// Abstract operation `thisStringValue( value )`
+    ///
+    /// More informacion:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#thisstringvalue
     fn this_string_value(this: &JsValue, context: &mut Context) -> JsResult<JsString> {
+        // 1. If Type(value) is String, return value.
         this.as_string()
             .cloned()
+            // 2. If Type(value) is Object and value has a [[StringData]] internal slot, then
+            //     a. Let s be value.[[StringData]].
+            //     b. Assert: Type(s) is String.
+            //     c. Return s.
             .or_else(|| this.as_object().and_then(|obj| obj.borrow().as_string()))
+            // 3. Throw a TypeError exception.
             .ok_or_else(|| context.construct_type_error("'this' is not a string"))
     }
 
@@ -363,7 +388,7 @@ impl String {
         for next in args {
             // 3a. Let nextCU be ℝ(? ToUint16(next)).
             // 3b. Append nextCU to the end of elements.
-            elements.push(next.to_u32(context)? as u16);
+            elements.push(next.to_uint16(context)?);
         }
 
         // 4. Return the String value whose code units are the elements in the List elements.
@@ -373,7 +398,12 @@ impl String {
         Ok(JsValue::String(JsString::new(s)))
     }
 
-    /// Get the string value to a primitive string
+    /// `String.prototype.toString ( )`
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tostring
     #[allow(clippy::wrong_self_convention)]
     #[inline]
     pub(crate) fn to_string(
@@ -381,8 +411,8 @@ impl String {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // Get String from String Object and send it back as a new value
-        Ok(JsValue::new(Self::this_string_value(this, context)?))
+        // 1. Return ? thisStringValue(this value).
+        Ok(Self::this_string_value(this, context)?.into())
     }
 
     /// `String.prototype.charAt( index )`
@@ -406,29 +436,32 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
-        let position = args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?;
 
-        // Fast path returning empty string when pos is obviously out of range
-        if position < 0.0 {
-            return Ok("".into());
-        }
+        // 4. Let size be the length of S.
+        let size = string.encode_utf16().count() as i64;
 
-        // Calling .len() on a string would give the wrong result, as they are bytes not the number of
-        // unicode code points
-        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of
-        // bytes is an O(1) operation.
-        if let Some(utf16_val) = string.encode_utf16().nth(position as usize) {
-            Ok(char::try_from(u32::from(utf16_val))
-                .unwrap_or('\u{FFFD}' /* replacement char */)
-                .into())
-        } else {
-            Ok("".into())
+        // 3. Let position be ? ToIntegerOrInfinity(pos).
+        match args.get_or_undefined(0).to_integer_or_infinity(context)? {
+            IntegerOrInfinity::Integer(position) if (0..size).contains(&position) => {
+                // 6. Return the substring of S from position to position + 1.
+                let char = string
+                    .encode_utf16()
+                    .nth(position as usize)
+                    .expect("Already checked bounds above");
+
+                Ok(char::try_from(u32::from(char))
+                    .unwrap_or('\u{FFFD}' /* replacement char */)
+                    .into())
+            }
+            _ => {
+                // 5. If position < 0 or position ≥ size, return the empty String.
+                Ok("".into())
+            }
         }
     }
 
@@ -444,20 +477,29 @@ impl String {
     /// [spec]: https://tc39.es/proposal-relative-indexing-method/#sec-string.prototype.at
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at
     pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let s = this.to_string(context)?;
-        let len = s.encode_utf16().count();
-        let relative_index = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_integer(context)?;
-        let k = if relative_index < 0_f64 {
-            len - (-relative_index as usize)
-        } else {
-            relative_index as usize
+
+        // 3. Let len be the length of S.
+        let len = s.encode_utf16().count() as i64;
+
+        // 4. Let relativeIndex be ? ToIntegerOrInfinity(index).
+        let relative_index = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+        let k = match relative_index {
+            // 5. If relativeIndex ≥ 0, then
+            // a. Let k be relativeIndex.
+            IntegerOrInfinity::Integer(i) if i >= 0 && i < len => i as usize,
+            // 6. Else,
+            // a. Let k be len + relativeIndex.
+            IntegerOrInfinity::Integer(i) if i < 0 && (-i) <= len => (len + i) as usize,
+            // 7. If k < 0 or k ≥ len, return undefined.
+            _ => return Ok(JsValue::undefined()),
         };
 
+        // 8. Return the substring of S from k to k + 1.
         if let Some(utf16_val) = s.encode_utf16().nth(k) {
             Ok(JsValue::new(
                 from_u32(u32::from(utf16_val)).expect("invalid utf-16 character"),
@@ -486,25 +528,26 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
-        let position = args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?;
 
-        // Fast path returning undefined when pos is obviously out of range
-        if position < 0.0 {
-            return Ok(JsValue::undefined());
-        }
+        // 3. Let position be ? ToIntegerOrInfinity(pos).
+        let position = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
-        if let Some((code_point, _, _)) = code_point_at(&string, position as i64) {
-            Ok(JsValue::new(code_point))
-        } else {
-            Ok(JsValue::undefined())
+        // 4. Let size be the length of S.
+        let size = string.encode_utf16().count() as i64;
+
+        match position {
+            IntegerOrInfinity::Integer(position) if (0..size).contains(&position) => {
+                // 6. Let cp be ! CodePointAt(S, position).
+                // 7. Return 𝔽(cp.[[CodePoint]]).
+                Ok(code_point_at(&string, position as usize).0.into())
+            }
+            // 5. If position < 0 or position ≥ size, return undefined.
+            _ => Ok(JsValue::undefined()),
         }
     }
 
@@ -527,28 +570,31 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // First we get it the actual string a private field stored on the object only the context has access to.
-        // Then we convert it into a Rust String by wrapping it in from_value
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
-        let position = args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?;
 
-        // Fast path returning NaN when pos is obviously out of range
-        if position < 0.0 || position >= string.len() as f64 {
-            return Ok(JsValue::nan());
-        }
+        // 3. Let position be ? ToIntegerOrInfinity(pos).
+        let position = args.get_or_undefined(0).to_integer_or_infinity(context)?;
 
-        // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
-        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
-        // If there is no element at that index, the result is NaN
-        if let Some(utf16_val) = string.encode_utf16().nth(position as usize) {
-            Ok(JsValue::new(f64::from(utf16_val)))
-        } else {
-            Ok(JsValue::nan())
+        // 4. Let size be the length of S.
+        let size = string.encode_utf16().count() as i64;
+
+        match position {
+            IntegerOrInfinity::Integer(position) if (0..size).contains(&position) => {
+                // 6. Return the Number value for the numeric value of the code unit at index position within the String S.
+                let char_code = u32::from(
+                    string
+                        .encode_utf16()
+                        .nth(position as usize)
+                        .expect("Already checked bounds above."),
+                );
+                Ok(char_code.into())
+            }
+            // 5. If position < 0 or position ≥ size, return NaN.
+            _ => Ok(JsValue::nan()),
         }
     }
 
@@ -571,13 +617,21 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let mut string = this.to_string(context)?.to_string();
 
+        // 3. Let R be S.
+        // 4. For each element next of args, do
         for arg in args {
+            // a. Let nextString be ? ToString(next).
+            // b. Set R to the string-concatenation of R and nextString.
             string.push_str(&arg.to_string(context)?);
         }
 
+        // 5. Return R.
         Ok(JsValue::new(string))
     }
 
@@ -597,26 +651,39 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
-        if let Some(arg) = args.get(0) {
-            let n = arg.to_integer(context)?;
-            if n < 0.0 {
-                return context.throw_range_error("repeat count cannot be a negative number");
-            }
+        let len = string.encode_utf16().count();
 
-            if n.is_infinite() {
-                return context.throw_range_error("repeat count cannot be infinity");
-            }
+        // 3. Let n be ? ToIntegerOrInfinity(count).
+        match args.get_or_undefined(0).to_integer_or_infinity(context)? {
+            IntegerOrInfinity::Integer(n)
+                if n > 0 && (n as usize) * len <= Self::MAX_STRING_LENGTH =>
+            {
+                if string.is_empty() {
+                    return Ok("".into());
+                }
+                let n = n as usize;
+                let mut result = std::string::String::with_capacity(n * len);
 
-            if n * (string.len() as f64) > Self::MAX_STRING_LENGTH {
-                return context
-                    .throw_range_error("repeat count must not overflow maximum string length");
+                std::iter::repeat(&string[..])
+                    .take(n)
+                    .for_each(|s| result.push_str(s));
+
+                // 6. Return the String value that is made from n copies of S appended together.
+                Ok(result.into())
             }
-            Ok(string.repeat(n as usize).into())
-        } else {
-            Ok("".into())
+            // 5. If n is 0, return the empty String.
+            IntegerOrInfinity::Integer(n) if n == 0 => Ok("".into()),
+            // 4. If n < 0 or n is +∞, throw a RangeError exception.
+            _ => context.throw_range_error(
+                "repeat count must be a positive finite number \
+                        that doesn't overflow the maximum string length (2^32 - 1)",
+            ),
         }
     }
 
@@ -635,38 +702,52 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
-        // Calling .len() on a string would give the wrong result, as they are bytes not the number of unicode code points
-        // Note that this is an O(N) operation (because UTF-8 is complex) while getting the number of bytes is an O(1) operation.
-        let len = string.encode_utf16().count();
-        let from = match args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?
-        {
-            int_start if int_start.is_infinite() && int_start.is_sign_negative() => 0.0,
-            int_start if int_start < 0.0 => (len as f64 + int_start).max(0.0),
-            int_start => int_start.min(len as f64),
+        // 3. Let len be the length of S.
+        let len = string.encode_utf16().count() as i64;
+
+        // 4. Let intStart be ? ToIntegerOrInfinity(start).
+        let from = match args.get_or_undefined(0).to_integer_or_infinity(context)? {
+            // 6. Else if intStart < 0, let from be max(len + intStart, 0).
+            IntegerOrInfinity::Integer(i) if i < 0 => max(len + i, 0),
+
+            // 7. Else, let from be min(intStart, len).
+            IntegerOrInfinity::Integer(i) => min(i, len),
+            IntegerOrInfinity::PositiveInfinity => len,
+
+            // 5. If intStart is -∞, let from be 0.
+            IntegerOrInfinity::NegativeInfinity => 0,
         } as usize;
 
+        // 8. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
         let to = match args
             .get(1)
             .filter(|end| !end.is_undefined())
-            .map(|end| end.to_integer(context))
+            .map(|end| end.to_integer_or_infinity(context))
             .transpose()?
-            .unwrap_or(len as f64)
+            .unwrap_or(IntegerOrInfinity::Integer(len))
         {
-            int_end if int_end.is_infinite() && int_end.is_sign_negative() => 0.0,
-            int_end if int_end < 0.0 => (len as f64 + int_end).max(0.0),
-            int_end => int_end.min(len as f64),
+            // 10. Else if intEnd < 0, let to be max(len + intEnd, 0).
+            IntegerOrInfinity::Integer(i) if i < 0 => max(len + i, 0),
+
+            // 11. Else, let to be min(intEnd, len).
+            IntegerOrInfinity::Integer(i) => min(i, len),
+            IntegerOrInfinity::PositiveInfinity => len,
+
+            // 9. If intEnd is -∞, let to be 0.
+            IntegerOrInfinity::NegativeInfinity => 0,
         } as usize;
 
+        // 12. If from ≥ to, return the empty String.
         if from >= to {
             Ok("".into())
         } else {
+            // 13. Return the substring of S from from to to.
             let span = to - from;
             let substring_utf16: Vec<u16> = string.encode_utf16().skip(from).take(span).collect();
             let substring_lossy = StdString::from_utf16_lossy(&substring_utf16);
@@ -689,39 +770,58 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
-        let search_string = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
+        let search_string = args.get_or_undefined(0);
 
-        if Self::is_regexp_object(&search_string) {
+        // 3. Let isRegExp be ? IsRegExp(searchString).
+        // 4. If isRegExp is true, throw a TypeError exception.
+        if is_reg_exp(search_string, context)? {
             context.throw_type_error(
                 "First argument to String.prototype.startsWith must not be a regular expression",
             )?;
         }
 
-        let search_str = search_string.to_string(context)?;
+        // 5. Let searchStr be ? ToString(searchString).
+        let search_string = search_string.to_string(context)?;
 
-        let len = string.encode_utf16().count();
-        let search_length = search_str.encode_utf16().count();
+        // 6. Let len be the length of S.
+        let len = string.encode_utf16().count() as i64;
 
-        // If less than 2 args specified, position is 'undefined', defaults to 0
-        let pos = match args.get(1).cloned().unwrap_or_else(JsValue::undefined) {
-            position if position.is_undefined() => 0.0,
-            position => position.to_integer(context)?,
+        // 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).
+        let pos = match args.get_or_undefined(1) {
+            &JsValue::Undefined => IntegerOrInfinity::Integer(0),
+            position => position.to_integer_or_infinity(context)?,
         };
 
-        let start = pos.min(len as f64).max(0.0);
-        let end = start + search_length as f64;
+        // 8. Let start be the result of clamping pos between 0 and len.
+        let start = pos.clamp_finite(0, len) as usize;
 
-        if end > len as f64 {
+        // 9. Let searchLength be the length of searchStr.
+        let search_length = search_string.encode_utf16().count();
+
+        // 10. If searchLength = 0, return true.
+        if search_length == 0 {
+            return Ok(JsValue::new(true));
+        }
+
+        // 11. Let end be start + searchLength.
+        let end = start + search_length;
+
+        // 12. If end > len, return false.
+        if end > len as usize {
             Ok(JsValue::new(false))
         } else {
-            let substring_utf16 = string
-                .encode_utf16()
-                .skip(start as usize)
-                .take(search_length);
-            let search_str_utf16 = search_str.encode_utf16();
+            // 13. Let substring be the substring of S from start to end.
+            // 14. Return ! SameValueNonNumeric(substring, searchStr).
+            // `SameValueNonNumeric` forwards to `==`, so directly check
+            // equality to avoid converting to `JsValue`
+            let substring_utf16 = string.encode_utf16().skip(start).take(search_length);
+            let search_str_utf16 = search_string.encode_utf16();
             Ok(JsValue::new(substring_utf16.eq(search_str_utf16)))
         }
     }
@@ -741,44 +841,58 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
-        let search_str = match args.get(0).cloned().unwrap_or_else(JsValue::undefined) {
-            search_string if Self::is_regexp_object(&search_string) => {
+        let search_str = match args.get_or_undefined(0) {
+            // 3. Let isRegExp be ? IsRegExp(searchString).
+            // 4. If isRegExp is true, throw a TypeError exception.
+            search_string if is_reg_exp(search_string, context)? => {
                 return context.throw_type_error(
                     "First argument to String.prototype.endsWith must not be a regular expression",
                 );
             }
+            // 5. Let searchStr be ? ToString(searchString).
             search_string => search_string.to_string(context)?,
         };
 
-        let len = string.encode_utf16().count();
+        // 6. Let len be the length of S.
+        let len = string.encode_utf16().count() as i64;
 
-        let pos = match args.get(1).cloned().unwrap_or_else(JsValue::undefined) {
-            end_position if end_position.is_undefined() => len as f64,
-            end_position => end_position.to_integer(context)?,
+        // 7. If endPosition is undefined, let pos be len; else let pos be ? ToIntegerOrInfinity(endPosition).
+        let end = match args.get_or_undefined(1) {
+            end_position if end_position.is_undefined() => IntegerOrInfinity::Integer(len),
+            end_position => end_position.to_integer_or_infinity(context)?,
         };
 
-        let end = pos.max(0.0).min(len as f64) as usize;
+        // 8. Let end be the result of clamping pos between 0 and len.
+        let end = end.clamp_finite(0, len) as usize;
 
-        // If less than 2 args specified, end_position is 'undefined', defaults to
-        // length of this
-        if search_str.is_empty() {
-            return Ok(JsValue::new(true));
-        }
-
+        // 9. Let searchLength be the length of searchStr.
         let search_length = search_str.encode_utf16().count();
 
-        if end < search_length {
-            Ok(JsValue::new(false))
-        } else {
-            let start = end - search_length;
+        // 10. If searchLength = 0, return true.
+        if search_length == 0 {
+            return Ok(true.into());
+        }
+
+        // 11. Let start be end - searchLength.
+        if let Some(start) = end.checked_sub(search_length) {
+            // 13. Let substring be the substring of S from start to end.
+            // 14. Return ! SameValueNonNumeric(substring, searchStr).
+            // `SameValueNonNumeric` forwards to `==`, so directly check
+            // equality to avoid converting to `JsValue`
 
             let substring_utf16 = string.encode_utf16().skip(start).take(search_length);
             let search_str_utf16 = search_str.encode_utf16();
 
             Ok(JsValue::new(substring_utf16.eq(search_str_utf16)))
+        } else {
+            // 12. If start < 0, return false.
+            Ok(false.into())
         }
     }
 
@@ -797,39 +911,36 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
-        let search_str = match args.get(0).cloned().unwrap_or_else(JsValue::undefined) {
-            search_string if Self::is_regexp_object(&search_string) => {
+        let search_str = match args.get_or_undefined(0) {
+            // 3. Let isRegExp be ? IsRegExp(searchString).
+            search_string if is_reg_exp(search_string, context)? => {
                 return context.throw_type_error(
+                    // 4. If isRegExp is true, throw a TypeError exception.
                     "First argument to String.prototype.includes must not be a regular expression",
                 );
             }
+            // 5. Let searchStr be ? ToString(searchString).
             search_string => search_string.to_string(context)?,
         };
 
-        let pos = args
-            .get(1)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?;
-        let start = pos.max(0.0) as usize;
+        // 6. Let pos be ? ToIntegerOrInfinity(position).
+        // 7. Assert: If position is undefined, then pos is 0.
+        let pos = args.get_or_undefined(1).to_integer_or_infinity(context)?;
 
-        let substring_lossy = if start > 0 {
-            let substring_utf16: Vec<u16> = string.encode_utf16().skip(start).collect();
-            StdString::from_utf16_lossy(&substring_utf16)
-        } else {
-            string.to_string()
-        };
-        Ok(substring_lossy.contains(search_str.as_str()).into())
-    }
+        // 8. Let len be the length of S.
+        // 9. Let start be the result of clamping pos between 0 and len.
+        let start = pos.clamp_finite(0, string.encode_utf16().count() as i64) as usize;
 
-    fn is_regexp_object(value: &JsValue) -> bool {
-        value
-            .as_object()
-            .map(|obj| obj.borrow().is_regexp())
-            .unwrap_or_default()
+        // 10. Let index be ! StringIndexOf(S, searchStr, start).
+        // 11. If index is not -1, return true.
+        // 12. Return false.
+        Ok(string.index_of(&search_str, start).is_some().into())
     }
 
     /// `String.prototype.replace( regexp|substr, newSubstr|function )`
@@ -977,9 +1088,9 @@ impl String {
         // 2. If searchValue is neither undefined nor null, then
         if !search_value.is_null_or_undefined() {
             // a. Let isRegExp be ? IsRegExp(searchValue).
-            if let Some(obj) = search_value.as_object().filter(|obj| obj.is_regexp()) {
+            if let Some(obj) = search_value.as_object() {
                 // b. If isRegExp is true, then
-                if obj.is_regexp() {
+                if is_reg_exp_object(obj, context)? {
                     // i. Let flags be ? Get(searchValue, "flags").
                     let flags = obj.get("flags", context)?;
 
@@ -1017,13 +1128,12 @@ impl String {
             .map(JsObject::is_callable)
             .unwrap_or_default();
 
-        // 6. If functionalReplace is false, then
-        #[allow(clippy::if_not_else)]
-        let replace_value_string = if !functional_replace {
-            // a. Set replaceValue to ? ToString(replaceValue).
-            replace_value.to_string(context)?
+        let replace_value_string = if functional_replace {
+            None
         } else {
-            JsString::empty()
+            // a. Set replaceValue to ? ToString(replaceValue).
+            // 6. If functionalReplace is false, then
+            Some(replace_value.to_string(context)?)
         };
 
         // 7. Let searchLength be the length of searchString.
@@ -1065,9 +1175,24 @@ impl String {
                     .collect::<Vec<u16>>(),
             );
 
-            // b. If functionalReplace is true, then
             // c. Else,
-            let replacement = if functional_replace {
+            let replacement = if let Some(ref replace_value) = replace_value_string {
+                // i. Assert: Type(replaceValue) is String.
+                // ii. Let captures be a new empty List.
+                // iii. Let replacement be ! GetSubstitution(searchString, string, p, captures, undefined, replaceValue).
+                get_substitution(
+                    &search_string,
+                    &string,
+                    p,
+                    &[],
+                    &JsValue::undefined(),
+                    replace_value,
+                    context,
+                )
+                .expect("GetSubstitution should never fail here.")
+            }
+            // b. If functionalReplace is true, then
+            else {
                 // i. Let replacement be ? ToString(? Call(replaceValue, undefined, « searchString, 𝔽(p), string »)).
                 context
                     .call(
@@ -1080,21 +1205,8 @@ impl String {
                         ],
                     )?
                     .to_string(context)?
-            } else {
-                // i. Assert: Type(replaceValue) is String.
-                // ii. Let captures be a new empty List.
-                // iii. Let replacement be ! GetSubstitution(searchString, string, p, captures, undefined, replaceValue).
-                get_substitution(
-                    search_string.as_str(),
-                    string.as_str(),
-                    p,
-                    &[],
-                    &JsValue::undefined(),
-                    &replace_value_string,
-                    context,
-                )
-                .expect("GetSubstitution should never fail here.")
             };
+
             // d. Set result to the string-concatenation of result, preserved, and replacement.
             result = JsString::new(format!("{}{preserved}{replacement}", result.as_str()));
 
@@ -1139,45 +1251,30 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
-        let search_str = args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_string(context)?;
+        // 3. Let searchStr be ? ToString(searchString).
+        let search_str = args.get_or_undefined(0).to_string(context)?;
 
-        let pos = args
-            .get(1)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?;
+        // 4. Let pos be ? ToIntegerOrInfinity(position).
+        // 5. Assert: If position is undefined, then pos is 0.
+        let pos = args.get_or_undefined(1).to_integer_or_infinity(context)?;
 
-        let len = string.encode_utf16().count();
-        let start = pos.max(0.0);
+        // 6. Let len be the length of S.
+        let len = string.encode_utf16().count() as i64;
 
-        if search_str.is_empty() {
-            return Ok(JsValue::new(start.min(len as f64)));
-        }
+        // 7. Let start be the result of clamping pos between 0 and len.
+        let start = pos.clamp_finite(0, len) as usize;
 
-        if start < len as f64 {
-            let start = start as usize;
-
-            let substring_lossy = if start > 0 {
-                let substring_utf16: Vec<u16> = string.encode_utf16().skip(start).collect();
-                StdString::from_utf16_lossy(&substring_utf16)
-            } else {
-                string.to_string()
-            };
-
-            if let Some(position) = substring_lossy.find(search_str.as_str()) {
-                return Ok(JsValue::new(
-                    substring_lossy[..position].encode_utf16().count() + start,
-                ));
-            }
-        }
-        Ok(JsValue::new(-1))
+        // 8. Return 𝔽(! StringIndexOf(S, searchStr, start)).
+        Ok(string
+            .index_of(&search_str, start)
+            .map_or(-1, |i| i as i64)
+            .into())
     }
 
     /// `String.prototype.lastIndexOf( searchValue[, fromIndex] )`
@@ -1200,44 +1297,39 @@ impl String {
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
         // 3. Let searchStr be ? ToString(searchString).
-        let search_str = args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_string(context)?;
+        let search_str = args.get_or_undefined(0).to_string(context)?;
 
         // 4. Let numPos be ? ToNumber(position).
         // 5. Assert: If position is undefined, then numPos is NaN.
-        let num_pos = args
-            .get(1)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_number(context)?;
+        let num_pos = args.get_or_undefined(1).to_number(context)?;
 
         // 6. If numPos is NaN, let pos be +∞; otherwise, let pos be ! ToIntegerOrInfinity(numPos).
         let pos = if num_pos.is_nan() {
-            f64::INFINITY
+            IntegerOrInfinity::PositiveInfinity
         } else {
-            JsValue::new(num_pos).to_integer(context)?
+            JsValue::new(num_pos)
+                .to_integer_or_infinity(context)
+                .expect("Already called `to_number so this must not fail.")
         };
 
         // 7. Let len be the length of S.
         let len = string.encode_utf16().count();
         // 8. Let start be the result of clamping pos between 0 and len.
-        let start = pos.max(0.0).min(len as f64) as usize;
+        let start = pos.clamp_finite(0, len as i64) as usize;
 
         // 9. If searchStr is the empty String, return 𝔽(start).
         if search_str.is_empty() {
-            return Ok(JsValue::new(start as f64));
+            return Ok(JsValue::new(start));
         }
 
-        // TODO: Full UTF-16 support
         // 10. Let searchLen be the length of searchStr.
         let search_len = search_str.encode_utf16().count();
+
         // 11. For each non-negative integer i starting with start such that i ≤ len - searchLen, in descending order, do
         // a. Let candidate be the substring of S from i to i + searchLen.
         let substring_utf16: Vec<u16> = string.encode_utf16().take(start + search_len).collect();
@@ -1294,64 +1386,78 @@ impl String {
         rx.invoke(WellKnownSymbols::r#match(), &[JsValue::new(s)], context)
     }
 
-    /// Abstract method `StringPad`.
+    /// Abstract operation `StringPad ( O, maxLength, fillString, placement )`.
     ///
     /// Performs the actual string padding for padStart/End.
-    /// <https://tc39.es/ecma262/#sec-stringpad/>
+    ///
+    /// More information:
+    /// - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-stringpad
     fn string_pad(
         object: &JsValue,
         max_length: &JsValue,
         fill_string: &JsValue,
-        at_start: bool,
+        placement: Placement,
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let S be ? ToString(O).
         let string = object.to_string(context)?;
 
+        // 2. Let intMaxLength be ℝ(? ToLength(maxLength)).
         let int_max_length = max_length.to_length(context)?;
+
+        // 3. Let stringLength be the length of S.
         let string_length = string.encode_utf16().count();
 
+        // 4. If intMaxLength ≤ stringLength, return S.
         if int_max_length <= string_length {
             return Ok(string.into());
         }
 
+        // 5. If fillString is undefined, let filler be the String value consisting solely of the code unit 0x0020 (SPACE).
         let filler = if fill_string.is_undefined() {
             "\u{0020}".into()
         } else {
+            // 6. Else, let filler be ? ToString(fillString).
             fill_string.to_string(context)?
         };
-        let filler_utf16: Vec<u16> = filler.encode_utf16().collect();
 
+        // 7. If filler is the empty String, return S.
         if filler.is_empty() {
             return Ok(string.into());
         }
 
+        // 8. Let fillLen be intMaxLength - stringLength.
         let fill_len = int_max_length - string_length;
-        let filler_len = filler_utf16.len();
+        let filler_len = filler.encode_utf16().count();
 
-        let mut truncated_string_filler = StdString::new();
-        let mut truncated_string_filler_len: usize = 0;
-
-        while truncated_string_filler_len < fill_len {
-            if truncated_string_filler_len.wrapping_add(filler_len) <= fill_len {
-                truncated_string_filler.push_str(&filler);
-                truncated_string_filler_len += filler_len;
+        // 9. Let truncatedStringFiller be the String value consisting of repeated
+        // concatenations of filler truncated to length fillLen.
+        let repetitions = {
+            let q = fill_len / filler_len;
+            let r = fill_len % filler_len;
+            if r == 0 {
+                q
             } else {
-                truncated_string_filler.push_str(
-                    StdString::from_utf16_lossy(
-                        &filler_utf16[..fill_len - truncated_string_filler_len],
-                    )
-                    .as_str(),
-                );
-                truncated_string_filler_len = fill_len;
+                q + 1
             }
-        }
-        if at_start {
-            truncated_string_filler.push_str(&string);
-            Ok(truncated_string_filler.into())
+        };
+
+        let truncated_string_filler = filler
+            .repeat(repetitions)
+            .encode_utf16()
+            .take(fill_len)
+            .collect::<Vec<_>>();
+        let truncated_string_filler =
+            std::string::String::from_utf16_lossy(truncated_string_filler.as_slice());
+
+        // 10. If placement is start, return the string-concatenation of truncatedStringFiller and S.
+        if placement == Placement::Start {
+            Ok(format!("{truncated_string_filler}{string}").into())
         } else {
-            let mut string = string.to_string();
-            string.push_str(&truncated_string_filler);
-            Ok(string.into())
+            // 11. Else, return the string-concatenation of S and truncatedStringFiller.
+            Ok(format!("{string}{truncated_string_filler}").into())
         }
     }
 
@@ -1372,12 +1478,14 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
 
-        let max_length = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
-        let fill_string = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let max_length = args.get_or_undefined(0);
+        let fill_string = args.get_or_undefined(1);
 
-        Self::string_pad(this, &max_length, &fill_string, false, context)
+        // 2. Return ? StringPad(O, maxLength, fillString, end).
+        Self::string_pad(this, max_length, fill_string, Placement::End, context)
     }
 
     /// `String.prototype.padStart( targetLength [, padString] )`
@@ -1397,12 +1505,14 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
 
-        let max_length = args.get(0).cloned().unwrap_or_else(JsValue::undefined);
-        let fill_string = args.get(1).cloned().unwrap_or_else(JsValue::undefined);
+        let max_length = args.get_or_undefined(0);
+        let fill_string = args.get_or_undefined(1);
 
-        Self::string_pad(this, &max_length, &fill_string, true, context)
+        // 2. Return ? StringPad(O, maxLength, fillString, start).
+        Self::string_pad(this, max_length, fill_string, Placement::Start, context)
     }
 
     /// String.prototype.trim()
@@ -1487,10 +1597,17 @@ impl String {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
-        // The Rust String is mapped to uppercase using the builtin .to_lowercase().
-        // There might be corner cases where it does not behave exactly like Javascript expects
+
+        // 3. Let sText be ! StringToCodePoints(S).
+        // 4. Let lowerText be the result of toLowercase(sText), according to
+        // the Unicode Default Case Conversion algorithm.
+        // 5. Let L be ! CodePointsToString(lowerText).
+        // 6. Return L.
         Ok(JsValue::new(string.to_lowercase()))
     }
 
@@ -1512,10 +1629,22 @@ impl String {
         _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // This function behaves in exactly the same way as `String.prototype.toLowerCase`, except that the String is
+        // mapped using the toUppercase algorithm of the Unicode Default Case Conversion.
+
+        // Comments below are an adaptation of the `String.prototype.toLowerCase` documentation.
+
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
-        // The Rust String is mapped to uppercase using the builtin .to_uppercase().
-        // There might be corner cases where it does not behave exactly like Javascript expects
+
+        // 3. Let sText be ! StringToCodePoints(S).
+        // 4. Let upperText be the result of toUppercase(sText), according to
+        // the Unicode Default Case Conversion algorithm.
+        // 5. Let L be ! CodePointsToString(upperText).
+        // 6. Return L.
         Ok(JsValue::new(string.to_uppercase()))
     }
 
@@ -1534,29 +1663,37 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
 
-        let len = string.len();
-        let int_start = args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?;
+        // 3. Let len be the length of S.
+        let len = string.encode_utf16().count() as i64;
 
-        let int_end = match args.get(1).cloned().unwrap_or_else(JsValue::undefined) {
-            end if end.is_undefined() => len as f64,
-            end => end.to_integer(context)?,
+        // 4. Let intStart be ? ToIntegerOrInfinity(start).
+        let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+
+        // 5. If end is undefined, let intEnd be len; else let intEnd be ? ToIntegerOrInfinity(end).
+        let int_end = match args.get_or_undefined(1) {
+            &JsValue::Undefined => IntegerOrInfinity::Integer(len),
+            end => end.to_integer_or_infinity(context)?,
         };
 
-        // Both start and end args replaced by 0 if they were negative
-        // or by the length of the String if they were greater
-        let final_start = int_start.max(0.0).min(len as f64);
-        let final_end = int_end.max(0.0).min(len as f64);
+        // 6. Let finalStart be the result of clamping intStart between 0 and len.
+        let final_start = int_start.clamp_finite(0, len) as usize;
 
-        let from = final_start.min(final_end) as usize;
-        let to = final_start.max(final_end) as usize;
+        // 7. Let finalEnd be the result of clamping intEnd between 0 and len.
+        let final_end = int_end.clamp_finite(0, len) as usize;
 
+        // 8. Let from be min(finalStart, finalEnd).
+        let from = min(final_start, final_end);
+
+        // 9. Let to be max(finalStart, finalEnd).
+        let to = max(final_start, final_end);
+
+        // 10. Return the substring of S from from to to.
         // Extract the part of the string contained between the from index and the to index
         // where from is guaranteed to be smaller or equal to to
         // TODO: Full UTF-16 support
@@ -1582,40 +1719,54 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
-        let string: Vec<u16> = this.to_string(context)?.encode_utf16().collect();
-        let size = string.len();
 
-        let int_start = match args
-            .get(0)
-            .cloned()
-            .unwrap_or_else(JsValue::undefined)
-            .to_integer(context)?
-        {
-            int_start if int_start.is_infinite() && int_start.is_sign_negative() => 0.0,
-            int_start if int_start < 0.0 => (int_start + size as f64).max(0.0),
-            int_start => int_start,
+        // 2. Let S be ? ToString(O).
+        let string = this.to_string(context)?;
+
+        // 3. Let size be the length of S.
+        let size = string.encode_utf16().count() as i64;
+
+        // 4. Let intStart be ? ToIntegerOrInfinity(start).
+        let int_start = args.get_or_undefined(0).to_integer_or_infinity(context)?;
+
+        // 7. If length is undefined, let intLength be size; otherwise let intLength be ? ToIntegerOrInfinity(length).
+        // Moved it before to ensure an error throws before returning the empty string on `match int_start`
+        let int_length = match args.get_or_undefined(1) {
+            &JsValue::Undefined => IntegerOrInfinity::Integer(size),
+            val => val.to_integer_or_infinity(context)?,
         };
 
-        let int_length = match args.get(1).cloned().unwrap_or_else(JsValue::undefined) {
-            length if length.is_undefined() => size as f64,
-            length => length.to_integer(context)?,
-        };
+        let int_start = match int_start {
+            // 6. Else if intStart < 0, set intStart to max(size + intStart, 0).
+            IntegerOrInfinity::Integer(i) if i < 0 => max(size + i, 0),
+            IntegerOrInfinity::Integer(i) => i,
+            // 8. If intStart is +∞, ... return the empty String
+            IntegerOrInfinity::PositiveInfinity => return Ok("".into()),
+            // 5. If intStart is -∞, set intStart to 0.
+            IntegerOrInfinity::NegativeInfinity => 0,
+        } as usize;
 
-        if int_start.is_infinite() || int_length <= 0.0 || int_length.is_infinite() {
-            return Ok("".into());
-        }
+        // 8. If ... intLength ≤ 0, or intLength is +∞, return the empty String.
+        let int_length = match int_length {
+            IntegerOrInfinity::Integer(i) if i > 0 => i,
+            _ => return Ok("".into()),
+        } as usize;
 
-        let int_end = (int_start + int_length).min(size as f64) as usize;
-        let int_start = int_start as usize;
+        // 9. Let intEnd be min(intStart + intLength, size).
+        let int_end = min(int_start + int_length, size as usize);
 
-        if int_start >= int_end {
-            Ok("".into())
-        } else {
-            let substring_utf16 = &string[int_start..int_end];
-            let substring = StdString::from_utf16_lossy(substring_utf16);
-            Ok(substring.into())
-        }
+        // 11. Return the substring of S from intStart to intEnd.
+        // 10. If intStart ≥ intEnd, return the empty String.
+        let substring_utf16: Vec<u16> = string
+            .encode_utf16()
+            .skip(int_start)
+            .take(int_end - int_start)
+            .collect();
+        let substring = StdString::from_utf16_lossy(&substring_utf16);
+
+        Ok(substring.into())
     }
 
     /// `String.prototype.split ( separator, limit )`
@@ -1782,11 +1933,11 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf
     pub(crate) fn value_of(
         this: &JsValue,
-        args: &[JsValue],
+        _: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // Use the to_string method because it is specified to do the same thing in this case
-        Self::to_string(this, args, context)
+        // 1. Return ? thisStringValue(this value).
+        Self::this_string_value(this, context).map(JsValue::from)
     }
 
     /// `String.prototype.matchAll( regexp )`
@@ -1861,24 +2012,35 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
         let this = this.require_object_coercible(context)?;
+
+        // 2. Let S be ? ToString(O).
         let s = this.to_string(context)?;
+
         let form = args.get_or_undefined(0);
 
         let f_str;
 
         let f = if form.is_undefined() {
+            // 3. If form is undefined, let f be "NFC".
             "NFC"
         } else {
+            // 4. Else, let f be ? ToString(form).
             f_str = form.to_string(context)?;
             f_str.as_str()
         };
 
+        // 6. Let ns be the String value that is the result of normalizing S
+        // into the normalization form named by f as specified in
+        // https://unicode.org/reports/tr15/.
+        // 7. Return ns.
         match f {
             "NFC" => Ok(JsValue::new(s.nfc().collect::<StdString>())),
             "NFD" => Ok(JsValue::new(s.nfd().collect::<StdString>())),
             "NFKC" => Ok(JsValue::new(s.nfkc().collect::<StdString>())),
             "NFKD" => Ok(JsValue::new(s.nfkd().collect::<StdString>())),
+            // 5. If f is not one of "NFC", "NFD", "NFKC", or "NFKD", throw a RangeError exception.
             _ => context
                 .throw_range_error("The normalization form should be one of NFC, NFD, NFKC, NFKD."),
         }
@@ -1933,7 +2095,7 @@ impl String {
     }
 }
 
-/// `22.1.3.17.1 GetSubstitution ( matched, str, position, captures, namedCaptures, replacement )`
+/// Abstract operation `GetSubstitution ( matched, str, position, captures, namedCaptures, replacement )`
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -2065,6 +2227,9 @@ pub(crate) fn get_substitution(
                         result.push_str("$<");
                     } else {
                         // a. Assert: Type(namedCaptures) is Object.
+                        let named_captures = named_captures
+                            .as_object()
+                            .expect("should be an object according to spec");
 
                         // b. Scan until the next > U+003E (GREATER-THAN SIGN).
                         let mut group_name = StdString::new();
@@ -2089,7 +2254,7 @@ pub(crate) fn get_substitution(
                         } else {
                             // i. Let groupName be the enclosed substring.
                             // ii. Let capture be ? Get(namedCaptures, groupName).
-                            let capture = named_captures.get_field(group_name, context)?;
+                            let capture = named_captures.get(group_name, context)?;
 
                             // iii. If capture is undefined, replace the text through > with the empty String.
                             // iv. Otherwise, replace the text through > with ? ToString(capture).
@@ -2149,4 +2314,33 @@ fn split_match(s_str: &str, q: usize, r_str: &str) -> Option<usize> {
 
     // 5. Return q + r.
     Some(q + r)
+}
+
+/// Abstract operation `IsRegExp( argument )`
+///
+/// More information:
+/// [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-isregexp
+fn is_reg_exp(argument: &JsValue, context: &mut Context) -> JsResult<bool> {
+    // 1. If Type(argument) is not Object, return false.
+    let argument = match argument {
+        JsValue::Object(o) => o,
+        _ => return Ok(false),
+    };
+
+    is_reg_exp_object(argument, context)
+}
+fn is_reg_exp_object(argument: &JsObject, context: &mut Context) -> JsResult<bool> {
+    // 2. Let matcher be ? Get(argument, @@match).
+    let matcher = argument.get(WellKnownSymbols::r#match(), context)?;
+
+    // 3. If matcher is not undefined, return ! ToBoolean(matcher).
+    if !matcher.is_undefined() {
+        return Ok(matcher.to_boolean());
+    }
+
+    // 4. If argument has a [[RegExpMatcher]] internal slot, return true.
+    // 5. Return false.
+    Ok(argument.is_regexp())
 }

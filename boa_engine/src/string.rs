@@ -9,6 +9,7 @@ use std::{
     marker::PhantomData,
     ops::Deref,
     ptr::{copy_nonoverlapping, NonNull},
+    rc::Rc,
 };
 
 const CONSTANTS_ARRAY: [&str; 127] = [
@@ -314,7 +315,7 @@ impl Inner {
 #[derive(Finalize)]
 pub struct JsString {
     inner: NonNull<Inner>,
-    _marker: PhantomData<std::rc::Rc<str>>,
+    _marker: PhantomData<Rc<str>>,
 }
 
 impl Default for JsString {
@@ -471,25 +472,49 @@ impl JsString {
     pub(crate) fn string_to_number(&self) -> f64 {
         let string = self.trim_matches(is_trimmable_whitespace);
 
-        // TODO: write our own lexer to match syntax StrDecimalLiteral
         match string {
-            "" => 0.0,
-            "Infinity" | "+Infinity" => f64::INFINITY,
-            "-Infinity" => f64::NEG_INFINITY,
-            _ if matches!(
-                string
-                    .chars()
-                    .take(4)
-                    .collect::<String>()
-                    .to_ascii_lowercase()
-                    .as_str(),
-                "inf" | "+inf" | "-inf" | "nan" | "+nan" | "-nan"
-            ) =>
-            {
-                // Prevent fast_float from parsing "inf", "+inf" as Infinity and "-inf" as -Infinity
-                f64::NAN
+            "" => return 0.0,
+            "-Infinity" => return f64::NEG_INFINITY,
+            "Infinity" | "+Infinity" => return f64::INFINITY,
+            _ => {}
+        }
+
+        let mut s = string.bytes();
+        let base = match (s.next(), s.next()) {
+            (Some(b'0'), Some(b'b' | b'B')) => Some(2),
+            (Some(b'0'), Some(b'o' | b'O')) => Some(8),
+            (Some(b'0'), Some(b'x' | b'X')) => Some(16),
+            _ => None,
+        };
+
+        // Parse numbers that begin with `0b`, `0o` and `0x`.
+        if let Some(base) = base {
+            let string = &string[2..];
+            if string.is_empty() {
+                return f64::NAN;
             }
-            _ => fast_float::parse(string).unwrap_or(f64::NAN),
+
+            // Fast path
+            if let Ok(value) = u32::from_str_radix(string, base) {
+                return f64::from(value);
+            }
+
+            // Slow path
+            let mut value = 0.0;
+            for c in s {
+                if let Some(digit) = char::from(c).to_digit(base) {
+                    value = value * f64::from(base) + f64::from(digit);
+                } else {
+                    return f64::NAN;
+                }
+            }
+            return value;
+        }
+
+        match string {
+            // Handle special cases so `fast_float` does not return infinity.
+            "inf" | "+inf" | "-inf" => f64::NAN,
+            string => fast_float::parse(string).unwrap_or(f64::NAN),
         }
     }
 }

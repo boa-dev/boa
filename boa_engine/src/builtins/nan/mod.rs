@@ -27,9 +27,9 @@ impl BuiltIn for NaN {
         .union(Attribute::NON_ENUMERABLE)
         .union(Attribute::PERMANENT);
 
-    fn init(_: &mut Context) -> JsValue {
+    fn init(_: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        f64::NAN.into()
+        Some(f64::NAN.into())
     }
 }

@@ -13,7 +13,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
-    context::StandardObjects,
+    context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
@@ -34,6 +34,7 @@ use std::{
     fmt,
     ops::{Deref, DerefMut},
 };
+use tap::{Conv, Pipe};
 
 pub(crate) mod arguments;
 #[cfg(test)]
@@ -175,7 +176,11 @@ pub enum Function {
         constructor: bool,
         captures: Captures,
     },
-    VmOrdinary {
+    Ordinary {
+        code: Gc<crate::vm::CodeBlock>,
+        environments: DeclarativeEnvironmentStack,
+    },
+    Generator {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
     },
@@ -192,7 +197,7 @@ impl Function {
     pub fn is_constructor(&self) -> bool {
         match self {
             Self::Native { constructor, .. } | Self::Closure { constructor, .. } => *constructor,
-            Self::VmOrdinary { code, .. } => code.constructor,
+            Self::Ordinary { code, .. } | Self::Generator { code, .. } => code.constructor,
         }
     }
 }
@@ -229,7 +234,11 @@ pub(crate) fn make_builtin_fn<N>(
     let _timer = Profiler::global().start_event(&format!("make_builtin_fn: {name}"), "init");
 
     let function = JsObject::from_proto_and_data(
-        interpreter.standard_objects().function_object().prototype(),
+        interpreter
+            .intrinsics()
+            .constructors()
+            .function()
+            .prototype(),
         ObjectData::function(Function::Native {
             function,
             constructor: false,
@@ -264,7 +273,7 @@ impl BuiltInFunctionObject {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::function_object, context)?;
+            get_prototype_from_constructor(new_target, StandardConstructors::function, context)?;
 
         let this = JsObject::from_proto_and_data(
             prototype,
@@ -454,11 +463,15 @@ impl BuiltInFunctionObject {
                 },
                 Some(name),
             ) => Ok(format!("function {name}() {{\n  [native Code]\n}}").into()),
-            (Function::VmOrdinary { .. }, Some(name)) if name.is_empty() => {
+            (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
                 Ok("[Function (anonymous)]".into())
             }
-            (Function::VmOrdinary { .. }, Some(name)) => Ok(format!("[Function: {name}]").into()),
-            (Function::VmOrdinary { .. }, None) => Ok("[Function (anonymous)]".into()),
+            (Function::Ordinary { .. }, Some(name)) => Ok(format!("[Function: {name}]").into()),
+            (Function::Ordinary { .. }, None) => Ok("[Function (anonymous)]".into()),
+            (Function::Generator { .. }, Some(name)) => {
+                Ok(format!("[Function*: {}]", &name).into())
+            }
+            (Function::Generator { .. }, None) => Ok("[Function* (anonymous)]".into()),
             _ => Ok("TODO".into()),
         }
     }
@@ -484,14 +497,10 @@ impl BuiltInFunctionObject {
 impl BuiltIn for BuiltInFunctionObject {
     const NAME: &'static str = "Function";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event("function", "init");
 
-        let function_prototype = context.standard_objects().function_object().prototype();
+        let function_prototype = context.intrinsics().constructors().function().prototype();
         FunctionBuilder::native(context, Self::prototype)
             .name("")
             .length(0)
@@ -506,10 +515,10 @@ impl BuiltIn for BuiltInFunctionObject {
             .constructor(false)
             .build();
 
-        let function_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().function_object().clone(),
+            context.intrinsics().constructors().function().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -518,9 +527,9 @@ impl BuiltIn for BuiltInFunctionObject {
         .method(Self::call, "call", 1)
         .method(Self::to_string, "toString", 0)
         .property(symbol_has_instance, has_instance, Attribute::default())
-        .build();
-
-        function_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 

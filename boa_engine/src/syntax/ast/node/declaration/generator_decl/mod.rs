@@ -1,4 +1,4 @@
-use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
+use crate::syntax::ast::node::{join_nodes, FormalParameterList, Node, StatementList};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GeneratorDecl {
     name: Sym,
-    parameters: Box<[FormalParameter]>,
+    parameters: FormalParameterList,
     body: StatementList,
 }
 
@@ -26,7 +26,7 @@ impl GeneratorDecl {
     /// Creates a new generator declaration.
     pub(in crate::syntax) fn new<P, B>(name: Sym, parameters: P, body: B) -> Self
     where
-        P: Into<Box<[FormalParameter]>>,
+        P: Into<FormalParameterList>,
         B: Into<StatementList>,
     {
         Self {
@@ -42,13 +42,13 @@ impl GeneratorDecl {
     }
 
     /// Gets the list of parameters of the generator declaration.
-    pub fn parameters(&self) -> &[FormalParameter] {
+    pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the generator declaration.
-    pub fn body(&self) -> &[Node] {
-        self.body.items()
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
@@ -60,9 +60,9 @@ impl GeneratorDecl {
         let mut buf = format!(
             "function* {}({}",
             interner.resolve_expect(self.name),
-            join_nodes(interner, &self.parameters)
+            join_nodes(interner, &self.parameters.parameters)
         );
-        if self.body().is_empty() {
+        if self.body().items().is_empty() {
             buf.push_str(") {}");
         } else {
             buf.push_str(&format!(

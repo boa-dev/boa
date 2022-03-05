@@ -134,15 +134,15 @@ impl From<()> for JsValue {
     }
 }
 
-impl<T> From<Option<T>> for JsValue
+pub(crate) trait IntoOrUndefined {
+    fn into_or_undefined(self) -> JsValue;
+}
+
+impl<T> IntoOrUndefined for Option<T>
 where
-    T: Into<Self>,
+    T: Into<JsValue>,
 {
-    #[inline]
-    fn from(value: Option<T>) -> Self {
-        match value {
-            Some(value) => value.into(),
-            None => Self::undefined(),
-        }
+    fn into_or_undefined(self) -> JsValue {
+        self.map_or_else(JsValue::undefined, Into::into)
     }
 }

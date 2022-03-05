@@ -1,4 +1,4 @@
-use crate::exec;
+use crate::{exec, Context, JsValue};
 
 #[test]
 fn typeof_string() {
@@ -26,4 +26,42 @@ fn basic_op() {
         a + b
     "#;
     assert_eq!(&exec(basic_op), "3");
+}
+
+#[test]
+fn try_catch_finally_from_init() {
+    // the initialisation of the array here emits a PopOnReturnAdd op
+    //
+    // here we test that the stack is not popped more than intended due to multiple catches in the
+    // same function, which could lead to VM stack corruption
+    let source = r#"
+        try {
+            [(() => {throw "h";})()];
+        } catch (x) {
+            throw "h";
+        } finally {
+        }
+    "#;
+
+    assert_eq!(Context::default().eval(source.as_bytes()), Err("h".into()));
+}
+
+#[test]
+fn multiple_catches() {
+    // see explanation on `try_catch_finally_from_init`
+    let source = r#"
+        try {
+            try {
+                [(() => {throw "h";})()];
+            } catch (x) {
+                throw "h";
+            }
+        } catch (y) {
+        }
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::Undefined)
+    );
 }

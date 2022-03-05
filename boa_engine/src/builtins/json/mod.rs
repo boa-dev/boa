@@ -27,6 +27,7 @@ use crate::{
 };
 use boa_profiler::Profiler;
 use serde_json::{self, Value as JSONValue};
+use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
@@ -38,23 +39,19 @@ pub(crate) struct Json;
 impl BuiltIn for Json {
     const NAME: &'static str = "JSON";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let to_string_tag = WellKnownSymbols::to_string_tag();
         let attribute = Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
 
-        let json_object = ObjectInitializer::new(context)
+        ObjectInitializer::new(context)
             .function(Self::parse, "parse", 2)
             .function(Self::stringify, "stringify", 3)
             .property(to_string_tag, Self::NAME, attribute)
-            .build();
-
-        json_object.into()
+            .build()
+            .conv::<JsValue>()
+            .pipe(Some)
     }
 }
 
@@ -373,7 +370,7 @@ impl Json {
         // 2. If Type(value) is Object or BigInt, then
         if value.is_object() || value.is_bigint() {
             // a. Let toJSON be ? GetV(value, "toJSON").
-            let to_json = value.get_field("toJSON", context)?;
+            let to_json = value.get_v("toJSON", context)?;
 
             // b. If IsCallable(toJSON) is true, then
             if let Some(obj) = to_json.as_object() {

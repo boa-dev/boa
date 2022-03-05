@@ -1,4 +1,4 @@
-use crate::syntax::ast::node::{join_nodes, FormalParameter, Node, StatementList};
+use crate::syntax::ast::node::{join_nodes, FormalParameterList, Node, StatementList};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionDecl {
     name: Sym,
-    parameters: Box<[FormalParameter]>,
+    parameters: FormalParameterList,
     body: StatementList,
 }
 
@@ -35,7 +35,7 @@ impl FunctionDecl {
     /// Creates a new function declaration.
     pub(in crate::syntax) fn new<P, B>(name: Sym, parameters: P, body: B) -> Self
     where
-        P: Into<Box<[FormalParameter]>>,
+        P: Into<FormalParameterList>,
         B: Into<StatementList>,
     {
         Self {
@@ -51,7 +51,7 @@ impl FunctionDecl {
     }
 
     /// Gets the list of parameters of the function declaration.
-    pub fn parameters(&self) -> &[FormalParameter] {
+    pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
@@ -69,7 +69,7 @@ impl FunctionDecl {
         let mut buf = format!(
             "function {}({}",
             interner.resolve_expect(self.name),
-            join_nodes(interner, &self.parameters)
+            join_nodes(interner, &self.parameters.parameters)
         );
         if self.body().items().is_empty() {
             buf.push_str(") {}");

@@ -13,11 +13,11 @@
 use crate::{
     builtins::{BuiltIn, JsArgs},
     object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
-    property::Attribute,
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -29,24 +29,21 @@ pub struct Proxy {
 impl BuiltIn for Proxy {
     const NAME: &'static str = "Proxy";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().proxy_object().clone(),
+            context.intrinsics().constructors().proxy().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .constructor_has_prototype(false)
+        .has_prototype_property(false)
         .static_method(Self::revocable, "revocable", 2)
         .build()
-        .into()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -114,7 +111,7 @@ impl Proxy {
         // 6. Set P.[[ProxyTarget]] to target.
         // 7. Set P.[[ProxyHandler]] to handler.
         let p = JsObject::from_proto_and_data(
-            context.standard_objects().object_object().prototype(),
+            context.intrinsics().constructors().object().prototype(),
             ObjectData::proxy(
                 Self::new(target.clone(), handler.clone()),
                 target.is_callable(),

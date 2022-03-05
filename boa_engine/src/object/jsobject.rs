@@ -26,13 +26,17 @@ pub type RefMut<'a, T, U> = boa_gc::RefMut<'a, T, U>;
 
 /// Garbage collected `Object`.
 #[derive(Trace, Finalize, Clone, Default)]
-pub struct JsObject(Gc<boa_gc::Cell<Object>>);
+pub struct JsObject {
+    inner: Gc<boa_gc::Cell<Object>>,
+}
 
 impl JsObject {
     /// Create a new `JsObject` from an internal `Object`.
     #[inline]
     fn from_object(object: Object) -> Self {
-        Self(Gc::new(boa_gc::Cell::new(object)))
+        Self {
+            inner: Gc::new(boa_gc::Cell::new(object)),
+        }
     }
 
     /// Create a new empty `JsObject`, with `prototype` set to `JsValue::Null`
@@ -90,7 +94,7 @@ impl JsObject {
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     #[inline]
     pub fn try_borrow(&self) -> StdResult<Ref<'_, Object>, BorrowError> {
-        self.0.try_borrow().map_err(|_| BorrowError)
+        self.inner.try_borrow().map_err(|_| BorrowError)
     }
 
     /// Mutably borrows the object, returning an error if the value is currently borrowed.
@@ -101,7 +105,7 @@ impl JsObject {
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
     #[inline]
     pub fn try_borrow_mut(&self) -> StdResult<RefMut<'_, Object, Object>, BorrowMutError> {
-        self.0.try_borrow_mut().map_err(|_| BorrowMutError)
+        self.inner.try_borrow_mut().map_err(|_| BorrowMutError)
     }
 
     /// Checks if the garbage collected memory is the same.
@@ -340,6 +344,17 @@ impl JsObject {
         self.borrow().is_function()
     }
 
+    /// Checks if it's a `Generator` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_generator(&self) -> bool {
+        self.borrow().is_generator()
+    }
+
     /// Checks if it's a `Symbol` object.
     ///
     /// # Panics
@@ -511,7 +526,7 @@ impl JsObject {
 
         // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then ...
         // a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
-        if get.as_ref().or_else(|| set.as_ref()).is_some() && desc.inner().is_data_descriptor() {
+        if get.as_ref().or(set.as_ref()).is_some() && desc.inner().is_data_descriptor() {
             return context.throw_type_error(
                 "Invalid property descriptor.\
 Cannot both specify accessors and a value or writable attribute",
@@ -658,7 +673,7 @@ Cannot both specify accessors and a value or writable attribute",
 impl AsRef<boa_gc::Cell<Object>> for JsObject {
     #[inline]
     fn as_ref(&self) -> &boa_gc::Cell<Object> {
-        &*self.0
+        &*self.inner
     }
 }
 
@@ -787,7 +802,7 @@ impl Debug for JsObject {
         // Instead, we check if the object has appeared before in the entire graph. This means that objects will appear
         // at most once, hopefully making things a bit clearer.
         if !limiter.visited && !limiter.live {
-            f.debug_tuple("JsObject").field(&self.0).finish()
+            f.debug_tuple("JsObject").field(&self.inner).finish()
         } else {
             f.write_str("{ ... }")
         }

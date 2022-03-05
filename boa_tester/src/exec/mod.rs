@@ -206,8 +206,11 @@ impl Test {
                                 match context.eval(&self.content.as_ref()) {
                                     Ok(res) => (false, res.display().to_string()),
                                     Err(e) => {
-                                        let passed =
-                                            e.display().to_string().contains(error_type.as_ref());
+                                        let passed = e
+                                            .display()
+                                            .internals(true)
+                                            .to_string()
+                                            .contains(error_type.as_ref());
 
                                         (passed, format!("Uncaught {}", e.display()))
                                     }

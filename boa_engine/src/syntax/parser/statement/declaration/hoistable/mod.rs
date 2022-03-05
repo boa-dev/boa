@@ -18,7 +18,7 @@ use self::{
     generator_decl::GeneratorDeclaration,
 };
 use crate::syntax::{
-    ast::node::{FormalParameter, StatementList},
+    ast::node::{FormalParameterList, StatementList},
     ast::{Keyword, Node, Position, Punctuator},
     lexer::TokenKind,
     parser::{
@@ -124,7 +124,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> Result<(Sym, Box<[FormalParameter]>, StatementList), ParseError> {
+) -> Result<(Sym, FormalParameterList, StatementList), ParseError> {
     let next_token = cursor.peek(0, interner)?;
     let name = if let Some(token) = next_token {
         match token.kind() {
@@ -175,7 +175,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
 
     // Early Error: If the source code matching FormalParameters is strict mode code,
     // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
-    if (cursor.strict_mode() || body.strict()) && params.has_duplicates {
+    if (cursor.strict_mode() || body.strict()) && params.has_duplicates() {
         return Err(ParseError::lex(LexError::Syntax(
             "Duplicate parameter name not allowed in this context".into(),
             params_start_position,
@@ -184,7 +184,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
 
     // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
     // and IsSimpleParameterList of FormalParameters is false.
-    if body.strict() && !params.is_simple {
+    if body.strict() && !params.is_simple() {
         return Err(ParseError::lex(LexError::Syntax(
             "Illegal 'use strict' directive in function with non-simple parameter list".into(),
             params_start_position,
@@ -215,5 +215,5 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
         }
     }
 
-    Ok((name, params.parameters, body))
+    Ok((name, params, body))
 }

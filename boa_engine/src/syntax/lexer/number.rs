@@ -9,6 +9,8 @@ use crate::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
+use num_bigint::BigInt;
+use num_traits::Zero;
 use std::{io::Read, str};
 
 /// Number literal lexing.
@@ -251,7 +253,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                         // DecimalBigIntegerLiteral '0n'
                         return Ok(Token::new(
-                            TokenKind::NumericLiteral(Numeric::BigInt(0.into())),
+                            TokenKind::NumericLiteral(Numeric::BigInt(BigInt::zero().into())),
                             Span::new(start_pos, cursor.pos()),
                         ));
                     }
@@ -380,7 +382,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
         let num = match kind {
             NumericKind::BigInt(base) => {
                 Numeric::BigInt(
-                    JsBigInt::from_string_radix(num_str, base).expect("Could not convert to BigInt")
+                    BigInt::parse_bytes(num_str.as_bytes(), base).expect("Could not convert to BigInt").into()
                     )
             }
             NumericKind::Rational /* base: 10 */ => {

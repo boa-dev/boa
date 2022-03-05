@@ -2,8 +2,8 @@
 mod tests;
 
 use crate::{
-    builtins::{typed_array::TypedArrayName, BuiltIn, JsArgs},
-    context::StandardObjects,
+    builtins::{typed_array::TypedArrayKind, BuiltIn, JsArgs},
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -16,6 +16,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::{Signed, ToPrimitive};
+use tap::{Conv, Pipe};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct ArrayBuffer {
@@ -33,11 +34,7 @@ impl ArrayBuffer {
 impl BuiltIn for ArrayBuffer {
     const NAME: &'static str = "ArrayBuffer";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
@@ -45,10 +42,10 @@ impl BuiltIn for ArrayBuffer {
             .constructor(false)
             .build();
 
-        ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().array_buffer_object().clone(),
+            context.intrinsics().constructors().array_buffer().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
@@ -67,7 +64,8 @@ impl BuiltIn for ArrayBuffer {
             Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .build()
-        .into()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -230,7 +228,7 @@ impl ArrayBuffer {
         let new_len = std::cmp::max(r#final - first, 0) as usize;
 
         // 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).
-        let ctor = obj.species_constructor(StandardObjects::array_buffer_object, context)?;
+        let ctor = obj.species_constructor(StandardConstructors::array_buffer, context)?;
 
         // 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
         let new = ctor.construct(&[new_len.into()], &ctor.clone().into(), context)?;
@@ -310,7 +308,7 @@ impl ArrayBuffer {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
         let prototype = get_prototype_from_constructor(
             constructor,
-            StandardObjects::array_buffer_object,
+            StandardConstructors::array_buffer,
             context,
         )?;
         let obj = context.construct_object();
@@ -397,17 +395,17 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isunclampedintegerelementtype
-    fn is_unclamped_integer_element_type(t: TypedArrayName) -> bool {
+    fn is_unclamped_integer_element_type(t: TypedArrayKind) -> bool {
         // 1. If type is Int8, Uint8, Int16, Uint16, Int32, or Uint32, return true.
         // 2. Return false.
         matches!(
             t,
-            TypedArrayName::Int8Array
-                | TypedArrayName::Uint8Array
-                | TypedArrayName::Int16Array
-                | TypedArrayName::Uint16Array
-                | TypedArrayName::Int32Array
-                | TypedArrayName::Uint32Array
+            TypedArrayKind::Int8
+                | TypedArrayKind::Uint8
+                | TypedArrayKind::Int16
+                | TypedArrayKind::Uint16
+                | TypedArrayKind::Int32
+                | TypedArrayKind::Uint32
         )
     }
 
@@ -417,13 +415,10 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isbigintelementtype
-    fn is_big_int_element_type(t: TypedArrayName) -> bool {
+    fn is_big_int_element_type(t: TypedArrayKind) -> bool {
         // 1. If type is BigUint64 or BigInt64, return true.
         // 2. Return false.
-        matches!(
-            t,
-            TypedArrayName::BigUint64Array | TypedArrayName::BigInt64Array
-        )
+        matches!(t, TypedArrayKind::BigUint64 | TypedArrayKind::BigInt64)
     }
 
     /// `25.1.2.8 IsNoTearConfiguration ( type, order )`
@@ -434,7 +429,7 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-isnotearconfiguration
     // TODO: Allow unused function until shared array buffers are implemented.
     #[allow(dead_code)]
-    fn is_no_tear_configuration(t: TypedArrayName, order: SharedMemoryOrder) -> bool {
+    fn is_no_tear_configuration(t: TypedArrayKind, order: SharedMemoryOrder) -> bool {
         // 1. If ! IsUnclampedIntegerElementType(type) is true, return true.
         if Self::is_unclamped_integer_element_type(t) {
             return true;
@@ -460,23 +455,23 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-rawbytestonumeric
-    fn raw_bytes_to_numeric(t: TypedArrayName, bytes: &[u8], is_little_endian: bool) -> JsValue {
+    fn raw_bytes_to_numeric(t: TypedArrayKind, bytes: &[u8], is_little_endian: bool) -> JsValue {
         let n: Numeric = match t {
-            TypedArrayName::Int8Array => {
+            TypedArrayKind::Int8 => {
                 if is_little_endian {
                     i8::from_le_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 } else {
                     i8::from_be_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 }
             }
-            TypedArrayName::Uint8Array | TypedArrayName::Uint8ClampedArray => {
+            TypedArrayKind::Uint8 | TypedArrayKind::Uint8Clamped => {
                 if is_little_endian {
                     u8::from_le_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 } else {
                     u8::from_be_bytes(bytes.try_into().expect("slice with incorrect length")).into()
                 }
             }
-            TypedArrayName::Int16Array => {
+            TypedArrayKind::Int16 => {
                 if is_little_endian {
                     i16::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -485,7 +480,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Uint16Array => {
+            TypedArrayKind::Uint16 => {
                 if is_little_endian {
                     u16::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -494,7 +489,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Int32Array => {
+            TypedArrayKind::Int32 => {
                 if is_little_endian {
                     i32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -503,7 +498,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Uint32Array => {
+            TypedArrayKind::Uint32 => {
                 if is_little_endian {
                     u32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -512,7 +507,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::BigInt64Array => {
+            TypedArrayKind::BigInt64 => {
                 if is_little_endian {
                     i64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -521,7 +516,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::BigUint64Array => {
+            TypedArrayKind::BigUint64 => {
                 if is_little_endian {
                     u64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -530,7 +525,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Float32Array => {
+            TypedArrayKind::Float32 => {
                 if is_little_endian {
                     f32::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -539,7 +534,7 @@ impl ArrayBuffer {
                         .into()
                 }
             }
-            TypedArrayName::Float64Array => {
+            TypedArrayKind::Float64 => {
                 if is_little_endian {
                     f64::from_le_bytes(bytes.try_into().expect("slice with incorrect length"))
                         .into()
@@ -562,7 +557,7 @@ impl ArrayBuffer {
     pub(crate) fn get_value_from_buffer(
         &self,
         byte_index: usize,
-        t: TypedArrayName,
+        t: TypedArrayKind,
         _is_typed_array: bool,
         _order: SharedMemoryOrder,
         is_little_endian: Option<bool>,
@@ -600,43 +595,41 @@ impl ArrayBuffer {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-numerictorawbytes
     fn numeric_to_raw_bytes(
-        t: TypedArrayName,
+        t: TypedArrayKind,
         value: &JsValue,
         is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<Vec<u8>> {
         Ok(match t {
-            TypedArrayName::Int8Array if is_little_endian => {
+            TypedArrayKind::Int8 if is_little_endian => {
                 value.to_int8(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Int8Array => value.to_int8(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint8Array if is_little_endian => {
+            TypedArrayKind::Int8 => value.to_int8(context)?.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint8 if is_little_endian => {
                 value.to_uint8(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint8Array => value.to_uint8(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint8ClampedArray if is_little_endian => {
+            TypedArrayKind::Uint8 => value.to_uint8(context)?.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint8Clamped if is_little_endian => {
                 value.to_uint8_clamp(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint8ClampedArray => {
-                value.to_uint8_clamp(context)?.to_be_bytes().to_vec()
-            }
-            TypedArrayName::Int16Array if is_little_endian => {
+            TypedArrayKind::Uint8Clamped => value.to_uint8_clamp(context)?.to_be_bytes().to_vec(),
+            TypedArrayKind::Int16 if is_little_endian => {
                 value.to_int16(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Int16Array => value.to_int16(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint16Array if is_little_endian => {
+            TypedArrayKind::Int16 => value.to_int16(context)?.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint16 if is_little_endian => {
                 value.to_uint16(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint16Array => value.to_uint16(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Int32Array if is_little_endian => {
+            TypedArrayKind::Uint16 => value.to_uint16(context)?.to_be_bytes().to_vec(),
+            TypedArrayKind::Int32 if is_little_endian => {
                 value.to_i32(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Int32Array => value.to_i32(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::Uint32Array if is_little_endian => {
+            TypedArrayKind::Int32 => value.to_i32(context)?.to_be_bytes().to_vec(),
+            TypedArrayKind::Uint32 if is_little_endian => {
                 value.to_u32(context)?.to_le_bytes().to_vec()
             }
-            TypedArrayName::Uint32Array => value.to_u32(context)?.to_be_bytes().to_vec(),
-            TypedArrayName::BigInt64Array if is_little_endian => {
+            TypedArrayKind::Uint32 => value.to_u32(context)?.to_be_bytes().to_vec(),
+            TypedArrayKind::BigInt64 if is_little_endian => {
                 let big_int = value.to_big_int64(context)?;
                 big_int
                     .to_i64()
@@ -650,7 +643,7 @@ impl ArrayBuffer {
                     .to_le_bytes()
                     .to_vec()
             }
-            TypedArrayName::BigInt64Array => {
+            TypedArrayKind::BigInt64 => {
                 let big_int = value.to_big_int64(context)?;
                 big_int
                     .to_i64()
@@ -664,23 +657,23 @@ impl ArrayBuffer {
                     .to_be_bytes()
                     .to_vec()
             }
-            TypedArrayName::BigUint64Array if is_little_endian => value
+            TypedArrayKind::BigUint64 if is_little_endian => value
                 .to_big_uint64(context)?
                 .to_u64()
                 .unwrap_or(u64::MAX)
                 .to_le_bytes()
                 .to_vec(),
-            TypedArrayName::BigUint64Array => value
+            TypedArrayKind::BigUint64 => value
                 .to_big_uint64(context)?
                 .to_u64()
                 .unwrap_or(u64::MAX)
                 .to_be_bytes()
                 .to_vec(),
-            TypedArrayName::Float32Array => match value.to_number(context)? {
+            TypedArrayKind::Float32 => match value.to_number(context)? {
                 f if is_little_endian => (f as f32).to_le_bytes().to_vec(),
                 f => (f as f32).to_be_bytes().to_vec(),
             },
-            TypedArrayName::Float64Array => match value.to_number(context)? {
+            TypedArrayKind::Float64 => match value.to_number(context)? {
                 f if is_little_endian => f.to_le_bytes().to_vec(),
                 f => f.to_be_bytes().to_vec(),
             },
@@ -696,7 +689,7 @@ impl ArrayBuffer {
     pub(crate) fn set_value_in_buffer(
         &mut self,
         byte_index: usize,
-        t: TypedArrayName,
+        t: TypedArrayKind,
         value: &JsValue,
         _order: SharedMemoryOrder,
         is_little_endian: Option<bool>,

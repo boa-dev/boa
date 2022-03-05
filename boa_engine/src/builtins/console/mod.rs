@@ -19,13 +19,13 @@ mod tests;
 use crate::{
     builtins::{BuiltIn, JsArgs},
     object::ObjectInitializer,
-    property::Attribute,
-    value::{display::display_obj, JsValue},
+    value::{display::display_obj, JsValue, Numeric},
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
 use rustc_hash::FxHashMap;
 use std::time::SystemTime;
+use tap::{Conv, Pipe};
 
 /// This represents the different types of log messages.
 #[derive(Debug)]
@@ -71,21 +71,16 @@ pub fn formatter(data: &[JsValue], context: &mut Context) -> JsResult<String> {
                     match fmt {
                         /* integer */
                         'd' | 'i' => {
-                            let arg = data
-                                .get(arg_index)
-                                .cloned()
-                                .unwrap_or_default()
-                                .to_integer(context)?;
-                            formatted.push_str(&arg.to_string());
+                            let arg = match data.get_or_undefined(arg_index).to_numeric(context)? {
+                                Numeric::Number(r) => (r.floor() + 0.0).to_string(),
+                                Numeric::BigInt(int) => int.to_string(),
+                            };
+                            formatted.push_str(&arg);
                             arg_index += 1;
                         }
                         /* float */
                         'f' => {
-                            let arg = data
-                                .get(arg_index)
-                                .cloned()
-                                .unwrap_or_default()
-                                .to_number(context)?;
+                            let arg = data.get_or_undefined(arg_index).to_number(context)?;
                             formatted.push_str(&format!("{arg:.6}"));
                             arg_index += 1;
                         }
@@ -138,13 +133,9 @@ pub(crate) struct Console {
 impl BuiltIn for Console {
     const NAME: &'static str = "console";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
-        let console = ObjectInitializer::new(context)
+        ObjectInitializer::new(context)
             .function(Self::assert, "assert", 0)
             .function(Self::clear, "clear", 0)
             .function(Self::debug, "debug", 0)
@@ -164,9 +155,9 @@ impl BuiltIn for Console {
             .function(Self::time_end, "timeEnd", 0)
             .function(Self::dir, "dir", 0)
             .function(Self::dir, "dirxml", 0)
-            .build();
-
-        console.into()
+            .build()
+            .conv::<JsValue>()
+            .pipe(Some)
     }
 }
 

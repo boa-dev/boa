@@ -1,7 +1,7 @@
 // ! Tests for array initializer parsing.
 
 use crate::syntax::{
-    ast::{node::ArrayDecl, Const},
+    ast::{node::ArrayDecl, Const, Node},
     parser::tests::check_parser,
 };
 use boa_interner::{Interner, Sym};
@@ -19,7 +19,7 @@ fn check_empty_slot() {
     let mut interner = Interner::default();
     check_parser(
         "[,]",
-        vec![ArrayDecl::from(vec![Const::Undefined.into()]).into()],
+        vec![ArrayDecl::from(vec![Node::Empty]).into()],
         &mut interner,
     );
 }
@@ -65,7 +65,7 @@ fn check_numeric_array_elision() {
         vec![ArrayDecl::from(vec![
             Const::from(1).into(),
             Const::from(2).into(),
-            Const::Undefined.into(),
+            Node::Empty,
             Const::from(3).into(),
         ])
         .into()],
@@ -82,8 +82,8 @@ fn check_numeric_array_repeated_elision() {
         vec![ArrayDecl::from(vec![
             Const::from(1).into(),
             Const::from(2).into(),
-            Const::Undefined.into(),
-            Const::Undefined.into(),
+            Node::Empty,
+            Node::Empty,
             Const::from(3).into(),
         ])
         .into()],

@@ -10,8 +10,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError
 
 use crate::{
-    builtins::BuiltIn,
-    context::StandardObjects,
+    builtins::{BuiltIn, JsArgs},
+    context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -19,6 +19,9 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
+
+use super::Error;
 
 /// JavaScript `RangeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -27,28 +30,27 @@ pub(crate) struct RangeError;
 impl BuiltIn for RangeError {
     const NAME: &'static str = "RangeError";
 
-    const ATTRIBUTE: Attribute = Attribute::WRITABLE
-        .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::CONFIGURABLE);
-
-    fn init(context: &mut Context) -> JsValue {
+    fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let error_prototype = context.standard_objects().error_object().prototype();
+        let error_constructor = context.intrinsics().constructors().error().constructor();
+        let error_prototype = context.intrinsics().constructors().error().prototype();
+
         let attribute = Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE;
-        let range_error_object = ConstructorBuilder::with_standard_object(
+        ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
-            context.standard_objects().range_error_object().clone(),
+            context.intrinsics().constructors().range_error().clone(),
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
         .inherit(error_prototype)
+        .custom_prototype(error_constructor)
         .property("name", Self::NAME, attribute)
         .property("message", "", attribute)
-        .build();
-
-        range_error_object.into()
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -62,14 +64,26 @@ impl RangeError {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. If NewTarget is undefined, let newTarget be the active function object; else let newTarget be NewTarget.
+        // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
         let prototype =
-            get_prototype_from_constructor(new_target, StandardObjects::error_object, context)?;
-        let obj = JsObject::from_proto_and_data(prototype, ObjectData::error());
-        if let Some(message) = args.get(0) {
-            if !message.is_undefined() {
-                obj.set("message", message.to_string(context)?, false, context)?;
-            }
+            get_prototype_from_constructor(new_target, StandardConstructors::range_error, context)?;
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
+
+        // 3. If message is not undefined, then
+        let message = args.get_or_undefined(0);
+        if !message.is_undefined() {
+            // a. Let msg be ? ToString(message).
+            let msg = message.to_string(context)?;
+
+            // b. Perform CreateNonEnumerableDataPropertyOrThrow(O, "message", msg).
+            o.create_non_enumerable_data_property_or_throw("message", msg, context);
         }
-        Ok(obj.into())
+
+        // 4. Perform ? InstallErrorCause(O, options).
+        Error::install_error_cause(&o, args.get_or_undefined(1), context)?;
+
+        // 5. Return O.
+        Ok(o.into())
     }
 }

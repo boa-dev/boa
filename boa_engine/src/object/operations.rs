@@ -1,8 +1,8 @@
 use crate::{
     builtins::Array,
-    context::{StandardConstructor, StandardObjects},
+    context::intrinsics::{StandardConstructor, StandardConstructors},
     object::JsObject,
-    property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::Type,
     Context, JsResult, JsValue,
@@ -154,6 +154,43 @@ impl JsObject {
         }
         // 5. Return success.
         Ok(success)
+    }
+
+    /// Create non-enumerable data property or throw
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createnonenumerabledatapropertyinfallibly
+    pub(crate) fn create_non_enumerable_data_property_or_throw<K, V>(
+        &self,
+        key: K,
+        value: V,
+        context: &mut Context,
+    ) where
+        K: Into<PropertyKey>,
+        V: Into<JsValue>,
+    {
+        // 1. Assert: O is an ordinary, extensible object with no non-configurable properties.
+
+        // 2. Let newDesc be the PropertyDescriptor {
+        //    [[Value]]: V,
+        //    [[Writable]]: true,
+        //    [[Enumerable]]: false,
+        //    [[Configurable]]: true
+        //  }.
+        let new_desc = PropertyDescriptorBuilder::new()
+            .value(value)
+            .writable(true)
+            .enumerable(false)
+            .configurable(true)
+            .build();
+
+        // 3. Perform ! DefinePropertyOrThrow(O, P, newDesc).
+        self.define_property_or_throw(key, new_desc, context)
+            .expect("should not fail according to spec");
+
+        // 4. Return unused.
     }
 
     /// Define property or throw.
@@ -436,7 +473,7 @@ impl JsObject {
         context: &mut Context,
     ) -> JsResult<Self>
     where
-        F: FnOnce(&StandardObjects) -> &StandardConstructor,
+        F: FnOnce(&StandardConstructors) -> &StandardConstructor,
     {
         // 1. Assert: Type(O) is Object.
 
@@ -445,20 +482,22 @@ impl JsObject {
 
         // 3. If C is undefined, return defaultConstructor.
         if c.is_undefined() {
-            return Ok(default_constructor(context.standard_objects()).constructor());
+            return Ok(default_constructor(context.intrinsics().constructors()).constructor());
         }
 
         // 4. If Type(C) is not Object, throw a TypeError exception.
-        if !c.is_object() {
+        let c = if let Some(c) = c.as_object() {
+            c
+        } else {
             return context.throw_type_error("property 'constructor' is not an object");
-        }
+        };
 
         // 5. Let S be ? Get(C, @@species).
-        let s = c.get_field(WellKnownSymbols::species(), context)?;
+        let s = c.get(WellKnownSymbols::species(), context)?;
 
         // 6. If S is either undefined or null, return defaultConstructor.
         if s.is_null_or_undefined() {
-            return Ok(default_constructor(context.standard_objects()).constructor());
+            return Ok(default_constructor(context.intrinsics().constructors()).constructor());
         }
 
         // 7. If IsConstructor(S) is true, return S.

@@ -6,7 +6,10 @@ use crate::{
     builtins::{iterable::IteratorRecord, Array, ForInIterator, Number},
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::Numeric,
-    vm::{call_frame::CatchAddresses, code_block::Readable},
+    vm::{
+        call_frame::CatchAddresses,
+        code_block::{create_function_object, create_generator_function_object, Readable},
+    },
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
 use boa_interner::ToInternedString;
@@ -17,11 +20,12 @@ mod call_frame;
 mod code_block;
 mod opcode;
 
-pub use call_frame::CallFrame;
-pub(crate) use call_frame::{FinallyReturn, TryStackEntry};
-pub use code_block::{CodeBlock, JsVmFunction};
-pub(crate) use opcode::BindingOpcode;
-pub use opcode::Opcode;
+pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
+
+pub(crate) use {
+    call_frame::{FinallyReturn, GeneratorResumeKind, TryStackEntry},
+    opcode::BindingOpcode,
+};
 
 #[cfg(test)]
 mod tests;
@@ -98,8 +102,23 @@ impl Vm {
     }
 }
 
+/// Indicates if the execution should continue, exit or yield.
+#[derive(Debug, Clone, Copy)]
+enum ShouldExit {
+    True,
+    False,
+    Yield,
+}
+
+/// Indicates if the execution of a codeblock has ended normally or has been yielded.
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum ReturnType {
+    Normal,
+    Yield,
+}
+
 impl Context {
-    fn execute_instruction(&mut self) -> JsResult<bool> {
+    fn execute_instruction(&mut self) -> JsResult<ShouldExit> {
         macro_rules! bin_op {
             ($op:ident) => {{
                 let rhs = self.vm.pop();
@@ -176,7 +195,23 @@ impl Context {
             Opcode::PushValueToArray => {
                 let value = self.vm.pop();
                 let array = self.vm.pop();
-                let array = Array::add_to_array_object(&array, &[value], self)?;
+                let o = array.as_object().expect("should be an object");
+                let len = o
+                    .length_of_array_like(self)
+                    .expect("should have 'length' property");
+                o.create_data_property_or_throw(len, value, self)
+                    .expect("should be able to create new data property");
+                self.vm.push(array);
+            }
+            Opcode::PushElisionToArray => {
+                let array = self.vm.pop();
+                let o = array.as_object().expect("should always be an object");
+
+                let len = o
+                    .length_of_array_like(self)
+                    .expect("arrays should always have a 'length' property");
+
+                o.set("length", len + 1, true, self)?;
                 self.vm.push(array);
             }
             Opcode::PushIteratorToArray => {
@@ -185,13 +220,8 @@ impl Context {
                 let array = self.vm.pop();
 
                 let iterator = IteratorRecord::new(iterator, next_function);
-                loop {
-                    let next = iterator.next(self)?;
-
-                    if next.done {
-                        break;
-                    }
-                    Array::add_to_array_object(&array, &[next.value], self)?;
+                while let Some(next) = iterator.step(self)? {
+                    Array::push(&array, &[next.value(self)?], self)?;
                 }
 
                 self.vm.push(array);
@@ -827,7 +857,10 @@ impl Context {
                 });
             }
             Opcode::CatchEnd2 => {
-                self.vm.frame_mut().finally_return = FinallyReturn::None;
+                let frame = self.vm.frame_mut();
+                if frame.finally_return == FinallyReturn::Err {
+                    frame.finally_return = FinallyReturn::None;
+                }
             }
             Opcode::FinallyStart => {
                 *self
@@ -851,7 +884,7 @@ impl Context {
                         }
                     }
                     FinallyReturn::Ok => {
-                        return Ok(true);
+                        return Ok(ShouldExit::True);
                     }
                     FinallyReturn::Err => {
                         return Err(self.vm.pop());
@@ -890,7 +923,13 @@ impl Context {
             Opcode::GetFunction => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let function = JsVmFunction::new(code, self);
+                let function = create_function_object(code, self);
+                self.vm.push(function);
+            }
+            Opcode::GetGenerator => {
+                let index = self.vm.read::<u32>();
+                let code = self.vm.frame().code.functions[index as usize].clone();
+                let function = create_generator_function_object(code, self);
                 self.vm.push(function);
             }
             Opcode::Call => {
@@ -936,12 +975,8 @@ impl Context {
 
                 let iterator_record = rest_argument.get_iterator(self, None, None)?;
                 let mut rest_arguments = Vec::new();
-                loop {
-                    let next = iterator_record.next(self)?;
-                    if next.done {
-                        break;
-                    }
-                    rest_arguments.push(next.value);
+                while let Some(next) = iterator_record.step(self)? {
+                    rest_arguments.push(next.value(self)?);
                 }
                 arguments.append(&mut rest_arguments);
 
@@ -992,12 +1027,8 @@ impl Context {
 
                 let iterator_record = rest_argument.get_iterator(self, None, None)?;
                 let mut rest_arguments = Vec::new();
-                loop {
-                    let next = iterator_record.next(self)?;
-                    if next.done {
-                        break;
-                    }
-                    rest_arguments.push(next.value);
+                while let Some(next) = iterator_record.step(self)? {
+                    rest_arguments.push(next.value(self)?);
                 }
                 arguments.append(&mut rest_arguments);
 
@@ -1036,7 +1067,7 @@ impl Context {
                         .last_mut()
                         .expect("must exist") -= num_env;
                 } else {
-                    return Ok(true);
+                    return Ok(ShouldExit::True);
                 }
             }
             Opcode::PushDeclarativeEnvironment => {
@@ -1127,23 +1158,34 @@ impl Context {
                 let iterator = self.vm.pop();
 
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
-                let iterator_result = iterator_record.next(self)?;
+                let next = iterator_record.step(self)?;
 
                 self.vm.push(iterator);
                 self.vm.push(next_function);
-                self.vm.push(iterator_result.value);
+                if let Some(next) = next {
+                    let value = next.value(self)?;
+                    self.vm.push(value);
+                } else {
+                    self.vm.push(JsValue::undefined());
+                }
             }
             Opcode::IteratorNextFull => {
                 let next_function = self.vm.pop();
                 let iterator = self.vm.pop();
 
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
-                let iterator_result = iterator_record.next(self)?;
+                let next = iterator_record.step(self)?;
 
                 self.vm.push(iterator);
                 self.vm.push(next_function);
-                self.vm.push(iterator_result.done);
-                self.vm.push(iterator_result.value);
+                if let Some(next) = next {
+                    let value = next.value(self)?;
+                    self.vm.push(false);
+                    self.vm.push(value);
+                } else {
+                    self.vm.push(true);
+                    self.vm.push(JsValue::undefined());
+                }
             }
             Opcode::IteratorClose => {
                 let done = self.vm.pop();
@@ -1161,18 +1203,11 @@ impl Context {
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
                 let mut values = Vec::new();
 
-                loop {
-                    let next = iterator_record.next(self)?;
-                    if next.done {
-                        break;
-                    }
-                    values.push(next.value);
+                while let Some(result) = iterator_record.step(self)? {
+                    values.push(result.value(self)?);
                 }
 
-                let array = Array::array_create(0, None, self)
-                    .expect("Array creation with 0 length should never fail");
-
-                Array::add_to_array_object(&array.clone().into(), &values, self)?;
+                let array = Array::create_array_from_list(values, self);
 
                 self.vm.push(iterator);
                 self.vm.push(next_function);
@@ -1185,18 +1220,18 @@ impl Context {
                 let iterator = self.vm.pop();
 
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
-                let iterator_result = iterator_record.next(self)?;
-                if iterator_result.done {
+                if let Some(next) = iterator_record.step(self)? {
+                    self.vm.push(iterator);
+                    self.vm.push(next_function);
+                    let value = next.value(self)?;
+                    self.vm.push(value);
+                } else {
                     self.vm.frame_mut().pc = address as usize;
                     self.vm.frame_mut().loop_env_stack_dec();
                     self.vm.frame_mut().try_env_stack_dec();
                     self.realm.environments.pop();
                     self.vm.push(iterator);
                     self.vm.push(next_function);
-                } else {
-                    self.vm.push(iterator);
-                    self.vm.push(next_function);
-                    self.vm.push(iterator_result.value);
                 }
             }
             Opcode::ConcatToString => {
@@ -1235,13 +1270,14 @@ impl Context {
                     for _ in 0..rest_count {
                         args.push(self.vm.pop());
                     }
-                    let array = Array::new_array(self);
-                    Array::add_to_array_object(&array, &args, self)
-                        .expect("could not add to array object");
+                    let array: _ = Array::create_array_from_list(args, self);
+
                     self.vm.push(array);
                 } else {
                     self.vm.pop();
-                    let array = Array::new_array(self);
+
+                    let array = Array::array_create(0, None, self)
+                        .expect("could not create an empty array");
                     self.vm.push(array);
                 }
             }
@@ -1260,12 +1296,123 @@ impl Context {
             Opcode::PopOnReturnSub => {
                 self.vm.frame_mut().pop_on_return -= 1;
             }
+            Opcode::Yield => return Ok(ShouldExit::Yield),
+            Opcode::GeneratorNext => match self.vm.frame().generator_resume_kind {
+                GeneratorResumeKind::Normal => return Ok(ShouldExit::False),
+                GeneratorResumeKind::Throw => {
+                    let received = self.vm.pop();
+                    return Err(received);
+                }
+                GeneratorResumeKind::Return => {
+                    let mut finally_left = false;
+
+                    while let Some(catch_addresses) = self.vm.frame().catch.last() {
+                        if let Some(finally_address) = catch_addresses.finally {
+                            let frame = self.vm.frame_mut();
+                            frame.pc = finally_address as usize;
+                            frame.finally_return = FinallyReturn::Ok;
+                            frame.catch.pop();
+                            finally_left = true;
+                            break;
+                        }
+                        self.vm.frame_mut().catch.pop();
+                    }
+
+                    if finally_left {
+                        return Ok(ShouldExit::False);
+                    }
+                    return Ok(ShouldExit::True);
+                }
+            },
+            Opcode::GeneratorNextDelegate => {
+                let done_address = self.vm.read::<u32>();
+                let received = self.vm.pop();
+                let next_function = self.vm.pop();
+                let iterator = self.vm.pop();
+
+                match self.vm.frame().generator_resume_kind {
+                    GeneratorResumeKind::Normal => {
+                        let result = self.call(&next_function, &iterator, &[received])?;
+                        let result_object = result.as_object().ok_or_else(|| {
+                            self.construct_type_error("generator next method returned non-object")
+                        })?;
+                        let done = result_object.get("done", self)?.to_boolean();
+                        if done {
+                            self.vm.frame_mut().pc = done_address as usize;
+                            let value = result_object.get("value", self)?;
+                            self.vm.push(value);
+                            return Ok(ShouldExit::False);
+                        }
+                        let value = result_object.get("value", self)?;
+                        self.vm.push(iterator);
+                        self.vm.push(next_function);
+                        self.vm.push(value);
+                        return Ok(ShouldExit::Yield);
+                    }
+                    GeneratorResumeKind::Throw => {
+                        let throw = iterator.get_method("throw", self)?;
+                        if let Some(throw) = throw {
+                            let result = throw.call(&iterator, &[received], self)?;
+                            let result_object = result.as_object().ok_or_else(|| {
+                                self.construct_type_error(
+                                    "generator throw method returned non-object",
+                                )
+                            })?;
+                            let done = result_object.get("done", self)?.to_boolean();
+                            if done {
+                                self.vm.frame_mut().pc = done_address as usize;
+                                let value = result_object.get("value", self)?;
+                                self.vm.push(value);
+                                return Ok(ShouldExit::False);
+                            }
+                            let value = result_object.get("value", self)?;
+                            self.vm.push(iterator);
+                            self.vm.push(next_function);
+                            self.vm.push(value);
+                            return Ok(ShouldExit::Yield);
+                        }
+                        self.vm.frame_mut().pc = done_address as usize;
+                        let iterator_record =
+                            IteratorRecord::new(iterator.clone(), next_function.clone());
+                        iterator_record.close(Ok(JsValue::Undefined), self)?;
+                        let error =
+                            self.construct_type_error("iterator does not have a throw method");
+                        return Err(error);
+                    }
+                    GeneratorResumeKind::Return => {
+                        let r#return = iterator.get_method("return", self)?;
+                        if let Some(r#return) = r#return {
+                            let result = r#return.call(&iterator, &[received], self)?;
+                            let result_object = result.as_object().ok_or_else(|| {
+                                self.construct_type_error(
+                                    "generator return method returned non-object",
+                                )
+                            })?;
+                            let done = result_object.get("done", self)?.to_boolean();
+                            if done {
+                                self.vm.frame_mut().pc = done_address as usize;
+                                let value = result_object.get("value", self)?;
+                                self.vm.push(value);
+                                return Ok(ShouldExit::True);
+                            }
+                            let value = result_object.get("value", self)?;
+                            self.vm.push(iterator);
+                            self.vm.push(next_function);
+                            self.vm.push(value);
+                            return Ok(ShouldExit::Yield);
+                        }
+                        self.vm.frame_mut().pc = done_address as usize;
+                        self.vm.push(received);
+                        return Ok(ShouldExit::True);
+                    }
+                }
+            }
         }
 
-        Ok(false)
+        Ok(ShouldExit::False)
     }
 
-    pub(crate) fn run(&mut self) -> JsResult<JsValue> {
+    pub(crate) fn run(&mut self) -> JsResult<(JsValue, ReturnType)> {
         const COLUMN_WIDTH: usize = 26;
         const TIME_COLUMN_WIDTH: usize = COLUMN_WIDTH / 2;
         const OPCODE_COLUMN_WIDTH: usize = COLUMN_WIDTH;
@@ -1297,7 +1444,8 @@ impl Context {
             );
         }
 
-        self.vm.frame_mut().pc = 0;
+        let start_stack_size = self.vm.stack.len();
+
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
@@ -1342,11 +1490,15 @@ impl Context {
             };
 
             match result {
-                Ok(should_exit) => {
-                    if should_exit {
-                        let result = self.vm.pop();
-                        return Ok(result);
-                    }
+                Ok(ShouldExit::True) => {
+                    let result = self.vm.pop();
+                    self.vm.stack.truncate(start_stack_size);
+                    return Ok((result, ReturnType::Normal));
+                }
+                Ok(ShouldExit::False) => {}
+                Ok(ShouldExit::Yield) => {
+                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    return Ok((result, ReturnType::Yield));
                 }
                 Err(e) => {
                     if let Some(address) = self.vm.frame().catch.last() {
@@ -1382,11 +1534,13 @@ impl Context {
                         for _ in 0..self.vm.frame().pop_on_return {
                             self.vm.pop();
                         }
+                        self.vm.frame_mut().pop_on_return = 0;
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch.pop();
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         self.vm.push(e);
                     } else {
+                        self.vm.stack.truncate(start_stack_size);
                         return Err(e);
                     }
                 }
@@ -1417,9 +1571,11 @@ impl Context {
         }
 
         if self.vm.stack.is_empty() {
-            return Ok(JsValue::undefined());
+            return Ok((JsValue::undefined(), ReturnType::Normal));
         }
 
-        Ok(self.vm.pop())
+        let result = self.vm.pop();
+        self.vm.stack.truncate(start_stack_size);
+        Ok((result, ReturnType::Normal))
     }
 }

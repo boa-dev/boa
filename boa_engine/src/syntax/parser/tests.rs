@@ -3,14 +3,15 @@
 use super::Parser;
 use crate::syntax::ast::{
     node::{
-        field::GetConstField, ArrowFunctionDecl, Assign, BinOp, Call, Declaration, DeclarationList,
-        FormalParameter, FunctionDecl, Identifier, If, New, Node, Object, PropertyDefinition,
-        Return, StatementList, UnaryOp,
+        field::GetConstField, object::PropertyDefinition, ArrowFunctionDecl, Assign, BinOp, Call,
+        Declaration, DeclarationList, FormalParameter, FormalParameterList,
+        FormalParameterListFlags, FunctionDecl, Identifier, If, New, Node, Object, Return,
+        StatementList, UnaryOp,
     },
     op::{self, CompOp, LogOp, NumOp},
     Const,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[allow(clippy::unwrap_used)]
@@ -88,7 +89,7 @@ fn hoisting() {
         vec![
             FunctionDecl::new(
                 hello,
-                vec![],
+                FormalParameterList::default(),
                 vec![Return::new(Const::from(10), None).into()],
             )
             .into(),
@@ -404,17 +405,19 @@ fn spread_in_arrow_function() {
     let b = interner.get_or_intern_static("b");
     check_parser(
         s,
-        vec![
-            ArrowFunctionDecl::new::<Option<Sym>, Box<[FormalParameter]>, StatementList>(
-                None,
-                Box::new([FormalParameter::new(
-                    Declaration::new_with_identifier::<_, Option<Node>>(b, None),
+        vec![ArrowFunctionDecl::new(
+            None,
+            FormalParameterList {
+                parameters: Box::new([FormalParameter::new(
+                    Declaration::new_with_identifier(b, None),
                     true,
                 )]),
-                vec![Identifier::new(b).into()].into(),
-            )
-            .into(),
-        ],
+                flags: FormalParameterListFlags::empty()
+                    .union(FormalParameterListFlags::HAS_REST_PARAMETER),
+            },
+            vec![Identifier::from(b).into()],
+        )
+        .into()],
         &mut interner,
     );
 }
