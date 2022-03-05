@@ -1454,9 +1454,7 @@ impl<'b> ByteCompiler<'b> {
                         .iter()
                         .rev()
                         .filter(|info| info.kind == JumpControlInfoKind::Loop);
-                    let address = if node.label().is_none() {
-                        items.next().expect("continue target").start_address
-                    } else {
+                    let address = if let Some(label_name) = node.label() {
                         let mut num_loops = 0;
                         let mut emit_for_of_in_exit = 0;
                         let mut address_info = None;
@@ -1470,7 +1468,14 @@ impl<'b> ByteCompiler<'b> {
                                 emit_for_of_in_exit += 1;
                             }
                         }
-                        let address = address_info.expect("continue target").start_address;
+                        let address = address_info
+                            .ok_or_else(|| {
+                                self.context.construct_syntax_error(format!(
+                                    "Cannot use the undeclared label '{}'",
+                                    self.context.interner().resolve_expect(label_name)
+                                ))
+                            })?
+                            .start_address;
                         for _ in 0..emit_for_of_in_exit {
                             self.emit_opcode(Opcode::Pop);
                             self.emit_opcode(Opcode::Pop);
@@ -1479,6 +1484,14 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_opcode(Opcode::LoopEnd);
                         }
                         address
+                    } else {
+                        items
+                            .next()
+                            .ok_or_else(|| {
+                                self.context
+                                    .construct_syntax_error("continue must be inside loop")
+                            })?
+                            .start_address
                     };
                     self.emit_opcode(Opcode::LoopEnd);
                     self.emit_opcode(Opcode::LoopStart);
