@@ -1,8 +1,11 @@
+// This example shows how to load, parse and execute JS code from a source file
+// (./scripts/helloworld.js)
+
 use std::fs::read_to_string;
 
 use boa_engine::Context;
 
-pub fn run() {
+fn main() {
     let js_file_path = "./scripts/helloworld.js";
 
     match read_to_string(js_file_path) {
