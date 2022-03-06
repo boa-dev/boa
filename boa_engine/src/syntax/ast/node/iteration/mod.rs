@@ -4,7 +4,9 @@ pub use self::{
     break_node::Break, continue_node::Continue, do_while_loop::DoWhileLoop, for_in_loop::ForInLoop,
     for_loop::ForLoop, for_of_loop::ForOfLoop, while_loop::WhileLoop,
 };
-use crate::syntax::ast::node::{declaration::Declaration, identifier::Identifier};
+use crate::syntax::ast::node::{
+    declaration::Declaration, identifier::Identifier, DeclarationPattern,
+};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
 
@@ -21,6 +23,7 @@ pub enum IterableLoopInitializer {
     Var(Declaration),
     Let(Declaration),
     Const(Declaration),
+    DeclarationPattern(DeclarationPattern),
 }
 
 impl ToInternedString for IterableLoopInitializer {
@@ -37,6 +40,9 @@ impl ToInternedString for IterableLoopInitializer {
             }
             IterableLoopInitializer::Const(declaration) => {
                 format!("const {}", declaration.to_interned_string(interner))
+            }
+            IterableLoopInitializer::DeclarationPattern(declaration) => {
+                declaration.to_interned_string(interner)
             }
         }
     }

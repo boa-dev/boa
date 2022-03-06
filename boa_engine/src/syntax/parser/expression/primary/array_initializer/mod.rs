@@ -15,6 +15,7 @@ use crate::syntax::{
         node::{ArrayDecl, Node, Spread},
         Punctuator,
     },
+    lexer::TokenKind,
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
@@ -64,7 +65,7 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
-
+        let mut has_trailing_comma_spread = false;
         loop {
             // TODO: Support all features.
             while cursor.next_if(Punctuator::Comma, interner)?.is_some() {
@@ -85,15 +86,23 @@ where
                     AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                 elements.push(Spread::new(node).into());
+                // If the last element in the array is followed by a comma, push an elision.
+                if cursor.next_if(Punctuator::Comma, interner)?.is_some() {
+                    if let Some(t) = cursor.peek(0, interner)? {
+                        if *t.kind() == TokenKind::Punctuator(Punctuator::CloseBracket) {
+                            has_trailing_comma_spread = true;
+                        }
+                    }
+                }
             } else {
                 elements.push(
                     AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,
                 );
+                cursor.next_if(Punctuator::Comma, interner)?;
             }
-            cursor.next_if(Punctuator::Comma, interner)?;
         }
 
-        Ok(elements.into())
+        Ok(ArrayDecl::new(elements, has_trailing_comma_spread))
     }
 }
