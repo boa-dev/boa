@@ -443,6 +443,31 @@ fn test_invalid_break_target() {
 }
 
 #[test]
+fn test_invalid_continue_target() {
+    let mut context = Context::default();
+    let src = r#"
+        while (false) {
+          continue nonexistent;
+        }
+        "#;
+    let string = forward(&mut context, src);
+    assert_eq!(
+        string,
+        "Uncaught \"SyntaxError\": \"Cannot use the undeclared label 'nonexistent'\""
+    );
+}
+
+#[test]
+fn test_invalid_continue() {
+    let mut context = Context::default();
+    let string = forward(&mut context, r"continue;");
+    assert_eq!(
+        string,
+        "Uncaught \"SyntaxError\": \"continue must be inside loop\""
+    );
+}
+
+#[test]
 fn unary_pre() {
     let unary_inc = r#"
         let a = 5;
