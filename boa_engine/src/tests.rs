@@ -451,14 +451,20 @@ fn test_invalid_continue_target() {
         }
         "#;
     let string = forward(&mut context, src);
-    assert_eq!(string, "Uncaught \"SyntaxError\": \"Cannot use the undeclared label 'nonexistent'\"");
+    assert_eq!(
+        string,
+        "Uncaught \"SyntaxError\": \"Cannot use the undeclared label 'nonexistent'\""
+    );
 }
 
 #[test]
 fn test_invalid_continue() {
     let mut context = Context::default();
     let string = forward(&mut context, r"continue;");
-    assert_eq!(string, "Uncaught \"SyntaxError\": \"continue must be inside loop\"");
+    assert_eq!(
+        string,
+        "Uncaught \"SyntaxError\": \"continue must be inside loop\""
+    );
 }
 
 #[test]
