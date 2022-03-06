@@ -2264,6 +2264,19 @@
 <span id="2262">2262</span>
 <span id="2263">2263</span>
 <span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -3755,9 +3768,7 @@
                         .<span class="ident">iter</span>()
                         .<span class="ident">rev</span>()
                         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">info</span><span class="op">|</span> <span class="ident">info</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">JumpControlInfoKind::Loop</span>);
-                    <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">label</span>().<span class="ident">is_none</span>() {
-                        <span class="ident">items</span>.<span class="ident">next</span>().<span class="ident">expect</span>(<span class="string">&quot;continue target&quot;</span>).<span class="ident">start_address</span>
-                    } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label_name</span>) <span class="op">=</span> <span class="ident">node</span>.<span class="ident">label</span>() {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">num_loops</span> <span class="op">=</span> <span class="number">0</span>;
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">emit_for_of_in_exit</span> <span class="op">=</span> <span class="number">0</span>;
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">address_info</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -3771,7 +3782,14 @@
                                 <span class="ident">emit_for_of_in_exit</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                             }
                         }
-                        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">address_info</span>.<span class="ident">expect</span>(<span class="string">&quot;continue target&quot;</span>).<span class="ident">start_address</span>;
+                        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">address_info</span>
+                            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(<span class="macro">format!</span>(
+                                    <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
+                                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">label_name</span>)
+                                ))
+                            })<span class="question-mark">?</span>
+                            .<span class="ident">start_address</span>;
                         <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">emit_for_of_in_exit</span> {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
@@ -3780,6 +3798,14 @@
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopEnd</span>);
                         }
                         <span class="ident">address</span>
+                    } <span class="kw">else</span> {
+                        <span class="ident">items</span>
+                            .<span class="ident">next</span>()
+                            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                <span class="self">self</span>.<span class="ident">context</span>
+                                    .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;continue must be inside loop&quot;</span>)
+                            })<span class="question-mark">?</span>
+                            .<span class="ident">start_address</span>
                     };
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopEnd</span>);
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
