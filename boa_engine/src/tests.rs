@@ -444,11 +444,16 @@ fn test_invalid_break_target() {
 
 #[test]
 fn test_invalid_break() {
+    let mut context = Context::default();
     let src = r#"
         break;
         "#;
 
-    assert!(matches!(Context::default().eval(src.as_bytes()), Err(_)));
+    let string = forward(&mut context, src);
+    assert_eq!(
+        string,
+        "Uncaught \"SyntaxError\": \"unlabeled break must be inside loop or switch\""
+    );
 }
 
 #[test]
