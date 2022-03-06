@@ -2,7 +2,6 @@ use super::{Declaration, DeclarationPattern, Node};
 use bitflags::bitflags;
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::borrow::BorrowMut;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -58,7 +57,7 @@ impl FormalParameterList {
 
     #[cfg(feature = "fuzzer")]
     pub fn items_mut(&mut self) -> &mut [FormalParameter] {
-        self.parameters.borrow_mut()
+        &mut self.parameters
     }
 }
 

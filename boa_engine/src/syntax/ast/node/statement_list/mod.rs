@@ -1,6 +1,7 @@
 //! Statement list node.
 
 use crate::syntax::ast::node::{Declaration, Node};
+#[cfg(feature = "fuzzer")]
 use arbitrary::{size_hint, Arbitrary, Unstructured};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
