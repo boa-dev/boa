@@ -19,11 +19,12 @@ use boa_engine::syntax::ast::{
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
-pub struct Name {
-    pub name: String,
+struct Name {
+    name: String,
 }
 
-#[derive(Debug)]
+/// Fuzz data which can be arbitrarily generated and used to test boa's parser, compiler, and vm
+#[derive(Debug, Clone)]
 pub struct FuzzData {
     source: String,
 }
@@ -55,6 +56,7 @@ impl<'a> Arbitrary<'a> for FuzzData {
 }
 
 impl FuzzData {
+    /// Get the source represented by this fuzz data
     pub fn get_source(&self) -> &str {
         &self.source
     }
