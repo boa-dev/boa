@@ -166,8 +166,6 @@ impl Context {
         self.strict = strict;
     }
 
-
-
     /// Sets up the default global objects within Global
     #[inline]
     fn create_intrinsics(&mut self) {

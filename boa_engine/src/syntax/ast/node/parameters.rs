@@ -1,8 +1,8 @@
-use std::borrow::BorrowMut;
 use super::{Declaration, DeclarationPattern, Node};
 use bitflags::bitflags;
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
+use std::borrow::BorrowMut;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};

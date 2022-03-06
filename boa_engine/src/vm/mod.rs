@@ -1450,10 +1450,11 @@ impl Context {
         let start_stack_size = self.vm.stack.len();
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
-            #[cfg(feature = "fuzzer")] {
+            #[cfg(feature = "fuzzer")]
+            {
                 insns_executed += 1;
                 if insns_executed > self.max_insns {
-                    return Err("instruction max exceeded".into())
+                    return Err("instruction max exceeded".into());
                 }
             }
             let result = if self.vm.trace {
