@@ -24,6 +24,7 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
 /// [func_expr]: ../enum.Node.html#variant.FunctionExpr
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionDecl {
     name: Sym,
@@ -58,6 +59,21 @@ impl FunctionDecl {
     /// Gets the body of the function declaration.
     pub fn body(&self) -> &StatementList {
         &self.body
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn name_mut(&mut self) -> &mut Sym {
+        &mut self.name
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn parameters_mut(&mut self) -> &mut FormalParameterList {
+        &mut self.parameters
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut StatementList {
+        &mut self.body
     }
 
     /// Implements the display formatting with indentation.

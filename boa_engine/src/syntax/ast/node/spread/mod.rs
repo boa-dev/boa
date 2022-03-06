@@ -26,6 +26,7 @@ mod tests;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Spread {
     val: Box<Node>,
@@ -34,6 +35,11 @@ pub struct Spread {
 impl Spread {
     pub fn val(&self) -> &Node {
         &self.val
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn val_mut(&mut self) -> &mut Node {
+        &mut self.val
     }
 
     /// Creates a `Spread` AST node.

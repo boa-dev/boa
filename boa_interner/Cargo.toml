@@ -29,6 +29,10 @@ exclude = [
 ]
 
 [dependencies]
+arbitrary = { version = "1", features = ["derive"], optional = true }
 string-interner = "0.14.0"
 serde = { version = "1.0.136", features = ["derive"], optional = true }
 gc = { version = "0.4.1", features = ["derive"] }
+
+[features]
+fuzzer = ["arbitrary"]

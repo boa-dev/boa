@@ -85,6 +85,9 @@ pub struct Context {
     /// Whether or not global strict mode is active.
     strict: bool,
 
+    #[cfg(feature = "fuzzer")]
+    pub(crate) max_insns: usize,
+
     pub(crate) vm: Vm,
 }
 
@@ -97,6 +100,8 @@ impl Default for Context {
             console: Console::default(),
             intrinsics: Intrinsics::default(),
             strict: false,
+            #[cfg(feature = "fuzzer")]
+            max_insns: 1 << 20,
             vm: Vm {
                 frame: None,
                 stack: Vec::with_capacity(1024),
@@ -160,6 +165,8 @@ impl Context {
     pub fn set_strict_mode(&mut self, strict: bool) {
         self.strict = strict;
     }
+
+
 
     /// Sets up the default global objects within Global
     #[inline]
@@ -724,5 +731,10 @@ impl Context {
     /// Set the value of trace on the context
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn set_max_insns(&mut self, max_insns: usize) {
+        self.max_insns = max_insns;
     }
 }

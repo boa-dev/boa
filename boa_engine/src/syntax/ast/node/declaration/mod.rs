@@ -29,6 +29,7 @@ use super::StatementList;
 mod tests;
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum DeclarationList {
     /// The `const` statements are block-scoped, much like variables defined using the `let`
@@ -149,6 +150,7 @@ impl From<Declaration> for Box<[Declaration]> {
 /// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration
 /// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum Declaration {
     Identifier {
@@ -236,6 +238,7 @@ impl Declaration {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum DeclarationPattern {
     Object(DeclarationPatternObject),
@@ -282,6 +285,7 @@ impl DeclarationPattern {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct DeclarationPatternObject {
     bindings: Vec<BindingPatternTypeObject>,
@@ -329,6 +333,18 @@ impl DeclarationPatternObject {
     #[inline]
     pub(crate) fn bindings(&self) -> &Vec<BindingPatternTypeObject> {
         &self.bindings
+    }
+
+    #[cfg(feature = "fuzzer")]
+    #[inline]
+    pub fn init_mut(&mut self) -> Option<&mut Node> {
+        self.init.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    #[inline]
+    pub fn bindings_mut(&mut self) -> &mut Vec<BindingPatternTypeObject> {
+        &mut self.bindings
     }
 
     /// Gets the list of identifiers declared by the object binding pattern.
@@ -379,6 +395,7 @@ impl DeclarationPatternObject {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct DeclarationPatternArray {
     bindings: Vec<BindingPatternTypeArray>,
@@ -430,6 +447,18 @@ impl DeclarationPatternArray {
         &self.bindings
     }
 
+    #[cfg(feature = "fuzzer")]
+    #[inline]
+    pub fn init_mut(&mut self) -> Option<&mut Node> {
+        self.init.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    #[inline]
+    pub fn bindings_mut(&mut self) -> &mut Vec<BindingPatternTypeArray> {
+        &mut self.bindings
+    }
+
     /// Gets the list of identifiers declared by the array binding pattern.
     #[inline]
     pub(crate) fn idents(&self) -> Vec<Sym> {
@@ -467,6 +496,7 @@ impl DeclarationPatternArray {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BindingPatternTypeObject {
     /// Empty represents an empty object binding pattern e.g. `{ }`.
@@ -571,6 +601,7 @@ impl ToInternedString for BindingPatternTypeObject {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum BindingPatternTypeArray {
     /// Empty represents an empty array binding pattern e.g. `[ ]`.

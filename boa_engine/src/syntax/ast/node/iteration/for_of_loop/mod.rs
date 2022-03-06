@@ -6,6 +6,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ForOfLoop {
     init: Box<IterableLoopInitializer>,
@@ -47,6 +48,26 @@ impl ForOfLoop {
 
     pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn init_mut(&mut self) -> &mut IterableLoopInitializer {
+        &mut self.init
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn iterable_mut(&mut self) -> &mut Node {
+        &mut self.iterable
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut Node {
+        &mut self.body
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn label_mut(&mut self) -> Option<&mut Sym> {
+        self.label.as_mut()
     }
 
     /// Converts the "for of" loop to a string with the given indentation.

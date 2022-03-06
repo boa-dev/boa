@@ -27,6 +27,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-ReturnStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Return {
     expr: Option<Box<Node>>,
@@ -40,6 +41,16 @@ impl Return {
 
     pub fn expr(&self) -> Option<&Node> {
         self.expr.as_ref().map(Box::as_ref)
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn label_mut(&mut self) -> Option<&mut Sym> {
+        self.label.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn expr_mut(&mut self) -> Option<&mut Node> {
+        self.expr.as_deref_mut()
     }
 
     /// Creates a `Return` AST node.

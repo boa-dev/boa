@@ -20,6 +20,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ConditionalOp {
     condition: Box<Node>,
@@ -38,6 +39,21 @@ impl ConditionalOp {
 
     pub fn if_false(&self) -> &Node {
         &self.if_false
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn cond_mut(&mut self) -> &mut Node {
+        &mut self.condition
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn if_true_mut(&mut self) -> &mut Node {
+        &mut self.if_true
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn if_false_mut(&mut self) -> &mut Node {
+        &mut self.if_false
     }
 
     /// Creates a `ConditionalOp` AST node.

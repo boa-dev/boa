@@ -1444,9 +1444,18 @@ impl Context {
             );
         }
 
+        #[cfg(feature = "fuzzer")]
+        let mut insns_executed = 0;
+        self.vm.frame_mut().pc = 0;
         let start_stack_size = self.vm.stack.len();
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
+            #[cfg(feature = "fuzzer")] {
+                insns_executed += 1;
+                if insns_executed > self.max_insns {
+                    return Err("instruction max exceeded".into())
+                }
+            }
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
                 let opcode: Opcode = self

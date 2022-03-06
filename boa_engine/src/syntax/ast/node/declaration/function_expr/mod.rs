@@ -24,6 +24,7 @@ use super::block_to_string;
 /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct FunctionExpr {
     name: Option<Sym>,
@@ -59,6 +60,21 @@ impl FunctionExpr {
     /// Gets the body of the function declaration.
     pub fn body(&self) -> &StatementList {
         &self.body
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn name_mut(&mut self) -> Option<&mut Sym> {
+        self.name.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn parameters_mut(&mut self) -> &mut FormalParameterList {
+        &mut self.parameters
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut StatementList {
+        &mut self.body
     }
 
     /// Implements the display formatting with indentation.

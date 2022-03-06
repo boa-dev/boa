@@ -23,6 +23,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-CallExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions#Calling_functions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Call {
     expr: Box<Node>,
@@ -50,6 +51,16 @@ impl Call {
     /// Retrieves the arguments passed to the function.
     pub fn args(&self) -> &[Node] {
         &self.args
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn expr_mut(&mut self) -> &mut Node {
+        &mut self.expr
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn args_mut(&mut self) -> &mut [Node] {
+        &mut self.args
     }
 }
 

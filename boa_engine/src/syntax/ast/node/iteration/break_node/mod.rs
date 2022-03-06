@@ -23,6 +23,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Copy, Finalize, PartialEq)]
 pub struct Break {
     label: Option<Sym>,
@@ -42,6 +43,11 @@ impl Break {
     /// Gets the label of the break statement, if any.
     pub fn label(&self) -> Option<Sym> {
         self.label
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn label_mut(&mut self) -> Option<&mut Sym> {
+        self.label.as_mut()
     }
 }
 

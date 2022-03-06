@@ -28,6 +28,7 @@ use serde::{Deserialize, Serialize};
 /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GetField {
     obj: Box<Node>,
@@ -41,6 +42,16 @@ impl GetField {
 
     pub fn field(&self) -> &Node {
         &self.field
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn obj_mut(&mut self) -> &mut Node {
+        &mut self.obj
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn field_mut(&mut self) -> &mut Node {
+        &mut self.field
     }
 
     /// Creates a `GetField` AST node.

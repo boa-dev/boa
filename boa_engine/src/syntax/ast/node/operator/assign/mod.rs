@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Assign {
     lhs: Box<Node>,
@@ -44,6 +45,16 @@ impl Assign {
     /// Gets the right hand side of the assignment operation.
     pub fn rhs(&self) -> &Node {
         &self.rhs
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn lhs_mut(&mut self) -> &mut Node {
+        &mut self.lhs
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn rhs_mut(&mut self) -> &mut Node {
+        &mut self.rhs
     }
 }
 

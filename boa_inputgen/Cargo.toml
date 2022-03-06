@@ -1,0 +1,22 @@
+[package]
+name = "boa_inputgen"
+authors = ["Addison Crump <me@addisoncrump.info>"]
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+libfuzzer-sys = "0.4"
+string-interner = "*"
+
+[features]
+pretty-debug = []
+
+[dependencies.boa_engine]
+path = "../boa_engine"
+features = ["fuzzer"]
+
+[dependencies.boa_interner]
+path = "../boa_interner"
+features = ["fuzzer"]

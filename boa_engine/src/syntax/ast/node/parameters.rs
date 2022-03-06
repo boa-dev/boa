@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use super::{Declaration, DeclarationPattern, Node};
 use bitflags::bitflags;
 use boa_gc::{Finalize, Trace};
@@ -13,6 +14,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Default, PartialEq, Trace, Finalize)]
 pub struct FormalParameterList {
     pub(crate) parameters: Box<[FormalParameter]>,
@@ -53,11 +55,17 @@ impl FormalParameterList {
     pub(crate) fn has_arguments(&self) -> bool {
         self.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
     }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn items_mut(&mut self) -> &mut [FormalParameter] {
+        self.parameters.borrow_mut()
+    }
 }
 
 bitflags! {
     /// Flags for a [`FormalParameterList`].
     #[allow(clippy::unsafe_derive_deserialize)]
+    #[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
     #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
     pub(crate) struct FormalParameterListFlags: u8 {
         const IS_SIMPLE = 0b0000_0001;
@@ -90,6 +98,7 @@ impl Default for FormalParameterListFlags {
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub struct FormalParameter {
     declaration: Declaration,
@@ -123,6 +132,11 @@ impl FormalParameter {
     /// Get the declaration of the formal parameter
     pub fn declaration(&self) -> &Declaration {
         &self.declaration
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn declaration_mut(&mut self) -> &mut Declaration {
+        &mut self.declaration
     }
 
     /// Gets the initialization node of the formal parameter, if any.

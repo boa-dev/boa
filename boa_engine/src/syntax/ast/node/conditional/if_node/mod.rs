@@ -22,6 +22,7 @@ use serde::{Deserialize, Serialize};
 /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
 /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct If {
     cond: Box<Node>,
@@ -40,6 +41,21 @@ impl If {
 
     pub fn else_node(&self) -> Option<&Node> {
         self.else_node.as_ref().map(Box::as_ref)
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn cond_mut(&mut self) -> &mut Node {
+        &mut self.cond
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut Node {
+        &mut self.body
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn else_node_mut(&mut self) -> Option<&mut Node> {
+        self.else_node.as_deref_mut()
     }
 
     /// Creates an `If` AST node.

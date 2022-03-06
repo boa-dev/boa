@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 mod tests;
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Case {
     condition: Node,
@@ -41,6 +42,16 @@ impl Case {
     pub fn body(&self) -> &StatementList {
         &self.body
     }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn condition_mut(&mut self) -> &mut Node {
+        &mut self.condition
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut StatementList {
+        &mut self.body
+    }
 }
 
 /// The `switch` statement evaluates an expression, matching the expression's value to a case
@@ -60,6 +71,7 @@ impl Case {
 /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Switch {
     val: Box<Node>,
@@ -95,6 +107,21 @@ impl Switch {
     /// Gets the default statement list, if any.
     pub fn default(&self) -> Option<&[Node]> {
         self.default.as_ref().map(StatementList::items)
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn val_mut(&mut self) -> &mut Node {
+        &mut self.val
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn cases_mut(&mut self) -> &mut [Case] {
+        &mut self.cases
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn default_mut(&mut self) -> Option<&mut [Node]> {
+        self.default.as_mut().map(StatementList::items_mut)
     }
 
     /// Implements the display formatting with indentation.

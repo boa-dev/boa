@@ -32,6 +32,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "arbitrary"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c38b6b6b79f671c25e1a3e785b7b82d7562ffc9cd3efdc98627e5668a2472490"
+dependencies = [
+ "derive_arbitrary",
+]
+
+[[package]]
 name = "arrayvec"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -83,6 +92,7 @@ dependencies = [
 name = "boa_engine"
 version = "0.13.0"
 dependencies = [
+ "arbitrary",
  "bitflags",
  "boa_gc",
  "boa_interner",
@@ -119,9 +129,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_inputgen"
+version = "0.1.0"
+dependencies = [
+ "boa_engine",
+ "boa_interner",
+ "libfuzzer-sys",
+ "string-interner",
+]
+
+[[package]]
 name = "boa_interner"
 version = "0.13.0"
 dependencies = [
+ "arbitrary",
  "gc",
  "serde",
  "string-interner",
@@ -371,6 +392,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b2466559f260f48ad25fe6317b3c8dac77b5bdb5763ac7d9d6103530663bc90"
 dependencies = [
  "memchr",
+]
+
+[[package]]
+name = "derive_arbitrary"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98e23c06c035dac87bd802d98f368df73a7f2cb05a66ffbd1f377e821fac4af9"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -694,6 +726,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1bf2e165bb3457c8e098ea76f3e3bc9db55f87aa90d52d0e6be741470916aaa4"
 
 [[package]]
+name = "libfuzzer-sys"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "336244aaeab6a12df46480dc585802aa743a72d66b11937844c61bbca84c991d"
+dependencies = [
+ "arbitrary",
+ "cc",
+ "once_cell",
+]
+
+[[package]]
 name = "libgit2-sys"
 version = "0.13.1+1.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -841,6 +884,7 @@ version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f93ab6289c7b344a8a9f60f88d80aa20032336fe78da341afc91c8a2341fc75f"
 dependencies = [
+ "arbitrary",
  "autocfg",
  "num-integer",
  "num-traits",

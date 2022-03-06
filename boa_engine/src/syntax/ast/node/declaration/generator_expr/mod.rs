@@ -16,6 +16,7 @@ use super::block_to_string;
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GeneratorExpr {
     name: Option<Sym>,
@@ -51,6 +52,21 @@ impl GeneratorExpr {
     /// Gets the body of the generator declaration.
     pub fn body(&self) -> &StatementList {
         &self.body
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn name_mut(&mut self) -> Option<&mut Sym> {
+        self.name.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn parameters_mut(&mut self) -> &mut FormalParameterList {
+        &mut self.parameters
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut StatementList {
+        &mut self.body
     }
 
     /// Converts the generator expresion node to a string with indentation.

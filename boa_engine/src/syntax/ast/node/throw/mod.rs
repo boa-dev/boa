@@ -23,6 +23,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Throw {
     expr: Box<Node>,
@@ -31,6 +32,11 @@ pub struct Throw {
 impl Throw {
     pub fn expr(&self) -> &Node {
         &self.expr
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn expr_mut(&mut self) -> &mut Node {
+        &mut self.expr
     }
 
     /// Creates a `Throw` AST node.

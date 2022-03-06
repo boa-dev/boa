@@ -246,6 +246,7 @@ impl Default for Interner {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[allow(clippy::unsafe_derive_deserialize)]
 pub struct Sym {
     value: NonZeroUsize,
@@ -297,7 +298,13 @@ impl Sym {
     }
 
     /// Retrieves the raw `NonZeroUsize` for this symbol.
+    #[cfg(not(feature = "fuzzer"))]
     const fn as_raw(self) -> NonZeroUsize {
+        self.value
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub const fn as_raw(self) -> NonZeroUsize {
         self.value
     }
 }

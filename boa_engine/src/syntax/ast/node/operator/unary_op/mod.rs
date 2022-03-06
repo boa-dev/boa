@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary_operators
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct UnaryOp {
     op: op::UnaryOp,
@@ -40,6 +41,11 @@ impl UnaryOp {
     /// Gets the target of this unary operator.
     pub fn target(&self) -> &Node {
         self.target.as_ref()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn target_mut(&mut self) -> &mut Node {
+        self.target.as_mut()
     }
 }
 

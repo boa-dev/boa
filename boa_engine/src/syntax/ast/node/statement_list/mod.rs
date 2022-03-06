@@ -21,6 +21,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct StatementList {
     #[cfg_attr(feature = "deser", serde(flatten))]
@@ -33,6 +34,12 @@ impl StatementList {
     #[inline]
     pub fn items(&self) -> &[Node] {
         &self.items
+    }
+
+    #[cfg(feature = "fuzzer")]
+    #[inline]
+    pub fn items_mut(&mut self) -> &mut [Node] {
+        &mut self.items
     }
 
     /// Get the strict mode.

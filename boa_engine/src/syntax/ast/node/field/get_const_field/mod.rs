@@ -27,6 +27,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#sec-property-accessors
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Dot_notation
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct GetConstField {
     obj: Box<Node>,
@@ -53,6 +54,16 @@ impl GetConstField {
     /// Gets the name of the field to retrieve.
     pub fn field(&self) -> Sym {
         self.field
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn obj_mut(&mut self) -> &mut Node {
+        &mut self.obj
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn field_mut(&mut self) -> &mut Sym {
+        &mut self.field
     }
 }
 

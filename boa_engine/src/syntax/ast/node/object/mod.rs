@@ -34,6 +34,7 @@ mod tests;
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Object {
     properties: Box<[PropertyDefinition]>,
@@ -42,6 +43,11 @@ pub struct Object {
 impl Object {
     pub fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn properties_mut(&mut self) -> &mut [PropertyDefinition] {
+        &mut self.properties
     }
 
     /// Implements the display formatting with indentation.
@@ -155,6 +161,7 @@ impl From<Object> for Node {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Trace, Finalize)]
 pub enum PropertyDefinition {
     /// Puts a variable into an object.
@@ -245,6 +252,7 @@ impl PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Finalize, Trace)]
 pub enum MethodDefinition {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
@@ -326,6 +334,7 @@ pub enum MethodDefinition {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq, Finalize)]
 pub enum PropertyName {
     /// A `Literal` property name can be either an identifier, a string or a numeric literal.

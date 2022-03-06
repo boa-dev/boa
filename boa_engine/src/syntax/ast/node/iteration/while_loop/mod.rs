@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct WhileLoop {
     cond: Box<Node>,
@@ -39,6 +40,21 @@ impl WhileLoop {
 
     pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut Node {
+        &mut self.body
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn cond_mut(&mut self) -> &mut Node {
+        &mut self.cond
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn label_mut(&mut self) -> Option<&mut Sym> {
+        self.label.as_mut()
     }
 
     /// Creates a `WhileLoop` AST node.

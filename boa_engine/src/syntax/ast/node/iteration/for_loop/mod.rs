@@ -17,6 +17,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ForLoop {
     #[cfg_attr(feature = "deser", serde(flatten))]
@@ -59,6 +60,26 @@ impl ForLoop {
         self.inner.body()
     }
 
+    #[cfg(feature = "fuzzer")]
+    pub fn init_mut(&mut self) -> Option<&mut Node> {
+        self.inner.init_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn condition_mut(&mut self) -> Option<&mut Node> {
+        self.inner.condition_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn final_expr_mut(&mut self) -> Option<&mut Node> {
+        self.inner.final_expr_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut Node {
+        self.inner.body_mut()
+    }
+
     /// Converts the for loop to a string with the given indentation.
     pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
@@ -97,6 +118,11 @@ impl ForLoop {
     pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
     }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn label_mut(&mut self) -> Option<&mut Sym> {
+        self.label.as_mut()
+    }
 }
 
 impl ToInternedString for ForLoop {
@@ -113,6 +139,7 @@ impl From<ForLoop> for Node {
 
 /// Inner structure to avoid multiple indirections in the heap.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 struct InnerForLoop {
     init: Option<Node>,
@@ -156,5 +183,25 @@ impl InnerForLoop {
     /// Gets the body of the for loop.
     fn body(&self) -> &Node {
         &self.body
+    }
+
+    #[cfg(feature = "fuzzer")]
+    fn init_mut(&mut self) -> Option<&mut Node> {
+        self.init.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    fn condition_mut(&mut self) -> Option<&mut Node> {
+        self.condition.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    fn final_expr_mut(&mut self) -> Option<&mut Node> {
+        self.final_expr.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    fn body_mut(&mut self) -> &mut Node {
+        &mut self.body
     }
 }

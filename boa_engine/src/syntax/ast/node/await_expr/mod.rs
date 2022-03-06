@@ -20,9 +20,17 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AwaitExpr {
     expr: Box<Node>,
+}
+
+impl AwaitExpr {
+    #[cfg(feature = "fuzzer")]
+    pub fn expr_mut(&mut self) -> &mut Node {
+        &mut self.expr
+    }
 }
 
 impl<T> From<T> for AwaitExpr

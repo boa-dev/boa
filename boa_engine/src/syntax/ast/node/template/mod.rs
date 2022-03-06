@@ -19,6 +19,7 @@ mod tests;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct TemplateLit {
     elements: Box<[TemplateElement]>,
@@ -36,6 +37,11 @@ impl TemplateLit {
 
     pub(crate) fn elements(&self) -> &[TemplateElement] {
         &self.elements
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn elements_mut(&mut self) -> &mut [TemplateElement] {
+        &mut self.elements
     }
 }
 
@@ -57,6 +63,7 @@ impl ToInternedString for TemplateLit {
     }
 }
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct TaggedTemplate {
     tag: Box<Node>,
@@ -97,6 +104,26 @@ impl TaggedTemplate {
     pub(crate) fn exprs(&self) -> &[Node] {
         &self.exprs
     }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn tag_mut(&mut self) -> &mut Node {
+        &mut self.tag
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn raws_mut(&mut self) -> &mut [Sym] {
+        &mut self.raws
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn cookeds_mut(&mut self) -> &mut [Option<Sym>] {
+        &mut self.cookeds
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn exprs_mut(&mut self) -> &mut [Node] {
+        &mut self.exprs
+    }
 }
 
 impl ToInternedString for TaggedTemplate {
@@ -122,6 +149,7 @@ impl From<TaggedTemplate> for Node {
 }
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum TemplateElement {
     String(Sym),

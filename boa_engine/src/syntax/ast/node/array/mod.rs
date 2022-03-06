@@ -27,6 +27,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayLiteral
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ArrayDecl {
     #[cfg_attr(feature = "deser", serde(flatten))]
@@ -36,6 +37,12 @@ pub struct ArrayDecl {
 impl AsRef<[Node]> for ArrayDecl {
     fn as_ref(&self) -> &[Node] {
         &self.arr
+    }
+}
+
+impl AsMut<[Node]> for ArrayDecl {
+    fn as_mut(&mut self) -> &mut [Node] {
+        &mut self.arr
     }
 }
 

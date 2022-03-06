@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct AsyncGeneratorDecl {
     name: Sym,
@@ -48,6 +49,21 @@ impl AsyncGeneratorDecl {
     /// Gets the body of the async function declaration.
     pub fn body(&self) -> &[Node] {
         self.body.items()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn name_mut(&mut self) -> &mut Sym {
+        &mut self.name
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn parameters_mut(&mut self) -> &mut FormalParameterList {
+        &mut self.parameters
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn body_mut(&mut self) -> &mut [Node] {
+        self.body.items_mut()
     }
 
     /// Implements the display formatting with indentation.

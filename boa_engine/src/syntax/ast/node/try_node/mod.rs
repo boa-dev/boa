@@ -22,6 +22,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Try {
     block: Block,
@@ -66,6 +67,21 @@ impl Try {
         self.finally.as_ref().map(Finally::block)
     }
 
+    #[cfg(feature = "fuzzer")]
+    pub fn block_mut(&mut self) -> &mut Block {
+        &mut self.block
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn catch_mut(&mut self) -> Option<&mut Catch> {
+        self.catch.as_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn finally_mut(&mut self) -> Option<&mut Block> {
+        self.finally.as_mut().map(Finally::block_mut)
+    }
+
     /// Implements the display formatting with indentation.
     pub(in crate::syntax::ast::node) fn to_indented_string(
         &self,
@@ -103,6 +119,7 @@ impl From<Try> for Node {
 
 /// Catch block.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Catch {
     parameter: Option<Box<Declaration>>,
@@ -133,6 +150,16 @@ impl Catch {
         &self.block
     }
 
+    #[cfg(feature = "fuzzer")]
+    pub fn parameter_mut(&mut self) -> Option<&mut Declaration> {
+        self.parameter.as_deref_mut()
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn block_mut(&mut self) -> &mut Block {
+        &mut self.block
+    }
+
     /// Implements the display formatting with indentation.
     pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = " catch".to_owned();
@@ -156,6 +183,7 @@ impl ToInternedString for Catch {
 
 /// Finally block.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Finally {
     block: Block,
@@ -165,6 +193,11 @@ impl Finally {
     /// Gets the finally block.
     pub fn block(&self) -> &Block {
         &self.block
+    }
+
+    #[cfg(feature = "fuzzer")]
+    pub fn block_mut(&mut self) -> &mut Block {
+        &mut self.block
     }
 
     /// Implements the display formatting with indentation.
