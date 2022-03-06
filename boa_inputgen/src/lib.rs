@@ -86,10 +86,10 @@ static ALPHANUM: Lazy<Vec<u8>> = Lazy::new(|| {
 
 impl<'a> arbitrary::Arbitrary<'a> for Name {
     fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
-        let first: u8 = u.arbitrary()?;
+        let first = u8::arbitrary(u)?; // at least one
         let first = ALPHA[(first as usize) % ALPHA.len()];
         let mut chars: Vec<u8> = vec![first];
-        let mut second: Vec<u8> = u.arbitrary()?;
+        let mut second: Vec<u8> = Arbitrary::arbitrary(u)?;
         second
             .iter_mut()
             .for_each(|c| *c = ALPHANUM[(*c as usize) % ALPHANUM.len()]);
@@ -100,10 +100,7 @@ impl<'a> arbitrary::Arbitrary<'a> for Name {
     }
 
     fn size_hint(depth: usize) -> (usize, Option<usize>) {
-        (
-            Vec::<u8>::size_hint(depth).0 + u8::size_hint(depth).0,
-            Vec::<u8>::size_hint(depth).1,
-        )
+        size_hint::and(u8::size_hint(depth), Vec::<u8>::size_hint(depth))
     }
 }
 
