@@ -40,6 +40,7 @@ impl AsRef<[Node]> for ArrayDecl {
     }
 }
 
+#[cfg(feature = "fuzzer")]
 impl AsMut<[Node]> for ArrayDecl {
     fn as_mut(&mut self) -> &mut [Node] {
         &mut self.arr
