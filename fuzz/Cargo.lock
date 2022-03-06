@@ -91,9 +91,9 @@ dependencies = [
 name = "boa_inputgen"
 version = "0.1.0"
 dependencies = [
+ "arbitrary",
  "boa_engine",
  "boa_interner",
- "libfuzzer-sys",
  "spin",
  "string-interner",
 ]

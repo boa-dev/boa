@@ -1,11 +1,8 @@
-use libfuzzer_sys::arbitrary;
-use libfuzzer_sys::arbitrary::Unstructured;
 use spin::lazy::Lazy;
 use std::collections::HashSet;
 use std::fmt::Debug;
 
-use arbitrary::size_hint;
-use arbitrary::Arbitrary;
+use arbitrary::{size_hint, Arbitrary, Unstructured};
 use boa_engine::syntax::ast::{
     node::{
         declaration::{BindingPatternTypeArray, BindingPatternTypeObject},

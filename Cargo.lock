@@ -132,9 +132,9 @@ dependencies = [
 name = "boa_inputgen"
 version = "0.1.0"
 dependencies = [
+ "arbitrary",
  "boa_engine",
  "boa_interner",
- "libfuzzer-sys",
  "spin",
  "string-interner",
 ]
@@ -725,17 +725,6 @@ name = "libc"
 version = "0.2.119"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1bf2e165bb3457c8e098ea76f3e3bc9db55f87aa90d52d0e6be741470916aaa4"
-
-[[package]]
-name = "libfuzzer-sys"
-version = "0.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "336244aaeab6a12df46480dc585802aa743a72d66b11937844c61bbca84c991d"
-dependencies = [
- "arbitrary",
- "cc",
- "once_cell",
-]
 
 [[package]]
 name = "libgit2-sys"
