@@ -11,6 +11,7 @@
     html_favicon_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"
 )]
 #![cfg_attr(not(test), forbid(clippy::unwrap_used))]
+#![allow(clippy::use_self)] // false-positive on derive(Arbitrary)
 #![warn(
     clippy::perf,
     clippy::single_match_else,
@@ -26,7 +27,6 @@
     clippy::all,
     clippy::cast_lossless,
     clippy::redundant_closure_for_method_calls,
-    clippy::use_self,
     clippy::unnested_or_patterns,
     clippy::trivially_copy_pass_by_ref,
     clippy::needless_pass_by_value,
