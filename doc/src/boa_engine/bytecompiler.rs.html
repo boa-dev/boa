@@ -2229,6 +2229,41 @@
 <span id="2227">2227</span>
 <span id="2228">2228</span>
 <span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -2687,13 +2722,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">compile_access</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">Node</span>) -&gt; <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">compile_access</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">node</span> {
-            <span class="ident">Node::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="ident">Access::Variable</span> { <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">sym</span>() },
-            <span class="ident">Node::GetConstField</span>(<span class="ident">node</span>) =&gt; <span class="ident">Access::ByName</span> { <span class="ident">node</span> },
-            <span class="ident">Node::GetField</span>(<span class="ident">node</span>) =&gt; <span class="ident">Access::ByValue</span> { <span class="ident">node</span> },
-            <span class="ident">Node::This</span> =&gt; <span class="ident">Access::This</span>,
-            <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
+            <span class="ident">Node::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::Variable</span> { <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">sym</span>() }),
+            <span class="ident">Node::GetConstField</span>(<span class="ident">node</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::ByName</span> { <span class="ident">node</span> }),
+            <span class="ident">Node::GetField</span>(<span class="ident">node</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::ByValue</span> { <span class="ident">node</span> }),
+            <span class="ident">Node::This</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::This</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
 
@@ -2802,7 +2837,10 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Inc</span>, <span class="kw-2">&amp;</span>[]);
 
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>());
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="self">self</span>.<span class="ident">context</span>
+                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
+                        })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="prelude-val">None</span>
                     }
@@ -2810,7 +2848,10 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dec</span>, <span class="kw-2">&amp;</span>[]);
 
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>());
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="self">self</span>.<span class="ident">context</span>
+                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
+                        })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="prelude-val">None</span>
                     }
@@ -2818,7 +2859,11 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Inc</span>, <span class="kw-2">&amp;</span>[]);
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>());
+
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="self">self</span>.<span class="ident">context</span>
+                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
+                        })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
                         <span class="prelude-val">None</span>
@@ -2827,7 +2872,11 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dec</span>, <span class="kw-2">&amp;</span>[]);
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>());
+
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="self">self</span>.<span class="ident">context</span>
+                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
+                        })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
                         <span class="prelude-val">None</span>
@@ -2975,7 +3024,12 @@
                             <span class="ident">AssignOp::BoolAnd</span> =&gt; {
                                 <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::LogicalAnd</span>);
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">binary</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>());
+                                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span>
+                                    <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(
+                                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>,
+                                        )
+                                    })<span class="question-mark">?</span>;
                                 <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
                                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
                                 <span class="prelude-val">None</span>
@@ -2983,7 +3037,12 @@
                             <span class="ident">AssignOp::BoolOr</span> =&gt; {
                                 <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::LogicalOr</span>);
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">binary</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>());
+                                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span>
+                                    <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(
+                                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>,
+                                        )
+                                    })<span class="question-mark">?</span>;
                                 <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
                                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
                                 <span class="prelude-val">None</span>
@@ -2991,7 +3050,12 @@
                             <span class="ident">AssignOp::Coalesce</span> =&gt; {
                                 <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::Coalesce</span>);
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">binary</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>());
+                                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span>
+                                    <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(
+                                            <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>,
+                                        )
+                                    })<span class="question-mark">?</span>;
                                 <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
                                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
                                 <span class="prelude-val">None</span>
@@ -3001,7 +3065,10 @@
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">opcode</span>) <span class="op">=</span> <span class="ident">opcode</span> {
                             <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">binary</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">opcode</span>, <span class="kw-2">&amp;</span>[]);
-                            <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>());
+                            <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">binary</span>.<span class="ident">lhs</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                                <span class="self">self</span>.<span class="ident">context</span>
+                                    .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid left-hand side in assignment&quot;</span>)
+                            })<span class="question-mark">?</span>;
                             <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
                         }
                     }
@@ -3134,7 +3201,10 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Object</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">assign</span>.<span class="ident">lhs</span>() {
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">assign</span>.<span class="ident">lhs</span>());
+                    <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">assign</span>.<span class="ident">lhs</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="self">self</span>.<span class="ident">context</span>
+                            .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid left-hand side in assignment&quot;</span>)
+                    })<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>()), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
                 }
             }
