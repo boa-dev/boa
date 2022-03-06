@@ -1,10 +1,8 @@
-#![feature(once_cell)]
-
+use spin::lazy::Lazy;
 use std::collections::HashSet;
 use std::fmt::Debug;
 #[cfg(feature = "pretty-debug")]
 use std::fmt::Formatter;
-use std::lazy::SyncLazy;
 
 use libfuzzer_sys::arbitrary;
 use libfuzzer_sys::arbitrary::Unstructured;
@@ -64,14 +62,14 @@ fn extendo<T>(node: &mut T) -> &'static mut T {
     unsafe { &mut *(node as *mut T) }
 }
 
-static ALPHA: SyncLazy<Vec<u8>> = SyncLazy::new(|| {
+static ALPHA: Lazy<Vec<u8>> = Lazy::new(|| {
     let mut all = Vec::new();
     all.extend(b'A'..b'Z');
     all.extend(b'a'..b'z');
     all
 });
 
-static ALPHANUM: SyncLazy<Vec<u8>> = SyncLazy::new(|| {
+static ALPHANUM: Lazy<Vec<u8>> = Lazy::new(|| {
     let mut all = Vec::new();
     all.extend(b'0'..b'9');
     all.extend(b'A'..b'Z');
@@ -223,7 +221,7 @@ fn replace_afe(syms: &[Sym], nodes: &mut Vec<&'static mut Node>, afe: &mut Async
     }
     afe.parameters_mut()
         .items_mut()
-        .into_iter()
+        .iter_mut()
         .for_each(|fp| replace_fp(syms, nodes, fp));
     nodes.extend(afe.body_mut().iter_mut().map(extendo));
 }
@@ -234,7 +232,7 @@ fn replace_age(syms: &[Sym], nodes: &mut Vec<&'static mut Node>, age: &mut Async
     }
     age.parameters_mut()
         .items_mut()
-        .into_iter()
+        .iter_mut()
         .for_each(|fp| replace_fp(syms, nodes, fp));
     nodes.extend(age.body_mut().iter_mut().map(extendo));
 }
@@ -331,7 +329,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 }
                 orig.params_mut()
                     .items_mut()
-                    .into_iter()
+                    .iter_mut()
                     .for_each(|fp| replace_fp(syms, &mut nodes, fp));
                 nodes.extend(orig.body_mut().items_mut().iter_mut().map(extendo));
             }
@@ -343,7 +341,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 map_sym(syms, orig.name_mut());
                 orig.parameters_mut()
                     .items_mut()
-                    .into_iter()
+                    .iter_mut()
                     .for_each(|fp| replace_fp(syms, &mut nodes, fp));
                 nodes.extend(orig.body_mut().items_mut().iter_mut().map(extendo));
             }
@@ -357,7 +355,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 map_sym(syms, orig.name_mut());
                 orig.parameters_mut()
                     .items_mut()
-                    .into_iter()
+                    .iter_mut()
                     .for_each(|fp| replace_fp(syms, &mut nodes, fp));
                 nodes.extend(orig.body_mut().iter_mut().map(extendo));
             }
@@ -381,10 +379,8 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 nodes.push(extendo(orig.if_true_mut()));
                 nodes.push(extendo(orig.if_false_mut()));
             }
-            Node::Const(orig) => match orig {
-                Const::String(s) => map_sym(syms, s),
-                _ => {}
-            },
+            Node::Const(Const::String(s)) => map_sym(syms, s),
+            Node::Const(_) => {}
             Node::ConstDeclList(orig) => replace_decllist(syms, &mut nodes, orig),
             Node::Continue(orig) => {
                 if let Some(sym) = orig.label_mut() {
@@ -402,7 +398,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 map_sym(syms, orig.name_mut());
                 orig.parameters_mut()
                     .items_mut()
-                    .into_iter()
+                    .iter_mut()
                     .for_each(|fp| replace_fp(syms, &mut nodes, fp));
                 nodes.extend(orig.body_mut().items_mut().iter_mut().map(extendo));
             }
