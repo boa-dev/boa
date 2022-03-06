@@ -1,6 +1,7 @@
 //! Statement list node.
 
 use crate::syntax::ast::node::{Declaration, Node};
+use arbitrary::{size_hint, Arbitrary, Unstructured};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use std::{ops::Deref, rc::Rc};
@@ -21,7 +22,6 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct StatementList {
     #[cfg_attr(feature = "deser", serde(flatten))]
@@ -178,4 +178,18 @@ impl From<StatementList> for RcStatementList {
 // SAFETY: This is safe for types not containing any `Trace` types.
 unsafe impl Trace for RcStatementList {
     unsafe_empty_trace!();
+}
+
+#[cfg(feature = "fuzzer")]
+impl<'a> Arbitrary<'a> for StatementList {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        Ok(Self {
+            items: Vec::arbitrary(u)?.into_boxed_slice(),
+            strict: bool::arbitrary(u)?,
+        })
+    }
+
+    fn size_hint(depth: usize) -> (usize, Option<usize>) {
+        size_hint::and(Vec::<Node>::size_hint(depth), bool::size_hint(depth))
+    }
 }

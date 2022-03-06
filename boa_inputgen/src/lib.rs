@@ -1,12 +1,11 @@
+use libfuzzer_sys::arbitrary;
+use libfuzzer_sys::arbitrary::Unstructured;
 use spin::lazy::Lazy;
 use std::collections::HashSet;
 use std::fmt::Debug;
-#[cfg(feature = "pretty-debug")]
-use std::fmt::Formatter;
 
-use libfuzzer_sys::arbitrary;
-use libfuzzer_sys::arbitrary::Unstructured;
-
+use arbitrary::size_hint;
+use arbitrary::Arbitrary;
 use boa_engine::syntax::ast::{
     node::{
         declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
@@ -17,43 +16,51 @@ use boa_engine::syntax::ast::{
     },
     Const, Node,
 };
-use boa_interner::Sym;
-#[cfg(feature = "pretty-debug")]
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Name {
     pub name: String,
 }
 
-#[derive(arbitrary::Arbitrary)]
-#[cfg_attr(not(feature = "pretty-debug"), derive(Debug))]
+#[derive(Debug)]
 pub struct FuzzData {
-    pub vars: HashSet<Name>,
-    pub sample: StatementList,
+    source: String,
 }
 
-#[cfg(feature = "pretty-debug")]
-impl Debug for FuzzData {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        let mut builder = f.debug_struct("FuzzData");
-        let vars = self.vars.iter().map(|n| &n.name).collect::<Vec<_>>();
-        builder.field("vars", &vars);
-
-        let mut sample = self.sample.clone();
+impl<'a> Arbitrary<'a> for FuzzData {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        let first_name = Name::arbitrary(u)?; // need at least one
+        let mut vars = HashSet::<Name>::arbitrary(u)?;
+        vars.insert(first_name);
+        let mut sample = StatementList::arbitrary(u)?;
         let mut interner = Interner::with_capacity(vars.len());
         let syms = vars
             .into_iter()
-            .map(|var| interner.get_or_intern(var))
+            .map(|var| interner.get_or_intern(var.name))
             .collect::<Vec<_>>();
         replace_syms(&syms, &mut sample);
-        let source = sample.to_interned_string(&interner);
-        builder.field("sample", &source);
-        builder.finish()
+        Ok(Self {
+            source: sample.to_interned_string(&interner),
+        })
+    }
+
+    fn size_hint(depth: usize) -> (usize, Option<usize>) {
+        size_hint::and_all(&[
+            Name::size_hint(depth),
+            HashSet::<Name>::size_hint(depth),
+            StatementList::size_hint(depth),
+        ])
     }
 }
 
-pub fn replace_syms(syms: &[Sym], sample: &mut StatementList) {
+impl FuzzData {
+    pub fn get_source(&self) -> &str {
+        &self.source
+    }
+}
+
+fn replace_syms(syms: &[Sym], sample: &mut StatementList) {
     replace_inner(syms, sample.items_mut().iter_mut().map(extendo).collect())
 }
 

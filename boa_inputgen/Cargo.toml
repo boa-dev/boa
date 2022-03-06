@@ -11,9 +11,6 @@ libfuzzer-sys = "0.4"
 spin = "0.9"
 string-interner = "*"
 
-[features]
-pretty-debug = []
-
 [dependencies.boa_engine]
 path = "../boa_engine"
 features = ["fuzzer"]
