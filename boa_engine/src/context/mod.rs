@@ -671,10 +671,8 @@ impl Context {
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
-        for node in statement_list.items() {
-            compiler.create_declarations(node)?;
-        }
-        compiler.compile_statement_list(statement_list, true)?;
+        compiler.create_declarations(statement_list.items())?;
+        compiler.compile_statement_list(statement_list.items(), true)?;
         Ok(Gc::new(compiler.finish()))
     }
 

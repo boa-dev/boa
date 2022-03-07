@@ -7,7 +7,7 @@ use crate::{
             iteration::IterableLoopInitializer,
             object::{MethodDefinition, PropertyDefinition, PropertyName},
             template::TemplateElement,
-            Declaration, GetConstField, GetField, StatementList,
+            Declaration, GetConstField, GetField,
         },
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
@@ -532,14 +532,12 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool) -> JsResult<()> {
-        for (i, node) in list.items().iter().enumerate() {
-            if i + 1 == list.items().len() {
-                self.compile_stmt(node, use_expr)?;
-                break;
+    pub fn compile_statement_list(&mut self, list: &[Node], use_expr: bool) -> JsResult<()> {
+        if let Some((last, items)) = list.split_last() {
+            for node in items {
+                self.compile_stmt(node, false)?;
             }
-
-            self.compile_stmt(node, false)?;
+            self.compile_stmt(last, use_expr)?;
         }
         Ok(())
     }
@@ -1203,7 +1201,7 @@ impl<'b> ByteCompiler<'b> {
                 let jelse = self.jump_if_false();
 
                 if !matches!(node.body(), Node::Block(_)) {
-                    self.create_declarations(node.body())?;
+                    self.create_decls_from_stmt(node.body())?;
                 }
 
                 self.compile_stmt(node.body(), false)?;
@@ -1216,7 +1214,7 @@ impl<'b> ByteCompiler<'b> {
                         let exit = self.jump();
                         self.patch_jump(jelse);
                         if !matches!(else_body, Node::Block(_)) {
-                            self.create_declarations(else_body)?;
+                            self.create_decls_from_stmt(else_body)?;
                         }
                         self.compile_stmt(else_body, false)?;
                         self.patch_jump(exit);
@@ -1228,7 +1226,7 @@ impl<'b> ByteCompiler<'b> {
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
 
                 if let Some(init) = for_loop.init() {
-                    self.create_declarations(init)?;
+                    self.create_decls_from_stmt(init)?;
                     self.compile_stmt(init, false)?;
                 }
 
@@ -1253,7 +1251,7 @@ impl<'b> ByteCompiler<'b> {
                 let exit = self.jump_if_false();
 
                 if !matches!(for_loop.body(), Node::Block(_)) {
-                    self.create_declarations(for_loop.body())?;
+                    self.create_decls_from_stmt(for_loop.body())?;
                 }
                 self.compile_stmt(for_loop.body(), false)?;
 
@@ -1580,12 +1578,8 @@ impl<'b> ByteCompiler<'b> {
             Node::Block(block) => {
                 self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
-                for node in block.items() {
-                    self.create_declarations(node)?;
-                }
-                for node in block.items() {
-                    self.compile_stmt(node, use_expr)?;
-                }
+                self.create_declarations(block.items())?;
+                self.compile_statement_list(block.items(), use_expr)?;
                 let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
@@ -1598,9 +1592,7 @@ impl<'b> ByteCompiler<'b> {
                 self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                 for case in switch.cases() {
-                    for node in case.body().items() {
-                        self.create_declarations(node)?;
-                    }
+                    self.create_declarations(case.body().items())?;
                 }
                 self.emit_opcode(Opcode::LoopStart);
 
@@ -1618,17 +1610,13 @@ impl<'b> ByteCompiler<'b> {
 
                 for (label, case) in labels.into_iter().zip(switch.cases()) {
                     self.patch_jump(label);
-                    self.compile_statement_list(case.body(), false)?;
+                    self.compile_statement_list(case.body().items(), false)?;
                 }
 
                 self.patch_jump(exit);
                 if let Some(body) = switch.default() {
-                    for node in body {
-                        self.create_declarations(node)?;
-                    }
-                    for node in body {
-                        self.compile_stmt(node, false)?;
-                    }
+                    self.create_declarations(body)?;
+                    self.compile_statement_list(body, false)?;
                 }
 
                 self.pop_switch_control_info();
@@ -1653,12 +1641,10 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::TryStart, &[Self::DUMMY_ADDRESS, 0]);
                 self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
-                for node in t.block().items() {
-                    self.create_declarations(node)?;
-                }
-                for node in t.block().items() {
-                    self.compile_stmt(node, false)?;
-                }
+
+                self.create_declarations(t.block().items())?;
+                self.compile_statement_list(t.block().items(), use_expr)?;
+
                 let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
@@ -1693,12 +1679,10 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         self.emit_opcode(Opcode::Pop);
                     }
-                    for node in catch.block().items() {
-                        self.create_declarations(node)?;
-                    }
-                    for node in catch.block().items() {
-                        self.compile_stmt(node, use_expr)?;
-                    }
+
+                    self.create_declarations(catch.block().items())?;
+                    self.compile_statement_list(catch.block().items(), use_expr)?;
+
                     let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                     self.patch_jump_with_target(push_env, num_bindings as u32);
                     self.emit_opcode(Opcode::PopEnvironment);
@@ -1725,9 +1709,16 @@ impl<'b> ByteCompiler<'b> {
                         finally_start_address,
                     );
 
-                    for node in finally.items() {
-                        self.compile_stmt(node, false)?;
-                    }
+                    self.context.push_compile_time_environment(false);
+                    let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
+
+                    self.create_declarations(finally.items())?;
+                    self.compile_statement_list(finally.items(), false)?;
+
+                    let num_bindings = self.context.pop_compile_time_environment().num_bindings();
+                    self.patch_jump_with_target(push_env, num_bindings as u32);
+                    self.emit_opcode(Opcode::PopEnvironment);
+
                     self.emit_opcode(Opcode::FinallyEnd);
                     self.pop_try_control_info(Some(finally_start_address));
                 } else {
@@ -1879,11 +1870,8 @@ impl<'b> ByteCompiler<'b> {
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        for node in body.items() {
-            compiler.create_declarations(node)?;
-        }
-
-        compiler.compile_statement_list(body, false)?;
+        compiler.create_declarations(body.items())?;
+        compiler.compile_statement_list(body.items(), false)?;
 
         if let Some(env_label) = env_label {
             let num_bindings = compiler
@@ -2160,7 +2148,14 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub(crate) fn create_declarations(&mut self, node: &Node) -> JsResult<bool> {
+    pub(crate) fn create_declarations(&mut self, stmt_list: &[Node]) -> JsResult<()> {
+        for node in stmt_list {
+            self.create_decls_from_stmt(node)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn create_decls_from_stmt(&mut self, node: &Node) -> JsResult<bool> {
         let mut has_identifier_argument = false;
 
         match node {
@@ -2257,17 +2252,17 @@ impl<'b> ByteCompiler<'b> {
             }
             Node::DoWhileLoop(do_while_loop) => {
                 if !matches!(do_while_loop.body(), Node::Block(_)) {
-                    self.create_declarations(do_while_loop.body())?;
+                    self.create_decls_from_stmt(do_while_loop.body())?;
                 }
             }
             Node::ForInLoop(for_in_loop) => {
                 if !matches!(for_in_loop.body(), Node::Block(_)) {
-                    self.create_declarations(for_in_loop.body())?;
+                    self.create_decls_from_stmt(for_in_loop.body())?;
                 }
             }
             Node::ForOfLoop(for_of_loop) => {
                 if !matches!(for_of_loop.body(), Node::Block(_)) {
-                    self.create_declarations(for_of_loop.body())?;
+                    self.create_decls_from_stmt(for_of_loop.body())?;
                 }
             }
             _ => {}

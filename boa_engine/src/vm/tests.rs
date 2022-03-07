@@ -65,3 +65,75 @@ fn multiple_catches() {
         Ok(JsValue::Undefined)
     );
 }
+
+#[test]
+fn use_last_expr_try_block() {
+    let source = r#"
+        try {
+            19;
+            7.5;
+            "Hello!";
+        } catch (y) {
+            14;
+            "Bye!"
+        }
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::from("Hello!"))
+    );
+}
+#[test]
+fn use_last_expr_catch_block() {
+    let source = r#"
+        try {
+            throw Error("generic error");
+            19;
+            7.5;
+        } catch (y) {
+            14;
+            "Hello!";
+        }
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::from("Hello!"))
+    );
+}
+
+#[test]
+fn no_use_last_expr_finally_block() {
+    let source = r#"
+        try {
+        } catch (y) {
+        } finally {
+            "Unused";
+        }
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::undefined())
+    );
+}
+
+#[test]
+fn finally_block_binding_env() {
+    let source = r#"
+        let buf = "Hey hey"
+        try {
+        } catch (y) {
+        } finally {
+            let x = " people";
+            buf += x;
+        }
+        buf
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::from("Hey hey people"))
+    );
+}
