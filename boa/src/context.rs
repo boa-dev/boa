@@ -13,9 +13,10 @@ use crate::{
     realm::Realm,
     syntax::{ast::node::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, Vm},
-    BoaProfiler, Interner, JsResult, JsValue,
+    BoaProfiler, Interner, JsResult, JsValue, job::JobCallback,
 };
 use boa_interner::Sym;
+use queues::*;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -98,6 +99,7 @@ pub struct StandardObjects {
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
     data_view: StandardConstructor,
+    promise: StandardConstructor,
 }
 
 impl Default for StandardObjects {
@@ -145,6 +147,7 @@ impl Default for StandardObjects {
             typed_float64_array: StandardConstructor::default(),
             array_buffer: StandardConstructor::default(),
             data_view: StandardConstructor::default(),
+            promise: StandardConstructor::default(),
         }
     }
 }
@@ -314,6 +317,11 @@ impl StandardObjects {
     pub fn data_view_object(&self) -> &StandardConstructor {
         &self.data_view
     }
+
+    #[inline]
+    pub fn promise_object(&self) -> &StandardConstructor {
+        &self.promise
+    }
 }
 
 /// Javascript context. It is the primary way to interact with the runtime.
@@ -385,6 +393,8 @@ pub struct Context {
     strict: bool,
 
     pub(crate) vm: Vm,
+
+    pub(crate) promise_job_queue: Queue<Box<JobCallback>>,
 }
 
 impl Default for Context {
@@ -405,6 +415,7 @@ impl Default for Context {
                 trace: false,
                 stack_size_limit: 1024,
             },
+            promise_job_queue: queue![],
         };
 
         // Add new builtIns to Context Realm
@@ -1003,6 +1014,7 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
+        self.run_queued_jobs();
         result
     }
 
@@ -1033,5 +1045,20 @@ impl Context {
     /// Set the value of trace on the context
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
+    }
+
+    fn run_queued_jobs(&mut self) {
+        while !(self.promise_job_queue.size() == 0) {
+            let job = self.promise_job_queue.remove().unwrap();
+            job.run(self);
+        }
+    }
+
+    /// TODO: determine if realm is needed?
+    fn host_enqueue_promise_job(&mut self, job: Box<JobCallback> /* , realm: Realm */) {
+        // https://tc39.es/ecma262/#sec-hostenqueuepromisejob
+        // FIXME:  If realm is not null ...
+        // FIXME:  Let scriptOrModule be ...
+        self.promise_job_queue.add(job);
     }
 }

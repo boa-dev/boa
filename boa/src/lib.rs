@@ -73,6 +73,7 @@ pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environments;
+pub mod job;
 pub mod gc;
 pub mod object;
 pub mod profiler;

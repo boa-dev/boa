@@ -15,7 +15,7 @@ use crate::{
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
-        DataView, Date, RegExp,
+        DataView, Date, RegExp, Promise
     },
     context::StandardConstructor,
     gc::{Finalize, Trace},
@@ -143,6 +143,7 @@ pub enum ObjectKind {
     Arguments(Arguments),
     NativeObject(Box<dyn NativeObject>),
     IntegerIndexed(IntegerIndexed),
+    Promise(Promise),
 }
 
 impl ObjectData {
@@ -222,6 +223,14 @@ impl ObjectData {
     pub fn data_view(data_view: DataView) -> Self {
         Self {
             kind: ObjectKind::DataView(data_view),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `Promise` object data
+    pub fn promise(promise: Promise) -> Self {
+        Self {
+            kind: ObjectKind::Promise(promise),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -411,6 +420,7 @@ impl Display for ObjectKind {
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
             Self::DataView(_) => "DataView",
+            Self::Promise(_) => "Promise",
         })
     }
 }

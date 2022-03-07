@@ -29,6 +29,7 @@ pub mod string;
 pub mod symbol;
 pub mod typed_array;
 pub mod undefined;
+pub mod promise;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
@@ -61,6 +62,7 @@ pub(crate) use self::{
         Int8Array, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
     },
     undefined::Undefined,
+    promise::Promise,
 };
 
 use crate::{
@@ -159,7 +161,8 @@ pub fn init(context: &mut Context) {
         SyntaxError,
         EvalError,
         UriError,
-        Reflect
+        Reflect,
+        Promise
     };
 
     #[cfg(feature = "console")]
