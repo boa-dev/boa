@@ -146,6 +146,18 @@ where
 
                 return Ok(ForOfLoop::new(init, iterable, body).into());
             }
+            (Some(Node::ConstDeclList(list)), _) => {
+                // Reject const declarations without initializers inside for loops
+                for decl in list.as_ref() {
+                    if decl.init().is_none() {
+                        return Err(ParseError::general(
+                            "Expected initializer for const declaration",
+                            // TODO: get exact position of uninitialized const decl
+                            init_position,
+                        ));
+                    }
+                }
+            }
             _ => {}
         }
 
