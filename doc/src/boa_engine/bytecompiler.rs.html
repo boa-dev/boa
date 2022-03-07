@@ -2272,11 +2272,6 @@
 <span id="2270">2270</span>
 <span id="2271">2271</span>
 <span id="2272">2272</span>
-<span id="2273">2273</span>
-<span id="2274">2274</span>
-<span id="2275">2275</span>
-<span id="2276">2276</span>
-<span id="2277">2277</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -2286,7 +2281,7 @@
             <span class="ident">iteration::IterableLoopInitializer</span>,
             <span class="ident">object</span>::{<span class="ident">MethodDefinition</span>, <span class="ident">PropertyDefinition</span>, <span class="ident">PropertyName</span>},
             <span class="ident">template::TemplateElement</span>,
-            <span class="ident">Declaration</span>, <span class="ident">GetConstField</span>, <span class="ident">GetField</span>, <span class="ident">StatementList</span>,
+            <span class="ident">Declaration</span>, <span class="ident">GetConstField</span>, <span class="ident">GetField</span>,
         },
         <span class="ident">op</span>::{<span class="ident">AssignOp</span>, <span class="ident">BinOp</span>, <span class="ident">BitOp</span>, <span class="ident">CompOp</span>, <span class="ident">LogOp</span>, <span class="ident">NumOp</span>, <span class="ident">UnaryOp</span>},
         <span class="ident">Const</span>, <span class="ident">Node</span>,
@@ -2811,14 +2806,12 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_statement_list</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">node</span>) <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">items</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">list</span>.<span class="ident">items</span>().<span class="ident">len</span>() {
-                <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-                <span class="kw">break</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_statement_list</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">list</span>: <span class="kw-2">&amp;</span>[<span class="ident">Node</span>], <span class="ident">use_expr</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">last</span>, <span class="ident">items</span>)) <span class="op">=</span> <span class="ident">list</span>.<span class="ident">split_last</span>() {
+            <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">items</span> {
+                <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             }
-
-            <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">last</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -3482,7 +3475,7 @@
                 <span class="kw">let</span> <span class="ident">jelse</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_if_false</span>();
 
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">node</span>.<span class="ident">body</span>(), <span class="ident">Node::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">node</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
                 }
 
                 <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
@@ -3495,7 +3488,7 @@
                         <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump</span>();
                         <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">jelse</span>);
                         <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">else_body</span>, <span class="ident">Node::Block</span>(<span class="kw">_</span>)) {
-                            <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">else_body</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">else_body</span>)<span class="question-mark">?</span>;
                         }
                         <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">else_body</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
@@ -3507,7 +3500,7 @@
                 <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">for_loop</span>.<span class="ident">init</span>() {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">init</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">init</span>)<span class="question-mark">?</span>;
                     <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">init</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 }
 
@@ -3532,7 +3525,7 @@
                 <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_if_false</span>();
 
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">for_loop</span>.<span class="ident">body</span>(), <span class="ident">Node::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">for_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">for_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
                 }
                 <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">for_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
@@ -3859,12 +3852,8 @@
             <span class="ident">Node::Block</span>(<span class="ident">block</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
                 <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
-                <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">block</span>.<span class="ident">items</span>() {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
-                }
-                <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">block</span>.<span class="ident">items</span>() {
-                    <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-                }
+                <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">block</span>.<span class="ident">items</span>())<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">block</span>.<span class="ident">items</span>(), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">num_bindings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>().<span class="ident">num_bindings</span>();
                 <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>, <span class="ident">num_bindings</span> <span class="kw">as</span> <span class="ident">u32</span>);
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
@@ -3877,9 +3866,7 @@
                 <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
                 <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
                 <span class="kw">for</span> <span class="ident">case</span> <span class="kw">in</span> <span class="ident">switch</span>.<span class="ident">cases</span>() {
-                    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">case</span>.<span class="ident">body</span>().<span class="ident">items</span>() {
-                        <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
-                    }
+                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">case</span>.<span class="ident">body</span>().<span class="ident">items</span>())<span class="question-mark">?</span>;
                 }
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
 
@@ -3897,17 +3884,13 @@
 
                 <span class="kw">for</span> (<span class="ident">label</span>, <span class="ident">case</span>) <span class="kw">in</span> <span class="ident">labels</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">switch</span>.<span class="ident">cases</span>()) {
                     <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">label</span>);
-                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">case</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">case</span>.<span class="ident">body</span>().<span class="ident">items</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="ident">switch</span>.<span class="ident">default</span>() {
-                    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span> {
-                        <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
-                    }
-                    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span> {
-                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                    }
+                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">body</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">body</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="self">self</span>.<span class="ident">pop_switch_control_info</span>();
@@ -3932,12 +3915,10 @@
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::TryStart</span>, <span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::DUMMY_ADDRESS</span>, <span class="number">0</span>]);
                 <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
                 <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
-                <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">items</span>() {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
-                }
-                <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">items</span>() {
-                    <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                }
+
+                <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">items</span>())<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">items</span>(), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+
                 <span class="kw">let</span> <span class="ident">num_bindings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>().<span class="ident">num_bindings</span>();
                 <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>, <span class="ident">num_bindings</span> <span class="kw">as</span> <span class="ident">u32</span>);
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
@@ -3972,12 +3953,10 @@
                     } <span class="kw">else</span> {
                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
                     }
-                    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">items</span>() {
-                        <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
-                    }
-                    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">items</span>() {
-                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-                    }
+
+                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">items</span>())<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">items</span>(), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+
                     <span class="kw">let</span> <span class="ident">num_bindings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>().<span class="ident">num_bindings</span>();
                     <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>, <span class="ident">num_bindings</span> <span class="kw">as</span> <span class="ident">u32</span>);
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
@@ -4004,9 +3983,16 @@
                         <span class="ident">finally_start_address</span>,
                     );
 
-                    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">finally</span>.<span class="ident">items</span>() {
-                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
-                    }
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
+                    <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
+
+                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">finally</span>.<span class="ident">items</span>())<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">finally</span>.<span class="ident">items</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+
+                    <span class="kw">let</span> <span class="ident">num_bindings</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>().<span class="ident">num_bindings</span>();
+                    <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>, <span class="ident">num_bindings</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
+
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::FinallyEnd</span>);
                     <span class="self">self</span>.<span class="ident">pop_try_control_info</span>(<span class="prelude-val">Some</span>(<span class="ident">finally_start_address</span>));
                 } <span class="kw">else</span> {
@@ -4158,11 +4144,8 @@
             <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Yield</span>);
         }
 
-        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">items</span>() {
-            <span class="ident">compiler</span>.<span class="ident">create_declarations</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
-        }
-
-        <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">body</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="ident">compiler</span>.<span class="ident">create_declarations</span>(<span class="ident">body</span>.<span class="ident">items</span>())<span class="question-mark">?</span>;
+        <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">body</span>.<span class="ident">items</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env_label</span>) <span class="op">=</span> <span class="ident">env_label</span> {
             <span class="kw">let</span> <span class="ident">num_bindings</span> <span class="op">=</span> <span class="ident">compiler</span>
@@ -4439,7 +4422,14 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_declarations</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_declarations</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">Node</span>]) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">stmt_list</span> {
+            <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">node</span>)<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_identifier_argument</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="kw">match</span> <span class="ident">node</span> {
@@ -4536,17 +4526,17 @@
             }
             <span class="ident">Node::DoWhileLoop</span>(<span class="ident">do_while_loop</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>(), <span class="ident">Node::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
                 }
             }
             <span class="ident">Node::ForInLoop</span>(<span class="ident">for_in_loop</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>(), <span class="ident">Node::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
                 }
             }
             <span class="ident">Node::ForOfLoop</span>(<span class="ident">for_of_loop</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>(), <span class="ident">Node::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_declarations</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>())<span class="question-mark">?</span>;
                 }
             }
             <span class="kw">_</span> =&gt; {}
