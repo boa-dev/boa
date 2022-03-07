@@ -123,7 +123,7 @@ impl Class for Person {
     }
 }
 
-pub fn run() {
+fn main() {
     // First we need to create a Javascript context.
     let mut context = Context::default();
 

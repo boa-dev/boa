@@ -8,7 +8,7 @@ use boa_engine::{
 };
 use boa_gc::{Finalize, Trace};
 
-pub fn run() -> Result<(), JsValue> {
+fn main() -> Result<(), JsValue> {
     // We create a new `Context` to create a new Javascript executor.
     let mut context = Context::default();
 

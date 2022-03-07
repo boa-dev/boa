@@ -1,6 +1,8 @@
+// This example loads, parses and executes a JS code string
+
 use boa_engine::Context;
 
-pub fn run() {
+fn main() {
     let js_code = "console.log('Hello World from a JS code string!')";
 
     // Instantiate the execution context
