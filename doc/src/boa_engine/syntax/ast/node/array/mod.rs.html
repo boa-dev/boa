@@ -61,6 +61,29 @@
 <span id="59">59</span>
 <span id="60">60</span>
 <span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Array declaration node.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">join_nodes</span>, <span class="ident">Node</span>};
@@ -94,6 +117,26 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayDecl</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">serde</span>(<span class="ident">flatten</span>))]</span>
     <span class="ident">arr</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>,
+    <span class="ident">has_trailing_comma_spread</span>: <span class="ident">bool</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">ArrayDecl</span> {
+    <span class="doccomment">/// Crate a new array declaration.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">array</span>: <span class="ident">A</span>, <span class="ident">has_trailing_comma_spread</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">where</span>
+        <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="self">Self</span> {
+            <span class="ident">arr</span>: <span class="ident">array</span>.<span class="ident">into</span>(),
+            <span class="ident">has_trailing_comma_spread</span>,
+        }
+    }
+
+    <span class="doccomment">/// Indicates if a spread operator in the array literal has a trailing comma.</span>
+    <span class="doccomment">/// This is a syntax error in some cases.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_trailing_comma_spread</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">has_trailing_comma_spread</span>
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayDecl</span> {
@@ -107,7 +150,10 @@
     <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">decl</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">arr</span>: <span class="ident">decl</span>.<span class="ident">into</span>() }
+        <span class="self">Self</span> {
+            <span class="ident">arr</span>: <span class="ident">decl</span>.<span class="ident">into</span>(),
+            <span class="ident">has_trailing_comma_spread</span>: <span class="bool-val">false</span>,
+        }
     }
 }
 

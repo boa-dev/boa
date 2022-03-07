@@ -249,6 +249,8 @@
 <span id="247">247</span>
 <span id="248">248</span>
 <span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -263,16 +265,19 @@
 <span class="kw">mod</span> <span class="ident">exponentiation</span>;
 <span class="kw">mod</span> <span class="ident">r#yield</span>;
 
-<span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">arrow_function::ArrowFunction</span>, <span class="ident">conditional::ConditionalExpression</span>, <span class="ident">r#yield</span><span class="ident">::YieldExpression</span>,
-};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{<span class="ident">Assign</span>, <span class="ident">BinOp</span>, <span class="ident">Node</span>},
+        <span class="ident">node</span>::{<span class="ident">operator::assign::AssignTarget</span>, <span class="ident">Assign</span>, <span class="ident">BinOp</span>, <span class="ident">Node</span>},
         <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
     },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
+    <span class="ident">parser</span>::{
+        <span class="ident">expression::assignment</span>::{
+            <span class="ident">arrow_function::ArrowFunction</span>, <span class="ident">conditional::ConditionalExpression</span>,
+            <span class="ident">r#yield</span><span class="ident">::YieldExpression</span>,
+        },
+        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+    },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -450,10 +455,10 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">cloned</span>() {
             <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
-                    <span class="kw">if</span> <span class="ident">is_assignable</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>) {
+                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>);
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span> <span class="ident">AssignTarget::from_node</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>) {
                         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">lhs</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
+                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">target</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                             <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.<span class="ident">into</span>(),
@@ -462,11 +467,10 @@
                     }
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">p</span>) <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">as_binop</span>().<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">p</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Punctuator::Comma</span> =&gt; {
-                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token vanished&quot;</span>); <span class="comment">// Consume the token.</span>
+                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token vanished&quot;</span>);
                     <span class="kw">if</span> <span class="ident">is_assignable</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>) {
                         <span class="kw">let</span> <span class="ident">binop</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;binop disappeared&quot;</span>);
                         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-
                         <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(<span class="ident">binop</span>, <span class="ident">lhs</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(

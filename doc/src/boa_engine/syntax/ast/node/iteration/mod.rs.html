@@ -51,13 +51,21 @@
 <span id="49">49</span>
 <span id="50">50</span>
 <span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Iteration nodes</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">break_node::Break</span>, <span class="ident">continue_node::Continue</span>, <span class="ident">do_while_loop::DoWhileLoop</span>, <span class="ident">for_in_loop::ForInLoop</span>,
     <span class="ident">for_loop::ForLoop</span>, <span class="ident">for_of_loop::ForOfLoop</span>, <span class="ident">while_loop::WhileLoop</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{<span class="ident">declaration::Declaration</span>, <span class="ident">identifier::Identifier</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{
+    <span class="ident">declaration::Declaration</span>, <span class="ident">identifier::Identifier</span>, <span class="ident">DeclarationPattern</span>,
+};
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
@@ -74,6 +82,7 @@
     <span class="ident">Var</span>(<span class="ident">Declaration</span>),
     <span class="ident">Let</span>(<span class="ident">Declaration</span>),
     <span class="ident">Const</span>(<span class="ident">Declaration</span>),
+    <span class="ident">DeclarationPattern</span>(<span class="ident">DeclarationPattern</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">IterableLoopInitializer</span> {
@@ -90,6 +99,9 @@
             }
             <span class="ident">IterableLoopInitializer::Const</span>(<span class="ident">declaration</span>) =&gt; {
                 <span class="macro">format!</span>(<span class="string">&quot;const {}&quot;</span>, <span class="ident">declaration</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>))
+            }
+            <span class="ident">IterableLoopInitializer::DeclarationPattern</span>(<span class="ident">declaration</span>) =&gt; {
+                <span class="ident">declaration</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)
             }
         }
     }
