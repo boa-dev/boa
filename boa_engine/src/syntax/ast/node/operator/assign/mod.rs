@@ -1,4 +1,11 @@
-use crate::syntax::ast::node::Node;
+use crate::syntax::ast::node::{
+    declaration::{
+        BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPatternArray,
+        DeclarationPatternObject,
+    },
+    object::{PropertyDefinition, PropertyName},
+    ArrayDecl, DeclarationPattern, GetConstField, GetField, Identifier, Node, Object,
+};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
 
@@ -19,7 +26,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct Assign {
-    lhs: Box<Node>,
+    lhs: Box<AssignTarget>,
     rhs: Box<Node>,
 }
 
@@ -27,7 +34,7 @@ impl Assign {
     /// Creates an `Assign` AST node.
     pub(in crate::syntax) fn new<L, R>(lhs: L, rhs: R) -> Self
     where
-        L: Into<Node>,
+        L: Into<AssignTarget>,
         R: Into<Node>,
     {
         Self {
@@ -37,7 +44,7 @@ impl Assign {
     }
 
     /// Gets the left hand side of the assignment operation.
-    pub fn lhs(&self) -> &Node {
+    pub fn lhs(&self) -> &AssignTarget {
         &self.lhs
     }
 
@@ -61,4 +68,222 @@ impl From<Assign> for Node {
     fn from(op: Assign) -> Self {
         Self::Assign(op)
     }
+}
+
+/// This type represents all valid left-had-side expressions of an assignment operator.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+pub enum AssignTarget {
+    Identifier(Identifier),
+    GetConstField(GetConstField),
+    GetField(GetField),
+    DeclarationPattern(DeclarationPattern),
+}
+
+impl AssignTarget {
+    /// Converts the left-hand-side node of an assignment expression into it's an [`AssignTarget`].
+    /// Returns `None` if the given node is an invalid left-hand-side for a assignment expression.
+    pub(crate) fn from_node(node: &Node) -> Option<Self> {
+        match node {
+            Node::Identifier(target) => Some(Self::Identifier(*target)),
+            Node::GetConstField(target) => Some(Self::GetConstField(target.clone())),
+            Node::GetField(target) => Some(Self::GetField(target.clone())),
+            Node::Object(object) => {
+                let pattern = object_decl_to_declaration_pattern(object)?;
+                Some(Self::DeclarationPattern(pattern))
+            }
+            Node::ArrayDecl(array) => {
+                let pattern = array_decl_to_declaration_pattern(array)?;
+                Some(Self::DeclarationPattern(pattern))
+            }
+            _ => None,
+        }
+    }
+}
+
+impl ToInternedString for AssignTarget {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match self {
+            AssignTarget::Identifier(target) => target.to_interned_string(interner),
+            AssignTarget::GetConstField(target) => target.to_interned_string(interner),
+            AssignTarget::GetField(target) => target.to_interned_string(interner),
+            AssignTarget::DeclarationPattern(target) => target.to_interned_string(interner),
+        }
+    }
+}
+
+impl From<Identifier> for AssignTarget {
+    fn from(target: Identifier) -> Self {
+        Self::Identifier(target)
+    }
+}
+
+impl From<GetConstField> for AssignTarget {
+    fn from(target: GetConstField) -> Self {
+        Self::GetConstField(target)
+    }
+}
+
+impl From<GetField> for AssignTarget {
+    fn from(target: GetField) -> Self {
+        Self::GetField(target)
+    }
+}
+
+/// Converts an object literal into an object declaration pattern.
+pub(crate) fn object_decl_to_declaration_pattern(object: &Object) -> Option<DeclarationPattern> {
+    let mut bindings = Vec::new();
+    let mut excluded_keys = Vec::new();
+    for (i, property) in object.properties().iter().enumerate() {
+        match property {
+            PropertyDefinition::IdentifierReference(ident) => {
+                excluded_keys.push(*ident);
+                bindings.push(BindingPatternTypeObject::SingleName {
+                    ident: *ident,
+                    property_name: *ident,
+                    default_init: None,
+                });
+            }
+            PropertyDefinition::Property(name, node) => match (name, node) {
+                (PropertyName::Literal(name), Node::Identifier(ident)) if *name == ident.sym() => {
+                    excluded_keys.push(*name);
+                    bindings.push(BindingPatternTypeObject::SingleName {
+                        ident: *name,
+                        property_name: *name,
+                        default_init: None,
+                    });
+                }
+                _ => return None,
+            },
+            PropertyDefinition::SpreadObject(spread) => {
+                match spread {
+                    Node::Identifier(ident) => {
+                        bindings.push(BindingPatternTypeObject::RestProperty {
+                            ident: ident.sym(),
+                            excluded_keys: excluded_keys.clone(),
+                        });
+                    }
+                    Node::GetConstField(get_const_field) => {
+                        bindings.push(BindingPatternTypeObject::RestGetConstField {
+                            get_const_field: get_const_field.clone(),
+                            excluded_keys: excluded_keys.clone(),
+                        });
+                    }
+                    _ => return None,
+                }
+                if i + 1 != object.properties().len() {
+                    return None;
+                }
+            }
+            PropertyDefinition::MethodDefinition(_, _) => return None,
+        }
+    }
+    if object.properties().is_empty() {
+        bindings.push(BindingPatternTypeObject::Empty);
+    }
+    Some(DeclarationPattern::Object(DeclarationPatternObject::new(
+        bindings, None,
+    )))
+}
+
+/// Converts an array declaration into an array declaration pattern.
+pub(crate) fn array_decl_to_declaration_pattern(array: &ArrayDecl) -> Option<DeclarationPattern> {
+    if array.has_trailing_comma_spread() {
+        return None;
+    }
+
+    let mut bindings = Vec::new();
+    for (i, node) in array.as_ref().iter().enumerate() {
+        match node {
+            Node::Identifier(ident) => {
+                bindings.push(BindingPatternTypeArray::SingleName {
+                    ident: ident.sym(),
+                    default_init: None,
+                });
+            }
+            Node::Spread(spread) => {
+                match spread.val() {
+                    Node::Identifier(ident) => {
+                        bindings
+                            .push(BindingPatternTypeArray::SingleNameRest { ident: ident.sym() });
+                    }
+                    Node::GetField(get_field) => {
+                        bindings.push(BindingPatternTypeArray::GetFieldRest {
+                            get_field: get_field.clone(),
+                        });
+                    }
+                    Node::GetConstField(get_const_field) => {
+                        bindings.push(BindingPatternTypeArray::GetConstFieldRest {
+                            get_const_field: get_const_field.clone(),
+                        });
+                    }
+                    Node::ArrayDecl(array) => {
+                        let pattern = array_decl_to_declaration_pattern(array)?;
+                        bindings.push(BindingPatternTypeArray::BindingPatternRest { pattern });
+                    }
+                    Node::Object(object) => {
+                        let pattern = object_decl_to_declaration_pattern(object)?;
+                        bindings.push(BindingPatternTypeArray::BindingPatternRest { pattern });
+                    }
+                    _ => return None,
+                }
+                if i + 1 != array.as_ref().len() {
+                    return None;
+                }
+            }
+            Node::Empty => {
+                bindings.push(BindingPatternTypeArray::Elision);
+            }
+            Node::Assign(assign) => match assign.lhs() {
+                AssignTarget::Identifier(ident) => {
+                    bindings.push(BindingPatternTypeArray::SingleName {
+                        ident: ident.sym(),
+                        default_init: Some(assign.rhs().clone()),
+                    });
+                }
+                AssignTarget::GetConstField(get_const_field) => {
+                    bindings.push(BindingPatternTypeArray::GetConstField {
+                        get_const_field: get_const_field.clone(),
+                    });
+                }
+                AssignTarget::GetField(get_field) => {
+                    bindings.push(BindingPatternTypeArray::GetField {
+                        get_field: get_field.clone(),
+                    });
+                }
+                AssignTarget::DeclarationPattern(pattern) => {
+                    bindings.push(BindingPatternTypeArray::BindingPattern {
+                        pattern: pattern.clone(),
+                    });
+                }
+            },
+            Node::ArrayDecl(array) => {
+                let pattern = array_decl_to_declaration_pattern(array)?;
+                bindings.push(BindingPatternTypeArray::BindingPattern { pattern });
+            }
+            Node::Object(object) => {
+                let pattern = object_decl_to_declaration_pattern(object)?;
+                bindings.push(BindingPatternTypeArray::BindingPattern { pattern });
+            }
+            Node::GetField(get_field) => {
+                bindings.push(BindingPatternTypeArray::GetField {
+                    get_field: get_field.clone(),
+                });
+            }
+            Node::GetConstField(get_const_field) => {
+                bindings.push(BindingPatternTypeArray::GetConstField {
+                    get_const_field: get_const_field.clone(),
+                });
+            }
+            _ => return None,
+        }
+    }
+    Some(DeclarationPattern::Array(DeclarationPatternArray::new(
+        bindings, None,
+    )))
 }

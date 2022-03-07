@@ -6,6 +6,7 @@ use crate::{
             declaration::{BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern},
             iteration::IterableLoopInitializer,
             object::{MethodDefinition, PropertyDefinition, PropertyName},
+            operator::assign::AssignTarget,
             template::TemplateElement,
             Declaration, GetConstField, GetField,
         },
@@ -168,6 +169,11 @@ impl<'b> ByteCompiler<'b> {
                 let binding = self.context.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitConst, &[index]);
+            }
+            BindingOpcode::SetName => {
+                let binding = self.context.set_mutable_binding(name);
+                let index = self.get_or_insert_binding(binding);
+                self.emit(Opcode::SetName, &[index]);
             }
         }
     }
@@ -928,18 +934,26 @@ impl<'b> ByteCompiler<'b> {
                 let access = Access::Variable { name: name.sym() };
                 self.access_get(access, use_expr)?;
             }
-            Node::Assign(assign) => {
-                // Implement destructing assignments like here: https://tc39.es/ecma262/#sec-destructuring-assignment
-                if let Node::Object(_) = assign.lhs() {
-                    self.emit_opcode(Opcode::PushUndefined);
-                } else {
-                    let access = Self::compile_access(assign.lhs()).ok_or_else(|| {
-                        self.context
-                            .construct_syntax_error("Invalid left-hand side in assignment")
-                    })?;
-                    self.access_set(access, Some(assign.rhs()), use_expr)?;
+            Node::Assign(assign) => match assign.lhs() {
+                AssignTarget::Identifier(name) => self.access_set(
+                    Access::Variable { name: name.sym() },
+                    Some(assign.rhs()),
+                    use_expr,
+                )?,
+                AssignTarget::GetConstField(node) => {
+                    self.access_set(Access::ByName { node }, Some(assign.rhs()), use_expr)?;
                 }
-            }
+                AssignTarget::GetField(node) => {
+                    self.access_set(Access::ByValue { node }, Some(assign.rhs()), use_expr)?;
+                }
+                AssignTarget::DeclarationPattern(pattern) => {
+                    self.compile_expr(assign.rhs(), true)?;
+                    if use_expr {
+                        self.emit_opcode(Opcode::Dup);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName)?;
+                }
+            },
             Node::GetConstField(node) => {
                 let access = Access::ByName { node };
                 self.access_get(access, use_expr)?;
@@ -1324,6 +1338,12 @@ impl<'b> ByteCompiler<'b> {
                             self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        for ident in pattern.idents() {
+                            self.context.create_mutable_binding(ident, true, true)?;
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                    }
                 }
 
                 self.compile_stmt(for_in_loop.body(), false)?;
@@ -1401,6 +1421,12 @@ impl<'b> ByteCompiler<'b> {
                             self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        for ident in pattern.idents() {
+                            self.context.create_mutable_binding(ident, true, true)?;
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                    }
                 }
 
                 self.compile_stmt(for_of_loop.body(), false)?;
@@ -2010,7 +2036,7 @@ impl<'b> ByteCompiler<'b> {
 
                 for binding in pattern.bindings() {
                     use BindingPatternTypeObject::{
-                        BindingPattern, Empty, RestProperty, SingleName,
+                        BindingPattern, Empty, RestGetConstField, RestProperty, SingleName,
                     };
 
                     match binding {
@@ -2050,6 +2076,26 @@ impl<'b> ByteCompiler<'b> {
                             self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
                             self.emit_binding(def, *ident);
                         }
+                        RestGetConstField {
+                            get_const_field,
+                            excluded_keys,
+                        } => {
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::PushEmptyObject);
+                            for key in excluded_keys {
+                                self.emit_push_literal(Literal::String(
+                                    self.interner().resolve_expect(*key).into(),
+                                ));
+                            }
+                            self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
+                            self.access_set(
+                                Access::ByName {
+                                    node: get_const_field,
+                                },
+                                None,
+                                false,
+                            )?;
+                        }
                         BindingPattern {
                             ident,
                             pattern,
@@ -2085,8 +2131,8 @@ impl<'b> ByteCompiler<'b> {
 
                 for (i, binding) in pattern.bindings().iter().enumerate() {
                     use BindingPatternTypeArray::{
-                        BindingPattern, BindingPatternRest, Elision, Empty, SingleName,
-                        SingleNameRest,
+                        BindingPattern, BindingPatternRest, Elision, Empty, GetConstField,
+                        GetConstFieldRest, GetField, GetFieldRest, SingleName, SingleNameRest,
                     };
 
                     let next = if i == pattern.bindings().len() - 1 {
@@ -2118,6 +2164,20 @@ impl<'b> ByteCompiler<'b> {
                             }
                             self.emit_binding(def, *ident);
                         }
+                        GetField { get_field } => {
+                            self.emit_opcode(next);
+                            self.access_set(Access::ByValue { node: get_field }, None, false)?;
+                        }
+                        GetConstField { get_const_field } => {
+                            self.emit_opcode(next);
+                            self.access_set(
+                                Access::ByName {
+                                    node: get_const_field,
+                                },
+                                None,
+                                false,
+                            )?;
+                        }
                         // BindingElement : BindingPattern Initializer[opt]
                         BindingPattern { pattern } => {
                             self.emit_opcode(next);
@@ -2127,6 +2187,22 @@ impl<'b> ByteCompiler<'b> {
                         SingleNameRest { ident } => {
                             self.emit_opcode(Opcode::IteratorToArray);
                             self.emit_binding(def, *ident);
+                            self.emit_opcode(Opcode::PushTrue);
+                        }
+                        GetFieldRest { get_field } => {
+                            self.emit_opcode(Opcode::IteratorToArray);
+                            self.access_set(Access::ByValue { node: get_field }, None, false)?;
+                            self.emit_opcode(Opcode::PushTrue);
+                        }
+                        GetConstFieldRest { get_const_field } => {
+                            self.emit_opcode(Opcode::IteratorToArray);
+                            self.access_set(
+                                Access::ByName {
+                                    node: get_const_field,
+                                },
+                                None,
+                                false,
+                            )?;
                             self.emit_opcode(Opcode::PushTrue);
                         }
                         // BindingRestElement : ... BindingPattern
