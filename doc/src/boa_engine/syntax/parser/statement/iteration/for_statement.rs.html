@@ -259,6 +259,18 @@
 <span id="257">257</span>
 <span id="258">258</span>
 <span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -406,6 +418,18 @@
                 }
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ForOfLoop::new</span>(<span class="ident">init</span>, <span class="ident">iterable</span>, <span class="ident">body</span>).<span class="ident">into</span>());
+            }
+            (<span class="prelude-val">Some</span>(<span class="ident">Node::ConstDeclList</span>(<span class="ident">list</span>)), <span class="kw">_</span>) =&gt; {
+                <span class="comment">// Reject const declarations without initializers inside for loops</span>
+                <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
+                    <span class="kw">if</span> <span class="ident">decl</span>.<span class="ident">init</span>().<span class="ident">is_none</span>() {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;Expected initializer for const declaration&quot;</span>,
+                            <span class="comment">// TODO: get exact position of uninitialized const decl</span>
+                            <span class="ident">init_position</span>,
+                        ));
+                    }
+                }
             }
             <span class="kw">_</span> =&gt; {}
         }

@@ -332,8 +332,6 @@
 <span id="330">330</span>
 <span id="331">331</span>
 <span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Lexical declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This parses `let` and `const` declarations.</span>
@@ -503,11 +501,9 @@
                         <span class="ident">const_decls</span>.<span class="ident">push</span>(<span class="ident">decl</span>);
                     } <span class="kw">else</span> {
                         <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
-                            [<span class="string">&quot;=&quot;</span>.<span class="ident">to_owned</span>()],
-                            <span class="ident">next</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
-                            <span class="ident">next</span>.<span class="ident">span</span>(),
-                            <span class="string">&quot;const declaration&quot;</span>,
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;Expected initializer for const declaration&quot;</span>,
+                            <span class="ident">next</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                         ));
                     }
                 } <span class="kw">else</span> {
