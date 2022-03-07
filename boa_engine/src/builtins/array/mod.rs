@@ -19,7 +19,7 @@ use tap::{Conv, Pipe};
 use super::JsArgs;
 use crate::{
     builtins::array::array_iterator::ArrayIterator,
-    builtins::iterable::IteratorHint,
+    builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
     builtins::BuiltIn,
     builtins::Number,
     context::intrinsics::StandardConstructors,
@@ -390,22 +390,15 @@ impl Array {
         let mapfn = args.get_or_undefined(1);
         let this_arg = args.get_or_undefined(2);
 
-        let mapping = if mapfn.is_undefined() {
-            // 2. If mapfn is undefined, let mapping be false
-            None
-        } else {
-            // 3. Else,
-            //     a. If IsCallable(mapfn) is false, throw a TypeError exception.
-            //     b. Let mapping be true.
-            Some(mapfn.as_callable().ok_or_else(|| {
-                context.construct_type_error(format!("{} is not a function", mapfn.display()))
-            })?)
+        // 2. If mapfn is undefined, let mapping be false
+        // 3. Else,
+        //     a. If IsCallable(mapfn) is false, throw a TypeError exception.
+        //     b. Let mapping be true.
+        let mapping = match mapfn {
+            JsValue::Undefined => None,
+            JsValue::Object(o) if o.is_callable() => Some(o),
+            _ => return context.throw_type_error(format!("{} is not a function", mapfn.type_of())),
         };
-
-        if items.is_null_or_undefined() {
-            return context
-                .throw_type_error("Array.from requires an array-like object or iterator");
-        }
 
         // 4. Let usingIterator be ? GetMethod(items, @@iterator).
         let using_iterator = items
@@ -434,36 +427,25 @@ impl Array {
             let iterator_record =
                 items.get_iterator(context, Some(IteratorHint::Sync), Some(using_iterator))?;
 
-            // IfAbruptCloseIterator is a shorthand for a sequence of algorithm steps that use an Iterator Record
-            macro_rules! if_abrupt_close_iterator {
-                ($val:expr, $iterator_record:expr) => { match $val {
-                    // 2. Else if value is a Completion Record, set value to value.
-                    Ok(val) => val,
-                    // 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
-                    Err(err) => return $iterator_record.close(Err(err), context)
-                } }
-            }
-
             // d. Let k be 0.
             // e. Repeat,
             //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
             //     ...
             //     x. Set k to k + 1.
             for k in 0..9_007_199_254_740_991_u64 {
-                let next =
-                    if_abrupt_close_iterator!(iterator_record.step(context), iterator_record);
+                // iii. Let next be ? IteratorStep(iteratorRecord).
+                let next = iterator_record.step(context)?;
 
                 // iv. If next is false, then
-                if next.is_none() {
+                let next = if let Some(next) = next {
+                    next
+                } else {
                     // 1. Perform ? Set(A, "length", 𝔽(k), true).
                     a.set("length", k, true, context)?;
 
                     // 2. Return A.
                     return Ok(a.into());
-                }
-
-                // NOTE: with optimizations this unwrap will be removed.
-                let next = next.expect("should not fail because we check if it is not None");
+                };
 
                 // v. Let nextValue be ? IteratorValue(next).
                 let next_value = next.value(context)?;
@@ -474,16 +456,17 @@ impl Array {
                     let mapped_value = mapfn.call(this_arg, &[next_value, k.into()], context);
 
                     // 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
-                    if_abrupt_close_iterator!(mapped_value, iterator_record)
+                    if_abrupt_close_iterator!(mapped_value, iterator_record, context)
                 } else {
                     // vii. Else, let mappedValue be nextValue.
                     next_value
                 };
+
                 // viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
                 let define_status = a.create_data_property_or_throw(k, mapped_value, context);
 
                 // ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
-                if_abrupt_close_iterator!(define_status, iterator_record);
+                if_abrupt_close_iterator!(define_status, iterator_record, context);
             }
 
             // NOTE: The loop above has to return before it reaches iteration limit,
