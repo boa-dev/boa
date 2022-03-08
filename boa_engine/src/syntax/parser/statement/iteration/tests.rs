@@ -7,7 +7,7 @@ use crate::syntax::{
         op::{self, AssignOp, CompOp},
         Const,
     },
-    parser::tests::check_parser,
+    parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
 
@@ -178,4 +178,10 @@ fn do_while_spaces() {
         .into()],
         &mut interner,
     );
+}
+
+/// Checks rejection of const bindings without init in for loops
+#[test]
+fn reject_const_no_init_for_loop() {
+    check_invalid("for (const h;;);");
 }

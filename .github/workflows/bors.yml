@@ -126,16 +126,16 @@ jobs:
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-examples-${{ hashFiles('**/Cargo.lock') }}
+      - run: cd boa_examples
       - name: Build examples
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --examples -v
       - name: Run example classes
         uses: actions-rs/cargo@v1
         with:
           command: run
-          args: --example classes
+          args: --bin classes
 
   doc:
     name: Documentation

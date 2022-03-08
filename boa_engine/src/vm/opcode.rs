@@ -1092,4 +1092,5 @@ pub(crate) enum BindingOpcode {
     InitLet,
     InitArg,
     InitConst,
+    SetName,
 }

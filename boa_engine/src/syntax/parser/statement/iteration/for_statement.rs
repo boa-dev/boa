@@ -9,7 +9,13 @@
 
 use crate::syntax::{
     ast::{
-        node::{iteration::IterableLoopInitializer, ForInLoop, ForLoop, ForOfLoop, Node},
+        node::{
+            iteration::IterableLoopInitializer,
+            operator::assign::{
+                array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
+            },
+            ForInLoop, ForLoop, ForOfLoop, Node,
+        },
         Const, Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
@@ -146,6 +152,18 @@ where
 
                 return Ok(ForOfLoop::new(init, iterable, body).into());
             }
+            (Some(Node::ConstDeclList(list)), _) => {
+                // Reject const declarations without initializers inside for loops
+                for decl in list.as_ref() {
+                    if decl.init().is_none() {
+                        return Err(ParseError::general(
+                            "Expected initializer for const declaration",
+                            // TODO: get exact position of uninitialized const decl
+                            init_position,
+                        ));
+                    }
+                }
+            }
             _ => {}
         }
 
@@ -251,6 +269,26 @@ fn node_to_iterable_loop_initializer(
             "a declaration in the head of a for-of loop can't have an initializer".into(),
             position,
         ))),
+        Node::Object(object) => {
+            if let Some(pattern) = object_decl_to_declaration_pattern(object) {
+                Ok(IterableLoopInitializer::DeclarationPattern(pattern))
+            } else {
+                Err(ParseError::lex(LexError::Syntax(
+                    "invalid left-hand side declaration pattern in assignment head of a for-of loop".into(),
+                    position,
+                )))
+            }
+        }
+        Node::ArrayDecl(array) => {
+            if let Some(pattern) = array_decl_to_declaration_pattern(array) {
+                Ok(IterableLoopInitializer::DeclarationPattern(pattern))
+            } else {
+                Err(ParseError::lex(LexError::Syntax(
+                    "invalid left-hand side declaration pattern in assignment head of a for-of loop".into(),
+                    position,
+                )))
+            }
+        }
         _ => Err(ParseError::lex(LexError::Syntax(
             "unknown left hand side in head of for-of loop".into(),
             position,
