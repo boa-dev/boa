@@ -443,6 +443,20 @@ fn test_invalid_break_target() {
 }
 
 #[test]
+fn test_invalid_break() {
+    let mut context = Context::default();
+    let src = r#"
+        break;
+        "#;
+
+    let string = forward(&mut context, src);
+    assert_eq!(
+        string,
+        "Uncaught \"SyntaxError\": \"unlabeled break must be inside loop or switch\""
+    );
+}
+
+#[test]
 fn test_invalid_continue_target() {
     let mut context = Context::default();
     let src = r#"
