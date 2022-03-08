@@ -2348,6 +2348,10 @@
 <span id="2346">2346</span>
 <span id="2347">2347</span>
 <span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
+<span id="2352">2352</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -3946,7 +3950,11 @@
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">jump_info</span>
                         .<span class="ident">last_mut</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;no jump information found&quot;</span>)
+                        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                            <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(
+                                <span class="string">&quot;unlabeled break must be inside loop or switch&quot;</span>,
+                            )
+                        })<span class="question-mark">?</span>
                         .<span class="ident">breaks</span>
                         .<span class="ident">push</span>(<span class="ident">label</span>);
                 }
