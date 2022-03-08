@@ -1,6 +1,5 @@
 # CHANGELOG
 
-
 ## What's Changed
 
 # [0.14.0 (TBD) - ](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
@@ -27,10 +26,10 @@
 - Implement `Proxy` object by @raskad in [#1664](https://github.com/boa-dev/boa/pull/1664)
 - Implement object literals for vm by @raskad in [#1668](https://github.com/boa-dev/boa/pull/1668)
 - Implement Array findLast and findLastIndex by @bsinky in [#1665](https://github.com/boa-dev/boa/pull/1665)
-- Implement `DataView` built-in object  by @Nimpruda in [#1662](https://github.com/boa-dev/boa/pull/1662)
+- Implement `DataView` built-in object by @Nimpruda in [#1662](https://github.com/boa-dev/boa/pull/1662)
 - Clean-up contribution guidelines, dependencies, Test262, MSRV by @Razican in [#1683](https://github.com/boa-dev/boa/pull/1683)
 - Implement Async Generator Parsing by @nekevss in [#1669](https://github.com/boa-dev/boa/pull/1669)
-- Implement prototype of `Intl` built-in  by @hle0 in [#1622](https://github.com/boa-dev/boa/pull/1622)
+- Implement prototype of `Intl` built-in by @hle0 in [#1622](https://github.com/boa-dev/boa/pull/1622)
 - Add limited console.trace implementation by @osman-turan in [#1623](https://github.com/boa-dev/boa/pull/1623)
 - Allow `BindingPattern` in function parameters by @am-a-man in [#1666](https://github.com/boa-dev/boa/pull/1666)
 - Small test ux improvements by @orndorffgrant in [#1704](https://github.com/boa-dev/boa/pull/1704)
@@ -127,7 +126,6 @@
 - Extract `Intrinsics` struct from `Context` and cleanup names by @jedel1043 in [#1890](https://github.com/boa-dev/boa/pull/1890)
 
 **Full Changelog**: https://github.com/boa-dev/boa/compare/v0.13...v0.14
-
 
 # [0.13.0 (2021-09-30) - Many new features and refactors](https://github.com/boa-dev/boa/compare/v0.12.0...v0.13.0)
 
