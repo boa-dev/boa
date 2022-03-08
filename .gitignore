@@ -28,3 +28,7 @@ chrome_profiler.json
 
 # Logs
 *.log
+
+# Yarn
+.yarn
+.yarnrc.yml
