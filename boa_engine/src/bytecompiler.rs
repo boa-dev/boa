@@ -6,8 +6,9 @@ use crate::{
             declaration::{BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern},
             iteration::IterableLoopInitializer,
             object::{MethodDefinition, PropertyDefinition, PropertyName},
+            operator::assign::AssignTarget,
             template::TemplateElement,
-            Declaration, GetConstField, GetField, StatementList,
+            Declaration, GetConstField, GetField,
         },
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
@@ -168,6 +169,11 @@ impl<'b> ByteCompiler<'b> {
                 let binding = self.context.initialize_immutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitConst, &[index]);
+            }
+            BindingOpcode::SetName => {
+                let binding = self.context.set_mutable_binding(name);
+                let index = self.get_or_insert_binding(binding);
+                self.emit(Opcode::SetName, &[index]);
             }
         }
     }
@@ -532,14 +538,12 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool) -> JsResult<()> {
-        for (i, node) in list.items().iter().enumerate() {
-            if i + 1 == list.items().len() {
-                self.compile_stmt(node, use_expr)?;
-                break;
+    pub fn compile_statement_list(&mut self, list: &[Node], use_expr: bool) -> JsResult<()> {
+        if let Some((last, items)) = list.split_last() {
+            for node in items {
+                self.compile_stmt(node, false)?;
             }
-
-            self.compile_stmt(node, false)?;
+            self.compile_stmt(last, use_expr)?;
         }
         Ok(())
     }
@@ -930,18 +934,26 @@ impl<'b> ByteCompiler<'b> {
                 let access = Access::Variable { name: name.sym() };
                 self.access_get(access, use_expr)?;
             }
-            Node::Assign(assign) => {
-                // Implement destructing assignments like here: https://tc39.es/ecma262/#sec-destructuring-assignment
-                if let Node::Object(_) = assign.lhs() {
-                    self.emit_opcode(Opcode::PushUndefined);
-                } else {
-                    let access = Self::compile_access(assign.lhs()).ok_or_else(|| {
-                        self.context
-                            .construct_syntax_error("Invalid left-hand side in assignment")
-                    })?;
-                    self.access_set(access, Some(assign.rhs()), use_expr)?;
+            Node::Assign(assign) => match assign.lhs() {
+                AssignTarget::Identifier(name) => self.access_set(
+                    Access::Variable { name: name.sym() },
+                    Some(assign.rhs()),
+                    use_expr,
+                )?,
+                AssignTarget::GetConstField(node) => {
+                    self.access_set(Access::ByName { node }, Some(assign.rhs()), use_expr)?;
                 }
-            }
+                AssignTarget::GetField(node) => {
+                    self.access_set(Access::ByValue { node }, Some(assign.rhs()), use_expr)?;
+                }
+                AssignTarget::DeclarationPattern(pattern) => {
+                    self.compile_expr(assign.rhs(), true)?;
+                    if use_expr {
+                        self.emit_opcode(Opcode::Dup);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName)?;
+                }
+            },
             Node::GetConstField(node) => {
                 let access = Access::ByName { node };
                 self.access_get(access, use_expr)?;
@@ -1203,7 +1215,7 @@ impl<'b> ByteCompiler<'b> {
                 let jelse = self.jump_if_false();
 
                 if !matches!(node.body(), Node::Block(_)) {
-                    self.create_declarations(node.body())?;
+                    self.create_decls_from_stmt(node.body())?;
                 }
 
                 self.compile_stmt(node.body(), false)?;
@@ -1216,7 +1228,7 @@ impl<'b> ByteCompiler<'b> {
                         let exit = self.jump();
                         self.patch_jump(jelse);
                         if !matches!(else_body, Node::Block(_)) {
-                            self.create_declarations(else_body)?;
+                            self.create_decls_from_stmt(else_body)?;
                         }
                         self.compile_stmt(else_body, false)?;
                         self.patch_jump(exit);
@@ -1228,7 +1240,7 @@ impl<'b> ByteCompiler<'b> {
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
 
                 if let Some(init) = for_loop.init() {
-                    self.create_declarations(init)?;
+                    self.create_decls_from_stmt(init)?;
                     self.compile_stmt(init, false)?;
                 }
 
@@ -1253,7 +1265,7 @@ impl<'b> ByteCompiler<'b> {
                 let exit = self.jump_if_false();
 
                 if !matches!(for_loop.body(), Node::Block(_)) {
-                    self.create_declarations(for_loop.body())?;
+                    self.create_decls_from_stmt(for_loop.body())?;
                 }
                 self.compile_stmt(for_loop.body(), false)?;
 
@@ -1326,6 +1338,12 @@ impl<'b> ByteCompiler<'b> {
                             self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        for ident in pattern.idents() {
+                            self.context.create_mutable_binding(ident, true, true)?;
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                    }
                 }
 
                 self.compile_stmt(for_in_loop.body(), false)?;
@@ -1403,6 +1421,12 @@ impl<'b> ByteCompiler<'b> {
                             self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        for ident in pattern.idents() {
+                            self.context.create_mutable_binding(ident, true, true)?;
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                    }
                 }
 
                 self.compile_stmt(for_of_loop.body(), false)?;
@@ -1489,9 +1513,7 @@ impl<'b> ByteCompiler<'b> {
                         .iter()
                         .rev()
                         .filter(|info| info.kind == JumpControlInfoKind::Loop);
-                    let address = if node.label().is_none() {
-                        items.next().expect("continue target").start_address
-                    } else {
+                    let address = if let Some(label_name) = node.label() {
                         let mut num_loops = 0;
                         let mut emit_for_of_in_exit = 0;
                         let mut address_info = None;
@@ -1505,7 +1527,14 @@ impl<'b> ByteCompiler<'b> {
                                 emit_for_of_in_exit += 1;
                             }
                         }
-                        let address = address_info.expect("continue target").start_address;
+                        let address = address_info
+                            .ok_or_else(|| {
+                                self.context.construct_syntax_error(format!(
+                                    "Cannot use the undeclared label '{}'",
+                                    self.context.interner().resolve_expect(label_name)
+                                ))
+                            })?
+                            .start_address;
                         for _ in 0..emit_for_of_in_exit {
                             self.emit_opcode(Opcode::Pop);
                             self.emit_opcode(Opcode::Pop);
@@ -1514,6 +1543,14 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_opcode(Opcode::LoopEnd);
                         }
                         address
+                    } else {
+                        items
+                            .next()
+                            .ok_or_else(|| {
+                                self.context
+                                    .construct_syntax_error("continue must be inside loop")
+                            })?
+                            .start_address
                     };
                     self.emit_opcode(Opcode::LoopEnd);
                     self.emit_opcode(Opcode::LoopStart);
@@ -1571,12 +1608,8 @@ impl<'b> ByteCompiler<'b> {
             Node::Block(block) => {
                 self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
-                for node in block.items() {
-                    self.create_declarations(node)?;
-                }
-                for node in block.items() {
-                    self.compile_stmt(node, use_expr)?;
-                }
+                self.create_declarations(block.items())?;
+                self.compile_statement_list(block.items(), use_expr)?;
                 let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
@@ -1589,9 +1622,7 @@ impl<'b> ByteCompiler<'b> {
                 self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
                 for case in switch.cases() {
-                    for node in case.body().items() {
-                        self.create_declarations(node)?;
-                    }
+                    self.create_declarations(case.body().items())?;
                 }
                 self.emit_opcode(Opcode::LoopStart);
 
@@ -1609,17 +1640,13 @@ impl<'b> ByteCompiler<'b> {
 
                 for (label, case) in labels.into_iter().zip(switch.cases()) {
                     self.patch_jump(label);
-                    self.compile_statement_list(case.body(), false)?;
+                    self.compile_statement_list(case.body().items(), false)?;
                 }
 
                 self.patch_jump(exit);
                 if let Some(body) = switch.default() {
-                    for node in body {
-                        self.create_declarations(node)?;
-                    }
-                    for node in body {
-                        self.compile_stmt(node, false)?;
-                    }
+                    self.create_declarations(body)?;
+                    self.compile_statement_list(body, false)?;
                 }
 
                 self.pop_switch_control_info();
@@ -1644,12 +1671,10 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::TryStart, &[Self::DUMMY_ADDRESS, 0]);
                 self.context.push_compile_time_environment(false);
                 let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
-                for node in t.block().items() {
-                    self.create_declarations(node)?;
-                }
-                for node in t.block().items() {
-                    self.compile_stmt(node, false)?;
-                }
+
+                self.create_declarations(t.block().items())?;
+                self.compile_statement_list(t.block().items(), use_expr)?;
+
                 let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                 self.patch_jump_with_target(push_env, num_bindings as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
@@ -1684,12 +1709,10 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         self.emit_opcode(Opcode::Pop);
                     }
-                    for node in catch.block().items() {
-                        self.create_declarations(node)?;
-                    }
-                    for node in catch.block().items() {
-                        self.compile_stmt(node, use_expr)?;
-                    }
+
+                    self.create_declarations(catch.block().items())?;
+                    self.compile_statement_list(catch.block().items(), use_expr)?;
+
                     let num_bindings = self.context.pop_compile_time_environment().num_bindings();
                     self.patch_jump_with_target(push_env, num_bindings as u32);
                     self.emit_opcode(Opcode::PopEnvironment);
@@ -1716,9 +1739,16 @@ impl<'b> ByteCompiler<'b> {
                         finally_start_address,
                     );
 
-                    for node in finally.items() {
-                        self.compile_stmt(node, false)?;
-                    }
+                    self.context.push_compile_time_environment(false);
+                    let push_env = self.jump_with_custom_opcode(Opcode::PushDeclarativeEnvironment);
+
+                    self.create_declarations(finally.items())?;
+                    self.compile_statement_list(finally.items(), false)?;
+
+                    let num_bindings = self.context.pop_compile_time_environment().num_bindings();
+                    self.patch_jump_with_target(push_env, num_bindings as u32);
+                    self.emit_opcode(Opcode::PopEnvironment);
+
                     self.emit_opcode(Opcode::FinallyEnd);
                     self.pop_try_control_info(Some(finally_start_address));
                 } else {
@@ -1870,11 +1900,8 @@ impl<'b> ByteCompiler<'b> {
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        for node in body.items() {
-            compiler.create_declarations(node)?;
-        }
-
-        compiler.compile_statement_list(body, false)?;
+        compiler.create_declarations(body.items())?;
+        compiler.compile_statement_list(body.items(), false)?;
 
         if let Some(env_label) = env_label {
             let num_bindings = compiler
@@ -2013,7 +2040,7 @@ impl<'b> ByteCompiler<'b> {
 
                 for binding in pattern.bindings() {
                     use BindingPatternTypeObject::{
-                        BindingPattern, Empty, RestProperty, SingleName,
+                        BindingPattern, Empty, RestGetConstField, RestProperty, SingleName,
                     };
 
                     match binding {
@@ -2053,6 +2080,26 @@ impl<'b> ByteCompiler<'b> {
                             self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
                             self.emit_binding(def, *ident);
                         }
+                        RestGetConstField {
+                            get_const_field,
+                            excluded_keys,
+                        } => {
+                            self.emit_opcode(Opcode::Dup);
+                            self.emit_opcode(Opcode::PushEmptyObject);
+                            for key in excluded_keys {
+                                self.emit_push_literal(Literal::String(
+                                    self.interner().resolve_expect(*key).into(),
+                                ));
+                            }
+                            self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
+                            self.access_set(
+                                Access::ByName {
+                                    node: get_const_field,
+                                },
+                                None,
+                                false,
+                            )?;
+                        }
                         BindingPattern {
                             ident,
                             pattern,
@@ -2088,8 +2135,8 @@ impl<'b> ByteCompiler<'b> {
 
                 for (i, binding) in pattern.bindings().iter().enumerate() {
                     use BindingPatternTypeArray::{
-                        BindingPattern, BindingPatternRest, Elision, Empty, SingleName,
-                        SingleNameRest,
+                        BindingPattern, BindingPatternRest, Elision, Empty, GetConstField,
+                        GetConstFieldRest, GetField, GetFieldRest, SingleName, SingleNameRest,
                     };
 
                     let next = if i == pattern.bindings().len() - 1 {
@@ -2121,6 +2168,20 @@ impl<'b> ByteCompiler<'b> {
                             }
                             self.emit_binding(def, *ident);
                         }
+                        GetField { get_field } => {
+                            self.emit_opcode(next);
+                            self.access_set(Access::ByValue { node: get_field }, None, false)?;
+                        }
+                        GetConstField { get_const_field } => {
+                            self.emit_opcode(next);
+                            self.access_set(
+                                Access::ByName {
+                                    node: get_const_field,
+                                },
+                                None,
+                                false,
+                            )?;
+                        }
                         // BindingElement : BindingPattern Initializer[opt]
                         BindingPattern { pattern } => {
                             self.emit_opcode(next);
@@ -2130,6 +2191,22 @@ impl<'b> ByteCompiler<'b> {
                         SingleNameRest { ident } => {
                             self.emit_opcode(Opcode::IteratorToArray);
                             self.emit_binding(def, *ident);
+                            self.emit_opcode(Opcode::PushTrue);
+                        }
+                        GetFieldRest { get_field } => {
+                            self.emit_opcode(Opcode::IteratorToArray);
+                            self.access_set(Access::ByValue { node: get_field }, None, false)?;
+                            self.emit_opcode(Opcode::PushTrue);
+                        }
+                        GetConstFieldRest { get_const_field } => {
+                            self.emit_opcode(Opcode::IteratorToArray);
+                            self.access_set(
+                                Access::ByName {
+                                    node: get_const_field,
+                                },
+                                None,
+                                false,
+                            )?;
                             self.emit_opcode(Opcode::PushTrue);
                         }
                         // BindingRestElement : ... BindingPattern
@@ -2151,7 +2228,14 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub(crate) fn create_declarations(&mut self, node: &Node) -> JsResult<bool> {
+    pub(crate) fn create_declarations(&mut self, stmt_list: &[Node]) -> JsResult<()> {
+        for node in stmt_list {
+            self.create_decls_from_stmt(node)?;
+        }
+        Ok(())
+    }
+
+    pub(crate) fn create_decls_from_stmt(&mut self, node: &Node) -> JsResult<bool> {
         let mut has_identifier_argument = false;
 
         match node {
@@ -2248,17 +2332,17 @@ impl<'b> ByteCompiler<'b> {
             }
             Node::DoWhileLoop(do_while_loop) => {
                 if !matches!(do_while_loop.body(), Node::Block(_)) {
-                    self.create_declarations(do_while_loop.body())?;
+                    self.create_decls_from_stmt(do_while_loop.body())?;
                 }
             }
             Node::ForInLoop(for_in_loop) => {
                 if !matches!(for_in_loop.body(), Node::Block(_)) {
-                    self.create_declarations(for_in_loop.body())?;
+                    self.create_decls_from_stmt(for_in_loop.body())?;
                 }
             }
             Node::ForOfLoop(for_of_loop) => {
                 if !matches!(for_of_loop.body(), Node::Block(_)) {
-                    self.create_declarations(for_of_loop.body())?;
+                    self.create_decls_from_stmt(for_of_loop.body())?;
                 }
             }
             _ => {}

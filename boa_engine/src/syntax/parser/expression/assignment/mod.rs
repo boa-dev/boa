@@ -12,16 +12,19 @@ mod conditional;
 mod exponentiation;
 mod r#yield;
 
-use self::{
-    arrow_function::ArrowFunction, conditional::ConditionalExpression, r#yield::YieldExpression,
-};
 use crate::syntax::{
     ast::{
-        node::{Assign, BinOp, Node},
+        node::{operator::assign::AssignTarget, Assign, BinOp, Node},
         Keyword, Punctuator,
     },
     lexer::{Error as LexError, InputElement, TokenKind},
-    parser::{AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{
+        expression::assignment::{
+            arrow_function::ArrowFunction, conditional::ConditionalExpression,
+            r#yield::YieldExpression,
+        },
+        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+    },
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -199,10 +202,10 @@ where
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
-                    cursor.next(interner)?.expect("= token vanished"); // Consume the token.
-                    if is_assignable(&lhs) {
+                    cursor.next(interner)?.expect("= token vanished");
+                    if let Some(target) = AssignTarget::from_node(&lhs) {
                         let expr = self.parse(cursor, interner)?;
-                        lhs = Assign::new(lhs, expr).into();
+                        lhs = Assign::new(target, expr).into();
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -211,11 +214,10 @@ where
                     }
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
-                    cursor.next(interner)?.expect("token vanished"); // Consume the token.
+                    cursor.next(interner)?.expect("token vanished");
                     if is_assignable(&lhs) {
                         let binop = p.as_binop().expect("binop disappeared");
                         let expr = self.parse(cursor, interner)?;
-
                         lhs = BinOp::new(binop, lhs, expr).into();
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(

@@ -31,6 +31,26 @@ mod tests;
 pub struct ArrayDecl {
     #[cfg_attr(feature = "deser", serde(flatten))]
     arr: Box<[Node]>,
+    has_trailing_comma_spread: bool,
+}
+
+impl ArrayDecl {
+    /// Crate a new array declaration.
+    pub(crate) fn new<A>(array: A, has_trailing_comma_spread: bool) -> Self
+    where
+        A: Into<Box<[Node]>>,
+    {
+        Self {
+            arr: array.into(),
+            has_trailing_comma_spread,
+        }
+    }
+
+    /// Indicates if a spread operator in the array literal has a trailing comma.
+    /// This is a syntax error in some cases.
+    pub(crate) fn has_trailing_comma_spread(&self) -> bool {
+        self.has_trailing_comma_spread
+    }
 }
 
 impl AsRef<[Node]> for ArrayDecl {
@@ -44,7 +64,10 @@ where
     T: Into<Box<[Node]>>,
 {
     fn from(decl: T) -> Self {
-        Self { arr: decl.into() }
+        Self {
+            arr: decl.into(),
+            has_trailing_comma_spread: false,
+        }
     }
 }
 
