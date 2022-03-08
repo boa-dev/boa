@@ -187,6 +187,7 @@ fn replace_declpattern(
                         get_const_field,
                         excluded_keys,
                     } => {
+                        nodes.push(extendo(get_const_field.obj_mut()));
                         map_sym(syms, get_const_field.field_mut());
                         excluded_keys.iter_mut().for_each(|s| map_sym(syms, s));
                     }
@@ -219,12 +220,15 @@ fn replace_declpattern(
                     }
                     BindingPatternTypeArray::GetField { get_field }
                     | BindingPatternTypeArray::GetFieldRest { get_field } => {
+                        nodes.push(extendo(get_field.obj_mut()));
                         nodes.push(extendo(get_field.field_mut()));
                     }
                     BindingPatternTypeArray::GetConstField { get_const_field } => {
+                        nodes.push(extendo(get_const_field.obj_mut()));
                         map_sym(syms, get_const_field.field_mut());
                     }
                     BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+                        nodes.push(extendo(get_const_field.obj_mut()));
                         map_sym(syms, get_const_field.field_mut())
                     }
                 });
@@ -361,9 +365,13 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 match orig.lhs_mut() {
                     AssignTarget::Identifier(ident) => replace_ident(syms, ident),
                     AssignTarget::GetConstField(get_const_field) => {
-                        map_sym(syms, get_const_field.field_mut())
+                        nodes.push(extendo(get_const_field.obj_mut()));
+                        map_sym(syms, get_const_field.field_mut());
                     }
-                    AssignTarget::GetField(get_field) => nodes.push(extendo(get_field.field_mut())),
+                    AssignTarget::GetField(get_field) => {
+                        nodes.push(extendo(get_field.obj_mut()));
+                        nodes.push(extendo(get_field.field_mut()));
+                    }
                     AssignTarget::DeclarationPattern(declpattern) => {
                         replace_declpattern(syms, &mut nodes, declpattern)
                     }
