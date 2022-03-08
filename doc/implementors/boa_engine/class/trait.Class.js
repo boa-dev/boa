@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["classes"] = [{"text":"impl <a class=\"trait\" href=\"boa_engine/class/trait.Class.html\" title=\"trait boa_engine::class::Class\">Class</a> for <a class=\"struct\" href=\"classes/struct.Person.html\" title=\"struct classes::Person\">Person</a>","synthetic":false,"types":["classes::Person"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
