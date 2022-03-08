@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use std::fmt::Debug;
 
 use arbitrary::{size_hint, Arbitrary, Unstructured};
+use boa_engine::syntax::ast::node::operator::assign::AssignTarget;
 use boa_engine::syntax::ast::{
     node::{
         declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
@@ -145,7 +146,7 @@ fn replace_decllist(
 fn replace_declpattern(
     syms: &[Sym],
     nodes: &mut Vec<&'static mut Node>,
-    declpattern: &'static mut DeclarationPattern,
+    declpattern: &mut DeclarationPattern,
 ) {
     let mut stack = vec![declpattern];
     while let Some(declpattern) = stack.pop() {
@@ -182,6 +183,13 @@ fn replace_declpattern(
                             nodes.push(extendo(n));
                         }
                     }
+                    BindingPatternTypeObject::RestGetConstField {
+                        get_const_field,
+                        excluded_keys,
+                    } => {
+                        map_sym(syms, get_const_field.field_mut());
+                        excluded_keys.iter_mut().for_each(|s| map_sym(syms, s));
+                    }
                 });
                 if let Some(n) = o.init_mut() {
                     nodes.push(extendo(n));
@@ -208,6 +216,16 @@ fn replace_declpattern(
                     }
                     BindingPatternTypeArray::BindingPatternRest { pattern } => {
                         stack.push(extendo(pattern));
+                    }
+                    BindingPatternTypeArray::GetField { get_field }
+                    | BindingPatternTypeArray::GetFieldRest { get_field } => {
+                        nodes.push(extendo(get_field.field_mut()));
+                    }
+                    BindingPatternTypeArray::GetConstField { get_const_field } => {
+                        map_sym(syms, get_const_field.field_mut());
+                    }
+                    BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+                        map_sym(syms, get_const_field.field_mut())
                     }
                 });
                 if let Some(n) = a.init_mut() {
@@ -276,6 +294,9 @@ fn replace_ili(
         IterableLoopInitializer::Var(d)
         | IterableLoopInitializer::Let(d)
         | IterableLoopInitializer::Const(d) => replace_decl(syms, nodes, d),
+        IterableLoopInitializer::DeclarationPattern(declpattern) => {
+            replace_declpattern(syms, nodes, declpattern)
+        }
     }
 }
 
@@ -337,7 +358,16 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 nodes.extend(orig.body_mut().items_mut().iter_mut().map(extendo));
             }
             Node::Assign(orig) => {
-                nodes.push(extendo(orig.lhs_mut()));
+                match orig.lhs_mut() {
+                    AssignTarget::Identifier(ident) => replace_ident(syms, ident),
+                    AssignTarget::GetConstField(get_const_field) => {
+                        map_sym(syms, get_const_field.field_mut())
+                    }
+                    AssignTarget::GetField(get_field) => nodes.push(extendo(get_field.field_mut())),
+                    AssignTarget::DeclarationPattern(declpattern) => {
+                        replace_declpattern(syms, &mut nodes, declpattern)
+                    }
+                }
                 nodes.push(extendo(orig.rhs_mut()));
             }
             Node::AsyncFunctionDecl(orig) => {

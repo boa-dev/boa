@@ -55,7 +55,7 @@ impl Assign {
     }
 
     #[cfg(feature = "fuzzer")]
-    pub fn lhs_mut(&mut self) -> &mut Node {
+    pub fn lhs_mut(&mut self) -> &mut AssignTarget {
         &mut self.lhs
     }
 
@@ -88,6 +88,7 @@ impl From<Assign> for Node {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum AssignTarget {
     Identifier(Identifier),
