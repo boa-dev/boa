@@ -180,9 +180,13 @@ impl Test {
                         self.name
                     );
 
-                    let mut interner = Interner::default();
-                    match Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner) {
-                        Ok(n) => (false, format!("{n:?}")),
+                    let mut context = Context::default();
+                    context.set_strict_mode(strict);
+                    match context.parse(self.content.as_bytes()) {
+                        Ok(statement_list) => match context.compile(&statement_list) {
+                            Ok(_) => (false, "StatementList compilation should fail".to_owned()),
+                            Err(e) => (true, format!("Uncaught {e:?}")),
+                        },
                         Err(e) => (true, format!("Uncaught {e}")),
                     }
                 }
