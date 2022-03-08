@@ -314,9 +314,31 @@ impl Context {
                     }
                 }
             }
+            Opcode::IncPost => {
+                let value = self.vm.pop();
+                let value = value.to_numeric(self)?;
+                self.vm.push(value.clone());
+                match value {
+                    Numeric::Number(number) => self.vm.push(number + 1f64),
+                    Numeric::BigInt(bigint) => {
+                        self.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()));
+                    }
+                }
+            }
             Opcode::Dec => {
                 let value = self.vm.pop();
                 match value.to_numeric(self)? {
+                    Numeric::Number(number) => self.vm.push(number - 1f64),
+                    Numeric::BigInt(bigint) => {
+                        self.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
+                    }
+                }
+            }
+            Opcode::DecPost => {
+                let value = self.vm.pop();
+                let value = value.to_numeric(self)?;
+                self.vm.push(value.clone());
+                match value {
                     Numeric::Number(number) => self.vm.push(number - 1f64),
                     Numeric::BigInt(bigint) => {
                         self.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));

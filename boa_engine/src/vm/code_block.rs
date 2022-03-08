@@ -287,7 +287,9 @@ impl CodeBlock {
             | Opcode::Pos
             | Opcode::Neg
             | Opcode::Inc
+            | Opcode::IncPost
             | Opcode::Dec
+            | Opcode::DecPost
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
             | Opcode::DefineOwnPropertyByValue
