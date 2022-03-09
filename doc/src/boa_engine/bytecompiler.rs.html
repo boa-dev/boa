@@ -2350,8 +2350,6 @@
 <span id="2348">2348</span>
 <span id="2349">2349</span>
 <span id="2350">2350</span>
-<span id="2351">2351</span>
-<span id="2352">2352</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -2949,8 +2947,7 @@
                     }
                     <span class="ident">UnaryOp::IncrementPost</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Inc</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::IncPost</span>, <span class="kw-2">&amp;</span>[]);
 
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="self">self</span>.<span class="ident">context</span>
@@ -2962,8 +2959,7 @@
                     }
                     <span class="ident">UnaryOp::DecrementPost</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dec</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DecPost</span>, <span class="kw-2">&amp;</span>[]);
 
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="self">self</span>.<span class="ident">context</span>
