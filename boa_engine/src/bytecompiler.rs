@@ -595,8 +595,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     UnaryOp::IncrementPost => {
                         self.compile_expr(unary.target(), true)?;
-                        self.emit(Opcode::Dup, &[]);
-                        self.emit(Opcode::Inc, &[]);
+                        self.emit(Opcode::IncPost, &[]);
 
                         let access = Self::compile_access(unary.target()).ok_or_else(|| {
                             self.context
@@ -608,8 +607,7 @@ impl<'b> ByteCompiler<'b> {
                     }
                     UnaryOp::DecrementPost => {
                         self.compile_expr(unary.target(), true)?;
-                        self.emit(Opcode::Dup, &[]);
-                        self.emit(Opcode::Dec, &[]);
+                        self.emit(Opcode::DecPost, &[]);
 
                         let access = Self::compile_access(unary.target()).ok_or_else(|| {
                             self.context
