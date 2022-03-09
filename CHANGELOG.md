@@ -69,7 +69,6 @@
 - Removed a bunch of warnings and clippy errors by @Razican in [#1754](https://github.com/boa-dev/boa/pull/1754)
 - Fix some broken links in the profiler documentation by @Razican in [#1762](https://github.com/boa-dev/boa/pull/1762)
 - Add proxy handling in `isArray` method by @raskad in [#1777](https://github.com/boa-dev/boa/pull/1777)
-- Add proxy handling in `isArray` method by @raskad in [#1777](https://github.com/boa-dev/boa/pull/1777)
 - Copy/paste fix in Proxy error message by @icecream17 in [#1787](https://github.com/boa-dev/boa/pull/1787)
 - Fixed #1768 by @Razican in [#1820](https://github.com/boa-dev/boa/pull/1820)
 - Fix string.prototype methods and add static string methods by @jevancc in [#1123](https://github.com/boa-dev/boa/pull/1123)
