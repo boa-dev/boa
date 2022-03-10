@@ -251,6 +251,11 @@
 <span id="249">249</span>
 <span id="250">250</span>
 <span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -447,8 +452,13 @@
 
         <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::Div</span>);
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ConditionalExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ConditionalExpression::new</span>(
+            <span class="self">self</span>.<span class="ident">name</span>,
+            <span class="self">self</span>.<span class="ident">allow_in</span>,
+            <span class="self">self</span>.<span class="ident">allow_yield</span>,
+            <span class="self">self</span>.<span class="ident">allow_await</span>,
+        )
+        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// Review if we are trying to assign to an invalid left hand side expression.</span>
         <span class="comment">// TODO: can we avoid cloning?</span>
