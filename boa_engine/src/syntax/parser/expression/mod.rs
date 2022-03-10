@@ -73,7 +73,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
     {
         type Output = Node;
 
-        fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult {
+        fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult {
             let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
 
             if $goal.is_some() {
@@ -81,6 +81,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
             }
 
             let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?;
+            self.name = None;
             while let Some(tok) = cursor.peek(0, interner)? {
                 match *tok.kind() {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
@@ -160,6 +161,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression
 #[derive(Debug, Clone, Copy)]
 struct ShortCircuitExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -175,13 +177,15 @@ enum PreviousExpr {
 
 impl ShortCircuitExpression {
     /// Creates a new `ShortCircuitExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -189,18 +193,21 @@ impl ShortCircuitExpression {
         }
     }
 
-    fn with_previous<I, Y, A>(
+    fn with_previous<N, I, Y, A>(
+        name: N,
         allow_in: I,
         allow_yield: Y,
         allow_await: A,
         previous: PreviousExpr,
     ) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -219,7 +226,7 @@ where
         let _timer = Profiler::global().start_event("ShortCircuitExpression", "Parsing");
 
         let mut current_node =
-            BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
+            BitwiseORExpression::new(self.name, self.allow_in, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
         let mut previous = self.previous;
 
@@ -235,9 +242,13 @@ where
                     }
                     let _next = cursor.next(interner)?.expect("'&&' expected");
                     previous = PreviousExpr::Logical;
-                    let rhs =
-                        BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                    let rhs = BitwiseORExpression::new(
+                        self.name,
+                        self.allow_in,
+                        self.allow_yield,
+                        self.allow_await,
+                    )
+                    .parse(cursor, interner)?;
 
                     current_node = BinOp::new(LogOp::And, current_node, rhs).into();
                 }
@@ -252,6 +263,7 @@ where
                     let _next = cursor.next(interner)?.expect("'||' expected");
                     previous = PreviousExpr::Logical;
                     let rhs = Self::with_previous(
+                        self.name,
                         self.allow_in,
                         self.allow_yield,
                         self.allow_await,
@@ -271,9 +283,13 @@ where
                     }
                     let _next = cursor.next(interner)?.expect("'??' expected");
                     previous = PreviousExpr::Coalesce;
-                    let rhs =
-                        BitwiseORExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                    let rhs = BitwiseORExpression::new(
+                        self.name,
+                        self.allow_in,
+                        self.allow_yield,
+                        self.allow_await,
+                    )
+                    .parse(cursor, interner)?;
                     current_node = BinOp::new(LogOp::Coalesce, current_node, rhs).into();
                 }
                 _ => break,
@@ -293,6 +309,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression
 #[derive(Debug, Clone, Copy)]
 struct BitwiseORExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -300,13 +317,15 @@ struct BitwiseORExpression {
 
 impl BitwiseORExpression {
     /// Creates a new `BitwiseORExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -318,7 +337,7 @@ expression!(
     BitwiseORExpression,
     BitwiseXORExpression,
     [Punctuator::Or],
-    [allow_in, allow_yield, allow_await],
+    [name, allow_in, allow_yield, allow_await],
     None::<InputElement>
 );
 
@@ -332,6 +351,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression
 #[derive(Debug, Clone, Copy)]
 struct BitwiseXORExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -339,13 +359,15 @@ struct BitwiseXORExpression {
 
 impl BitwiseXORExpression {
     /// Creates a new `BitwiseXORExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -357,7 +379,7 @@ expression!(
     BitwiseXORExpression,
     BitwiseANDExpression,
     [Punctuator::Xor],
-    [allow_in, allow_yield, allow_await],
+    [name, allow_in, allow_yield, allow_await],
     None::<InputElement>
 );
 
@@ -371,6 +393,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression
 #[derive(Debug, Clone, Copy)]
 struct BitwiseANDExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -378,13 +401,15 @@ struct BitwiseANDExpression {
 
 impl BitwiseANDExpression {
     /// Creates a new `BitwiseANDExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -396,7 +421,7 @@ expression!(
     BitwiseANDExpression,
     EqualityExpression,
     [Punctuator::And],
-    [allow_in, allow_yield, allow_await],
+    [name, allow_in, allow_yield, allow_await],
     None::<InputElement>
 );
 
@@ -410,6 +435,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-equality-operators
 #[derive(Debug, Clone, Copy)]
 struct EqualityExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -417,13 +443,15 @@ struct EqualityExpression {
 
 impl EqualityExpression {
     /// Creates a new `EqualityExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -440,7 +468,7 @@ expression!(
         Punctuator::StrictEq,
         Punctuator::StrictNotEq
     ],
-    [allow_in, allow_yield, allow_await],
+    [name, allow_in, allow_yield, allow_await],
     None::<InputElement>
 );
 
@@ -454,6 +482,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-relational-operators
 #[derive(Debug, Clone, Copy)]
 struct RelationalExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -461,13 +490,15 @@ struct RelationalExpression {
 
 impl RelationalExpression {
     /// Creates a new `RelationalExpression` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -484,8 +515,8 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("Relation Expression", "Parsing");
 
-        let mut lhs =
-            ShiftExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let mut lhs = ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
         while let Some(tok) = cursor.peek(0, interner)? {
             match *tok.kind() {
                 TokenKind::Punctuator(op)
@@ -498,7 +529,7 @@ where
                     lhs = BinOp::new(
                         op.as_binop().expect("Could not get binary operation."),
                         lhs,
-                        ShiftExpression::new(self.allow_yield, self.allow_await)
+                        ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                     )
                     .into();
@@ -511,7 +542,7 @@ where
                     lhs = BinOp::new(
                         op.as_binop().expect("Could not get binary operation."),
                         lhs,
-                        ShiftExpression::new(self.allow_yield, self.allow_await)
+                        ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                     )
                     .into();
@@ -534,18 +565,21 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-bitwise-shift-operators
 #[derive(Debug, Clone, Copy)]
 struct ShiftExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ShiftExpression {
     /// Creates a new `ShiftExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -560,7 +594,7 @@ expression!(
         Punctuator::RightSh,
         Punctuator::URightSh
     ],
-    [allow_yield, allow_await],
+    [name, allow_yield, allow_await],
     None::<InputElement>
 );
 
@@ -576,18 +610,21 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-additive-operators
 #[derive(Debug, Clone, Copy)]
 struct AdditiveExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl AdditiveExpression {
     /// Creates a new `AdditiveExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -598,7 +635,7 @@ expression!(
     AdditiveExpression,
     MultiplicativeExpression,
     [Punctuator::Add, Punctuator::Sub],
-    [allow_yield, allow_await],
+    [name, allow_yield, allow_await],
     None::<InputElement>
 );
 
@@ -614,18 +651,21 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators
 #[derive(Debug, Clone, Copy)]
 struct MultiplicativeExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl MultiplicativeExpression {
     /// Creates a new `MultiplicativeExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -636,6 +676,6 @@ expression!(
     MultiplicativeExpression,
     ExponentiationExpression,
     [Punctuator::Mul, Punctuator::Div, Punctuator::Mod],
-    [allow_yield, allow_await],
+    [name, allow_yield, allow_await],
     Some(InputElement::Div)
 );

@@ -32,7 +32,19 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
 /// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct GeneratorExpression;
+pub(super) struct GeneratorExpression {
+    name: Option<Sym>,
+}
+
+impl GeneratorExpression {
+    /// Creates a new `GeneratorExpression` parser.
+    pub(in crate::syntax::parser) fn new<N>(name: N) -> Self
+    where
+        N: Into<Option<Sym>>,
+    {
+        Self { name: name.into() }
+    }
+}
 
 impl<R> TokenParser<R> for GeneratorExpression
 where
@@ -53,13 +65,13 @@ where
             interner,
         )?;
 
-        let name = if let Some(token) = cursor.peek(0, interner)? {
-            match token.kind() {
-                TokenKind::Punctuator(Punctuator::OpenParen) => None,
-                _ => Some(BindingIdentifier::new(true, false).parse(cursor, interner)?),
-            }
-        } else {
-            return Err(ParseError::AbruptEnd);
+        let name = match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
+            TokenKind::Punctuator(Punctuator::OpenParen) => self.name,
+            _ => Some(BindingIdentifier::new(true, false).parse(cursor, interner)?),
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,

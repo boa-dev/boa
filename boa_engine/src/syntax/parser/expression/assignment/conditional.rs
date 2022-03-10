@@ -15,7 +15,7 @@ use crate::syntax::{
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -29,6 +29,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser::expression) struct ConditionalExpression {
+    name: Option<Sym>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -36,17 +37,20 @@ pub(in crate::syntax::parser::expression) struct ConditionalExpression {
 
 impl ConditionalExpression {
     /// Creates a new `ConditionalExpression` parser.
-    pub(in crate::syntax::parser::expression) fn new<I, Y, A>(
+    pub(in crate::syntax::parser::expression) fn new<N, I, Y, A>(
+        name: N,
         allow_in: I,
         allow_yield: Y,
         allow_await: A,
     ) -> Self
     where
+        N: Into<Option<Sym>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
@@ -62,9 +66,13 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("ConditionalExpression", "Parsing");
-
-        let lhs = ShortCircuitExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+        let lhs = ShortCircuitExpression::new(
+            self.name,
+            self.allow_in,
+            self.allow_yield,
+            self.allow_await,
+        )
+        .parse(cursor, interner)?;
 
         if let Some(tok) = cursor.peek(0, interner)? {
             if tok.kind() == &TokenKind::Punctuator(Punctuator::Question) {

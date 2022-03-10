@@ -194,8 +194,13 @@ where
 
         cursor.set_goal(InputElement::Div);
 
-        let mut lhs = ConditionalExpression::new(self.allow_in, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
+        let mut lhs = ConditionalExpression::new(
+            self.name,
+            self.allow_in,
+            self.allow_yield,
+            self.allow_await,
+        )
+        .parse(cursor, interner)?;
 
         // Review if we are trying to assign to an invalid left hand side expression.
         // TODO: can we avoid cloning?

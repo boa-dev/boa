@@ -12,6 +12,7 @@ use boa_interner::Interner;
 #[test]
 fn check_generator_function_expression() {
     let mut interner = Interner::default();
+    let gen = interner.get_or_intern_static("gen");
     check_parser(
         "const gen = function*() {
             yield 1;
@@ -19,10 +20,10 @@ fn check_generator_function_expression() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("gen"),
+                gen,
                 Some(
                     GeneratorExpr::new::<_, _, StatementList>(
-                        None,
+                        Some(gen),
                         FormalParameterList::default(),
                         vec![Yield::new(Const::from(1), false).into()].into(),
                     )
@@ -39,6 +40,7 @@ fn check_generator_function_expression() {
 #[test]
 fn check_generator_function_delegate_yield_expression() {
     let mut interner = Interner::default();
+    let gen = interner.get_or_intern_static("gen");
     check_parser(
         "const gen = function*() {
             yield* 1;
@@ -46,10 +48,10 @@ fn check_generator_function_delegate_yield_expression() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("gen"),
+                gen,
                 Some(
                     GeneratorExpr::new::<_, _, StatementList>(
-                        None,
+                        Some(gen),
                         FormalParameterList::default(),
                         vec![Yield::new(Const::from(1), true).into()].into(),
                     )
