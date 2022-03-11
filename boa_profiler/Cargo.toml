@@ -1,0 +1,36 @@
+[package]
+name = "boa_profiler"
+version = "0.13.0"
+edition = "2021"
+rust-version = "1.58"
+authors = ["boa-dev"]
+description = "Profiler used in Boa."
+repository = "https://github.com/boa-dev/boa"
+keywords = ["javascript", "js", "compiler", "profiler"]
+categories = ["development-tools::profiling"]
+license = "Unlicense/MIT"
+exclude = [
+    "../.vscode/*",
+    "../.editorconfig",
+    "../test262/*",
+    "../node_modules/*",
+    "../target/*",
+    "../dist/*",
+    "../.github/*",
+    "../assets/*",
+    "../docs/*",
+    "../*.js",
+    "../test_ignore.txt",
+    "../yarn.lock",
+    "../package.json",
+    "../index.html",
+    "../tests/*",
+    "../.github/*",
+]
+
+[features]
+profiler = ["measureme", "once_cell"]
+
+[dependencies]
+measureme = { version = "10.0.0", optional = true }
+once_cell = { version = "1.10.0", optional = true }

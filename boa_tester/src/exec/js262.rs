@@ -1,4 +1,4 @@
-use boa::{
+use boa_engine::{
     builtins::JsArgs,
     object::{JsObject, ObjectInitializer},
     property::Attribute,

@@ -11,7 +11,7 @@ jobs:
     name: Tests on Linux
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -34,7 +34,7 @@ jobs:
     name: Tests on Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -43,7 +43,10 @@ jobs:
       - name: Cache cargo
         uses: actions/cache@v2.1.7
         with:
-          path: target
+          path: |
+            target
+            ~/.cargo/git
+            ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
       - uses: actions-rs/cargo@v1
         with:
@@ -54,7 +57,7 @@ jobs:
     name: Tests on MacOS
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -69,7 +72,7 @@ jobs:
     name: Rustfmt
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -85,7 +88,7 @@ jobs:
     name: Clippy
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -109,7 +112,7 @@ jobs:
     name: Examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -138,7 +141,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable

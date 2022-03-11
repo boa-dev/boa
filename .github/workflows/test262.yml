@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the repository
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           submodules: true
           path: boa
@@ -29,14 +29,14 @@ jobs:
         uses: actions/cache@v2.1.7
         with:
           path: |
-            ./boa/target
+            target
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-test262-${{ hashFiles('**/Cargo.lock') }}
 
       # Run the test suite and upload the results
       - name: Checkout GitHub pages
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           ref: gh-pages
           path: gh-pages

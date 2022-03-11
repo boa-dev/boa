@@ -10,20 +10,20 @@ jobs:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v2.4.0
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.sha }}
       - run: cargo login ${CARGO_REGISTRY_TOKEN}
       - run: cargo publish
-        working-directory: boa
+        working-directory: boa_engine
   doc-publish:
     needs: publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
         with:
           ref: main
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
         with:
           ref: gh-pages
           path: dist
@@ -39,6 +39,8 @@ jobs:
             node_modules
             target
             boa_wasm/pkg
+            ~/.cargo/git
+            ~/.cargo/registry
           key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
       - uses: Borales/actions-yarn@v2.3.0
         with:

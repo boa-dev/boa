@@ -10,7 +10,7 @@ jobs:
     name: Upload docs and run benchmarks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2.4.0
+      - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
         with:
           toolchain: stable
@@ -30,7 +30,7 @@ jobs:
         with:
           command: doc
           args: -v --document-private-items
-      - run: echo "<meta http-equiv=refresh content=0;url=boa/index.html>" > target/doc/index.html
+      - run: echo "<meta http-equiv=refresh content=0;url=boa_engine/index.html>" > target/doc/index.html
       - run: |
           if [ -d target/doc_upload ]; then rm -rf target/doc_upload; fi
           mkdir target/doc_upload && mv target/doc target/doc_upload/doc
@@ -43,7 +43,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Run benchmark
-        run: cargo bench -p Boa -- --output-format bencher | tee output.txt
+        run: cargo bench -p boa_engine -- --output-format bencher | tee output.txt
       - name: Store benchmark result
         uses: benchmark-action/github-action-benchmark@v1.13.0
         with:

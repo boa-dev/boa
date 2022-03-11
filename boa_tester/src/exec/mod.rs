@@ -6,7 +6,8 @@ use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
-use boa::{syntax::Parser, Context, Interner, JsValue};
+use boa_engine::{syntax::Parser, Context, JsResult, JsValue};
+use boa_interner::Interner;
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;
@@ -205,8 +206,11 @@ impl Test {
                                 match context.eval(&self.content.as_ref()) {
                                     Ok(res) => (false, res.display().to_string()),
                                     Err(e) => {
-                                        let passed =
-                                            e.display().to_string().contains(error_type.as_ref());
+                                        let passed = e
+                                            .display()
+                                            .internals(true)
+                                            .to_string()
+                                            .contains(error_type.as_ref());
 
                                         (passed, format!("Uncaught {}", e.display()))
                                     }
@@ -335,6 +339,6 @@ impl Test {
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> boa::JsResult<JsValue> {
+fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
     todo!("print() function");
 }

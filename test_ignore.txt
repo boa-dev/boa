@@ -8,7 +8,6 @@ feature:SharedArrayBuffer
 feature:resizable-arraybuffer
 feature:Temporal
 feature:tail-call-optimization
-//feature:generators
 //feature:async-iteration
 //feature:class
 
