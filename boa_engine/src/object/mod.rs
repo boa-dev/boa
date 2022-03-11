@@ -1183,6 +1183,17 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub fn as_promise_mut(&mut self) -> Option<&mut Promise> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Promise(ref mut promise),
+                ..
+            } => Some(promise),
+            _ => None,
+        }
+    }
+
     /// Return `true` if it is a native object and the native type is `T`.
     #[inline]
     pub fn is<T>(&self) -> bool

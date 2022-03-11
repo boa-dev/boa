@@ -8,8 +8,8 @@ mod tests;
 pub mod fetch;
 mod promise_job;
 
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use gc::{Finalize, Trace};
 use tap::{Conv, Pipe};
 
 use crate::{
@@ -41,10 +41,31 @@ enum PromiseState {
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Promise {
-    promise_state: PromiseState,   //  to pending.
-    promise_fulfill_reactions: JsValue, //  to a new empty List.
-    promise_reject_reactions: JsValue,  //  to a new empty List.
-    promise_is_handled: bool,      //  to false.
+    promise_result: Option<JsValue>,
+    promise_state: PromiseState,
+    promise_fulfill_reactions: Vec<ReactionRecord>,
+    promise_reject_reactions: Vec<ReactionRecord>,
+    promise_is_handled: bool,
+}
+
+#[derive(Debug, Clone, Trace, Finalize)]
+pub struct ReactionRecord {
+    promise_capability: Option<PromiseCapability>,
+    reaction_type: ReactionType,
+    handler: Option<JobCallback>,
+}
+
+#[derive(Debug, Clone, Trace, Finalize)]
+enum ReactionType {
+    Fulfill,
+    Reject,
+}
+
+#[derive(Debug, Clone, Trace, Finalize)]
+struct PromiseCapability {
+    promise: JsValue,
+    resolve: JsValue,
+    reject: JsValue,
 }
 
 impl BuiltIn for Promise {
@@ -128,12 +149,13 @@ impl Promise {
         let promise = JsObject::from_proto_and_data(
             promise,
             ObjectData::promise(Self {
+                promise_result: None,
                 // 4. Set promise.[[PromiseState]] to pending.
                 promise_state: PromiseState::Pending,
                 // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
-                promise_fulfill_reactions: JsValue::Undefined,
+                promise_fulfill_reactions: vec![],
                 // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
-                promise_reject_reactions: JsValue::Undefined,
+                promise_reject_reactions: vec![],
                 // 7. Set promise.[[PromiseIsHandled]] to false.
                 promise_is_handled: false,
             }),
@@ -215,15 +237,22 @@ impl Promise {
                 // 8. If Type(resolution) is not Object, then
                 if !resolution.is_object() {
                     // a. Perform FulfillPromise(promise, resolution).
-                    promise.borrow().as_promise().expect("msg").fulfill(resolution);
+                    promise
+                        .borrow_mut()
+                        .as_promise_mut()
+                        .expect("msg")
+                        .fulfill(resolution, context);
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
                 }
 
-                let resolution = resolution.as_object().expect("msg");
                 // 9. Let then be Completion(Get(resolution, "then")).
-                let then = resolution.get("then", context).expect("msg");
+                let then = resolution
+                    .as_object()
+                    .expect("msg")
+                    .get("then", context)
+                    .expect("msg");
 
                 // TODO
                 // 10. If then is an abrupt completion, then
@@ -240,7 +269,11 @@ impl Promise {
                 // 12. If IsCallable(thenAction) is false, then
                 if !then_action.is_callable() {
                     //   a. Perform FulfillPromise(promise, resolution).
-                    // TODO
+                    promise
+                        .borrow_mut()
+                        .as_promise_mut()
+                        .expect("msg")
+                        .fulfill(resolution, context);
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -328,16 +361,12 @@ impl Promise {
         // 12. Return the Record { [[Resolve]]: resolve, [[Reject]]: reject }.
         let resolve = resolve.conv::<JsValue>();
         let reject = reject.conv::<JsValue>();
-        Ok(
-            ResolvingFunctionsRecord {
-                resolve,
-                reject
-            }
-        )
+        Ok(ResolvingFunctionsRecord { resolve, reject })
     }
 
     /// https://tc39.es/ecma262/#sec-fulfillpromise
-    pub fn fulfill(&self, value: &JsValue) -> () {
+    pub fn fulfill(&mut self, value: &JsValue, context: &mut Context) -> () {
+        // TODO: check if statement change of 7. to 2. changes the semantics also
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         match self.promise_state {
             PromiseState::Pending => (),
@@ -347,27 +376,41 @@ impl Promise {
         // 2. Let reactions be promise.[[PromiseFulfillReactions]].
         let reactions = &self.promise_fulfill_reactions;
 
+        // 7. Perform TriggerPromiseReactions(reactions, value).
+        Promise::trigger_promise_reactions(reactions, value.clone(), context);
+
         // 3. Set promise.[[PromiseResult]] to value.
-        // TODO
-        // self.promise_result = value;
+        self.promise_result = Some(value.clone());
 
         // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        // TODO:
-        // self.promise_fulfill_reactions = JsValue::Undefined;
+        self.promise_fulfill_reactions = vec![];
 
         // 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        // TODO:
-        // self.promise_reject_reactions = JsValue::Undefined;
+        self.promise_reject_reactions = vec![];
 
         // 6. Set promise.[[PromiseState]] to fulfilled.
-        // TODO:
-        // self.promise_state = PromiseState::Fulfilled;
-
-        // 7. Perform TriggerPromiseReactions(reactions, value).
-        // TODO
-        // Promise::trigger_promise_reactions(reactions, value);
+        self.promise_state = PromiseState::Fulfilled;
 
         // 8. Return unused.
-        return ()
+        return ();
+    }
+
+    /// https://tc39.es/ecma262/#sec-triggerpromisereactions
+    pub fn trigger_promise_reactions(
+        reactions: &Vec<ReactionRecord>,
+        argument: JsValue,
+        context: &mut Context,
+    ) {
+        // 1. For each element reaction of reactions, do
+        for reaction in reactions {
+            // a. Let job be NewPromiseReactionJob(reaction, argument).
+            let job = PromiseJob::new_promise_reaction_job(reaction.clone(), argument.clone(), context);
+
+            // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
+            context.host_enqueue_promise_job(Box::new(job))
+        }
+
+        // 2. Return unused.
+        ()
     }
 }
