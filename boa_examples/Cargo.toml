@@ -1,0 +1,14 @@
+[package]
+name = "boa_examples"
+version = "0.11.0"
+authors = ["boa-dev"]
+repository = "https://github.com/boa-dev/boa"
+license = "Unlicense/MIT"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+boa_engine = { path = "../boa_engine", features = ["console"] }
+boa_gc = { path = "../boa_gc" }
+gc = { version = "0.4.1" }

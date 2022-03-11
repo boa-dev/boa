@@ -6,8 +6,6 @@ use boa_engine::{
 };
 use boa_gc::{Finalize, Trace};
 
-use boa_gc::{Finalize, Trace};
-
 // We create a new struct that is going to represent a person.
 //
 // We derive `Debug`, `Trace` and `Finalize`, it automatically implements `NativeObject`

@@ -390,12 +390,26 @@ pub enum Opcode {
     /// Stack: value **=>** (value + 1)
     Inc,
 
+    /// Unary postfix `++` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** (ToNumeric(value)), (value + 1)
+    IncPost,
+
     /// Unary `--` operator.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** (value - 1)
     Dec,
+
+    /// Unary postfix `--` operator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** (ToNumeric(value)), (value - 1)
+    DecPost,
 
     /// Declare and initialize a function argument.
     ///
@@ -978,7 +992,9 @@ impl Opcode {
             Opcode::Pos => "Pos",
             Opcode::Neg => "Neg",
             Opcode::Inc => "Inc",
+            Opcode::IncPost => "IncPost",
             Opcode::Dec => "Dec",
+            Opcode::DecPost => "DecPost",
             Opcode::DefInitArg => "DefInitArg",
             Opcode::DefVar => "DefVar",
             Opcode::DefInitVar => "DefInitVar",
@@ -1092,4 +1108,5 @@ pub(crate) enum BindingOpcode {
     InitLet,
     InitArg,
     InitConst,
+    SetName,
 }

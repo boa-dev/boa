@@ -57,7 +57,7 @@ where
             "Await expression parsing",
             interner,
         )?;
-        let expr = UnaryExpression::new(self.allow_yield, true).parse(cursor, interner)?;
+        let expr = UnaryExpression::new(None, self.allow_yield, true).parse(cursor, interner)?;
         Ok(expr.into())
     }
 }

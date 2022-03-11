@@ -15,10 +15,9 @@ use crate::{
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
     JsResult, JsValue, job::JobCallback,
 };
-use boa_interner::Sym;
 use queues::*;
 use boa_gc::Gc;
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 
 #[cfg(feature = "console")]
@@ -676,10 +675,8 @@ impl Context {
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
-        for node in statement_list.items() {
-            compiler.create_declarations(node)?;
-        }
-        compiler.compile_statement_list(statement_list, true)?;
+        compiler.create_declarations(statement_list.items())?;
+        compiler.compile_statement_list(statement_list.items(), true)?;
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -721,6 +718,13 @@ impl Context {
         Ok(result)
     }
 
+    fn run_queued_jobs(&mut self) {
+        while !(self.promise_job_queue.size() == 0) {
+            let job = self.promise_job_queue.remove().unwrap();
+            job.run(self);
+        }
+    }
+
     /// Return the intrinsic constructors and objects.
     #[inline]
     pub fn intrinsics(&self) -> &Intrinsics {
@@ -730,13 +734,6 @@ impl Context {
     /// Set the value of trace on the context
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
-    }
-
-    fn run_queued_jobs(&mut self) {
-        while !(self.promise_job_queue.size() == 0) {
-            let job = self.promise_job_queue.remove().unwrap();
-            job.run(self);
-        }
     }
 
     pub fn host_enqueue_promise_job(&mut self, job: Box<JobCallback> /* , realm: Realm */) {

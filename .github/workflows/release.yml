@@ -6,16 +6,25 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    env:
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
     steps:
       - name: Git Checkout
         uses: actions/checkout@v3
+<<<<<<< HEAD
         with:
           ref: ${{ github.sha }}
       - run: cargo login ${CARGO_REGISTRY_TOKEN}
       - run: cargo publish
         working-directory: boa_engine
+=======
+      - run: cd boa_engine
+      - name: Publish to crates.io
+        uses: actions-rs/cargo@v1
+        with:
+          command: publish
+          args: --token ${CARGO_REGISTRY_TOKEN}
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+>>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd
   doc-publish:
     needs: publish
     runs-on: ubuntu-latest
@@ -44,7 +53,7 @@ jobs:
           key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
       - uses: Borales/actions-yarn@v2.3.0
         with:
-          cmd: build
+          cmd: build:prod
       - run: |
           git config user.name github-actions
           git config user.email github-actions@github.com

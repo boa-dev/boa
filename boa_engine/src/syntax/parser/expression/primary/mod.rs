@@ -50,18 +50,21 @@ pub(in crate::syntax::parser) use object_initializer::Initializer;
 /// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PrimaryExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl PrimaryExpression {
     /// Creates a new `PrimaryExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -86,26 +89,30 @@ where
             TokenKind::Keyword(Keyword::Function) => {
                 let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
-                    GeneratorExpression.parse(cursor, interner).map(Node::from)
+                    GeneratorExpression::new(self.name)
+                        .parse(cursor, interner)
+                        .map(Node::from)
                 } else {
-                    FunctionExpression.parse(cursor, interner).map(Node::from)
+                    FunctionExpression::new(self.name)
+                        .parse(cursor, interner)
+                        .map(Node::from)
                 }
             }
             TokenKind::Keyword(Keyword::Async) => {
                 let mul_peek = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if mul_peek.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
-                    AsyncGeneratorExpression
+                    AsyncGeneratorExpression::new(self.name)
                         .parse(cursor, interner)
                         .map(Node::from)
                 } else {
-                    AsyncFunctionExpression::new(self.allow_yield)
+                    AsyncFunctionExpression::new(self.name, self.allow_yield)
                         .parse(cursor, interner)
                         .map(Node::from)
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
                 cursor.set_goal(InputElement::RegExp);
-                let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
+                let expr = Expression::new(self.name, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
                 cursor.expect(Punctuator::CloseParen, "primary expression", interner)?;
                 Ok(expr)

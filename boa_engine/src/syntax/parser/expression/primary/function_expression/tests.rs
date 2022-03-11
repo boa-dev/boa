@@ -13,6 +13,7 @@ use boa_interner::{Interner, Sym};
 #[test]
 fn check_function_expression() {
     let mut interner = Interner::default();
+    let add = interner.get_or_intern_static("add");
     check_parser(
         "const add = function() {
             return 1;
@@ -20,10 +21,14 @@ fn check_function_expression() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("add"),
+                add,
                 Some(
                     FunctionExpr::new::<_, _, StatementList>(
+<<<<<<< HEAD:boa_engine/src/syntax/parser/expression/primary/function_expression/tests.rs
                         None,
+=======
+                        Some(add),
+>>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd:boa/src/syntax/parser/expression/primary/function_expression/tests.rs
                         FormalParameterList::default(),
                         vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
                     )
@@ -40,6 +45,8 @@ fn check_function_expression() {
 #[test]
 fn check_nested_function_expression() {
     let mut interner = Interner::default();
+    let a = interner.get_or_intern_static("a");
+    let b = interner.get_or_intern_static("b");
     check_parser(
         "const a = function() {
             const b = function() {
@@ -49,17 +56,25 @@ fn check_nested_function_expression() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
+                a,
                 Some(
                     FunctionExpr::new::<_, _, StatementList>(
+<<<<<<< HEAD:boa_engine/src/syntax/parser/expression/primary/function_expression/tests.rs
                         None,
+=======
+                        Some(a),
+>>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd:boa/src/syntax/parser/expression/primary/function_expression/tests.rs
                         FormalParameterList::default(),
                         vec![DeclarationList::Const(
                             vec![Declaration::new_with_identifier(
-                                interner.get_or_intern_static("b"),
+                                b,
                                 Some(
                                     FunctionExpr::new::<_, _, StatementList>(
+<<<<<<< HEAD:boa_engine/src/syntax/parser/expression/primary/function_expression/tests.rs
                                         None,
+=======
+                                        Some(b),
+>>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd:boa/src/syntax/parser/expression/primary/function_expression/tests.rs
                                         FormalParameterList::default(),
                                         vec![Return::new::<_, _, Option<Sym>>(
                                             Const::from(1),

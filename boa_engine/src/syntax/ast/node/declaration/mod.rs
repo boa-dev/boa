@@ -1,5 +1,10 @@
 //! Declaration nodes
-use crate::syntax::ast::node::{join_nodes, Identifier, Node};
+use crate::syntax::ast::node::{
+    field::{GetConstField, GetField},
+    join_nodes,
+    statement_list::StatementList,
+    Identifier, Node,
+};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -22,8 +27,6 @@ pub use self::{
     async_generator_expr::AsyncGeneratorExpr, function_decl::FunctionDecl,
     function_expr::FunctionExpr,
 };
-
-use super::StatementList;
 
 #[cfg(test)]
 mod tests;
@@ -337,10 +340,12 @@ impl DeclarationPatternObject {
         let mut idents = Vec::new();
 
         for binding in &self.bindings {
-            use BindingPatternTypeObject::{BindingPattern, Empty, RestProperty, SingleName};
+            use BindingPatternTypeObject::{
+                BindingPattern, Empty, RestGetConstField, RestProperty, SingleName,
+            };
 
             match binding {
-                Empty => {}
+                Empty | RestGetConstField { .. } => {}
                 SingleName {
                     ident,
                     property_name: _,
@@ -437,11 +442,17 @@ impl DeclarationPatternArray {
 
         for binding in &self.bindings {
             use BindingPatternTypeArray::{
-                BindingPattern, BindingPatternRest, Elision, Empty, SingleName, SingleNameRest,
+                BindingPattern, BindingPatternRest, Elision, Empty, GetConstField,
+                GetConstFieldRest, GetField, GetFieldRest, SingleName, SingleNameRest,
             };
 
             match binding {
-                Empty | Elision => {}
+                Empty
+                | Elision
+                | GetField { .. }
+                | GetConstField { .. }
+                | GetFieldRest { .. }
+                | GetConstFieldRest { .. } => {}
                 SingleName {
                     ident,
                     default_init: _,
@@ -500,6 +511,20 @@ pub enum BindingPatternTypeObject {
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestProperty
     RestProperty { ident: Sym, excluded_keys: Vec<Sym> },
 
+    /// RestGetConstField represents a rest property (spread operator) with a property accessor.
+    ///
+    /// Note: According to the spec this is not part of an ObjectBindingPattern.
+    /// This is only used when a object literal is used as the left-hand-side of an assignment expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    RestGetConstField {
+        get_const_field: GetConstField,
+        excluded_keys: Vec<Sym>,
+    },
+
     /// BindingPattern represents a `BindingProperty` with a `BindingPattern` as the `BindingElement`.
     ///
     /// Additionally to the identifier of the new property and the nested binding pattern,
@@ -544,6 +569,11 @@ impl ToInternedString for BindingPatternTypeObject {
                 excluded_keys: _,
             } => {
                 format!(" ... {}", interner.resolve_expect(*property_name))
+            }
+            BindingPatternTypeObject::RestGetConstField {
+                get_const_field, ..
+            } => {
+                format!(" ... {}", get_const_field.to_interned_string(interner))
             }
             BindingPatternTypeObject::BindingPattern {
                 ident: property_name,
@@ -606,6 +636,28 @@ pub enum BindingPatternTypeArray {
         default_init: Option<Node>,
     },
 
+    /// GetField represents a binding with a property accessor.
+    ///
+    /// Note: According to the spec this is not part of an ArrayBindingPattern.
+    /// This is only used when a array literal is used as the left-hand-side of an assignment expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    GetField { get_field: GetField },
+
+    /// GetConstField represents a binding with a property accessor.
+    ///
+    /// Note: According to the spec this is not part of an ArrayBindingPattern.
+    /// This is only used when a array literal is used as the left-hand-side of an assignment expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    GetConstField { get_const_field: GetConstField },
+
     /// BindingPattern represents a `BindingPattern` in a `BindingElement` of an array binding pattern.
     ///
     /// The pattern and the optional default initializer are both stored in the DeclarationPattern.
@@ -623,6 +675,28 @@ pub enum BindingPatternTypeArray {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
     SingleNameRest { ident: Sym },
+
+    /// GetFieldRest represents a rest binding (spread operator) with a property accessor.
+    ///
+    /// Note: According to the spec this is not part of an ArrayBindingPattern.
+    /// This is only used when a array literal is used as the left-hand-side of an assignment expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    GetFieldRest { get_field: GetField },
+
+    /// GetConstFieldRest represents a rest binding (spread operator) with a property accessor.
+    ///
+    /// Note: According to the spec this is not part of an ArrayBindingPattern.
+    /// This is only used when a array literal is used as the left-hand-side of an assignment expression.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+    GetConstFieldRest { get_const_field: GetConstField },
 
     /// SingleNameRest represents a `BindingPattern` in a `BindingRestElement` of an array binding pattern.
     ///
@@ -648,11 +722,23 @@ impl ToInternedString for BindingPatternTypeArray {
                 }
                 buf
             }
+            BindingPatternTypeArray::GetField { get_field } => {
+                format!(" {}", get_field.to_interned_string(interner))
+            }
+            BindingPatternTypeArray::GetConstField { get_const_field } => {
+                format!(" {}", get_const_field.to_interned_string(interner))
+            }
             BindingPatternTypeArray::BindingPattern { pattern } => {
                 format!(" {}", pattern.to_interned_string(interner))
             }
             BindingPatternTypeArray::SingleNameRest { ident } => {
                 format!(" ... {}", interner.resolve_expect(*ident))
+            }
+            BindingPatternTypeArray::GetFieldRest { get_field } => {
+                format!(" ... {}", get_field.to_interned_string(interner))
+            }
+            BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+                format!(" ... {}", get_const_field.to_interned_string(interner))
             }
             BindingPatternTypeArray::BindingPatternRest { pattern } => {
                 format!(" ... {}", pattern.to_interned_string(interner))
