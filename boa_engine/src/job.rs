@@ -1,6 +1,6 @@
-use crate::{Context, JsValue, JsResult};
+use crate::{Context, JsResult, JsValue};
 
-use gc::{Trace, Finalize};
+use gc::{Finalize, Trace};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JobCallback {
@@ -8,20 +8,15 @@ pub struct JobCallback {
 }
 
 impl JobCallback {
-    fn new(callback: JsValue) -> Self {
+    pub fn make_job_callback(callback: JsValue) -> Self {
         Self {
             callback: Box::new(callback),
         }
     }
 
-    pub fn make_job_callback(callback: JsValue) -> Self {
-        Self::new(callback)
-    }
-
-    /// TODO: determine how to get rid of context
     pub fn call_job_callback(
         &self,
-        v: JsValue,
+        v: &JsValue,
         argument_list: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
@@ -30,7 +25,7 @@ impl JobCallback {
             _ => panic!("Callback is not a callable object"),
         };
 
-        callback.__call__(&v, &argument_list, context)
+        callback.__call__(v, argument_list, context)
     }
 
     pub fn run(&self, context: &mut Context) {
@@ -39,6 +34,6 @@ impl JobCallback {
             _ => panic!("Callback is not a callable object"),
         };
 
-        let _ = callback.__call__(&JsValue::Undefined, &[], context);
+        let _callback_result = callback.__call__(&JsValue::Undefined, &[], context);
     }
 }

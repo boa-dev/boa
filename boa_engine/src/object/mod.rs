@@ -38,7 +38,7 @@ use crate::{
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
-        DataView, Date, RegExp, Promise
+        DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -1177,6 +1177,17 @@ impl Object {
         match self.data {
             ObjectData {
                 kind: ObjectKind::Promise(ref promise),
+                ..
+            } => Some(promise),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_promise_mut(&mut self) -> Option<&mut Promise> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Promise(ref mut promise),
                 ..
             } => Some(promise),
             _ => None,

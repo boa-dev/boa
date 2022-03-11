@@ -347,7 +347,7 @@ impl StandardConstructors {
     #[inline]
     pub fn promise(&self) -> &StandardConstructor {
         &self.promise
-    }    
+    }
 }
 
 /// Cached intrinsic objects

@@ -8,17 +8,18 @@ use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     syntax::{ast::node::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
-    JsResult, JsValue, job::JobCallback,
+    JsResult, JsValue,
 };
-use queues::*;
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use queues::{queue, IsQueue, Queue};
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -719,8 +720,11 @@ impl Context {
     }
 
     fn run_queued_jobs(&mut self) {
-        while !(self.promise_job_queue.size() == 0) {
-            let job = self.promise_job_queue.remove().unwrap();
+        while self.promise_job_queue.size() != 0 {
+            let job = self
+                .promise_job_queue
+                .remove()
+                .expect("Job Queue should not be empty");
             job.run(self);
         }
     }
@@ -736,13 +740,17 @@ impl Context {
         self.vm.trace = trace;
     }
 
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
     pub fn host_enqueue_promise_job(&mut self, job: Box<JobCallback> /* , realm: Realm */) {
-        // TODO: realm
-        // https://tc39.es/ecma262/#sec-hostenqueuepromisejob
-        // FIXME:  If realm is not null ...
-        // FIXME:  Let scriptOrModule be ...
+        // If realm is not null ...
+        // TODO
+        // Let scriptOrModule be ...
+        // TODO
         match self.promise_job_queue.add(job) {
-            Ok(Some(_)) | Err(_)  => panic!("Promise queue error"),
+            Ok(Some(_)) | Err(_) => panic!("Promise queue error"),
             _ => (),
         }
     }
