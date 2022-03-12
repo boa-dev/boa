@@ -19,7 +19,7 @@ Outputs:
 ----------------------Compiled Output: '<main>'-----------------------
 Location  Count   Opcode                     Operands
 
-000001    0000    PushOne                    
+000001    0000    PushOne
 000006    0001    DefInitLet                 0000: 'a'
 000008    0002    PushInt8                   2
 000013    0003    DefInitLet                 0001: 'b'
