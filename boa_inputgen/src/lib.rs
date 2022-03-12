@@ -581,7 +581,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
             }
             Node::GeneratorExpr(orig) => {
                 replace_ge(syms, &mut nodes, orig);
-            },
+            }
             Node::This | Node::Empty => {}
         }
     }
