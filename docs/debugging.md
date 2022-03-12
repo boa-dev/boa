@@ -39,8 +39,7 @@ cargo run -- --dump-ast # AST dump format is Debug by default.
 
 Once the AST has been generated boa will compile it into bytecode.
 The bytecode is then executed by the vm.
-You can print the bytecode and the executed instructions with the
-flag command-line flag `--trace`.
+You can print the bytecode and the executed instructions with the command-line flag `--trace`.
 
 For more detailed information about the vm and the trace output look [here](./vm.md).
 
