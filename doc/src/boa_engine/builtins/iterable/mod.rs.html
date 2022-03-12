@@ -413,6 +413,26 @@
 <span id="411">411</span>
 <span id="412">412</span>
 <span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
@@ -826,6 +846,26 @@
     <span class="comment">// 6. Return values.</span>
     <span class="prelude-val">Ok</span>(<span class="ident">values</span>)
 }
+
+<span class="doccomment">/// A shorthand for a sequence of algorithm steps that use an Iterator Record</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMA reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///  [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator</span>
+<span class="macro">macro_rules!</span> <span class="ident">if_abrupt_close_iterator</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iterator_record</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> {
+            <span class="comment">// 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).</span>
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">iterator_record</span>.<span class="ident">close</span>(<span class="prelude-val">Err</span>(<span class="ident">err</span>), <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>),
+            <span class="comment">// 2. Else if value is a Completion Record, set value to value.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
+        }
+    };
+}
+
+<span class="comment">// Export macro to crate level</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">if_abrupt_close_iterator</span>;
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>
