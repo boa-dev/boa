@@ -15,6 +15,7 @@ use boa_interner::{Interner, Sym};
 #[test]
 fn check_async_generator_expr() {
     let mut interner = Interner::default();
+    let add = interner.get_or_intern_static("add");
     check_parser(
         "const add = async function*(){
             return 1;
@@ -22,10 +23,10 @@ fn check_async_generator_expr() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("add"),
+                add,
                 Some(
                     AsyncGeneratorExpr::new::<_, _, StatementList>(
-                        None,
+                        Some(add),
                         FormalParameterList::default(),
                         vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
                     )
@@ -42,6 +43,8 @@ fn check_async_generator_expr() {
 #[test]
 fn check_nested_async_generator_expr() {
     let mut interner = Interner::default();
+    let a = interner.get_or_intern_static("a");
+    let b = interner.get_or_intern_static("b");
     check_parser(
         "const a = async function*() {
             const b = async function*() {
@@ -51,17 +54,17 @@ fn check_nested_async_generator_expr() {
         ",
         vec![DeclarationList::Const(
             vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
+                a,
                 Some(
                     AsyncGeneratorExpr::new::<_, _, StatementList>(
-                        None,
+                        Some(a),
                         FormalParameterList::default(),
                         vec![DeclarationList::Const(
                             vec![Declaration::new_with_identifier(
-                                interner.get_or_intern_static("b"),
+                                b,
                                 Some(
                                     AsyncGeneratorExpr::new::<_, _, StatementList>(
-                                        None,
+                                        Some(b),
                                         FormalParameterList::default(),
                                         vec![Return::new::<_, _, Option<Sym>>(
                                             Const::from(1),

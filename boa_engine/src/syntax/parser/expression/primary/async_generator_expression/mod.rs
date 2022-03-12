@@ -30,7 +30,19 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct AsyncGeneratorExpression;
+pub(super) struct AsyncGeneratorExpression {
+    name: Option<Sym>,
+}
+
+impl AsyncGeneratorExpression {
+    /// Creates a new `AsyncGeneratorExpression` parser.
+    pub(in crate::syntax::parser) fn new<N>(name: N) -> Self
+    where
+        N: Into<Option<Sym>>,
+    {
+        Self { name: name.into() }
+    }
+}
 
 impl<R> TokenParser<R> for AsyncGeneratorExpression
 where
@@ -54,13 +66,13 @@ where
             interner,
         )?;
 
-        let name = if let Some(token) = cursor.peek(0, interner)? {
-            match token.kind() {
-                TokenKind::Punctuator(Punctuator::OpenParen) => None,
-                _ => Some(BindingIdentifier::new(true, true).parse(cursor, interner)?),
-            }
-        } else {
-            return Err(ParseError::AbruptEnd);
+        let name = match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
+            TokenKind::Punctuator(Punctuator::OpenParen) => self.name,
+            _ => Some(BindingIdentifier::new(true, true).parse(cursor, interner)?),
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict

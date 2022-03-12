@@ -22,7 +22,7 @@ use crate::syntax::{
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -34,18 +34,21 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct MemberExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl MemberExpression {
     /// Creates a new `MemberExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -79,7 +82,8 @@ where
 
             Node::from(New::from(call_node))
         } else {
-            PrimaryExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?
+            PrimaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?
         };
         while let Some(tok) = cursor.peek(0, interner)? {
             match tok.kind() {

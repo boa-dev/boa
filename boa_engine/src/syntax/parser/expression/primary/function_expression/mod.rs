@@ -32,7 +32,19 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct FunctionExpression;
+pub(super) struct FunctionExpression {
+    name: Option<Sym>,
+}
+
+impl FunctionExpression {
+    /// Creates a new `FunctionExpression` parser.
+    pub(in crate::syntax::parser) fn new<N>(name: N) -> Self
+    where
+        N: Into<Option<Sym>>,
+    {
+        Self { name: name.into() }
+    }
+}
 
 impl<R> TokenParser<R> for FunctionExpression
 where
@@ -47,15 +59,15 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("FunctionExpression", "Parsing");
 
-        let name = if let Some(token) = cursor.peek(0, interner)? {
-            match token.kind() {
-                TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
-                    Some(BindingIdentifier::new(false, false).parse(cursor, interner)?)
-                }
-                _ => None,
+        let name = match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
+            TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
+                Some(BindingIdentifier::new(false, false).parse(cursor, interner)?)
             }
-        } else {
-            None
+            _ => self.name,
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,

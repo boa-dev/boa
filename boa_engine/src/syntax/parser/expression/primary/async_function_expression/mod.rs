@@ -24,16 +24,19 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncFunctionExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
 }
 
 impl AsyncFunctionExpression {
     /// Creates a new `AsyncFunctionExpression` parser.
-    pub(super) fn new<Y>(allow_yield: Y) -> Self
+    pub(super) fn new<N, Y>(name: N, allow_yield: Y) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
         }
     }
@@ -54,15 +57,13 @@ where
         cursor.peek_expect_no_lineterminator(0, "async function expression", interner)?;
         cursor.expect(Keyword::Function, "async function expression", interner)?;
 
-        let tok = cursor.peek(0, interner)?;
-
-        let name = if let Some(token) = tok {
-            match token.kind() {
-                TokenKind::Punctuator(Punctuator::OpenParen) => None,
-                _ => Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor, interner)?),
-            }
-        } else {
-            return Err(ParseError::AbruptEnd);
+        let name = match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
+            TokenKind::Punctuator(Punctuator::OpenParen) => self.name,
+            _ => Some(BindingIdentifier::new(self.allow_yield, true).parse(cursor, interner)?),
         };
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,

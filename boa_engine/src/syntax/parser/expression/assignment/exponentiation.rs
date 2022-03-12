@@ -20,7 +20,7 @@ use crate::syntax::{
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -34,18 +34,25 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ExponentiationExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser::expression) struct ExponentiationExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ExponentiationExpression {
     /// Creates a new `ExponentiationExpression` parser.
-    pub(in crate::syntax::parser::expression) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser::expression) fn new<N, Y, A>(
+        name: N,
+        allow_yield: Y,
+        allow_await: A,
+    ) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -83,12 +90,12 @@ where
         let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
 
         if is_unary_expression(cursor, interner)? {
-            return UnaryExpression::new(self.allow_yield, self.allow_await)
+            return UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                 .parse(cursor, interner);
         }
 
-        let lhs =
-            UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let lhs = UpdateExpression::new(self.name, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
         if let Some(tok) = cursor.peek(0, interner)? {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
                 cursor.next(interner)?.expect("** token vanished"); // Consume the token.

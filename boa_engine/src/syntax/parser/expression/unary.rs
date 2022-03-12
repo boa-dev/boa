@@ -19,7 +19,7 @@ use crate::syntax::{
         ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -33,18 +33,21 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct UnaryExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl UnaryExpression {
     /// Creates a new `UnaryExpression` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -102,7 +105,8 @@ where
                 cursor.next(interner)?.expect("! token vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor, interner)?).into())
             }
-            _ => UpdateExpression::new(self.allow_yield, self.allow_await).parse(cursor, interner),
+            _ => UpdateExpression::new(self.name, self.allow_yield, self.allow_await)
+                .parse(cursor, interner),
         }
     }
 }

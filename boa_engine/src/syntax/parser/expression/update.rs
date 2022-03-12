@@ -26,18 +26,21 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-UpdateExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct UpdateExpression {
+    name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl UpdateExpression {
     /// Creates a new `UpdateExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
+        N: Into<Option<Sym>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
+            name: name.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -61,7 +64,7 @@ where
                     .expect("Punctuator::Inc token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::IncrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await)
+                    UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,
                 )
                 .into());
@@ -72,7 +75,7 @@ where
                     .expect("Punctuator::Dec token disappeared");
                 return Ok(node::UnaryOp::new(
                     UnaryOp::DecrementPre,
-                    UnaryExpression::new(self.allow_yield, self.allow_await)
+                    UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,
                 )
                 .into());
@@ -80,7 +83,7 @@ where
             _ => {}
         }
 
-        let lhs = LeftHandSideExpression::new(self.allow_yield, self.allow_await)
+        let lhs = LeftHandSideExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
         let strict = cursor.strict_mode();
         if let Some(tok) = cursor.peek(0, interner)? {
