@@ -411,3 +411,23 @@ pub(crate) fn iterable_to_list(
     // 6. Return values.
     Ok(values)
 }
+
+/// A shorthand for a sequence of algorithm steps that use an Iterator Record
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+///  [spec]: https://tc39.es/ecma262/#sec-ifabruptcloseiterator
+macro_rules! if_abrupt_close_iterator {
+    ($value:expr, $iterator_record:expr, $context:expr) => {
+        match $value {
+            // 1. If value is an abrupt completion, return ? IteratorClose(iteratorRecord, value).
+            Err(err) => return $iterator_record.close(Err(err), $context),
+            // 2. Else if value is a Completion Record, set value to value.
+            Ok(value) => value,
+        }
+    };
+}
+
+// Export macro to crate level
+pub(crate) use if_abrupt_close_iterator;
