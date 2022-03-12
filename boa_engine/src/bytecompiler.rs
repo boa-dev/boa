@@ -115,8 +115,8 @@ impl<'b> ByteCompiler<'b> {
             return *index;
         }
 
-        let index = self.code_block.variables.len() as u32;
-        self.code_block.variables.push(name);
+        let index = self.code_block.names.len() as u32;
+        self.code_block.names.push(name);
         self.names_map.insert(name, index);
         index
     }
