@@ -4,6 +4,7 @@ use boa_engine::{
     property::Attribute,
     Context, JsResult, JsValue,
 };
+
 use boa_gc::{Finalize, Trace};
 
 // We create a new struct that is going to represent a person.
