@@ -78,7 +78,7 @@ pub struct CodeBlock {
     pub(crate) literals: Vec<JsValue>,
 
     /// Property field names.
-    pub(crate) variables: Vec<Sym>,
+    pub(crate) names: Vec<Sym>,
 
     /// Locators for all bindings in the codeblock.
     #[unsafe_ignore_trace]
@@ -104,7 +104,7 @@ impl CodeBlock {
         Self {
             code: Vec::new(),
             literals: Vec::new(),
-            variables: Vec::new(),
+            names: Vec::new(),
             bindings: Vec::new(),
             num_bindings: 0,
             functions: Vec::new(),
@@ -242,7 +242,7 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}'",
-                    interner.resolve_expect(self.variables[operand as usize]),
+                    interner.resolve_expect(self.names[operand as usize]),
                 )
             }
             Opcode::Pop
@@ -342,7 +342,7 @@ impl ToInternedString for CodeBlock {
         };
 
         f.push_str(&format!(
-            "{:-^70}\n    Location  Count   Opcode                     Operands\n\n",
+            "{:-^70}\nLocation  Count   Opcode                     Operands\n\n",
             format!("Compiled Output: '{name}'"),
         ));
 
@@ -350,10 +350,10 @@ impl ToInternedString for CodeBlock {
         let mut count = 0;
         while pc < self.code.len() {
             let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
+            let opcode = opcode.as_str();
             let operands = self.instruction_operands(&mut pc, interner);
             f.push_str(&format!(
-                "    {pc:06}    {count:04}    {:<27}\n{operands}",
-                opcode.as_str(),
+                "{pc:06}    {count:04}    {opcode:<27}{operands}\n",
             ));
             count += 1;
         }
@@ -361,7 +361,7 @@ impl ToInternedString for CodeBlock {
         f.push_str("\nLiterals:\n");
 
         if self.literals.is_empty() {
-            f.push_str("    <empty>");
+            f.push_str("    <empty>\n");
         } else {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
@@ -372,21 +372,21 @@ impl ToInternedString for CodeBlock {
             }
         }
 
-        f.push_str("\nNames:\n");
-        if self.variables.is_empty() {
-            f.push_str("    <empty>");
+        f.push_str("\nBindings:\n");
+        if self.bindings.is_empty() {
+            f.push_str("    <empty>\n");
         } else {
-            for (i, value) in self.variables.iter().enumerate() {
+            for (i, binding_locator) in self.bindings.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: {}\n",
-                    interner.resolve_expect(*value)
+                    interner.resolve_expect(binding_locator.name())
                 ));
             }
         }
 
         f.push_str("\nFunctions:\n");
         if self.functions.is_empty() {
-            f.push_str("    <empty>");
+            f.push_str("    <empty>\n");
         } else {
             for (i, code) in self.functions.iter().enumerate() {
                 f.push_str(&format!(

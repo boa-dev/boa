@@ -593,7 +593,7 @@ impl Context {
                     value.to_object(self)?
                 };
 
-                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.vm.frame().code.names[index as usize];
                 let name: PropertyKey = self.interner().resolve_expect(name).into();
                 let result = object.get(name, self)?;
 
@@ -624,7 +624,7 @@ impl Context {
                     object.to_object(self)?
                 };
 
-                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.vm.frame().code.names[index as usize];
                 let name: PropertyKey = self.interner().resolve_expect(name).into();
 
                 object.set(
@@ -645,7 +645,7 @@ impl Context {
                     object.to_object(self)?
                 };
 
-                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name);
 
                 object.__define_own_property__(
@@ -706,7 +706,7 @@ impl Context {
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
 
-                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name).into();
                 let set = object
                     .__get_own_property__(&name, self)?
@@ -751,7 +751,7 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
-                let name = self.vm.frame().code.variables[index as usize];
+                let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name).into();
                 let get = object
                     .__get_own_property__(&name, self)?
@@ -793,7 +793,7 @@ impl Context {
             }
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();
-                let key = self.vm.frame().code.variables[index as usize];
+                let key = self.vm.frame().code.names[index as usize];
                 let key = self.interner().resolve_expect(key).into();
                 let object = self.vm.pop();
                 let result = object.to_object(self)?.__delete__(&key, self)?;
