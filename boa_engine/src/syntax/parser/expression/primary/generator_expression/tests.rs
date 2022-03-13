@@ -23,11 +23,7 @@ fn check_generator_function_expression() {
                 gen,
                 Some(
                     GeneratorExpr::new::<_, _, StatementList>(
-<<<<<<< HEAD:boa_engine/src/syntax/parser/expression/primary/generator_expression/tests.rs
-                        None,
-=======
                         Some(gen),
->>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd:boa/src/syntax/parser/expression/primary/generator_expression/tests.rs
                         FormalParameterList::default(),
                         vec![Yield::new(Const::from(1), false).into()].into(),
                     )
@@ -55,11 +51,7 @@ fn check_generator_function_delegate_yield_expression() {
                 gen,
                 Some(
                     GeneratorExpr::new::<_, _, StatementList>(
-<<<<<<< HEAD:boa_engine/src/syntax/parser/expression/primary/generator_expression/tests.rs
-                        None,
-=======
                         Some(gen),
->>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd:boa/src/syntax/parser/expression/primary/generator_expression/tests.rs
                         FormalParameterList::default(),
                         vec![Yield::new(Const::from(1), true).into()].into(),
                     )

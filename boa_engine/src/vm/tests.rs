@@ -65,8 +65,6 @@ fn multiple_catches() {
         Ok(JsValue::Undefined)
     );
 }
-<<<<<<< HEAD
-=======
 
 #[test]
 fn use_last_expr_try_block() {
@@ -139,4 +137,3 @@ fn finally_block_binding_env() {
         Ok(JsValue::from("Hey hey people"))
     );
 }
->>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd

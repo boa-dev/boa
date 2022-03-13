@@ -443,8 +443,6 @@ fn test_invalid_break_target() {
 }
 
 #[test]
-<<<<<<< HEAD:boa_engine/src/tests.rs
-=======
 fn test_invalid_break() {
     let mut context = Context::default();
     let src = r#"
@@ -459,7 +457,6 @@ fn test_invalid_break() {
 }
 
 #[test]
->>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd:boa/src/tests.rs
 fn test_invalid_continue_target() {
     let mut context = Context::default();
     let src = r#"
@@ -1024,7 +1021,6 @@ fn to_integer_or_infinity() {
     assert_eq!(
         JsValue::new(-0.0)
             .to_integer_or_infinity(&mut context)
-<<<<<<< HEAD:boa_engine/src/tests.rs
             .unwrap(),
         0
     );
@@ -1038,21 +1034,6 @@ fn to_integer_or_infinity() {
         JsValue::new(-20.9)
             .to_integer_or_infinity(&mut context)
             .unwrap(),
-=======
-            .unwrap(),
-        0
-    );
-    assert_eq!(
-        JsValue::new(20.9)
-            .to_integer_or_infinity(&mut context)
-            .unwrap(),
-        20
-    );
-    assert_eq!(
-        JsValue::new(-20.9)
-            .to_integer_or_infinity(&mut context)
-            .unwrap(),
->>>>>>> 09bfabb0b0204b0534d4616927d869d0221a3edd:boa/src/tests.rs
         -20
     );
 }

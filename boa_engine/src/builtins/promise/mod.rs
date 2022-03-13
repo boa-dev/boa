@@ -331,7 +331,11 @@ impl Promise {
                         context.construct_type_error("SameValue(resolution, promise) is true");
 
                     //   b. Perform RejectPromise(promise, selfResolutionError).
-                    // TODO
+                    promise
+                        .borrow_mut()
+                        .as_promise_mut()
+                        .expect("Expected promise to be a Promise")
+                        .reject(&self_resolution_error, context)?;
 
                     //   c. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -360,7 +364,11 @@ impl Promise {
                     // 10. If then is an abrupt completion, then
                     Err(value) => {
                         //   a. Perform RejectPromise(promise, then.[[Value]]).
-                        // TODO
+                        promise
+                            .borrow_mut()
+                            .as_promise_mut()
+                            .expect("Expected promise to be a Promise")
+                            .reject(&value, context)?;
 
                         //   b. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -446,8 +454,13 @@ impl Promise {
                 // 6. Set alreadyResolved.[[Value]] to true.
                 already_resolved.set("Value", true, true, context)?;
 
+                let reason = args.get_or_undefined(0);
                 // 7. Perform RejectPromise(promise, reason).
-                // TODO
+                promise
+                    .borrow_mut()
+                    .as_promise_mut()
+                    .expect("Expected promise to be a Promise")
+                    .reject(reason, context)?;
 
                 // 8. Return undefined.
                 Ok(JsValue::Undefined)
@@ -499,6 +512,42 @@ impl Promise {
         self.promise_state = PromiseState::Fulfilled;
 
         // 8. Return unused.
+        return Ok(());
+    }
+
+    /// https://tc39.es/ecma262/#sec-fulfillpromise
+    pub fn reject(&mut self, reason: &JsValue, context: &mut Context) -> JsResult<()> {
+        // 1. Assert: The value of promise.[[PromiseState]] is pending.
+        match self.promise_state {
+            PromiseState::Pending => (),
+            _ => return context.throw_error("Expected promise.[[PromiseState]] to be pending"),
+        }
+
+        // 2. Let reactions be promise.[[PromiseRejectReactions]].
+        let reactions = &self.promise_reject_reactions;
+
+        // 8. Perform TriggerPromiseReactions(reactions, reason).
+        Promise::trigger_promise_reactions(reactions, reason.clone(), context);
+        // reordering this statement does not affect the semantics
+
+        // 3. Set promise.[[PromiseResult]] to reason.
+        self.promise_result = Some(reason.clone());
+
+        // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
+        self.promise_fulfill_reactions = vec![];
+
+        // 5. Set promise.[[PromiseRejectReactions]] to undefined.
+        self.promise_reject_reactions = vec![];
+
+        // 6. Set promise.[[PromiseState]] to rejected.
+        self.promise_state = PromiseState::Rejected;
+
+        // 7. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "reject").
+        if !self.promise_is_handled {
+            // TODO
+        }
+
+        // 9. Return unused.
         return Ok(());
     }
 
