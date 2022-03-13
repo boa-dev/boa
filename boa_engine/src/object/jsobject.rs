@@ -526,7 +526,7 @@ impl JsObject {
 
         // 15. If desc.[[Get]] is present or desc.[[Set]] is present, then ...
         // a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.
-        if get.as_ref().or_else(|| set.as_ref()).is_some() && desc.inner().is_data_descriptor() {
+        if get.as_ref().or(set.as_ref()).is_some() && desc.inner().is_data_descriptor() {
             return context.throw_type_error(
                 "Invalid property descriptor.\
 Cannot both specify accessors and a value or writable attribute",
