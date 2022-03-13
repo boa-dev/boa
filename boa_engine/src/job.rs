@@ -1,6 +1,6 @@
-use crate::{Context, JsValue, JsResult};
+use crate::{Context, JsResult, JsValue};
 
-use gc::{Trace, Finalize};
+use gc::{Finalize, Trace};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JobCallback {

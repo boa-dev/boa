@@ -38,7 +38,7 @@ use crate::{
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
-        DataView, Date, RegExp, Promise
+        DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
     property::{Attribute, PropertyDescriptor, PropertyKey},
