@@ -8,17 +8,12 @@ pub struct JobCallback {
 }
 
 impl JobCallback {
-    fn new(callback: JsValue) -> Self {
+    pub fn make_job_callback(callback: JsValue) -> Self {
         Self {
             callback: Box::new(callback),
         }
     }
 
-    pub fn make_job_callback(callback: JsValue) -> Self {
-        Self::new(callback)
-    }
-
-    /// TODO: determine how to get rid of context
     pub fn call_job_callback(
         &self,
         v: &JsValue,
