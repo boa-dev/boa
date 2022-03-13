@@ -8,7 +8,7 @@ mod tests;
 pub mod fetch;
 mod promise_job;
 
-use boa_gc::{Finalize, Trace};
+use boa_gc::{Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
@@ -37,6 +37,7 @@ pub(crate) struct Array;
 enum PromiseState {
     Pending,
     Fulfilled,
+    Rejected,
 }
 
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -68,6 +69,93 @@ struct PromiseCapability {
     reject: JsValue,
 }
 
+#[derive(Debug, Trace, Finalize)]
+struct PromiseCapabilityCaptures {
+    promise_capability: Gc<boa_gc::Cell<PromiseCapability>>,
+}
+
+impl PromiseCapability {
+    fn new(c: JsValue, context: &mut Context) -> JsResult<Self> {
+        match c.as_constructor() {
+            // 1. If IsConstructor(C) is false, throw a TypeError exception.
+            None => context.throw_type_error("PromiseCapability: expected constructor"),
+            Some(c) => {
+                let c = c.clone();
+
+                // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
+                // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
+                let promise_capability = Gc::new(boa_gc::Cell::new(Self {
+                    promise: JsValue::Undefined,
+                    reject: JsValue::Undefined,
+                    resolve: JsValue::Undefined,
+                }));
+
+                // 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
+                // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, "", « »).
+                let executor = FunctionBuilder::closure_with_captures(
+                    context,
+                    |this, args: &[JsValue], captures: &mut PromiseCapabilityCaptures, context| {
+                        // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
+                        // TODO
+
+                        // b. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
+                        // TODO
+
+                        let resolve = args.get_or_undefined(0);
+                        let reject = args.get_or_undefined(1);
+
+                        let promise_capability: &mut PromiseCapability =
+                            &mut captures.promise_capability.try_borrow_mut().expect("msg");
+
+                        // c. Set promiseCapability.[[Resolve]] to resolve.
+                        promise_capability.resolve = resolve.clone();
+
+                        // d. Set promiseCapability.[[Reject]] to reject.
+                        promise_capability.reject = reject.clone();
+
+                        // e. Return undefined.
+                        Ok(JsValue::Undefined)
+                    },
+                    PromiseCapabilityCaptures {
+                        promise_capability: promise_capability.clone(),
+                    },
+                )
+                .name("")
+                .length(2)
+                .build()
+                .into();
+
+                // 6. Let promise be ? Construct(C, « executor »).
+                let promise = c.construct(&[executor], &c.clone().into(), context)?;
+
+                let promise_capability: &mut PromiseCapability =
+                    &mut promise_capability.try_borrow_mut().expect("msg");
+
+                let resolve = promise_capability.resolve.clone();
+                let reject = promise_capability.reject.clone();
+
+                // 7. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
+                if !resolve.is_callable() {
+                    return context
+                        .throw_type_error("promiseCapability.[[Resolve]] is not callable");
+                }
+
+                // 8. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
+                if !reject.is_callable() {
+                    return context
+                        .throw_type_error("promiseCapability.[[Reject]] is not callable");
+                }
+
+                // 9. Set promiseCapability.[[Promise]] to promise.
+                promise_capability.reject = promise.clone();
+
+                // 10. Return promiseCapability.
+                Ok(promise_capability.to_owned())
+            }
+        }
+    }
+}
+
 impl BuiltIn for Promise {
     const NAME: &'static str = "Promise";
 
@@ -85,6 +173,7 @@ impl BuiltIn for Promise {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .method(Self::then, "then", 1)
         .build()
         .conv::<JsValue>()
         .pipe(Some)
@@ -268,7 +357,7 @@ impl Promise {
 
                 // 12. If IsCallable(thenAction) is false, then
                 if !then_action.is_callable() {
-                    //   a. Perform FulfillPromise(promise, resolution).
+                    // a. Perform FulfillPromise(promise, resolution).
                     promise
                         .borrow_mut()
                         .as_promise_mut()
@@ -370,7 +459,9 @@ impl Promise {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         match self.promise_state {
             PromiseState::Pending => (),
-            _ => (), // TODO: throw assertion error
+            PromiseState::Fulfilled | PromiseState::Rejected => {
+                () // TODO: throw assertion error
+            }
         }
 
         // 2. Let reactions be promise.[[PromiseFulfillReactions]].
@@ -404,13 +495,147 @@ impl Promise {
         // 1. For each element reaction of reactions, do
         for reaction in reactions {
             // a. Let job be NewPromiseReactionJob(reaction, argument).
-            let job = PromiseJob::new_promise_reaction_job(reaction.clone(), argument.clone(), context);
+            let job =
+                PromiseJob::new_promise_reaction_job(reaction.clone(), argument.clone(), context);
 
             // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
             context.host_enqueue_promise_job(Box::new(job))
         }
 
         // 2. Return unused.
-        ()
+    }
+
+    pub fn then(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let on_fulfilled = args.get_or_undefined(0).clone();
+        let on_rejected = args.get_or_undefined(1).clone();
+
+        // 1. Let promise be the this value.
+        let promise = this;
+
+        // 2. If IsPromise(promise) is false, throw a TypeError exception.
+        // TODO
+
+        // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
+        let c = promise
+            .as_object()
+            .expect("msg")
+            .species_constructor(StandardConstructors::promise, context)?;
+
+        // 4. Let resultCapability be ? NewPromiseCapability(C).
+        let result_capability = PromiseCapability::new(c.into(), context)?;
+
+        // 5. Return PerformPromiseThen(promise, onFulfilled, onRejected, resultCapability).
+        promise
+            .as_object()
+            .expect("msg")
+            .borrow_mut()
+            .as_promise_mut()
+            .expect("msg")
+            .perform_promise_then(on_fulfilled, on_rejected, Some(result_capability), context)
+    }
+
+    fn perform_promise_then(
+        &mut self,
+        on_fulfilled: JsValue,
+        on_rejected: JsValue,
+        result_capability: Option<PromiseCapability>,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Assert: IsPromise(promise) is true.
+
+        // 2. If resultCapability is not present, then
+        //   a. Set resultCapability to undefined.
+
+        let on_fulfilled_job_callback: Option<JobCallback> =
+        // 3. If IsCallable(onFulfilled) is false, then
+            if !on_fulfilled.is_callable() {
+                //   a. Let onFulfilledJobCallback be empty.
+                None
+            } else {
+                // 4. Else,
+                //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
+                Some(JobCallback::make_job_callback(on_fulfilled))
+            };
+
+        let on_rejected_job_callback: Option<JobCallback> =
+        // 5. If IsCallable(onRejected) is false, then
+            if !on_rejected.is_callable() {
+                //   a. Let onRejectedJobCallback be empty.
+                None
+            } else {
+                // 6. Else,
+                //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
+                Some(JobCallback::make_job_callback(on_rejected))
+            };
+
+        // 7. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Fulfill, [[Handler]]: onFulfilledJobCallback }.
+        let fulfill_reaction = ReactionRecord {
+            promise_capability: result_capability.clone(),
+            reaction_type: ReactionType::Fulfill,
+            handler: on_fulfilled_job_callback,
+        };
+
+        // 8. Let rejectReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Reject, [[Handler]]: onRejectedJobCallback }.
+        let reject_reaction = ReactionRecord {
+            promise_capability: result_capability.clone(),
+            reaction_type: ReactionType::Reject,
+            handler: on_rejected_job_callback,
+        };
+
+        match self.promise_state {
+            // 9. If promise.[[PromiseState]] is pending, then
+            PromiseState::Pending => {
+                //   a. Append fulfillReaction as the last element of the List that is promise.[[PromiseFulfillReactions]].
+                self.promise_fulfill_reactions.push(fulfill_reaction);
+
+                //   b. Append rejectReaction as the last element of the List that is promise.[[PromiseRejectReactions]].
+                self.promise_reject_reactions.push(reject_reaction);
+            }
+            // 10. Else if promise.[[PromiseState]] is fulfilled, then
+            PromiseState::Fulfilled => {
+                //   a. Let value be promise.[[PromiseResult]].
+                let value = self.promise_result.clone().expect("msg");
+
+                //   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
+                let fulfill_job =
+                    PromiseJob::new_promise_reaction_job(fulfill_reaction, value, context);
+
+                //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
+                context.host_enqueue_promise_job(Box::new(fulfill_job))
+            }
+            PromiseState::Rejected => {
+                // 11. Else,
+                //   a. Assert: The value of promise.[[PromiseState]] is rejected.
+
+                //   b. Let reason be promise.[[PromiseResult]].
+                let reason = self.promise_result.clone().expect("msg");
+
+                //   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
+                if !self.promise_is_handled {
+                    // HostPromiseRejectionTracker(promise, "handle")
+                    todo!(); // TODO
+                }
+
+                //   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).
+                let reject_job =
+                    PromiseJob::new_promise_reaction_job(reject_reaction, reason, context);
+
+                //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
+                context.host_enqueue_promise_job(Box::new(reject_job));
+
+                // 12. Set promise.[[PromiseIsHandled]] to true.
+                self.promise_is_handled = true
+            }
+        }
+
+        match result_capability {
+            // 13. If resultCapability is undefined, then
+            //   a. Return undefined.
+            None => Ok(JsValue::Undefined),
+
+            // 14. Else,
+            //   a. Return resultCapability.[[Promise]].
+            Some(result_capability) => Ok(result_capability.promise.clone()),
+        }
     }
 }

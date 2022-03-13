@@ -8,17 +8,18 @@ use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
     syntax::{ast::node::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
-    JsResult, JsValue, job::JobCallback,
+    JsResult, JsValue,
 };
-use queues::*;
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use queues::*;
 
 #[cfg(feature = "console")]
 use crate::builtins::console::Console;
@@ -742,7 +743,7 @@ impl Context {
         // FIXME:  If realm is not null ...
         // FIXME:  Let scriptOrModule be ...
         match self.promise_job_queue.add(job) {
-            Ok(Some(_)) | Err(_)  => panic!("Promise queue error"),
+            Ok(Some(_)) | Err(_) => panic!("Promise queue error"),
             _ => (),
         }
     }
