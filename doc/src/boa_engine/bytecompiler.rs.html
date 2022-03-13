@@ -2467,8 +2467,8 @@
             <span class="kw">return</span> <span class="kw-2">*</span><span class="ident">index</span>;
         }
 
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">variables</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
-        <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">variables</span>.<span class="ident">push</span>(<span class="ident">name</span>);
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">names</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>;
+        <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">names</span>.<span class="ident">push</span>(<span class="ident">name</span>);
         <span class="self">self</span>.<span class="ident">names_map</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">index</span>);
         <span class="ident">index</span>
     }
