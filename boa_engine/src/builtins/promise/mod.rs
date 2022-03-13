@@ -95,17 +95,24 @@ impl PromiseCapability {
                 let executor = FunctionBuilder::closure_with_captures(
                     context,
                     |this, args: &[JsValue], captures: &mut PromiseCapabilityCaptures, context| {
+                        let promise_capability: &mut PromiseCapability =
+                            &mut captures.promise_capability.try_borrow_mut().expect("msg");
+
                         // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
-                        // TODO
+                        if !promise_capability.resolve.is_undefined() {
+                            return context.throw_type_error(
+                                "promiseCapability.[[Resolve]] is not undefined",
+                            );
+                        }
 
                         // b. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.
-                        // TODO
+                        if !promise_capability.reject.is_undefined() {
+                            return context
+                                .throw_type_error("promiseCapability.[[Reject]] is not undefined");
+                        }
 
                         let resolve = args.get_or_undefined(0);
                         let reject = args.get_or_undefined(1);
-
-                        let promise_capability: &mut PromiseCapability =
-                            &mut captures.promise_capability.try_borrow_mut().expect("msg");
 
                         // c. Set promiseCapability.[[Resolve]] to resolve.
                         promise_capability.resolve = resolve.clone();
@@ -278,7 +285,7 @@ impl Promise {
         promise: &JsObject,
         context: &mut Context,
     ) -> JsResult<ResolvingFunctionsRecord> {
-        // FIXME: can this not be a rust struct?
+        // TODO: can this not be a rust struct?
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
         let already_resolved = JsObject::empty();
         already_resolved.set("Value", JsValue::from(false), true, context)?;
@@ -293,7 +300,6 @@ impl Promise {
             context,
             |this, args, captures, context| {
                 // https://tc39.es/ecma262/#sec-promise-resolve-functions
-                let resolution = args.get_or_undefined(0);
 
                 // 1. Let F be the active function object.
                 // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
@@ -306,10 +312,9 @@ impl Promise {
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
                 if already_resolved
-                    .get("Value", context)
-                    .expect("msg")
+                    .get("Value", context)?
                     .as_boolean()
-                    .expect("msg")
+                    .unwrap_or(false)
                 {
                     return Ok(JsValue::Undefined);
                 }
@@ -317,11 +322,20 @@ impl Promise {
                 // 6. Set alreadyResolved.[[Value]] to true.
                 already_resolved.set("Value", true, true, context)?;
 
-                // TODO
+                let resolution = args.get_or_undefined(0);
+
                 // 7. If SameValue(resolution, promise) is true, then
-                //   a. Let selfResolutionError be a newly created TypeError object.
-                //   b. Perform RejectPromise(promise, selfResolutionError).
-                //   c. Return undefined.
+                if JsValue::same_value(resolution, &promise.clone().into()) {
+                    //   a. Let selfResolutionError be a newly created TypeError object.
+                    let self_resolution_error =
+                        context.construct_type_error("SameValue(resolution, promise) is true");
+
+                    //   b. Perform RejectPromise(promise, selfResolutionError).
+                    // TODO
+
+                    //   c. Return undefined.
+                    return Ok(JsValue::Undefined);
+                }
 
                 // 8. If Type(resolution) is not Object, then
                 if !resolution.is_object() {
@@ -329,8 +343,8 @@ impl Promise {
                     promise
                         .borrow_mut()
                         .as_promise_mut()
-                        .expect("msg")
-                        .fulfill(resolution, context);
+                        .expect("Expected promise to be a Promise")
+                        .fulfill(resolution, context)?;
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -339,21 +353,26 @@ impl Promise {
                 // 9. Let then be Completion(Get(resolution, "then")).
                 let then = resolution
                     .as_object()
-                    .expect("msg")
-                    .get("then", context)
-                    .expect("msg");
+                    .unwrap_or_else(|| unreachable!())
+                    .get("then", context);
 
-                // TODO
-                // 10. If then is an abrupt completion, then
-                // if let Err(value) = then {
-                //   a. Perform RejectPromise(promise, then.[[Value]]).
+                let then = match then {
+                    // 10. If then is an abrupt completion, then
+                    Err(value) => {
+                        //   a. Perform RejectPromise(promise, then.[[Value]]).
+                        // TODO
 
-                //   b. Return undefined.
-                // return Ok(JsValue::Undefined)
-                // }
+                        //   b. Return undefined.
+                        return Ok(JsValue::Undefined);
+                    }
+                    Ok(then) => then,
+                };
 
                 // 11. Let thenAction be then.[[Value]].
-                let then_action = then;
+                let then_action = then
+                    .as_object()
+                    .expect("rsolution.[[then]] should be an object")
+                    .get("Value", context)?;
 
                 // 12. If IsCallable(thenAction) is false, then
                 if !then_action.is_callable() {
@@ -361,8 +380,8 @@ impl Promise {
                     promise
                         .borrow_mut()
                         .as_promise_mut()
-                        .expect("msg")
-                        .fulfill(resolution, context);
+                        .expect("Expected promise to be a Promise")
+                        .fulfill(resolution, context)?;
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -417,10 +436,9 @@ impl Promise {
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
                 if already_resolved
-                    .get("Value", context)
-                    .expect("msg")
+                    .get("Value", context)?
                     .as_boolean()
-                    .expect("msg")
+                    .unwrap_or(false)
                 {
                     return Ok(JsValue::Undefined);
                 }
@@ -454,14 +472,11 @@ impl Promise {
     }
 
     /// https://tc39.es/ecma262/#sec-fulfillpromise
-    pub fn fulfill(&mut self, value: &JsValue, context: &mut Context) -> () {
-        // TODO: check if statement change of 7. to 2. changes the semantics also
+    pub fn fulfill(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         match self.promise_state {
             PromiseState::Pending => (),
-            PromiseState::Fulfilled | PromiseState::Rejected => {
-                () // TODO: throw assertion error
-            }
+            _ => return context.throw_error("Expected promise.[[PromiseState]] to be pending"),
         }
 
         // 2. Let reactions be promise.[[PromiseFulfillReactions]].
@@ -469,6 +484,7 @@ impl Promise {
 
         // 7. Perform TriggerPromiseReactions(reactions, value).
         Promise::trigger_promise_reactions(reactions, value.clone(), context);
+        // reordering this statement does not affect the semantics
 
         // 3. Set promise.[[PromiseResult]] to value.
         self.promise_result = Some(value.clone());
@@ -483,7 +499,7 @@ impl Promise {
         self.promise_state = PromiseState::Fulfilled;
 
         // 8. Return unused.
-        return ();
+        return Ok(());
     }
 
     /// https://tc39.es/ecma262/#sec-triggerpromisereactions
@@ -506,31 +522,29 @@ impl Promise {
     }
 
     pub fn then(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let on_fulfilled = args.get_or_undefined(0).clone();
-        let on_rejected = args.get_or_undefined(1).clone();
-
         // 1. Let promise be the this value.
         let promise = this;
 
         // 2. If IsPromise(promise) is false, throw a TypeError exception.
-        // TODO
+        let promise_obj = match promise.as_object() {
+            Some(obj) => obj,
+            None => return context.throw_type_error("IsPromise(promise) is false"),
+        };
 
         // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
-        let c = promise
-            .as_object()
-            .expect("msg")
-            .species_constructor(StandardConstructors::promise, context)?;
+        let c = promise_obj.species_constructor(StandardConstructors::promise, context)?;
 
         // 4. Let resultCapability be ? NewPromiseCapability(C).
         let result_capability = PromiseCapability::new(c.into(), context)?;
 
+        let on_fulfilled = args.get_or_undefined(0).clone();
+        let on_rejected = args.get_or_undefined(1).clone();
+
         // 5. Return PerformPromiseThen(promise, onFulfilled, onRejected, resultCapability).
-        promise
-            .as_object()
-            .expect("msg")
+        promise_obj
             .borrow_mut()
             .as_promise_mut()
-            .expect("msg")
+            .expect("IsPromise(promise) is false")
             .perform_promise_then(on_fulfilled, on_rejected, Some(result_capability), context)
     }
 
@@ -591,10 +605,14 @@ impl Promise {
                 //   b. Append rejectReaction as the last element of the List that is promise.[[PromiseRejectReactions]].
                 self.promise_reject_reactions.push(reject_reaction);
             }
+
             // 10. Else if promise.[[PromiseState]] is fulfilled, then
             PromiseState::Fulfilled => {
                 //   a. Let value be promise.[[PromiseResult]].
-                let value = self.promise_result.clone().expect("msg");
+                let value = self
+                    .promise_result
+                    .clone()
+                    .expect("promise.[[PromiseResult]] cannot be empty");
 
                 //   b. Let fulfillJob be NewPromiseReactionJob(fulfillReaction, value).
                 let fulfill_job =
@@ -603,12 +621,15 @@ impl Promise {
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
                 context.host_enqueue_promise_job(Box::new(fulfill_job))
             }
-            PromiseState::Rejected => {
-                // 11. Else,
-                //   a. Assert: The value of promise.[[PromiseState]] is rejected.
 
+            // 11. Else,
+            //   a. Assert: The value of promise.[[PromiseState]] is rejected.
+            PromiseState::Rejected => {
                 //   b. Let reason be promise.[[PromiseResult]].
-                let reason = self.promise_result.clone().expect("msg");
+                let reason = self
+                    .promise_result
+                    .clone()
+                    .expect("promise.[[PromiseResult]] cannot be empty");
 
                 //   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
                 if !self.promise_is_handled {

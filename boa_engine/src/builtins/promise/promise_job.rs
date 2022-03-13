@@ -45,7 +45,6 @@ impl PromiseJob {
                     //     i. If type is Fulfill, let handlerResult be NormalCompletion(argument).
                     {
                         if let ReactionType::Fulfill = reaction_type {
-                            // TODO: NormalCompletion
                             Ok(argument.clone())
                         } else {
                             // ii. Else,
@@ -55,8 +54,7 @@ impl PromiseJob {
                                 _ => panic!(),
                             }
                             //   2. Let handlerResult be ThrowCompletion(argument).
-                            // TODO: throw completion(argument)
-                            context.throw_error("ThrowCompletion(argument)")
+                            Ok(context.construct_error("ThrowCompletion(argument)"))
                         }
                     }
                     //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
@@ -69,12 +67,12 @@ impl PromiseJob {
                     None => {
                         //   f. If promiseCapability is undefined, then
                         if let Err(_) = handler_result {
+                            //     i. Assert: handlerResult is not an abrupt completion.
                             panic!("Assertion: <handlerResult is not an abrupt completion> failed")
                         }
-                        //     i. Assert: handlerResult is not an abrupt completion.
-                        // TODO: check if this is ok
-                        return Ok(JsValue::Undefined);
+
                         //     ii. Return empty.
+                        return Ok(JsValue::Undefined);
                     }
                     Some(promise_capability_record) => {
                         //   g. Assert: promiseCapability is a PromiseCapability Record.
@@ -86,11 +84,16 @@ impl PromiseJob {
 
                         match handler_result {
                             //   h. If handlerResult is an abrupt completion, then
-                            //     i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                            Err(value) => context.call(&reject, &JsValue::Undefined, &[value]),
+                            Err(value) => {
+                                //     i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
+                                return context.call(&reject, &JsValue::Undefined, &[value]);
+                            }
+
                             //   i. Else,
-                            //     i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                            Ok(value) => context.call(&resolve, &JsValue::Undefined, &[value]),
+                            Ok(value) => {
+                                //     i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
+                                return context.call(&resolve, &JsValue::Undefined, &[value]);
+                            }
                         }
                     }
                 }
