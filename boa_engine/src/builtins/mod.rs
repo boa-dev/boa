@@ -22,6 +22,7 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
+pub mod promise;
 pub mod proxy;
 pub mod reflect;
 pub mod regexp;
@@ -30,7 +31,6 @@ pub mod string;
 pub mod symbol;
 pub mod typed_array;
 pub mod undefined;
-pub mod promise;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
@@ -54,6 +54,7 @@ pub(crate) use self::{
     number::Number,
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
+    promise::Promise,
     proxy::Proxy,
     reflect::Reflect,
     regexp::RegExp,
@@ -66,7 +67,6 @@ pub(crate) use self::{
         Int8Array, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
     },
     undefined::Undefined,
-    promise::{Promise, fetch::Fetch},
 };
 
 use crate::{
@@ -181,8 +181,7 @@ pub fn init(context: &mut Context) {
         Reflect,
         Generator,
         GeneratorFunction,
-        Promise,
-        Fetch
+        Promise
     };
 
     #[cfg(feature = "console")]

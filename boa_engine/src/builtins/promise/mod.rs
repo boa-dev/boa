@@ -5,7 +5,6 @@
 #[cfg(test)]
 mod tests;
 
-pub mod fetch;
 mod promise_job;
 
 use boa_gc::{Finalize, Gc, Trace};
