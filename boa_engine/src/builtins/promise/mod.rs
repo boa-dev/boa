@@ -74,7 +74,11 @@ struct PromiseCapabilityCaptures {
 }
 
 impl PromiseCapability {
-    fn new(c: JsValue, context: &mut Context) -> JsResult<Self> {
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
+    fn new(c: &JsValue, context: &mut Context) -> JsResult<Self> {
         match c.as_constructor() {
             // 1. If IsConstructor(C) is false, throw a TypeError exception.
             None => context.throw_type_error("PromiseCapability: expected constructor"),
@@ -94,7 +98,7 @@ impl PromiseCapability {
                 let executor = FunctionBuilder::closure_with_captures(
                     context,
                     |this, args: &[JsValue], captures: &mut PromiseCapabilityCaptures, context| {
-                        let promise_capability: &mut PromiseCapability =
+                        let promise_capability: &mut Self =
                             &mut captures.promise_capability.try_borrow_mut().expect("msg");
 
                         // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
@@ -134,7 +138,7 @@ impl PromiseCapability {
                 // 6. Let promise be ? Construct(C, « executor »).
                 let promise = c.construct(&[executor], &c.clone().into(), context)?;
 
-                let promise_capability: &mut PromiseCapability =
+                let promise_capability: &mut Self =
                     &mut promise_capability.try_borrow_mut().expect("msg");
 
                 let resolve = promise_capability.resolve.clone();
@@ -153,10 +157,10 @@ impl PromiseCapability {
                 }
 
                 // 9. Set promiseCapability.[[Promise]] to promise.
-                promise_capability.reject = promise.clone();
+                promise_capability.reject = promise;
 
                 // 10. Return promiseCapability.
-                Ok(promise_capability.to_owned())
+                Ok(promise_capability.clone())
             }
         }
     }
@@ -195,31 +199,19 @@ struct ResolvingFunctionsRecord {
     reject: JsValue,
 }
 
-impl ResolvedRecord {
-    fn new(value: bool) -> Self {
-        Self { value }
-    }
-}
-
 #[derive(Debug, Trace, Finalize)]
 struct RejectResolveCaptures {
     promise: JsObject,
     already_resolved: JsObject,
 }
 
-impl RejectResolveCaptures {
-    fn new(promise: JsObject, already_resolved: JsObject) -> Self {
-        Self {
-            promise,
-            already_resolved,
-        }
-    }
-}
-
 impl Promise {
     const LENGTH: usize = 1;
 
-    /// https://tc39.es/ecma262/#sec-promise-executor
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise-executor
     fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
@@ -272,14 +264,18 @@ impl Promise {
         // 10. If completion is an abrupt completion, then
         if let Err(value) = completion {
             // a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
-            let _ = context.call(&resolving_functions.reject, &JsValue::Undefined, &[value]);
+            let _reject_result =
+                context.call(&resolving_functions.reject, &JsValue::Undefined, &[value]);
         }
 
         // 11. Return promise.
         promise.conv::<JsValue>().pipe(Ok)
     }
 
-    /// https://tc39.es/ecma262/#sec-createresolvingfunctions
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createresolvingfunctions
     fn create_resolving_functions(
         promise: &JsObject,
         context: &mut Context,
@@ -289,8 +285,10 @@ impl Promise {
         let already_resolved = JsObject::empty();
         already_resolved.set("Value", JsValue::from(false), true, context)?;
 
-        let resolve_captures =
-            RejectResolveCaptures::new(promise.clone(), already_resolved.clone());
+        let resolve_captures = RejectResolveCaptures {
+            already_resolved: already_resolved.clone(),
+            promise: promise.clone(),
+        };
 
         // 2. Let stepsResolve be the algorithm steps defined in Promise Resolve Functions.
         // 3. Let lengthResolve be the number of non-optional parameters of the function definition in Promise Resolve Functions.
@@ -400,7 +398,7 @@ impl Promise {
                 // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
                 let job: JobCallback = PromiseJob::new_promise_resolve_thenable_job(
                     promise.clone(),
-                    resolution.clone().into(),
+                    resolution.clone(),
                     then_job_callback,
                     context,
                 );
@@ -424,7 +422,10 @@ impl Promise {
         // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
         resolve.set("AlreadyResolved", already_resolved.clone(), true, context)?;
 
-        let reject_captures = RejectResolveCaptures::new(promise.clone(), already_resolved.clone());
+        let reject_captures = RejectResolveCaptures {
+            promise: promise.clone(),
+            already_resolved: already_resolved.clone(),
+        };
 
         // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
         // 8. Let lengthReject be the number of non-optional parameters of the function definition in Promise Reject Functions.
@@ -432,6 +433,8 @@ impl Promise {
         let reject = FunctionBuilder::closure_with_captures(
             context,
             |this, args, captures, context| {
+                // https://tc39.es/ecma262/#sec-promise-reject-functions
+
                 // 1. Let F be the active function object.
                 // 2. Assert: F has a [[Promise]] internal slot whose value is an Object.
                 // 3. Let promise be F.[[Promise]].
@@ -483,7 +486,10 @@ impl Promise {
         Ok(ResolvingFunctionsRecord { resolve, reject })
     }
 
-    /// https://tc39.es/ecma262/#sec-fulfillpromise
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
     pub fn fulfill(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         match self.promise_state {
@@ -495,7 +501,7 @@ impl Promise {
         let reactions = &self.promise_fulfill_reactions;
 
         // 7. Perform TriggerPromiseReactions(reactions, value).
-        Promise::trigger_promise_reactions(reactions, value.clone(), context);
+        Self::trigger_promise_reactions(reactions, value, context);
         // reordering this statement does not affect the semantics
 
         // 3. Set promise.[[PromiseResult]] to value.
@@ -511,10 +517,13 @@ impl Promise {
         self.promise_state = PromiseState::Fulfilled;
 
         // 8. Return unused.
-        return Ok(());
+        Ok(())
     }
 
-    /// https://tc39.es/ecma262/#sec-fulfillpromise
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
     pub fn reject(&mut self, reason: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         match self.promise_state {
@@ -526,7 +535,7 @@ impl Promise {
         let reactions = &self.promise_reject_reactions;
 
         // 8. Perform TriggerPromiseReactions(reactions, reason).
-        Promise::trigger_promise_reactions(reactions, reason.clone(), context);
+        Self::trigger_promise_reactions(reactions, reason, context);
         // reordering this statement does not affect the semantics
 
         // 3. Set promise.[[PromiseResult]] to reason.
@@ -547,13 +556,16 @@ impl Promise {
         }
 
         // 9. Return unused.
-        return Ok(());
+        Ok(())
     }
 
-    /// https://tc39.es/ecma262/#sec-triggerpromisereactions
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-triggerpromisereactions
     pub fn trigger_promise_reactions(
-        reactions: &Vec<ReactionRecord>,
-        argument: JsValue,
+        reactions: &[ReactionRecord],
+        argument: &JsValue,
         context: &mut Context,
     ) {
         // 1. For each element reaction of reactions, do
@@ -563,12 +575,16 @@ impl Promise {
                 PromiseJob::new_promise_reaction_job(reaction.clone(), argument.clone(), context);
 
             // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-            context.host_enqueue_promise_job(Box::new(job))
+            context.host_enqueue_promise_job(Box::new(job));
         }
 
         // 2. Return unused.
     }
 
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.then
     pub fn then(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
@@ -583,7 +599,7 @@ impl Promise {
         let c = promise_obj.species_constructor(StandardConstructors::promise, context)?;
 
         // 4. Let resultCapability be ? NewPromiseCapability(C).
-        let result_capability = PromiseCapability::new(c.into(), context)?;
+        let result_capability = PromiseCapability::new(&c.into(), context)?;
 
         let on_fulfilled = args.get_or_undefined(0).clone();
         let on_rejected = args.get_or_undefined(1).clone();
@@ -594,15 +610,20 @@ impl Promise {
             .as_promise_mut()
             .expect("IsPromise(promise) is false")
             .perform_promise_then(on_fulfilled, on_rejected, Some(result_capability), context)
+            .pipe(Ok)
     }
 
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-performpromisethen
     fn perform_promise_then(
         &mut self,
         on_fulfilled: JsValue,
         on_rejected: JsValue,
         result_capability: Option<PromiseCapability>,
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsValue {
         // 1. Assert: IsPromise(promise) is true.
 
         // 2. If resultCapability is not present, then
@@ -610,24 +631,24 @@ impl Promise {
 
         let on_fulfilled_job_callback: Option<JobCallback> =
         // 3. If IsCallable(onFulfilled) is false, then
-            if !on_fulfilled.is_callable() {
-                //   a. Let onFulfilledJobCallback be empty.
-                None
-            } else {
+            if on_fulfilled.is_callable() {
                 // 4. Else,
                 //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
                 Some(JobCallback::make_job_callback(on_fulfilled))
+            } else {
+                //   a. Let onFulfilledJobCallback be empty.
+                None
             };
 
         let on_rejected_job_callback: Option<JobCallback> =
         // 5. If IsCallable(onRejected) is false, then
-            if !on_rejected.is_callable() {
-                //   a. Let onRejectedJobCallback be empty.
-                None
-            } else {
+            if on_rejected.is_callable() {
                 // 6. Else,
                 //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
                 Some(JobCallback::make_job_callback(on_rejected))
+            } else {
+                //   a. Let onRejectedJobCallback be empty.
+                None
             };
 
         // 7. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Fulfill, [[Handler]]: onFulfilledJobCallback }.
@@ -667,7 +688,7 @@ impl Promise {
                     PromiseJob::new_promise_reaction_job(fulfill_reaction, value, context);
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
-                context.host_enqueue_promise_job(Box::new(fulfill_job))
+                context.host_enqueue_promise_job(Box::new(fulfill_job));
             }
 
             // 11. Else,
@@ -693,18 +714,18 @@ impl Promise {
                 context.host_enqueue_promise_job(Box::new(reject_job));
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
-                self.promise_is_handled = true
+                self.promise_is_handled = true;
             }
         }
 
         match result_capability {
             // 13. If resultCapability is undefined, then
             //   a. Return undefined.
-            None => Ok(JsValue::Undefined),
+            None => JsValue::Undefined,
 
             // 14. Else,
             //   a. Return resultCapability.[[Promise]].
-            Some(result_capability) => Ok(result_capability.promise.clone()),
+            Some(result_capability) => result_capability.promise.clone(),
         }
     }
 }

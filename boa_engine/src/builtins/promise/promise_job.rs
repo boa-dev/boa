@@ -18,7 +18,10 @@ struct ReactionJobCaptures {
 }
 
 impl PromiseJob {
-    /// https://tc39.es/ecma262/#sec-newpromisereactionjob
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-newpromisereactionjob
     pub(crate) fn new_promise_reaction_job(
         reaction: ReactionRecord,
         argument: JsValue,
@@ -51,7 +54,7 @@ impl PromiseJob {
                             //   1. Assert: type is Reject.
                             match reaction_type {
                                 ReactionType::Reject => (),
-                                _ => panic!(),
+                                ReactionType::Fulfill => panic!(),
                             }
                             //   2. Let handlerResult be ThrowCompletion(argument).
                             Ok(context.construct_error("ThrowCompletion(argument)"))
@@ -59,20 +62,20 @@ impl PromiseJob {
                     }
                     //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
                     Some(handler) => {
-                        handler.call_job_callback(JsValue::Undefined, &[argument.clone()], context)
+                        handler.call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
                     }
                 };
 
                 match promise_capability {
                     None => {
                         //   f. If promiseCapability is undefined, then
-                        if let Err(_) = handler_result {
+                        if handler_result.is_err() {
                             //     i. Assert: handlerResult is not an abrupt completion.
                             panic!("Assertion: <handlerResult is not an abrupt completion> failed")
                         }
 
                         //     ii. Return empty.
-                        return Ok(JsValue::Undefined);
+                        Ok(JsValue::Undefined)
                     }
                     Some(promise_capability_record) => {
                         //   g. Assert: promiseCapability is a PromiseCapability Record.
@@ -86,19 +89,19 @@ impl PromiseJob {
                             //   h. If handlerResult is an abrupt completion, then
                             Err(value) => {
                                 //     i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                                return context.call(&reject, &JsValue::Undefined, &[value]);
+                                context.call(reject, &JsValue::Undefined, &[value])
                             }
 
                             //   i. Else,
                             Ok(value) => {
                                 //     i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                                return context.call(&resolve, &JsValue::Undefined, &[value]);
+                                context.call(resolve, &JsValue::Undefined, &[value])
                             }
                         }
                     }
                 }
             },
-            ReactionJobCaptures { argument, reaction },
+            ReactionJobCaptures { reaction, argument },
         )
         .build()
         .into();
@@ -113,7 +116,10 @@ impl PromiseJob {
         JobCallback::make_job_callback(job)
     }
 
-    /// https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob
     pub(crate) fn new_promise_resolve_thenable_job(
         promise_to_resolve: JsObject,
         thenable: JsValue,
@@ -136,7 +142,7 @@ impl PromiseJob {
 
                 //    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
                 let then_call_result = then.call_job_callback(
-                    thenable.clone(),
+                    thenable,
                     &[
                         resolving_functions.resolve,
                         resolving_functions.reject.clone(),
