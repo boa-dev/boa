@@ -1,6 +1,6 @@
 [package]
 name = "boa_engine"
-version = "0.13.0"
+version = "0.14.0"
 edition = "2021"
 rust-version = "1.58"
 authors = ["boa-dev"]
@@ -36,11 +36,11 @@ deser = ["boa_interner/serde"]
 console = []
 
 [dependencies]
-boa_unicode = { path = "../boa_unicode", version = "0.13.0" }
-boa_interner = { path = "../boa_interner", version = "0.13.0" }
-boa_gc = { path = "../boa_gc", version = "0.13.0" }
+boa_unicode = { path = "../boa_unicode", version = "0.14.0" }
+boa_interner = { path = "../boa_interner", version = "0.14.0" }
+boa_gc = { path = "../boa_gc", version = "0.14.0" }
 gc = { version = "0.4.1" }
-boa_profiler = { path = "../boa_profiler", version = "0.13.0" }
+boa_profiler = { path = "../boa_profiler", version = "0.14.0" }
 serde = { version = "1.0.136", features = ["derive", "rc"] }
 serde_json = "1.0.79"
 rand = "0.8.5"
