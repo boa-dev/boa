@@ -536,13 +536,12 @@ impl JsValue {
                             if y.is_infinite() {
                                 return Ok(y.is_sign_positive().into());
                             }
-                            let n = if y.is_sign_negative() {
-                                y.floor()
-                            } else {
-                                y.ceil()
-                            };
-                            (*x < JsBigInt::try_from(n).expect("invalid conversion to BigInt"))
-                                .into()
+
+                            if let Ok(y) = JsBigInt::try_from(y) {
+                                return Ok((*x < y).into());
+                            }
+
+                            (x.to_f64() < y).into()
                         }
                         (Numeric::Number(x), Numeric::BigInt(ref y)) => {
                             if x.is_nan() {
@@ -551,13 +550,12 @@ impl JsValue {
                             if x.is_infinite() {
                                 return Ok(x.is_sign_negative().into());
                             }
-                            let n = if x.is_sign_negative() {
-                                x.floor()
-                            } else {
-                                x.ceil()
-                            };
-                            (JsBigInt::try_from(n).expect("invalid conversion to BigInt") < *y)
-                                .into()
+
+                            if let Ok(x) = JsBigInt::try_from(x) {
+                                return Ok((x < *y).into());
+                            }
+
+                            (x < y.to_f64()).into()
                         }
                     },
                 }
