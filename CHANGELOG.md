@@ -2,7 +2,7 @@
 
 ## What's Changed
 
-# [0.14.0 (TBD) - ](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
+# [0.14.0 (2022-03-15) - Virtual Machine](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
 
 <!-- Release notes generated using configuration in .github/release.yml at main -->
 
@@ -12,6 +12,7 @@
 - Implement Object.getOwnPropertyNames and Object.getOwnPropertySymbols by @kevinputera in [#1606](https://github.com/boa-dev/boa/pull/1606)
 - Implement `Symbol.prototype.valueOf` by @hle0 in [#1618](https://github.com/boa-dev/boa/pull/1618)
 - Implement Array.prototype.at() by @nekevss in [#1613](https://github.com/boa-dev/boa/pull/1613)
+- Implement Array.from by @nrabulinski [#1831](https://github.com/boa-dev/boa/pull/1831)
 - Implement String.fromCharCode by @hle0 in [#1619](https://github.com/boa-dev/boa/pull/1619)
 - Implement `Typed Array` built-in by @Razican in [#1552](https://github.com/boa-dev/boa/pull/1552)
 - Implement arguments exotic objects by @jedel1043 in [#1522](https://github.com/boa-dev/boa/pull/1522)
@@ -60,7 +61,9 @@
 
 ### Bug Fixes
 
+- Fix BigInt and Number comparison by @HalidOdat [#1887](https://github.com/boa-dev/boa/pull/1887)
 - Fix broken structure links in the documentation by @abhishekc-sharma in [#1612](https://github.com/boa-dev/boa/pull/1612)
+- Use function name from identifiers in assignment expressions by @raskad [#1908](https://github.com/boa-dev/boa/pull/1908)
 - Fix integer parsing by @nrabulinski in [#1614](https://github.com/boa-dev/boa/pull/1614)
 - Fix `Number.toExponential` and `Number.toFixed` by @nrabulinski in [#1620](https://github.com/boa-dev/boa/pull/1620)
 - Badge updates by @atouchet in [#1638](https://github.com/boa-dev/boa/pull/1638)
@@ -103,6 +106,7 @@
 - Unify object creation with `empty` and `from_proto_and_data` methods by @jedel1043 in [#1567](https://github.com/boa-dev/boa/pull/1567)
 - VM Tidy Up by @jasonwilliams in [#1610](https://github.com/boa-dev/boa/pull/1610)
 - Fix master refs to main by @jasonwilliams in [#1637](https://github.com/boa-dev/boa/pull/1637)
+- Refresh vm docs and fix bytecode trace output by @raskad [#1921](https://github.com/boa-dev/boa/pull/1921)
 - Change type of object prototypes to `Option<JsObject>` by @jedel1043 in [#1640](https://github.com/boa-dev/boa/pull/1640)
 - Refactor `Function` internal methods and implement `BoundFunction` objects by @jedel1043 in [#1583](https://github.com/boa-dev/boa/pull/1583)
 - change that verbosity comparison to > 2 by @praveenbakkal in [#1680](https://github.com/boa-dev/boa/pull/1680)
