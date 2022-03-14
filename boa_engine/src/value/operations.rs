@@ -538,7 +538,7 @@ impl JsValue {
                             }
 
                             if let Ok(y) = JsBigInt::try_from(y) {
-                            	return Ok((*x < y).into());
+                                return Ok((*x < y).into());
                             }
 
                             (x.to_f64() < y).into()
@@ -552,7 +552,7 @@ impl JsValue {
                             }
 
                             if let Ok(x) = JsBigInt::try_from(x) {
-                            	return Ok((x < *y).into());
+                                return Ok((x < *y).into());
                             }
 
                             (x < y.to_f64()).into()
