@@ -13,7 +13,7 @@ jobs:
       - name: Publish to crates.io
         uses: actions-rs/cargo@v1
         with:
-          command: publish
+          command: publish -p boa_engine
           args: --token ${CARGO_REGISTRY_TOKEN}
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
