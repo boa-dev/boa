@@ -112,7 +112,7 @@ dependencies = [
 
 [[package]]
 name = "boa_examples"
-version = "0.11.0"
+version = "0.14.0"
 dependencies = [
  "boa_engine",
  "boa_gc",

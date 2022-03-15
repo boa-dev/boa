@@ -30,8 +30,8 @@ exclude = [
 ]
 
 [dependencies]
-boa_engine = { path = "../boa_engine", features = ["deser", "console"] }
-boa_interner = { path = "../boa_interner" }
+boa_engine = { path = "../boa_engine", features = ["deser", "console"], version = "0.14.0" }
+boa_interner = { path = "../boa_interner", version = "0.14.0" }
 rustyline = "9.1.2"
 rustyline-derive = "0.6.0"
 structopt = "0.3.26"
