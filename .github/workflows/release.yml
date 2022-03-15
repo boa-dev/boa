@@ -9,7 +9,6 @@ jobs:
     steps:
       - name: Git Checkout
         uses: actions/checkout@v3
-      - run: cd boa_engine
       - name: Publish to crates.io
         uses: actions-rs/cargo@v1
         with:
