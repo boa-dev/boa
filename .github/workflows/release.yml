@@ -45,9 +45,7 @@ jobs:
       - uses: Borales/actions-yarn@v2.3.0
         with:
           cmd: build:prod
-      - run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "Deploy to GitHub pages"
-          git push --prefix dist origin gh-pages
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: ./dist
+          github_token: ${{ secrets.GITHUB_TOKEN }}
