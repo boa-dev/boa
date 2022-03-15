@@ -13,7 +13,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: publish
-          args: --token ${CARGO_REGISTRY_TOKEN} -p boa_engine
+          args: -p boa_engine --token ${CARGO_REGISTRY_TOKEN}
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
   doc-publish:
