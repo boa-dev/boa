@@ -50,5 +50,4 @@ jobs:
           git config user.email github-actions@github.com
           git add .
           git commit -m "Deploy to GitHub pages"
-          git push
           git push --prefix dist origin gh-pages
