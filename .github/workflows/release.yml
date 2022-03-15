@@ -17,7 +17,7 @@ jobs:
   #       env:
   #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
   doc-publish:
-    needs: publish
+    # needs: publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
