@@ -22,7 +22,7 @@ Currently, it has support for some of the language.
 
 ## Live Demo (WASM)
 
-<https://boa-dev.github.io/boa/>
+<https://boa-dev.github.io/boa/playground/>
 
 You can get more verbose errors when running from the command line.
 
