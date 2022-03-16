@@ -21,12 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: main
-      - uses: actions/checkout@v3
-        with:
-          ref: gh-pages
-          path: dist
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - uses: Borales/actions-yarn@v2.3.0
@@ -45,7 +39,9 @@ jobs:
       - uses: Borales/actions-yarn@v2.3.0
         with:
           cmd: build:prod
-      - uses: peaceiris/actions-gh-pages@v3
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
           publish_dir: ./dist
+          destination_dir: playground
           github_token: ${{ secrets.GITHUB_TOKEN }}
