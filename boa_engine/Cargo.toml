@@ -55,7 +55,7 @@ ryu-js = "0.2.2"
 chrono = "0.4.19"
 fast-float = "0.2.0"
 unicode-normalization = "0.1.19"
-dyn-clone = "1.0.4"
+dyn-clone = "1.0.5"
 once_cell = "1.10.0"
 tap = "1.0.1"
 
