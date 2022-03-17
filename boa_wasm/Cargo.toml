@@ -9,24 +9,6 @@ repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["parser-implementations", "wasm", "compilers"]
 license = "Unlicense/MIT"
-exclude = [
-    "../.vscode/*",
-    "../.editorconfig",
-    "../test262/*",
-    "../node_modules/*",
-    "../target/*",
-    "../dist/*",
-    "../.github/*",
-    "../assets/*",
-    "../docs/*",
-    "../*.js",
-    "../test_ignore.txt",
-    "../yarn.lock",
-    "../package.json",
-    "../index.html",
-    "../tests/*",
-    "../.github/*",
-]
 
 [dependencies]
 boa_engine = { path = "../boa_engine", features = ["console"], version = "0.14.0" }
