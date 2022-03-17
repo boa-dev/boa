@@ -74,7 +74,7 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "boa_cli"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "boa_engine",
  "boa_interner",
@@ -90,7 +90,7 @@ dependencies = [
 
 [[package]]
 name = "boa_engine"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "arbitrary",
  "bitflags",
@@ -122,7 +122,7 @@ dependencies = [
 
 [[package]]
 name = "boa_examples"
-version = "0.11.0"
+version = "0.14.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
@@ -131,7 +131,7 @@ dependencies = [
 
 [[package]]
 name = "boa_gc"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "gc",
  "measureme",
@@ -150,7 +150,7 @@ dependencies = [
 
 [[package]]
 name = "boa_interner"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "arbitrary",
  "gc",
@@ -160,7 +160,7 @@ dependencies = [
 
 [[package]]
 name = "boa_profiler"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "measureme",
  "once_cell",
@@ -168,7 +168,7 @@ dependencies = [
 
 [[package]]
 name = "boa_tester"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "bitflags",
  "boa_engine",
@@ -190,14 +190,14 @@ dependencies = [
 
 [[package]]
 name = "boa_unicode"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "unicode-general-category",
 ]
 
 [[package]]
 name = "boa_wasm"
-version = "0.13.0"
+version = "0.14.0"
 dependencies = [
  "boa_engine",
  "getrandom",
@@ -438,9 +438,9 @@ dependencies = [
 
 [[package]]
 name = "dyn-clone"
-version = "1.0.4"
+version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee2626afccd7561a06cf1367e2950c4718ea04565e20fb5029b6c7d8ad09abcf"
+checksum = "21e50f3adc76d6a43f5ed73b698a87d0760ca74617f60f7c3b879003536fdd28"
 
 [[package]]
 name = "either"

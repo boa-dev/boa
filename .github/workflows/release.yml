@@ -4,30 +4,23 @@ on:
     types: [published]
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Git Checkout
-        uses: actions/checkout@v3
-      - run: cd boa_engine
-      - name: Publish to crates.io
-        uses: actions-rs/cargo@v1
-        with:
-          command: publish
-          args: --token ${CARGO_REGISTRY_TOKEN}
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  # publish:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Git Checkout
+  #       uses: actions/checkout@v3
+  #     - name: Publish to crates.io
+  #       uses: actions-rs/cargo@v1
+  #       with:
+  #         command: publish
+  #         args: -p boa_engine --token ${CARGO_REGISTRY_TOKEN}
+  #       env:
+  #         CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
   doc-publish:
-    needs: publish
+    # needs: publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: main
-      - uses: actions/checkout@v3
-        with:
-          ref: gh-pages
-          path: dist
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - uses: Borales/actions-yarn@v2.3.0
@@ -46,10 +39,9 @@ jobs:
       - uses: Borales/actions-yarn@v2.3.0
         with:
           cmd: build:prod
-      - run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "Deploy to GitHub pages"
-          git push
-          git push --prefix dist origin gh-pages
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: ./dist
+          destination_dir: playground
+          github_token: ${{ secrets.GITHUB_TOKEN }}

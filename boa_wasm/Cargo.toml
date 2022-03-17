@@ -1,6 +1,6 @@
 [package]
 name = "boa_wasm"
-version = "0.13.0"
+version = "0.14.0"
 edition = "2021"
 rust-version = "1.58"
 authors = ["boa-dev"]
@@ -29,7 +29,7 @@ exclude = [
 ]
 
 [dependencies]
-boa_engine = { path = "../boa_engine", features = ["console"] }
+boa_engine = { path = "../boa_engine", features = ["console"], version = "0.14.0" }
 wasm-bindgen = "=0.2.78"
 getrandom = { version = "0.2.5", features = ["js"] }
 
