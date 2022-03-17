@@ -34,8 +34,7 @@ pub(crate) fn replace_syms(syms: &[Sym], sample: &mut StatementList) {
 /// we only hold these references during the walk, so they are *relatively* static. Holding
 /// references to the AST while continuing to walk makes a double-mutable-reference scenario which
 /// the borrow checker denies, but it's entirely safe since we only modify one Sym at a time and the
-/// modification is idempotent. We don't need to pin because no data structures are modified, only
-/// particular values.
+/// modification is idempotent.
 unsafe fn extend_lifetime<'a, T>(node: &mut T) -> &'a mut T {
     &mut *(node as *mut T)
 }
