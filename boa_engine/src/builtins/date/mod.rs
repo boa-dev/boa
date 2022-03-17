@@ -1634,7 +1634,12 @@ impl Date {
         // 4. Let t be LocalTime(tv).
         // 5. Return DateString(t).
         if let Some(t) = tv.0 {
-            Ok(t.format("%a %b %d %Y").to_string().into())
+            Ok(Local::now()
+                .timezone()
+                .from_utc_datetime(&t)
+                .format("%a %b %d %Y")
+                .to_string()
+                .into())
         } else {
             Ok(JsString::from("Invalid Date").into())
         }

@@ -1199,7 +1199,7 @@ fn date_proto_to_string() {
         Some(JsValue::new(
             Local
                 .from_local_datetime(&NaiveDateTime::new(
-                    NaiveDate::from_ymd(2020, 6, 8),
+                    NaiveDate::from_ymd(2020, 7, 8),
                     NaiveTime::from_hms_milli(9, 16, 15, 779)
                 ))
                 .earliest()
@@ -1225,7 +1225,7 @@ fn date_proto_to_time_string() {
         Some(JsValue::new(
             Local
                 .from_local_datetime(&NaiveDateTime::new(
-                    NaiveDate::from_ymd(2020, 6, 8),
+                    NaiveDate::from_ymd(2020, 7, 8),
                     NaiveTime::from_hms_milli(9, 16, 15, 779)
                 ))
                 .earliest()
