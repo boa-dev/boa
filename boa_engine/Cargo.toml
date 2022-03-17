@@ -9,6 +9,7 @@ repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "js", "compiler", "lexer", "parser"]
 categories = ["parser-implementations", "compilers"]
 license = "Unlicense/MIT"
+readme = "../README.md"
 exclude = [
     "../.vscode/*",
     "../.editorconfig",
