@@ -8,7 +8,8 @@ This can be used to identify cases which may cause a crash, incorrectness, or, a
 You'll need to install cargo-fuzz: `cargo install cargo-fuzz`
 
 You may optionally wish to use a corpus; you will need to have generated this corpus from previous executions of the
-fuzzer you intend to use, as these fuzzers is limited to Arbitrary-derived data.
+fuzzer you intend to use, as these fuzzers are limited to Arbitrary-derived data. [There is currently a PR in process to
+allow us to convert from JS source back to Arbitrary](https://github.com/rust-fuzz/arbitrary/pull/94).
 
 ## Picking a fuzzer
 
