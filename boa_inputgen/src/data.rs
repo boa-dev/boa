@@ -34,16 +34,21 @@ struct Name {
 impl Arbitrary<'_> for Name {
     fn arbitrary(u: &mut Unstructured<'_>) -> arbitrary::Result<Self> {
         // generate a valid identifier; starts with at least one alphabetic character
-        let first = u8::arbitrary(u)?;
-        let first = ALPHA[(first as usize) % ALPHA.len()];
+        let mut chars = match Vec::<_>::arbitrary(u)? {
+            v if v.is_empty() => return Err(arbitrary::Error::NotEnoughData),
+            v => v,
+        };
+
+        let (first, rest) = chars
+            .split_first_mut()
+            .expect("Ensured above that the vec is not empty");
+
+        *first = ALPHA[(*first as usize) % ALPHA.len()];
 
         // remaining characters are alphanumeric
-        let mut chars: Vec<u8> = vec![first];
-        let mut second: Vec<u8> = Arbitrary::arbitrary(u)?;
-        second
-            .iter_mut()
-            .for_each(|c| *c = ALPHANUM[(*c as usize) % ALPHANUM.len()]);
-        chars.extend(second);
+        for c in rest {
+            *c = ALPHANUM[(*c as usize) % ALPHANUM.len()];
+        }
 
         Ok(Self {
             name: String::from_utf8(chars).expect("Only valid characters used."),
