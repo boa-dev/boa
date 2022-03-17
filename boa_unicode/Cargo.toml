@@ -9,24 +9,6 @@ repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "unicode"]
 categories = ["parsing"]
 license = "Unlicense/MIT"
-exclude = [
-    "../.vscode/*",
-    "../.editorconfig",
-    "../test262/*",
-    "../node_modules/*",
-    "../target/*",
-    "../dist/*",
-    "../.github/*",
-    "../assets/*",
-    "../docs/*",
-    "../*.js",
-    "../test_ignore.txt",
-    "../yarn.lock",
-    "../package.json",
-    "../index.html",
-    "../tests/*",
-    "../.github/*",
-]
 
 [dependencies]
 unicode-general-category = "0.5.1"

@@ -10,24 +10,6 @@ keywords = ["javascript", "compiler", "lexer", "parser", "js", "cli"]
 categories = ["command-line-utilities"]
 license = "Unlicense/MIT"
 default-run = "boa"
-exclude = [
-    "../.vscode/*",
-    "../.editorconfig",
-    "../test262/*",
-    "../node_modules/*",
-    "../target/*",
-    "../dist/*",
-    "../.github/*",
-    "../assets/*",
-    "../docs/*",
-    "../*.js",
-    "../test_ignore.txt",
-    "../yarn.lock",
-    "../package.json",
-    "../index.html",
-    "../tests/*",
-    "../.github/*",
-]
 
 [dependencies]
 boa_engine = { path = "../boa_engine", features = ["deser", "console"], version = "0.14.0" }

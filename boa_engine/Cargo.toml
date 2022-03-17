@@ -10,24 +10,6 @@ keywords = ["javascript", "js", "compiler", "lexer", "parser"]
 categories = ["parser-implementations", "compilers"]
 license = "Unlicense/MIT"
 readme = "../README.md"
-exclude = [
-    "../.vscode/*",
-    "../.editorconfig",
-    "../test262/*",
-    "../node_modules/*",
-    "../target/*",
-    "../dist/*",
-    "../.github/*",
-    "../assets/*",
-    "../docs/*",
-    "../*.js",
-    "../test_ignore.txt",
-    "../yarn.lock",
-    "../package.json",
-    "../index.html",
-    "../tests/*",
-    "../.github/*",
-]
 
 [features]
 profiler = ["boa_profiler/profiler"]
