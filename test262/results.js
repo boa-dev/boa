@@ -295,12 +295,13 @@
           }
 
           let testCard = $(
-            `<div title="${innerTest.n}" class="card test embed-responsive ${style}"></div>`
-          ).click(() => {
-            window.open(
+            `<a title="${innerTest.n}" class="card test embed-responsive ${style}"></a>`
+          )
+            .attr(
+              "href",
               `https://github.com/tc39/test262/blob/${upstream}/${name}`
-            );
-          });
+            )
+            .attr("target", "_blank");
 
           if (innerTest.r === "P") {
             testCard.append($('<i class="bi-exclamation-triangle"></i>'));
