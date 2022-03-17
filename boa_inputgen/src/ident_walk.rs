@@ -305,7 +305,7 @@ fn replace_propname<'a>(syms: &[Sym], nodes: &mut Vec<&'a mut Node>, propname: &
 
 /// Perform the AST walk. Method used here is a level-order traversal of the AST by using `nodes` as
 /// a queue of nodes we still need to walk.
-fn replace_inner(syms: &[Sym], mut nodes: Vec<&mut Node>) {
+fn replace_inner<'a>(syms: &[Sym], mut nodes: Vec<&'a mut Node>) {
     while let Some(node) = nodes.pop() {
         match node {
             Node::ArrayDecl(orig) => nodes.extend(
