@@ -23,10 +23,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - uses: Borales/actions-yarn@v2.3.0
+      - uses: actions/setup-node@v2
         with:
-          cmd: install
-      - name: Cache yarn build
+          node-version: '14'
+      - run: npm install
+      - name: Cache npm build
         uses: actions/cache@v2.1.7
         with:
           path: |
@@ -35,10 +36,8 @@ jobs:
             boa_wasm/pkg
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
-      - uses: Borales/actions-yarn@v2.3.0
-        with:
-          cmd: build:prod
+          key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
+      - run: npm run build:prod
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:

@@ -107,7 +107,7 @@ cargo run --release --bin boa_tester -- run -vv -d -s test/language/types/number
 ## Communication
 
 We have a Discord server, feel free to ask questions here:
-https://discord.gg/tUFFk9Y
+<https://discord.gg/tUFFk9Y>
 
 [issues]: https://github.com/boa-dev/boa/issues
 [rustup]: https://rustup.rs/
