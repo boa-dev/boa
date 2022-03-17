@@ -70,7 +70,7 @@ fn replace_decl<'a>(syms: &[Sym], nodes: &mut Vec<&'a mut Node>, decl: &mut Decl
             }
         }
         Declaration::Pattern(declpattern) => {
-            replace_declpattern(syms, nodes, unsafe { extend_lifetime(declpattern) })
+            replace_declpattern(syms, nodes, unsafe { extend_lifetime(declpattern) });
         }
     }
 }
@@ -165,11 +165,8 @@ fn replace_declpattern<'a>(
                         nodes.push(unsafe { extend_lifetime(get_field.obj_mut()) });
                         nodes.push(unsafe { extend_lifetime(get_field.field_mut()) });
                     }
-                    BindingPatternTypeArray::GetConstField { get_const_field } => {
-                        nodes.push(unsafe { extend_lifetime(get_const_field.obj_mut()) });
-                        map_sym(syms, get_const_field.field_mut());
-                    }
-                    BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+                    BindingPatternTypeArray::GetConstField { get_const_field }
+                    | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
                         nodes.push(unsafe { extend_lifetime(get_const_field.obj_mut()) });
                         map_sym(syms, get_const_field.field_mut());
                     }
@@ -305,7 +302,7 @@ fn replace_propname<'a>(syms: &[Sym], nodes: &mut Vec<&'a mut Node>, propname: &
 
 /// Perform the AST walk. Method used here is a level-order traversal of the AST by using `nodes` as
 /// a queue of nodes we still need to walk.
-fn replace_inner<'a>(syms: &[Sym], mut nodes: Vec<&'a mut Node>) {
+fn replace_inner(syms: &[Sym], mut nodes: Vec<&mut Node>) {
     while let Some(node) = nodes.pop() {
         match node {
             Node::ArrayDecl(orig) => nodes.extend(
@@ -402,7 +399,7 @@ fn replace_inner<'a>(syms: &[Sym], mut nodes: Vec<&'a mut Node>) {
             }
             Node::Const(Const::String(s)) => map_sym(syms, s),
             Node::ConstDeclList(orig) | Node::LetDeclList(orig) | Node::VarDeclList(orig) => {
-                replace_decllist(syms, &mut nodes, orig)
+                replace_decllist(syms, &mut nodes, orig);
             }
             Node::Continue(orig) => {
                 if let Some(sym) = orig.label_mut() {
@@ -517,7 +514,7 @@ fn replace_inner<'a>(syms: &[Sym], mut nodes: Vec<&'a mut Node>) {
                 orig.raws_mut().iter_mut().for_each(|s| map_sym(syms, s));
                 orig.cookeds_mut()
                     .iter_mut()
-                    .flat_map(Option::as_mut)
+                    .filter_map(Option::as_mut)
                     .for_each(|s| {
                         map_sym(syms, s);
                     });
