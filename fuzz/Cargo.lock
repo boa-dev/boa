@@ -3,17 +3,6 @@
 version = 3
 
 [[package]]
-name = "Boa-fuzz"
-version = "0.0.0"
-dependencies = [
- "anyhow",
- "boa_engine",
- "boa_inputgen",
- "boa_interner",
- "libfuzzer-sys",
-]
-
-[[package]]
 name = "ahash"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -81,6 +70,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_fuzz"
+version = "0.0.0"
+dependencies = [
+ "anyhow",
+ "boa_engine",
+ "boa_inputgen",
+ "boa_interner",
+ "libfuzzer-sys",
+]
+
+[[package]]
 name = "boa_gc"
 version = "0.14.0"
 dependencies = [
@@ -89,7 +89,7 @@ dependencies = [
 
 [[package]]
 name = "boa_inputgen"
-version = "0.1.0"
+version = "0.14.0"
 dependencies = [
  "arbitrary",
  "boa_engine",

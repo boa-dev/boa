@@ -10,7 +10,6 @@ use boa_interner::Interner;
 fn do_fuzz(data: FuzzData) -> anyhow::Result<()> {
     let mut interner = Interner::default();
     let source = data.get_source();
-    println!("{}", source);
     if let Ok(parsed) = Parser::new(source.as_bytes(), false).parse_all(&mut interner) {
         let mut context = Context::new(interner);
         context.set_max_insns(1 << 12);

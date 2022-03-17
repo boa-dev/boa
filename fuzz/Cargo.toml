@@ -1,9 +1,10 @@
 [package]
-name = "Boa-fuzz"
+name = "boa_fuzz"
 version = "0.0.0"
+edition = "2021"
 authors = ["Addison Crump <me@addisoncrump.info>"]
 publish = false
-edition = "2018"
+license = "Unlicense/MIT"
 
 [package.metadata]
 cargo-fuzz = true
