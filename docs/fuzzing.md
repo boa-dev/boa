@@ -21,7 +21,7 @@ As the name suggests, this fuzzer is designed to identify issues in the syntax p
 fuzzer with the following command from the root of the project:
 
 ```shell
-cargo fuzz run -s none syntax_fuzzer
+cargo fuzz run -s none syntax_fuzzer -- -timeout=5
 ```
 
 This will execute the fuzzer without sanitisation and a 5-second timeout per test case. In most cases, this will be
