@@ -730,6 +730,7 @@ impl Context {
         self.vm.trace = trace;
     }
 
+    /// Set the maximum number of instructions for this context
     #[cfg(feature = "fuzzer")]
     pub fn set_max_insns(&mut self, max_insns: usize) {
         self.max_insns = max_insns;
