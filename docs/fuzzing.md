@@ -59,6 +59,6 @@ of parallelisation is not being restricted by overhead from disk, which may occu
 
 ## Using an existing corpus
 
-Someone's given you their copy of their corpus. Great! You should put the corpus entries (which will each be named as 
+Someone's given you their copy of their corpus. Great! You should put the corpus entries (which will each be named as
 the SHA-1 hash of their content) in a folder under `fuzz/corpus/<fuzzer>`, replacing `<fuzzer>` with your intended
 fuzz target (either interp_fuzzer or syntax_fuzzer).
