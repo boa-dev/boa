@@ -130,7 +130,7 @@ bitflags! {
     /// Flags for a [`FormalParameterList`].
     #[allow(clippy::unsafe_derive_deserialize)]
     #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-    pub(crate) struct FormalParameterListFlags: u8 {
+    pub struct FormalParameterListFlags: u8 {
         const IS_SIMPLE = 0b0000_0001;
         const HAS_DUPLICATES = 0b0000_0010;
         const HAS_REST_PARAMETER = 0b0000_0100;

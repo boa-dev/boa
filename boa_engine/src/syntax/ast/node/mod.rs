@@ -22,6 +22,7 @@ pub mod switch;
 pub mod template;
 pub mod throw;
 pub mod try_node;
+pub mod visit;
 pub mod r#yield;
 
 pub use self::{
