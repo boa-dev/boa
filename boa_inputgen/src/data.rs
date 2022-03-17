@@ -31,8 +31,8 @@ struct Name {
     name: String,
 }
 
-impl arbitrary::Arbitrary for Name {
-    fn arbitrary(u: &mut Unstructured) -> arbitrary::Result<Self> {
+impl Arbitrary<'_> for Name {
+    fn arbitrary(u: &mut Unstructured<'_>) -> arbitrary::Result<Self> {
         // generate a valid identifier; starts with at least one alphabetic character
         let first = u8::arbitrary(u)?;
         let first = ALPHA[(first as usize) % ALPHA.len()];
