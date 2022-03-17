@@ -19,8 +19,52 @@ use crate::syntax::ast::{op, Const, Node};
 use boa_interner::Sym;
 
 pub trait Visitor<'ast> {
-    fn visit_node(&mut self, _n: &'ast mut Node) {
-        todo!()
+    fn visit_node(&mut self, n: &'ast mut Node) {
+        match n {
+            Node::ArrayDecl(n) => self.visit_array_decl(n),
+            Node::ArrowFunctionDecl(n) => self.visit_arrow_function_decl(n),
+            Node::Assign(n) => self.visit_assign(n),
+            Node::AsyncFunctionDecl(n) => self.visit_async_function_decl(n),
+            Node::AsyncFunctionExpr(n) => self.visit_async_function_expr(n),
+            Node::AsyncGeneratorExpr(n) => self.visit_async_generator_expr(n),
+            Node::AsyncGeneratorDecl(n) => self.visit_async_generator_decl(n),
+            Node::AwaitExpr(n) => self.visit_await_expr(n),
+            Node::BinOp(n) => self.visit_bin_op(n),
+            Node::Block(n) => self.visit_block(n),
+            Node::Break(n) => self.visit_break(n),
+            Node::Call(n) => self.visit_call(n),
+            Node::ConditionalOp(n) => self.visit_conditional_op(n),
+            Node::Const(n) => self.visit_const(n),
+            Node::ConstDeclList(n) => self.visit_declaration_list(n),
+            Node::Continue(n) => self.visit_continue(n),
+            Node::DoWhileLoop(n) => self.visit_do_while_loop(n),
+            Node::FunctionDecl(n) => self.visit_function_decl(n),
+            Node::FunctionExpr(n) => self.visit_function_expr(n),
+            Node::GetConstField(n) => self.visit_get_const_field(n),
+            Node::GetField(n) => self.visit_get_field(n),
+            Node::ForLoop(n) => self.visit_for_loop(n),
+            Node::ForInLoop(n) => self.visit_for_in_loop(n),
+            Node::ForOfLoop(n) => self.visit_for_of_loop(n),
+            Node::If(n) => self.visit_if(n),
+            Node::LetDeclList(n) => self.visit_declaration_list(n),
+            Node::Identifier(n) => self.visit_identifier(n),
+            Node::New(n) => self.visit_new(n),
+            Node::Object(n) => self.visit_object(n),
+            Node::Return(n) => self.visit_return(n),
+            Node::Switch(n) => self.visit_switch(n),
+            Node::Spread(n) => self.visit_spread(n),
+            Node::TaggedTemplate(n) => self.visit_tagged_template(n),
+            Node::TemplateLit(n) => self.visit_template_lit(n),
+            Node::Throw(n) => self.visit_throw(n),
+            Node::Try(n) => self.visit_try(n),
+            Node::UnaryOp(n) => self.visit_unary_op(n),
+            Node::VarDeclList(n) => self.visit_declaration_list(n),
+            Node::WhileLoop(n) => self.visit_while_loop(n),
+            Node::Yield(n) => self.visit_yield(n),
+            Node::GeneratorDecl(n) => self.visit_generator_decl(n),
+            Node::GeneratorExpr(n) => self.visit_generator_expr(n),
+            Node::Empty | Node::This => { /* do nothing */ }
+        }
     }
 
     fn visit_array_decl(&mut self, _n: &'ast mut ArrayDecl) {
@@ -75,10 +119,6 @@ pub trait Visitor<'ast> {
         todo!()
     }
 
-    fn visit_const_decl_list(&mut self, _n: &'ast mut DeclarationList) {
-        todo!()
-    }
-
     fn visit_continue(&mut self, _n: &'ast mut Continue) {
         todo!()
     }
@@ -116,10 +156,6 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_if(&mut self, _n: &'ast mut If) {
-        todo!()
-    }
-
-    fn visit_let_decl_list(&mut self, _n: &'ast mut DeclarationList) {
         todo!()
     }
 
@@ -167,7 +203,7 @@ pub trait Visitor<'ast> {
         todo!()
     }
 
-    fn visit_var_decl_list(&mut self, _n: &'ast mut DeclarationList) {
+    fn visit_declaration_list(&mut self, _n: &'ast mut DeclarationList) {
         todo!()
     }
 
