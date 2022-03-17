@@ -1,6 +1,6 @@
 import { evaluate } from "./boa_wasm/pkg";
 
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 const initialCode = `\
 function greet(targetName) {

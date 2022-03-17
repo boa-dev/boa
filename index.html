@@ -1,79 +1,77 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-  <meta charset="utf-8" />
-  <title>Boa Playground</title>
-  <link href="assets/bootstrap.min.css" rel="stylesheet" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-</head>
-<style>
-  header {
-    display: flex;
-    align-items: center;
-  }
-
-  .demo__img {
-    width: 170px;
-    display: block;
-    margin-bottom: 16px;
-    margin-right: 3rem;
-  }
-
-  .textbox {
-    height: 250px;
-    border: 1px solid #8db5e4;
-    margin-bottom: 16px;
-    flex: 2;
-    margin-right: 16px;
-  }
-
-  .container {
-    margin: 0 auto;
-  }
-
-  .demo__repl {
-    display: flex;
-    font-family: monospace;
-  }
-
-  .output {
-    flex: 1;
-    border: 1px solid black;
-    padding: 8px;
-    font-size: 2rem;
-  }
-
-  @media (min-width: 320px) and (max-width: 1024px) {
-    .demo__img {
-      max-width: 100%;
+  <head>
+    <meta charset="utf-8" />
+    <title>Boa Playground</title>
+    <link href="assets/bootstrap.min.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <style>
+    header {
+      display: flex;
+      align-items: center;
     }
 
-    .demo__repl {
-      flex-direction: column;
+    .demo__img {
+      width: 170px;
+      display: block;
+      margin-bottom: 16px;
+      margin-right: 3rem;
     }
 
     .textbox {
-      min-height: 279px;
+      height: 250px;
+      border: 1px solid #8db5e4;
+      margin-bottom: 16px;
+      flex: 2;
+      margin-right: 16px;
+    }
+
+    .container {
+      margin: 0 auto;
+    }
+
+    .demo__repl {
+      display: flex;
+      font-family: monospace;
     }
 
     .output {
-      min-height: 100px;
+      flex: 1;
+      border: 1px solid black;
+      padding: 8px;
+      font-size: 2rem;
     }
-  }
-</style>
 
-<body>
-  <div class="container">
-    <header>
-      <img class="demo__img" src="./assets/logo.svg" />
-      <h1>Boa Playground</h1>
-    </header>
-    <div class="demo__repl">
-      <div class="textbox"></div>
-      <p class="output"></p>
+    @media (min-width: 320px) and (max-width: 1024px) {
+      .demo__img {
+        max-width: 100%;
+      }
+
+      .demo__repl {
+        flex-direction: column;
+      }
+
+      .textbox {
+        min-height: 279px;
+      }
+
+      .output {
+        min-height: 100px;
+      }
+    }
+  </style>
+
+  <body>
+    <div class="container">
+      <header>
+        <img class="demo__img" src="./assets/logo.svg" />
+        <h1>Boa Playground</h1>
+      </header>
+      <div class="demo__repl">
+        <div class="textbox"></div>
+        <p class="output"></p>
+      </div>
     </div>
-  </div>
-</body>
-
+  </body>
 </html>

@@ -25,7 +25,7 @@ jobs:
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: "16"
       - run: npm install
       - name: Cache npm build
         uses: actions/cache@v2.1.7

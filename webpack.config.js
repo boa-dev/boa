@@ -6,7 +6,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const webpack = require("webpack");
 const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const MonacoWebpackPlugin = require("monaco-editor-webpack-plugin");
 
 const outdir = path.resolve(__dirname, "./dist");
 
@@ -19,7 +19,7 @@ module.exports = {
     asyncWebAssembly: true,
   },
   entry: {
-    app: "./index.js"
+    app: "./index.js",
   },
   output: {
     path: outdir,
@@ -40,8 +40,8 @@ module.exports = {
         "wordHighlighter",
         "codelens",
         "hover",
-        "bracketMatching"
-      ]
+        "bracketMatching",
+      ],
     }),
     new CleanWebpackPlugin(),
     new HtmlWebpackPlugin({ template: "index.html" }),

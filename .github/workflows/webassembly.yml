@@ -44,6 +44,6 @@ jobs:
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
       - uses: actions/setup-node@v2
         with:
-          node-version: '14'
+          node-version: "16"
       - run: npm install
       - run: npm run build
