@@ -85,6 +85,7 @@ pub struct Context {
     /// Whether or not global strict mode is active.
     strict: bool,
 
+    /// The maximum number of instructions which will be executed in this context.
     #[cfg(feature = "fuzzer")]
     pub(crate) max_insns: usize,
 

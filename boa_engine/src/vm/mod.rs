@@ -1473,6 +1473,9 @@ impl Context {
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             #[cfg(feature = "fuzzer")]
             {
+                // update and check how many VM instructions have been executed to make sure we
+                // don't introduce a spurious timeout in the fuzzer from a source which loops
+                // infinitely
                 insns_executed += 1;
                 if insns_executed > self.max_insns {
                     return Err("instruction max exceeded".into());
