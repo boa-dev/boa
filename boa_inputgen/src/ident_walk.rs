@@ -20,7 +20,7 @@ use boa_interner::Sym;
 /// Given this list of syms, walk the AST provided and replace any syms with a matching sym from
 /// the list.
 pub(crate) fn replace_syms(syms: &[Sym], sample: &mut StatementList) {
-    replace_inner(syms, sample.items_mut().iter_mut().map(extendo).collect())
+    replace_inner(syms, sample.items_mut().iter_mut().map(extendo).collect());
 }
 
 /// Extend the lifetime of an arbitrary reference temporarily. Only safe in this context because
@@ -69,7 +69,7 @@ fn replace_decllist(
     match decllist {
         DeclarationList::Const(list) | DeclarationList::Let(list) | DeclarationList::Var(list) => {
             list.iter_mut()
-                .for_each(|decl| replace_decl(syms, nodes, decl))
+                .for_each(|decl| replace_decl(syms, nodes, decl));
         }
     }
 }
@@ -129,8 +129,7 @@ fn replace_declpattern(
             }
             DeclarationPattern::Array(a) => {
                 a.bindings_mut().iter_mut().for_each(|bpta| match bpta {
-                    BindingPatternTypeArray::Empty => {}
-                    BindingPatternTypeArray::Elision => {}
+                    BindingPatternTypeArray::Empty | BindingPatternTypeArray::Elision => {}
                     BindingPatternTypeArray::SingleName {
                         ident,
                         default_init,
@@ -140,14 +139,12 @@ fn replace_declpattern(
                             nodes.push(extendo(n));
                         }
                     }
-                    BindingPatternTypeArray::BindingPattern { pattern } => {
+                    BindingPatternTypeArray::BindingPattern { pattern }
+                    | BindingPatternTypeArray::BindingPatternRest { pattern } => {
                         stack.push(extendo(pattern));
                     }
                     BindingPatternTypeArray::SingleNameRest { ident } => {
                         map_sym(syms, ident);
-                    }
-                    BindingPatternTypeArray::BindingPatternRest { pattern } => {
-                        stack.push(extendo(pattern));
                     }
                     BindingPatternTypeArray::GetField { get_field }
                     | BindingPatternTypeArray::GetFieldRest { get_field } => {
@@ -160,7 +157,7 @@ fn replace_declpattern(
                     }
                     BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
                         nodes.push(extendo(get_const_field.obj_mut()));
-                        map_sym(syms, get_const_field.field_mut())
+                        map_sym(syms, get_const_field.field_mut());
                     }
                 });
                 if let Some(n) = a.init_mut() {
@@ -195,7 +192,7 @@ fn replace_age(syms: &[Sym], nodes: &mut Vec<&'static mut Node>, age: &mut Async
 
 fn replace_fe(syms: &[Sym], nodes: &mut Vec<&'static mut Node>, fe: &mut FunctionExpr) {
     if let Some(sym) = fe.name_mut() {
-        map_sym(syms, sym)
+        map_sym(syms, sym);
     }
     fe.parameters_mut()
         .items_mut()
@@ -230,7 +227,7 @@ fn replace_ili(
         | IterableLoopInitializer::Let(d)
         | IterableLoopInitializer::Const(d) => replace_decl(syms, nodes, d),
         IterableLoopInitializer::DeclarationPattern(declpattern) => {
-            replace_declpattern(syms, nodes, declpattern)
+            replace_declpattern(syms, nodes, declpattern);
         }
     }
 }
@@ -241,9 +238,9 @@ fn replace_methdef(
     methdef: &mut MethodDefinition,
 ) {
     match methdef {
-        MethodDefinition::Get(fe) => replace_fe(syms, nodes, fe),
-        MethodDefinition::Set(fe) => replace_fe(syms, nodes, fe),
-        MethodDefinition::Ordinary(fe) => replace_fe(syms, nodes, fe),
+        MethodDefinition::Get(fe) | MethodDefinition::Set(fe) | MethodDefinition::Ordinary(fe) => {
+            replace_fe(syms, nodes, fe)
+        }
         MethodDefinition::Generator(ge) => replace_ge(syms, nodes, ge),
         MethodDefinition::AsyncGenerator(age) => replace_age(syms, nodes, age),
         MethodDefinition::Async(afe) => replace_afe(syms, nodes, afe),
@@ -306,7 +303,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                         nodes.push(extendo(get_field.field_mut()));
                     }
                     AssignTarget::DeclarationPattern(declpattern) => {
-                        replace_declpattern(syms, &mut nodes, declpattern)
+                        replace_declpattern(syms, &mut nodes, declpattern);
                     }
                 }
                 nodes.push(extendo(orig.rhs_mut()));
@@ -354,8 +351,9 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 nodes.push(extendo(orig.if_false_mut()));
             }
             Node::Const(Const::String(s)) => map_sym(syms, s),
-            Node::Const(_) => {}
-            Node::ConstDeclList(orig) => replace_decllist(syms, &mut nodes, orig),
+            Node::ConstDeclList(orig) | Node::LetDeclList(orig) | Node::VarDeclList(orig) => {
+                replace_decllist(syms, &mut nodes, orig)
+            }
             Node::Continue(orig) => {
                 if let Some(sym) = orig.label_mut() {
                     map_sym(syms, sym);
@@ -423,7 +421,6 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                     nodes.push(extendo(n));
                 }
             }
-            Node::LetDeclList(orig) => replace_decllist(syms, &mut nodes, orig),
             Node::Identifier(orig) => replace_ident(syms, orig),
             Node::New(orig) => {
                 nodes.push(extendo(orig.expr_mut()));
@@ -461,7 +458,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
                 orig.raws_mut().iter_mut().for_each(|s| map_sym(syms, s));
                 orig.cookeds_mut()
                     .iter_mut()
-                    .flat_map(|os| os.as_mut())
+                    .flat_map(Option::as_mut)
                     .for_each(|s| {
                         map_sym(syms, s);
                     });
@@ -491,7 +488,6 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
             Node::UnaryOp(orig) => {
                 nodes.push(extendo(orig.target_mut()));
             }
-            Node::VarDeclList(orig) => replace_decllist(syms, &mut nodes, orig),
             Node::WhileLoop(orig) => {
                 nodes.push(extendo(orig.cond_mut()));
                 nodes.push(extendo(orig.body_mut()));
@@ -515,7 +511,7 @@ fn replace_inner(syms: &[Sym], mut nodes: Vec<&'static mut Node>) {
             Node::GeneratorExpr(orig) => {
                 replace_ge(syms, &mut nodes, orig);
             }
-            Node::This | Node::Empty => {}
+            Node::This | Node::Empty | Node::Const(_) => {}
         }
     }
 }
