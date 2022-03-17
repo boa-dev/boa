@@ -9,24 +9,6 @@ repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "ECMASCript", "compiler", "test262", "tester"]
 categories = ["command-line-utilites"]
 license = "Unlicense/MIT"
-exclude = [
-    "../.vscode/*",
-    "../.editorconfig",
-    "../test262/*",
-    "../node_modules/*",
-    "../target/*",
-    "../dist/*",
-    "../.github/*",
-    "../assets/*",
-    "../docs/*",
-    "../*.js",
-    "../test_ignore.txt",
-    "../yarn.lock",
-    "../package.json",
-    "../index.html",
-    "../tests/*",
-    "../.github/*",
-]
 
 [dependencies]
 boa_engine = { path = "../boa_engine", version = "0.14.0" }
