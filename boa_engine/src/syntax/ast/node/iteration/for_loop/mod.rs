@@ -59,11 +59,7 @@ impl ForLoop {
     }
 
     /// Converts the for loop to a string with the given indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indentation: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = if let Some(label) = self.label {
             format!("{}: ", interner.resolve_expect(label))
         } else {

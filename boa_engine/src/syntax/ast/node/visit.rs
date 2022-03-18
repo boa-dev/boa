@@ -7,7 +7,7 @@ use crate::syntax::ast::node::object::{MethodDefinition, PropertyDefinition, Pro
 use crate::syntax::ast::node::operator::assign::AssignTarget;
 use crate::syntax::ast::node::template::TemplateElement;
 use crate::syntax::ast::node::{
-    ArrayDecl, ArrowFunctionDecl, Assign, AsyncFunctionDecl, AsyncGeneratorDecl,
+    ArrayDecl, ArrowFunctionDecl, Assign, AsyncFunctionDecl, AsyncFunctionExpr, AsyncGeneratorDecl,
     AsyncGeneratorExpr, AwaitExpr, BinOp, Block, Break, Call, Case, Catch, ConditionalOp, Continue,
     Declaration, DeclarationList, DeclarationPattern, DoWhileLoop, Finally, ForInLoop, ForLoop,
     ForOfLoop, FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionDecl,
@@ -19,7 +19,7 @@ use crate::syntax::ast::{op, Const, Node};
 use boa_interner::Sym;
 
 pub trait Visitor<'ast> {
-    fn visit_node(&mut self, n: &'ast mut Node) {
+    fn visit_node(&mut self, n: &'ast Node) {
         match n {
             Node::ArrayDecl(n) => self.visit_array_decl(n),
             Node::ArrowFunctionDecl(n) => self.visit_arrow_function_decl(n),
@@ -67,267 +67,307 @@ pub trait Visitor<'ast> {
         }
     }
 
-    fn visit_array_decl(&mut self, _n: &'ast mut ArrayDecl) {
-        todo!()
+    fn visit_array_decl(&mut self, n: &'ast ArrayDecl) {
+        for inner in n.arr.iter() {
+            self.visit_node(inner);
+        }
     }
 
-    fn visit_arrow_function_decl(&mut self, _n: &'ast mut ArrowFunctionDecl) {
-        todo!()
+    fn visit_arrow_function_decl(&mut self, n: &'ast ArrowFunctionDecl) {
+        if let Some(name) = &n.name {
+            self.visit_sym(name);
+        }
+        self.visit_formal_parameter_list(&n.params);
+        self.visit_statement_list(&n.body);
     }
 
-    fn visit_assign(&mut self, _n: &'ast mut Assign) {
-        todo!()
+    fn visit_assign(&mut self, n: &'ast Assign) {
+        self.visit_assign_target(&n.lhs);
+        self.visit_node(&n.rhs);
     }
 
-    fn visit_async_function_decl(&mut self, _n: &'ast mut AsyncFunctionDecl) {
-        todo!()
+    fn visit_async_function_expr(&mut self, n: &'ast AsyncFunctionExpr) {
+        if let Some(name) = &n.name {
+            self.visit_sym(name);
+        }
+        self.visit_formal_parameter_list(&n.parameters);
+        self.visit_statement_list(&n.body);
     }
 
-    fn visit_async_generator_expr(&mut self, _n: &'ast mut AsyncGeneratorExpr) {
-        todo!()
+    fn visit_async_function_decl(&mut self, n: &'ast AsyncFunctionDecl) {
+        self.visit_sym(&n.name);
+        self.visit_formal_parameter_list(&n.parameters);
+        self.visit_statement_list(&n.body);
     }
 
-    fn visit_async_generator_decl(&mut self, _n: &'ast mut AsyncGeneratorDecl) {
-        todo!()
+    fn visit_async_generator_expr(&mut self, n: &'ast AsyncGeneratorExpr) {
+        if let Some(name) = &n.name {
+            self.visit_sym(name);
+        }
+        self.visit_formal_parameter_list(&n.parameters);
+        self.visit_statement_list(&n.body);
     }
 
-    fn visit_await_expr(&mut self, _n: &'ast mut AwaitExpr) {
-        todo!()
+    fn visit_async_generator_decl(&mut self, n: &'ast AsyncGeneratorDecl) {
+        self.visit_sym(&n.name);
+        self.visit_formal_parameter_list(&n.parameters);
+        self.visit_statement_list(&n.body);
     }
 
-    fn visit_bin_op(&mut self, _n: &'ast mut BinOp) {
-        todo!()
+    fn visit_await_expr(&mut self, n: &'ast AwaitExpr) {
+        self.visit_node(&n.expr);
     }
 
-    fn visit_block(&mut self, _n: &'ast mut Block) {
-        todo!()
+    fn visit_bin_op(&mut self, n: &'ast BinOp) {
+        self.visit_raw_binop(&n.op);
+        self.visit_node(&n.lhs);
+        self.visit_node(&n.rhs);
     }
 
-    fn visit_break(&mut self, _n: &'ast mut Break) {
-        todo!()
+    fn visit_block(&mut self, n: &'ast Block) {
+        self.visit_statement_list(&n.statements);
     }
 
-    fn visit_call(&mut self, _n: &'ast mut Call) {
-        todo!()
+    fn visit_break(&mut self, n: &'ast Break) {
+        if let Some(name) = &n.label {
+            self.visit_sym(name);
+        }
     }
 
-    fn visit_conditional_op(&mut self, _n: &'ast mut ConditionalOp) {
-        todo!()
+    fn visit_call(&mut self, n: &'ast Call) {
+        self.visit_node(&n.expr);
+        for inner in n.args.iter() {
+            self.visit_node(inner);
+        }
     }
 
-    fn visit_const(&mut self, _n: &'ast mut Const) {
-        todo!()
+    fn visit_conditional_op(&mut self, n: &'ast ConditionalOp) {
+        self.visit_node(&n.condition);
+        self.visit_node(&n.if_true);
+        self.visit_node(&n.if_false);
     }
 
-    fn visit_continue(&mut self, _n: &'ast mut Continue) {
-        todo!()
+    fn visit_const(&mut self, n: &'ast Const) {
+        if let Const::String(s) = n {
+            self.visit_sym(s);
+        }
     }
 
-    fn visit_do_while_loop(&mut self, _n: &'ast mut DoWhileLoop) {
-        todo!()
+    fn visit_continue(&mut self, n: &'ast Continue) {
+        if let Some(s) = &n.label {
+            self.visit_sym(s);
+        }
+    }
+
+    fn visit_do_while_loop(&mut self, n: &'ast DoWhileLoop) {
+        self.visit_node(&n.body);
+        self.visit_node(&n.cond);
+        if let Some(name) = &n.label {
+            self.visit_sym(name);
+        }
     }
 
-    fn visit_function_decl(&mut self, _n: &'ast mut FunctionDecl) {
+    fn visit_function_decl(&mut self, _n: &'ast FunctionDecl) {
         todo!()
     }
 
-    fn visit_function_expr(&mut self, _n: &'ast mut FunctionExpr) {
+    fn visit_function_expr(&mut self, _n: &'ast FunctionExpr) {
         todo!()
     }
 
-    fn visit_get_const_field(&mut self, _n: &'ast mut GetConstField) {
+    fn visit_get_const_field(&mut self, _n: &'ast GetConstField) {
         todo!()
     }
 
-    fn visit_get_field(&mut self, _n: &'ast mut GetField) {
+    fn visit_get_field(&mut self, _n: &'ast GetField) {
         todo!()
     }
 
-    fn visit_for_loop(&mut self, _n: &'ast mut ForLoop) {
+    fn visit_for_loop(&mut self, _n: &'ast ForLoop) {
         todo!()
     }
 
-    fn visit_for_in_loop(&mut self, _n: &'ast mut ForInLoop) {
+    fn visit_for_in_loop(&mut self, _n: &'ast ForInLoop) {
         todo!()
     }
 
-    fn visit_for_of_loop(&mut self, _n: &'ast mut ForOfLoop) {
+    fn visit_for_of_loop(&mut self, _n: &'ast ForOfLoop) {
         todo!()
     }
 
-    fn visit_if(&mut self, _n: &'ast mut If) {
+    fn visit_if(&mut self, _n: &'ast If) {
         todo!()
     }
 
-    fn visit_identifier(&mut self, _n: &'ast mut Identifier) {
+    fn visit_identifier(&mut self, _n: &'ast Identifier) {
         todo!()
     }
 
-    fn visit_new(&mut self, _n: &'ast mut New) {
+    fn visit_new(&mut self, _n: &'ast New) {
         todo!()
     }
 
-    fn visit_object(&mut self, _n: &'ast mut Object) {
+    fn visit_object(&mut self, _n: &'ast Object) {
         todo!()
     }
 
-    fn visit_return(&mut self, _n: &'ast mut Return) {
+    fn visit_return(&mut self, _n: &'ast Return) {
         todo!()
     }
 
-    fn visit_switch(&mut self, _n: &'ast mut Switch) {
+    fn visit_switch(&mut self, _n: &'ast Switch) {
         todo!()
     }
 
-    fn visit_spread(&mut self, _n: &'ast mut Spread) {
+    fn visit_spread(&mut self, _n: &'ast Spread) {
         todo!()
     }
 
-    fn visit_tagged_template(&mut self, _n: &'ast mut TaggedTemplate) {
+    fn visit_tagged_template(&mut self, _n: &'ast TaggedTemplate) {
         todo!()
     }
 
-    fn visit_template_lit(&mut self, _n: &'ast mut TemplateLit) {
+    fn visit_template_lit(&mut self, _n: &'ast TemplateLit) {
         todo!()
     }
 
-    fn visit_throw(&mut self, _n: &'ast mut Throw) {
+    fn visit_throw(&mut self, _n: &'ast Throw) {
         todo!()
     }
 
-    fn visit_try(&mut self, _n: &'ast mut Try) {
+    fn visit_try(&mut self, _n: &'ast Try) {
         todo!()
     }
 
-    fn visit_unary_op(&mut self, _n: &'ast mut UnaryOp) {
+    fn visit_unary_op(&mut self, _n: &'ast UnaryOp) {
         todo!()
     }
 
-    fn visit_declaration_list(&mut self, _n: &'ast mut DeclarationList) {
+    fn visit_declaration_list(&mut self, _n: &'ast DeclarationList) {
         todo!()
     }
 
-    fn visit_while_loop(&mut self, _n: &'ast mut WhileLoop) {
+    fn visit_while_loop(&mut self, _n: &'ast WhileLoop) {
         todo!()
     }
 
-    fn visit_yield(&mut self, _n: &'ast mut Yield) {
+    fn visit_yield(&mut self, _n: &'ast Yield) {
         todo!()
     }
 
-    fn visit_generator_decl(&mut self, _n: &'ast mut GeneratorDecl) {
+    fn visit_generator_decl(&mut self, _n: &'ast GeneratorDecl) {
         todo!()
     }
 
-    fn visit_generator_expr(&mut self, _n: &'ast mut GeneratorExpr) {
+    fn visit_generator_expr(&mut self, _n: &'ast GeneratorExpr) {
         todo!()
     }
 
-    fn visit_sym(&mut self, _n: &'ast mut Sym) {
+    fn visit_sym(&mut self, _n: &'ast Sym) {
         todo!()
     }
 
-    fn visit_formal_parameter_list(&mut self, _n: &'ast mut FormalParameterList) {
+    fn visit_formal_parameter_list(&mut self, _n: &'ast FormalParameterList) {
         todo!()
     }
 
-    fn visit_statement_list(&mut self, _n: &'ast mut StatementList) {
+    fn visit_statement_list(&mut self, _n: &'ast StatementList) {
         todo!()
     }
 
-    fn visit_assign_target(&mut self, _n: &'ast mut AssignTarget) {
+    fn visit_assign_target(&mut self, _n: &'ast AssignTarget) {
         todo!()
     }
 
-    fn visit_raw_binop(&mut self, _n: &'ast mut op::BinOp) {
+    fn visit_raw_binop(&mut self, _n: &'ast op::BinOp) {
         todo!()
     }
 
-    fn visit_declaration(&mut self, _n: &'ast mut Declaration) {
+    fn visit_declaration(&mut self, _n: &'ast Declaration) {
         todo!()
     }
 
-    fn visit_iterable_loop_initializer(&mut self, _n: &'ast mut IterableLoopInitializer) {
+    fn visit_iterable_loop_initializer(&mut self, _n: &'ast IterableLoopInitializer) {
         todo!()
     }
 
-    fn visit_property_definition(&mut self, _n: &'ast mut PropertyDefinition) {
+    fn visit_property_definition(&mut self, _n: &'ast PropertyDefinition) {
         todo!()
     }
 
-    fn visit_case(&mut self, _n: &'ast mut Case) {
+    fn visit_case(&mut self, _n: &'ast Case) {
         todo!()
     }
 
-    fn visit_template_element(&mut self, _n: &'ast mut TemplateElement) {
+    fn visit_template_element(&mut self, _n: &'ast TemplateElement) {
         todo!()
     }
 
-    fn visit_catch(&mut self, _n: &'ast mut Catch) {
+    fn visit_catch(&mut self, _n: &'ast Catch) {
         todo!()
     }
 
-    fn visit_finally(&mut self, _n: &'ast mut Finally) {
+    fn visit_finally(&mut self, _n: &'ast Finally) {
         todo!()
     }
 
-    fn visit_raw_unary_op(&mut self, _n: &'ast mut op::UnaryOp) {
+    fn visit_raw_unary_op(&mut self, _n: &'ast op::UnaryOp) {
         todo!()
     }
 
-    fn visit_formal_parameter(&mut self, _n: &'ast mut FormalParameter) {
+    fn visit_formal_parameter(&mut self, _n: &'ast FormalParameter) {
         todo!()
     }
 
-    fn visit_formal_parameter_list_flags(&mut self, _n: &'ast mut FormalParameterListFlags) {
+    fn visit_formal_parameter_list_flags(&mut self, _n: &'ast FormalParameterListFlags) {
         todo!()
     }
 
-    fn visit_declaration_pattern(&mut self, _n: &'ast mut DeclarationPattern) {
+    fn visit_declaration_pattern(&mut self, _n: &'ast DeclarationPattern) {
         todo!()
     }
 
-    fn visit_raw_num_op(&mut self, _n: &'ast mut op::NumOp) {
+    fn visit_raw_num_op(&mut self, _n: &'ast op::NumOp) {
         todo!()
     }
 
-    fn visit_raw_bit_op(&mut self, _n: &'ast mut op::BitOp) {
+    fn visit_raw_bit_op(&mut self, _n: &'ast op::BitOp) {
         todo!()
     }
 
-    fn visit_raw_comp_op(&mut self, _n: &'ast mut op::CompOp) {
+    fn visit_raw_comp_op(&mut self, _n: &'ast op::CompOp) {
         todo!()
     }
 
-    fn visit_raw_log_op(&mut self, _n: &'ast mut op::LogOp) {
+    fn visit_raw_log_op(&mut self, _n: &'ast op::LogOp) {
         todo!()
     }
 
-    fn visit_raw_assign_op(&mut self, _n: &'ast mut op::AssignOp) {
+    fn visit_raw_assign_op(&mut self, _n: &'ast op::AssignOp) {
         todo!()
     }
 
-    fn visit_property_name(&mut self, _n: &'ast mut PropertyName) {
+    fn visit_property_name(&mut self, _n: &'ast PropertyName) {
         todo!()
     }
 
-    fn visit_method_definition(&mut self, _n: &'ast mut MethodDefinition) {
+    fn visit_method_definition(&mut self, _n: &'ast MethodDefinition) {
         todo!()
     }
 
-    fn visit_declaration_pattern_object(&mut self, _n: &'ast mut DeclarationPatternObject) {
+    fn visit_declaration_pattern_object(&mut self, _n: &'ast DeclarationPatternObject) {
         todo!()
     }
 
-    fn visit_declaration_pattern_array(&mut self, _n: &'ast mut DeclarationPatternArray) {
+    fn visit_declaration_pattern_array(&mut self, _n: &'ast DeclarationPatternArray) {
         todo!()
     }
 
-    fn visit_binding_pattern_type_object(&mut self, _n: &'ast mut BindingPatternTypeObject) {
+    fn visit_binding_pattern_type_object(&mut self, _n: &'ast BindingPatternTypeObject) {
         todo!()
     }
 
-    fn visit_binding_pattern_type_array(&mut self, _n: &'ast mut BindingPatternTypeArray) {
+    fn visit_binding_pattern_type_array(&mut self, _n: &'ast BindingPatternTypeArray) {
         todo!()
     }
 }

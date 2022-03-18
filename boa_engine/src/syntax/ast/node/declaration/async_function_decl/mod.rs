@@ -17,9 +17,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct AsyncFunctionDecl {
-    name: Sym,
-    parameters: FormalParameterList,
-    body: StatementList,
+    pub(crate) name: Sym,
+    pub(crate) parameters: FormalParameterList,
+    pub(crate) body: StatementList,
 }
 
 impl AsyncFunctionDecl {
@@ -52,11 +52,7 @@ impl AsyncFunctionDecl {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indentation: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!(
             "async function {}({}",
             interner.resolve_expect(self.name),

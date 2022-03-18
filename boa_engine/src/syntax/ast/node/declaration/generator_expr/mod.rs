@@ -53,11 +53,7 @@ impl GeneratorExpr {
     }
 
     /// Converts the generator expresion node to a string with indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indentation: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function*".to_owned();
         if let Some(name) = self.name {
             buf.push_str(&format!(" {}", interner.resolve_expect(name)));

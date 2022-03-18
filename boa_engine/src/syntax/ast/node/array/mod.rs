@@ -28,8 +28,8 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArrayDecl {
-    arr: Box<[Node]>,
-    has_trailing_comma_spread: bool,
+    pub(crate) arr: Box<[Node]>,
+    pub(crate) has_trailing_comma_spread: bool,
 }
 
 impl ArrayDecl {

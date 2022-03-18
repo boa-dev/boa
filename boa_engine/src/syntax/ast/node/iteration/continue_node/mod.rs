@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Continue {
-    label: Option<Sym>,
+    pub(crate) label: Option<Sym>,
 }
 
 impl Continue {

@@ -97,11 +97,7 @@ impl Switch {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indentation: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let indent = "    ".repeat(indentation);
         let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
         for e in self.cases().iter() {

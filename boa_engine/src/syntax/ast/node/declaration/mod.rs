@@ -998,7 +998,7 @@ impl ToInternedString for BindingPatternTypeArray {
 ///
 /// This includes the curly braces at the start and end. This will not indent the first brace,
 /// but will indent the last brace.
-pub(in crate::syntax::ast::node) fn block_to_string(
+pub(crate) fn block_to_string(
     body: &StatementList,
     interner: &Interner,
     indentation: usize,

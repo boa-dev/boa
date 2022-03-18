@@ -29,8 +29,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Assign {
-    lhs: Box<AssignTarget>,
-    rhs: Box<Node>,
+    pub(crate) lhs: Box<AssignTarget>,
+    pub(crate) rhs: Box<Node>,
 }
 
 impl Assign {

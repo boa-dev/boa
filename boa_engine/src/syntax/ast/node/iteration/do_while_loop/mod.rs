@@ -19,9 +19,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct DoWhileLoop {
-    body: Box<Node>,
-    cond: Box<Node>,
-    label: Option<Sym>,
+    pub(crate) body: Box<Node>,
+    pub(crate) cond: Box<Node>,
+    pub(crate) label: Option<Sym>,
 }
 
 impl DoWhileLoop {
@@ -55,11 +55,7 @@ impl DoWhileLoop {
     }
 
     /// Converts the "do while" loop to a string with the given indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indentation: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = if let Some(label) = self.label {
             format!("{}: ", interner.resolve_expect(label))
         } else {

@@ -20,9 +20,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArrowFunctionDecl {
-    name: Option<Sym>,
-    params: FormalParameterList,
-    body: StatementList,
+    pub(crate) name: Option<Sym>,
+    pub(crate) params: FormalParameterList,
+    pub(crate) body: StatementList,
 }
 
 impl ArrowFunctionDecl {
@@ -61,11 +61,7 @@ impl ArrowFunctionDecl {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indentation: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!("({}", join_nodes(interner, &self.params.parameters));
         if self.body().items().is_empty() {
             buf.push_str(") => {}");

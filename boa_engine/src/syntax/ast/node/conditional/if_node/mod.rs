@@ -56,11 +56,7 @@ impl If {
         }
     }
 
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indent: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indent: usize) -> String {
         let mut buf = format!("if ({}) ", self.cond().to_interned_string(interner));
         match self.else_node() {
             Some(else_e) => {

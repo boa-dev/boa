@@ -25,7 +25,7 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, Finalize, PartialEq)]
 pub struct Break {
-    label: Option<Sym>,
+    pub(crate) label: Option<Sym>,
 }
 
 impl Break {

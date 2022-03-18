@@ -29,7 +29,7 @@ mod tests;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Block {
     #[cfg_attr(feature = "deser", serde(flatten))]
-    statements: StatementList,
+    pub(crate) statements: StatementList,
 }
 
 impl Block {

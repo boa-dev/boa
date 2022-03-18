@@ -21,9 +21,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConditionalOp {
-    condition: Box<Node>,
-    if_true: Box<Node>,
-    if_false: Box<Node>,
+    pub(crate) condition: Box<Node>,
+    pub(crate) if_true: Box<Node>,
+    pub(crate) if_false: Box<Node>,
 }
 
 impl ConditionalOp {

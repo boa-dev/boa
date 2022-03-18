@@ -66,11 +66,7 @@ impl Try {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indentation: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!(
             "{}try {}",
             "    ".repeat(indentation),

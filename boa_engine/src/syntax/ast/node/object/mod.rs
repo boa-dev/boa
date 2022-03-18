@@ -47,11 +47,7 @@ impl Object {
     }
 
     /// Implements the display formatting with indentation.
-    pub(in crate::syntax::ast::node) fn to_indented_string(
-        &self,
-        interner: &Interner,
-        indent_n: usize,
-    ) -> String {
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "{\n".to_owned();
         let indentation = "    ".repeat(indent_n + 1);
         for property in self.properties().iter() {

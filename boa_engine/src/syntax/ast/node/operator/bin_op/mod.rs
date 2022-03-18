@@ -13,9 +13,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct BinOp {
-    op: op::BinOp,
-    lhs: Box<Node>,
-    rhs: Box<Node>,
+    pub(crate) op: op::BinOp,
+    pub(crate) lhs: Box<Node>,
+    pub(crate) rhs: Box<Node>,
 }
 
 impl BinOp {
