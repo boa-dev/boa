@@ -99,6 +99,10 @@ pub struct Context {
     #[cfg(feature = "intl")]
     icu: icu::Icu,
 
+    /// The maximum number of instructions which will be executed in this context.
+    #[cfg(feature = "fuzzer")]
+    pub(crate) max_insns: usize,
+
     pub(crate) vm: Vm,
 
     pub(crate) promise_job_queue: VecDeque<JobCallback>,
@@ -776,6 +780,12 @@ impl Context {
         // TODO
         self.promise_job_queue.push_back(job);
     }
+
+    /// Set the maximum number of instructions for this context
+    #[cfg(feature = "fuzzer")]
+    pub fn set_max_insns(&mut self, max_insns: usize) {
+        self.max_insns = max_insns;
+    }
 }
 /// Builder for the [`Context`] type.
 ///
@@ -831,6 +841,8 @@ impl ContextBuilder {
             #[cfg(feature = "console")]
             console: Console::default(),
             intrinsics: Intrinsics::default(),
+            #[cfg(feature = "fuzzer")]
+            max_insns: 1 << 20,
             vm: Vm {
                 frames: Vec::with_capacity(16),
                 stack: Vec::with_capacity(1024),

@@ -2410,6 +2410,8 @@ impl Context {
             );
         }
 
+        #[cfg(feature = "fuzzer")]
+        let mut insns_executed = 0;
         let start_stack_size = self.vm.stack.len();
 
         // If the current executing function is an async function we have to resolve/reject it's promise at the end.
@@ -2429,6 +2431,16 @@ impl Context {
             });
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
+            #[cfg(feature = "fuzzer")]
+            {
+                // update and check how many VM instructions have been executed to make sure we
+                // don't introduce a spurious timeout in the fuzzer from a source which loops
+                // infinitely
+                insns_executed += 1;
+                if insns_executed > self.max_insns {
+                    return Err("instruction max exceeded".into());
+                }
+            }
             let result = if self.vm.trace {
                 let mut pc = self.vm.frame().pc;
                 let opcode: Opcode = self
