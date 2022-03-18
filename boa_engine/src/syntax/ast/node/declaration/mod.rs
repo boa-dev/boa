@@ -33,6 +33,7 @@ pub use self::{
 mod tests;
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum DeclarationList {
     /// The `const` statements are block-scoped, much like variables defined using the `let`
@@ -153,6 +154,7 @@ impl From<Declaration> for Box<[Declaration]> {
 /// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration
 /// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Declaration {
     Identifier {
@@ -264,6 +266,7 @@ impl Declaration {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum DeclarationPattern {
     Object(DeclarationPatternObject),
@@ -511,6 +514,7 @@ impl DeclarationPattern {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeclarationPatternObject {
     pub(crate) bindings: Vec<BindingPatternTypeObject>,
@@ -610,6 +614,7 @@ impl DeclarationPatternObject {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeclarationPatternArray {
     pub(crate) bindings: Vec<BindingPatternTypeArray>,
@@ -704,6 +709,7 @@ impl DeclarationPatternArray {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum BindingPatternTypeObject {
     /// Empty represents an empty object binding pattern e.g. `{ }`.
@@ -848,6 +854,7 @@ impl ToInternedString for BindingPatternTypeObject {
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum BindingPatternTypeArray {
     /// Empty represents an empty array binding pattern e.g. `[ ]`.

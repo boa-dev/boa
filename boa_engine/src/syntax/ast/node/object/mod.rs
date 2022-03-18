@@ -36,6 +36,7 @@ mod tests;
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Object {
     pub(crate) properties: Box<[PropertyDefinition]>,
@@ -153,6 +154,7 @@ impl From<Object> for Node {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyDefinition {
     /// Puts a variable into an object.
@@ -243,6 +245,7 @@ impl PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum MethodDefinition {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
@@ -350,6 +353,7 @@ impl MethodDefinition {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyName {
     /// A `Literal` property name can be either an identifier, a string or a numeric literal.

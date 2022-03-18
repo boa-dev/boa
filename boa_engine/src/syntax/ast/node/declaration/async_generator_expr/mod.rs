@@ -15,6 +15,7 @@ use super::block_to_string;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct AsyncGeneratorExpr {
     pub(crate) name: Option<Sym>,

@@ -24,6 +24,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Finalize, PartialEq)]
 pub enum Const {
     /// A string literal is zero or more characters enclosed in double (`"`) or single (`'`) quotation marks.

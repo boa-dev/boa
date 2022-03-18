@@ -27,7 +27,10 @@ intl = [
 # Enable Boa's WHATWG console object implementation.
 console = []
 
+fuzzer = ["arbitrary", "boa_interner/fuzzer", "num-bigint/arbitrary"]
+
 [dependencies]
+arbitrary = { version = "1", features = ["derive"], optional = true }
 boa_unicode = { path = "../boa_unicode", version = "0.15.0" }
 boa_interner = { path = "../boa_interner", version = "0.15.0" }
 boa_gc = { path = "../boa_gc", version = "0.15.0" }

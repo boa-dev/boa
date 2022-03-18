@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForLoop {
     #[cfg_attr(feature = "deser", serde(flatten))]
@@ -108,6 +109,7 @@ impl From<ForLoop> for Node {
 
 /// Inner structure to avoid multiple indirections in the heap.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct InnerForLoop {
     pub(crate) init: Option<Node>,

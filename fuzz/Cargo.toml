@@ -1,0 +1,41 @@
+[package]
+name = "boa_fuzz"
+version = "0.0.0"
+edition = "2021"
+authors = ["Addison Crump <me@addisoncrump.info>"]
+publish = false
+license = "Unlicense/MIT"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+anyhow = "1"
+libfuzzer-sys = "0.4"
+
+[dependencies.boa_engine]
+path = "../boa_engine"
+features = ["fuzzer"]
+
+[dependencies.boa_inputgen]
+path = "../boa_inputgen"
+
+[dependencies.boa_interner]
+path = "../boa_interner"
+features = ["fuzzer"]
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = [""]
+
+[[bin]]
+name = "syntax_fuzzer"
+path = "fuzz_targets/syntax_fuzzer.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "interp_fuzzer"
+path = "fuzz_targets/interp_fuzzer.rs"
+test = false
+doc = false

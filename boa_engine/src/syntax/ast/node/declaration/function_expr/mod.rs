@@ -23,6 +23,7 @@ use super::block_to_string;
 /// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FunctionExpr {
     pub(crate) name: Option<Sym>,

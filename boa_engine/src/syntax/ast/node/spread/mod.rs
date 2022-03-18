@@ -25,6 +25,7 @@ mod tests;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Spread {
     pub(crate) val: Box<Node>,

@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 mod tests;
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum IterableLoopInitializer {
     Identifier(Identifier),

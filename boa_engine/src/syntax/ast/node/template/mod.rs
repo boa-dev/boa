@@ -18,6 +18,7 @@ mod tests;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateLit {
     pub(crate) elements: Box<[TemplateElement]>,
@@ -56,6 +57,7 @@ impl ToInternedString for TemplateLit {
     }
 }
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TaggedTemplate {
     pub(crate) tag: Box<Node>,
@@ -121,6 +123,7 @@ impl From<TaggedTemplate> for Node {
 }
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum TemplateElement {
     String(Sym),

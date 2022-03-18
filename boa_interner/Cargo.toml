@@ -11,7 +11,11 @@ categories = ["data-structures"]
 license = "Unlicense/MIT"
 
 [dependencies]
+arbitrary = { version = "1", features = ["derive"], optional = true }
 serde = { version = "1.0.138", features = ["derive"], optional = true }
 phf = { version = "0.10.1", features = ["macros"] }
 rustc-hash = "1.1.0"
 static_assertions = "1.1.0"
+
+[features]
+fuzzer = ["arbitrary"]

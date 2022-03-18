@@ -21,6 +21,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-TryStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Try {
     pub(crate) block: Block,
@@ -98,6 +99,7 @@ impl From<Try> for Node {
 
 /// Catch block.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Catch {
     pub(crate) parameter: Option<Box<Declaration>>,
@@ -151,6 +153,7 @@ impl ToInternedString for Catch {
 
 /// Finally block.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Finally {
     pub(crate) block: Block,

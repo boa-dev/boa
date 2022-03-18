@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct FormalParameterList {
     pub(crate) parameters: Box<[FormalParameter]>,
@@ -130,6 +131,7 @@ bitflags! {
     /// Flags for a [`FormalParameterList`].
     #[allow(clippy::unsafe_derive_deserialize)]
     #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+    #[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
     pub struct FormalParameterListFlags: u8 {
         const IS_SIMPLE = 0b0000_0001;
         const HAS_DUPLICATES = 0b0000_0010;
@@ -161,6 +163,7 @@ impl Default for FormalParameterListFlags {
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FormalParameter {
     pub(crate) declaration: Declaration,

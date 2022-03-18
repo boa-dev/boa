@@ -27,6 +27,7 @@ use serde::{Deserialize, Serialize};
 /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct GetField {
     pub(crate) obj: Box<Node>,

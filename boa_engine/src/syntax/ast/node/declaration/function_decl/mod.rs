@@ -23,6 +23,7 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
 /// [func_expr]: ../enum.Node.html#variant.FunctionExpr
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FunctionDecl {
     pub(crate) name: Sym,

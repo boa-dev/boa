@@ -25,6 +25,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Block {

@@ -1,6 +1,8 @@
 //! Statement list node.
 
 use crate::syntax::ast::node::{Declaration, Node};
+#[cfg(feature = "fuzzer")]
+use arbitrary::{size_hint, Arbitrary, Unstructured};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use rustc_hash::FxHashSet;
@@ -184,5 +186,19 @@ where
 impl ToInternedString for StatementList {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
+    }
+}
+
+#[cfg(feature = "fuzzer")]
+impl<'a> Arbitrary<'a> for StatementList {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        Ok(Self {
+            items: Vec::arbitrary(u)?.into_boxed_slice(),
+            strict: bool::arbitrary(u)?,
+        })
+    }
+
+    fn size_hint(depth: usize) -> (usize, Option<usize>) {
+        size_hint::and(Vec::<Node>::size_hint(depth), bool::size_hint(depth))
     }
 }

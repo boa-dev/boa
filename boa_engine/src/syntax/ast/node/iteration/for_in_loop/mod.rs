@@ -5,6 +5,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForInLoop {
     pub(crate) init: Box<IterableLoopInitializer>,

@@ -1,0 +1,29 @@
+[package]
+name = "boa_inputgen"
+version = "0.14.0"
+edition = "2021"
+rust-version = "1.58"
+authors = ["Addison Crump <me@addisoncrump.info>"]
+description = "Arbitrary JavaScript input generator used to fuzz Boa."
+repository = "https://github.com/boa-dev/boa"
+keywords = ["javascript", "js", "fuzzing", "testing"]
+categories = ["compilers"]
+license = "Unlicense/MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+spin = "0.9"
+string-interner = "*"
+
+[dependencies.arbitrary]
+version = "1"
+features = ["derive"]
+
+[dependencies.boa_engine]
+path = "../boa_engine"
+features = ["fuzzer"]
+
+[dependencies.boa_interner]
+path = "../boa_interner"
+features = ["fuzzer"]

@@ -73,6 +73,7 @@ use serde::{Deserialize, Serialize};
 
 // TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Node {
     /// Array declaration node. [More information](./array/struct.ArrayDecl.html).

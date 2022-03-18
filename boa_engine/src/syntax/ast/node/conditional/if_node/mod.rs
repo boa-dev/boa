@@ -21,6 +21,7 @@ use serde::{Deserialize, Serialize};
 /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
 /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct If {
     pub(crate) cond: Box<Node>,

@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 mod tests;
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Case {
     pub(crate) condition: Node,
@@ -59,6 +60,7 @@ impl Case {
 /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "fuzzer", derive(arbitrary::Arbitrary))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Switch {
     pub(crate) val: Box<Node>,
