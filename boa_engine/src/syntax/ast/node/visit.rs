@@ -35,7 +35,9 @@ pub trait Visitor<'ast> {
             Node::Call(n) => self.visit_call(n),
             Node::ConditionalOp(n) => self.visit_conditional_op(n),
             Node::Const(n) => self.visit_const(n),
-            Node::ConstDeclList(n) => self.visit_declaration_list(n),
+            Node::ConstDeclList(n) | Node::LetDeclList(n) | Node::VarDeclList(n) => {
+                self.visit_declaration_list(n);
+            }
             Node::Continue(n) => self.visit_continue(n),
             Node::DoWhileLoop(n) => self.visit_do_while_loop(n),
             Node::FunctionDecl(n) => self.visit_function_decl(n),
@@ -46,7 +48,6 @@ pub trait Visitor<'ast> {
             Node::ForInLoop(n) => self.visit_for_in_loop(n),
             Node::ForOfLoop(n) => self.visit_for_of_loop(n),
             Node::If(n) => self.visit_if(n),
-            Node::LetDeclList(n) => self.visit_declaration_list(n),
             Node::Identifier(n) => self.visit_identifier(n),
             Node::New(n) => self.visit_new(n),
             Node::Object(n) => self.visit_object(n),
@@ -58,7 +59,6 @@ pub trait Visitor<'ast> {
             Node::Throw(n) => self.visit_throw(n),
             Node::Try(n) => self.visit_try(n),
             Node::UnaryOp(n) => self.visit_unary_op(n),
-            Node::VarDeclList(n) => self.visit_declaration_list(n),
             Node::WhileLoop(n) => self.visit_while_loop(n),
             Node::Yield(n) => self.visit_yield(n),
             Node::GeneratorDecl(n) => self.visit_generator_decl(n),
@@ -229,7 +229,7 @@ pub trait Visitor<'ast> {
         self.visit_node(&n.cond);
         self.visit_node(&n.body);
         if let Some(else_node) = &n.else_node {
-            self.visit_node(&else_node);
+            self.visit_node(else_node);
         }
     }
 
@@ -249,7 +249,7 @@ pub trait Visitor<'ast> {
 
     fn visit_return(&mut self, n: &'ast Return) {
         if let Some(expr) = &n.expr {
-            self.visit_node(&expr);
+            self.visit_node(expr);
         }
         if let Some(name) = &n.label {
             self.visit_sym(name);
@@ -275,10 +275,8 @@ pub trait Visitor<'ast> {
         for raw in n.raws.iter() {
             self.visit_sym(raw);
         }
-        for cooked in n.cookeds.iter() {
-            if let Some(cooked) = cooked {
-                self.visit_sym(cooked);
-            }
+        for cooked in n.cookeds.iter().flatten() {
+            self.visit_sym(cooked);
         }
         for expr in n.exprs.iter() {
             self.visit_node(expr);
@@ -332,7 +330,7 @@ pub trait Visitor<'ast> {
 
     fn visit_yield(&mut self, n: &'ast Yield) {
         if let Some(expr) = &n.expr {
-            self.visit_node(&expr);
+            self.visit_node(expr);
         }
     }
 
@@ -438,7 +436,7 @@ pub trait Visitor<'ast> {
 
     fn visit_catch(&mut self, n: &'ast Catch) {
         if let Some(parameter) = &n.parameter {
-            self.visit_declaration(&parameter);
+            self.visit_declaration(parameter);
         }
         self.visit_block(&n.block);
     }
@@ -452,7 +450,7 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_formal_parameter(&mut self, n: &'ast FormalParameter) {
-        self.visit_declaration(&n.declaration)
+        self.visit_declaration(&n.declaration);
     }
 
     fn visit_formal_parameter_list_flags(&mut self, _n: &'ast FormalParameterListFlags) {
@@ -505,7 +503,7 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration_pattern_object(&mut self, n: &'ast DeclarationPatternObject) {
-        for binding in n.bindings.iter() {
+        for binding in &n.bindings {
             self.visit_binding_pattern_type_object(binding);
         }
         if let Some(init) = &n.init {
@@ -514,7 +512,7 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration_pattern_array(&mut self, n: &'ast DeclarationPatternArray) {
-        for binding in n.bindings.iter() {
+        for binding in &n.bindings {
             self.visit_binding_pattern_type_array(binding);
         }
         if let Some(init) = &n.init {
@@ -542,7 +540,7 @@ pub trait Visitor<'ast> {
             } => {
                 self.visit_sym(ident);
                 for key in excluded_keys.iter() {
-                    self.visit_sym(key)
+                    self.visit_sym(key);
                 }
             }
             BindingPatternTypeObject::RestGetConstField {
@@ -551,7 +549,7 @@ pub trait Visitor<'ast> {
             } => {
                 self.visit_get_const_field(get_const_field);
                 for key in excluded_keys.iter() {
-                    self.visit_sym(key)
+                    self.visit_sym(key);
                 }
             }
             BindingPatternTypeObject::BindingPattern {
@@ -581,15 +579,15 @@ pub trait Visitor<'ast> {
             }
             BindingPatternTypeArray::GetField { get_field }
             | BindingPatternTypeArray::GetFieldRest { get_field } => {
-                self.visit_get_field(get_field)
+                self.visit_get_field(get_field);
             }
             BindingPatternTypeArray::GetConstField { get_const_field }
             | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
-                self.visit_get_const_field(get_const_field)
+                self.visit_get_const_field(get_const_field);
             }
             BindingPatternTypeArray::BindingPattern { pattern }
             | BindingPatternTypeArray::BindingPatternRest { pattern } => {
-                self.visit_declaration_pattern(pattern)
+                self.visit_declaration_pattern(pattern);
             }
             BindingPatternTypeArray::SingleNameRest { ident } => self.visit_sym(ident),
             BindingPatternTypeArray::Empty | BindingPatternTypeArray::Elision => {}
@@ -612,7 +610,9 @@ pub trait Visitor<'ast> {
             Node::Call(n) => self.visit_call_mut(n),
             Node::ConditionalOp(n) => self.visit_conditional_op_mut(n),
             Node::Const(n) => self.visit_const_mut(n),
-            Node::ConstDeclList(n) => self.visit_declaration_list_mut(n),
+            Node::ConstDeclList(n) | Node::LetDeclList(n) | Node::VarDeclList(n) => {
+                self.visit_declaration_list_mut(n);
+            }
             Node::Continue(n) => self.visit_continue_mut(n),
             Node::DoWhileLoop(n) => self.visit_do_while_loop_mut(n),
             Node::FunctionDecl(n) => self.visit_function_decl_mut(n),
@@ -623,7 +623,6 @@ pub trait Visitor<'ast> {
             Node::ForInLoop(n) => self.visit_for_in_loop_mut(n),
             Node::ForOfLoop(n) => self.visit_for_of_loop_mut(n),
             Node::If(n) => self.visit_if_mut(n),
-            Node::LetDeclList(n) => self.visit_declaration_list_mut(n),
             Node::Identifier(n) => self.visit_identifier_mut(n),
             Node::New(n) => self.visit_new_mut(n),
             Node::Object(n) => self.visit_object_mut(n),
@@ -635,7 +634,6 @@ pub trait Visitor<'ast> {
             Node::Throw(n) => self.visit_throw_mut(n),
             Node::Try(n) => self.visit_try_mut(n),
             Node::UnaryOp(n) => self.visit_unary_op_mut(n),
-            Node::VarDeclList(n) => self.visit_declaration_list_mut(n),
             Node::WhileLoop(n) => self.visit_while_loop_mut(n),
             Node::Yield(n) => self.visit_yield_mut(n),
             Node::GeneratorDecl(n) => self.visit_generator_decl_mut(n),
@@ -852,10 +850,8 @@ pub trait Visitor<'ast> {
         for raw in n.raws.iter_mut() {
             self.visit_sym_mut(raw);
         }
-        for cooked in n.cookeds.iter_mut() {
-            if let Some(cooked) = cooked {
-                self.visit_sym_mut(cooked);
-            }
+        for cooked in n.cookeds.iter_mut().flatten() {
+            self.visit_sym_mut(cooked);
         }
         for expr in n.exprs.iter_mut() {
             self.visit_node_mut(expr);
@@ -983,7 +979,7 @@ pub trait Visitor<'ast> {
             | IterableLoopInitializer::Let(decl)
             | IterableLoopInitializer::Const(decl) => self.visit_declaration_mut(decl),
             IterableLoopInitializer::DeclarationPattern(dp) => {
-                self.visit_declaration_pattern_mut(dp)
+                self.visit_declaration_pattern_mut(dp);
             }
         }
     }
@@ -1031,7 +1027,7 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_formal_parameter_mut(&mut self, n: &'ast mut FormalParameter) {
-        self.visit_declaration_mut(&mut n.declaration)
+        self.visit_declaration_mut(&mut n.declaration);
     }
 
     fn visit_formal_parameter_list_flags_mut(&mut self, _n: &'ast mut FormalParameterListFlags) {
@@ -1084,7 +1080,7 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration_pattern_object_mut(&mut self, n: &'ast mut DeclarationPatternObject) {
-        for binding in n.bindings.iter_mut() {
+        for binding in &mut n.bindings {
             self.visit_binding_pattern_type_object_mut(binding);
         }
         if let Some(init) = &mut n.init {
@@ -1093,7 +1089,7 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration_pattern_array_mut(&mut self, n: &'ast mut DeclarationPatternArray) {
-        for binding in n.bindings.iter_mut() {
+        for binding in &mut n.bindings {
             self.visit_binding_pattern_type_array_mut(binding);
         }
         if let Some(init) = &mut n.init {
@@ -1121,7 +1117,7 @@ pub trait Visitor<'ast> {
             } => {
                 self.visit_sym_mut(ident);
                 for key in excluded_keys.iter_mut() {
-                    self.visit_sym_mut(key)
+                    self.visit_sym_mut(key);
                 }
             }
             BindingPatternTypeObject::RestGetConstField {
@@ -1130,7 +1126,7 @@ pub trait Visitor<'ast> {
             } => {
                 self.visit_get_const_field_mut(get_const_field);
                 for key in excluded_keys.iter_mut() {
-                    self.visit_sym_mut(key)
+                    self.visit_sym_mut(key);
                 }
             }
             BindingPatternTypeObject::BindingPattern {
@@ -1160,15 +1156,15 @@ pub trait Visitor<'ast> {
             }
             BindingPatternTypeArray::GetField { get_field }
             | BindingPatternTypeArray::GetFieldRest { get_field } => {
-                self.visit_get_field_mut(get_field)
+                self.visit_get_field_mut(get_field);
             }
             BindingPatternTypeArray::GetConstField { get_const_field }
             | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
-                self.visit_get_const_field_mut(get_const_field)
+                self.visit_get_const_field_mut(get_const_field);
             }
             BindingPatternTypeArray::BindingPattern { pattern }
             | BindingPatternTypeArray::BindingPatternRest { pattern } => {
-                self.visit_declaration_pattern_mut(pattern)
+                self.visit_declaration_pattern_mut(pattern);
             }
             BindingPatternTypeArray::SingleNameRest { ident } => self.visit_sym_mut(ident),
             BindingPatternTypeArray::Empty | BindingPatternTypeArray::Elision => {}
