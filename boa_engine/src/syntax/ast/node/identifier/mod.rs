@@ -29,7 +29,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Debug, Clone, Copy, Finalize, PartialEq)]
 pub struct Identifier {
-    ident: Sym,
+    pub(crate) ident: Sym,
 }
 
 impl Identifier {

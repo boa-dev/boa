@@ -25,7 +25,7 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct New {
-    call: Call,
+    pub(crate) call: Call,
 }
 
 impl New {

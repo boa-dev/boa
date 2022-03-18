@@ -29,8 +29,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct GetField {
-    obj: Box<Node>,
-    field: Box<Node>,
+    pub(crate) obj: Box<Node>,
+    pub(crate) field: Box<Node>,
 }
 
 impl GetField {

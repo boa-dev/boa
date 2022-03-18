@@ -20,7 +20,7 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TemplateLit {
-    elements: Box<[TemplateElement]>,
+    pub(crate) elements: Box<[TemplateElement]>,
 }
 
 impl TemplateLit {
@@ -58,10 +58,10 @@ impl ToInternedString for TemplateLit {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TaggedTemplate {
-    tag: Box<Node>,
-    raws: Box<[Sym]>,
-    cookeds: Box<[Option<Sym>]>,
-    exprs: Box<[Node]>,
+    pub(crate) tag: Box<Node>,
+    pub(crate) raws: Box<[Sym]>,
+    pub(crate) cookeds: Box<[Option<Sym>]>,
+    pub(crate) exprs: Box<[Node]>,
 }
 
 impl TaggedTemplate {

@@ -15,8 +15,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Yield {
-    expr: Option<Box<Node>>,
-    delegate: bool,
+    pub(crate) expr: Option<Box<Node>>,
+    pub(crate) delegate: bool,
 }
 
 impl Yield {

@@ -28,8 +28,8 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Return {
-    expr: Option<Box<Node>>,
-    label: Option<Sym>,
+    pub(crate) expr: Option<Box<Node>>,
+    pub(crate) label: Option<Sym>,
 }
 
 impl Return {

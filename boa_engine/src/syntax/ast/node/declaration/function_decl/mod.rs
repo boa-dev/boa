@@ -25,9 +25,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FunctionDecl {
-    name: Sym,
-    parameters: FormalParameterList,
-    body: StatementList,
+    pub(crate) name: Sym,
+    pub(crate) parameters: FormalParameterList,
+    pub(crate) body: StatementList,
 }
 
 impl FunctionDecl {

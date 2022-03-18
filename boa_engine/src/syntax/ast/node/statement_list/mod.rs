@@ -21,8 +21,8 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct StatementList {
-    items: Box<[Node]>,
-    strict: bool,
+    pub(crate) items: Box<[Node]>,
+    pub(crate) strict: bool,
 }
 
 impl StatementList {

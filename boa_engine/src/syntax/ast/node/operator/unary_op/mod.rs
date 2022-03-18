@@ -15,8 +15,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct UnaryOp {
-    op: op::UnaryOp,
-    target: Box<Node>,
+    pub(crate) op: op::UnaryOp,
+    pub(crate) target: Box<Node>,
 }
 
 impl UnaryOp {

@@ -14,8 +14,8 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Case {
-    condition: Node,
-    body: StatementList,
+    pub(crate) condition: Node,
+    pub(crate) body: StatementList,
 }
 
 impl Case {
@@ -61,9 +61,9 @@ impl Case {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Switch {
-    val: Box<Node>,
-    cases: Box<[Case]>,
-    default: Option<StatementList>,
+    pub(crate) val: Box<Node>,
+    pub(crate) cases: Box<[Case]>,
+    pub(crate) default: Option<StatementList>,
 }
 
 impl Switch {

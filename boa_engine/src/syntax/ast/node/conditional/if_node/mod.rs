@@ -23,9 +23,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct If {
-    cond: Box<Node>,
-    body: Box<Node>,
-    else_node: Option<Box<Node>>,
+    pub(crate) cond: Box<Node>,
+    pub(crate) body: Box<Node>,
+    pub(crate) else_node: Option<Box<Node>>,
 }
 
 impl If {

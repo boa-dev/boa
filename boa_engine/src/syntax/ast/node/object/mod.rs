@@ -38,7 +38,7 @@ mod tests;
 #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Object {
-    properties: Box<[PropertyDefinition]>,
+    pub(crate) properties: Box<[PropertyDefinition]>,
 }
 
 impl Object {

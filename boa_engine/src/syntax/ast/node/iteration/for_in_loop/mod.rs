@@ -7,10 +7,10 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForInLoop {
-    init: Box<IterableLoopInitializer>,
-    expr: Box<Node>,
-    body: Box<Node>,
-    label: Option<Sym>,
+    pub(crate) init: Box<IterableLoopInitializer>,
+    pub(crate) expr: Box<Node>,
+    pub(crate) body: Box<Node>,
+    pub(crate) label: Option<Sym>,
 }
 
 impl ForInLoop {

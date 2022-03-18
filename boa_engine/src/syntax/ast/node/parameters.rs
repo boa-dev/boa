@@ -163,8 +163,8 @@ impl Default for FormalParameterListFlags {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FormalParameter {
-    declaration: Declaration,
-    is_rest_param: bool,
+    pub(crate) declaration: Declaration,
+    pub(crate) is_rest_param: bool,
 }
 
 impl FormalParameter {

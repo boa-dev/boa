@@ -27,7 +27,7 @@ mod tests;
 #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Spread {
-    val: Box<Node>,
+    pub(crate) val: Box<Node>,
 }
 
 impl Spread {

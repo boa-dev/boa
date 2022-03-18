@@ -18,9 +18,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct WhileLoop {
-    cond: Box<Node>,
-    body: Box<Node>,
-    label: Option<Sym>,
+    pub(crate) cond: Box<Node>,
+    pub(crate) body: Box<Node>,
+    pub(crate) label: Option<Sym>,
 }
 
 impl WhileLoop {

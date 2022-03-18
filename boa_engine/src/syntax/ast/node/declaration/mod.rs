@@ -513,8 +513,8 @@ impl DeclarationPattern {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeclarationPatternObject {
-    bindings: Vec<BindingPatternTypeObject>,
-    init: Option<Node>,
+    pub(crate) bindings: Vec<BindingPatternTypeObject>,
+    pub(crate) init: Option<Node>,
 }
 
 impl ToInternedString for DeclarationPatternObject {
@@ -612,8 +612,8 @@ impl DeclarationPatternObject {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeclarationPatternArray {
-    bindings: Vec<BindingPatternTypeArray>,
-    init: Option<Node>,
+    pub(crate) bindings: Vec<BindingPatternTypeArray>,
+    pub(crate) init: Option<Node>,
 }
 
 impl ToInternedString for DeclarationPatternArray {

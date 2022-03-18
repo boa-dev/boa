@@ -17,9 +17,9 @@ use super::block_to_string;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct GeneratorExpr {
-    name: Option<Sym>,
-    parameters: FormalParameterList,
-    body: StatementList,
+    pub(crate) name: Option<Sym>,
+    pub(crate) parameters: FormalParameterList,
+    pub(crate) body: StatementList,
 }
 
 impl GeneratorExpr {

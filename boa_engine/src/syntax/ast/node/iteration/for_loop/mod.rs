@@ -19,8 +19,8 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForLoop {
     #[cfg_attr(feature = "deser", serde(flatten))]
-    inner: Box<InnerForLoop>,
-    label: Option<Sym>,
+    pub(crate) inner: Box<InnerForLoop>,
+    pub(crate) label: Option<Sym>,
 }
 
 impl ForLoop {
@@ -109,11 +109,11 @@ impl From<ForLoop> for Node {
 /// Inner structure to avoid multiple indirections in the heap.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-struct InnerForLoop {
-    init: Option<Node>,
-    condition: Option<Node>,
-    final_expr: Option<Node>,
-    body: Node,
+pub(crate) struct InnerForLoop {
+    pub(crate) init: Option<Node>,
+    pub(crate) condition: Option<Node>,
+    pub(crate) final_expr: Option<Node>,
+    pub(crate) body: Node,
 }
 
 impl InnerForLoop {

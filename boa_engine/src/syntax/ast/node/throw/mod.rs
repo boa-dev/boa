@@ -24,7 +24,7 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Throw {
-    expr: Box<Node>,
+    pub(crate) expr: Box<Node>,
 }
 
 impl Throw {

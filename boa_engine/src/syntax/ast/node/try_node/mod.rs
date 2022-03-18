@@ -23,9 +23,9 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Try {
-    block: Block,
-    catch: Option<Catch>,
-    finally: Option<Finally>,
+    pub(crate) block: Block,
+    pub(crate) catch: Option<Catch>,
+    pub(crate) finally: Option<Finally>,
 }
 
 impl Try {
@@ -100,8 +100,8 @@ impl From<Try> for Node {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Catch {
-    parameter: Option<Box<Declaration>>,
-    block: Block,
+    pub(crate) parameter: Option<Box<Declaration>>,
+    pub(crate) block: Block,
 }
 
 impl Catch {
@@ -153,7 +153,7 @@ impl ToInternedString for Catch {
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Finally {
-    block: Block,
+    pub(crate) block: Block,
 }
 
 impl Finally {
