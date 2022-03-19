@@ -64,8 +64,8 @@ use boa_interner::Interner;
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, io, path::PathBuf};
-// use structopt::{clap::arg_enum, StructOpt};
-use clap::{ ArgEnum, StructOpt };
+//use structopt::{clap::arg_enum, StructOpt};
+use clap::{ArgEnum, Parser};
 mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -84,7 +84,7 @@ const READLINE_COLOR: Color = Color::Cyan;
 // is an optional argument that optionally takes a value ([--opt=[val]]).
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
 #[allow(clippy::option_option)]
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 #[clap(author, about, name = "boa")]
 struct Opt {
     /// The JavaScript file(s) to be evaluated.
@@ -141,6 +141,7 @@ arg_enum! {
 } **/
 
 #[derive(Debug, Clone, ArgEnum)]
+#[clap(name = 'a')]
 enum DumpFormat {
     Debug,
     Json,
