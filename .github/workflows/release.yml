@@ -23,10 +23,10 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: "16"
-      - run: npm install
+      - run: npm ci
       - name: Cache npm build
         uses: actions/cache@v2.1.7
         with:

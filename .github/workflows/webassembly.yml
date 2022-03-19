@@ -42,8 +42,8 @@ jobs:
             ~/.cargo/registry
             boa_wasm/pkg
           key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           node-version: "16"
-      - run: npm install
+      - run: npm ci
       - run: npm run build
