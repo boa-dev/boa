@@ -95,7 +95,7 @@ struct Opt {
         long,
         short = 'a',
         value_name = "FORMAT",
-        case_insensitive = true,
+        ignore_case = true,
         arg_enum
     )]
     dump_ast: Option<Option<DumpFormat>>,
@@ -189,7 +189,7 @@ where
 }
 
 pub fn main() -> Result<(), std::io::Error> {
-    let args = Opt::from_args();
+    let args = Opt::parse();
 
     let mut context = Context::default();
 
