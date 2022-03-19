@@ -65,10 +65,7 @@ use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, io, path::PathBuf};
 // use structopt::{clap::arg_enum, StructOpt};
-#[macro_use]
-use clap;
-use clap::StructOpt;
-use clap::ArgEnum;
+use clap::{ ArgEnum, StructOpt };
 mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -143,9 +140,8 @@ arg_enum! {
     }
 } **/
 
-    
 #[derive(Debug, Clone, ArgEnum)]
-    enum DumpFormat {
+enum DumpFormat {
     Debug,
     Json,
     JsonPretty,
