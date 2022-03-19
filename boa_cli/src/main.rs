@@ -64,8 +64,11 @@ use boa_interner::Interner;
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, io, path::PathBuf};
-use structopt::{clap::arg_enum, StructOpt};
-
+// use structopt::{clap::arg_enum, StructOpt};
+#[macro_use]
+use clap;
+use clap::StructOpt;
+use clap::ArgEnum;
 mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -85,28 +88,28 @@ const READLINE_COLOR: Color = Color::Cyan;
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
 #[allow(clippy::option_option)]
 #[derive(Debug, StructOpt)]
-#[structopt(author, about, name = "boa")]
+#[clap(author, about, name = "boa")]
 struct Opt {
     /// The JavaScript file(s) to be evaluated.
-    #[structopt(name = "FILE", parse(from_os_str))]
+    #[clap(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
 
     /// Dump the AST to stdout with the given format.
-    #[structopt(
+    #[clap(
         long,
-        short = "a",
+        short = 'a',
         value_name = "FORMAT",
-        possible_values = &DumpFormat::variants(),
-        case_insensitive = true
+        case_insensitive = true,
+        arg_enum
     )]
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
-    #[structopt(long = "trace", short = "t")]
+    #[clap(long = "trace", short = 't')]
     trace: bool,
 
     /// Use vi mode in the REPL
-    #[structopt(long = "vi")]
+    #[clap(long = "vi")]
     vi_mode: bool,
 }
 
@@ -117,6 +120,7 @@ impl Opt {
     }
 }
 
+/*
 arg_enum! {
     /// The different types of format available for dumping.
     ///
@@ -137,6 +141,14 @@ arg_enum! {
         // This is a pretty printed json format.
         JsonPretty,
     }
+} **/
+
+    
+#[derive(Debug, Clone, ArgEnum)]
+    enum DumpFormat {
+    Debug,
+    Json,
+    JsonPretty,
 }
 
 /// Parses the the token stream into an AST and returns it.
