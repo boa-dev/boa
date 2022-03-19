@@ -61,11 +61,10 @@
 
 use boa_engine::{syntax::ast::node::StatementList, Context};
 use boa_interner::Interner;
+use clap::{ArgEnum, Parser};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, io, path::PathBuf};
-//use structopt::{clap::arg_enum, StructOpt};
-use clap::{ArgEnum, Parser};
 mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -117,8 +116,8 @@ impl Opt {
     }
 }
 
-/*
-arg_enum! {
+#[derive(Debug, Clone, ArgEnum)]
+enum DumpFormat {
     /// The different types of format available for dumping.
     ///
     // NOTE: This can easily support other formats just by
@@ -127,24 +126,14 @@ arg_enum! {
     //
     // NOTE: The fields of this enum are not doc comments because
     // arg_enum! macro does not support it.
-    #[derive(Debug)]
-    enum DumpFormat {
-        // This is the default format that you get from std::fmt::Debug.
-        Debug,
 
-        // This is a minified json format.
-        Json,
-
-        // This is a pretty printed json format.
-        JsonPretty,
-    }
-} **/
-
-#[derive(Debug, Clone, ArgEnum)]
-#[clap(name = 'a')]
-enum DumpFormat {
+    // This is the default format that you get from std::fmt::Debug.
     Debug,
+
+    // This is a minified json format.
     Json,
+
+    // This is a pretty printed json format.
     JsonPretty,
 }
 
