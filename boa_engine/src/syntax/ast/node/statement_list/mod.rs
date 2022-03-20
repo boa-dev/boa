@@ -23,7 +23,6 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct StatementList {
-    #[cfg_attr(feature = "deser", serde(flatten))]
     items: Box<[Node]>,
     strict: bool,
 }
