@@ -13,8 +13,8 @@ Currently, it has support for some of the language.
 
 [![Build Status][build_badge]][build_link]
 [![codecov](https://codecov.io/gh/boa-dev/boa/branch/main/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
-[![](https://img.shields.io/crates/v/Boa.svg)](https://crates.io/crates/Boa)
-[![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
+[![Crates.io](https://img.shields.io/crates/v/Boa.svg)](https://crates.io/crates/Boa)
+[![Docs.rs](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
 [![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)](https://discord.gg/tUFFk9Y)
 
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
@@ -50,12 +50,17 @@ This interpreter can be exposed to JavaScript!
 You can build the example locally with:
 
 ```shell
-$ yarn install
-$ yarn serve
+npm run build
 ```
 
 In the console you can use `window.evaluate` to pass JavaScript in.
-To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`.
+To develop on the web assembly side you can run:
+
+```shell
+npm run serve
+```
+
+then go to `http://localhost:8080`.
 
 ## Usage
 
