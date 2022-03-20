@@ -29,7 +29,6 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub struct ArrayDecl {
-    #[cfg_attr(feature = "deser", serde(flatten))]
     arr: Box<[Node]>,
     has_trailing_comma_spread: bool,
 }
