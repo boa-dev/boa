@@ -91,13 +91,7 @@ struct Opt {
     files: Vec<PathBuf>,
 
     /// Dump the AST to stdout with the given format.
-    #[clap(
-        long,
-        short = 'a',
-        value_name = "FORMAT",
-        ignore_case = true,
-        arg_enum
-    )]
+    #[clap(long, short = 'a', value_name = "FORMAT", ignore_case = true, arg_enum)]
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
