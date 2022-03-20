@@ -173,7 +173,6 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
-<span id="174">174</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement list node.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{<span class="ident">Declaration</span>, <span class="ident">Node</span>};
@@ -199,7 +198,6 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">StatementList</span> {
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">serde</span>(<span class="ident">flatten</span>))]</span>
     <span class="ident">items</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>,
     <span class="ident">strict</span>: <span class="ident">bool</span>,
 }
