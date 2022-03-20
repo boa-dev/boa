@@ -61,11 +61,10 @@
 
 use boa_engine::{syntax::ast::node::StatementList, Context};
 use boa_interner::Interner;
+use clap::{ArgEnum, Parser};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, io, path::PathBuf};
-use structopt::{clap::arg_enum, StructOpt};
-
 mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -84,29 +83,23 @@ const READLINE_COLOR: Color = Color::Cyan;
 // is an optional argument that optionally takes a value ([--opt=[val]]).
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
 #[allow(clippy::option_option)]
-#[derive(Debug, StructOpt)]
-#[structopt(author, about, name = "boa")]
+#[derive(Debug, Parser)]
+#[clap(author, about, name = "boa")]
 struct Opt {
     /// The JavaScript file(s) to be evaluated.
-    #[structopt(name = "FILE", parse(from_os_str))]
+    #[clap(name = "FILE", parse(from_os_str))]
     files: Vec<PathBuf>,
 
     /// Dump the AST to stdout with the given format.
-    #[structopt(
-        long,
-        short = "a",
-        value_name = "FORMAT",
-        possible_values = &DumpFormat::variants(),
-        case_insensitive = true
-    )]
+    #[clap(long, short = 'a', value_name = "FORMAT", ignore_case = true, arg_enum)]
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
-    #[structopt(long = "trace", short = "t")]
+    #[clap(long = "trace", short = 't')]
     trace: bool,
 
     /// Use vi mode in the REPL
-    #[structopt(long = "vi")]
+    #[clap(long = "vi")]
     vi_mode: bool,
 }
 
@@ -117,7 +110,8 @@ impl Opt {
     }
 }
 
-arg_enum! {
+#[derive(Debug, Clone, ArgEnum)]
+enum DumpFormat {
     /// The different types of format available for dumping.
     ///
     // NOTE: This can easily support other formats just by
@@ -126,17 +120,15 @@ arg_enum! {
     //
     // NOTE: The fields of this enum are not doc comments because
     // arg_enum! macro does not support it.
-    #[derive(Debug)]
-    enum DumpFormat {
-        // This is the default format that you get from std::fmt::Debug.
-        Debug,
 
-        // This is a minified json format.
-        Json,
+    // This is the default format that you get from std::fmt::Debug.
+    Debug,
 
-        // This is a pretty printed json format.
-        JsonPretty,
-    }
+    // This is a minified json format.
+    Json,
+
+    // This is a pretty printed json format.
+    JsonPretty,
 }
 
 /// Parses the the token stream into an AST and returns it.
@@ -191,7 +183,7 @@ where
 }
 
 pub fn main() -> Result<(), std::io::Error> {
-    let args = Opt::from_args();
+    let args = Opt::parse();
 
     let mut context = Context::default();
 
