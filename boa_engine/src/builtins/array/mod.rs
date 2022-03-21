@@ -45,6 +45,7 @@ impl BuiltIn for Array {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
+        let symbol_unscopables = WellKnownSymbols::unscopables();
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
@@ -52,6 +53,7 @@ impl BuiltIn for Array {
             .build();
 
         let values_function = Self::values_intrinsic(context);
+        let unscopables_object = Self::unscopables_intrinsic(context);
 
         ConstructorBuilder::with_standard_constructor(
             context,
@@ -80,6 +82,11 @@ impl BuiltIn for Array {
             symbol_iterator,
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
+        .property(
+            symbol_unscopables,
+            unscopables_object,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .method(Self::at, "at", 1)
         .method(Self::concat, "concat", 1)
@@ -2854,5 +2861,45 @@ impl Array {
             .length(0)
             .constructor(false)
             .build()
+    }
+
+    pub(crate) fn unscopables_intrinsic(context: &mut Context) -> JsObject {
+        let object_prototype = context.construct_object();
+        let result_obj = JsObject::from_proto_and_data(object_prototype, ObjectData::ordinary());
+        result_obj
+            .create_data_property_or_throw("at", true, context)
+            .expect("CreateDataPropertyOrThrow for 'at' must not fail");
+        result_obj
+            .create_data_property_or_throw("copyWithin", true, context)
+            .expect("CreateDataPropertyOrThrow for 'copyWithin' must not fail");
+        result_obj
+            .create_data_property_or_throw("entries", true, context)
+            .expect("CreateDataPropertyOrThrow for 'entries' must not fail");
+        result_obj
+            .create_data_property_or_throw("fill", true, context)
+            .expect("CreateDataPropertyOrThrow for 'fill' must not fail");
+        result_obj
+            .create_data_property_or_throw("find", true, context)
+            .expect("CreateDataPropertyOrThrow for 'find' must not fail");
+        result_obj
+            .create_data_property_or_throw("findIndex", true, context)
+            .expect("CreateDataPropertyOrThrow for 'findIndex' must not fail");
+        result_obj
+            .create_data_property_or_throw("flat", true, context)
+            .expect("CreateDataPropertyOrThrow for 'flat' must not fail");
+        result_obj
+            .create_data_property_or_throw("flatMap", true, context)
+            .expect("CreateDataPropertyOrThrow for 'flatMap' must not fail");
+        result_obj
+            .create_data_property_or_throw("includes", true, context)
+            .expect("CreateDataPropertyOrThrow for 'includes' must not fail");
+        result_obj
+            .create_data_property_or_throw("keys", true, context)
+            .expect("CreateDataPropertyOrThrow for 'keys' must not fail");
+        result_obj
+            .create_data_property_or_throw("values", true, context)
+            .expect("CreateDataPropertyOrThrow for 'values' must not fail");
+
+        result_obj
     }
 }
