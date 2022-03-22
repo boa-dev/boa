@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1647955569361,
+  "lastUpdate": 1647977043265,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -51797,6 +51797,432 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Execution)",
             "value": 997722,
             "range": "± 6967",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "distinct": false,
+          "id": "3ad9d18d74cda3c2bdc1e01b9e1857c20e0d25d4",
+          "message": "Bump node-forge from 1.2.1 to 1.3.0 (#1969)\n\nBumps [node-forge](https://github.com/digitalbazaar/forge) from 1.2.1 to 1.3.0.\n<details>\n<summary>Changelog</summary>\n<p><em>Sourced from <a href=\"https://github.com/digitalbazaar/forge/blob/main/CHANGELOG.md\">node-forge's changelog</a>.</em></p>\n<blockquote>\n<h2>1.3.0 - 2022-03-17</h2>\n<h3>Security</h3>\n<ul>\n<li>Three RSA PKCS#1 v1.5 signature verification issues were reported by Moosa\nYahyazadeh (<a href=\"mailto:moosa-yahyazadeh@uiowa.edu\">moosa-yahyazadeh@uiowa.edu</a>).</li>\n<li><strong>HIGH</strong>: Leniency in checking <code>digestAlgorithm</code> structure can lead to\nsignature forgery.\n<ul>\n<li>The code is lenient in checking the digest algorithm structure. This can\nallow a crafted structure that steals padding bytes and uses unchecked\nportion of the PKCS#1 encoded message to forge a signature when a low\npublic exponent is being used. For more information, please see\n<a href=\"https://mailarchive.ietf.org/arch/msg/openpgp/5rnE9ZRN1AokBVj3VqblGlP63QE/\">&quot;Bleichenbacher's RSA signature forgery based on implementation\nerror&quot;</a>\nby Hal Finney.</li>\n<li>CVE ID: <a href=\"https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24771\">CVE-2022-24771</a></li>\n<li>GHSA ID: <a href=\"https://github.com/digitalbazaar/forge/security/advisories/GHSA-cfm4-qjh2-4765\">GHSA-cfm4-qjh2-4765</a></li>\n</ul>\n</li>\n<li><strong>HIGH</strong>: Failing to check tailing garbage bytes can lead to signature\nforgery.\n<ul>\n<li>The code does not check for tailing garbage bytes after decoding a\n<code>DigestInfo</code> ASN.1 structure. This can allow padding bytes to be removed\nand garbage data added to forge a signature when a low public exponent is\nbeing used.  For more information, please see <a href=\"https://mailarchive.ietf.org/arch/msg/openpgp/5rnE9ZRN1AokBVj3VqblGlP63QE/\">&quot;Bleichenbacher's RSA\nsignature forgery based on implementation\nerror&quot;</a>\nby Hal Finney.</li>\n<li>CVE ID: <a href=\"https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24772\">CVE-2022-24772</a></li>\n<li>GHSA ID: <a href=\"https://github.com/digitalbazaar/forge/security/advisories/GHSA-x4jg-mjrx-434g\">GHSA-x4jg-mjrx-434g</a></li>\n</ul>\n</li>\n<li><strong>MEDIUM</strong>: Leniency in checking type octet.\n<ul>\n<li><code>DigestInfo</code> is not properly checked for proper ASN.1 structure. This can\nlead to successful verification with signatures that contain invalid\nstructures but a valid digest.</li>\n<li>CVE ID: <a href=\"https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-24773\">CVE-2022-24773</a></li>\n<li>GHSA ID: <a href=\"https://github.com/digitalbazaar/forge/security/advisories/GHSA-2r2c-g63r-vccr\">GHSA-2r2c-g63r-vccr</a></li>\n</ul>\n</li>\n</ul>\n<h3>Fixed</h3>\n<ul>\n<li>[asn1] Add fallback to pretty print invalid UTF8 data.</li>\n<li>[asn1] <code>fromDer</code> is now more strict and will default to ensuring all input\nbytes are parsed or throw an error. A new option <code>parseAllBytes</code> can disable\nthis behavior.\n<ul>\n<li><strong>NOTE</strong>: The previous behavior is being changed since it can lead to\nsecurity issues with crafted inputs. It is possible that code doing custom\nDER parsing may need to adapt to this new behavior and optional flag.</li>\n</ul>\n</li>\n<li>[rsa] Add and use a validator to check for proper structure of parsed ASN.1\n<code>RSASSA-PKCS-v1_5</code> <code>DigestInfo</code> data. Additionally check that the hash\nalgorithm identifier is a known value from RFC 8017\n<code>PKCS1-v1-5DigestAlgorithms</code>. An invalid <code>DigestInfo</code> or algorithm identifier\nwill now throw an error.\n<ul>\n<li><strong>NOTE</strong>: The previous lenient behavior is being changed to be more strict\nsince it could lead to security issues with crafted inputs. It is possible\nthat code may have to handle the errors from these stricter checks.</li>\n</ul>\n</li>\n</ul>\n<!-- raw HTML omitted -->\n</blockquote>\n<p>... (truncated)</p>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/6c5b90133d46af63d139b98bf65371732c8c7dad\"><code>6c5b901</code></a> Release 1.3.0.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/0f3972ad5883a9869703c6f54a0627bc454bca47\"><code>0f3972a</code></a> Update changelog.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/dc77b39dd347e7f8b60a0f25a311fe5f06130579\"><code>dc77b39</code></a> Fix error checking.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/bb822c02df0b61211836472e29b9790cc541cdb2\"><code>bb822c0</code></a> Add advisory links.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/d4395fec831622837ecfec9e428d4620e208f9a8\"><code>d4395fe</code></a> Update changelog.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/a4405bb9d6b638084df478fa4ac60a410332c2d8\"><code>a4405bb</code></a> Improve signature verification tests.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/aa9372d6dd78eb1479392b9274457036c2404b66\"><code>aa9372d</code></a> Add missing RFC 8017 algorithm identifiers.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/3f0b49a0573ef1bb7af7f5673c0cfebf00424df1\"><code>3f0b49a</code></a> Fix signature verification issues.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/c20f309311d83445e11abe7c313cc4b467c18914\"><code>c20f309</code></a> Adjust remaining length.</li>\n<li><a href=\"https://github.com/digitalbazaar/forge/commit/e27f61230f19fb9f085a163f31d0573305271b84\"><code>e27f612</code></a> Remove unused option.</li>\n<li>Additional commits viewable in <a href=\"https://github.com/digitalbazaar/forge/compare/v1.2.1...v1.3.0\">compare view</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility score](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=node-forge&package-manager=npm_and_yarn&previous-version=1.2.1&new-version=1.3.0)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after your CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge and block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating it. You can achieve the same result by closing it manually\n- `@dependabot ignore this major version` will close this PR and stop Dependabot creating any more for this major version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop Dependabot creating any more for this minor version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop Dependabot creating any more for this dependency (unless you reopen the PR or upgrade to it yourself)\nYou can disable automated security fix PRs for this repo from the [Security Alerts page](https://github.com/boa-dev/boa/network/alerts).\n\n</details>",
+          "timestamp": "2022-03-22T18:55:39Z",
+          "tree_id": "1ae2ebb4d5fd1ab1a5f558f500e052e8edf43d01",
+          "url": "https://github.com/boa-dev/boa/commit/3ad9d18d74cda3c2bdc1e01b9e1857c20e0d25d4"
+        },
+        "date": 1647976994662,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 265,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Parser)",
+            "value": 4214,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13181,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Parser)",
+            "value": 15544,
+            "range": "± 22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Parser)",
+            "value": 8767,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Parser)",
+            "value": 9422,
+            "range": "± 22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Parser)",
+            "value": 10075,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Parser)",
+            "value": 6184,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Parser)",
+            "value": 8133,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Parser)",
+            "value": 7882,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Parser)",
+            "value": 9736,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Parser)",
+            "value": 11400,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Parser)",
+            "value": 12932,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Parser)",
+            "value": 129049,
+            "range": "± 119",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Parser)",
+            "value": 7249,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Parser)",
+            "value": 10557,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Parser)",
+            "value": 5388,
+            "range": "± 157",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Parser)",
+            "value": 10763,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Parser)",
+            "value": 13784,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Parser)",
+            "value": 13510,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Parser)",
+            "value": 5272,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 27786,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 24338,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Compiler)",
+            "value": 909,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Compiler)",
+            "value": 1949,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Compiler)",
+            "value": 2269,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Compiler)",
+            "value": 1395,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Compiler)",
+            "value": 1400,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Compiler)",
+            "value": 1606,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Compiler)",
+            "value": 1419,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Compiler)",
+            "value": 1397,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Compiler)",
+            "value": 1634,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Compiler)",
+            "value": 1623,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Compiler)",
+            "value": 1263,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Compiler)",
+            "value": 1814,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Compiler)",
+            "value": 3798,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Compiler)",
+            "value": 1624,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Compiler)",
+            "value": 2120,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Compiler)",
+            "value": 1306,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Compiler)",
+            "value": 1040,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Compiler)",
+            "value": 1116,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Compiler)",
+            "value": 1479,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Compiler)",
+            "value": 511,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Compiler)",
+            "value": 3362,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Compiler)",
+            "value": 3241,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4453,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 42542,
+            "range": "± 123",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 1776054,
+            "range": "± 3182",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Execution)",
+            "value": 6006,
+            "range": "± 19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Execution)",
+            "value": 6250,
+            "range": "± 22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Execution)",
+            "value": 6715,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Execution)",
+            "value": 9280,
+            "range": "± 52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Execution)",
+            "value": 9232,
+            "range": "± 41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Execution)",
+            "value": 12474,
+            "range": "± 65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 12486,
+            "range": "± 66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Execution)",
+            "value": 9661,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Execution)",
+            "value": 3177005,
+            "range": "± 5016",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1387694,
+            "range": "± 3954",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Execution)",
+            "value": 5210,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Execution)",
+            "value": 5771,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 4630,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Execution)",
+            "value": 4521,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Execution)",
+            "value": 5707,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Execution)",
+            "value": 7521,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Execution)",
+            "value": 1973,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 1086470,
+            "range": "± 8930",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 995945,
+            "range": "± 6187",
             "unit": "ns/iter"
           }
         ]
