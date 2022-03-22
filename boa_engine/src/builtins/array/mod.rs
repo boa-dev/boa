@@ -2877,41 +2877,54 @@ impl Array {
     /// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
     pub(crate) fn unscopables_intrinsic(context: &mut Context) -> JsObject {
-        let result_obj = JsObject::empty();
-        result_obj
+        // 1. Let unscopableList be OrdinaryObjectCreate(null).
+        let unscopable_list = JsObject::empty();
+        // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
+        unscopable_list
             .create_data_property_or_throw("at", true, context)
             .expect("CreateDataPropertyOrThrow for 'at' must not fail");
-        result_obj
+        // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
+        unscopable_list
             .create_data_property_or_throw("copyWithin", true, context)
             .expect("CreateDataPropertyOrThrow for 'copyWithin' must not fail");
-        result_obj
+        // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
+        unscopable_list
             .create_data_property_or_throw("entries", true, context)
             .expect("CreateDataPropertyOrThrow for 'entries' must not fail");
-        result_obj
+        // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
+        unscopable_list
             .create_data_property_or_throw("fill", true, context)
             .expect("CreateDataPropertyOrThrow for 'fill' must not fail");
-        result_obj
+        // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
+        unscopable_list
             .create_data_property_or_throw("find", true, context)
             .expect("CreateDataPropertyOrThrow for 'find' must not fail");
-        result_obj
+        // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
+        unscopable_list
             .create_data_property_or_throw("findIndex", true, context)
             .expect("CreateDataPropertyOrThrow for 'findIndex' must not fail");
-        result_obj
+        // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
+        unscopable_list
             .create_data_property_or_throw("flat", true, context)
             .expect("CreateDataPropertyOrThrow for 'flat' must not fail");
-        result_obj
+        // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
+        unscopable_list
             .create_data_property_or_throw("flatMap", true, context)
             .expect("CreateDataPropertyOrThrow for 'flatMap' must not fail");
-        result_obj
+        // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
+        unscopable_list
             .create_data_property_or_throw("includes", true, context)
             .expect("CreateDataPropertyOrThrow for 'includes' must not fail");
-        result_obj
+        // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
+        unscopable_list
             .create_data_property_or_throw("keys", true, context)
             .expect("CreateDataPropertyOrThrow for 'keys' must not fail");
-        result_obj
+        // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
+        unscopable_list
             .create_data_property_or_throw("values", true, context)
             .expect("CreateDataPropertyOrThrow for 'values' must not fail");
 
-        result_obj
+        // 13. Return unscopableList.
+        unscopable_list
     }
 }
