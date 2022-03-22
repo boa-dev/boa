@@ -2863,9 +2863,21 @@ impl Array {
             .build()
     }
 
+    /// `Array.prototype [ @@unscopables ]`
+    ///
+    /// The initial value of the 'unscopables' data property is an ordinary object
+    /// with the following boolean properties set to true:
+    /// 'at', 'copyWithin', 'entries', 'fill', 'find', 'findIndex', 'flat',
+    /// 'flatMap', 'includes', 'keys', 'values'
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
     pub(crate) fn unscopables_intrinsic(context: &mut Context) -> JsObject {
-        let object_prototype = context.construct_object();
-        let result_obj = JsObject::from_proto_and_data(object_prototype, ObjectData::ordinary());
+        let result_obj = JsObject::empty();
         result_obj
             .create_data_property_or_throw("at", true, context)
             .expect("CreateDataPropertyOrThrow for 'at' must not fail");
