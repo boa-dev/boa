@@ -9,15 +9,19 @@ impl JsValue {
     pub fn add(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) + f64::from(*y)),
+            // Numeric add
+            (Self::Integer(x), Self::Integer(y)) => x
+                .checked_add(*y)
+                .map_or_else(|| Self::new(f64::from(*x) + f64::from(*y)), Self::new),
             (Self::Rational(x), Self::Rational(y)) => Self::new(x + y),
             (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) + y),
             (Self::Rational(x), Self::Integer(y)) => Self::new(x + f64::from(*y)),
+            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::add(x, y)),
 
+            // String concat
             (Self::String(ref x), Self::String(ref y)) => Self::from(JsString::concat(x, y)),
             (Self::String(ref x), y) => Self::from(JsString::concat(x, y.to_string(context)?)),
             (x, Self::String(ref y)) => Self::from(JsString::concat(x.to_string(context)?, y)),
-            (Self::BigInt(ref x), Self::BigInt(ref y)) => Self::new(JsBigInt::add(x, y)),
 
             // Slow path:
             (_, _) => match (
@@ -49,7 +53,9 @@ impl JsValue {
     pub fn sub(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) - f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => x
+                .checked_sub(*y)
+                .map_or_else(|| Self::new(f64::from(*x) - f64::from(*y)), Self::new),
             (Self::Rational(x), Self::Rational(y)) => Self::new(x - y),
             (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) - y),
             (Self::Rational(x), Self::Integer(y)) => Self::new(x - f64::from(*y)),
@@ -73,7 +79,9 @@ impl JsValue {
     pub fn mul(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) * f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => x
+                .checked_mul(*y)
+                .map_or_else(|| Self::new(f64::from(*x) * f64::from(*y)), Self::new),
             (Self::Rational(x), Self::Rational(y)) => Self::new(x * y),
             (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) * y),
             (Self::Rational(x), Self::Integer(y)) => Self::new(x * f64::from(*y)),
@@ -97,7 +105,10 @@ impl JsValue {
     pub fn div(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x) / f64::from(*y)),
+            (Self::Integer(x), Self::Integer(y)) => x
+                .checked_div(*y)
+                .filter(|div| *y * div == *x)
+                .map_or_else(|| Self::new(f64::from(*x) / f64::from(*y)), Self::new),
             (Self::Rational(x), Self::Rational(y)) => Self::new(x / y),
             (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x) / y),
             (Self::Rational(x), Self::Integer(y)) => Self::new(x / f64::from(*y)),
@@ -178,7 +189,10 @@ impl JsValue {
     pub fn pow(&self, other: &Self, context: &mut Context) -> JsResult<Self> {
         Ok(match (self, other) {
             // Fast path:
-            (Self::Integer(x), Self::Integer(y)) => Self::new(f64::from(*x).powi(*y)),
+            (Self::Integer(x), Self::Integer(y)) => u32::try_from(*y)
+                .ok()
+                .and_then(|y| x.checked_pow(y))
+                .map_or_else(|| Self::new(f64::from(*x).powi(*y)), Self::new),
             (Self::Rational(x), Self::Rational(y)) => Self::new(x.powf(*y)),
             (Self::Integer(x), Self::Rational(y)) => Self::new(f64::from(*x).powf(*y)),
             (Self::Rational(x), Self::Integer(y)) => Self::new(x.powi(*y)),
