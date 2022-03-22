@@ -1476,7 +1476,6 @@ impl<'b> ByteCompiler<'b> {
 
                 self.pop_loop_control_info();
                 self.emit_opcode(Opcode::LoopEnd);
-
             }
             Node::Continue(node) => {
                 let next = self.next_opcode_location();

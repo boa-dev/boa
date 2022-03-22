@@ -382,7 +382,7 @@ fn do_while_post_inc() {
 }
 
 #[test]
-fn do_while_in_block(){
+fn do_while_in_block() {
     let in_block = r#"
         {
             var i = 0;
@@ -393,7 +393,7 @@ fn do_while_in_block(){
             i;
         }
     "#;
-    assert_eq!(&exec(in_block),"1");
+    assert_eq!(&exec(in_block), "1");
 }
 
 #[test]
