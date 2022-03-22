@@ -17,7 +17,7 @@ jobs:
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: |
             target
