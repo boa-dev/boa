@@ -382,6 +382,21 @@ fn do_while_post_inc() {
 }
 
 #[test]
+fn do_while_in_block() {
+    let in_block = r#"
+        {
+            var i = 0;
+            do {
+                i += 1;
+            }
+            while(false);
+            i;
+        }
+    "#;
+    assert_eq!(&exec(in_block), "1");
+}
+
+#[test]
 fn for_loop() {
     let simple = r#"
         const a = ['h', 'e', 'l', 'l', 'o'];

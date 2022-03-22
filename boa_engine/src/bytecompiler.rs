@@ -1472,11 +1472,10 @@ impl<'b> ByteCompiler<'b> {
 
                 self.compile_stmt(do_while.body(), false)?;
                 self.emit(Opcode::Jump, &[condition_label_address]);
+                self.patch_jump(exit);
 
                 self.pop_loop_control_info();
                 self.emit_opcode(Opcode::LoopEnd);
-
-                self.patch_jump(exit);
             }
             Node::Continue(node) => {
                 let next = self.next_opcode_location();
