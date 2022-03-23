@@ -1000,6 +1000,13 @@ impl From<f32> for Numeric {
     }
 }
 
+impl From<i128> for Numeric {
+    #[inline]
+    fn from(value: i128) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
 impl From<i64> for Numeric {
     #[inline]
     fn from(value: i64) -> Self {
@@ -1025,6 +1032,13 @@ impl From<i8> for Numeric {
     #[inline]
     fn from(value: i8) -> Self {
         Self::Number(value.into())
+    }
+}
+
+impl From<u128> for Numeric {
+    #[inline]
+    fn from(value: u128) -> Self {
+        Self::BigInt(value.into())
     }
 }
 
