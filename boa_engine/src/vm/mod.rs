@@ -137,7 +137,7 @@ impl Context {
             opcode
         };
 
-        let _timer = Profiler::global().start_event(&format!("INST - {}", opcode.as_str()), "vm");
+        let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
 
         match opcode {
             Opcode::Nop => {}
