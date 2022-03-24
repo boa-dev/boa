@@ -72,12 +72,14 @@ where
 
         let mut flags = FormalParameterListFlags::default();
         let mut params = Vec::new();
+        let mut length = 0;
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         if next_token.kind() == &TokenKind::Punctuator(Punctuator::CloseParen) {
             return Ok(FormalParameterList::new(
                 params.into_boxed_slice(),
-                FormalParameterListFlags::IS_SIMPLE,
+                flags,
+                length,
             ));
         }
         let start_position = next_token.span().start();
@@ -94,8 +96,14 @@ where
                     FunctionRestParameter::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?
                 }
-                _ => FormalParameter::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?,
+                _ => {
+                    let param = FormalParameter::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
+                    if param.init().is_none() {
+                        length += 1;
+                    }
+                    param
+                }
             };
 
             if next_param.is_rest_param() && next_param.init().is_some() {
@@ -145,6 +153,14 @@ where
             }
 
             cursor.expect(Punctuator::Comma, "parameter list", interner)?;
+            if cursor
+                .peek(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .kind()
+                == &TokenKind::Punctuator(Punctuator::CloseParen)
+            {
+                break;
+            }
         }
 
         // Early Error: It is a Syntax Error if IsSimpleParameterList of FormalParameterList is false
@@ -157,8 +173,75 @@ where
                 start_position,
             )));
         }
+        Ok(FormalParameterList::new(
+            params.into_boxed_slice(),
+            flags,
+            length,
+        ))
+    }
+}
 
-        Ok(FormalParameterList::new(params.into_boxed_slice(), flags))
+/// `UniqueFormalParameters` parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-UniqueFormalParameters
+#[derive(Debug, Clone, Copy)]
+pub(in crate::syntax::parser) struct UniqueFormalParameters {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl UniqueFormalParameters {
+    /// Creates a new `UniqueFormalParameters` parser.
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for UniqueFormalParameters
+where
+    R: Read,
+{
+    type Output = FormalParameterList;
+
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        let params_start_position = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenParen),
+                "unique formal parameters",
+                interner,
+            )?
+            .span()
+            .end();
+        let params =
+            FormalParameters::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::CloseParen),
+            "unique formal parameters",
+            interner,
+        )?;
+
+        // Early Error: UniqueFormalParameters : FormalParameters
+        if params.has_duplicates() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "duplicate parameter name not allowed in unique formal parameters".into(),
+                params_start_position,
+            )));
+        }
+        Ok(params)
     }
 }
 
@@ -381,7 +464,8 @@ where
 pub(in crate::syntax::parser) type FunctionBody = FunctionStatementList;
 
 /// The possible `TokenKind` which indicate the end of a function statement.
-const FUNCTION_BREAK_TOKENS: [TokenKind; 1] = [TokenKind::Punctuator(Punctuator::CloseBlock)];
+pub(in crate::syntax::parser) const FUNCTION_BREAK_TOKENS: [TokenKind; 1] =
+    [TokenKind::Punctuator(Punctuator::CloseBlock)];
 
 /// A function statement list
 ///

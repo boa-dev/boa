@@ -131,6 +131,13 @@ pub enum Opcode {
     /// Stack: **=>** `{}`
     PushEmptyObject,
 
+    /// Get the prototype of a superclass and push it on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: superclass **=>** superclass.prototype
+    PushClassPrototype,
+
     /// Push an empty array value on the stack.
     ///
     /// Operands:
@@ -508,6 +515,13 @@ pub enum Opcode {
     /// Stack: value, object **=>**
     DefineOwnPropertyByName,
 
+    /// Defines a class method by name.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineClassMethodByName,
+
     /// Sets a property by value of an object.
     ///
     /// Like `object[key] = value`
@@ -517,12 +531,19 @@ pub enum Opcode {
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
 
-    /// Defines a own property of an object by value.
+    /// Defines a class method by value.
     ///
     /// Operands:
     ///
     /// Stack: object, key, value **=>**
     DefineOwnPropertyByValue,
+
+    /// Defines a own property of an object by value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=>**
+    DefineClassMethodByValue,
 
     /// Sets a getter property by name of an object.
     ///
@@ -533,6 +554,15 @@ pub enum Opcode {
     /// Stack: value, object **=>**
     SetPropertyGetterByName,
 
+    /// Defines a getter class method by name.
+    ///
+    /// Like `get name() value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineClassGetterByName,
+
     /// Sets a getter property by value of an object.
     ///
     /// Like `get [key]() value`
@@ -541,6 +571,15 @@ pub enum Opcode {
     ///
     /// Stack: object, key, value **=>**
     SetPropertyGetterByValue,
+
+    /// Defines a getter class method by value.
+    ///
+    /// Like `get [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=>**
+    DefineClassGetterByValue,
 
     /// Sets a setter property by name of an object.
     ///
@@ -551,6 +590,15 @@ pub enum Opcode {
     /// Stack: value, object **=>**
     SetPropertySetterByName,
 
+    /// Defines a setter class method by name.
+    ///
+    /// Like `set name() value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineClassSetterByName,
+
     /// Sets a setter property by value of an object.
     ///
     /// Like `set [key]() value`
@@ -559,6 +607,58 @@ pub enum Opcode {
     ///
     /// Stack: object, key, value **=>**
     SetPropertySetterByValue,
+
+    /// Defines a setter class method by value.
+    ///
+    /// Like `set [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=>**
+    DefineClassSetterByValue,
+
+    /// Set a private property by name from an object.
+    ///
+    /// Like `#name = value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    SetPrivateValue,
+
+    /// Set a private setter property by name from an object.
+    ///
+    /// Like `set #name() {}`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    SetPrivateSetter,
+
+    /// Set a private getter property by name from an object.
+    ///
+    /// Like `get #name() {}`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    SetPrivateGetter,
+
+    /// Get a private property by name from an object an push it on the stack.
+    ///
+    /// Like `object.#name`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object **=>** value
+    GetPrivateField,
+
+    /// Push a computed class field name to a class constructor object.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value, object **=>**
+    PushClassComputedFieldName,
 
     /// Deletes a property by name of an object.
     ///
@@ -584,6 +684,13 @@ pub enum Opcode {
     ///
     /// Stack: source, value, excluded_key_0 ... excluded_key_n **=>** value
     CopyDataProperties,
+
+    /// Call ToPropertyKey on the value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** key
+    ToPropertyKey,
 
     /// Unconditional jump to address.
     ///
@@ -956,6 +1063,7 @@ impl Opcode {
             Opcode::PushUndefined => "PushUndefined",
             Opcode::PushLiteral => "PushLiteral",
             Opcode::PushEmptyObject => "PushEmptyObject",
+            Opcode::PushClassPrototype => "PushClassPrototype",
             Opcode::PushNewArray => "PushNewArray",
             Opcode::PushValueToArray => "PushValueToArray",
             Opcode::PushElisionToArray => "PushElisionToArray",
@@ -1008,15 +1116,27 @@ impl Opcode {
             Opcode::GetPropertyByValue => "GetPropertyByValue",
             Opcode::SetPropertyByName => "SetPropertyByName",
             Opcode::DefineOwnPropertyByName => "DefineOwnPropertyByName",
+            Opcode::DefineClassMethodByName => "DefineClassMethodByName",
             Opcode::SetPropertyByValue => "SetPropertyByValue",
             Opcode::DefineOwnPropertyByValue => "DefineOwnPropertyByValue",
+            Opcode::DefineClassMethodByValue => "DefineClassMethodByValue",
             Opcode::SetPropertyGetterByName => "SetPropertyGetterByName",
+            Opcode::DefineClassGetterByName => "DefineClassGetterByName",
             Opcode::SetPropertyGetterByValue => "SetPropertyGetterByValue",
+            Opcode::DefineClassGetterByValue => "DefineClassGetterByValue",
             Opcode::SetPropertySetterByName => "SetPropertySetterByName",
+            Opcode::DefineClassSetterByName => "DefineClassSetterByName",
             Opcode::SetPropertySetterByValue => "SetPropertySetterByValue",
+            Opcode::DefineClassSetterByValue => "DefineClassSetterByValue",
+            Opcode::SetPrivateValue => "SetPrivateValue",
+            Opcode::SetPrivateSetter => "SetPrivateSetter",
+            Opcode::SetPrivateGetter => "SetPrivateGetter",
+            Opcode::GetPrivateField => "GetPrivateByName",
+            Opcode::PushClassComputedFieldName => "PushClassComputedFieldName",
             Opcode::DeletePropertyByName => "DeletePropertyByName",
             Opcode::DeletePropertyByValue => "DeletePropertyByValue",
             Opcode::CopyDataProperties => "CopyDataProperties",
+            Opcode::ToPropertyKey => "ToPropertyKey",
             Opcode::Jump => "Jump",
             Opcode::JumpIfFalse => "JumpIfFalse",
             Opcode::JumpIfNotUndefined => "JumpIfNotUndefined",

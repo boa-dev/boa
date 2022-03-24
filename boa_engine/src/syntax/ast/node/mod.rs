@@ -23,6 +23,7 @@ pub mod throw;
 pub mod try_node;
 pub mod r#yield;
 
+use self::field::get_private_field::GetPrivateField;
 pub use self::{
     array::ArrayDecl,
     await_expr::AwaitExpr,
@@ -31,9 +32,9 @@ pub use self::{
     conditional::{ConditionalOp, If},
     declaration::{
         async_generator_decl::AsyncGeneratorDecl, async_generator_expr::AsyncGeneratorExpr,
-        generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
-        AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, DeclarationPattern,
-        FunctionDecl, FunctionExpr,
+        class_decl::Class, generator_decl::GeneratorDecl, generator_expr::GeneratorExpr,
+        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
+        DeclarationPattern, FunctionDecl, FunctionExpr,
     },
     field::{GetConstField, GetField},
     identifier::Identifier,
@@ -135,6 +136,9 @@ pub enum Node {
     /// Provides access to an object types' constant properties. [More information](./declaration/struct.GetConstField.html).
     GetConstField(GetConstField),
 
+    /// Provides access to an object types' private properties. [More information](./declaration/struct.GetPrivateField.html).
+    GetPrivateField(GetPrivateField),
+
     /// Provides access to object fields. [More information](./declaration/struct.GetField.html).
     GetField(GetField),
 
@@ -226,6 +230,12 @@ pub enum Node {
 
     /// A generator function expression node. [More information](./declaration/struct.GeneratorExpr.html).
     GeneratorExpr(GeneratorExpr),
+
+    /// A class declaration. [More information](./declaration/struct.class_decl.Class.html).
+    ClassDecl(Class),
+
+    /// A class declaration. [More information](./declaration/struct.class_decl.Class.html).
+    ClassExpr(Class),
 }
 
 impl From<Const> for Node {
@@ -296,6 +306,9 @@ impl Node {
             Self::GetConstField(ref get_const_field) => {
                 get_const_field.to_interned_string(interner)
             }
+            Self::GetPrivateField(ref get_private_field) => {
+                get_private_field.to_interned_string(interner)
+            }
             Self::GetField(ref get_field) => get_field.to_interned_string(interner),
             Self::WhileLoop(ref while_loop) => while_loop.to_indented_string(interner, indentation),
             Self::DoWhileLoop(ref do_while) => do_while.to_indented_string(interner, indentation),
@@ -326,6 +339,8 @@ impl Node {
             Self::GeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
             Self::AsyncGeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
             Self::AsyncGeneratorDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::ClassDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::ClassExpr(ref expr) => expr.to_indented_string(interner, indentation),
         }
     }
 }

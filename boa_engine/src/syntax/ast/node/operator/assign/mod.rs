@@ -3,6 +3,7 @@ use crate::syntax::ast::node::{
         BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPatternArray,
         DeclarationPatternObject,
     },
+    field::get_private_field::GetPrivateField,
     object::{PropertyDefinition, PropertyName},
     ArrayDecl, DeclarationPattern, GetConstField, GetField, Identifier, Node, Object,
 };
@@ -80,6 +81,7 @@ impl From<Assign> for Node {
 #[derive(Clone, Debug, Trace, Finalize, PartialEq)]
 pub enum AssignTarget {
     Identifier(Identifier),
+    GetPrivateField(GetPrivateField),
     GetConstField(GetConstField),
     GetField(GetField),
     DeclarationPattern(DeclarationPattern),
@@ -91,6 +93,7 @@ impl AssignTarget {
     pub(crate) fn from_node(node: &Node) -> Option<Self> {
         match node {
             Node::Identifier(target) => Some(Self::Identifier(*target)),
+            Node::GetPrivateField(target) => Some(Self::GetPrivateField(target.clone())),
             Node::GetConstField(target) => Some(Self::GetConstField(target.clone())),
             Node::GetField(target) => Some(Self::GetField(target.clone())),
             Node::Object(object) => {
@@ -110,6 +113,7 @@ impl ToInternedString for AssignTarget {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             AssignTarget::Identifier(target) => target.to_interned_string(interner),
+            AssignTarget::GetPrivateField(target) => target.to_interned_string(interner),
             AssignTarget::GetConstField(target) => target.to_interned_string(interner),
             AssignTarget::GetField(target) => target.to_interned_string(interner),
             AssignTarget::DeclarationPattern(target) => target.to_interned_string(interner),
@@ -261,6 +265,7 @@ pub(crate) fn array_decl_to_declaration_pattern(array: &ArrayDecl) -> Option<Dec
                         pattern: pattern.clone(),
                     });
                 }
+                AssignTarget::GetPrivateField(_) => return None,
             },
             Node::ArrayDecl(array) => {
                 let pattern = array_decl_to_declaration_pattern(array)?;

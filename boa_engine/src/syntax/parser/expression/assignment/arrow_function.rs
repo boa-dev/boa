@@ -110,6 +110,7 @@ where
                             false,
                         )]),
                         flags,
+                        1,
                     ),
                     params_start_position,
                 )
@@ -122,8 +123,10 @@ where
             "arrow function",
             interner,
         )?;
+        let arrow = cursor.arrow();
+        cursor.set_arrow(true);
         let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
-
+        cursor.set_arrow(arrow);
         // Early Error: ArrowFormalParameters are UniqueFormalParameters.
         if params.has_duplicates() {
             return Err(ParseError::lex(LexError::Syntax(

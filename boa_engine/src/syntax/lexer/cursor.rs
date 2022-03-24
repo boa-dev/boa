@@ -33,11 +33,13 @@ impl<R> Cursor<R> {
     }
 
     #[inline]
+    /// Returns if strict mode is currently active.
     pub(super) fn strict_mode(&self) -> bool {
         self.strict_mode
     }
 
     #[inline]
+    /// Sets the current strict mode.
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
         self.strict_mode = strict_mode;
     }

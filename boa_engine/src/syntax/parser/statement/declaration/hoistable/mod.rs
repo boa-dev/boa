@@ -13,9 +13,11 @@ mod async_generator_decl;
 mod function_decl;
 mod generator_decl;
 
+pub(in crate::syntax::parser) mod class_decl;
+
 use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
-    generator_decl::GeneratorDeclaration,
+    class_decl::ClassDeclaration, generator_decl::GeneratorDeclaration,
 };
 use crate::syntax::{
     ast::node::{FormalParameterList, StatementList},
@@ -100,6 +102,11 @@ where
                         .parse(cursor, interner)
                         .map(Node::from)
                 }
+            }
+            TokenKind::Keyword(Keyword::Class) => {
+                ClassDeclaration::new(false, false, self.is_default)
+                    .parse(cursor, interner)
+                    .map(Node::from)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }

@@ -45,6 +45,8 @@ use crate::{
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_interner::Sym;
+use rustc_hash::FxHashMap;
 use std::{
     any::Any,
     fmt::{self, Debug, Display},
@@ -106,6 +108,16 @@ pub struct Object {
     prototype: JsPrototype,
     /// Whether it can have new properties added to it.
     extensible: bool,
+    /// The `[[PrivateElements]]` internal slot.
+    private_elements: FxHashMap<Sym, PrivateElement>,
+}
+
+/// The representation of private object elements.
+#[derive(Clone, Debug, Trace, Finalize)]
+pub(crate) enum PrivateElement {
+    Value(JsValue),
+    Setter(JsObject),
+    Getter(JsObject),
 }
 
 /// Defines the kind of an object and its internal methods
@@ -459,6 +471,7 @@ impl Default for Object {
             properties: PropertyMap::default(),
             prototype: None,
             extensible: true,
+            private_elements: FxHashMap::default(),
         }
     }
 }
@@ -1218,6 +1231,18 @@ impl Object {
     #[inline]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         self.properties.remove(key)
+    }
+
+    /// Get a private element.
+    #[inline]
+    pub(crate) fn get_private_element(&self, name: Sym) -> Option<&PrivateElement> {
+        self.private_elements.get(&name)
+    }
+
+    /// Set a private element.
+    #[inline]
+    pub(crate) fn set_private_element(&mut self, name: Sym, value: PrivateElement) {
+        self.private_elements.insert(name, value);
     }
 }
 

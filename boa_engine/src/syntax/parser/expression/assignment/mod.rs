@@ -194,6 +194,11 @@ where
 
         cursor.set_goal(InputElement::Div);
 
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         let mut lhs = ConditionalExpression::new(
             self.name,
             self.allow_in,
@@ -207,6 +212,22 @@ where
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
+                    if cursor.strict_mode() {
+                        if let Node::Identifier(ident) = lhs {
+                            if ident.sym() == Sym::ARGUMENTS {
+                                return Err(ParseError::lex(LexError::Syntax(
+                                    "unexpected identifier 'arguments' in strict mode".into(),
+                                    position,
+                                )));
+                            } else if ident.sym() == Sym::EVAL {
+                                return Err(ParseError::lex(LexError::Syntax(
+                                    "unexpected identifier 'eval' in strict mode".into(),
+                                    position,
+                                )));
+                            }
+                        }
+                    }
+
                     cursor.next(interner)?.expect("= token vanished");
                     if let Some(target) = AssignTarget::from_node(&lhs) {
                         let expr = self.parse(cursor, interner)?;

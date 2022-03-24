@@ -16,6 +16,7 @@ pub mod async_function_decl;
 pub mod async_function_expr;
 pub mod async_generator_decl;
 pub mod async_generator_expr;
+pub mod class_decl;
 pub mod function_decl;
 pub mod function_expr;
 pub mod generator_decl;

@@ -32,6 +32,12 @@ use std::io::Read;
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
 pub(in crate::syntax::parser) mod await_expr;
+pub(in crate::syntax::parser) use {
+    left_hand_side::LeftHandSideExpression,
+    primary::object_initializer::{
+        AsyncGeneratorMethod, AsyncMethod, GeneratorMethod, PropertyName,
+    },
+};
 
 // For use in the expression! macro to allow for both Punctuator and Keyword parameters.
 // Always returns false.
