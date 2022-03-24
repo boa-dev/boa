@@ -1067,6 +1067,7 @@ impl Opcode {
         }
     }
 
+    /// Name of the profiler event for this opcode
     pub fn as_instruction_str(self) -> &'static str {
         match self {
             Opcode::Pop => "INST - Pop",
