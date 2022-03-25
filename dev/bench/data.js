@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1648230878898,
+  "lastUpdate": 1648231629715,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -53927,6 +53927,432 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Execution)",
             "value": 665099,
             "range": "± 5795",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "distinct": false,
+          "id": "3f3f0aae6ec975221c25f884307950fe95991598",
+          "message": "Bump prettier from 2.6.0 to 2.6.1 (#1977)\n\nBumps [prettier](https://github.com/prettier/prettier) from 2.6.0 to 2.6.1.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a href=\"https://github.com/prettier/prettier/releases\">prettier's releases</a>.</em></p>\n<blockquote>\n<h2>2.6.1</h2>\n<p>🔗 <a href=\"https://github.com/prettier/prettier/blob/main/CHANGELOG.md#261\">Changelog</a></p>\n</blockquote>\n</details>\n<details>\n<summary>Changelog</summary>\n<p><em>Sourced from <a href=\"https://github.com/prettier/prettier/blob/main/CHANGELOG.md\">prettier's changelog</a>.</em></p>\n<blockquote>\n<h1>2.6.1</h1>\n<p><a href=\"https://github.com/prettier/prettier/compare/2.6.0...2.6.1\">diff</a></p>\n<h4>Ignore <code>loglevel</code> when printing information (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/pull/12477\">#12477</a> by <a href=\"https://github.com/fisker\"><code>@​fisker</code></a>)</h4>\n<!-- raw HTML omitted -->\n<pre lang=\"bash\"><code></code></pre>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a href=\"https://github.com/prettier/prettier/commit/ad505bf771126f39688b13a1319dfeef49fb4d5b\"><code>ad505bf</code></a> Release 2.6.1</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/6128c5c4e4bf4f03e965561d6191ee99550db287\"><code>6128c5c</code></a> Build: Fix <code>esbuildPluginReplaceModule</code> (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12530\">#12530</a>)</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/11649270f676b6d2ec40c09a95e2714f74939ea7\"><code>1164927</code></a> Enable <code>unicorn/text-encoding-identifier-case</code> rule (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12526\">#12526</a>)</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/0e6c1d58d836fa4f3c388aa5c4fa9bd87173300d\"><code>0e6c1d5</code></a> Enter OTP via <code>enquirer</code> (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12528\">#12528</a>)</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/67edeeaf72cba521aae1ad5f93fd17ac7e4d7ef0\"><code>67edeea</code></a> Build(deps): Bump minimist from 1.2.5 to 1.2.6 (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12513\">#12513</a>)</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/6664253b9ef24e7f0d6744c56424705ff2307537\"><code>6664253</code></a> Fix error when bundle prettier with webpack (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12511\">#12511</a>)</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/9e7f7b9295a0e7c34ac0c03ccfb79a2a6aad9abd\"><code>9e7f7b9</code></a> Updated the State of JS Survey Results (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12350\">#12350</a>)</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/becb6c9b74c60291b7fd964b9fe88d5ed4148a23\"><code>becb6c9</code></a> Fix non-idempotent formatting of function calls with complex type arguments (...</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/1939f92be583a2c5317cb044e3d4243e1a591c01\"><code>1939f92</code></a> Build(deps): Bump <code>@​typescript-eslint/typescript-estree</code> (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12514\">#12514</a>)</li>\n<li><a href=\"https://github.com/prettier/prettier/commit/6fece964c8ab3e3c0657476949f9c3bdf1e9887c\"><code>6fece96</code></a> Build(deps): Bump json5 from 2.2.0 to 2.2.1 (<a href=\"https://github-redirect.dependabot.com/prettier/prettier/issues/12515\">#12515</a>)</li>\n<li>Additional commits viewable in <a href=\"https://github.com/prettier/prettier/compare/2.6.0...2.6.1\">compare view</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility score](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=prettier&package-manager=npm_and_yarn&previous-version=2.6.0&new-version=2.6.1)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after your CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge and block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating it. You can achieve the same result by closing it manually\n- `@dependabot ignore this major version` will close this PR and stop Dependabot creating any more for this major version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop Dependabot creating any more for this minor version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop Dependabot creating any more for this dependency (unless you reopen the PR or upgrade to it yourself)\n\n\n</details>",
+          "timestamp": "2022-03-25T17:34:01Z",
+          "tree_id": "83bb2e789214fcc5af08b974607a947954aaa61d",
+          "url": "https://github.com/boa-dev/boa/commit/3f3f0aae6ec975221c25f884307950fe95991598"
+        },
+        "date": 1648231570839,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 321,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Parser)",
+            "value": 4568,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 14862,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Parser)",
+            "value": 17583,
+            "range": "± 94",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Parser)",
+            "value": 9871,
+            "range": "± 41",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Parser)",
+            "value": 10588,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Parser)",
+            "value": 11264,
+            "range": "± 90",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Parser)",
+            "value": 6924,
+            "range": "± 42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Parser)",
+            "value": 9562,
+            "range": "± 459",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Parser)",
+            "value": 8704,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Parser)",
+            "value": 10826,
+            "range": "± 112",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Parser)",
+            "value": 12724,
+            "range": "± 421",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Parser)",
+            "value": 14462,
+            "range": "± 221",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Parser)",
+            "value": 149962,
+            "range": "± 193",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Parser)",
+            "value": 8454,
+            "range": "± 489",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Parser)",
+            "value": 12245,
+            "range": "± 1132",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Parser)",
+            "value": 5948,
+            "range": "± 60",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Parser)",
+            "value": 11996,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Parser)",
+            "value": 15818,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Parser)",
+            "value": 15413,
+            "range": "± 298",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Parser)",
+            "value": 5724,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 31129,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 27085,
+            "range": "± 192",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Compiler)",
+            "value": 1097,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Compiler)",
+            "value": 2329,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Compiler)",
+            "value": 2629,
+            "range": "± 188",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Compiler)",
+            "value": 1640,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Compiler)",
+            "value": 1658,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Compiler)",
+            "value": 1910,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Compiler)",
+            "value": 1678,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Compiler)",
+            "value": 1662,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Compiler)",
+            "value": 1908,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Compiler)",
+            "value": 1906,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Compiler)",
+            "value": 1500,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Compiler)",
+            "value": 2157,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Compiler)",
+            "value": 4662,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Compiler)",
+            "value": 1918,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Compiler)",
+            "value": 2448,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Compiler)",
+            "value": 1529,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Compiler)",
+            "value": 1114,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Compiler)",
+            "value": 1164,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Compiler)",
+            "value": 1602,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Compiler)",
+            "value": 602,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Compiler)",
+            "value": 3987,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Compiler)",
+            "value": 3796,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4624,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 17724,
+            "range": "± 137",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 1503288,
+            "range": "± 8815",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Execution)",
+            "value": 5655,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Execution)",
+            "value": 5809,
+            "range": "± 23",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Execution)",
+            "value": 6003,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Execution)",
+            "value": 9588,
+            "range": "± 64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Execution)",
+            "value": 9584,
+            "range": "± 62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Execution)",
+            "value": 12738,
+            "range": "± 95",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 12693,
+            "range": "± 83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Execution)",
+            "value": 8719,
+            "range": "± 35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Execution)",
+            "value": 3032986,
+            "range": "± 13725",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1334628,
+            "range": "± 3751",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Execution)",
+            "value": 4843,
+            "range": "± 56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Execution)",
+            "value": 5075,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 4567,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Execution)",
+            "value": 3534,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Execution)",
+            "value": 4579,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Execution)",
+            "value": 6790,
+            "range": "± 338",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Execution)",
+            "value": 858,
+            "range": "± 39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 866492,
+            "range": "± 56313",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 787180,
+            "range": "± 47247",
             "unit": "ns/iter"
           }
         ]
