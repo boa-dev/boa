@@ -2858,6 +2858,78 @@
 <span id="2856">2856</span>
 <span id="2857">2857</span>
 <span id="2858">2858</span>
+<span id="2859">2859</span>
+<span id="2860">2860</span>
+<span id="2861">2861</span>
+<span id="2862">2862</span>
+<span id="2863">2863</span>
+<span id="2864">2864</span>
+<span id="2865">2865</span>
+<span id="2866">2866</span>
+<span id="2867">2867</span>
+<span id="2868">2868</span>
+<span id="2869">2869</span>
+<span id="2870">2870</span>
+<span id="2871">2871</span>
+<span id="2872">2872</span>
+<span id="2873">2873</span>
+<span id="2874">2874</span>
+<span id="2875">2875</span>
+<span id="2876">2876</span>
+<span id="2877">2877</span>
+<span id="2878">2878</span>
+<span id="2879">2879</span>
+<span id="2880">2880</span>
+<span id="2881">2881</span>
+<span id="2882">2882</span>
+<span id="2883">2883</span>
+<span id="2884">2884</span>
+<span id="2885">2885</span>
+<span id="2886">2886</span>
+<span id="2887">2887</span>
+<span id="2888">2888</span>
+<span id="2889">2889</span>
+<span id="2890">2890</span>
+<span id="2891">2891</span>
+<span id="2892">2892</span>
+<span id="2893">2893</span>
+<span id="2894">2894</span>
+<span id="2895">2895</span>
+<span id="2896">2896</span>
+<span id="2897">2897</span>
+<span id="2898">2898</span>
+<span id="2899">2899</span>
+<span id="2900">2900</span>
+<span id="2901">2901</span>
+<span id="2902">2902</span>
+<span id="2903">2903</span>
+<span id="2904">2904</span>
+<span id="2905">2905</span>
+<span id="2906">2906</span>
+<span id="2907">2907</span>
+<span id="2908">2908</span>
+<span id="2909">2909</span>
+<span id="2910">2910</span>
+<span id="2911">2911</span>
+<span id="2912">2912</span>
+<span id="2913">2913</span>
+<span id="2914">2914</span>
+<span id="2915">2915</span>
+<span id="2916">2916</span>
+<span id="2917">2917</span>
+<span id="2918">2918</span>
+<span id="2919">2919</span>
+<span id="2920">2920</span>
+<span id="2921">2921</span>
+<span id="2922">2922</span>
+<span id="2923">2923</span>
+<span id="2924">2924</span>
+<span id="2925">2925</span>
+<span id="2926">2926</span>
+<span id="2927">2927</span>
+<span id="2928">2928</span>
+<span id="2929">2929</span>
+<span id="2930">2930</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -2905,6 +2977,7 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::iterator</span>();
+        <span class="kw">let</span> <span class="ident">symbol_unscopables</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::unscopables</span>();
 
         <span class="kw">let</span> <span class="ident">get_species</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_species</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get [Symbol.species]&quot;</span>)
@@ -2912,6 +2985,7 @@
             .<span class="ident">build</span>();
 
         <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::values_intrinsic</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">unscopables_object</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::unscopables_intrinsic</span>(<span class="ident">context</span>);
 
         <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
             <span class="ident">context</span>,
@@ -2940,6 +3014,11 @@
             <span class="ident">symbol_iterator</span>,
             <span class="ident">values_function</span>,
             <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+        )
+        .<span class="ident">property</span>(
+            <span class="ident">symbol_unscopables</span>,
+            <span class="ident">unscopables_object</span>,
+            <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
         )
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::at</span>, <span class="string">&quot;at&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::concat</span>, <span class="string">&quot;concat&quot;</span>, <span class="number">1</span>)
@@ -5714,6 +5793,71 @@
             .<span class="ident">length</span>(<span class="number">0</span>)
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>()
+    }
+
+    <span class="doccomment">/// `Array.prototype [ @@unscopables ]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The initial value of the &#39;unscopables&#39; data property is an ordinary object</span>
+    <span class="doccomment">/// with the following boolean properties set to true:</span>
+    <span class="doccomment">/// &#39;at&#39;, &#39;copyWithin&#39;, &#39;entries&#39;, &#39;fill&#39;, &#39;find&#39;, &#39;findIndex&#39;, &#39;flat&#39;,</span>
+    <span class="doccomment">/// &#39;flatMap&#39;, &#39;includes&#39;, &#39;keys&#39;, &#39;values&#39;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">unscopables_intrinsic</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
+        <span class="comment">// 1. Let unscopableList be OrdinaryObjectCreate(null).</span>
+        <span class="kw">let</span> <span class="ident">unscopable_list</span> <span class="op">=</span> <span class="ident">JsObject::empty</span>();
+        <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;at&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;at&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;at&#39; must not fail&quot;</span>);
+        <span class="comment">// 3. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;copyWithin&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;copyWithin&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;copyWithin&#39; must not fail&quot;</span>);
+        <span class="comment">// 4. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;entries&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;entries&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;entries&#39; must not fail&quot;</span>);
+        <span class="comment">// 5. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;fill&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;fill&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;fill&#39; must not fail&quot;</span>);
+        <span class="comment">// 6. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;find&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;find&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;find&#39; must not fail&quot;</span>);
+        <span class="comment">// 7. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;findIndex&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;findIndex&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;findIndex&#39; must not fail&quot;</span>);
+        <span class="comment">// 8. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;flat&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;flat&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;flat&#39; must not fail&quot;</span>);
+        <span class="comment">// 9. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;flatMap&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;flatMap&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;flatMap&#39; must not fail&quot;</span>);
+        <span class="comment">// 10. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;includes&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;includes&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;includes&#39; must not fail&quot;</span>);
+        <span class="comment">// 11. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;keys&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;keys&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;keys&#39; must not fail&quot;</span>);
+        <span class="comment">// 12. Perform ! CreateDataPropertyOrThrow(unscopableList, &quot;values&quot;, true).</span>
+        <span class="ident">unscopable_list</span>
+            .<span class="ident">create_data_property_or_throw</span>(<span class="string">&quot;values&quot;</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;CreateDataPropertyOrThrow for &#39;values&#39; must not fail&quot;</span>);
+
+        <span class="comment">// 13. Return unscopableList.</span>
+        <span class="ident">unscopable_list</span>
     }
 }
 </code></pre></div>
