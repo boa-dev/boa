@@ -24,7 +24,7 @@ use crate::syntax::{
 };
 use boa_interner::{Interner, Sym};
 use node::Node;
-use rustc_hash::FxHashSet;
+use rustc_hash::FxHashMap;
 use std::io::Read;
 
 /// Class declaration parsing.
@@ -156,7 +156,7 @@ where
         let mut constructor = None;
         let mut elements = Vec::new();
         let mut r#static = false;
-        let mut private_elements_names = FxHashSet::default();
+        let mut private_elements_names = FxHashMap::default();
 
         // The identifier "static" is forbidden in strict mode but used as a keyword in classes.
         // Because of this, strict mode has to temporarily be disabled while parsing class field names.
@@ -469,12 +469,6 @@ where
                             let name = *name;
                             let start = token.span().start();
                             cursor.next(interner).expect("token disappeared");
-                            if !private_elements_names.insert(name) {
-                                return Err(ParseError::general(
-                                    "private identifier has already been declared",
-                                    start,
-                                ));
-                            }
                             let strict = cursor.strict_mode();
                             cursor.set_strict_mode(true);
                             let params = UniqueFormalParameters::new(false, false)
@@ -504,10 +498,40 @@ where
                             let method =
                                 MethodDefinition::Get(FunctionExpr::new(None, params, body));
                             if r#static {
+                                match private_elements_names.get(&name) {
+                                    Some(PrivateElement::StaticSetter) => {
+                                        private_elements_names
+                                            .insert(name, PrivateElement::StaticValue);
+                                    }
+                                    Some(_) => {
+                                        return Err(ParseError::general(
+                                            "private identifier has already been declared",
+                                            start,
+                                        ));
+                                    }
+                                    None => {
+                                        private_elements_names
+                                            .insert(name, PrivateElement::StaticGetter);
+                                    }
+                                }
                                 elements.push(ClassElement::PrivateStaticMethodDefinition(
                                     name, method,
                                 ));
                             } else {
+                                match private_elements_names.get(&name) {
+                                    Some(PrivateElement::Setter) => {
+                                        private_elements_names.insert(name, PrivateElement::Value);
+                                    }
+                                    Some(_) => {
+                                        return Err(ParseError::general(
+                                            "private identifier has already been declared",
+                                            start,
+                                        ));
+                                    }
+                                    None => {
+                                        private_elements_names.insert(name, PrivateElement::Getter);
+                                    }
+                                }
                                 elements.push(ClassElement::PrivateMethodDefinition(name, method));
                             }
                         }
@@ -674,12 +698,6 @@ where
                             let name = *name;
                             let start = token.span().start();
                             cursor.next(interner).expect("token disappeared");
-                            if !private_elements_names.insert(name) {
-                                return Err(ParseError::general(
-                                    "private identifier has already been declared",
-                                    start,
-                                ));
-                            }
                             let strict = cursor.strict_mode();
                             cursor.set_strict_mode(true);
                             let params = UniqueFormalParameters::new(false, false)
@@ -709,10 +727,40 @@ where
                             let method =
                                 MethodDefinition::Set(FunctionExpr::new(None, params, body));
                             if r#static {
+                                match private_elements_names.get(&name) {
+                                    Some(PrivateElement::StaticGetter) => {
+                                        private_elements_names
+                                            .insert(name, PrivateElement::StaticValue);
+                                    }
+                                    Some(_) => {
+                                        return Err(ParseError::general(
+                                            "private identifier has already been declared",
+                                            start,
+                                        ));
+                                    }
+                                    None => {
+                                        private_elements_names
+                                            .insert(name, PrivateElement::StaticSetter);
+                                    }
+                                }
                                 elements.push(ClassElement::PrivateStaticMethodDefinition(
                                     name, method,
                                 ));
                             } else {
+                                match private_elements_names.get(&name) {
+                                    Some(PrivateElement::Getter) => {
+                                        private_elements_names.insert(name, PrivateElement::Value);
+                                    }
+                                    Some(_) => {
+                                        return Err(ParseError::general(
+                                            "private identifier has already been declared",
+                                            start,
+                                        ));
+                                    }
+                                    None => {
+                                        private_elements_names.insert(name, PrivateElement::Setter);
+                                    }
+                                }
                                 elements.push(ClassElement::PrivateMethodDefinition(name, method));
                             }
                         }
@@ -797,13 +845,12 @@ where
                     let name = *name;
                     let start = token.span().start();
                     cursor.next(interner).expect("token disappeared");
-                    if !private_elements_names.insert(name) {
+                    if private_elements_names.contains_key(&name) {
                         return Err(ParseError::general(
                             "private identifier has already been declared",
                             start,
                         ));
                     }
-
                     let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
                     match token.kind() {
                         TokenKind::Punctuator(Punctuator::Assign) => {
@@ -819,11 +866,13 @@ where
                             .parse(cursor, interner)?;
                             cursor.expect_semicolon("expected semicolon", interner)?;
                             if r#static {
+                                private_elements_names.insert(name, PrivateElement::StaticValue);
                                 elements.push(ClassElement::PrivateStaticFieldDefinition(
                                     name,
                                     Some(rhs),
                                 ));
                             } else {
+                                private_elements_names.insert(name, PrivateElement::Value);
                                 elements
                                     .push(ClassElement::PrivateFieldDefinition(name, Some(rhs)));
                             }
@@ -857,6 +906,8 @@ where
                             }
                             let method =
                                 MethodDefinition::Ordinary(FunctionExpr::new(None, params, body));
+
+                            private_elements_names.insert(name, PrivateElement::Method);
                             if r#static {
                                 elements.push(ClassElement::PrivateStaticMethodDefinition(
                                     name, method,
@@ -869,9 +920,11 @@ where
                         _ => {
                             cursor.expect_semicolon("expected semicolon", interner)?;
                             if r#static {
+                                private_elements_names.insert(name, PrivateElement::StaticValue);
                                 elements
                                     .push(ClassElement::PrivateStaticFieldDefinition(name, None));
                             } else {
+                                private_elements_names.insert(name, PrivateElement::Value);
                                 elements.push(ClassElement::PrivateFieldDefinition(name, None));
                             }
                         }
@@ -1005,4 +1058,16 @@ where
 
         Ok(Class::new(self.name, super_ref, constructor, elements))
     }
+}
+
+/// Representation of private object elements.
+#[derive(Debug, PartialEq)]
+pub(in crate::syntax) enum PrivateElement {
+    Method,
+    Value,
+    Getter,
+    Setter,
+    StaticValue,
+    StaticSetter,
+    StaticGetter,
 }

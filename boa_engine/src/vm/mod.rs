@@ -941,8 +941,18 @@ impl Context {
                 let value = self.vm.pop();
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
-                    let mut b = object.borrow_mut();
-                    b.set_private_element(name, PrivateElement::Value(value));
+                    let mut object_borrow_mut = object.borrow_mut();
+                    if let Some(PrivateElement::Accessor {
+                        getter: _,
+                        setter: Some(setter),
+                    }) = object_borrow_mut.get_private_element(name)
+                    {
+                        let setter = setter.clone();
+                        drop(object_borrow_mut);
+                        setter.call(&object.clone().into(), &[value], self)?;
+                    } else {
+                        object_borrow_mut.set_private_element(name, PrivateElement::Value(value));
+                    }
                 } else {
                     return self.throw_type_error("cannot set private property on non-object");
                 }
@@ -954,8 +964,8 @@ impl Context {
                 let value = value.as_callable().expect("setter must be callable");
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
-                    let mut b = object.borrow_mut();
-                    b.set_private_element(name, PrivateElement::Setter(value.clone()));
+                    let mut object_borrow_mut = object.borrow_mut();
+                    object_borrow_mut.set_private_element_setter(name, value.clone());
                 } else {
                     return self.throw_type_error("cannot set private setter on non-object");
                 }
@@ -967,8 +977,8 @@ impl Context {
                 let value = value.as_callable().expect("getter must be callable");
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
-                    let mut b = object.borrow_mut();
-                    b.set_private_element(name, PrivateElement::Getter(value.clone()));
+                    let mut object_borrow_mut = object.borrow_mut();
+                    object_borrow_mut.set_private_element_getter(name, value.clone());
                 } else {
                     return self.throw_type_error("cannot set private getter on non-object");
                 }
@@ -978,15 +988,18 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let value = self.vm.pop();
                 if let Some(object) = value.as_object() {
-                    let b = object.borrow();
-                    if let Some(element) = b.get_private_element(name) {
+                    let object_borrow_mut = object.borrow();
+                    if let Some(element) = object_borrow_mut.get_private_element(name) {
                         match element {
                             PrivateElement::Value(value) => self.vm.push(value),
-                            PrivateElement::Getter(getter) => {
+                            PrivateElement::Accessor {
+                                getter: Some(getter),
+                                setter: _,
+                            } => {
                                 let value = getter.call(&value, &[], self)?;
                                 self.vm.push(value);
                             }
-                            PrivateElement::Setter(_) => {
+                            PrivateElement::Accessor { .. } => {
                                 return self.throw_type_error(
                                     "private property was defined without a getter",
                                 );

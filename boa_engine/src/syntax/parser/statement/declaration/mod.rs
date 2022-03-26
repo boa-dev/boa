@@ -20,8 +20,10 @@ use crate::syntax::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-pub(in crate::syntax::parser) use hoistable::class_decl::ClassTail;
 use std::io::Read;
+
+pub(in crate::syntax::parser) use hoistable::class_decl::ClassTail;
+pub(in crate::syntax) use hoistable::class_decl::PrivateElement;
 
 /// Parses a declaration.
 ///

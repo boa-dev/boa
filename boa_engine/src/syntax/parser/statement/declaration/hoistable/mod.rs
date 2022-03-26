@@ -13,7 +13,7 @@ mod async_generator_decl;
 mod function_decl;
 mod generator_decl;
 
-pub(in crate::syntax::parser) mod class_decl;
+pub(in crate::syntax) mod class_decl;
 
 use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,

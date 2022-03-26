@@ -1,14 +1,14 @@
 //! Cursor implementation for the parser.
 mod buffered_lexer;
 
-use super::ParseError;
+use super::{statement::PrivateElement, ParseError};
 use crate::syntax::{
     ast::{Position, Punctuator},
     lexer::{InputElement, Lexer, Token, TokenKind},
 };
 use boa_interner::{Interner, Sym};
 use buffered_lexer::BufferedLexer;
-use rustc_hash::{FxHashMap, FxHashSet};
+use rustc_hash::FxHashMap;
 use std::io::Read;
 
 /// The result of a peek for a semicolon.
@@ -137,14 +137,14 @@ where
     #[inline]
     pub(super) fn pop_private_environment(
         &mut self,
-        identifiers: &FxHashSet<Sym>,
+        identifiers: &FxHashMap<Sym, PrivateElement>,
     ) -> Result<(), ParseError> {
         let last = self
             .private_environments_stack
             .pop()
             .expect("private environment must exist");
         for (identifier, position) in &last {
-            if !identifiers.contains(identifier) {
+            if !identifiers.contains_key(identifier) {
                 if let Some(outer) = self.private_environments_stack.last_mut() {
                     outer.insert(*identifier, *position);
                 } else {

@@ -116,8 +116,10 @@ pub struct Object {
 #[derive(Clone, Debug, Trace, Finalize)]
 pub(crate) enum PrivateElement {
     Value(JsValue),
-    Setter(JsObject),
-    Getter(JsObject),
+    Accessor {
+        getter: Option<JsObject>,
+        setter: Option<JsObject>,
+    },
 }
 
 /// Defines the kind of an object and its internal methods
@@ -1243,6 +1245,50 @@ impl Object {
     #[inline]
     pub(crate) fn set_private_element(&mut self, name: Sym, value: PrivateElement) {
         self.private_elements.insert(name, value);
+    }
+
+    /// Set a private setter.
+    #[inline]
+    pub(crate) fn set_private_element_setter(&mut self, name: Sym, setter: JsObject) {
+        match self.private_elements.get_mut(&name) {
+            Some(PrivateElement::Accessor {
+                getter: _,
+                setter: s,
+            }) => {
+                *s = Some(setter);
+            }
+            _ => {
+                self.private_elements.insert(
+                    name,
+                    PrivateElement::Accessor {
+                        getter: None,
+                        setter: Some(setter),
+                    },
+                );
+            }
+        }
+    }
+
+    /// Set a private getter.
+    #[inline]
+    pub(crate) fn set_private_element_getter(&mut self, name: Sym, getter: JsObject) {
+        match self.private_elements.get_mut(&name) {
+            Some(PrivateElement::Accessor {
+                getter: g,
+                setter: _,
+            }) => {
+                *g = Some(getter);
+            }
+            _ => {
+                self.private_elements.insert(
+                    name,
+                    PrivateElement::Accessor {
+                        getter: Some(getter),
+                        setter: None,
+                    },
+                );
+            }
+        }
     }
 }
 

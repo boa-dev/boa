@@ -56,6 +56,7 @@ use boa_profiler::Profiler;
 use std::{collections::HashSet, io::Read, vec};
 
 pub(in crate::syntax::parser) use declaration::ClassTail;
+pub(in crate::syntax) use declaration::PrivateElement;
 
 /// Statement parsing.
 ///
