@@ -87,7 +87,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
@@ -230,6 +230,9 @@ where
 
                     cursor.next(interner)?.expect("= token vanished");
                     if let Some(target) = AssignTarget::from_node(&lhs) {
+                        if let AssignTarget::Identifier(ident) = target {
+                            self.name = Some(ident.sym());
+                        }
                         let expr = self.parse(cursor, interner)?;
                         lhs = Assign::new(target, expr).into();
                     } else {

@@ -690,7 +690,7 @@ where
                 match peek_token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
                         let init = Initializer::new(
-                            None,
+                            Some(property_name),
                             self.allow_in,
                             self.allow_yield,
                             self.allow_await,
@@ -1101,7 +1101,7 @@ where
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init = Initializer::new(
-                                None,
+                                Some(ident),
                                 self.allow_in,
                                 self.allow_yield,
                                 self.allow_await,

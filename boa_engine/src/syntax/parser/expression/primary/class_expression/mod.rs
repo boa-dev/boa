@@ -57,13 +57,8 @@ where
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let name = match token.kind() {
             TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
-                let name = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-                if let Some(name) = self.name {
-                    name
-                } else {
-                    name
-                }
+                BindingIdentifier::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?
             }
             _ => {
                 if let Some(name) = self.name {
