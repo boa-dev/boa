@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::syntax::ast::node::{
     declaration::{block_to_string, FunctionExpr},
     join_nodes,
@@ -76,7 +79,7 @@ impl Class {
         interner: &Interner,
         indent_n: usize,
     ) -> String {
-        if self.elements.is_empty() {
+        if self.elements.is_empty() && self.constructor().is_none() {
             return format!(
                 "class {}{} {{}}",
                 interner.resolve_expect(self.name),
@@ -89,7 +92,7 @@ impl Class {
         }
         let indentation = "    ".repeat(indent_n + 1);
         let mut buf = format!(
-            "class {}{} {{",
+            "class {}{} {{\n",
             interner.resolve_expect(self.name),
             if let Some(node) = &self.super_ref {
                 format!("extends {}", node.to_interned_string(interner))
@@ -108,7 +111,7 @@ impl Class {
             buf.push_str(&match element {
                 ClassElement::MethodDefinition(name, method) => {
                     format!(
-                        "{indentation}{}{}({}) {},\n",
+                        "{indentation}{}{}({}) {}\n",
                         match &method {
                             MethodDefinition::Get(_) => "get ",
                             MethodDefinition::Set(_) => "set ",
@@ -151,7 +154,7 @@ impl Class {
                 }
                 ClassElement::StaticMethodDefinition(name, method) => {
                     format!(
-                        "{indentation}static {}{}({}) {},\n",
+                        "{indentation}static {}{}({}) {}\n",
                         match &method {
                             MethodDefinition::Get(_) => "get ",
                             MethodDefinition::Set(_) => "set ",
@@ -221,7 +224,7 @@ impl Class {
                 },
                 ClassElement::PrivateMethodDefinition(name, method) => {
                     format!(
-                        "{indentation}{}#{}({}) {},\n",
+                        "{indentation}{}#{}({}) {}\n",
                         match &method {
                             MethodDefinition::Get(_) => "get ",
                             MethodDefinition::Set(_) => "set ",
@@ -264,7 +267,7 @@ impl Class {
                 }
                 ClassElement::PrivateStaticMethodDefinition(name, method) => {
                     format!(
-                        "{indentation}static {}#{}({}) {},\n",
+                        "{indentation}static {}#{}({}) {}\n",
                         match &method {
                             MethodDefinition::Get(_) => "get ",
                             MethodDefinition::Set(_) => "set ",
@@ -337,6 +340,7 @@ impl Class {
                 }
             });
         }
+        buf.push('}');
         buf
     }
 }
