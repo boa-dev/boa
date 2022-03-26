@@ -1316,6 +1316,19 @@ impl Opcode {
             Opcode::GeneratorNext => "INST - GeneratorNext",
             Opcode::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
             Opcode::Nop => "INST - Nop",
+            Opcode::PushClassPrototype => "INST - PushClassPrototype",
+            Opcode::DefineClassMethodByName => "INST - DefineClassMethodByName",
+            Opcode::DefineClassMethodByValue => "INST - DefineClassMethodByValue",
+            Opcode::DefineClassGetterByName => "INST - DefineClassGetterByName",
+            Opcode::DefineClassGetterByValue => "INST - DefineClassGetterByValue",
+            Opcode::DefineClassSetterByName => "INST - DefineClassSetterByName",
+            Opcode::DefineClassSetterByValue => "INST - DefineClassSetterByValue",
+            Opcode::SetPrivateValue => "INST - SetPrivateValue",
+            Opcode::SetPrivateSetter => "INST - SetPrivateSetter",
+            Opcode::SetPrivateGetter => "INST - SetPrivateGetter",
+            Opcode::GetPrivateField => "INST - GetPrivateField",
+            Opcode::PushClassComputedFieldName => "INST - PushClassComputedFieldName",
+            Opcode::ToPropertyKey => "INST - ToPropertyKey",
         }
     }
 }
