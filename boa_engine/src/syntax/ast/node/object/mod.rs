@@ -358,17 +358,9 @@ impl PropertyName {
 
     pub(in crate::syntax) fn prop_name(&self) -> Option<Sym> {
         match self {
-            PropertyName::Literal(sym) => Some(*sym),
-            PropertyName::Computed(node) => match node {
-                Node::Const(c) => {
-                    if let Const::String(sym) = c {
-                        Some(*sym)
-                    } else {
-                        None
-                    }
-                }
-                _ => None,
-            },
+            PropertyName::Literal(sym)
+            | PropertyName::Computed(Node::Const(Const::String(sym))) => Some(*sym),
+            PropertyName::Computed(_) => None,
         }
     }
 }
