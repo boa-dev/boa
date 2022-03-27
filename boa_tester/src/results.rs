@@ -50,11 +50,44 @@ impl From<ResultInfo> for ReducedResultInfo {
     }
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+struct FeaturesInfo {
+    #[serde(rename = "c")]
+    commit: Box<str>,
+    #[serde(rename = "u")]
+    test262_commit: Box<str>,
+    #[serde(rename = "n")]
+    suite_name: Box<str>,
+    #[serde(rename = "f")]
+    features: Vec<String>,
+}
+
+fn remove_duplicates(features_vec: &Vec<String>) -> Vec<String> {
+    let mut result = features_vec.clone();
+    result.sort();
+    result.dedup();
+    result
+}
+
+impl From<ResultInfo> for FeaturesInfo {
+    fn from(info: ResultInfo) -> Self {
+        Self {
+            commit: info.commit,
+            test262_commit: info.test262_commit,
+            suite_name: info.results.name,
+            features: remove_duplicates(&info.results.features),
+        }
+    }
+}
+
 /// File name of the "latest results" JSON file.
 const LATEST_FILE_NAME: &str = "latest.json";
 
 /// File name of the "all results" JSON file.
 const RESULTS_FILE_NAME: &str = "results.json";
+
+/// File name of the "features" JSON file.
+const FEATURES_FILE_NAME: &str = "features.json";
 
 /// Writes the results of running the test suite to the given JSON output file.
 ///
@@ -108,13 +141,32 @@ pub(crate) fn write_json(
             Vec::new()
         };
 
-        all_results.push(new_results.into());
+        all_results.push(new_results.clone().into());
 
         let output = BufWriter::new(fs::File::create(&all_path)?);
         serde_json::to_writer(output, &all_results)?;
 
         if verbose != 0 {
             println!("Results written correctly");
+        }
+
+        // Write the full list of features, existing features go first.
+
+        let features_path = path.join(FEATURES_FILE_NAME);
+
+        let mut all_features: Vec<FeaturesInfo> = if features_path.exists() {
+            serde_json::from_reader(BufReader::new(fs::File::open(&features_path)?))?
+        } else {
+            Vec::new()
+        };
+
+        all_features.push(new_results.into());
+
+        let features_output = BufWriter::new(fs::File::create(&features_path)?);
+        serde_json::to_writer(features_output, &all_features)?;
+
+        if verbose != 0 {
+            println!("Features written correctly");
         }
     }
 

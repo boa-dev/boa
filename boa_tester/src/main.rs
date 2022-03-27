@@ -357,6 +357,9 @@ struct SuiteResult {
     #[serde(rename = "t")]
     #[serde(skip_serializing_if = "Vec::is_empty", default)]
     tests: Vec<TestResult>,
+    #[serde(rename = "f")]
+    #[serde(skip_serializing_if = "Vec::is_empty", default)]
+    features: Vec<String>,
 }
 
 /// Outcome of a test.
