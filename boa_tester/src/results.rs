@@ -62,8 +62,8 @@ struct FeaturesInfo {
     features: Vec<String>,
 }
 
-fn remove_duplicates(features_vec: &Vec<String>) -> Vec<String> {
-    let mut result = features_vec.clone();
+fn remove_duplicates(features_vec: &[String]) -> Vec<String> {
+    let mut result = features_vec.to_vec();
     result.sort();
     result.dedup();
     result

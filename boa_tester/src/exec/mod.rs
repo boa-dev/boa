@@ -74,7 +74,7 @@ impl TestSuite {
             passed += suite.passed;
             ignored += suite.ignored;
             panic += suite.panic;
-            features.append(&mut suite.features.clone())
+            features.append(&mut suite.features.clone());
         }
 
         if verbose != 0 {
