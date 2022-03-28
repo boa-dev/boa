@@ -459,6 +459,58 @@
 <span id="457">457</span>
 <span id="458">458</span>
 <span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SuiteResult</span>;
 <span class="kw">use</span> <span class="ident">git2::Repository</span>;
 <span class="kw">use</span> <span class="ident">hex::ToHex</span>;
@@ -511,11 +563,44 @@
     }
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>, <span class="ident">Serialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">FeaturesInfo</span> {
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;c&quot;</span>)]</span>
+    <span class="ident">commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;u&quot;</span>)]</span>
+    <span class="ident">test262_commit</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;n&quot;</span>)]</span>
+    <span class="ident">suite_name</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;f&quot;</span>)]</span>
+    <span class="ident">features</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">fn</span> <span class="ident">remove_duplicates</span>(<span class="ident">features_vec</span>: <span class="kw-2">&amp;</span>[<span class="ident">String</span>]) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">features_vec</span>.<span class="ident">to_vec</span>();
+    <span class="ident">result</span>.<span class="ident">sort</span>();
+    <span class="ident">result</span>.<span class="ident">dedup</span>();
+    <span class="ident">result</span>
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ResultInfo</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">FeaturesInfo</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">info</span>: <span class="ident">ResultInfo</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">commit</span>: <span class="ident">info</span>.<span class="ident">commit</span>,
+            <span class="ident">test262_commit</span>: <span class="ident">info</span>.<span class="ident">test262_commit</span>,
+            <span class="ident">suite_name</span>: <span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">name</span>,
+            <span class="ident">features</span>: <span class="ident">remove_duplicates</span>(<span class="kw-2">&amp;</span><span class="ident">info</span>.<span class="ident">results</span>.<span class="ident">features</span>),
+        }
+    }
+}
+
 <span class="doccomment">/// File name of the &quot;latest results&quot; JSON file.</span>
 <span class="kw">const</span> <span class="ident">LATEST_FILE_NAME</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;latest.json&quot;</span>;
 
 <span class="doccomment">/// File name of the &quot;all results&quot; JSON file.</span>
 <span class="kw">const</span> <span class="ident">RESULTS_FILE_NAME</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;results.json&quot;</span>;
+
+<span class="doccomment">/// File name of the &quot;features&quot; JSON file.</span>
+<span class="kw">const</span> <span class="ident">FEATURES_FILE_NAME</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;features.json&quot;</span>;
 
 <span class="doccomment">/// Writes the results of running the test suite to the given JSON output file.</span>
 <span class="doccomment">///</span>
@@ -569,13 +654,32 @@
             <span class="ident">Vec::new</span>()
         };
 
-        <span class="ident">all_results</span>.<span class="ident">push</span>(<span class="ident">new_results</span>.<span class="ident">into</span>());
+        <span class="ident">all_results</span>.<span class="ident">push</span>(<span class="ident">new_results</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
 
         <span class="kw">let</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">fs::File::create</span>(<span class="kw-2">&amp;</span><span class="ident">all_path</span>)<span class="question-mark">?</span>);
         <span class="ident">serde_json::to_writer</span>(<span class="ident">output</span>, <span class="kw-2">&amp;</span><span class="ident">all_results</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println!</span>(<span class="string">&quot;Results written correctly&quot;</span>);
+        }
+
+        <span class="comment">// Write the full list of features, existing features go first.</span>
+
+        <span class="kw">let</span> <span class="ident">features_path</span> <span class="op">=</span> <span class="ident">path</span>.<span class="ident">join</span>(<span class="ident">FEATURES_FILE_NAME</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">all_features</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FeaturesInfo</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">features_path</span>.<span class="ident">exists</span>() {
+            <span class="ident">serde_json::from_reader</span>(<span class="ident">BufReader::new</span>(<span class="ident">fs::File::open</span>(<span class="kw-2">&amp;</span><span class="ident">features_path</span>)<span class="question-mark">?</span>))<span class="question-mark">?</span>
+        } <span class="kw">else</span> {
+            <span class="ident">Vec::new</span>()
+        };
+
+        <span class="ident">all_features</span>.<span class="ident">push</span>(<span class="ident">new_results</span>.<span class="ident">into</span>());
+
+        <span class="kw">let</span> <span class="ident">features_output</span> <span class="op">=</span> <span class="ident">BufWriter::new</span>(<span class="ident">fs::File::create</span>(<span class="kw-2">&amp;</span><span class="ident">features_path</span>)<span class="question-mark">?</span>);
+        <span class="ident">serde_json::to_writer</span>(<span class="ident">features_output</span>, <span class="kw-2">&amp;</span><span class="ident">all_features</span>)<span class="question-mark">?</span>;
+
+        <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+            <span class="macro">println!</span>(<span class="string">&quot;Features written correctly&quot;</span>);
         }
     }
 

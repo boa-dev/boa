@@ -348,6 +348,15 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.</span>
 
 <span class="kw">mod</span> <span class="ident">js262</span>;
@@ -393,6 +402,13 @@
                 .<span class="ident">collect</span>()
         };
 
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">features</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">for</span> <span class="ident">test_iter</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">tests</span>.<span class="ident">iter</span>() {
+            <span class="kw">for</span> <span class="ident">feature_iter</span> <span class="kw">in</span> <span class="ident">test_iter</span>.<span class="ident">features</span>.<span class="ident">iter</span>() {
+                <span class="ident">features</span>.<span class="ident">push</span>(<span class="ident">feature_iter</span>.<span class="ident">to_string</span>());
+            }
+        }
+
         <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="macro">println!</span>();
         }
@@ -417,6 +433,7 @@
             <span class="ident">passed</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suite</span>.<span class="ident">passed</span>;
             <span class="ident">ignored</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suite</span>.<span class="ident">ignored</span>;
             <span class="ident">panic</span> <span class="op">+</span><span class="op">=</span> <span class="ident">suite</span>.<span class="ident">panic</span>;
+            <span class="ident">features</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">suite</span>.<span class="ident">features</span>.<span class="ident">clone</span>());
         }
 
         <span class="kw">if</span> <span class="ident">verbose</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
@@ -445,6 +462,7 @@
             <span class="ident">panic</span>,
             <span class="ident">suites</span>,
             <span class="ident">tests</span>,
+            <span class="ident">features</span>,
         }
     }
 }
