@@ -43,6 +43,13 @@ impl TestSuite {
                 .collect()
         };
 
+        let mut features = Vec::new();
+        for test_iter in self.tests.iter() {
+            for feature_iter in test_iter.features.iter() {
+                features.push(feature_iter.to_string());
+            }
+        }
+
         if verbose != 0 {
             println!();
         }
@@ -67,6 +74,7 @@ impl TestSuite {
             passed += suite.passed;
             ignored += suite.ignored;
             panic += suite.panic;
+            features.append(&mut suite.features.clone());
         }
 
         if verbose != 0 {
@@ -95,6 +103,7 @@ impl TestSuite {
             panic,
             suites,
             tests,
+            features,
         }
     }
 }
