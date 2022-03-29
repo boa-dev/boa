@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.119&#x2F;src&#x2F;unix&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.121&#x2F;src&#x2F;unix&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../libc/index.html"><img class="rust-logo" src="../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">   1</span>
 <span id="2">   2</span>
@@ -1511,6 +1511,19 @@
 <span id="1509">1509</span>
 <span id="1510">1510</span>
 <span id="1511">1511</span>
+<span id="1512">1512</span>
+<span id="1513">1513</span>
+<span id="1514">1514</span>
+<span id="1515">1515</span>
+<span id="1516">1516</span>
+<span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
+<span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions found commonly among almost all Unix derivatives</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More functions and definitions can be found in the more specific modules</span>
@@ -1536,12 +1549,20 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ssize_t</span> <span class="op">=</span> <span class="ident">isize</span>;
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">pid_t</span> <span class="op">=</span> <span class="ident">i32</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uid_t</span> <span class="op">=</span> <span class="ident">u32</span>;
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gid_t</span> <span class="op">=</span> <span class="ident">u32</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">in_addr_t</span> <span class="op">=</span> <span class="ident">u32</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">in_port_t</span> <span class="op">=</span> <span class="ident">u16</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">sighandler_t</span> <span class="op">=</span> <span class="ident">::size_t</span>;
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">cc_t</span> <span class="op">=</span> <span class="ident">::c_uchar</span>;
+
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;espidf&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;horizon&quot;</span>))]</span> {
+        <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uid_t</span> <span class="op">=</span> <span class="ident">::c_ushort</span>;
+        <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gid_t</span> <span class="op">=</span> <span class="ident">::c_ushort</span>;
+    } <span class="kw">else</span> {
+        <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">uid_t</span> <span class="op">=</span> <span class="ident">u32</span>;
+        <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">gid_t</span> <span class="op">=</span> <span class="ident">u32</span>;
+    }
+}
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;extra_traits&quot;</span>, <span class="ident">derive</span>(<span class="ident">Debug</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DIR</span> {}
@@ -1861,6 +1882,7 @@
         <span class="kw">extern</span> {}
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
+                        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;watchos&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>))]</span> {
         <span class="attribute">#[<span class="ident">link</span>(<span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;c&quot;</span>)]</span>
@@ -2530,7 +2552,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getrusage</span>(<span class="ident">resource</span>: <span class="ident">::c_int</span>, <span class="ident">usage</span>: <span class="kw-2">*mut</span> <span class="ident">rusage</span>) -&gt; <span class="ident">::c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>),
+        <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;watchos&quot;</span>),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;realpath$DARWIN_EXTSN&quot;</span>
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">realpath</span>(<span class="ident">pathname</span>: <span class="kw-2">*const</span> <span class="ident">::c_char</span>, <span class="ident">resolved</span>: <span class="kw-2">*mut</span> <span class="ident">::c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">::c_char</span>;
@@ -2696,7 +2718,10 @@
         ),
         <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__res_init&quot;</span>
     )]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>), <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;res_9_init&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;watchos&quot;</span>),
+        <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;res_9_init&quot;</span>
+    )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">res_init</span>() -&gt; <span class="ident">::c_int</span>;
 
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;netbsd&quot;</span>, <span class="ident">link_name</span> <span class="op">=</span> <span class="string">&quot;__gmtime_r50&quot;</span>)]</span>
@@ -2969,6 +2994,7 @@
         <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::linux_like</span>::<span class="kw-2">*</span>;
     } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;macos&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;ios&quot;</span>,
+                        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;watchos&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;freebsd&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;dragonfly&quot;</span>,
                         <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;openbsd&quot;</span>,

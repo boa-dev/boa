@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.119&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;arch&#x2F;generic&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../../storage.js"></script><script src="../../../../../../../crates.js"></script><script defer src="../../../../../../../main.js"></script><script defer src="../../../../../../../source-script.js"></script><script defer src="../../../../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `&#x2F;home&#x2F;runner&#x2F;.cargo&#x2F;registry&#x2F;src&#x2F;github.com-1ecc6299db9ec823&#x2F;libc-0.2.121&#x2F;src&#x2F;unix&#x2F;linux_like&#x2F;linux&#x2F;arch&#x2F;generic&#x2F;mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../../../../storage.js"></script><script src="../../../../../../../crates.js"></script><script defer src="../../../../../../../main.js"></script><script defer src="../../../../../../../source-script.js"></script><script defer src="../../../../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../../../../../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../../../../rust-logo.png" alt="logo"></div>
         </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../../../../../libc/index.html"><img class="rust-logo" src="../../../../../../../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../../../../../../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../../../../../../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../../../../../../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">  1</span>
 <span id="2">  2</span>
@@ -234,6 +234,50 @@
 <span id="232">232</span>
 <span id="233">233</span>
 <span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
 </pre><pre class="rust"><code><span class="macro">s!</span> {
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">termios2</span> {
         <span class="kw">pub</span> <span class="ident">c_iflag</span>: <span class="ident">::tcflag_t</span>,
@@ -350,103 +394,92 @@
 
 <span class="comment">// Ioctl Constants</span>
 
-<span class="macro">cfg_if!</span> {
-    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
-                     <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
-                     <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-                     <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc64&quot;</span>,
-                     <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc&quot;</span>,
-                     <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>)))]</span> {
-
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5401</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5402</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSW</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5403</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSF</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5404</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETA</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5405</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETA</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5406</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETAW</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5407</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETAF</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5408</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSBRK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5409</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCXONC</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540A</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCFLSH</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540B</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCEXCL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540C</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCNXCL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540D</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSCTTY</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540E</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPGRP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540F</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSPGRP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5410</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCOUTQ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5411</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSTI</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5412</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGWINSZ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5413</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSWINSZ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5414</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMGET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5415</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMBIS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5416</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMBIC</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5417</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMSET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5418</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSOFTCAR</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5419</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSSOFTCAR</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541A</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONREAD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541B</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCINQ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="ident">FIONREAD</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCLINUX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541C</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCCONS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541D</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSERIAL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541E</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSSERIAL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541F</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCPKT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5420</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONBIO</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5421</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCNOTTY</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5422</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSETD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5423</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGETD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5424</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSBRKP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5425</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSBRK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5427</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCCBRK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5428</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSID</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5429</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETS2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x802c542a</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETS2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x402c542b</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSW2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x402c542c</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSF2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x402c542d</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGRS485</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x542E</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSRS485</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x542F</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPTN</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045430</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSPTLCK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x40045431</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGDEV</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045432</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5432</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5433</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETXF</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5434</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETXW</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5435</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSIG</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x40045436</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCVHANGUP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5437</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPKT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045438</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPTLCK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045439</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGEXCL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045440</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPTPEER</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5441</span>;
-<span class="comment">//        pub const TIOCGISO7816: ::Ioctl = 0x80285442;</span>
-<span class="comment">//        pub const TIOCSISO7816: ::Ioctl = 0xc0285443;</span>
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONCLEX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5450</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIOCLEX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5451</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIOASYNC</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5452</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERCONFIG</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5453</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGWILD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5454</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERSWILD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5455</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGLCKTRMIOS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5456</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSLCKTRMIOS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5457</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGSTRUCT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5458</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGETLSR</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5459</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGETMULTI</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545A</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERSETMULTI</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545B</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMIWAIT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545C</span>;
-        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGICOUNT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545D</span>;
-    }
-}
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5401</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5402</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSW</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5403</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSF</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5404</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETA</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5405</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETA</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5406</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETAW</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5407</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETAF</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5408</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSBRK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5409</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCXONC</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540A</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCFLSH</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540B</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCEXCL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540C</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCNXCL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540D</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSCTTY</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540E</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPGRP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x540F</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSPGRP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5410</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCOUTQ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5411</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSTI</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5412</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGWINSZ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5413</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSWINSZ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5414</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMGET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5415</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMBIS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5416</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMBIC</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5417</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMSET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5418</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSOFTCAR</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5419</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSSOFTCAR</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541A</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONREAD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541B</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCINQ</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="ident">FIONREAD</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCLINUX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541C</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCCONS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541D</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSERIAL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541E</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSSERIAL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x541F</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCPKT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5420</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONBIO</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5421</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCNOTTY</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5422</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSETD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5423</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGETD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5424</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSBRKP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5425</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSBRK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5427</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCCBRK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5428</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGSID</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5429</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETS2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x802c542a</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETS2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x402c542b</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSW2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x402c542c</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETSF2</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x402c542d</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGRS485</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x542E</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSRS485</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x542F</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPTN</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045430</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSPTLCK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x40045431</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGDEV</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045432</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCGETX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5432</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5433</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETXF</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5434</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TCSETXW</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5435</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSIG</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x40045436</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCVHANGUP</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5437</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPKT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045438</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPTLCK</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045439</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGEXCL</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x80045440</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGPTPEER</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5441</span>;
+<span class="comment">// pub const TIOCGISO7816: ::Ioctl = 0x80285442;</span>
+<span class="comment">// pub const TIOCSISO7816: ::Ioctl = 0xc0285443;</span>
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIONCLEX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5450</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIOCLEX</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5451</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIOASYNC</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5452</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERCONFIG</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5453</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGWILD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5454</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERSWILD</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5455</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGLCKTRMIOS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5456</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSLCKTRMIOS</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5457</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGSTRUCT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5458</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGETLSR</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5459</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERGETMULTI</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545A</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCSERSETMULTI</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545B</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCMIWAIT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545C</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">TIOCGICOUNT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545D</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BLKIOMIN</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x1278</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BLKIOOPT</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x1279</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BLKSSZGET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x1268</span>;
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BLKPBSZGET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x127B</span>;
 
 <span class="macro">cfg_if!</span> {
     <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;arm&quot;</span>,
                  <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;s390x&quot;</span>))]</span> {
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIOQSIZE</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x545E</span>;
-    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips&quot;</span>,
-                            <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;mips64&quot;</span>,
-                            <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc&quot;</span>,
-                            <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;powerpc64&quot;</span>,
-                            <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc&quot;</span>,
-                            <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;sparc64&quot;</span>)))]</span> {
+    } <span class="kw">else</span> {
         <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FIOQSIZE</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x5460</span>;
     }
 }
@@ -466,8 +499,63 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BOTHER</span>: <span class="ident">::speed_t</span> <span class="op">=</span> <span class="number">0o010000</span>;
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IBSHIFT</span>: <span class="ident">::tcflag_t</span> <span class="op">=</span> <span class="number">16</span>;
 
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BLKSSZGET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x1268</span>;
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BLKPBSZGET</span>: <span class="ident">::Ioctl</span> <span class="op">=</span> <span class="number">0x127B</span>;
+<span class="comment">// RLIMIT Constants</span>
+
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>,
+                 <span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>))]</span> {
+
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_CPU</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_FSIZE</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_DATA</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">2</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_STACK</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">3</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_CORE</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">4</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_RSS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">5</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NPROC</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">6</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NOFILE</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">7</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_MEMLOCK</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">8</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_AS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">9</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_LOCKS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">10</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_SIGPENDING</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">11</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_MSGQUEUE</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">12</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NICE</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">13</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_RTPRIO</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">14</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_RTTIME</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">15</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NLIMITS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="ident">RLIM_NLIMITS</span>;
+
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;musl&quot;</span>)]</span> {
+
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_CPU</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_FSIZE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">1</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_DATA</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">2</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_STACK</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">3</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_CORE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">4</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_RSS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">5</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NPROC</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">6</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NOFILE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">7</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_MEMLOCK</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">8</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_AS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">9</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_LOCKS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">10</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_SIGPENDING</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">11</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_MSGQUEUE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">12</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NICE</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">13</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_RTPRIO</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">14</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_RTTIME</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">15</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIM_NLIMITS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="number">15</span>;
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIMIT_NLIMITS</span>: <span class="ident">::c_int</span> <span class="op">=</span> <span class="ident">RLIM_NLIMITS</span>;
+    }
+}
+
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;gnu&quot;</span>)]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIM_NLIMITS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">16</span>;
+    }
+    <span class="kw">else</span> <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_env</span> <span class="op">=</span> <span class="string">&quot;uclibc&quot;</span>)]</span> {
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIM_NLIMITS</span>: <span class="ident">::__rlimit_resource_t</span> <span class="op">=</span> <span class="number">15</span>;
+    }
+}
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RLIM_INFINITY</span>: <span class="ident">::rlim_t</span> <span class="op">=</span> <span class="op">!</span><span class="number">0</span>;
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="libc" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
 </body></html>

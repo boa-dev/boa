@@ -408,7 +408,7 @@ but the addition assumes that it is the only leap second happened.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.clone_from" class="method trait-impl has-srclink"><div class="rightside"><span class="since" title="Stable since Rust version 1.0.0">1.0.0</span><a class="srclink" href="https://doc.rust-lang.org/1.59.0/src/core/clone.rs.html#130" title="goto source code">[src]</a></div><a href="#method.clone_from" class="anchor"></a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.59.0/core/clone/trait.Clone.html#method.clone_from" class="fnname">clone_from</a>(&amp;mut self, source: <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.reference.html">&amp;</a>Self)</h4></div></summary><div class='docblock'><p>Performs copy-assignment from <code>source</code>. <a href="https://doc.rust-lang.org/1.59.0/core/clone/trait.Clone.html#method.clone_from">Read more</a></p>
 </div></details></div></details><details class="rustdoc-toggle implementors-toggle" open><summary><div id="impl-Datelike" class="impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#702-1018" title="goto source code">[src]</a></div><a href="#impl-Datelike" class="anchor"></a><h3 class="code-header in-band">impl <a class="trait" href="../trait.Datelike.html" title="trait chrono::Datelike">Datelike</a> for <a class="struct" href="struct.NaiveDateTime.html" title="struct chrono::naive::NaiveDateTime">NaiveDateTime</a></h3></div></summary><div class="impl-items"><details class="rustdoc-toggle method-toggle" open><summary><div id="method.year" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#716-718" title="goto source code">[src]</a></div><a href="#method.year" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.year" class="fnname">year</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.i32.html">i32</a></h4></div></summary><div class="docblock"><p>Returns the year number in the <a href="./index.html#calendar-date">calendar date</a>.</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.year"><code>NaiveDate::year</code></a> method.</p>
-<h5 id="example-26" class="section-header"><a href="#example-26">Example</a></h5>
+<h5 id="example-18" class="section-header"><a href="#example-18">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -416,7 +416,7 @@ but the addition assumes that it is the only leap second happened.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.month" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#735-737" title="goto source code">[src]</a></div><a href="#method.month" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.month" class="fnname">month</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the month number starting from 1.</p>
 <p>The return value ranges from 1 to 12.</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.month"><code>NaiveDate::month</code></a> method.</p>
-<h5 id="example-27" class="section-header"><a href="#example-27">Example</a></h5>
+<h5 id="example-19" class="section-header"><a href="#example-19">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -424,7 +424,7 @@ but the addition assumes that it is the only leap second happened.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.month0" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#754-756" title="goto source code">[src]</a></div><a href="#method.month0" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.month0" class="fnname">month0</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the month number starting from 0.</p>
 <p>The return value ranges from 0 to 11.</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.month0"><code>NaiveDate::month0</code></a> method.</p>
-<h5 id="example-28" class="section-header"><a href="#example-28">Example</a></h5>
+<h5 id="example-20" class="section-header"><a href="#example-20">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -432,7 +432,7 @@ but the addition assumes that it is the only leap second happened.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.day" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#773-775" title="goto source code">[src]</a></div><a href="#method.day" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.day" class="fnname">day</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the day of month starting from 1.</p>
 <p>The return value ranges from 1 to 31. (The last day of month differs by months.)</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.day"><code>NaiveDate::day</code></a> method.</p>
-<h5 id="example-29" class="section-header"><a href="#example-29">Example</a></h5>
+<h5 id="example-21" class="section-header"><a href="#example-21">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -440,7 +440,7 @@ but the addition assumes that it is the only leap second happened.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.day0" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#792-794" title="goto source code">[src]</a></div><a href="#method.day0" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.day0" class="fnname">day0</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the day of month starting from 0.</p>
 <p>The return value ranges from 0 to 30. (The last day of month differs by months.)</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.day0"><code>NaiveDate::day0</code></a> method.</p>
-<h5 id="example-30" class="section-header"><a href="#example-30">Example</a></h5>
+<h5 id="example-22" class="section-header"><a href="#example-22">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -448,7 +448,7 @@ but the addition assumes that it is the only leap second happened.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.ordinal" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#811-813" title="goto source code">[src]</a></div><a href="#method.ordinal" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.ordinal" class="fnname">ordinal</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the day of year starting from 1.</p>
 <p>The return value ranges from 1 to 366. (The last day of year differs by years.)</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.ordinal"><code>NaiveDate::ordinal</code></a> method.</p>
-<h5 id="example-31" class="section-header"><a href="#example-31">Example</a></h5>
+<h5 id="example-23" class="section-header"><a href="#example-23">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -456,14 +456,14 @@ but the addition assumes that it is the only leap second happened.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.ordinal0" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#830-832" title="goto source code">[src]</a></div><a href="#method.ordinal0" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.ordinal0" class="fnname">ordinal0</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the day of year starting from 0.</p>
 <p>The return value ranges from 0 to 365. (The last day of year differs by years.)</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.ordinal0"><code>NaiveDate::ordinal0</code></a> method.</p>
-<h5 id="example-32" class="section-header"><a href="#example-32">Example</a></h5>
+<h5 id="example-24" class="section-header"><a href="#example-24">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
 <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">ordinal0</span>(), <span class="number">267</span>);</code></pre></div>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.weekday" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#847-849" title="goto source code">[src]</a></div><a href="#method.weekday" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Datelike.html#tymethod.weekday" class="fnname">weekday</a>(&amp;self) -&gt; <a class="enum" href="../enum.Weekday.html" title="enum chrono::Weekday">Weekday</a></h4></div></summary><div class="docblock"><p>Returns the day of week.</p>
 <p>See also the <a href="./struct.NaiveDate.html#method.weekday"><code>NaiveDate::weekday</code></a> method.</p>
-<h5 id="example-33" class="section-header"><a href="#example-33">Example</a></h5>
+<h5 id="example-25" class="section-header"><a href="#example-25">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>, <span class="ident">Weekday</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -472,7 +472,7 @@ but the addition assumes that it is the only leap second happened.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveDate.html#method.with_year"><code>NaiveDate::with_year</code></a> method.</p>
-<h5 id="example-34" class="section-header"><a href="#example-34">Example</a></h5>
+<h5 id="example-26" class="section-header"><a href="#example-26">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">25</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -482,7 +482,7 @@ but the addition assumes that it is the only leap second happened.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveDate.html#method.with_month"><code>NaiveDate::with_month</code></a> method.</p>
-<h5 id="example-35" class="section-header"><a href="#example-35">Example</a></h5>
+<h5 id="example-27" class="section-header"><a href="#example-27">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">30</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -493,7 +493,7 @@ but the addition assumes that it is the only leap second happened.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveDate.html#method.with_month0"><code>NaiveDate::with_month0</code></a> method.</p>
-<h5 id="example-36" class="section-header"><a href="#example-36">Example</a></h5>
+<h5 id="example-28" class="section-header"><a href="#example-28">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">30</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -504,7 +504,7 @@ but the addition assumes that it is the only leap second happened.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveDate.html#method.with_day"><code>NaiveDate::with_day</code></a> method.</p>
-<h5 id="example-37" class="section-header"><a href="#example-37">Example</a></h5>
+<h5 id="example-29" class="section-header"><a href="#example-29">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -514,7 +514,7 @@ but the addition assumes that it is the only leap second happened.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveDate.html#method.with_day0"><code>NaiveDate::with_day0</code></a> method.</p>
-<h5 id="example-38" class="section-header"><a href="#example-38">Example</a></h5>
+<h5 id="example-30" class="section-header"><a href="#example-30">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -524,7 +524,7 @@ but the addition assumes that it is the only leap second happened.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveDate.html#method.with_ordinal"><code>NaiveDate::with_ordinal</code></a> method.</p>
-<h5 id="example-39" class="section-header"><a href="#example-39">Example</a></h5>
+<h5 id="example-31" class="section-header"><a href="#example-31">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -541,7 +541,7 @@ but the addition assumes that it is the only leap second happened.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveDate.html#method.with_ordinal0"><code>NaiveDate::with_ordinal0</code></a> method.</p>
-<h5 id="example-40" class="section-header"><a href="#example-40">Example</a></h5>
+<h5 id="example-32" class="section-header"><a href="#example-32">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Datelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>);
@@ -700,21 +700,21 @@ there were no other leap seconds happened.</p>
 </div></details></div></details><details class="rustdoc-toggle implementors-toggle" open><summary><div id="impl-SubAssign%3CDuration%3E" class="impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#1329-1334" title="goto source code">[src]</a></div><a href="#impl-SubAssign%3CDuration%3E" class="anchor"></a><h3 class="code-header in-band">impl <a class="trait" href="https://doc.rust-lang.org/1.59.0/core/ops/arith/trait.SubAssign.html" title="trait core::ops::arith::SubAssign">SubAssign</a>&lt;<a class="struct" href="../struct.Duration.html" title="struct chrono::Duration">Duration</a>&gt; for <a class="struct" href="struct.NaiveDateTime.html" title="struct chrono::naive::NaiveDateTime">NaiveDateTime</a></h3></div></summary><div class="impl-items"><details class="rustdoc-toggle method-toggle" open><summary><div id="method.sub_assign" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#1331-1333" title="goto source code">[src]</a></div><a href="#method.sub_assign" class="anchor"></a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.59.0/core/ops/arith/trait.SubAssign.html#tymethod.sub_assign" class="fnname">sub_assign</a>(&amp;mut self, rhs: <a class="struct" href="../struct.Duration.html" title="struct chrono::Duration">OldDuration</a>)</h4></div></summary><div class='docblock'><p>Performs the <code>-=</code> operation. <a href="https://doc.rust-lang.org/1.59.0/core/ops/arith/trait.SubAssign.html#tymethod.sub_assign">Read more</a></p>
 </div></details></div></details><details class="rustdoc-toggle implementors-toggle" open><summary><div id="impl-Timelike" class="impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#1020-1186" title="goto source code">[src]</a></div><a href="#impl-Timelike" class="anchor"></a><h3 class="code-header in-band">impl <a class="trait" href="../trait.Timelike.html" title="trait chrono::Timelike">Timelike</a> for <a class="struct" href="struct.NaiveDateTime.html" title="struct chrono::naive::NaiveDateTime">NaiveDateTime</a></h3></div></summary><div class="impl-items"><details class="rustdoc-toggle method-toggle" open><summary><div id="method.hour" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#1034-1036" title="goto source code">[src]</a></div><a href="#method.hour" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Timelike.html#tymethod.hour" class="fnname">hour</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the hour number from 0 to 23.</p>
 <p>See also the <a href="./struct.NaiveTime.html#method.hour"><code>NaiveTime::hour</code></a> method.</p>
-<h5 id="example-18" class="section-header"><a href="#example-18">Example</a></h5>
+<h5 id="example-33" class="section-header"><a href="#example-33">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
 <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">hour</span>(), <span class="number">12</span>);</code></pre></div>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.minute" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#1051-1053" title="goto source code">[src]</a></div><a href="#method.minute" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Timelike.html#tymethod.minute" class="fnname">minute</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the minute number from 0 to 59.</p>
 <p>See also the <a href="./struct.NaiveTime.html#method.minute"><code>NaiveTime::minute</code></a> method.</p>
-<h5 id="example-19" class="section-header"><a href="#example-19">Example</a></h5>
+<h5 id="example-34" class="section-header"><a href="#example-34">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
 <span class="macro">assert_eq!</span>(<span class="ident">dt</span>.<span class="ident">minute</span>(), <span class="number">34</span>);</code></pre></div>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><div id="method.second" class="method trait-impl has-srclink"><div class="rightside"><a class="srclink" href="../../src/chrono/naive/datetime.rs.html#1068-1070" title="goto source code">[src]</a></div><a href="#method.second" class="anchor"></a><h4 class="code-header">fn <a href="../trait.Timelike.html#tymethod.second" class="fnname">second</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.59.0/std/primitive.u32.html">u32</a></h4></div></summary><div class="docblock"><p>Returns the second number from 0 to 59.</p>
 <p>See also the <a href="./struct.NaiveTime.html#method.second"><code>NaiveTime::second</code></a> method.</p>
-<h5 id="example-20" class="section-header"><a href="#example-20">Example</a></h5>
+<h5 id="example-35" class="section-header"><a href="#example-35">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
@@ -724,7 +724,7 @@ The range from 1,000,000,000 to 1,999,999,999 represents
 the <a href="./struct.NaiveTime.html#leap-second-handling">leap second</a>.</p>
 <p>See also the
 <a href="./struct.NaiveTime.html#method.nanosecond"><code>NaiveTime::nanosecond</code></a> method.</p>
-<h5 id="example-21" class="section-header"><a href="#example-21">Example</a></h5>
+<h5 id="example-36" class="section-header"><a href="#example-36">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
@@ -733,7 +733,7 @@ the <a href="./struct.NaiveTime.html#leap-second-handling">leap second</a>.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveTime.html#method.with_hour"><code>NaiveTime::with_hour</code></a> method.</p>
-<h5 id="example-22" class="section-header"><a href="#example-22">Example</a></h5>
+<h5 id="example-37" class="section-header"><a href="#example-37">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
@@ -744,7 +744,7 @@ the <a href="./struct.NaiveTime.html#leap-second-handling">leap second</a>.</p>
 <p>Returns <code>None</code> when the resulting <code>NaiveDateTime</code> would be invalid.</p>
 <p>See also the
 <a href="./struct.NaiveTime.html#method.with_minute"><code>NaiveTime::with_minute</code></a> method.</p>
-<h5 id="example-23" class="section-header"><a href="#example-23">Example</a></h5>
+<h5 id="example-38" class="section-header"><a href="#example-38">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
@@ -757,7 +757,7 @@ As with the <a href="#method.second"><code>second</code></a> method,
 the input range is restricted to 0 through 59.</p>
 <p>See also the
 <a href="./struct.NaiveTime.html#method.with_second"><code>NaiveTime::with_second</code></a> method.</p>
-<h5 id="example-24" class="section-header"><a href="#example-24">Example</a></h5>
+<h5 id="example-39" class="section-header"><a href="#example-39">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
@@ -771,7 +771,7 @@ the input range can exceed 1,000,000,000 for leap seconds.</p>
 <p>See also the
 <a href="./struct.NaiveTime.html#method.with_nanosecond"><code>NaiveTime::with_nanosecond</code></a>
 method.</p>
-<h5 id="example-25" class="section-header"><a href="#example-25">Example</a></h5>
+<h5 id="example-40" class="section-header"><a href="#example-40">Example</a></h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">chrono</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">Timelike</span>};
 
 <span class="kw">let</span> <span class="ident">dt</span>: <span class="ident">NaiveDateTime</span> <span class="op">=</span> <span class="ident">NaiveDate::from_ymd</span>(<span class="number">2015</span>, <span class="number">9</span>, <span class="number">8</span>).<span class="ident">and_hms_milli</span>(<span class="number">12</span>, <span class="number">34</span>, <span class="number">56</span>, <span class="number">789</span>);
