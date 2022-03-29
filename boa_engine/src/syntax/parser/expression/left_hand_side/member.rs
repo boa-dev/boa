@@ -99,6 +99,21 @@ where
                         TokenKind::Keyword(kw) => {
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
+                        TokenKind::BooleanLiteral(bool) => {
+                            match bool {
+                                true => {
+                                    lhs = GetConstField::new(lhs, Keyword::True.to_sym(interner))
+                                        .into();
+                                }
+                                false => {
+                                    lhs = GetConstField::new(lhs, Keyword::False.to_sym(interner))
+                                        .into();
+                                }
+                            };
+                        }
+                        TokenKind::NullLiteral => {
+                            lhs = GetConstField::new(lhs, Keyword::Null.to_sym(interner)).into();
+                        }
                         _ => {
                             return Err(ParseError::expected(
                                 ["identifier".to_owned()],
