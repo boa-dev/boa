@@ -531,14 +531,14 @@ pub enum Opcode {
     /// Stack: value, key, object **=>**
     SetPropertyByValue,
 
-    /// Defines a class method by value.
+    /// Defines a own property of an object by value.
     ///
     /// Operands:
     ///
     /// Stack: object, key, value **=>**
     DefineOwnPropertyByValue,
 
-    /// Defines a own property of an object by value.
+    /// Defines a class method by value.
     ///
     /// Operands:
     ///

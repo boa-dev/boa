@@ -2377,6 +2377,11 @@ impl<'b> ByteCompiler<'b> {
         Ok(has_identifier_argument)
     }
 
+    /// This function compiles a class declaration or expression.
+    ///
+    /// The compilation of a class declaration and expression is mostly equal.
+    /// A class declaration binds the resulting class object to it's identifier.
+    /// A class expression leaves the resulting class object on the stack for following operations.
     fn class(&mut self, class: &Class, expression: bool) -> JsResult<()> {
         let mut code = CodeBlock::new(class.name(), 0, true, true);
         code.computed_field_names = Some(gc::GcCell::new(vec![]));
