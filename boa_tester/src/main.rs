@@ -71,6 +71,7 @@ use self::{
     read::{read_harness, read_suite, read_test, MetaData, Negative, TestFlag},
     results::{compare_results, write_json},
 };
+use anyhow::{bail, Context};
 use bitflags::bitflags;
 use colored::Colorize;
 use fxhash::{FxHashMap, FxHashSet};
@@ -242,13 +243,21 @@ fn main() {
             output,
             disable_parallelism,
         } => {
-            run_test_suite(
+            if let Err(e) = run_test_suite(
                 verbose,
                 !disable_parallelism,
                 test262_path.as_path(),
                 suite.as_path(),
                 output.as_deref(),
-            );
+            ) {
+                eprintln!("Error: {e}");
+                let mut src = e.source();
+                while let Some(e) = src {
+                    eprintln!("    caused by: {e}");
+                    src = e.source();
+                }
+                std::process::exit(1);
+            }
         }
         Cli::Compare {
             base,
@@ -265,25 +274,27 @@ fn run_test_suite(
     test262_path: &Path,
     suite: &Path,
     output: Option<&Path>,
-) {
+) -> anyhow::Result<()> {
     if let Some(path) = output {
         if path.exists() {
             if !path.is_dir() {
-                eprintln!("The output path must be a directory.");
-                std::process::exit(1);
+                bail!("the output path must be a directory.");
             }
         } else {
-            fs::create_dir_all(path).expect("could not create the output directory");
+            fs::create_dir_all(path).context("could not create the output directory")?;
         }
     }
 
     if verbose != 0 {
         println!("Loading the test suite...");
     }
-    let harness = read_harness(test262_path).expect("could not read initialization bindings");
+    let harness = read_harness(test262_path).context("could not read harness")?;
 
     if suite.to_string_lossy().ends_with(".js") {
-        let test = read_test(&test262_path.join(suite)).expect("could not get the test to run");
+        let test = read_test(&test262_path.join(suite)).with_context(|| {
+            let suite = suite.display();
+            format!("could not read the test {suite}")
+        })?;
 
         if verbose != 0 {
             println!("Test loaded, starting...");
@@ -292,8 +303,10 @@ fn run_test_suite(
 
         println!();
     } else {
-        let suite =
-            read_suite(&test262_path.join(suite)).expect("could not get the list of tests to run");
+        let suite = read_suite(&test262_path.join(suite)).with_context(|| {
+            let suite = suite.display();
+            format!("could not read the suite {suite}")
+        })?;
 
         if verbose != 0 {
             println!("Test suite loaded, starting tests...");
@@ -318,8 +331,10 @@ fn run_test_suite(
         );
 
         write_json(results, output, verbose)
-            .expect("could not write the results to the output JSON file");
+            .context("could not write the results to the output JSON file")?;
     }
+
+    Ok(())
 }
 
 /// All the harness include files.
