@@ -66,6 +66,20 @@ impl From<f32> for JsValue {
     }
 }
 
+impl From<u128> for JsValue {
+    #[inline]
+    fn from(value: u128) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
+impl From<u64> for JsValue {
+    #[inline]
+    fn from(value: u64) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
 impl From<u32> for JsValue {
     #[inline]
     fn from(value: u32) -> Self {
@@ -77,10 +91,52 @@ impl From<u32> for JsValue {
     }
 }
 
+impl From<u16> for JsValue {
+    #[inline]
+    fn from(value: u16) -> Self {
+        Self::Integer(value.into())
+    }
+}
+
+impl From<u8> for JsValue {
+    #[inline]
+    fn from(value: u8) -> Self {
+        Self::Integer(value.into())
+    }
+}
+
+impl From<i128> for JsValue {
+    #[inline]
+    fn from(value: i128) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
+impl From<i64> for JsValue {
+    #[inline]
+    fn from(value: i64) -> Self {
+        Self::BigInt(value.into())
+    }
+}
+
 impl From<i32> for JsValue {
     #[inline]
     fn from(value: i32) -> Self {
         Self::Integer(value)
+    }
+}
+
+impl From<i16> for JsValue {
+    #[inline]
+    fn from(value: i16) -> Self {
+        Self::Integer(value.into())
+    }
+}
+
+impl From<i8> for JsValue {
+    #[inline]
+    fn from(value: i8) -> Self {
+        Self::Integer(value.into())
     }
 }
 
@@ -94,28 +150,6 @@ impl From<JsBigInt> for JsValue {
 impl From<usize> for JsValue {
     #[inline]
     fn from(value: usize) -> Self {
-        if let Ok(value) = i32::try_from(value) {
-            Self::Integer(value)
-        } else {
-            Self::Rational(value as f64)
-        }
-    }
-}
-
-impl From<u64> for JsValue {
-    #[inline]
-    fn from(value: u64) -> Self {
-        if let Ok(value) = i32::try_from(value) {
-            Self::Integer(value)
-        } else {
-            Self::Rational(value as f64)
-        }
-    }
-}
-
-impl From<i64> for JsValue {
-    #[inline]
-    fn from(value: i64) -> Self {
         if let Ok(value) = i32::try_from(value) {
             Self::Integer(value)
         } else {
