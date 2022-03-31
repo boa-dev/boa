@@ -1,6 +1,4 @@
 use super::SuiteResult;
-use git2::Repository;
-use hex::ToHex;
 use serde::{Deserialize, Serialize};
 use std::{
     env, fs,
@@ -175,20 +173,11 @@ pub(crate) fn write_json(
 
 /// Gets the commit OID of the test262 submodule.
 fn get_test262_commit() -> Box<str> {
-    let repo = Repository::open(".").expect("could not open git repository in current directory");
-
-    let submodule = repo
-        .submodules()
-        .expect("could not get the list of submodules of the repo")
-        .into_iter()
-        .find(|sub| sub.path() == Path::new("test262"))
-        .expect("test262 submodule not found");
-
-    submodule
-        .index_id()
-        .expect("could not get the commit OID")
-        .encode_hex::<String>()
-        .into_boxed_str()
+    let mut commit_id = fs::read_to_string(".git/modules/test262/HEAD")
+        .expect("did not find git submodule ref at '.git/modules/test262/HEAD'");
+    // Remove newline.
+    commit_id.pop();
+    commit_id.into_boxed_str()
 }
 
 /// Updates the GitHub pages repository by pulling latest changes before writing the new things.
