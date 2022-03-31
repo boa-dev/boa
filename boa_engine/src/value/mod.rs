@@ -33,6 +33,7 @@ pub(crate) mod display;
 mod equality;
 mod hash;
 mod integer;
+pub mod into_and_from;
 mod operations;
 mod serde_json;
 mod r#type;
