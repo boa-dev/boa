@@ -500,20 +500,7 @@
 <span id="498">498</span>
 <span id="499">499</span>
 <span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SuiteResult</span>;
-<span class="kw">use</span> <span class="ident">git2::Repository</span>;
-<span class="kw">use</span> <span class="ident">hex::ToHex</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">env</span>, <span class="ident">fs</span>,
@@ -688,20 +675,11 @@
 
 <span class="doccomment">/// Gets the commit OID of the test262 submodule.</span>
 <span class="kw">fn</span> <span class="ident">get_test262_commit</span>() -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">repo</span> <span class="op">=</span> <span class="ident">Repository::open</span>(<span class="string">&quot;.&quot;</span>).<span class="ident">expect</span>(<span class="string">&quot;could not open git repository in current directory&quot;</span>);
-
-    <span class="kw">let</span> <span class="ident">submodule</span> <span class="op">=</span> <span class="ident">repo</span>
-        .<span class="ident">submodules</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;could not get the list of submodules of the repo&quot;</span>)
-        .<span class="ident">into_iter</span>()
-        .<span class="ident">find</span>(<span class="op">|</span><span class="ident">sub</span><span class="op">|</span> <span class="ident">sub</span>.<span class="ident">path</span>() <span class="op">==</span> <span class="ident">Path::new</span>(<span class="string">&quot;test262&quot;</span>))
-        .<span class="ident">expect</span>(<span class="string">&quot;test262 submodule not found&quot;</span>);
-
-    <span class="ident">submodule</span>
-        .<span class="ident">index_id</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;could not get the commit OID&quot;</span>)
-        .<span class="ident">encode_hex</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>()
-        .<span class="ident">into_boxed_str</span>()
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">commit_id</span> <span class="op">=</span> <span class="ident">fs::read_to_string</span>(<span class="string">&quot;.git/modules/test262/HEAD&quot;</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;did not find git submodule ref at &#39;.git/modules/test262/HEAD&#39;&quot;</span>);
+    <span class="comment">// Remove newline.</span>
+    <span class="ident">commit_id</span>.<span class="ident">pop</span>();
+    <span class="ident">commit_id</span>.<span class="ident">into_boxed_str</span>()
 }
 
 <span class="doccomment">/// Updates the GitHub pages repository by pulling latest changes before writing the new things.</span>
