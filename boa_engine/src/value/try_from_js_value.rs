@@ -2,7 +2,7 @@ use super::JsValue;
 use crate::Context;
 
 #[derive(Debug)]
-pub struct TryFromJsValueError(String);
+pub struct TryFromJsValueError(pub String);
 
 pub trait TryFromJsValue<T> {
     fn try_from_js_value(self, context: &mut Context) -> Result<T, TryFromJsValueError>;
