@@ -33,9 +33,10 @@ pub(crate) mod display;
 mod equality;
 mod hash;
 mod integer;
-pub mod into_and_from;
+pub mod into_js_value;
 mod operations;
 mod serde_json;
+pub mod try_from_js_value;
 mod r#type;
 
 pub use conversions::*;
