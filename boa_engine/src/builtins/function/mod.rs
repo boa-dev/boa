@@ -267,7 +267,7 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
-    fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         _: &[JsValue],
         context: &mut Context,
@@ -297,7 +297,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/apply
-    fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn apply(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -337,7 +337,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.bind
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_objects/Function/bind
-    fn bind(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn bind(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         let target = this.as_callable().ok_or_else(|| {
@@ -418,7 +418,7 @@ impl BuiltInFunctionObject {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype.call
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/call
-    fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn call(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
@@ -434,7 +434,7 @@ impl BuiltInFunctionObject {
     }
 
     #[allow(clippy::wrong_self_convention)]
-    fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let object = this.as_object().map(JsObject::borrow);
         let function = object
             .as_deref()
@@ -482,7 +482,11 @@ impl BuiltInFunctionObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function.prototype-@@hasinstance
-    fn has_instance(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn has_instance(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let F be the this value.
         // 2. Return ? OrdinaryHasInstance(F, V).
         Ok(JsValue::ordinary_has_instance(this, args.get_or_undefined(0), context)?.into())

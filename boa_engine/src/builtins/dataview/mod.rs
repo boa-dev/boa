@@ -93,7 +93,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview-buffer-byteoffset-bytelength
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/DataView
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -187,7 +187,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.buffer
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/buffer
-    pub(crate) fn get_buffer(
+    pub fn get_buffer(
         this: &JsValue,
         _args: &[JsValue],
         context: &mut Context,
@@ -216,7 +216,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.bytelength
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/byteLength
-    pub(crate) fn get_byte_length(
+    pub fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
         context: &mut Context,
@@ -255,7 +255,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-dataview.prototype.byteoffset
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/byteOffset
-    pub(crate) fn get_byte_offset(
+    pub fn get_byte_offset(
         this: &JsValue,
         _args: &[JsValue],
         context: &mut Context,
@@ -362,7 +362,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getbigint64
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getBigInt64
-    pub(crate) fn get_big_int64(
+    pub fn get_big_int64(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -391,7 +391,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getbiguint64
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getBigUint64
-    pub(crate) fn get_big_uint64(
+    pub fn get_big_uint64(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -420,7 +420,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getfloat32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat32
-    pub(crate) fn get_float32(
+    pub fn get_float32(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -449,7 +449,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getfloat64
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getFloat64
-    pub(crate) fn get_float64(
+    pub fn get_float64(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -478,11 +478,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint8
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt8
-    pub(crate) fn get_int8(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_int8(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
@@ -507,11 +503,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint16
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt16
-    pub(crate) fn get_int16(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_int16(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
@@ -536,11 +528,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getint32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getInt32
-    pub(crate) fn get_int32(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_int32(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
@@ -565,11 +553,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint8
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint8
-    pub(crate) fn get_uint8(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_uint8(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let is_little_endian = args.get_or_undefined(1);
         // 1. Let v be the this value.
@@ -594,7 +578,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint16
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint16
-    pub(crate) fn get_uint16(
+    pub fn get_uint16(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -623,7 +607,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.getuint32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/getUint32
-    pub(crate) fn get_uint32(
+    pub fn get_uint32(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -730,7 +714,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setbigint64
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setBigInt64
-    pub(crate) fn set_big_int64(
+    pub fn set_big_int64(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -761,7 +745,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setbiguint64
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setBigUint64
-    pub(crate) fn set_big_uint64(
+    pub fn set_big_uint64(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -792,7 +776,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setfloat32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setFloat32
-    pub(crate) fn set_float32(
+    pub fn set_float32(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -823,7 +807,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setfloat64
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setFloat64
-    pub(crate) fn set_float64(
+    pub fn set_float64(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -854,11 +838,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint8
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt8
-    pub(crate) fn set_int8(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn set_int8(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
         let is_little_endian = args.get_or_undefined(2);
@@ -885,11 +865,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint16
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt16
-    pub(crate) fn set_int16(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn set_int16(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
         let is_little_endian = args.get_or_undefined(2);
@@ -916,11 +892,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setint32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setInt32
-    pub(crate) fn set_int32(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn set_int32(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
         let is_little_endian = args.get_or_undefined(2);
@@ -947,11 +919,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint8
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint8
-    pub(crate) fn set_uint8(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn set_uint8(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let byte_offset = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
         let is_little_endian = args.get_or_undefined(2);
@@ -978,7 +946,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint16
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint16
-    pub(crate) fn set_uint16(
+    pub fn set_uint16(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -1009,7 +977,7 @@ impl DataView {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-dataview.prototype.setuint32
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/DataView/setUint32
-    pub(crate) fn set_uint32(
+    pub fn set_uint32(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,

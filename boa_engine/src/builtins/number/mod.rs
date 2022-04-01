@@ -39,7 +39,7 @@ const BUF_SIZE: usize = 2200;
 
 /// `Number` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Number;
+pub struct Number;
 
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
@@ -167,7 +167,7 @@ impl Number {
     pub(crate) const MIN_VALUE: f64 = f64::MIN_POSITIVE;
 
     /// `Number( value )`
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -212,7 +212,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toexponential
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toExponential
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_exponential(
+    pub fn to_exponential(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -256,11 +256,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tofixed
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toFixed
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_fixed(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_fixed(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let this_num be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
 
@@ -304,7 +300,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tolocalestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toLocaleString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_locale_string(
+    pub fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
@@ -414,7 +410,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.toprecision
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toPrecision
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_precision(
+    pub fn to_precision(
         this: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -666,11 +662,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
         let x = Self::this_number_value(this, context)?;
 
@@ -729,11 +721,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn value_of(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_number_value(this, context)?))
     }
 
@@ -751,11 +739,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parseint-string-radix
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseInt
-    pub(crate) fn parse_int(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn parse_int(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let (Some(val), radix) = (args.get(0), args.get_or_undefined(1)) {
             // 1. Let inputString be ? ToString(string).
             let input_string = val.to_string(context)?;
@@ -878,11 +862,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-parsefloat-string
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-    pub(crate) fn parse_float(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn parse_float(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(val) = args.get(0) {
             let input_string = val.to_string(context)?;
             let s = input_string.trim_start_matches(is_trimmable_whitespace);
@@ -931,7 +911,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isfinite-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isFinite
-    pub(crate) fn global_is_finite(
+    pub fn global_is_finite(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -958,7 +938,7 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/isNaN
-    pub(crate) fn global_is_nan(
+    pub fn global_is_nan(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -986,7 +966,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.isfinite
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isFinite
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn number_is_finite(
+    pub fn number_is_finite(
         _: &JsValue,
         args: &[JsValue],
         _ctx: &mut Context,
@@ -1013,7 +993,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-number.isinteger
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn number_is_integer(
+    pub fn number_is_integer(
         _: &JsValue,
         args: &[JsValue],
         _ctx: &mut Context,
@@ -1036,11 +1016,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn number_is_nan(
-        _: &JsValue,
-        args: &[JsValue],
-        _ctx: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn number_is_nan(_: &JsValue, args: &[JsValue], _ctx: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(
             if let Some(&JsValue::Rational(number)) = args.get(0) {
                 number.is_nan()
@@ -1065,11 +1041,7 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-isnan-number
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isNaN
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn is_safe_integer(
-        _: &JsValue,
-        args: &[JsValue],
-        _ctx: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn is_safe_integer(_: &JsValue, args: &[JsValue], _ctx: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(match args.get(0) {
             Some(JsValue::Integer(_)) => true,
             Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {

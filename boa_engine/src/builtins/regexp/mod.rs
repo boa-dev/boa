@@ -165,7 +165,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-pattern-flags
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -376,11 +376,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.global
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
-    pub(crate) fn get_global(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_global(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, b'g', context)
     }
 
@@ -394,7 +390,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.ignorecase
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/ignoreCase
-    pub(crate) fn get_ignore_case(
+    pub fn get_ignore_case(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
@@ -412,7 +408,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.multiline
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/multiline
-    pub(crate) fn get_multiline(
+    pub fn get_multiline(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
@@ -430,11 +426,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.dotAll
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/dotAll
-    pub(crate) fn get_dot_all(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_dot_all(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, b's', context)
     }
 
@@ -449,11 +441,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.unicode
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/unicode
-    pub(crate) fn get_unicode(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_unicode(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, b'u', context)
     }
 
@@ -468,11 +456,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.sticky
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/sticky
-    pub(crate) fn get_sticky(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_sticky(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Self::regexp_has_flag(this, b'y', context)
     }
 
@@ -487,11 +471,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.flags
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/flags
     /// [flags]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#Advanced_searching_with_flags_2
-    pub(crate) fn get_flags(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_flags(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         if let Some(object) = this.as_object() {
@@ -549,11 +529,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.source
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/source
-    pub(crate) fn get_source(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_source(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         if let Some(object) = this.as_object() {
@@ -628,11 +604,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.test
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test
-    pub(crate) fn test(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn test(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         let this = this.as_object().ok_or_else(|| {
@@ -670,11 +642,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.exec
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/exec
-    pub(crate) fn exec(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn exec(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
         let obj = this
@@ -972,11 +940,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@match
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@match
-    pub(crate) fn r#match(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn r#match(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {
@@ -1074,11 +1038,7 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let (body, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().ok_or_else(|| {
@@ -1107,11 +1067,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp-prototype-matchall
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@matchAll
-    pub(crate) fn match_all(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn match_all(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         let regexp = this.as_object().ok_or_else(|| {
@@ -1175,11 +1131,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@replace
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@replace
-    pub(crate) fn replace(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn replace(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {
@@ -1419,11 +1371,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@search
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@search
-    pub(crate) fn search(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn search(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {
@@ -1481,11 +1429,7 @@ impl RegExp {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype-@@split
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/@@split
-    pub(crate) fn split(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn split(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let rx be the this value.
         // 2. If Type(rx) is not Object, throw a TypeError exception.
         let rx = if let Some(rx) = this.as_object() {

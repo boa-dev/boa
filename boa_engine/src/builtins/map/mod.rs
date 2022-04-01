@@ -35,7 +35,7 @@ pub mod ordered_map;
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Map(OrderedMap<JsValue>);
+pub struct Map(OrderedMap<JsValue>);
 
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
@@ -116,7 +116,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map-iterable
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Map
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -157,7 +157,7 @@ impl Map {
     /// [spec]: https://tc39.es/ecma262/#sec-get-map-@@species
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/@@species
     #[allow(clippy::unnecessary_wraps)]
-    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+    pub fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return the this value.
         Ok(this.clone())
     }
@@ -172,11 +172,7 @@ impl Map {
     ///
     /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
-    pub(crate) fn entries(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, key+value).
         MapIterator::create_map_iterator(this, PropertyNameKind::KeyAndValue, context)
@@ -192,7 +188,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.keys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/keys
-    pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, key).
         MapIterator::create_map_iterator(this, PropertyNameKind::Key, context)
@@ -208,11 +204,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set
-    pub(crate) fn set(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn set(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
         let value = args.get_or_undefined(1);
 
@@ -257,11 +249,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-map.prototype.size
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size
-    pub(crate) fn get_size(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get_size(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         if let Some(object) = this.as_object() {
             // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
@@ -288,11 +276,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete
-    pub(crate) fn delete(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn delete(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let key = args.get_or_undefined(0);
 
         // 1. Let M be the this value.
@@ -321,11 +305,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get
-    pub(crate) fn get(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn get(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
 
         let key = args.get_or_undefined(0);
@@ -365,7 +345,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear
-    pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         if let Some(object) = this.as_object() {
@@ -393,11 +373,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn has(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         const JS_ZERO: &JsValue = &JsValue::Rational(0f64);
 
         let key = args.get_or_undefined(0);
@@ -437,11 +413,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/forEach
-    pub(crate) fn for_each(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn for_each(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Perform ? RequireInternalSlot(M, [[MapData]]).
         let map = this
@@ -508,11 +480,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/values
-    pub(crate) fn values(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let M be the this value.
         // 2. Return ? CreateMapIterator(M, value).
         MapIterator::create_map_iterator(this, PropertyNameKind::Value, context)

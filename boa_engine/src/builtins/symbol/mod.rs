@@ -112,7 +112,7 @@ impl BuiltIn for Symbol {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .static_method(Self::for_, "for", 1)
+        .static_method(Self::r#for, "for", 1)
         .static_method(Self::key_for, "keyFor", 1)
         .static_property("asyncIterator", symbol_async_iterator, attribute)
         .static_property("hasInstance", symbol_has_instance, attribute)
@@ -168,7 +168,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol-description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/Symbol
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -202,11 +202,7 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let sym be ? thisSymbolValue(this value).
         let symbol = Self::this_symbol_value(this, context)?;
 
@@ -224,11 +220,7 @@ impl Symbol {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn value_of(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? thisSymbolValue(this value).
         let symbol = Self::this_symbol_value(this, context)?;
         Ok(JsValue::Symbol(symbol))
@@ -244,7 +236,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.description
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/description
-    pub(crate) fn get_description(
+    pub fn get_description(
         this: &JsValue,
         _: &[JsValue],
         context: &mut Context,
@@ -265,7 +257,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.for
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/for
-    pub(crate) fn for_(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn r#for(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let stringKey be ? ToString(key).
         let string_key = args
             .get(0)
@@ -295,11 +287,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
-    pub(crate) fn key_for(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn key_for(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let sym = args.get_or_undefined(0);
         // 1. If Type(sym) is not Symbol, throw a TypeError exception.
         if let Some(sym) = sym.as_symbol() {
@@ -329,11 +317,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/multipage/#sec-symbol.prototype-@@toprimitive
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/@@toPrimitive
-    pub(crate) fn to_primitive(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_primitive(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let sym = Self::this_symbol_value(this, context)?;
         // 1. Return ? thisSymbolValue(this value).
         Ok(sym.into())

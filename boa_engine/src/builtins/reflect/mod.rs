@@ -26,7 +26,7 @@ mod tests;
 
 /// Javascript `Reflect` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub(crate) struct Reflect;
+pub struct Reflect;
 
 impl BuiltIn for Reflect {
     const NAME: &'static str = "Reflect";
@@ -74,7 +74,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.apply
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/apply
-    pub(crate) fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn apply(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
@@ -97,11 +97,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.construct
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/construct
-    pub(crate) fn construct(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn construct(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
@@ -133,7 +129,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.defineProperty
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/defineProperty
-    pub(crate) fn define_property(
+    pub fn define_property(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -162,7 +158,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.deleteproperty
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/deleteProperty
-    pub(crate) fn delete_property(
+    pub fn delete_property(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -184,7 +180,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.get
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/get
-    pub(crate) fn get(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn get(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = args
             .get(0)
@@ -211,7 +207,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.getownpropertydescriptor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getOwnPropertyDescriptor
-    pub(crate) fn get_own_property_descriptor(
+    pub fn get_own_property_descriptor(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -237,7 +233,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.getprototypeof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/getPrototypeOf
-    pub(crate) fn get_prototype_of(
+    pub fn get_prototype_of(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -259,7 +255,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/has
-    pub(crate) fn has(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn has(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
@@ -279,7 +275,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.isextensible
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/isExtensible
-    pub(crate) fn is_extensible(
+    pub fn is_extensible(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -299,11 +295,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.ownkeys
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/ownKeys
-    pub(crate) fn own_keys(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn own_keys(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
@@ -326,7 +318,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.preventextensions
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/preventExtensions
-    pub(crate) fn prevent_extensions(
+    pub fn prevent_extensions(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -347,7 +339,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.set
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/set
-    pub(crate) fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn set(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
@@ -372,7 +364,7 @@ impl Reflect {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-reflect.setprototypeof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Reflect/setPrototypeOf
-    pub(crate) fn set_prototype_of(
+    pub fn set_prototype_of(
         _: &JsValue,
         args: &[JsValue],
         context: &mut Context,

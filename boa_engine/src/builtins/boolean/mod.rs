@@ -25,7 +25,7 @@ use tap::{Conv, Pipe};
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Boolean;
+pub struct Boolean;
 
 impl BuiltIn for Boolean {
     /// The name of the object.
@@ -56,7 +56,7 @@ impl Boolean {
     /// `[[Construct]]` Create a new boolean object
     ///
     /// `[[Call]]` Creates a new boolean primitive
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -95,11 +95,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let boolean = Self::this_boolean_value(this, context)?;
         Ok(JsValue::new(boolean.to_string()))
     }
@@ -113,11 +109,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
     #[inline]
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn value_of(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_boolean_value(this, context)?))
     }
 }

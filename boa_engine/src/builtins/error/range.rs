@@ -25,7 +25,7 @@ use super::Error;
 
 /// JavaScript `RangeError` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct RangeError;
+pub struct RangeError;
 
 impl BuiltIn for RangeError {
     const NAME: &'static str = "RangeError";
@@ -59,7 +59,7 @@ impl RangeError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

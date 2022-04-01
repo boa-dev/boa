@@ -96,7 +96,7 @@ impl BuiltIn for Object {
 impl Object {
     const LENGTH: usize = 1;
 
-    fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

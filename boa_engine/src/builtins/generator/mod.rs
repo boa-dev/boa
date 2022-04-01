@@ -112,11 +112,7 @@ impl Generator {
     pub(crate) const LENGTH: usize = 0;
 
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn constructor(
-        _: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn constructor(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let prototype = context.intrinsics().constructors().generator().prototype();
 
         let this = JsObject::from_proto_and_data(
@@ -141,11 +137,7 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator.prototype.next
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/next
-    pub(crate) fn next(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn next(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? GeneratorResume(this value, value, empty).
         match this.as_object() {
             Some(obj) if obj.is_generator() => {
@@ -165,11 +157,7 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator.prototype.return
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/return
-    pub(crate) fn r#return(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn r#return(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be Completion { [[Type]]: return, [[Value]]: value, [[Target]]: empty }.
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
@@ -187,11 +175,7 @@ impl Generator {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-generator.prototype.throw
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator/throw
-    pub(crate) fn throw(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn throw(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).

@@ -77,7 +77,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let value = args.get_or_undefined(0);
 
         // 2. Let prim be ? ToPrimitive(value, number).
@@ -148,11 +148,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_string(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let x be ? thisBigIntValue(this value).
         let x = Self::this_bigint_value(this, context)?;
 
@@ -200,11 +196,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn value_of(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         Ok(JsValue::new(Self::this_bigint_value(this, context)?))
     }
 
@@ -215,11 +207,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asIntN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_int_n(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn as_int_n(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
         if bits > 0
@@ -246,11 +234,7 @@ impl BigInt {
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.asuintn
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/asUintN
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn as_uint_n(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn as_uint_n(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let (modulo, _) = Self::calculate_as_uint_n(args, context)?;
 
         Ok(JsValue::new(modulo))

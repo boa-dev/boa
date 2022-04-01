@@ -31,7 +31,7 @@ use super::Error;
 
 /// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct TypeError;
+pub struct TypeError;
 
 impl BuiltIn for TypeError {
     const NAME: &'static str = "TypeError";
@@ -65,7 +65,7 @@ impl TypeError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

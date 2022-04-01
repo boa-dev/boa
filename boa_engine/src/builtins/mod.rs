@@ -1,4 +1,9 @@
 //! Builtins live here, such as Object, String, Math, etc.
+//!
+//! This module exposes some raw builtin functions.
+//!
+//! ## NOTE:
+//! Because these are internal functions, they may be subject to change.
 
 pub mod array;
 pub mod array_buffer;
@@ -32,7 +37,19 @@ pub mod typed_array;
 pub mod undefined;
 
 pub(crate) use self::{
-    array::{array_iterator::ArrayIterator, Array},
+    array::array_iterator::ArrayIterator, global_this::GlobalThis, infinity::Infinity, intl::Intl,
+    map::map_iterator::MapIterator, nan::NaN, object::for_in_iterator::ForInIterator,
+    set::set_iterator::SetIterator, undefined::Undefined,
+};
+
+use crate::{
+    property::{Attribute, PropertyDescriptor},
+    Context, JsValue,
+};
+
+pub use self::{
+    array::Array,
+    array_buffer::ArrayBuffer,
     bigint::BigInt,
     boolean::Boolean,
     dataview::DataView,
@@ -42,38 +59,23 @@ pub(crate) use self::{
         UriError,
     },
     function::BuiltInFunctionObject,
-    global_this::GlobalThis,
-    infinity::Infinity,
-    intl::Intl,
+    generator::Generator,
+    generator_function::GeneratorFunction,
     json::Json,
-    map::map_iterator::MapIterator,
     map::Map,
     math::Math,
-    nan::NaN,
     number::Number,
-    object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
     proxy::Proxy,
     reflect::Reflect,
     regexp::RegExp,
-    set::set_iterator::SetIterator,
     set::Set,
     string::String,
     symbol::Symbol,
     typed_array::{
         BigInt64Array, BigUint64Array, Float32Array, Float64Array, Int16Array, Int32Array,
-        Int8Array, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
+        Int8Array, TypedArray, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
     },
-    undefined::Undefined,
-};
-
-use crate::{
-    builtins::{
-        array_buffer::ArrayBuffer, generator::Generator, generator_function::GeneratorFunction,
-        typed_array::TypedArray,
-    },
-    property::{Attribute, PropertyDescriptor},
-    Context, JsValue,
 };
 
 /// Trait representing a global built-in object such as `Math`, `Object` or

@@ -26,7 +26,7 @@ use super::Error;
 
 /// JavaScript `URIError` impleentation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct UriError;
+pub struct UriError;
 
 impl BuiltIn for UriError {
     const NAME: &'static str = "URIError";
@@ -60,7 +60,7 @@ impl UriError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

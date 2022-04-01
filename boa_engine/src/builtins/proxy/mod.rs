@@ -71,7 +71,7 @@ impl Proxy {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy-target-handler
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -129,7 +129,7 @@ impl Proxy {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-proxy.revocable
-    fn revocable(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn revocable(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let p be ? ProxyCreate(target, handler).
         let p = Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context)?;
 

@@ -32,7 +32,7 @@ pub mod set_iterator;
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Set(OrderedSet<JsValue>);
+pub struct Set(OrderedSet<JsValue>);
 
 impl BuiltIn for Set {
     const NAME: &'static str = "Set";
@@ -110,7 +110,7 @@ impl Set {
     pub(crate) const LENGTH: usize = 0;
 
     /// Create a new set
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
@@ -190,11 +190,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.add
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/add
-    pub(crate) fn add(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn add(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let value = args.get_or_undefined(0);
 
         if let Some(object) = this.as_object() {
@@ -224,7 +220,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.clear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/clear
-    pub(crate) fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn clear(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             if object.borrow().is_set() {
                 this.set_data(ObjectData::set(OrderedSet::new()));
@@ -248,11 +244,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.delete
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/delete
-    pub(crate) fn delete(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn delete(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let value = args.get_or_undefined(0);
 
         let res = if let Some(object) = this.as_object() {
@@ -278,11 +270,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/entries
-    pub(crate) fn entries(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             let object = object.borrow();
             if !object.is_set() {
@@ -312,11 +300,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.foreach
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/foreach
-    pub(crate) fn for_each(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn for_each(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if args.is_empty() {
             return Err(JsValue::new("Missing argument for Set.prototype.forEach"));
         }
@@ -363,11 +347,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has
-    pub(crate) fn has(
-        this: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn has(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let value = args.get_or_undefined(0);
 
         this.as_object()
@@ -389,11 +369,7 @@ impl Set {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-set.prototype.values
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/values
-    pub(crate) fn values(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(object) = this.as_object() {
             let object = object.borrow();
             if !object.is_set() {
