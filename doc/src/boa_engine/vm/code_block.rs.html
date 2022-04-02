@@ -988,6 +988,7 @@
 <span id="986">986</span>
 <span id="987">987</span>
 <span id="988">988</span>
+<span id="989">989</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1341,9 +1342,10 @@
         <span class="kw">while</span> <span class="ident">pc</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">code</span>.<span class="ident">len</span>() {
             <span class="kw">let</span> <span class="ident">opcode</span>: <span class="ident">Opcode</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code</span>[<span class="ident">pc</span>].<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;invalid opcode&quot;</span>);
             <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="ident">opcode</span>.<span class="ident">as_str</span>();
+            <span class="kw">let</span> <span class="ident">previous_pc</span> <span class="op">=</span> <span class="ident">pc</span>;
             <span class="kw">let</span> <span class="ident">operands</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">instruction_operands</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pc</span>, <span class="ident">interner</span>);
             <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;{pc:06}    {count:04}    {opcode:&lt;27}{operands}\n&quot;</span>,
+                <span class="string">&quot;{previous_pc:06}    {count:04}    {opcode:&lt;27}{operands}\n&quot;</span>,
             ));
             <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
