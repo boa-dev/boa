@@ -148,6 +148,18 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Display</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsObject</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>, <span class="ident">Profiler</span>};
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
@@ -200,6 +212,18 @@
         <span class="comment">//     Self::Integer(value as i32)</span>
         <span class="comment">// } else {</span>
         <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">value</span>)
+        <span class="comment">// }</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">f32</span>) -&gt; <span class="self">Self</span> {
+        <span class="comment">// if value as i32 as f32 == value {</span>
+        <span class="comment">//     Self::Integer(value as i32)</span>
+        <span class="comment">// } else {</span>
+        <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">value</span>.<span class="ident">into</span>())
         <span class="comment">// }</span>
     }
 }
