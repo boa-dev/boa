@@ -351,9 +351,10 @@ impl ToInternedString for CodeBlock {
         while pc < self.code.len() {
             let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
             let opcode = opcode.as_str();
+            let previous_pc = pc;
             let operands = self.instruction_operands(&mut pc, interner);
             f.push_str(&format!(
-                "{pc:06}    {count:04}    {opcode:<27}{operands}\n",
+                "{previous_pc:06}    {count:04}    {opcode:<27}{operands}\n",
             ));
             count += 1;
         }
