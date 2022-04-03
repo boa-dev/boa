@@ -76,7 +76,11 @@ impl From<u128> for JsValue {
 impl From<u64> for JsValue {
     #[inline]
     fn from(value: u64) -> Self {
-        Self::BigInt(value.into())
+        if let Ok(value) = i32::try_from(value) {
+            Self::Integer(value)
+        } else {
+            Self::Rational(value as f64)
+        }
     }
 }
 
@@ -115,7 +119,11 @@ impl From<i128> for JsValue {
 impl From<i64> for JsValue {
     #[inline]
     fn from(value: i64) -> Self {
-        Self::BigInt(value.into())
+        if let Ok(value) = i32::try_from(value) {
+            Self::Integer(value)
+        } else {
+            Self::Rational(value as f64)
+        }
     }
 }
 
