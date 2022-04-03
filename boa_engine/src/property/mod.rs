@@ -674,7 +674,7 @@ impl PartialEq<&str> for PropertyKey {
 }
 
 #[derive(Debug, Clone, Copy, Finalize)]
-pub enum PropertyNameKind {
+pub(crate) enum PropertyNameKind {
     Key,
     Value,
     KeyAndValue,
