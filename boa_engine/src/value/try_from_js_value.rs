@@ -51,6 +51,7 @@ impl TryFromJsValue<i128> for JsValue {
     }
 }
 
+// TODO this might break since i64 may (will) not be a bigint
 impl TryFromJsValue<i64> for JsValue {
     fn try_from_js_value(self, _: &mut Context) -> Result<i64, TryFromJsValueError> {
         match self.as_bigint() {
@@ -133,6 +134,7 @@ impl TryFromJsValue<u128> for JsValue {
     }
 }
 
+// TODO this might break since i64 may (will) not be a bigint
 impl TryFromJsValue<u64> for JsValue {
     fn try_from_js_value(self, _: &mut Context) -> Result<u64, TryFromJsValueError> {
         match self.as_bigint() {

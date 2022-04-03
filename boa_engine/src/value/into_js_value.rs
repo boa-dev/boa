@@ -1,7 +1,7 @@
-use super::JsValue;
 use crate::{
     Context,
-    builtins::Array
+    object::JsArray,
+    value::JsValue
 };
 
 pub trait IntoJsValue {
@@ -60,7 +60,7 @@ impl<T: IntoJsValue> IntoJsValue for Option<T> {
     fn into_js_value(self, context: &mut Context) -> JsValue {
         match self {
             Some(value) => value.into_js_value(context),
-            None => JsValue::Null.into()
+            None => JsValue::Null
         }
     }
 }
@@ -106,11 +106,7 @@ impl IntoJsValue for u8 {
 impl<T: IntoJsValue> IntoJsValue for Vec<T> {
     fn into_js_value(self, context: &mut Context) -> JsValue {
         let js_values = self.into_iter().map(|item| item.into_js_value(context)).collect::<Vec<JsValue>>();
-
-        Array::create_array_from_list(
-            js_values,
-            context
-        ).into()
+        JsArray::from_iter(js_values, context).into()
     }
 }
 

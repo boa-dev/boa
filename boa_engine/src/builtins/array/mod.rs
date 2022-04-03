@@ -36,7 +36,7 @@ use std::cmp::{max, min, Ordering};
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
-pub struct Array; // TODO perhaps this change would be better in a separate PR which exposes all built-ins
+pub(crate) struct Array;
 
 impl BuiltIn for Array {
     const NAME: &'static str = "Array";
