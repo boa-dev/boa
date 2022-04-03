@@ -59,10 +59,12 @@ mod tests;
 pub(crate) mod internal_methods;
 mod jsarray;
 mod jsobject;
+mod jstypedarray;
 mod operations;
 mod property_map;
 
 pub use jsarray::*;
+pub use jstypedarray::*;
 
 pub(crate) trait JsObjectType:
     Into<JsValue> + Into<JsObject> + Deref<Target = JsObject>
