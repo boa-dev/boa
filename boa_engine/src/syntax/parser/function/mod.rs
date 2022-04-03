@@ -399,50 +399,63 @@ where
         if let Some(t) = cursor.peek(0, interner)? {
             let declaration = match *t.kind() {
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
-
-                    let init = cursor
+                    let bindings =
+                        ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    let init = if *cursor
                         .peek(0, interner)?
-                        .cloned()
-                        .filter(|t| {
-                            // Check that this is an initializer before attempting parse.
-                            *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
-                        })
-                        .map(|_| {
+                        .ok_or(ParseError::AbruptEnd)?
+                        .kind()
+                        == TokenKind::Punctuator(Punctuator::Assign)
+                    {
+                        Some(
                             Initializer::new(None, true, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)
-                        })
-                        .transpose()?;
+                                .parse(cursor, interner)?,
+                        )
+                    } else {
+                        None
+                    };
 
-                    Declaration::new_with_object_pattern(param, init)
+                    Declaration::new_with_object_pattern(bindings, init)
                 }
-
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    Declaration::new_with_array_pattern(
+                    let bindings =
                         ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
-                        None,
-                    )
-                }
-
-                _ => {
-                    let params = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
-                    let init = cursor
+                            .parse(cursor, interner)?;
+                    let init = if *cursor
                         .peek(0, interner)?
-                        .cloned()
-                        .filter(|t| {
-                            // Check that this is an initializer before attempting parse.
-                            *t.kind() == TokenKind::Punctuator(Punctuator::Assign)
-                        })
-                        .map(|_| {
+                        .ok_or(ParseError::AbruptEnd)?
+                        .kind()
+                        == TokenKind::Punctuator(Punctuator::Assign)
+                    {
+                        Some(
                             Initializer::new(None, true, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)
-                        })
-                        .transpose()?;
+                                .parse(cursor, interner)?,
+                        )
+                    } else {
+                        None
+                    };
 
-                    Declaration::new_with_identifier(params, init)
+                    Declaration::new_with_array_pattern(bindings, init)
+                }
+                _ => {
+                    let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
+                    let init = if *cursor
+                        .peek(0, interner)?
+                        .ok_or(ParseError::AbruptEnd)?
+                        .kind()
+                        == TokenKind::Punctuator(Punctuator::Assign)
+                    {
+                        Some(
+                            Initializer::new(None, true, self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?,
+                        )
+                    } else {
+                        None
+                    };
+
+                    Declaration::new_with_identifier(ident, init)
                 }
             };
             Ok(Self::Output::new(declaration, false))
