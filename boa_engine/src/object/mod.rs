@@ -147,6 +147,7 @@ pub enum ObjectKind {
     Arguments(Arguments),
     NativeObject(Box<dyn NativeObject>),
     IntegerIndexed(IntegerIndexed),
+    WeakSet(OrderedSet<JsValue>),
 }
 
 impl ObjectData {
@@ -403,6 +404,14 @@ impl ObjectData {
             internal_methods: &INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `WeakSet` object data
+    pub fn weak_set(weak_set: OrderedSet<JsValue>) -> Self {
+        Self {
+            kind: ObjectKind::WeakSet(weak_set),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Display for ObjectKind {
@@ -437,6 +446,7 @@ impl Display for ObjectKind {
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
             Self::DataView(_) => "DataView",
+            Self::WeakSet(_) => "WeakSet",
         })
     }
 }
@@ -1097,6 +1107,28 @@ impl Object {
                 kind: ObjectKind::Proxy(ref mut proxy),
                 ..
             } => Some(proxy),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_weak_set(&self) -> Option<&OrderedSet<JsValue>> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::WeakSet(ref weak_set),
+                ..
+            } => Some(weak_set),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_weak_set_mut(&mut self) -> Option<&mut OrderedSet<JsValue>> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::WeakSet(ref mut weak_set),
+                ..
+            } => Some(weak_set),
             _ => None,
         }
     }

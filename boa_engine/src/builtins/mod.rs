@@ -30,6 +30,7 @@ pub mod string;
 pub mod symbol;
 pub mod typed_array;
 pub mod undefined;
+pub mod weak_set;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
@@ -65,6 +66,7 @@ pub(crate) use self::{
         Int8Array, Uint16Array, Uint32Array, Uint8Array, Uint8ClampedArray,
     },
     undefined::Undefined,
+    weak_set::WeakSet,
 };
 
 use crate::{
@@ -178,7 +180,8 @@ pub fn init(context: &mut Context) {
         AggregateError,
         Reflect,
         Generator,
-        GeneratorFunction
+        GeneratorFunction,
+        WeakSet
     };
 
     #[cfg(feature = "console")]

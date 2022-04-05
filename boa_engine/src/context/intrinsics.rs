@@ -107,6 +107,7 @@ pub struct StandardConstructors {
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
     data_view: StandardConstructor,
+    weak_set: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -157,6 +158,7 @@ impl Default for StandardConstructors {
             typed_float64_array: StandardConstructor::default(),
             array_buffer: StandardConstructor::default(),
             data_view: StandardConstructor::default(),
+            weak_set: StandardConstructor::default(),
         }
     }
 }
@@ -340,6 +342,11 @@ impl StandardConstructors {
     #[inline]
     pub fn data_view(&self) -> &StandardConstructor {
         &self.data_view
+    }
+
+    #[inline]
+    pub fn weak_set(&self) -> &StandardConstructor {
+        &self.weak_set
     }
 }
 
