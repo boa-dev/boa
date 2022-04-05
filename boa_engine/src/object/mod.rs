@@ -46,6 +46,7 @@ use crate::{
         set::SetIterator,
         string::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
+        weak_set::WeakOrderedSet,
         DataView, Date, Promise, RegExp,
     },
     js_string,
@@ -270,6 +271,9 @@ pub enum ObjectKind {
     /// The `WeakRef` object kind.
     WeakRef(WeakGc<GcRefCell<Object>>),
 
+    /// The `WeakSet` object kind.
+    WeakSet(WeakOrderedSet),
+
     /// The `Intl.Collator` object kind.
     #[cfg(feature = "intl")]
     Collator(Box<Collator>),
@@ -311,6 +315,7 @@ unsafe impl Trace for ObjectKind {
             Self::Promise(p) => mark(p),
             Self::AsyncGenerator(g) => mark(g),
             Self::WeakRef(wr) => mark(wr),
+            Self::WeakSet(ws) => mark(ws),
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(f) => mark(f),
             #[cfg(feature = "intl")]
@@ -627,6 +632,15 @@ impl ObjectData {
         }
     }
 
+    /// Create the `WeakSet` object data
+    #[must_use]
+    pub fn weak_set(weak_set: WeakOrderedSet) -> Self {
+        Self {
+            kind: ObjectKind::WeakSet(weak_set),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `NativeObject` object data
     #[must_use]
     pub fn native_object<T: NativeObject>(native_object: T) -> Self {
@@ -722,6 +736,7 @@ impl Debug for ObjectKind {
             Self::DataView(_) => "DataView",
             Self::Promise(_) => "Promise",
             Self::WeakRef(_) => "WeakRef",
+            Self::WeakSet(_) => "WeakSet",
             #[cfg(feature = "intl")]
             Self::Collator(_) => "Collator",
             #[cfg(feature = "intl")]
@@ -1535,6 +1550,30 @@ impl Object {
                 kind: ObjectKind::Proxy(ref mut proxy),
                 ..
             } => Some(proxy),
+            _ => None,
+        }
+    }
+
+    /// Gets the weak set data if the object is a `WeakSet`.
+    #[inline]
+    pub const fn as_weak_set(&self) -> Option<&WeakOrderedSet> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::WeakSet(ref weak_set),
+                ..
+            } => Some(weak_set),
+            _ => None,
+        }
+    }
+
+    /// Gets the mutable weak set data if the object is a `WeakSet`.
+    #[inline]
+    pub fn as_weak_set_mut(&mut self) -> Option<&mut WeakOrderedSet> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::WeakSet(ref mut weak_set),
+                ..
+            } => Some(weak_set),
             _ => None,
         }
     }

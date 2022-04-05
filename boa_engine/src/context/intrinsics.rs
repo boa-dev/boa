@@ -114,6 +114,7 @@ pub struct StandardConstructors {
     date_time_format: StandardConstructor,
     promise: StandardConstructor,
     weak_ref: StandardConstructor,
+    weak_set: StandardConstructor,
     #[cfg(feature = "intl")]
     collator: StandardConstructor,
     #[cfg(feature = "intl")]
@@ -180,6 +181,7 @@ impl Default for StandardConstructors {
             date_time_format: StandardConstructor::default(),
             promise: StandardConstructor::default(),
             weak_ref: StandardConstructor::default(),
+            weak_set: StandardConstructor::default(),
             #[cfg(feature = "intl")]
             collator: StandardConstructor::default(),
             #[cfg(feature = "intl")]
@@ -642,6 +644,17 @@ impl StandardConstructors {
     #[inline]
     pub const fn weak_ref(&self) -> &StandardConstructor {
         &self.weak_ref
+    }
+
+    /// Returns the `WeakSet` constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-weakset-constructor
+    #[inline]
+    pub const fn weak_set(&self) -> &StandardConstructor {
+        &self.weak_set
     }
 
     /// Returns the `Intl.Collator` constructor.
