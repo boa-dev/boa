@@ -764,7 +764,7 @@ pub fn create_byte_data_block(size: usize, context: &mut Context) -> JsResult<Ve
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-copydatablockbytes
 fn copy_data_block_bytes(
-    to_block: &mut Vec<u8>,
+    to_block: &mut [u8],
     mut to_index: usize,
     from_block: &[u8],
     mut from_index: usize,

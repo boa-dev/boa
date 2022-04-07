@@ -1386,7 +1386,9 @@ impl RegExp {
                 //     the substring of S from nextSourcePosition to position, and replacement.
                 accumulated_result = format!(
                     "{accumulated_result}{}{replacement}",
-                    arg_str.get(next_source_position..position).unwrap(),
+                    arg_str
+                        .get(next_source_position..position)
+                        .expect("index of a regexp match cannot be greater than the input string"),
                 )
                 .into();
 
@@ -1404,7 +1406,9 @@ impl RegExp {
         Ok(format!(
             "{}{}",
             accumulated_result,
-            arg_str.get(next_source_position..).unwrap()
+            arg_str
+                .get(next_source_position..)
+                .expect("next_source_position cannot be greater than the input string")
         )
         .into())
     }
