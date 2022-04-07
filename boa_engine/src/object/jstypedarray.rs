@@ -1,6 +1,6 @@
 use crate::{
     builtins::typed_array::TypedArray,
-    object::{JsArray, JsObject, JsObjectType},
+    object::{JsArray, JsFunction, JsObject, JsObjectType},
     value::IntoOrUndefined,
     Context, JsResult, JsString, JsValue,
 };
@@ -14,6 +14,9 @@ pub struct JsTypedArray {
 }
 
 impl JsTypedArray {
+    /// Create a [`JsTypedArray`] from a [`JsObject`], if the object is not a typed array throw a `TypeError`.
+    ///
+    /// This does not clone the fields of the typed array, it only does a shallow clone of the object.
     #[inline]
     pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
         if object.borrow().is_typed_array() {
@@ -21,7 +24,7 @@ impl JsTypedArray {
                 inner: object.into(),
             })
         } else {
-            context.throw_type_error("object is not an TypedArray")
+            context.throw_type_error("object is not a TypedArray")
         }
     }
 
@@ -91,7 +94,7 @@ impl JsTypedArray {
 
     pub fn every(
         &self,
-        predicate: JsObject,
+        predicate: JsFunction,
         this_arg: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<bool> {
@@ -109,7 +112,7 @@ impl JsTypedArray {
     #[inline]
     pub fn some(
         &self,
-        callback: JsObject,
+        callback: JsFunction,
         this_arg: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<bool> {
@@ -125,7 +128,7 @@ impl JsTypedArray {
     }
 
     #[inline]
-    pub fn sort(&self, compare_fn: Option<JsObject>, context: &mut Context) -> JsResult<Self> {
+    pub fn sort(&self, compare_fn: Option<JsFunction>, context: &mut Context) -> JsResult<Self> {
         TypedArray::sort(&self.inner, &[compare_fn.into_or_undefined()], context)?;
 
         Ok(self.clone())
@@ -134,7 +137,7 @@ impl JsTypedArray {
     #[inline]
     pub fn filter(
         &self,
-        callback: JsObject,
+        callback: JsFunction,
         this_arg: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<Self> {
@@ -150,7 +153,7 @@ impl JsTypedArray {
     #[inline]
     pub fn map(
         &self,
-        callback: JsObject,
+        callback: JsFunction,
         this_arg: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<Self> {
@@ -166,7 +169,7 @@ impl JsTypedArray {
     #[inline]
     pub fn reduce(
         &self,
-        callback: JsObject,
+        callback: JsFunction,
         initial_value: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
@@ -180,7 +183,7 @@ impl JsTypedArray {
     #[inline]
     pub fn reduce_right(
         &self,
-        callback: JsObject,
+        callback: JsFunction,
         initial_value: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
@@ -216,7 +219,7 @@ impl JsTypedArray {
     #[inline]
     pub fn find(
         &self,
-        predicate: JsObject,
+        predicate: JsFunction,
         this_arg: Option<JsValue>,
         context: &mut Context,
     ) -> JsResult<JsValue> {

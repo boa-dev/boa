@@ -59,12 +59,14 @@ mod tests;
 
 pub(crate) mod internal_methods;
 mod jsarray;
+mod jsfunction;
 mod jsobject;
 mod jstypedarray;
 mod operations;
 mod property_map;
 
 pub use jsarray::*;
+pub use jsfunction::*;
 pub use jstypedarray::*;
 
 pub(crate) trait JsObjectType:
@@ -1516,7 +1518,7 @@ impl<'context> FunctionBuilder<'context> {
 
     /// Build the function object.
     #[inline]
-    pub fn build(self) -> JsObject {
+    pub fn build(self) -> JsFunction {
         let function = JsObject::from_proto_and_data(
             self.context
                 .intrinsics()
@@ -1532,7 +1534,7 @@ impl<'context> FunctionBuilder<'context> {
         function.insert_property("length", property.clone().value(self.length));
         function.insert_property("name", property.value(self.name));
 
-        function
+        JsFunction::from_object_unchecked(function)
     }
 
     /// Initializes the `Function.prototype` function object.
@@ -1817,8 +1819,8 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn accessor<K>(
         &mut self,
         key: K,
-        get: Option<JsObject>,
-        set: Option<JsObject>,
+        get: Option<JsFunction>,
+        set: Option<JsFunction>,
         attribute: Attribute,
     ) -> &mut Self
     where
@@ -1838,8 +1840,8 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn static_accessor<K>(
         &mut self,
         key: K,
-        get: Option<JsObject>,
-        set: Option<JsObject>,
+        get: Option<JsFunction>,
+        set: Option<JsFunction>,
         attribute: Attribute,
     ) -> &mut Self
     where
@@ -1952,7 +1954,7 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Build the constructor function object.
-    pub fn build(&mut self) -> JsObject {
+    pub fn build(&mut self) -> JsFunction {
         // Create the native function
         let function = Function::Native {
             function: self.function,
@@ -2024,6 +2026,6 @@ impl<'context> ConstructorBuilder<'context> {
             }
         }
 
-        self.object.clone()
+        JsFunction::from_object_unchecked(self.object.clone())
     }
 }
