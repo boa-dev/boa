@@ -525,6 +525,8 @@
 <span id="523">523</span>
 <span id="524">524</span>
 <span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::Position</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -560,11 +562,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="doccomment">/// Returns if strict mode is currently active.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">strict_mode</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="doccomment">/// Sets the current strict mode.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
         <span class="self">self</span>.<span class="ident">strict_mode</span> <span class="op">=</span> <span class="ident">strict_mode</span>;
     }

@@ -219,6 +219,13 @@
 <span id="217">217</span>
 <span id="218">218</span>
 <span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -234,9 +241,11 @@
 <span class="kw">mod</span> <span class="ident">function_decl</span>;
 <span class="kw">mod</span> <span class="ident">generator_decl</span>;
 
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">mod</span> <span class="ident">class_decl</span>;
+
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">async_function_decl::AsyncFunctionDeclaration</span>, <span class="ident">async_generator_decl::AsyncGeneratorDeclaration</span>,
-    <span class="ident">generator_decl::GeneratorDeclaration</span>,
+    <span class="ident">class_decl::ClassDeclaration</span>, <span class="ident">generator_decl::GeneratorDeclaration</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast::node</span>::{<span class="ident">FormalParameterList</span>, <span class="ident">StatementList</span>},
@@ -321,6 +330,11 @@
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                         .<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 }
+            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Class</span>) =&gt; {
+                <span class="ident">ClassDeclaration::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">is_default</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
+                    .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(<span class="string">&quot;unknown token found: {:?}&quot;</span>, <span class="ident">tok</span>),
         }

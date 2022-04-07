@@ -81,6 +81,9 @@
 <span id="79">79</span>
 <span id="80">80</span>
 <span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -104,6 +107,9 @@
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
+
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> <span class="ident">hoistable::class_decl::ClassTail</span>;
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">use</span> <span class="ident">hoistable::class_decl::PrivateElement</span>;
 
 <span class="doccomment">/// Parses a declaration.</span>
 <span class="doccomment">///</span>
@@ -147,7 +153,7 @@
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span> <span class="op">|</span> <span class="ident">Keyword::Class</span>) =&gt; {
                 <span class="ident">HoistableDeclaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             }

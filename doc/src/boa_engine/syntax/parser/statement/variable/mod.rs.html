@@ -255,8 +255,6 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable statement parsing.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
@@ -279,7 +277,7 @@
 
 <span class="doccomment">/// Variable statement parsing.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// A varible statement contains the `var` keyword.</span>
+<span class="doccomment">/// A variable statement contains the `var` keyword.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [MDN documentation][mdn]</span>
@@ -491,7 +489,6 @@
 
                 <span class="prelude-val">Ok</span>(<span class="ident">Declaration::new_with_array_pattern</span>(<span class="ident">bindings</span>, <span class="ident">init</span>))
             }
-
             <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
@@ -508,7 +505,6 @@
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
-
                 <span class="prelude-val">Ok</span>(<span class="ident">Declaration::new_with_identifier</span>(<span class="ident">ident</span>, <span class="ident">init</span>))
             }
         }

@@ -396,6 +396,21 @@
 <span id="394">394</span>
 <span id="395">395</span>
 <span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">mod</span> <span class="ident">parameters</span>;
@@ -421,6 +436,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">try_node</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">r#yield</span>;
 
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::field::get_private_field::GetPrivateField</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">array::ArrayDecl</span>,
     <span class="ident">await_expr::AwaitExpr</span>,
@@ -429,9 +445,9 @@
     <span class="ident">conditional</span>::{<span class="ident">ConditionalOp</span>, <span class="ident">If</span>},
     <span class="ident">declaration</span>::{
         <span class="ident">async_generator_decl::AsyncGeneratorDecl</span>, <span class="ident">async_generator_expr::AsyncGeneratorExpr</span>,
-        <span class="ident">generator_decl::GeneratorDecl</span>, <span class="ident">generator_expr::GeneratorExpr</span>, <span class="ident">ArrowFunctionDecl</span>,
-        <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>, <span class="ident">DeclarationPattern</span>,
-        <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>,
+        <span class="ident">class_decl::Class</span>, <span class="ident">generator_decl::GeneratorDecl</span>, <span class="ident">generator_expr::GeneratorExpr</span>,
+        <span class="ident">ArrowFunctionDecl</span>, <span class="ident">AsyncFunctionDecl</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>,
+        <span class="ident">DeclarationPattern</span>, <span class="ident">FunctionDecl</span>, <span class="ident">FunctionExpr</span>,
     },
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
     <span class="ident">identifier::Identifier</span>,
@@ -533,6 +549,9 @@
     <span class="doccomment">/// Provides access to an object types&#39; constant properties. [More information](./declaration/struct.GetConstField.html).</span>
     <span class="ident">GetConstField</span>(<span class="ident">GetConstField</span>),
 
+    <span class="doccomment">/// Provides access to an object types&#39; private properties. [More information](./declaration/struct.GetPrivateField.html).</span>
+    <span class="ident">GetPrivateField</span>(<span class="ident">GetPrivateField</span>),
+
     <span class="doccomment">/// Provides access to object fields. [More information](./declaration/struct.GetField.html).</span>
     <span class="ident">GetField</span>(<span class="ident">GetField</span>),
 
@@ -624,6 +643,12 @@
 
     <span class="doccomment">/// A generator function expression node. [More information](./declaration/struct.GeneratorExpr.html).</span>
     <span class="ident">GeneratorExpr</span>(<span class="ident">GeneratorExpr</span>),
+
+    <span class="doccomment">/// A class declaration. [More information](./declaration/struct.class_decl.Class.html).</span>
+    <span class="ident">ClassDecl</span>(<span class="ident">Class</span>),
+
+    <span class="doccomment">/// A class declaration. [More information](./declaration/struct.class_decl.Class.html).</span>
+    <span class="ident">ClassExpr</span>(<span class="ident">Class</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Const</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
@@ -694,6 +719,9 @@
             <span class="ident"><span class="self">Self</span>::GetConstField</span>(<span class="kw-2">ref</span> <span class="ident">get_const_field</span>) =&gt; {
                 <span class="ident">get_const_field</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)
             }
+            <span class="ident"><span class="self">Self</span>::GetPrivateField</span>(<span class="kw-2">ref</span> <span class="ident">get_private_field</span>) =&gt; {
+                <span class="ident">get_private_field</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)
+            }
             <span class="ident"><span class="self">Self</span>::GetField</span>(<span class="kw-2">ref</span> <span class="ident">get_field</span>) =&gt; <span class="ident">get_field</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="ident"><span class="self">Self</span>::WhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">while_loop</span>) =&gt; <span class="ident">while_loop</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident"><span class="self">Self</span>::DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="ident">do_while</span>) =&gt; <span class="ident">do_while</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
@@ -724,6 +752,8 @@
             <span class="ident"><span class="self">Self</span>::GeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident"><span class="self">Self</span>::AsyncGeneratorExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident"><span class="self">Self</span>::AsyncGeneratorDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::ClassDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident"><span class="self">Self</span>::ClassExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
         }
     }
 }

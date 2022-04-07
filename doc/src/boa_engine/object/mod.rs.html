@@ -1928,6 +1928,77 @@
 <span id="1926">1926</span>
 <span id="1927">1927</span>
 <span id="1928">1928</span>
+<span id="1929">1929</span>
+<span id="1930">1930</span>
+<span id="1931">1931</span>
+<span id="1932">1932</span>
+<span id="1933">1933</span>
+<span id="1934">1934</span>
+<span id="1935">1935</span>
+<span id="1936">1936</span>
+<span id="1937">1937</span>
+<span id="1938">1938</span>
+<span id="1939">1939</span>
+<span id="1940">1940</span>
+<span id="1941">1941</span>
+<span id="1942">1942</span>
+<span id="1943">1943</span>
+<span id="1944">1944</span>
+<span id="1945">1945</span>
+<span id="1946">1946</span>
+<span id="1947">1947</span>
+<span id="1948">1948</span>
+<span id="1949">1949</span>
+<span id="1950">1950</span>
+<span id="1951">1951</span>
+<span id="1952">1952</span>
+<span id="1953">1953</span>
+<span id="1954">1954</span>
+<span id="1955">1955</span>
+<span id="1956">1956</span>
+<span id="1957">1957</span>
+<span id="1958">1958</span>
+<span id="1959">1959</span>
+<span id="1960">1960</span>
+<span id="1961">1961</span>
+<span id="1962">1962</span>
+<span id="1963">1963</span>
+<span id="1964">1964</span>
+<span id="1965">1965</span>
+<span id="1966">1966</span>
+<span id="1967">1967</span>
+<span id="1968">1968</span>
+<span id="1969">1969</span>
+<span id="1970">1970</span>
+<span id="1971">1971</span>
+<span id="1972">1972</span>
+<span id="1973">1973</span>
+<span id="1974">1974</span>
+<span id="1975">1975</span>
+<span id="1976">1976</span>
+<span id="1977">1977</span>
+<span id="1978">1978</span>
+<span id="1979">1979</span>
+<span id="1980">1980</span>
+<span id="1981">1981</span>
+<span id="1982">1982</span>
+<span id="1983">1983</span>
+<span id="1984">1984</span>
+<span id="1985">1985</span>
+<span id="1986">1986</span>
+<span id="1987">1987</span>
+<span id="1988">1988</span>
+<span id="1989">1989</span>
+<span id="1990">1990</span>
+<span id="1991">1991</span>
+<span id="1992">1992</span>
+<span id="1993">1993</span>
+<span id="1994">1994</span>
+<span id="1995">1995</span>
+<span id="1996">1996</span>
+<span id="1997">1997</span>
+<span id="1998">1998</span>
+<span id="1999">1999</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -1975,6 +2046,8 @@
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">any::Any</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>},
@@ -2036,6 +2109,18 @@
     <span class="ident">prototype</span>: <span class="ident">JsPrototype</span>,
     <span class="doccomment">/// Whether it can have new properties added to it.</span>
     <span class="ident">extensible</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// The `[[PrivateElements]]` internal slot.</span>
+    <span class="ident">private_elements</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">PrivateElement</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// The representation of private object elements.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">PrivateElement</span> {
+    <span class="ident">Value</span>(<span class="ident">JsValue</span>),
+    <span class="ident">Accessor</span> {
+        <span class="ident">getter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="ident">setter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+    },
 }
 
 <span class="doccomment">/// Defines the kind of an object and its internal methods</span>
@@ -2389,6 +2474,7 @@
             <span class="ident">properties</span>: <span class="ident">PropertyMap::default</span>(),
             <span class="ident">prototype</span>: <span class="prelude-val">None</span>,
             <span class="ident">extensible</span>: <span class="bool-val">true</span>,
+            <span class="ident">private_elements</span>: <span class="ident">FxHashMap::default</span>(),
         }
     }
 }
@@ -3148,6 +3234,62 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PropertyDescriptor</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">properties</span>.<span class="ident">remove</span>(<span class="ident">key</span>)
+    }
+
+    <span class="doccomment">/// Get a private element.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_private_element</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PrivateElement</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">private_elements</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>)
+    }
+
+    <span class="doccomment">/// Set a private element.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_private_element</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">value</span>: <span class="ident">PrivateElement</span>) {
+        <span class="self">self</span>.<span class="ident">private_elements</span>.<span class="ident">insert</span>(<span class="ident">name</span>, <span class="ident">value</span>);
+    }
+
+    <span class="doccomment">/// Set a private setter.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_private_element_setter</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">setter</span>: <span class="ident">JsObject</span>) {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">private_elements</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Accessor</span> {
+                <span class="ident">getter</span>: <span class="kw">_</span>,
+                <span class="ident">setter</span>: <span class="ident">s</span>,
+            }) =&gt; {
+                <span class="kw-2">*</span><span class="ident">s</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">setter</span>);
+            }
+            <span class="kw">_</span> =&gt; {
+                <span class="self">self</span>.<span class="ident">private_elements</span>.<span class="ident">insert</span>(
+                    <span class="ident">name</span>,
+                    <span class="ident">PrivateElement::Accessor</span> {
+                        <span class="ident">getter</span>: <span class="prelude-val">None</span>,
+                        <span class="ident">setter</span>: <span class="prelude-val">Some</span>(<span class="ident">setter</span>),
+                    },
+                );
+            }
+        }
+    }
+
+    <span class="doccomment">/// Set a private getter.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_private_element_getter</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">getter</span>: <span class="ident">JsObject</span>) {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">private_elements</span>.<span class="ident">get_mut</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+            <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Accessor</span> {
+                <span class="ident">getter</span>: <span class="ident">g</span>,
+                <span class="ident">setter</span>: <span class="kw">_</span>,
+            }) =&gt; {
+                <span class="kw-2">*</span><span class="ident">g</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">getter</span>);
+            }
+            <span class="kw">_</span> =&gt; {
+                <span class="self">self</span>.<span class="ident">private_elements</span>.<span class="ident">insert</span>(
+                    <span class="ident">name</span>,
+                    <span class="ident">PrivateElement::Accessor</span> {
+                        <span class="ident">getter</span>: <span class="prelude-val">Some</span>(<span class="ident">getter</span>),
+                        <span class="ident">setter</span>: <span class="prelude-val">None</span>,
+                    },
+                );
+            }
+        }
     }
 }
 

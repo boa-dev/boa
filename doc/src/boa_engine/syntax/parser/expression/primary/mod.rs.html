@@ -217,6 +217,12 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -226,22 +232,25 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#Primary_expressions</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression</span>
 
-<span class="kw">mod</span> <span class="ident">array_initializer</span>;
-<span class="kw">mod</span> <span class="ident">async_function_expression</span>;
-<span class="kw">mod</span> <span class="ident">async_generator_expression</span>;
-<span class="kw">mod</span> <span class="ident">function_expression</span>;
-<span class="kw">mod</span> <span class="ident">generator_expression</span>;
-<span class="kw">mod</span> <span class="ident">object_initializer</span>;
-<span class="kw">mod</span> <span class="ident">template</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="kw">mod</span> <span class="ident">array_initializer</span>;
+<span class="kw">mod</span> <span class="ident">async_function_expression</span>;
+<span class="kw">mod</span> <span class="ident">async_generator_expression</span>;
+<span class="kw">mod</span> <span class="ident">class_expression</span>;
+<span class="kw">mod</span> <span class="ident">function_expression</span>;
+<span class="kw">mod</span> <span class="ident">generator_expression</span>;
+<span class="kw">mod</span> <span class="ident">template</span>;
+
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">mod</span> <span class="ident">object_initializer</span>;
+
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">array_initializer::ArrayLiteral</span>, <span class="ident">async_function_expression::AsyncFunctionExpression</span>,
-    <span class="ident">async_generator_expression::AsyncGeneratorExpression</span>, <span class="ident">function_expression::FunctionExpression</span>,
-    <span class="ident">generator_expression::GeneratorExpression</span>, <span class="ident">object_initializer::ObjectLiteral</span>,
+    <span class="ident">async_generator_expression::AsyncGeneratorExpression</span>, <span class="ident">class_expression::ClassExpression</span>,
+    <span class="ident">function_expression::FunctionExpression</span>, <span class="ident">generator_expression::GeneratorExpression</span>,
+    <span class="ident">object_initializer::ObjectLiteral</span>,
 };
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Expression</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{<span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>, <span class="ident">Node</span>},
@@ -249,8 +258,8 @@
     },
     <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
-        <span class="ident">expression::primary::template::TemplateLiteral</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
-        <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">expression</span>::{<span class="ident">primary::template::TemplateLiteral</span>, <span class="ident">Expression</span>},
+        <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
@@ -316,6 +325,9 @@
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                         .<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 }
+            }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Class</span>) =&gt; {
+                <span class="ident">ClassExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             }
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">mul_peek</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;

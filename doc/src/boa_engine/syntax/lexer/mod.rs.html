@@ -336,6 +336,11 @@
 <span id="334">334</span>
 <span id="335">335</span>
 <span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A lexical analyzer for JavaScript source code.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains the Boa lexer or tokenizer implementation.</span>
@@ -358,6 +363,7 @@
 <span class="kw">mod</span> <span class="ident">identifier</span>;
 <span class="kw">mod</span> <span class="ident">number</span>;
 <span class="kw">mod</span> <span class="ident">operator</span>;
+<span class="kw">mod</span> <span class="ident">private_identifier</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regex</span>;
 <span class="kw">mod</span> <span class="ident">spread</span>;
 <span class="kw">mod</span> <span class="ident">string</span>;
@@ -373,6 +379,7 @@
     <span class="ident">identifier::Identifier</span>,
     <span class="ident">number::NumberLiteral</span>,
     <span class="ident">operator::Operator</span>,
+    <span class="ident">private_identifier::PrivateIdentifier</span>,
     <span class="ident">regex::RegexLiteral</span>,
     <span class="ident">spread::SpreadLiteral</span>,
     <span class="ident">string::StringLiteral</span>,
@@ -438,11 +445,13 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="doccomment">/// Returns if strict mode is currently active.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">strict_mode</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">strict_mode</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="doccomment">/// Sets the current strict mode.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) {
         <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict_mode</span>);
     }
@@ -603,6 +612,7 @@
                     <span class="ident">Punctuator::CloseBracket</span>.<span class="ident">into</span>(),
                     <span class="ident">Span::new</span>(<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">cursor</span>.<span class="ident">pos</span>()),
                 )),
+                <span class="string">&#39;#&#39;</span> =&gt; <span class="ident">PrivateIdentifier::new</span>().<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>),
                 <span class="string">&#39;/&#39;</span> =&gt; <span class="self">self</span>.<span class="ident">lex_slash_token</span>(<span class="ident">start</span>, <span class="ident">interner</span>),
                 <span class="string">&#39;=&#39;</span> <span class="op">|</span> <span class="string">&#39;*&#39;</span> <span class="op">|</span> <span class="string">&#39;+&#39;</span> <span class="op">|</span> <span class="string">&#39;-&#39;</span> <span class="op">|</span> <span class="string">&#39;%&#39;</span> <span class="op">|</span> <span class="string">&#39;|&#39;</span> <span class="op">|</span> <span class="string">&#39;&amp;&#39;</span> <span class="op">|</span> <span class="string">&#39;^&#39;</span> <span class="op">|</span> <span class="string">&#39;&lt;&#39;</span> <span class="op">|</span> <span class="string">&#39;&gt;&#39;</span> <span class="op">|</span> <span class="string">&#39;!&#39;</span> <span class="op">|</span> <span class="string">&#39;~&#39;</span> <span class="op">|</span> <span class="string">&#39;?&#39;</span> =&gt; {
                     <span class="ident">Operator::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)

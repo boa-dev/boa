@@ -681,6 +681,12 @@
 <span id="679">679</span>
 <span id="680">680</span>
 <span id="681">681</span>
+<span id="682">682</span>
+<span id="683">683</span>
+<span id="684">684</span>
+<span id="685">685</span>
+<span id="686">686</span>
+<span id="687">687</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -715,6 +721,12 @@
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assignment::AssignmentExpression</span>, <span class="ident">primary::Initializer</span>};
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">mod</span> <span class="ident">await_expr</span>;
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> {
+    <span class="ident">left_hand_side::LeftHandSideExpression</span>,
+    <span class="ident">primary::object_initializer</span>::{
+        <span class="ident">AsyncGeneratorMethod</span>, <span class="ident">AsyncMethod</span>, <span class="ident">GeneratorMethod</span>, <span class="ident">PropertyName</span>,
+    },
+};
 
 <span class="comment">// For use in the expression! macro to allow for both Punctuator and Keyword parameters.</span>
 <span class="comment">// Always returns false.</span>

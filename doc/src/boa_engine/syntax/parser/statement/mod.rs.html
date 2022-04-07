@@ -1127,6 +1127,22 @@
 <span id="1125">1125</span>
 <span id="1126">1126</span>
 <span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1183,6 +1199,9 @@
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">io::Read</span>, <span class="ident">vec</span>};
+
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> <span class="ident">declaration::ClassTail</span>;
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">use</span> <span class="ident">declaration::PrivateElement</span>;
 
 <span class="doccomment">/// Statement parsing.</span>
 <span class="doccomment">///</span>
@@ -1594,7 +1613,7 @@
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span> <span class="op">|</span> <span class="ident">Keyword::Class</span>) =&gt; {
                 <span class="kw">if</span> <span class="ident">strict_mode</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">in_block</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                         <span class="string">&quot;Function declaration in blocks not allowed in strict mode&quot;</span>.<span class="ident">into</span>(),
@@ -1665,6 +1684,18 @@
         <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
+            <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::ARGUMENTS</span>) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() =&gt; {
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                    <span class="string">&quot;unexpected identifier &#39;arguments&#39; in strict mode&quot;</span>.<span class="ident">into</span>(),
+                    <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                )))
+            }
+            <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::EVAL</span>) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() =&gt; {
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                    <span class="string">&quot;unexpected identifier &#39;eval&#39; in strict mode&quot;</span>.<span class="ident">into</span>(),
+                    <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                )))
+            }
             <span class="ident">TokenKind::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">s</span>),
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                 <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.</span>
@@ -1683,6 +1714,7 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">Sym::YIELD</span>)
                 }
             }
+            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">arrow</span>() =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Sym::AWAIT</span>),
             <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
                 <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.</span>
                 <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
@@ -1803,7 +1835,7 @@
                 <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
                     <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
-                            <span class="prelude-val">None</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">property_name</span>),
                             <span class="self">self</span>.<span class="ident">allow_in</span>,
                             <span class="self">self</span>.<span class="ident">allow_yield</span>,
                             <span class="self">self</span>.<span class="ident">allow_await</span>,
@@ -2214,7 +2246,7 @@
                     {
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                             <span class="kw">let</span> <span class="ident">default_init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
-                                <span class="prelude-val">None</span>,
+                                <span class="prelude-val">Some</span>(<span class="ident">ident</span>),
                                 <span class="self">self</span>.<span class="ident">allow_in</span>,
                                 <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                 <span class="self">self</span>.<span class="ident">allow_await</span>,

@@ -370,11 +370,35 @@
 <span id="368">368</span>
 <span id="369">369</span>
 <span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object node.</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{
-    <span class="ident">declaration::block_to_string</span>, <span class="ident">join_nodes</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">AsyncGeneratorExpr</span>, <span class="ident">FunctionExpr</span>,
-    <span class="ident">GeneratorExpr</span>, <span class="ident">Node</span>,
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
+    <span class="ident">node</span>::{
+        <span class="ident">declaration::block_to_string</span>, <span class="ident">join_nodes</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">AsyncGeneratorExpr</span>,
+        <span class="ident">FunctionExpr</span>, <span class="ident">GeneratorExpr</span>, <span class="ident">Node</span>,
+    },
+    <span class="ident">Const</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
@@ -714,6 +738,24 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName</span>
     <span class="ident">Computed</span>(<span class="ident">Node</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">PropertyName</span> {
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">literal</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Literal</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">sym</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">prop_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">PropertyName::Literal</span>(<span class="ident">sym</span>)
+            <span class="op">|</span> <span class="ident">PropertyName::Computed</span>(<span class="ident">Node::Const</span>(<span class="ident">Const::String</span>(<span class="ident">sym</span>))) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">sym</span>),
+            <span class="ident">PropertyName::Computed</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PropertyName</span> {

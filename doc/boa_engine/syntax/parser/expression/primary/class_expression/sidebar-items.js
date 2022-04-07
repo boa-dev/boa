@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ClassExpression","Class expression parsing."]]});

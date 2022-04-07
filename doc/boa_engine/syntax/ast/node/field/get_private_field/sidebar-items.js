@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["GetPrivateField","This property accessor provides access to an class object’s private fields."]]});

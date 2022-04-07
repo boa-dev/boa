@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PrivateElement","Representation of private object elements."]],"struct":[["ClassBody","`ClassBody` parsing."],["ClassDeclaration","Class declaration parsing."],["ClassElement","`ClassElement` parsing."],["ClassHeritage","`ClassHeritage` parsing."],["ClassTail","Class Tail parsing."]]});
