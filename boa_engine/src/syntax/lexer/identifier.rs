@@ -10,9 +10,7 @@ use boa_profiler::Profiler;
 use boa_unicode::UnicodeProperties;
 use std::{io::Read, str};
 
-const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 11] = [
-    "eval",
-    "arguments",
+const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 9] = [
     "implements",
     "interface",
     "let",
@@ -133,7 +131,7 @@ impl<R> Tokenizer<R> for Identifier {
 
 impl Identifier {
     #[inline]
-    fn take_identifier_name<R>(
+    pub(super) fn take_identifier_name<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
         init: char,

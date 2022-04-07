@@ -7,22 +7,25 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#Primary_expressions
 //! [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 
-mod array_initializer;
-mod async_function_expression;
-mod async_generator_expression;
-mod function_expression;
-mod generator_expression;
-mod object_initializer;
-mod template;
 #[cfg(test)]
 mod tests;
 
+mod array_initializer;
+mod async_function_expression;
+mod async_generator_expression;
+mod class_expression;
+mod function_expression;
+mod generator_expression;
+mod template;
+
+pub(in crate::syntax::parser) mod object_initializer;
+
 use self::{
     array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
-    async_generator_expression::AsyncGeneratorExpression, function_expression::FunctionExpression,
-    generator_expression::GeneratorExpression, object_initializer::ObjectLiteral,
+    async_generator_expression::AsyncGeneratorExpression, class_expression::ClassExpression,
+    function_expression::FunctionExpression, generator_expression::GeneratorExpression,
+    object_initializer::ObjectLiteral,
 };
-use super::Expression;
 use crate::syntax::{
     ast::{
         node::{Call, Identifier, New, Node},
@@ -30,8 +33,8 @@ use crate::syntax::{
     },
     lexer::{token::Numeric, InputElement, TokenKind},
     parser::{
-        expression::primary::template::TemplateLiteral, AllowAwait, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        expression::{primary::template::TemplateLiteral, Expression},
+        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -97,6 +100,9 @@ where
                         .parse(cursor, interner)
                         .map(Node::from)
                 }
+            }
+            TokenKind::Keyword(Keyword::Class) => {
+                ClassExpression::new(self.name, false, false).parse(cursor, interner)
             }
             TokenKind::Keyword(Keyword::Async) => {
                 let mul_peek = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;

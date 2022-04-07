@@ -3,7 +3,8 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    builtins::{iterable::IteratorRecord, Array, ForInIterator, Number},
+    builtins::{function::Function, iterable::IteratorRecord, Array, ForInIterator, Number},
+    object::PrivateElement,
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::Numeric,
     vm::{
@@ -187,6 +188,22 @@ impl Context {
                 self.vm.push(value);
             }
             Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
+            Opcode::PushClassPrototype => {
+                let superclass = self.vm.pop();
+                if superclass.is_null() {
+                    self.vm.push(JsValue::Null);
+                }
+                if let Some(superclass) = superclass.as_constructor() {
+                    let proto = superclass.get("prototype", self)?;
+                    if !proto.is_object() && !proto.is_null() {
+                        return self
+                            .throw_type_error("superclass prototype must be an object or null");
+                    }
+                    self.vm.push(proto);
+                } else {
+                    return self.throw_type_error("superclass must be a constructor");
+                }
+            }
             Opcode::PushNewArray => {
                 let array = Array::array_create(0, None, self)
                     .expect("Array creation with 0 length should never fail");
@@ -636,7 +653,6 @@ impl Context {
             }
             Opcode::DefineOwnPropertyByName => {
                 let index = self.vm.read::<u32>();
-
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = if let Some(object) = object.as_object() {
@@ -644,16 +660,36 @@ impl Context {
                 } else {
                     object.to_object(self)?
                 };
-
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name);
-
                 object.__define_own_property__(
                     name.into(),
                     PropertyDescriptor::builder()
                         .value(value)
                         .writable(true)
                         .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::DefineClassMethodByName => {
+                let index = self.vm.read::<u32>();
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = if let Some(object) = object.as_object() {
+                    object.clone()
+                } else {
+                    object.to_object(self)?
+                };
+                let name = self.vm.frame().code.names[index as usize];
+                let name = self.interner().resolve_expect(name);
+                object.__define_own_property__(
+                    name.into(),
+                    PropertyDescriptor::builder()
+                        .value(value)
+                        .writable(true)
+                        .enumerable(false)
                         .configurable(true)
                         .build(),
                     self,
@@ -686,9 +722,7 @@ impl Context {
                 } else {
                     object.to_object(self)?
                 };
-
                 let key = key.to_property_key(self)?;
-
                 object.__define_own_property__(
                     key,
                     PropertyDescriptor::builder()
@@ -700,12 +734,32 @@ impl Context {
                     self,
                 )?;
             }
+            Opcode::DefineClassMethodByValue => {
+                let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
+                let object = if let Some(object) = object.as_object() {
+                    object.clone()
+                } else {
+                    object.to_object(self)?
+                };
+                let key = key.to_property_key(self)?;
+                object.__define_own_property__(
+                    key,
+                    PropertyDescriptor::builder()
+                        .value(value)
+                        .writable(true)
+                        .enumerable(false)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
             Opcode::SetPropertyGetterByName => {
                 let index = self.vm.read::<u32>();
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
-
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name).into();
                 let set = object
@@ -719,6 +773,29 @@ impl Context {
                         .maybe_get(Some(value))
                         .maybe_set(set)
                         .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::DefineClassGetterByName => {
+                let index = self.vm.read::<u32>();
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = self.vm.frame().code.names[index as usize];
+                let name = self.interner().resolve_expect(name).into();
+                let set = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(PropertyDescriptor::set)
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_get(Some(value))
+                        .maybe_set(set)
+                        .enumerable(false)
                         .configurable(true)
                         .build(),
                     self,
@@ -741,6 +818,28 @@ impl Context {
                         .maybe_get(Some(value))
                         .maybe_set(set)
                         .enumerable(true)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::DefineClassGetterByValue => {
+                let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = key.to_property_key(self)?;
+                let set = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(PropertyDescriptor::set)
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_get(Some(value))
+                        .maybe_set(set)
+                        .enumerable(false)
                         .configurable(true)
                         .build(),
                     self,
@@ -769,6 +868,29 @@ impl Context {
                     self,
                 )?;
             }
+            Opcode::DefineClassSetterByName => {
+                let index = self.vm.read::<u32>();
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = self.vm.frame().code.names[index as usize];
+                let name = self.interner().resolve_expect(name).into();
+                let get = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(PropertyDescriptor::get)
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_set(Some(value))
+                        .maybe_get(get)
+                        .enumerable(false)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
             Opcode::SetPropertySetterByValue => {
                 let value = self.vm.pop();
                 let key = self.vm.pop();
@@ -790,6 +912,125 @@ impl Context {
                         .build(),
                     self,
                 )?;
+            }
+            Opcode::DefineClassSetterByValue => {
+                let value = self.vm.pop();
+                let key = self.vm.pop();
+                let object = self.vm.pop();
+                let object = object.to_object(self)?;
+                let name = key.to_property_key(self)?;
+                let get = object
+                    .__get_own_property__(&name, self)?
+                    .as_ref()
+                    .and_then(PropertyDescriptor::get)
+                    .cloned();
+                object.__define_own_property__(
+                    name,
+                    PropertyDescriptor::builder()
+                        .maybe_set(Some(value))
+                        .maybe_get(get)
+                        .enumerable(false)
+                        .configurable(true)
+                        .build(),
+                    self,
+                )?;
+            }
+            Opcode::SetPrivateValue => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let value = self.vm.pop();
+                let object = self.vm.pop();
+                if let Some(object) = object.as_object() {
+                    let mut object_borrow_mut = object.borrow_mut();
+                    if let Some(PrivateElement::Accessor {
+                        getter: _,
+                        setter: Some(setter),
+                    }) = object_borrow_mut.get_private_element(name)
+                    {
+                        let setter = setter.clone();
+                        drop(object_borrow_mut);
+                        setter.call(&object.clone().into(), &[value], self)?;
+                    } else {
+                        object_borrow_mut.set_private_element(name, PrivateElement::Value(value));
+                    }
+                } else {
+                    return self.throw_type_error("cannot set private property on non-object");
+                }
+            }
+            Opcode::SetPrivateSetter => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let value = self.vm.pop();
+                let value = value.as_callable().expect("setter must be callable");
+                let object = self.vm.pop();
+                if let Some(object) = object.as_object() {
+                    let mut object_borrow_mut = object.borrow_mut();
+                    object_borrow_mut.set_private_element_setter(name, value.clone());
+                } else {
+                    return self.throw_type_error("cannot set private setter on non-object");
+                }
+            }
+            Opcode::SetPrivateGetter => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let value = self.vm.pop();
+                let value = value.as_callable().expect("getter must be callable");
+                let object = self.vm.pop();
+                if let Some(object) = object.as_object() {
+                    let mut object_borrow_mut = object.borrow_mut();
+                    object_borrow_mut.set_private_element_getter(name, value.clone());
+                } else {
+                    return self.throw_type_error("cannot set private getter on non-object");
+                }
+            }
+            Opcode::GetPrivateField => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let value = self.vm.pop();
+                if let Some(object) = value.as_object() {
+                    let object_borrow_mut = object.borrow();
+                    if let Some(element) = object_borrow_mut.get_private_element(name) {
+                        match element {
+                            PrivateElement::Value(value) => self.vm.push(value),
+                            PrivateElement::Accessor {
+                                getter: Some(getter),
+                                setter: _,
+                            } => {
+                                let value = getter.call(&value, &[], self)?;
+                                self.vm.push(value);
+                            }
+                            PrivateElement::Accessor { .. } => {
+                                return self.throw_type_error(
+                                    "private property was defined without a getter",
+                                );
+                            }
+                        }
+                    } else {
+                        return self.throw_type_error("private property does not exist");
+                    }
+                } else {
+                    return self.throw_type_error("cannot read private property from non-object");
+                }
+            }
+            Opcode::PushClassComputedFieldName => {
+                let object = self.vm.pop();
+                let value = self.vm.pop();
+                let value = value.to_property_key(self)?;
+                let object_obj = object
+                    .as_object()
+                    .expect("can only add field to function object");
+                let object = object_obj.borrow();
+                let function = object
+                    .as_function()
+                    .expect("can only add field to function object");
+                if let Function::Ordinary { code, .. } = function {
+                    let code_b = code
+                        .computed_field_names
+                        .as_ref()
+                        .expect("class constructor must have fields");
+                    let mut fields_mut = code_b.borrow_mut();
+                    fields_mut.push(value);
+                }
             }
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();
@@ -824,6 +1065,11 @@ impl Context {
                 let source = self.vm.pop();
                 object.copy_data_properties(&source, excluded_keys, self)?;
                 self.vm.push(value);
+            }
+            Opcode::ToPropertyKey => {
+                let value = self.vm.pop();
+                let key = value.to_property_key(self)?;
+                self.vm.push(key);
             }
             Opcode::Throw => {
                 let value = self.vm.pop();

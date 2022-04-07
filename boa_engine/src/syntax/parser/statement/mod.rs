@@ -55,6 +55,9 @@ use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::{collections::HashSet, io::Read, vec};
 
+pub(in crate::syntax::parser) use declaration::ClassTail;
+pub(in crate::syntax) use declaration::PrivateElement;
+
 /// Statement parsing.
 ///
 /// This can be one of the following:
@@ -465,7 +468,7 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function | Keyword::Async) => {
+            TokenKind::Keyword(Keyword::Function | Keyword::Async | Keyword::Class) => {
                 if strict_mode && self.in_block {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Function declaration in blocks not allowed in strict mode".into(),
@@ -536,6 +539,18 @@ where
         let next_token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match next_token.kind() {
+            TokenKind::Identifier(Sym::ARGUMENTS) if cursor.strict_mode() => {
+                Err(ParseError::lex(LexError::Syntax(
+                    "unexpected identifier 'arguments' in strict mode".into(),
+                    next_token.span().start(),
+                )))
+            }
+            TokenKind::Identifier(Sym::EVAL) if cursor.strict_mode() => {
+                Err(ParseError::lex(LexError::Syntax(
+                    "unexpected identifier 'eval' in strict mode".into(),
+                    next_token.span().start(),
+                )))
+            }
             TokenKind::Identifier(ref s) => Ok(*s),
             TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
@@ -554,6 +569,7 @@ where
                     Ok(Sym::YIELD)
                 }
             }
+            TokenKind::Keyword(Keyword::Await) if cursor.arrow() => Ok(Sym::AWAIT),
             TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                 Err(ParseError::general(
@@ -674,7 +690,7 @@ where
                 match peek_token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
                         let init = Initializer::new(
-                            None,
+                            Some(property_name),
                             self.allow_in,
                             self.allow_yield,
                             self.allow_await,
@@ -1085,7 +1101,7 @@ where
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init = Initializer::new(
-                                None,
+                                Some(ident),
                                 self.allow_in,
                                 self.allow_yield,
                                 self.allow_await,

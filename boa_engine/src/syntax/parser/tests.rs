@@ -414,6 +414,7 @@ fn spread_in_arrow_function() {
                 )]),
                 flags: FormalParameterListFlags::empty()
                     .union(FormalParameterListFlags::HAS_REST_PARAMETER),
+                length: 0,
             },
             vec![Identifier::from(b).into()],
         )

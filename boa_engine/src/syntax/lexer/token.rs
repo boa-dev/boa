@@ -52,11 +52,6 @@ impl Token {
     pub(crate) fn to_string(&self, interner: &Interner) -> String {
         self.kind.to_string(interner)
     }
-
-    /// Converts the token to a string interner symbol.
-    pub(crate) fn to_sym(&self, interner: &mut Interner) -> Sym {
-        self.kind.to_sym(interner)
-    }
 }
 
 /// Represents the type differenct types of numeric literals.
@@ -106,6 +101,9 @@ pub enum TokenKind {
 
     /// An identifier.
     Identifier(Sym),
+
+    /// A private identifier.
+    PrivateIdentifier(Sym),
 
     /// A keyword.
     Keyword(Keyword),
@@ -230,6 +228,7 @@ impl TokenKind {
             Self::BooleanLiteral(val) => val.to_string(),
             Self::EOF => "end of file".to_owned(),
             Self::Identifier(ident) => interner.resolve_expect(ident).to_owned(),
+            Self::PrivateIdentifier(ident) => format!("#{}", interner.resolve_expect(ident)),
             Self::Keyword(word) => word.to_string(),
             Self::NullLiteral => "null".to_owned(),
             Self::NumericLiteral(Numeric::Rational(num)) => num.to_string(),
@@ -249,27 +248,6 @@ impl TokenKind {
             }
             Self::LineTerminator => "line terminator".to_owned(),
             Self::Comment => "comment".to_owned(),
-        }
-    }
-
-    /// Converts the token to a string interner symbol.
-    ///
-    /// This is an optimization to avoid resolving + re-interning strings.
-    pub(crate) fn to_sym(&self, interner: &mut Interner) -> Sym {
-        match *self {
-            Self::BooleanLiteral(_)
-            | Self::NumericLiteral(_)
-            | Self::RegularExpressionLiteral(_, _) => {
-                interner.get_or_intern(&self.to_string(interner))
-            }
-            Self::EOF => interner.get_or_intern_static("end of file"),
-            Self::Identifier(sym) | Self::StringLiteral(sym) => sym,
-            Self::Keyword(word) => interner.get_or_intern_static(word.as_str()),
-            Self::NullLiteral => Sym::NULL,
-            Self::Punctuator(punc) => interner.get_or_intern_static(punc.as_str()),
-            Self::TemplateNoSubstitution(ts) | Self::TemplateMiddle(ts) => ts.as_raw(),
-            Self::LineTerminator => interner.get_or_intern_static("line terminator"),
-            Self::Comment => interner.get_or_intern_static("comment"),
         }
     }
 }

@@ -22,6 +22,7 @@ fn check_basic() {
                     false,
                 )]),
                 flags: FormalParameterListFlags::default(),
+                length: 1,
             },
             vec![Return::new(Identifier::from(interner.get_or_intern_static("a")), None).into()],
         )
@@ -51,6 +52,7 @@ fn check_duplicates_strict_off() {
                 ]),
                 flags: FormalParameterListFlags::default()
                     .union(FormalParameterListFlags::HAS_DUPLICATES),
+                length: 2,
             },
             vec![Return::new(Identifier::from(interner.get_or_intern_static("a")), None).into()],
         )
@@ -84,6 +86,7 @@ fn check_basic_semicolon_insertion() {
                     false,
                 )]),
                 flags: FormalParameterListFlags::default(),
+                length: 1,
             },
             vec![Return::new(Identifier::from(interner.get_or_intern_static("a")), None).into()],
         )
@@ -106,6 +109,7 @@ fn check_empty_return() {
                     false,
                 )]),
                 flags: FormalParameterListFlags::default(),
+                length: 1,
             },
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
         )
@@ -128,6 +132,7 @@ fn check_empty_return_semicolon_insertion() {
                     false,
                 )]),
                 flags: FormalParameterListFlags::default(),
+                length: 1,
             },
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
         )
@@ -157,6 +162,7 @@ fn check_rest_operator() {
                 ]),
                 flags: FormalParameterListFlags::empty()
                     .union(FormalParameterListFlags::HAS_REST_PARAMETER),
+                length: 1,
             },
             vec![],
         )
@@ -180,6 +186,7 @@ fn check_arrow_only_rest() {
                 )]),
                 flags: FormalParameterListFlags::empty()
                     .union(FormalParameterListFlags::HAS_REST_PARAMETER),
+                length: 0,
             },
             vec![],
         )
@@ -213,6 +220,7 @@ fn check_arrow_rest() {
                 ]),
                 flags: FormalParameterListFlags::empty()
                     .union(FormalParameterListFlags::HAS_REST_PARAMETER),
+                length: 2,
             },
             vec![],
         )
@@ -241,6 +249,7 @@ fn check_arrow() {
                     ),
                 ]),
                 flags: FormalParameterListFlags::default(),
+                length: 2,
             },
             vec![Return::new(
                 BinOp::new(
@@ -277,6 +286,7 @@ fn check_arrow_semicolon_insertion() {
                     ),
                 ]),
                 flags: FormalParameterListFlags::default(),
+                length: 2,
             },
             vec![Return::new(
                 BinOp::new(
@@ -313,6 +323,7 @@ fn check_arrow_epty_return() {
                     ),
                 ]),
                 flags: FormalParameterListFlags::default(),
+                length: 2,
             },
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
@@ -341,6 +352,7 @@ fn check_arrow_empty_return_semicolon_insertion() {
                     ),
                 ]),
                 flags: FormalParameterListFlags::default(),
+                length: 2,
             },
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
@@ -369,6 +381,7 @@ fn check_arrow_assignment() {
                                 false,
                             )]),
                             flags: FormalParameterListFlags::default(),
+                            length: 1,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),
@@ -406,6 +419,7 @@ fn check_arrow_assignment_nobrackets() {
                                 false,
                             )]),
                             flags: FormalParameterListFlags::default(),
+                            length: 1,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),
@@ -443,6 +457,7 @@ fn check_arrow_assignment_noparenthesis() {
                                 false,
                             )]),
                             flags: FormalParameterListFlags::default(),
+                            length: 1,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),
@@ -480,6 +495,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                                 false,
                             )]),
                             flags: FormalParameterListFlags::default(),
+                            length: 1,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),
@@ -526,6 +542,7 @@ fn check_arrow_assignment_2arg() {
                                 ),
                             ]),
                             flags: FormalParameterListFlags::default(),
+                            length: 2,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),
@@ -572,6 +589,7 @@ fn check_arrow_assignment_2arg_nobrackets() {
                                 ),
                             ]),
                             flags: FormalParameterListFlags::default(),
+                            length: 2,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),
@@ -625,6 +643,7 @@ fn check_arrow_assignment_3arg() {
                                 ),
                             ]),
                             flags: FormalParameterListFlags::default(),
+                            length: 3,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),
@@ -678,6 +697,7 @@ fn check_arrow_assignment_3arg_nobrackets() {
                                 ),
                             ]),
                             flags: FormalParameterListFlags::default(),
+                            length: 3,
                         },
                         vec![Return::new::<Node, Option<_>, Option<_>>(
                             Some(Identifier::new(interner.get_or_intern_static("a")).into()),

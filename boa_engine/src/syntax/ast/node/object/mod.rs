@@ -1,8 +1,11 @@
 //! Object node.
 
-use crate::syntax::ast::node::{
-    declaration::block_to_string, join_nodes, AsyncFunctionExpr, AsyncGeneratorExpr, FunctionExpr,
-    GeneratorExpr, Node,
+use crate::syntax::ast::{
+    node::{
+        declaration::block_to_string, join_nodes, AsyncFunctionExpr, AsyncGeneratorExpr,
+        FunctionExpr, GeneratorExpr, Node,
+    },
+    Const,
 };
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -342,6 +345,24 @@ pub enum PropertyName {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
     Computed(Node),
+}
+
+impl PropertyName {
+    pub(in crate::syntax) fn literal(&self) -> Option<Sym> {
+        if let Self::Literal(sym) = self {
+            Some(*sym)
+        } else {
+            None
+        }
+    }
+
+    pub(in crate::syntax) fn prop_name(&self) -> Option<Sym> {
+        match self {
+            PropertyName::Literal(sym)
+            | PropertyName::Computed(Node::Const(Const::String(sym))) => Some(*sym),
+            PropertyName::Computed(_) => None,
+        }
+    }
 }
 
 impl ToInternedString for PropertyName {

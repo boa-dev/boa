@@ -29,6 +29,16 @@ fn check_constants() {
     assert_eq!(Sym::SET, sym_from_usize(10));
     assert_eq!(Sym::MAIN, sym_from_usize(11));
     assert_eq!(Sym::RAW, sym_from_usize(12));
+    assert_eq!(Sym::STATIC, sym_from_usize(13));
+    assert_eq!(Sym::PROTOTYPE, sym_from_usize(14));
+    assert_eq!(Sym::CONSTRUCTOR, sym_from_usize(15));
+    assert_eq!(Sym::IMPLEMENTS, sym_from_usize(16));
+    assert_eq!(Sym::INTERFACE, sym_from_usize(17));
+    assert_eq!(Sym::LET, sym_from_usize(18));
+    assert_eq!(Sym::PACKAGE, sym_from_usize(19));
+    assert_eq!(Sym::PRIVATE, sym_from_usize(20));
+    assert_eq!(Sym::PROTECTED, sym_from_usize(21));
+    assert_eq!(Sym::PUBLIC, sym_from_usize(22));
 }
 
 #[test]

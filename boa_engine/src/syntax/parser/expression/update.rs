@@ -83,8 +83,30 @@ where
             _ => {}
         }
 
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         let lhs = LeftHandSideExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
+
+        if cursor.strict_mode() {
+            if let Node::Identifier(ident) = lhs {
+                if ident.sym() == Sym::ARGUMENTS {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "unexpected identifier 'arguments' in strict mode".into(),
+                        position,
+                    )));
+                } else if ident.sym() == Sym::EVAL {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "unexpected identifier 'eval' in strict mode".into(),
+                        position,
+                    )));
+                }
+            }
+        }
+
         let strict = cursor.strict_mode();
         if let Some(tok) = cursor.peek(0, interner)? {
             let token_start = tok.span().start();

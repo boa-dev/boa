@@ -67,16 +67,28 @@ where
         let token_start = tok.span().start();
         match tok.kind() {
             TokenKind::Keyword(Keyword::Delete) => {
-                cursor.next(interner)?.expect("Delete keyword vanished"); // Consume the token.
+                cursor.next(interner)?.expect("Delete keyword vanished");
+                let position = cursor
+                    .peek(0, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
+                    .span()
+                    .start();
                 let val = self.parse(cursor, interner)?;
 
-                if cursor.strict_mode() {
-                    if let Node::Identifier(_) = val {
+                match val {
+                    Node::Identifier(_) if cursor.strict_mode() => {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Delete <variable> statements not allowed in strict mode".into(),
                             token_start,
                         )));
                     }
+                    Node::GetPrivateField(_) => {
+                        return Err(ParseError::general(
+                            "private fields can not be deleted",
+                            position,
+                        ));
+                    }
+                    _ => {}
                 }
 
                 Ok(node::UnaryOp::new(UnaryOp::Delete, val).into())

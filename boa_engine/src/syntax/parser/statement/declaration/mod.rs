@@ -22,6 +22,9 @@ use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
+pub(in crate::syntax::parser) use hoistable::class_decl::ClassTail;
+pub(in crate::syntax) use hoistable::class_decl::PrivateElement;
+
 /// Parses a declaration.
 ///
 /// More information:
@@ -64,7 +67,7 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Function | Keyword::Async) => {
+            TokenKind::Keyword(Keyword::Function | Keyword::Async | Keyword::Class) => {
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
             }

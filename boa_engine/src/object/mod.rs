@@ -45,6 +45,8 @@ use crate::{
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
 use boa_gc::{Finalize, Trace};
+use boa_interner::Sym;
+use rustc_hash::FxHashMap;
 use std::{
     any::Any,
     fmt::{self, Debug, Display},
@@ -106,6 +108,18 @@ pub struct Object {
     prototype: JsPrototype,
     /// Whether it can have new properties added to it.
     extensible: bool,
+    /// The `[[PrivateElements]]` internal slot.
+    private_elements: FxHashMap<Sym, PrivateElement>,
+}
+
+/// The representation of private object elements.
+#[derive(Clone, Debug, Trace, Finalize)]
+pub(crate) enum PrivateElement {
+    Value(JsValue),
+    Accessor {
+        getter: Option<JsObject>,
+        setter: Option<JsObject>,
+    },
 }
 
 /// Defines the kind of an object and its internal methods
@@ -459,6 +473,7 @@ impl Default for Object {
             properties: PropertyMap::default(),
             prototype: None,
             extensible: true,
+            private_elements: FxHashMap::default(),
         }
     }
 }
@@ -1218,6 +1233,62 @@ impl Object {
     #[inline]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         self.properties.remove(key)
+    }
+
+    /// Get a private element.
+    #[inline]
+    pub(crate) fn get_private_element(&self, name: Sym) -> Option<&PrivateElement> {
+        self.private_elements.get(&name)
+    }
+
+    /// Set a private element.
+    #[inline]
+    pub(crate) fn set_private_element(&mut self, name: Sym, value: PrivateElement) {
+        self.private_elements.insert(name, value);
+    }
+
+    /// Set a private setter.
+    #[inline]
+    pub(crate) fn set_private_element_setter(&mut self, name: Sym, setter: JsObject) {
+        match self.private_elements.get_mut(&name) {
+            Some(PrivateElement::Accessor {
+                getter: _,
+                setter: s,
+            }) => {
+                *s = Some(setter);
+            }
+            _ => {
+                self.private_elements.insert(
+                    name,
+                    PrivateElement::Accessor {
+                        getter: None,
+                        setter: Some(setter),
+                    },
+                );
+            }
+        }
+    }
+
+    /// Set a private getter.
+    #[inline]
+    pub(crate) fn set_private_element_getter(&mut self, name: Sym, getter: JsObject) {
+        match self.private_elements.get_mut(&name) {
+            Some(PrivateElement::Accessor {
+                getter: g,
+                setter: _,
+            }) => {
+                *g = Some(getter);
+            }
+            _ => {
+                self.private_elements.insert(
+                    name,
+                    PrivateElement::Accessor {
+                        getter: Some(getter),
+                        setter: None,
+                    },
+                );
+            }
+        }
     }
 }
 

@@ -18,12 +18,36 @@ pub struct FormalParameterList {
     pub(crate) parameters: Box<[FormalParameter]>,
     #[unsafe_ignore_trace]
     pub(crate) flags: FormalParameterListFlags,
+    pub(crate) length: u32,
 }
 
 impl FormalParameterList {
     /// Creates a new formal parameter list.
-    pub(crate) fn new(parameters: Box<[FormalParameter]>, flags: FormalParameterListFlags) -> Self {
-        Self { parameters, flags }
+    pub(crate) fn new(
+        parameters: Box<[FormalParameter]>,
+        flags: FormalParameterListFlags,
+        length: u32,
+    ) -> Self {
+        Self {
+            parameters,
+            flags,
+            length,
+        }
+    }
+
+    /// Creates a new empty formal parameter list.
+    pub(crate) fn empty() -> Self {
+        Self {
+            parameters: Box::new([]),
+            flags: FormalParameterListFlags::default(),
+            length: 0,
+        }
+    }
+
+    /// Returns the length of the parameter list.
+    /// Note that this is not equal to the length of the parameters slice.
+    pub(crate) fn length(&self) -> u32 {
+        self.length
     }
 
     /// Indicates if the parameter list is simple.
@@ -52,6 +76,34 @@ impl FormalParameterList {
     /// Indicates if the parameter list has parameters named 'arguments'.
     pub(crate) fn has_arguments(&self) -> bool {
         self.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
+    }
+}
+
+impl From<FormalParameter> for FormalParameterList {
+    fn from(parameter: FormalParameter) -> Self {
+        let mut flags = FormalParameterListFlags::default();
+        if parameter.is_rest_param() {
+            flags |= FormalParameterListFlags::HAS_REST_PARAMETER;
+        }
+        if parameter.init().is_some() {
+            flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
+        }
+        if parameter.names().contains(&Sym::ARGUMENTS) {
+            flags |= FormalParameterListFlags::HAS_ARGUMENTS;
+        }
+        if parameter.is_rest_param() || parameter.init().is_some() || !parameter.is_identifier() {
+            flags.remove(FormalParameterListFlags::IS_SIMPLE);
+        }
+        let length = if parameter.is_rest_param() || parameter.init().is_some() {
+            0
+        } else {
+            1
+        };
+        Self {
+            parameters: Box::new([parameter]),
+            flags,
+            length,
+        }
     }
 }
 
