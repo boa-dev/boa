@@ -105,8 +105,8 @@ pub enum TokenKind {
     /// A private identifier.
     PrivateIdentifier(Sym),
 
-    /// A keyword.
-    Keyword(Keyword),
+    /// A keyword and a flag if the keyword contains unicode escaped chars.
+    Keyword((Keyword, bool)),
 
     /// A `null` literal.
     NullLiteral,
@@ -142,8 +142,8 @@ impl From<bool> for TokenKind {
     }
 }
 
-impl From<Keyword> for TokenKind {
-    fn from(kw: Keyword) -> Self {
+impl From<(Keyword, bool)> for TokenKind {
+    fn from(kw: (Keyword, bool)) -> Self {
         Self::Keyword(kw)
     }
 }
@@ -174,11 +174,6 @@ impl TokenKind {
     /// Creates an `Identifier` token type.
     pub fn identifier(ident: Sym) -> Self {
         Self::Identifier(ident)
-    }
-
-    /// Creates a `Keyword` token kind.
-    pub fn keyword(keyword: Keyword) -> Self {
-        Self::Keyword(keyword)
     }
 
     /// Creates a `NumericLiteral` token kind.
@@ -229,7 +224,7 @@ impl TokenKind {
             Self::EOF => "end of file".to_owned(),
             Self::Identifier(ident) => interner.resolve_expect(ident).to_owned(),
             Self::PrivateIdentifier(ident) => format!("#{}", interner.resolve_expect(ident)),
-            Self::Keyword(word) => word.to_string(),
+            Self::Keyword((word, _)) => word.to_string(),
             Self::NullLiteral => "null".to_owned(),
             Self::NumericLiteral(Numeric::Rational(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::Integer(num)) => num.to_string(),

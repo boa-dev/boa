@@ -52,7 +52,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("Finally", "Parsing");
-        cursor.expect(Keyword::Finally, "try statement", interner)?;
+        cursor.expect((Keyword::Finally, false), "try statement", interner)?;
         Ok(
             Block::new(self.allow_yield, self.allow_await, self.allow_return)
                 .parse(cursor, interner)?

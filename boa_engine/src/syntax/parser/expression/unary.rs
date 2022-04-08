@@ -66,7 +66,10 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let token_start = tok.span().start();
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Delete) => {
+            TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, true)) => Err(
+                ParseError::general("Keyword must not contain escaped characters", token_start),
+            ),
+            TokenKind::Keyword((Keyword::Delete, false)) => {
                 cursor.next(interner)?.expect("Delete keyword vanished");
                 let position = cursor
                     .peek(0, interner)?
@@ -93,11 +96,11 @@ where
 
                 Ok(node::UnaryOp::new(UnaryOp::Delete, val).into())
             }
-            TokenKind::Keyword(Keyword::Void) => {
+            TokenKind::Keyword((Keyword::Void, false)) => {
                 cursor.next(interner)?.expect("Void keyword vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor, interner)?).into())
             }
-            TokenKind::Keyword(Keyword::TypeOf) => {
+            TokenKind::Keyword((Keyword::TypeOf, false)) => {
                 cursor.next(interner)?.expect("TypeOf keyword vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor, interner)?).into())
             }

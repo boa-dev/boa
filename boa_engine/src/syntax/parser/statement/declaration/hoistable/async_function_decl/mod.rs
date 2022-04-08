@@ -80,9 +80,17 @@ where
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Async, "async function declaration", interner)?;
+        cursor.expect(
+            (Keyword::Async, false),
+            "async function declaration",
+            interner,
+        )?;
         cursor.peek_expect_no_lineterminator(0, "async function declaration", interner)?;
-        cursor.expect(Keyword::Function, "async function declaration", interner)?;
+        cursor.expect(
+            (Keyword::Function, false),
+            "async function declaration",
+            interner,
+        )?;
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 

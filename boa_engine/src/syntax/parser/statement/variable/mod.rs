@@ -60,7 +60,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("VariableStatement", "Parsing");
-        cursor.expect(Keyword::Var, "variable statement", interner)?;
+        cursor.expect((Keyword::Var, false), "variable statement", interner)?;
 
         let decl_list = VariableDeclarationList::new(true, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;

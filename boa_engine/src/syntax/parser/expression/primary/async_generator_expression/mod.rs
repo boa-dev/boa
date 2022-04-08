@@ -59,7 +59,11 @@ where
         let _timer = Profiler::global().start_event("AsyncGeneratorExpression", "Parsing");
 
         cursor.peek_expect_no_lineterminator(0, "async generator expression", interner)?;
-        cursor.expect(Keyword::Function, "async generator expression", interner)?;
+        cursor.expect(
+            (Keyword::Function, false),
+            "async generator expression",
+            interner,
+        )?;
         cursor.expect(
             TokenKind::Punctuator(Punctuator::Mul),
             "async generator expression",

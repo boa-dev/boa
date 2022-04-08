@@ -50,7 +50,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("ThrowStatement", "Parsing");
-        cursor.expect(Keyword::Throw, "throw statement", interner)?;
+        cursor.expect((Keyword::Throw, false), "throw statement", interner)?;
 
         cursor.peek_expect_no_lineterminator(0, "throw statement", interner)?;
 

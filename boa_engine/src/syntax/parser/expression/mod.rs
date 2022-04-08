@@ -98,7 +98,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                             $lower::new($( self.$low_param ),*).parse(cursor, interner)?
                         ).into();
                     }
-                    TokenKind::Keyword(op) if $( op == $op )||* => {
+                    TokenKind::Keyword((op, false)) if $( op == $op )||* => {
                         let _next = cursor.next(interner).expect("token disappeared");
                         lhs = BinOp::new(
                             op.as_binop().expect("Could not get binary operation."),
@@ -540,7 +540,13 @@ where
                     )
                     .into();
                 }
-                TokenKind::Keyword(op)
+                TokenKind::Keyword((Keyword::InstanceOf | Keyword::In, true)) => {
+                    return Err(ParseError::general(
+                        "Keyword must not contain escaped characters",
+                        tok.span().start(),
+                    ));
+                }
+                TokenKind::Keyword((op, false))
                     if op == Keyword::InstanceOf
                         || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
                 {

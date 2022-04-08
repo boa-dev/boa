@@ -161,14 +161,14 @@ where
                         )));
                     }
                     TokenKind::Identifier(ident) => Identifier::new(*ident),
-                    TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+                    TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                         // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                         return Err(ParseError::general(
                             "Unexpected identifier",
                             token.span().start(),
                         ));
                     }
-                    TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+                    TokenKind::Keyword((Keyword::Yield, _)) if !self.allow_yield.0 => {
                         if cursor.strict_mode() {
                             // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
                             return Err(ParseError::general(
@@ -178,14 +178,14 @@ where
                         }
                         Identifier::new(Sym::YIELD)
                     }
-                    TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+                    TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                         // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                         return Err(ParseError::general(
                             "Unexpected identifier",
                             token.span().start(),
                         ));
                     }
-                    TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+                    TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => {
                         if cursor.strict_mode() {
                             // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
                             return Err(ParseError::general(
@@ -215,25 +215,36 @@ where
         }
 
         //Async [AsyncMethod, AsyncGeneratorMethod] object methods
-        if cursor.next_if(Keyword::Async, interner)?.is_some() {
-            cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        match token.kind() {
+            TokenKind::Keyword((Keyword::Async, true)) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::Async, false)) => {
+                cursor.next(interner)?.expect("token disappeared");
+                cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
 
-            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-            if let TokenKind::Punctuator(Punctuator::Mul) = token.kind() {
+                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                if let TokenKind::Punctuator(Punctuator::Mul) = token.kind() {
+                    let (property_name, method) =
+                        AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    return Ok(object::PropertyDefinition::method_definition(
+                        method,
+                        property_name,
+                    ));
+                }
                 let (property_name, method) =
-                    AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                    AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
                 return Ok(object::PropertyDefinition::method_definition(
                     method,
                     property_name,
                 ));
             }
-            let (property_name, method) =
-                AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            return Ok(object::PropertyDefinition::method_definition(
-                method,
-                property_name,
-            ));
+            _ => {}
         }
 
         if cursor
@@ -465,7 +476,7 @@ where
                 Numeric::Integer(num) => Node::Const(Const::from(*num)).into(),
                 Numeric::BigInt(num) => Node::Const(Const::from(num.clone())).into(),
             },
-            TokenKind::Keyword(word) => {
+            TokenKind::Keyword((word, _)) => {
                 Node::Const(Const::from(interner.get_or_intern_static(word.as_str()))).into()
             }
             TokenKind::NullLiteral => Node::Const(Const::from(Sym::NULL)).into(),

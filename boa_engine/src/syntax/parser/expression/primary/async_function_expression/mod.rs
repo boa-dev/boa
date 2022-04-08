@@ -55,7 +55,11 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("AsyncFunctionExpression", "Parsing");
         cursor.peek_expect_no_lineterminator(0, "async function expression", interner)?;
-        cursor.expect(Keyword::Function, "async function expression", interner)?;
+        cursor.expect(
+            (Keyword::Function, false),
+            "async function expression",
+            interner,
+        )?;
 
         let name = match cursor
             .peek(0, interner)?

@@ -57,7 +57,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("Catch", "Parsing");
-        cursor.expect(Keyword::Catch, "try statement", interner)?;
+        cursor.expect((Keyword::Catch, false), "try statement", interner)?;
         let catch_param = if cursor.next_if(Punctuator::OpenParen, interner)?.is_some() {
             let catch_param =
                 CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;

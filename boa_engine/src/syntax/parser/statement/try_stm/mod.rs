@@ -59,25 +59,31 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("TryStatement", "Parsing");
         // TRY
-        cursor.expect(Keyword::Try, "try statement", interner)?;
+        cursor.expect((Keyword::Try, false), "try statement", interner)?;
 
         let try_clause = Block::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-
-        if next_token.kind() != &TokenKind::Keyword(Keyword::Catch)
-            && next_token.kind() != &TokenKind::Keyword(Keyword::Finally)
-        {
-            return Err(ParseError::expected(
-                ["catch".to_owned(), "finally".to_owned()],
-                next_token.to_string(interner),
-                next_token.span(),
-                "try statement",
-            ));
+        match next_token.kind() {
+            TokenKind::Keyword((Keyword::Catch | Keyword::Finally, true)) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    next_token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::Catch | Keyword::Finally, false)) => {}
+            _ => {
+                return Err(ParseError::expected(
+                    ["catch".to_owned(), "finally".to_owned()],
+                    next_token.to_string(interner),
+                    next_token.span(),
+                    "try statement",
+                ));
+            }
         }
 
-        let catch = if next_token.kind() == &TokenKind::Keyword(Keyword::Catch) {
+        let catch = if next_token.kind() == &TokenKind::Keyword((Keyword::Catch, false)) {
             Some(
                 Catch::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?,
@@ -89,7 +95,13 @@ where
         let next_token = cursor.peek(0, interner)?;
         let finally_block = if let Some(token) = next_token {
             match token.kind() {
-                TokenKind::Keyword(Keyword::Finally) => Some(
+                TokenKind::Keyword((Keyword::Finally, true)) => {
+                    return Err(ParseError::general(
+                        "Keyword must not contain escaped characters",
+                        token.span().start(),
+                    ));
+                }
+                TokenKind::Keyword((Keyword::Finally, false)) => Some(
                     Finally::new(self.allow_yield, self.allow_await, self.allow_return)
                         .parse(cursor, interner)?,
                 ),

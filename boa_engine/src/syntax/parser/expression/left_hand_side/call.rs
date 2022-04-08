@@ -94,7 +94,7 @@ where
                         TokenKind::Identifier(name) => {
                             lhs = GetConstField::new(lhs, *name).into();
                         }
-                        TokenKind::Keyword(kw) => {
+                        TokenKind::Keyword((kw, _)) => {
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
                         _ => {

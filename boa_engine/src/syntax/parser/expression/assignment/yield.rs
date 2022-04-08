@@ -58,7 +58,7 @@ where
         let _timer = Profiler::global().start_event("YieldExpression", "Parsing");
 
         cursor.expect(
-            TokenKind::Keyword(Keyword::Yield),
+            TokenKind::Keyword((Keyword::Yield, false)),
             "yield expression",
             interner,
         )?;
@@ -87,7 +87,7 @@ where
                 | Punctuator::OpenBlock
                 | Punctuator::Div,
             )
-            | TokenKind::Keyword(
+            | TokenKind::Keyword((
                 Keyword::Yield
                 | Keyword::Await
                 | Keyword::Delete
@@ -98,7 +98,8 @@ where
                 | Keyword::Function
                 | Keyword::Class
                 | Keyword::Async,
-            )
+                _,
+            ))
             | TokenKind::BooleanLiteral(_)
             | TokenKind::NullLiteral
             | TokenKind::StringLiteral(_)
