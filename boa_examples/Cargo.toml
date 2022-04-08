@@ -11,4 +11,4 @@ edition = "2021"
 [dependencies]
 boa_engine = { path = "../boa_engine", features = ["console"], version = "0.14.0" }
 boa_gc = { path = "../boa_gc", version = "0.14.0" }
-gc = { version = "0.4.1" }
+gc = "0.4.1"
