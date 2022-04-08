@@ -128,7 +128,7 @@ impl ArrayBuffer {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .map(|obj| obj.borrow().is_typed_array())
+            .map(|obj| obj.borrow().has_viewed_array_buffer())
             .unwrap_or_default()
             .into())
     }
