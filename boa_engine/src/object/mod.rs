@@ -519,6 +519,23 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub(crate) fn has_viewed_array_buffer(&self) -> bool {
+        self.is_typed_array() || self.is_data_view()
+    }
+
+    /// Checks if it an `DataView` object.
+    #[inline]
+    pub fn is_data_view(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::DataView(_),
+                ..
+            }
+        )
+    }
+
     /// Checks if it an `ArrayBuffer` object.
     #[inline]
     pub fn is_array_buffer(&self) -> bool {
