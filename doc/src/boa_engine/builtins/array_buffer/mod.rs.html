@@ -951,7 +951,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">args</span>
             .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
             .<span class="ident">as_object</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">is_typed_array</span>())
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">has_viewed_array_buffer</span>())
             .<span class="ident">unwrap_or_default</span>()
             .<span class="ident">into</span>())
     }

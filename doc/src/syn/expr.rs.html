@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.86/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.91/src/expr.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expr.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -3503,6 +3503,45 @@
 <span id="3498">3498</span>
 <span id="3499">3499</span>
 <span id="3500">3500</span>
+<span id="3501">3501</span>
+<span id="3502">3502</span>
+<span id="3503">3503</span>
+<span id="3504">3504</span>
+<span id="3505">3505</span>
+<span id="3506">3506</span>
+<span id="3507">3507</span>
+<span id="3508">3508</span>
+<span id="3509">3509</span>
+<span id="3510">3510</span>
+<span id="3511">3511</span>
+<span id="3512">3512</span>
+<span id="3513">3513</span>
+<span id="3514">3514</span>
+<span id="3515">3515</span>
+<span id="3516">3516</span>
+<span id="3517">3517</span>
+<span id="3518">3518</span>
+<span id="3519">3519</span>
+<span id="3520">3520</span>
+<span id="3521">3521</span>
+<span id="3522">3522</span>
+<span id="3523">3523</span>
+<span id="3524">3524</span>
+<span id="3525">3525</span>
+<span id="3526">3526</span>
+<span id="3527">3527</span>
+<span id="3528">3528</span>
+<span id="3529">3529</span>
+<span id="3530">3530</span>
+<span id="3531">3531</span>
+<span id="3532">3532</span>
+<span id="3533">3533</span>
+<span id="3534">3534</span>
+<span id="3535">3535</span>
+<span id="3536">3536</span>
+<span id="3537">3537</span>
+<span id="3538">3538</span>
+<span id="3539">3539</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::punctuated::Punctuated</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -3592,6 +3631,7 @@
     <span class="doccomment">/// see names getting repeated in your code, like accessing</span>
     <span class="doccomment">/// `receiver.receiver` or `pat.pat` or `cond.cond`.</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>))))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">syn_no_non_exhaustive</span>), <span class="ident">non_exhaustive</span>)]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Expr</span> {
         <span class="doccomment">/// A slice literal expression: `[a, b, c, d]`.</span>
         <span class="ident">Array</span>(<span class="ident">ExprArray</span>),
@@ -3729,18 +3769,17 @@
         <span class="doccomment">/// A yield expression: `yield expr`.</span>
         <span class="ident">Yield</span>(<span class="ident">ExprYield</span>),
 
-        <span class="comment">// The following is the only supported idiom for exhaustive matching of</span>
-        <span class="comment">// this enum.</span>
+        <span class="comment">// Not public API.</span>
+        <span class="comment">//</span>
+        <span class="comment">// For testing exhaustiveness in downstream code, use the following idiom:</span>
         <span class="comment">//</span>
         <span class="comment">//     match expr {</span>
-        <span class="comment">//         Expr::Array(e) =&gt; {...}</span>
-        <span class="comment">//         Expr::Assign(e) =&gt; {...}</span>
+        <span class="comment">//         Expr::Array(expr) =&gt; {...}</span>
+        <span class="comment">//         Expr::Assign(expr) =&gt; {...}</span>
         <span class="comment">//         ...</span>
-        <span class="comment">//         Expr::Yield(e) =&gt; {...}</span>
+        <span class="comment">//         Expr::Yield(expr) =&gt; {...}</span>
         <span class="comment">//</span>
-        <span class="comment">//         #[cfg(test)]</span>
-        <span class="comment">//         Expr::__TestExhaustive(_) =&gt; unimplemented!(),</span>
-        <span class="comment">//         #[cfg(not(test))]</span>
+        <span class="comment">//         #[cfg_attr(test, deny(non_exhaustive_omitted_patterns))]</span>
         <span class="comment">//         _ =&gt; { /* some sane fallback */ }</span>
         <span class="comment">//     }</span>
         <span class="comment">//</span>
@@ -3748,12 +3787,9 @@
         <span class="comment">// a variant. You will be notified by a test failure when a variant is</span>
         <span class="comment">// added, so that you can add code to handle it, but your library will</span>
         <span class="comment">// continue to compile and work for downstream users in the interim.</span>
-        <span class="comment">//</span>
-        <span class="comment">// Once `deny(reachable)` is available in rustc, Expr will be</span>
-        <span class="comment">// reimplemented as a non_exhaustive enum.</span>
-        <span class="comment">// https://github.com/rust-lang/rust/issues/44109#issuecomment-521781237</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">syn_no_non_exhaustive</span>)]</span>
         <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-        <span class="ident">__TestExhaustive</span>(<span class="ident"><span class="kw">crate</span>::private</span>),
+        <span class="ident">__NonExhaustive</span>,
     }
 }
 
@@ -4289,6 +4325,16 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Expr</span> {
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>, <span class="ident">not</span>(<span class="ident">syn_no_const_vec_new</span>)))]</span>
+    <span class="kw">const</span> <span class="ident">DUMMY</span>: <span class="self">Self</span> <span class="op">=</span> <span class="ident">Expr::Path</span>(<span class="ident">ExprPath</span> {
+        <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
+        <span class="ident">qself</span>: <span class="prelude-val">None</span>,
+        <span class="ident">path</span>: <span class="ident">Path</span> {
+            <span class="ident">leading_colon</span>: <span class="prelude-val">None</span>,
+            <span class="ident">segments</span>: <span class="ident">Punctuated::new</span>(),
+        },
+    });
+
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">replace_attrs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">new</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
@@ -4333,9 +4379,7 @@
             <span class="op">|</span> <span class="ident">Expr::Yield</span>(<span class="ident">ExprYield</span> { <span class="ident">attrs</span>, .. }) =&gt; <span class="ident">mem::replace</span>(<span class="ident">attrs</span>, <span class="ident">new</span>),
             <span class="ident">Expr::Verbatim</span>(<span class="kw">_</span>) =&gt; <span class="ident">Vec::new</span>(),
 
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-            <span class="ident">Expr::__TestExhaustive</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">syn_no_non_exhaustive</span>)]</span>
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         }
     }
@@ -4870,6 +4914,7 @@
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">Precedence::Cast</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">base</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">as</span>]) {
                 <span class="kw">let</span> <span class="ident">as_token</span>: <span class="macro">Token!</span>[<span class="kw">as</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Type::without_plus</span>)<span class="question-mark">?</span>;
+                <span class="ident">check_cast</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
                 <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Expr::Cast</span>(<span class="ident">ExprCast</span> {
                     <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                     <span class="ident">expr</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>),
@@ -4879,6 +4924,7 @@
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">Precedence::Cast</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">base</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[:]) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::]) {
                 <span class="kw">let</span> <span class="ident">colon_token</span>: <span class="macro">Token!</span>[:] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Type::without_plus</span>)<span class="question-mark">?</span>;
+                <span class="ident">check_cast</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
                 <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Expr::Type</span>(<span class="ident">ExprType</span> {
                     <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                     <span class="ident">expr</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>),
@@ -4926,6 +4972,7 @@
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">Precedence::Cast</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">base</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">as</span>]) {
                 <span class="kw">let</span> <span class="ident">as_token</span>: <span class="macro">Token!</span>[<span class="kw">as</span>] <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">Type::without_plus</span>)<span class="question-mark">?</span>;
+                <span class="ident">check_cast</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
                 <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Expr::Cast</span>(<span class="ident">ExprCast</span> {
                     <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                     <span class="ident">expr</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>),
@@ -5100,27 +5147,7 @@
 
                 <span class="kw">let</span> <span class="ident">member</span>: <span class="ident">Member</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">turbofish</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">member</span>.<span class="ident">is_named</span>() <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::]) {
-                    <span class="prelude-val">Some</span>(<span class="ident">MethodTurbofish</span> {
-                        <span class="ident">colon2_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                        <span class="ident">lt_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                        <span class="ident">args</span>: {
-                            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
-                            <span class="kw">loop</span> {
-                                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
-                                    <span class="kw">break</span>;
-                                }
-                                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">call</span>(<span class="ident">generic_method_argument</span>)<span class="question-mark">?</span>;
-                                <span class="ident">args</span>.<span class="ident">push_value</span>(<span class="ident">value</span>);
-                                <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
-                                    <span class="kw">break</span>;
-                                }
-                                <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-                                <span class="ident">args</span>.<span class="ident">push_punct</span>(<span class="ident">punct</span>);
-                            }
-                            <span class="ident">args</span>
-                        },
-                        <span class="ident">gt_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
-                    })
+                    <span class="prelude-val">Some</span>(<span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">MethodTurbofish</span><span class="op">&gt;</span>()<span class="question-mark">?</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 };
@@ -5236,6 +5263,12 @@
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">move</span>])
         {
             <span class="ident">expr_closure</span>(<span class="ident">input</span>, <span class="ident">allow_struct</span>).<span class="ident">map</span>(<span class="ident">Expr::Closure</span>)
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="kw">for</span>]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="ident">Lifetime</span>) {
+            <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
+            <span class="ident">input</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">BoundLifetimes</span><span class="op">&gt;</span>()<span class="question-mark">?</span>;
+            <span class="ident">expr_closure</span>(<span class="ident">input</span>, <span class="ident">allow_struct</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">verbatim</span> <span class="op">=</span> <span class="ident">verbatim::between</span>(<span class="ident">begin</span>, <span class="ident">input</span>);
+            <span class="prelude-val">Ok</span>(<span class="ident">Expr::Verbatim</span>(<span class="ident">verbatim</span>))
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Ident</span>)
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::])
             <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>])
@@ -5359,8 +5392,7 @@
         }
 
         <span class="kw">if</span> <span class="ident">allow_struct</span>.<span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Brace</span>) {
-            <span class="kw">let</span> <span class="ident">outer_attrs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">let</span> <span class="ident">expr_struct</span> <span class="op">=</span> <span class="ident">expr_struct_helper</span>(<span class="ident">input</span>, <span class="ident">outer_attrs</span>, <span class="ident">expr</span>.<span class="ident">path</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">expr_struct</span> <span class="op">=</span> <span class="ident">expr_struct_helper</span>(<span class="ident">input</span>, <span class="ident">expr</span>.<span class="ident">path</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">expr</span>.<span class="ident">qself</span>.<span class="ident">is_some</span>() {
                 <span class="prelude-val">Ok</span>(<span class="ident">Expr::Verbatim</span>(<span class="ident">verbatim::between</span>(<span class="ident">begin</span>, <span class="ident">input</span>)))
             } <span class="kw">else</span> {
@@ -5386,10 +5418,9 @@
     <span class="kw">fn</span> <span class="ident">paren_or_tuple</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">content</span>;
         <span class="kw">let</span> <span class="ident">paren_token</span> <span class="op">=</span> <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-        <span class="kw">let</span> <span class="ident">inner_attrs</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute::parse_inner</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Expr::Tuple</span>(<span class="ident">ExprTuple</span> {
-                <span class="ident">attrs</span>: <span class="ident">inner_attrs</span>,
+                <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">paren_token</span>,
                 <span class="ident">elems</span>: <span class="ident">Punctuated::new</span>(),
             }));
@@ -5398,7 +5429,7 @@
         <span class="kw">let</span> <span class="ident">first</span>: <span class="ident">Expr</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Expr::Paren</span>(<span class="ident">ExprParen</span> {
-                <span class="ident">attrs</span>: <span class="ident">inner_attrs</span>,
+                <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">paren_token</span>,
                 <span class="ident">expr</span>: <span class="ident">Box::new</span>(<span class="ident">first</span>),
             }));
@@ -5416,7 +5447,7 @@
             <span class="ident">elems</span>.<span class="ident">push_value</span>(<span class="ident">value</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="ident">Expr::Tuple</span>(<span class="ident">ExprTuple</span> {
-            <span class="ident">attrs</span>: <span class="ident">inner_attrs</span>,
+            <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">paren_token</span>,
             <span class="ident">elems</span>,
         }))
@@ -5426,10 +5457,9 @@
     <span class="kw">fn</span> <span class="ident">array_or_repeat</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Expr</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">content</span>;
         <span class="kw">let</span> <span class="ident">bracket_token</span> <span class="op">=</span> <span class="macro">bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-        <span class="kw">let</span> <span class="ident">inner_attrs</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute::parse_inner</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">is_empty</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Expr::Array</span>(<span class="ident">ExprArray</span> {
-                <span class="ident">attrs</span>: <span class="ident">inner_attrs</span>,
+                <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">bracket_token</span>,
                 <span class="ident">elems</span>: <span class="ident">Punctuated::new</span>(),
             }));
@@ -5449,7 +5479,7 @@
                 <span class="ident">elems</span>.<span class="ident">push_value</span>(<span class="ident">value</span>);
             }
             <span class="prelude-val">Ok</span>(<span class="ident">Expr::Array</span>(<span class="ident">ExprArray</span> {
-                <span class="ident">attrs</span>: <span class="ident">inner_attrs</span>,
+                <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">bracket_token</span>,
                 <span class="ident">elems</span>,
             }))
@@ -5457,7 +5487,7 @@
             <span class="kw">let</span> <span class="ident">semi_token</span>: <span class="macro">Token!</span>[;] <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="ident">len</span>: <span class="ident">Expr</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">Expr::Repeat</span>(<span class="ident">ExprRepeat</span> {
-                <span class="ident">attrs</span>: <span class="ident">inner_attrs</span>,
+                <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">bracket_token</span>,
                 <span class="ident">expr</span>: <span class="ident">Box::new</span>(<span class="ident">first</span>),
                 <span class="ident">semi_token</span>,
@@ -5474,7 +5504,6 @@
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="kw">let</span> <span class="ident">bracket_token</span> <span class="op">=</span> <span class="macro">bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-            <span class="kw">let</span> <span class="ident">inner_attrs</span> <span class="op">=</span> <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute::parse_inner</span>)<span class="question-mark">?</span>;
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
 
             <span class="kw">while</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">is_empty</span>() {
@@ -5488,7 +5517,7 @@
             }
 
             <span class="prelude-val">Ok</span>(<span class="ident">ExprArray</span> {
-                <span class="ident">attrs</span>: <span class="ident">inner_attrs</span>,
+                <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">bracket_token</span>,
                 <span class="ident">elems</span>,
             })
@@ -5502,7 +5531,7 @@
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">ExprRepeat</span> {
                 <span class="ident">bracket_token</span>: <span class="macro">bracketed!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
-                <span class="ident">attrs</span>: <span class="ident">content</span>.<span class="ident">call</span>(<span class="ident">Attribute::parse_inner</span>)<span class="question-mark">?</span>,
+                <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">expr</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">semi_token</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
                 <span class="ident">len</span>: <span class="ident">content</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
@@ -5594,18 +5623,49 @@
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">generic_method_argument</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">GenericMethodArgument</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Lit</span>) {
-            <span class="kw">let</span> <span class="ident">lit</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">GenericMethodArgument::Const</span>(<span class="ident">Expr::Lit</span>(<span class="ident">lit</span>)));
-        }
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
+    <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">GenericMethodArgument</span> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">Lit</span>) {
+                <span class="kw">let</span> <span class="ident">lit</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">GenericMethodArgument::Const</span>(<span class="ident">Expr::Lit</span>(<span class="ident">lit</span>)));
+            }
 
-        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Brace</span>) {
-            <span class="kw">let</span> <span class="ident">block</span>: <span class="ident">ExprBlock</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">GenericMethodArgument::Const</span>(<span class="ident">Expr::Block</span>(<span class="ident">block</span>)));
-        }
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Brace</span>) {
+                <span class="kw">let</span> <span class="ident">block</span>: <span class="ident">ExprBlock</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">GenericMethodArgument::Const</span>(<span class="ident">Expr::Block</span>(<span class="ident">block</span>)));
+            }
 
-        <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">GenericMethodArgument::Type</span>)
+            <span class="ident">input</span>.<span class="ident">parse</span>().<span class="ident">map</span>(<span class="ident">GenericMethodArgument::Type</span>)
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
+    <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">MethodTurbofish</span> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">MethodTurbofish</span> {
+                <span class="ident">colon2_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                <span class="ident">lt_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+                <span class="ident">args</span>: {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
+                    <span class="kw">loop</span> {
+                        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
+                            <span class="kw">break</span>;
+                        }
+                        <span class="kw">let</span> <span class="ident">value</span>: <span class="ident">GenericMethodArgument</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                        <span class="ident">args</span>.<span class="ident">push_value</span>(<span class="ident">value</span>);
+                        <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&gt;</span>]) {
+                            <span class="kw">break</span>;
+                        }
+                        <span class="kw">let</span> <span class="ident">punct</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
+                        <span class="ident">args</span>.<span class="ident">push_punct</span>(<span class="ident">punct</span>);
+                    }
+                    <span class="ident">args</span>
+                },
+                <span class="ident">gt_token</span>: <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>,
+            })
+        }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -5772,18 +5832,19 @@
     }
 
     <span class="macro">impl_by_parsing_expr!</span> {
-        <span class="ident">ExprCall</span>, <span class="ident">Call</span>, <span class="string">&quot;expected function call expression&quot;</span>,
-        <span class="ident">ExprMethodCall</span>, <span class="ident">MethodCall</span>, <span class="string">&quot;expected method call expression&quot;</span>,
-        <span class="ident">ExprTuple</span>, <span class="ident">Tuple</span>, <span class="string">&quot;expected tuple expression&quot;</span>,
-        <span class="ident">ExprBinary</span>, <span class="ident">Binary</span>, <span class="string">&quot;expected binary operation&quot;</span>,
-        <span class="ident">ExprCast</span>, <span class="ident">Cast</span>, <span class="string">&quot;expected cast expression&quot;</span>,
-        <span class="ident">ExprType</span>, <span class="ident">Type</span>, <span class="string">&quot;expected type ascription expression&quot;</span>,
         <span class="ident">ExprAssign</span>, <span class="ident">Assign</span>, <span class="string">&quot;expected assignment expression&quot;</span>,
         <span class="ident">ExprAssignOp</span>, <span class="ident">AssignOp</span>, <span class="string">&quot;expected compound assignment expression&quot;</span>,
+        <span class="ident">ExprAwait</span>, <span class="ident">Await</span>, <span class="string">&quot;expected await expression&quot;</span>,
+        <span class="ident">ExprBinary</span>, <span class="ident">Binary</span>, <span class="string">&quot;expected binary operation&quot;</span>,
+        <span class="ident">ExprCall</span>, <span class="ident">Call</span>, <span class="string">&quot;expected function call expression&quot;</span>,
+        <span class="ident">ExprCast</span>, <span class="ident">Cast</span>, <span class="string">&quot;expected cast expression&quot;</span>,
         <span class="ident">ExprField</span>, <span class="ident">Field</span>, <span class="string">&quot;expected struct field access&quot;</span>,
         <span class="ident">ExprIndex</span>, <span class="ident">Index</span>, <span class="string">&quot;expected indexing expression&quot;</span>,
+        <span class="ident">ExprMethodCall</span>, <span class="ident">MethodCall</span>, <span class="string">&quot;expected method call expression&quot;</span>,
         <span class="ident">ExprRange</span>, <span class="ident">Range</span>, <span class="string">&quot;expected range expression&quot;</span>,
         <span class="ident">ExprTry</span>, <span class="ident">Try</span>, <span class="string">&quot;expected try expression&quot;</span>,
+        <span class="ident">ExprTuple</span>, <span class="ident">Tuple</span>, <span class="string">&quot;expected tuple expression&quot;</span>,
+        <span class="ident">ExprType</span>, <span class="ident">Type</span>, <span class="string">&quot;expected type ascription expression&quot;</span>,
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
@@ -6000,9 +6061,7 @@
                 <span class="ident">Pat::Verbatim</span>(<span class="kw">_</span>) =&gt; {}
                 <span class="ident">Pat::Wild</span>(<span class="ident">pat</span>) =&gt; <span class="ident">pat</span>.<span class="ident">attrs</span> <span class="op">=</span> <span class="ident">attrs</span>,
 
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-                <span class="ident">Pat::__TestExhaustive</span>(<span class="kw">_</span>) =&gt; <span class="macro">unimplemented!</span>(),
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">test</span>))]</span>
+                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">syn_no_non_exhaustive</span>)]</span>
                 <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
             }
             <span class="prelude-val">Ok</span>(<span class="ident">pat</span>)
@@ -6144,27 +6203,21 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">ExprStruct</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
             <span class="kw">let</span> <span class="ident">path</span>: <span class="ident">Path</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-            <span class="ident">expr_struct_helper</span>(<span class="ident">input</span>, <span class="ident">attrs</span>, <span class="ident">path</span>)
+            <span class="ident">expr_struct_helper</span>(<span class="ident">input</span>, <span class="ident">path</span>)
         }
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">expr_struct_helper</span>(
-        <span class="ident">input</span>: <span class="ident">ParseStream</span>,
-        <span class="kw-2">mut</span> <span class="ident">attrs</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Attribute</span><span class="op">&gt;</span>,
-        <span class="ident">path</span>: <span class="ident">Path</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExprStruct</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">expr_struct_helper</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">path</span>: <span class="ident">Path</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">ExprStruct</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">content</span>;
         <span class="kw">let</span> <span class="ident">brace_token</span> <span class="op">=</span> <span class="macro">braced!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>);
-        <span class="ident">attr::parsing::parse_inner</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>, <span class="kw-2">&amp;mut</span> <span class="ident">attrs</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">Punctuated::new</span>();
         <span class="kw">while</span> <span class="op">!</span><span class="ident">content</span>.<span class="ident">is_empty</span>() {
             <span class="kw">if</span> <span class="ident">content</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[..]) {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ExprStruct</span> {
-                    <span class="ident">attrs</span>,
+                    <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                     <span class="ident">brace_token</span>,
                     <span class="ident">path</span>,
                     <span class="ident">fields</span>,
@@ -6186,7 +6239,7 @@
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">ExprStruct</span> {
-            <span class="ident">attrs</span>,
+            <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">brace_token</span>,
             <span class="ident">path</span>,
             <span class="ident">fields</span>,
@@ -6374,7 +6427,10 @@
         }
         <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">float_repr</span>.<span class="ident">split</span>(<span class="string">&#39;.&#39;</span>) {
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::parse_str</span>(<span class="ident">part</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">Error::new</span>(<span class="ident">float</span>.<span class="ident">span</span>(), <span class="ident">err</span>))<span class="question-mark">?</span>;
-            <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="ident">e</span>, <span class="ident">Expr::__TestExhaustive</span>(<span class="ident"><span class="kw">crate</span>::private</span>(())));
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">syn_no_const_vec_new</span>))]</span>
+            <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="ident">e</span>, <span class="ident">Expr::DUMMY</span>);
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">syn_no_const_vec_new</span>)]</span>
+            <span class="kw">let</span> <span class="ident">base</span> <span class="op">=</span> <span class="ident">mem::replace</span>(<span class="ident">e</span>, <span class="ident">Expr::Verbatim</span>(<span class="ident">TokenStream::new</span>()));
             <span class="kw-2">*</span><span class="ident">e</span> <span class="op">=</span> <span class="ident">Expr::Field</span>(<span class="ident">ExprField</span> {
                 <span class="ident">attrs</span>: <span class="ident">Vec::new</span>(),
                 <span class="ident">base</span>: <span class="ident">Box::new</span>(<span class="ident">base</span>),
@@ -6394,6 +6450,28 @@
                 <span class="ident">Member::Unnamed</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
             }
         }
+    }
+
+    <span class="kw">fn</span> <span class="ident">check_cast</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[.]) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[..]) {
+            <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="ident">token::Await</span>) {
+                <span class="string">&quot;`.await`&quot;</span>
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek2</span>(<span class="ident">Ident</span>) <span class="op">&amp;&amp;</span> (<span class="ident">input</span>.<span class="ident">peek3</span>(<span class="ident">token::Paren</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token!</span>[::])) {
+                <span class="string">&quot;a method call&quot;</span>
+            } <span class="kw">else</span> {
+                <span class="string">&quot;a field access&quot;</span>
+            }
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="question-mark">?</span>]) {
+            <span class="string">&quot;`?`&quot;</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Bracket</span>) {
+            <span class="string">&quot;indexing&quot;</span>
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Paren</span>) {
+            <span class="string">&quot;a function call&quot;</span>
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+        };
+        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;casts cannot be followed by {}&quot;</span>, <span class="ident">kind</span>);
+        <span class="prelude-val">Err</span>(<span class="ident">input</span>.<span class="ident">error</span>(<span class="ident">msg</span>))
     }
 }
 
@@ -6431,9 +6509,6 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">outer_attrs_to_tokens</span>(<span class="ident">_attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Attribute</span>], <span class="ident">_tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {}
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>))]</span>
-    <span class="kw">fn</span> <span class="ident">inner_attrs_to_tokens</span>(<span class="ident">_attrs</span>: <span class="kw-2">&amp;</span>[<span class="ident">Attribute</span>], <span class="ident">_tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {}
-
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">ExprBox</span> {
@@ -6450,7 +6525,6 @@
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">outer_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">bracket_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <span class="ident">inner_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">elems</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             });
         }
@@ -6510,7 +6584,6 @@
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">outer_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">paren_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <span class="ident">inner_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">elems</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 <span class="comment">// If we only have one argument, we need a trailing comma to</span>
                 <span class="comment">// distinguish ExprTuple from ExprParen.</span>
@@ -6829,14 +6902,22 @@
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
+    <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">RangeLimits</span> {
+        <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
+            <span class="kw">match</span> <span class="self">self</span> {
+                <span class="ident">RangeLimits::HalfOpen</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+                <span class="ident">RangeLimits::Closed</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
+            }
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;full&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;printing&quot;</span>)))]</span>
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">ExprRange</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">outer_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">from</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
-            <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">limits</span> {
-                <span class="ident">RangeLimits::HalfOpen</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
-                <span class="ident">RangeLimits::Closed</span>(<span class="ident">t</span>) =&gt; <span class="ident">t</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>),
-            }
+            <span class="self">self</span>.<span class="ident">limits</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">to</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
         }
     }
@@ -6845,7 +6926,7 @@
     <span class="kw">impl</span> <span class="ident">ToTokens</span> <span class="kw">for</span> <span class="ident">ExprPath</span> {
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">outer_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
-            <span class="ident">private::print_path</span>(<span class="ident">tokens</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">qself</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>);
+            <span class="ident">path::printing::print_path</span>(<span class="ident">tokens</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">qself</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">path</span>);
         }
     }
 
@@ -6907,7 +6988,6 @@
             <span class="ident">outer_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">path</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">brace_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <span class="ident">inner_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">fields</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">dot2_token</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">dot2_token</span> {
                     <span class="ident">dot2_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
@@ -6925,7 +7005,6 @@
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">outer_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">bracket_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <span class="ident">inner_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">semi_token</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">len</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
@@ -6949,7 +7028,6 @@
         <span class="kw">fn</span> <span class="ident">to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
             <span class="ident">outer_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
             <span class="self">self</span>.<span class="ident">paren_token</span>.<span class="ident">surround</span>(<span class="ident">tokens</span>, <span class="op">|</span><span class="ident">tokens</span><span class="op">|</span> {
-                <span class="ident">inner_attrs_to_tokens</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>, <span class="ident">tokens</span>);
                 <span class="self">self</span>.<span class="ident">expr</span>.<span class="ident">to_tokens</span>(<span class="ident">tokens</span>);
             });
         }

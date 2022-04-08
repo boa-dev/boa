@@ -4,9 +4,9 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../log/index.html"><div class="logo-container">
                     <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></div>
-        </a><h2 class="location"><a href="#">Crate log</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.4.14</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div></section><div id="sidebar-vars" data-name="log" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../log/index.html">
+        </a><h2 class="location"><a href="#">Crate log</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.4.16</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div></section><div id="sidebar-vars" data-name="log" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../log/index.html">
                         <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk-v2.png" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">log</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/log/lib.rs.html#11-1775">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A lightweight logging facade.</p>
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">log</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/log/lib.rs.html#11-1962">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A lightweight logging facade.</p>
 <p>The <code>log</code> crate provides a single logging API that abstracts over the
 actual logging implementation. Libraries can use the logging API provided
 by this crate, and the consumer of those libraries can choose the logging
@@ -18,7 +18,7 @@ is very small - just an integer load, comparison and jump.</p>
 string which defaults to the module path of the location of the log request,
 though that default may be overridden. Logger implementations typically use
 the target to filter requests based on some user configuration.</p>
-<h2 id="use"><a href="#use">Use</a></h2>
+<h2 id="usage"><a href="#usage">Usage</a></h2>
 <p>The basic use of the log crate is through the five logging macros: <a href="./macro.error.html"><code>error!</code></a>,
 <a href="./macro.warn.html"><code>warn!</code></a>, <a href="./macro.info.html"><code>info!</code></a>, <a href="./macro.debug.html"><code>debug!</code></a> and <a href="./macro.trace.html"><code>trace!</code></a>
 where <code>error!</code> represents the highest-priority log messages
@@ -55,6 +55,29 @@ the implementation is initialized will be ignored.</p>
 <p>The executable itself may use the <code>log</code> crate to log as well.</p>
 <h4 id="warning"><a href="#warning">Warning</a></h4>
 <p>The logging system may only be initialized once.</p>
+<h3 id="structured-logging"><a href="#structured-logging">Structured logging</a></h3>
+<p>If you enable the <code>kv_unstable</code> feature you can associate structured values
+with your log records. If we take the example from before, we can include
+some additional context besides what’s in the formatted message:</p>
+
+<div class='information'><div class='tooltip edition' data-edition="2018">ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered edition"><code><span class="kw">use</span> <span class="ident">log</span>::{<span class="ident">info</span>, <span class="ident">warn</span>, <span class="ident">as_serde</span>, <span class="ident">as_error</span>};
+
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shave_the_yak</span>(<span class="ident">yak</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Yak</span>) {
+    <span class="macro">info!</span>(<span class="ident">target</span>: <span class="string">&quot;yak_events&quot;</span>, <span class="ident">yak</span> <span class="op">=</span> <span class="macro">as_serde!</span>(<span class="ident">yak</span>); <span class="string">&quot;Commencing yak shaving&quot;</span>);
+
+    <span class="kw">loop</span> {
+        <span class="kw">match</span> <span class="ident">find_a_razor</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">razor</span>) =&gt; {
+                <span class="macro">info!</span>(<span class="ident">razor</span> <span class="op">=</span> <span class="ident">razor</span>; <span class="string">&quot;Razor located&quot;</span>);
+                <span class="ident">yak</span>.<span class="ident">shave</span>(<span class="ident">razor</span>);
+                <span class="kw">break</span>;
+            }
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
+                <span class="macro">warn!</span>(<span class="ident">err</span> <span class="op">=</span> <span class="macro">as_error!</span>(<span class="ident">err</span>); <span class="string">&quot;Unable to locate a razor, retrying&quot;</span>);
+            }
+        }
+    }
+}</code></pre></div>
 <h2 id="available-logging-implementations"><a href="#available-logging-implementations">Available logging implementations</a></h2>
 <p>In order to produce log output executables have to use
 a logger implementation compatible with the facade.
@@ -81,6 +104,19 @@ here are some of the most popular ones:</p>
 <ul>
 <li><a href="https://docs.rs/syslog/*/syslog/">syslog</a></li>
 <li><a href="https://docs.rs/slog-stdlog/*/slog_stdlog/">slog-stdlog</a></li>
+<li><a href="(https://docs.rs/systemd-journal-logger/*/systemd_journal_logger/)">systemd-journal-logger</a></li>
+<li><a href="(https://docs.rs/android_log/*/android_log/)">android_log</a></li>
+<li><a href="(https://docs.rs/win_dbg_logger/*/win_dbg_logger/)">win_dbg_logger</a></li>
+</ul>
+</li>
+<li>For WebAssembly binaries:
+<ul>
+<li><a href="(https://docs.rs/console_log/*/console_log/)">console_log</a></li>
+</ul>
+</li>
+<li>For dynamic libraries:
+<ul>
+<li>You may need to construct an FFI-safe wrapper over <code>log</code> to initialize in your libraries</li>
 </ul>
 </li>
 </ul>

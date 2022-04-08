@@ -2004,6 +2004,23 @@
 <span id="1997">1997</span>
 <span id="1998">1998</span>
 <span id="1999">1999</span>
+<span id="2000">2000</span>
+<span id="2001">2001</span>
+<span id="2002">2002</span>
+<span id="2003">2003</span>
+<span id="2004">2004</span>
+<span id="2005">2005</span>
+<span id="2006">2006</span>
+<span id="2007">2007</span>
+<span id="2008">2008</span>
+<span id="2009">2009</span>
+<span id="2010">2010</span>
+<span id="2011">2011</span>
+<span id="2012">2012</span>
+<span id="2013">2013</span>
+<span id="2014">2014</span>
+<span id="2015">2015</span>
+<span id="2016">2016</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2523,6 +2540,23 @@
             } =&gt; <span class="prelude-val">Some</span>(<span class="ident">iter</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_viewed_array_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">is_typed_array</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">is_data_view</span>()
+    }
+
+    <span class="doccomment">/// Checks if it an `DataView` object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_data_view</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::DataView</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
     }
 
     <span class="doccomment">/// Checks if it an `ArrayBuffer` object.</span>
