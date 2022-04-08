@@ -1,9 +1,13 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A scope guard will run a given closure when it goes out of scope, even if the code between panics. (as long as panic doesn’t abort)"><meta name="keywords" content="rust, rustlang, rust-lang, scopeguard"><title>scopeguard - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
-    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../scopeguard/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.png" alt="logo"></div>
-        </a><h2 class="location">Crate scopeguard</h2><div class="block version"><div class="narrow-helper"></div><p>Version 1.1.0</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all scopeguard's items</p></a><div class="block items"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div><div id="sidebar-vars" data-name="scopeguard" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../scopeguard/index.html"><img class="rust-logo" src="../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">scopeguard</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/scopeguard/lib.rs.html#1-578" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A scope guard will run a given closure when it goes out of scope,
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../scopeguard/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../scopeguard/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate scopeguard</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 1.1.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li><li><a href="#functions">Functions</a></li></ul></div></section><div id="sidebar-vars" data-name="scopeguard" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../scopeguard/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">scopeguard</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/scopeguard/lib.rs.html#1-578">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A scope guard will run a given closure when it goes out of scope,
 even if the code between panics.
 (as long as panic doesn’t abort)</p>
-<h2 id="examples" class="section-header"><a href="#examples">Examples</a></h2><h3 id="hello-world" class="section-header"><a href="#hello-world">Hello World</a></h3>
+<h2 id="examples"><a href="#examples">Examples</a></h2><h3 id="hello-world"><a href="#hello-world">Hello World</a></h3>
 <p>This example creates a scope guard with an example function:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">scopeguard</span>;
@@ -18,7 +22,7 @@ even if the code between panics.
     <span class="comment">// Here, at the end of `_guard`&#39;s scope, the guard&#39;s closure is called.</span>
     <span class="comment">// It is also called if we exit this scope through unwinding instead.</span>
 }</code></pre></div>
-<h3 id="defer" class="section-header"><a href="#defer"><code>defer!</code></a></h3>
+<h3 id="defer"><a href="#defer"><code>defer!</code></a></h3>
 <p>Use the <code>defer</code> macro to run an operation at scope exit,
 either regular scope exit or during unwinding from a panic.</p>
 
@@ -44,12 +48,12 @@ either regular scope exit or during unwinding from a panic.</p>
     }
     <span class="macro">assert_eq!</span>(<span class="ident">drop_counter</span>.<span class="ident">get</span>(), <span class="number">1</span>);
 }</code></pre></div>
-<h3 id="scope-guard-with-value" class="section-header"><a href="#scope-guard-with-value">Scope Guard with Value</a></h3>
+<h3 id="scope-guard-with-value"><a href="#scope-guard-with-value">Scope Guard with Value</a></h3>
 <p>If the scope guard closure needs to access an outer value that is also
 mutated outside of the scope guard, then you may want to use the scope guard
 with a value. The guard works like a smart pointer, so the inner value can
 be accessed by reference or by mutable reference.</p>
-<h4 id="1-the-guard-owns-a-file" class="section-header"><a href="#1-the-guard-owns-a-file">1. The guard owns a file</a></h4>
+<h4 id="1-the-guard-owns-a-file"><a href="#1-the-guard-owns-a-file">1. The guard owns a file</a></h4>
 <p>In this example, the scope guard owns a file and ensures pending writes are
 synced at scope exit.</p>
 
@@ -72,7 +76,7 @@ synced at scope exit.</p>
     <span class="ident">try_main</span>().<span class="ident">unwrap</span>();
 }
 </code></pre></div>
-<h4 id="2-the-guard-restores-an-invariant-on-scope-exit" class="section-header"><a href="#2-the-guard-restores-an-invariant-on-scope-exit">2. The guard restores an invariant on scope exit</a></h4>
+<h4 id="2-the-guard-restores-an-invariant-on-scope-exit"><a href="#2-the-guard-restores-an-invariant-on-scope-exit">2. The guard restores an invariant on scope exit</a></h4>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">scopeguard</span>;
 
 <span class="kw">use</span> <span class="ident">std::mem::ManuallyDrop</span>;
@@ -140,7 +144,7 @@ synced at scope exit.</p>
     <span class="macro">assert_eq!</span>(<span class="ident">data</span>, <span class="macro">vec!</span>[<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>, <span class="string">&quot;c&quot;</span>, <span class="string">&quot;d&quot;</span>]);
 }
 </code></pre></div>
-<h2 id="crate-features" class="section-header"><a href="#crate-features">Crate Features</a></h2>
+<h2 id="crate-features"><a href="#crate-features">Crate Features</a></h2>
 <ul>
 <li><code>use_std</code>
 <ul>
@@ -149,7 +153,7 @@ synced at scope exit.</p>
 </ul>
 </li>
 </ul>
-<h2 id="rust-version" class="section-header"><a href="#rust-version">Rust Version</a></h2>
+<h2 id="rust-version"><a href="#rust-version">Rust Version</a></h2>
 <p>This version of the crate requires Rust 1.20 or later.</p>
 <p>The scopeguard 1.x release series will use a carefully considered version
 upgrade policy, where in a later 1.x version, we will raise the minimum
@@ -170,5 +174,5 @@ required Rust version.</p>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.guard.html" title="scopeguard::guard fn">guard</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.guard_on_success.html" title="scopeguard::guard_on_success fn">guard_on_success</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.guard_on_unwind.html" title="scopeguard::guard_on_unwind fn">guard_on_unwind</a></div><div class="item-right docblock-short"><p>Create a new <code>ScopeGuard</code> owning <code>v</code> and with deferred closure <code>dropfn</code>.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="scopeguard" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="scopeguard" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
 </body></html>

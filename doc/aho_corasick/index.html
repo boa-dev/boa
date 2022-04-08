@@ -1,6 +1,10 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A library for finding occurrences of many patterns at once. This library provides multiple pattern search principally through an implementation of the Aho-Corasick algorithm, which builds a fast finite state machine for executing searches in linear time."><meta name="keywords" content="rust, rustlang, rust-lang, aho_corasick"><title>aho_corasick - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
-    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.png" alt="logo"></div>
-        </a><h2 class="location">Crate aho_corasick</h2><div class="block version"><div class="narrow-helper"></div><p>Version 0.7.18</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all aho_corasick's items</p></a><div class="block items"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div><div id="sidebar-vars" data-name="aho_corasick" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../aho_corasick/index.html"><img class="rust-logo" src="../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">aho_corasick</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/aho_corasick/lib.rs.html#1-297" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A library for finding occurrences of many patterns at once. This library
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../aho_corasick/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate aho_corasick</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.7.18</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#traits">Traits</a></li></ul></div></section><div id="sidebar-vars" data-name="aho_corasick" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../aho_corasick/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">aho_corasick</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/aho_corasick/lib.rs.html#1-297">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A library for finding occurrences of many patterns at once. This library
 provides multiple pattern search principally through an implementation of the
 <a href="https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm">Aho-Corasick algorithm</a>,
 which builds a fast finite state machine for executing searches in linear time.</p>
@@ -18,7 +22,7 @@ match semantics, using a (seemingly) novel alternative construction algorithm.
 For more details on what match semantics means, see the
 <a href="enum.MatchKind.html"><code>MatchKind</code></a>
 type.</p>
-<h2 id="overview" class="section-header"><a href="#overview">Overview</a></h2>
+<h2 id="overview"><a href="#overview">Overview</a></h2>
 <p>This section gives a brief overview of the primary types in this crate:</p>
 <ul>
 <li><a href="struct.AhoCorasick.html"><code>AhoCorasick</code></a> is the primary type and represents
@@ -33,7 +37,7 @@ in the haystack at which it matched.</li>
 <p>Additionally, the <a href="packed/index.html"><code>packed</code></a> sub-module contains a lower
 level API for using fast vectorized routines for finding a small number of
 patterns in a haystack.</p>
-<h2 id="example-basic-searching" class="section-header"><a href="#example-basic-searching">Example: basic searching</a></h2>
+<h2 id="example-basic-searching"><a href="#example-basic-searching">Example: basic searching</a></h2>
 <p>This example shows how to search for occurrences of multiple patterns
 simultaneously. Each match includes the pattern that matched along with the
 byte offsets of the match.</p>
@@ -53,7 +57,7 @@ byte offsets of the match.</p>
     (<span class="number">0</span>, <span class="number">28</span>, <span class="number">33</span>),
     (<span class="number">2</span>, <span class="number">43</span>, <span class="number">50</span>),
 ]);</code></pre></div>
-<h2 id="example-case-insensitivity" class="section-header"><a href="#example-case-insensitivity">Example: case insensitivity</a></h2>
+<h2 id="example-case-insensitivity"><a href="#example-case-insensitivity">Example: case insensitivity</a></h2>
 <p>This is like the previous example, but matches <code>Snapple</code> case insensitively
 using <code>AhoCorasickBuilder</code>:</p>
 
@@ -74,7 +78,7 @@ using <code>AhoCorasickBuilder</code>:</p>
     (<span class="number">0</span>, <span class="number">28</span>, <span class="number">33</span>),
     (<span class="number">2</span>, <span class="number">43</span>, <span class="number">50</span>),
 ]);</code></pre></div>
-<h2 id="example-replacing-matches-in-a-stream" class="section-header"><a href="#example-replacing-matches-in-a-stream">Example: replacing matches in a stream</a></h2>
+<h2 id="example-replacing-matches-in-a-stream"><a href="#example-replacing-matches-in-a-stream">Example: replacing matches in a stream</a></h2>
 <p>This example shows how to execute a search and replace on a stream without
 loading the entire stream into memory first.</p>
 
@@ -91,7 +95,7 @@ loading the entire stream into memory first.</p>
 <span class="kw">let</span> <span class="ident">ac</span> <span class="op">=</span> <span class="ident">AhoCorasick::new</span>(<span class="ident">patterns</span>);
 <span class="ident">ac</span>.<span class="ident">stream_replace_all</span>(<span class="ident">rdr</span>.<span class="ident">as_bytes</span>(), <span class="kw-2">&amp;mut</span> <span class="ident">wtr</span>, <span class="ident">replace_with</span>)<span class="question-mark">?</span>;
 <span class="macro">assert_eq!</span>(<span class="string">b&quot;The slow grey sloth.&quot;</span>.<span class="ident">to_vec</span>(), <span class="ident">wtr</span>);</code></pre></div>
-<h2 id="example-finding-the-leftmost-first-match" class="section-header"><a href="#example-finding-the-leftmost-first-match">Example: finding the leftmost first match</a></h2>
+<h2 id="example-finding-the-leftmost-first-match"><a href="#example-finding-the-leftmost-first-match">Example: finding the leftmost first match</a></h2>
 <p>In the textbook description of Aho-Corasick, its formulation is typically
 structured such that it reports all possible matches, even when they overlap
 with another. In many cases, overlapping matches may not be desired, such as
@@ -133,7 +137,7 @@ leftmost-longest semantics, which match the POSIX behavior of a regular
 expression alternation. See
 <a href="enum.MatchKind.html"><code>MatchKind</code></a>
 for more details.</p>
-<h2 id="prefilters" class="section-header"><a href="#prefilters">Prefilters</a></h2>
+<h2 id="prefilters"><a href="#prefilters">Prefilters</a></h2>
 <p>While an Aho-Corasick automaton can perform admirably when compared to more
 naive solutions, it is generally slower than more specialized algorithms that
 are accelerated using vector instructions such as SIMD.</p>
@@ -163,5 +167,5 @@ automaton.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.MatchKind.html" title="aho_corasick::MatchKind enum">MatchKind</a></div><div class="item-right docblock-short"><p>A knob for controlling the match semantics of an Aho-Corasick automaton.</p>
 </div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.StateID.html" title="aho_corasick::StateID trait">StateID</a></div><div class="item-right docblock-short"><p>A trait describing the representation of an automaton’s state identifier.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="aho_corasick" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
 </body></html>

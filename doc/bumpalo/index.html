@@ -1,13 +1,17 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="`bumpalo`"><meta name="keywords" content="rust, rustlang, rust-lang, bumpalo"><title>bumpalo - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
-    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="sidebar-menu" role="button">&#9776;</div><a class="sidebar-logo" href="../bumpalo/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.png" alt="logo"></div>
-        </a><h2 class="location">Crate bumpalo</h2><div class="block version"><div class="narrow-helper"></div><p>Version 3.9.1</p></div><div class="sidebar-elems"><a id="all-types" href="all.html"><p>See all bumpalo's items</p></a><div class="block items"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div><div id="sidebar-vars" data-name="bumpalo" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../bumpalo/index.html"><img class="rust-logo" src="../rust-logo.png" alt="logo"></a><nav class="sub"><div class="theme-picker"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="18" height="18" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><div><select id="crate-search"><option value="All crates">All crates</option></select><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"></div><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="18" height="18" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">bumpalo</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span><span class="out-of-band"><span id="render-detail"><a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span><a class="srclink" href="../src/bumpalo/lib.rs.html#1-1749" title="goto source code">[src]</a></span></h1><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="bumpalo" class="section-header"><a href="#bumpalo"><code>bumpalo</code></a></h2>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../bumpalo/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../bumpalo/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate bumpalo</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 3.9.1</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div></section><div id="sidebar-vars" data-name="bumpalo" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../bumpalo/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">bumpalo</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/bumpalo/lib.rs.html#1-1749">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="bumpalo"><a href="#bumpalo"><code>bumpalo</code></a></h2>
 <p><strong>A fast bump allocation arena for Rust.</strong></p>
 <p><a href="https://docs.rs/bumpalo/"><img src="https://docs.rs/bumpalo/badge.svg" alt="" /></a>
 <a href="https://crates.io/crates/bumpalo"><img src="https://img.shields.io/crates/v/bumpalo.svg" alt="" /></a>
 <a href="https://crates.io/crates/bumpalo"><img src="https://img.shields.io/crates/d/bumpalo.svg" alt="" /></a>
 <a href="https://github.com/fitzgen/bumpalo/actions?query=workflow%3ARust"><img src="https://github.com/fitzgen/bumpalo/workflows/Rust/badge.svg" alt="Build Status" /></a></p>
 <p><img src="https://github.com/fitzgen/bumpalo/raw/main/bumpalo.png" alt="" /></p>
-<h4 id="bump-allocation" class="section-header"><a href="#bump-allocation">Bump Allocation</a></h4>
+<h4 id="bump-allocation"><a href="#bump-allocation">Bump Allocation</a></h4>
 <p>Bump allocation is a fast, but limited approach to allocation. We have a chunk
 of memory, and we maintain a pointer within that memory. Whenever we allocate an
 object, we do a quick test that we have enough capacity left in our chunk to
@@ -19,7 +23,7 @@ no-longer-in-use object.</p>
 <p>These trade offs make bump allocation well-suited for <em>phase-oriented</em>
 allocations. That is, a group of objects that will all be allocated during the
 same program phase, used, and then can all be deallocated together as a group.</p>
-<h4 id="deallocation-en-masse-but-no-drop" class="section-header"><a href="#deallocation-en-masse-but-no-drop">Deallocation en Masse, but No <code>Drop</code></a></h4>
+<h4 id="deallocation-en-masse-but-no-drop"><a href="#deallocation-en-masse-but-no-drop">Deallocation en Masse, but No <code>Drop</code></a></h4>
 <p>To deallocate all the objects in the arena at once, we can simply reset the bump
 pointer back to the start of the arena’s memory chunk. This makes mass
 deallocation <em>extremely</em> fast, but allocated objects’ <code>Drop</code> implementations are
@@ -30,10 +34,10 @@ not invoked.</p>
 implementation when the <code>Box&lt;T&gt;</code> wrapper goes out of scope. This is similar to
 how <a href="https://doc.rust-lang.org/std/boxed/struct.Box.html"><code>std::boxed::Box</code></a> works, except without deallocating its backing memory.</p>
 </blockquote>
-<h4 id="what-happens-when-the-memory-chunk-is-full" class="section-header"><a href="#what-happens-when-the-memory-chunk-is-full">What happens when the memory chunk is full?</a></h4>
+<h4 id="what-happens-when-the-memory-chunk-is-full"><a href="#what-happens-when-the-memory-chunk-is-full">What happens when the memory chunk is full?</a></h4>
 <p>This implementation will allocate a new memory chunk from the global allocator
 and then start bump allocating into this new memory chunk.</p>
-<h4 id="example" class="section-header"><a href="#example">Example</a></h4>
+<h4 id="example"><a href="#example">Example</a></h4>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">bumpalo::Bump</span>;
 <span class="kw">use</span> <span class="ident">std::u64</span>;
 
@@ -56,7 +60,7 @@ and then start bump allocating into this new memory chunk.</p>
 <span class="comment">// Exclusive, mutable references to the just-allocated value are returned.</span>
 <span class="macro">assert!</span>(<span class="ident">scooter</span>.<span class="ident">scritches_required</span>);
 <span class="ident">scooter</span>.<span class="ident">age</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;</code></pre></div>
-<h4 id="collections" class="section-header"><a href="#collections">Collections</a></h4>
+<h4 id="collections"><a href="#collections">Collections</a></h4>
 <p>When the <code>&quot;collections&quot;</code> cargo feature is enabled, a fork of some of the <code>std</code>
 library’s collections are available in the <code>collections</code> module. These
 collection types are modified to allocate their space inside <code>bumpalo::Bump</code>
@@ -84,7 +88,7 @@ allocator</a> and we can remove
 this <code>collections</code> module and use the <code>std</code> versions.</p>
 <p>For unstable, nightly-only support for custom allocators in <code>std</code>, see the
 <code>allocator_api</code> section below.</p>
-<h4 id="bumpaloboxedbox" class="section-header"><a href="#bumpaloboxedbox"><code>bumpalo::boxed::Box</code></a></h4>
+<h4 id="bumpaloboxedbox"><a href="#bumpaloboxedbox"><code>bumpalo::boxed::Box</code></a></h4>
 <p>When the <code>&quot;boxed&quot;</code> cargo feature is enabled, a fork of <code>std::boxed::Box</code> library
 is available in the <code>boxed</code> module. This <code>Box</code> type is modified to allocate its
 space inside <code>bumpalo::Bump</code> arenas.</p>
@@ -122,14 +126,14 @@ in its space itself.</p>
     <span class="comment">// Its `Drop` implementation was run, and so `NUM_DROPS` has been incremented.</span>
     <span class="macro">assert_eq!</span>(<span class="ident">NUM_DROPPED</span>.<span class="ident">load</span>(<span class="ident">Ordering::SeqCst</span>), <span class="number">1</span>);
 }</code></pre></div>
-<h4 id="no_std-support" class="section-header"><a href="#no_std-support"><code>#![no_std]</code> Support</a></h4>
+<h4 id="no_std-support"><a href="#no_std-support"><code>#![no_std]</code> Support</a></h4>
 <p>Bumpalo is a <code>no_std</code> crate. It depends only on the <code>alloc</code> and <code>core</code> crates.</p>
-<h4 id="thread-support" class="section-header"><a href="#thread-support">Thread support</a></h4>
+<h4 id="thread-support"><a href="#thread-support">Thread support</a></h4>
 <p>The <code>Bump</code> is <code>!Sync</code>, which makes it hard to use in certain situations around threads ‒ for
 example in <code>rayon</code>.</p>
 <p>The <a href="https://crates.io/crates/bumpalo-herd"><code>bumpalo-herd</code></a> crate provides a pool of <code>Bump</code>
 allocators for use in such situations.</p>
-<h4 id="nightly-rust-featureallocator_api-support" class="section-header"><a href="#nightly-rust-featureallocator_api-support">Nightly Rust <code>feature(allocator_api)</code> Support</a></h4>
+<h4 id="nightly-rust-featureallocator_api-support"><a href="#nightly-rust-featureallocator_api-support">Nightly Rust <code>feature(allocator_api)</code> Support</a></h4>
 <p>The unstable, nightly-only Rust <code>allocator_api</code> feature defines an <code>Allocator</code>
 trait and exposes custom allocators for <code>std</code> types. Bumpalo has a matching
 <code>allocator_api</code> cargo feature to enable implementing <code>Allocator</code> and using
@@ -157,7 +161,7 @@ allocations are made within the given bump arena:</p>
 <span class="ident">v</span>.<span class="ident">push</span>(<span class="number">0</span>);
 <span class="ident">v</span>.<span class="ident">push</span>(<span class="number">1</span>);
 <span class="ident">v</span>.<span class="ident">push</span>(<span class="number">2</span>);</code></pre></div>
-<h5 id="minimum-supported-rust-version-msrv" class="section-header"><a href="#minimum-supported-rust-version-msrv">Minimum Supported Rust Version (MSRV)</a></h5>
+<h5 id="minimum-supported-rust-version-msrv"><a href="#minimum-supported-rust-version-msrv">Minimum Supported Rust Version (MSRV)</a></h5>
 <p>This crate is guaranteed to compile on stable Rust <strong>1.54</strong> and up. It might
 compile with older versions but that may change in any new patch release.</p>
 <p>We reserve the right to increment the MSRV on minor releases, however we will strive
@@ -170,5 +174,5 @@ an arena has bump allocated into.</p>
 arena has bump allocated into.</p>
 </div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.AllocOrInitError.html" title="bumpalo::AllocOrInitError enum">AllocOrInitError</a></div><div class="item-right docblock-short"><p>An error returned from <a href="struct.Bump.html#method.try_alloc_try_with" title="Bump::try_alloc_try_with"><code>Bump::try_alloc_try_with</code></a>.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="bumpalo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.59.0 (9d1b2106e 2022-02-23)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="bumpalo" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
 </body></html>
