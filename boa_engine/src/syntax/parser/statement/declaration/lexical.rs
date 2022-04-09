@@ -74,7 +74,11 @@ where
         let tok = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Const) => BindingList::new(
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, true)) => Err(ParseError::general(
+                "Keyword must not contain escaped characters",
+                tok.span().start(),
+            )),
+            TokenKind::Keyword((Keyword::Const, false)) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
                 self.allow_await,
@@ -82,7 +86,7 @@ where
                 self.const_init_required,
             )
             .parse(cursor, interner),
-            TokenKind::Keyword(Keyword::Let) => BindingList::new(
+            TokenKind::Keyword((Keyword::Let, false)) => BindingList::new(
                 self.allow_in,
                 self.allow_yield,
                 self.allow_await,
@@ -182,8 +186,17 @@ where
             match cursor.peek_semicolon(interner)? {
                 SemicolonResult::Found(_) => break,
                 SemicolonResult::NotFound(tk)
-                    if tk.kind() == &TokenKind::Keyword(Keyword::Of)
-                        || tk.kind() == &TokenKind::Keyword(Keyword::In) =>
+                    if tk.kind() == &TokenKind::Keyword((Keyword::Of, true))
+                        || tk.kind() == &TokenKind::Keyword((Keyword::In, true)) =>
+                {
+                    return Err(ParseError::general(
+                        "Keyword must not contain escaped characters",
+                        tk.span().start(),
+                    ));
+                }
+                SemicolonResult::NotFound(tk)
+                    if tk.kind() == &TokenKind::Keyword((Keyword::Of, false))
+                        || tk.kind() == &TokenKind::Keyword((Keyword::In, false)) =>
                 {
                     break
                 }

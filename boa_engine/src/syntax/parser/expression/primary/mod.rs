@@ -88,8 +88,12 @@ where
         let tok = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::This) => Ok(Node::This),
-            TokenKind::Keyword(Keyword::Function) => {
+            TokenKind::Keyword((Keyword::This | Keyword::Async, true)) => Err(ParseError::general(
+                "Keyword must not contain escaped characters",
+                tok.span().start(),
+            )),
+            TokenKind::Keyword((Keyword::This, false)) => Ok(Node::This),
+            TokenKind::Keyword((Keyword::Function, _)) => {
                 let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new(self.name)
@@ -101,10 +105,10 @@ where
                         .map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Class) => {
+            TokenKind::Keyword((Keyword::Class, _)) => {
                 ClassExpression::new(self.name, false, false).parse(cursor, interner)
             }
-            TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword((Keyword::Async, false)) => {
                 let mul_peek = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if mul_peek.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     AsyncGeneratorExpression::new(self.name)
@@ -138,14 +142,14 @@ where
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::new(*ident).into()),
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+            TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     tok.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+            TokenKind::Keyword((Keyword::Yield, _)) if !self.allow_yield.0 => {
                 if cursor.strict_mode() {
                     return Err(ParseError::general(
                         "Unexpected strict mode reserved word",
@@ -154,14 +158,14 @@ where
                 }
                 Ok(Identifier::new(Sym::YIELD).into())
             }
-            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+            TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     tok.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+            TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => {
                 if cursor.strict_mode() {
                     return Err(ParseError::general(
                         "Unexpected strict mode reserved word",

@@ -67,11 +67,11 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Function | Keyword::Async | Keyword::Class) => {
+            TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, _)) => {
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
             }
-            TokenKind::Keyword(Keyword::Const | Keyword::Let) => LexicalDeclaration::new(
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, _)) => LexicalDeclaration::new(
                 true,
                 self.allow_yield,
                 self.allow_await,

@@ -69,13 +69,13 @@ where
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Class, "class declaration", interner)?;
+        cursor.expect((Keyword::Class, false), "class declaration", interner)?;
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(true);
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let name = match token.kind() {
-            TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
+            TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
@@ -136,12 +136,17 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-        let super_ref = if token.kind() == &TokenKind::Keyword(Keyword::Extends) {
-            Some(Box::new(
+        let super_ref = match token.kind() {
+            TokenKind::Keyword((Keyword::Extends, true)) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::Extends, false)) => Some(Box::new(
                 ClassHeritage::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
-            ))
-        } else {
-            None
+            )),
+            _ => None,
         };
 
         cursor.expect(Punctuator::OpenBlock, "class tail", interner)?;
@@ -207,7 +212,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         cursor.expect(
-            TokenKind::Keyword(Keyword::Extends),
+            TokenKind::Keyword((Keyword::Extends, false)),
             "class heritage",
             interner,
         )?;
@@ -592,7 +597,13 @@ where
                     ClassElementNode::MethodDefinition(property_name, method)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword((Keyword::Async, true)) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::Async, false)) => {
                 cursor.next(interner).expect("token disappeared");
                 cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
                 let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;

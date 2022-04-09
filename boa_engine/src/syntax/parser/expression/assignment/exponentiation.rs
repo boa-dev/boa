@@ -70,7 +70,7 @@ where
     Ok(if let Some(tok) = cursor.peek(0, interner)? {
         matches!(
             tok.kind(),
-            TokenKind::Keyword(Keyword::Delete | Keyword::Void | Keyword::TypeOf)
+            TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, _))
                 | TokenKind::Punctuator(
                     Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg
                 )

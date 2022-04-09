@@ -53,7 +53,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         cursor.expect(
-            TokenKind::Keyword(Keyword::Await),
+            TokenKind::Keyword((Keyword::Await, false)),
             "Await expression parsing",
             interner,
         )?;

@@ -90,13 +90,6 @@ impl<R> Tokenizer<R> for Identifier {
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
         let token_kind = if let Ok(keyword) = identifier_name.parse() {
-            if contains_escaped_chars {
-                return Err(Error::Syntax(
-                    "unicode escaped characters are not allowed in keyword".into(),
-                    start_pos,
-                ));
-            }
-
             if cursor.strict_mode() && keyword == Keyword::With {
                 return Err(Error::Syntax(
                     "using 'with' statement not allowed in strict mode".into(),
@@ -108,7 +101,7 @@ impl<R> Tokenizer<R> for Identifier {
                 Keyword::True => TokenKind::BooleanLiteral(true),
                 Keyword::False => TokenKind::BooleanLiteral(false),
                 Keyword::Null => TokenKind::NullLiteral,
-                _ => TokenKind::Keyword(keyword),
+                _ => TokenKind::Keyword((keyword, contains_escaped_chars)),
             }
         } else {
             if cursor.strict_mode()

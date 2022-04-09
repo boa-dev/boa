@@ -97,12 +97,12 @@ where
             .kind()
         {
             // [+Yield]YieldExpression[?In, ?Await]
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+            TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 return YieldExpression::new(self.allow_in, self.allow_await)
                     .parse(cursor, interner)
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
-            TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
+            TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 if let Ok(tok) =
                     cursor.peek_expect_no_lineterminator(1, "assignment expression", interner)
                 {

@@ -63,7 +63,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("ContinueStatement", "Parsing");
-        cursor.expect(Keyword::Continue, "continue statement", interner)?;
+        cursor.expect((Keyword::Continue, false), "continue statement", interner)?;
 
         let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
             match tok {

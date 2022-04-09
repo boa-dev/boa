@@ -126,35 +126,35 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Await) => AwaitExpression::new(self.allow_yield)
+            TokenKind::Keyword((Keyword::Await, _)) => AwaitExpression::new(self.allow_yield)
                 .parse(cursor, interner)
                 .map(Node::from),
-            TokenKind::Keyword(Keyword::If) => {
+            TokenKind::Keyword((Keyword::If, _)) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Var) => {
+            TokenKind::Keyword((Keyword::Var, _)) => {
                 VariableStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::While) => {
+            TokenKind::Keyword((Keyword::While, _)) => {
                 WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Do) => {
+            TokenKind::Keyword((Keyword::Do, _)) => {
                 DoWhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::For) => {
+            TokenKind::Keyword((Keyword::For, _)) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Return) => {
+            TokenKind::Keyword((Keyword::Return, _)) => {
                 if self.allow_return.0 {
                     ReturnStatement::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
@@ -167,27 +167,27 @@ where
                     ))
                 }
             }
-            TokenKind::Keyword(Keyword::Break) => {
+            TokenKind::Keyword((Keyword::Break, _)) => {
                 BreakStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Continue) => {
+            TokenKind::Keyword((Keyword::Continue, _)) => {
                 ContinueStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Try) => {
+            TokenKind::Keyword((Keyword::Try, _)) => {
                 TryStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Throw) => {
+            TokenKind::Keyword((Keyword::Throw, _)) => {
                 ThrowStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Switch) => {
+            TokenKind::Keyword((Keyword::Switch, _)) => {
                 SwitchStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
@@ -471,7 +471,7 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function | Keyword::Async | Keyword::Class) => {
+            TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, _)) => {
                 if strict_mode && self.in_block {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Function declaration in blocks not allowed in strict mode".into(),
@@ -480,7 +480,7 @@ where
                 }
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
             }
-            TokenKind::Keyword(Keyword::Const | Keyword::Let) => {
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, _)) => {
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
@@ -555,14 +555,14 @@ where
                 )))
             }
             TokenKind::Identifier(ref s) => Ok(*s),
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+            TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     next_token.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
+            TokenKind::Keyword((Keyword::Yield, _)) if !self.allow_yield.0 => {
                 if cursor.strict_mode() {
                     Err(ParseError::general(
                         "yield keyword in binding identifier not allowed in strict mode",
@@ -572,15 +572,15 @@ where
                     Ok(Sym::YIELD)
                 }
             }
-            TokenKind::Keyword(Keyword::Await) if cursor.arrow() => Ok(Sym::AWAIT),
-            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
+            TokenKind::Keyword((Keyword::Await, _)) if cursor.arrow() => Ok(Sym::AWAIT),
+            TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                 Err(ParseError::general(
                     "Unexpected identifier",
                     next_token.span().start(),
                 ))
             }
-            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
+            TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => {
                 if cursor.strict_mode() {
                     Err(ParseError::general(
                         "await keyword in binding identifier not allowed in strict mode",

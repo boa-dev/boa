@@ -85,7 +85,7 @@ where
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Function, "function declaration", interner)?;
+        cursor.expect((Keyword::Function, false), "function declaration", interner)?;
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 

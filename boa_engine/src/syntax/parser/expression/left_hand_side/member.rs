@@ -64,27 +64,32 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("MemberExpression", "Parsing");
 
-        let mut lhs = if cursor
-            .peek(0, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-            == &TokenKind::Keyword(Keyword::New)
-        {
-            let _next = cursor.next(interner).expect("new keyword disappeared");
-            let lhs = self.parse(cursor, interner)?;
-            let args = match cursor.peek(0, interner)? {
-                Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
-                    Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?
-                }
-                _ => Box::new([]),
-            };
-            let call_node = Call::new(lhs, args);
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let mut lhs = match token.kind() {
+            TokenKind::Keyword((Keyword::New, true)) => {
+                return Err(ParseError::general(
+                    "keyword must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::New, false)) => {
+                let _next = cursor.next(interner).expect("new keyword disappeared");
+                let lhs = self.parse(cursor, interner)?;
+                let args = match cursor.peek(0, interner)? {
+                    Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {
+                        Arguments::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?
+                    }
+                    _ => Box::new([]),
+                };
+                let call_node = Call::new(lhs, args);
 
-            Node::from(New::from(call_node))
-        } else {
-            PrimaryExpression::new(self.name, self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?
+                Node::from(New::from(call_node))
+            }
+            _ => PrimaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?,
         };
+
         while let Some(tok) = cursor.peek(0, interner)? {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Dot) => {
@@ -96,7 +101,7 @@ where
 
                     match token.kind() {
                         TokenKind::Identifier(name) => lhs = GetConstField::new(lhs, *name).into(),
-                        TokenKind::Keyword(kw) => {
+                        TokenKind::Keyword((kw, _)) => {
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
                         TokenKind::BooleanLiteral(bool) => {

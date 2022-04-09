@@ -75,7 +75,13 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Function) => {
+            TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, true)) => {
+                Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    tok.span().start(),
+                ))
+            }
+            TokenKind::Keyword((Keyword::Function, false)) => {
                 let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
@@ -87,7 +93,7 @@ where
                         .map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword((Keyword::Async, false)) => {
                 let next_token = cursor.peek(2, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     AsyncGeneratorDeclaration::new(
@@ -103,7 +109,7 @@ where
                         .map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Class) => {
+            TokenKind::Keyword((Keyword::Class, false)) => {
                 ClassDeclaration::new(false, false, self.is_default)
                     .parse(cursor, interner)
                     .map(Node::from)

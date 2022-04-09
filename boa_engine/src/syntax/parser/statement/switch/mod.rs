@@ -16,8 +16,8 @@ use std::io::Read;
 /// The possible `TokenKind` which indicate the end of a case statement.
 const CASE_BREAK_TOKENS: [TokenKind; 3] = [
     TokenKind::Punctuator(Punctuator::CloseBlock),
-    TokenKind::Keyword(Keyword::Case),
-    TokenKind::Keyword(Keyword::Default),
+    TokenKind::Keyword((Keyword::Case, false)),
+    TokenKind::Keyword((Keyword::Default, false)),
 ];
 
 /// Switch statement parsing.
@@ -63,7 +63,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("SwitchStatement", "Parsing");
-        cursor.expect(Keyword::Switch, "switch statement", interner)?;
+        cursor.expect((Keyword::Switch, false), "switch statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "switch statement", interner)?;
 
         let condition = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -125,8 +125,15 @@ where
         let mut default = None;
 
         loop {
-            match cursor.next(interner)? {
-                Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Case) => {
+            let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+            match token.kind() {
+                TokenKind::Keyword((Keyword::Case | Keyword::Default, true)) => {
+                    return Err(ParseError::general(
+                        "Keyword must not contain escaped characters",
+                        token.span().start(),
+                    ));
+                }
+                TokenKind::Keyword((Keyword::Case, false)) => {
                     // Case statement.
                     let cond = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
@@ -144,7 +151,7 @@ where
 
                     cases.push(node::Case::new(cond, statement_list));
                 }
-                Some(token) if token.kind() == &TokenKind::Keyword(Keyword::Default) => {
+                TokenKind::Keyword((Keyword::Default, false)) => {
                     if default.is_some() {
                         // If default has already been defined then it cannot be defined again and to do so is an error.
                         return Err(ParseError::unexpected(
@@ -167,10 +174,8 @@ where
 
                     default = Some(statement_list);
                 }
-                Some(token) if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) => {
-                    break
-                }
-                Some(token) => {
+                TokenKind::Punctuator(Punctuator::CloseBlock) => break,
+                _ => {
                     return Err(ParseError::expected(
                         ["case".to_owned(), "default".to_owned(), "}".to_owned()],
                         token.to_string(interner),
@@ -178,7 +183,6 @@ where
                         "switch case block",
                     ))
                 }
-                None => return Err(ParseError::AbruptEnd),
             }
         }
 

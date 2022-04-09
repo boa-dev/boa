@@ -68,7 +68,7 @@ where
         let _timer = Profiler::global().start_event("DoWhileStatement", "Parsing");
 
         let position = cursor
-            .expect(Keyword::Do, "do while statement", interner)?
+            .expect((Keyword::Do, false), "do while statement", interner)?
             .span()
             .end();
 
@@ -81,17 +81,25 @@ where
         }
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-
-        if next_token.kind() != &TokenKind::Keyword(Keyword::While) {
-            return Err(ParseError::expected(
-                ["while".to_owned()],
-                next_token.to_string(interner),
-                next_token.span(),
-                "do while statement",
-            ));
+        match next_token.kind() {
+            TokenKind::Keyword((Keyword::While, true)) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    next_token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::While, false)) => {}
+            _ => {
+                return Err(ParseError::expected(
+                    ["while".to_owned()],
+                    next_token.to_string(interner),
+                    next_token.span(),
+                    "do while statement",
+                ));
+            }
         }
 
-        cursor.expect(Keyword::While, "do while statement", interner)?;
+        cursor.expect((Keyword::While, false), "do while statement", interner)?;
 
         cursor.expect(Punctuator::OpenParen, "do while statement", interner)?;
 

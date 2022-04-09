@@ -80,7 +80,11 @@ where
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
-        cursor.expect(Keyword::Function, "generator declaration", interner)?;
+        cursor.expect(
+            (Keyword::Function, false),
+            "generator declaration",
+            interner,
+        )?;
         cursor.expect(Punctuator::Mul, "generator declaration", interner)?;
 
         let result = parse_callable_declaration(&self, cursor, interner)?;

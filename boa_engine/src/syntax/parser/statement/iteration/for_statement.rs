@@ -77,7 +77,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("ForStatement", "Parsing");
-        cursor.expect(Keyword::For, "for statement", interner)?;
+        cursor.expect((Keyword::For, false), "for statement", interner)?;
         let init_position = cursor
             .expect(Punctuator::OpenParen, "for statement", interner)?
             .span()
@@ -88,7 +88,7 @@ where
             .ok_or(ParseError::AbruptEnd)?
             .kind()
         {
-            TokenKind::Keyword(Keyword::Var) => {
+            TokenKind::Keyword((Keyword::Var, _)) => {
                 let _next = cursor.next(interner)?;
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
@@ -96,7 +96,7 @@ where
                         .map(Node::from)?,
                 )
             }
-            TokenKind::Keyword(Keyword::Let | Keyword::Const) => Some(
+            TokenKind::Keyword((Keyword::Let | Keyword::Const, _)) => Some(
                 Declaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)?,
             ),
@@ -107,8 +107,15 @@ where
             ),
         };
 
-        match (init.as_ref(), cursor.peek(0, interner)?) {
-            (Some(init), Some(tok)) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        match (init.as_ref(), token.kind()) {
+            (Some(_), TokenKind::Keyword((Keyword::In | Keyword::Of, true))) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
+            (Some(init), TokenKind::Keyword((Keyword::In, false))) => {
                 let init = node_to_iterable_loop_initializer(init, init_position)?;
 
                 let _next = cursor.next(interner)?;
@@ -130,7 +137,7 @@ where
 
                 return Ok(ForInLoop::new(init, expr, body).into());
             }
-            (Some(init), Some(tok)) if tok.kind() == &TokenKind::Keyword(Keyword::Of) => {
+            (Some(init), TokenKind::Keyword((Keyword::Of, false))) => {
                 let init = node_to_iterable_loop_initializer(init, init_position)?;
 
                 let _next = cursor.next(interner)?;
