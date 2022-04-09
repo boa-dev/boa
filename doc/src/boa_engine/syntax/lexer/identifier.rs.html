@@ -187,13 +187,6 @@
 <span id="180">180</span>
 <span id="181">181</span>
 <span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
@@ -286,13 +279,6 @@
             <span class="ident"><span class="self">Self</span>::take_identifier_name</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="self">self</span>.<span class="ident">init</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">token_kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">keyword</span>) <span class="op">=</span> <span class="ident">identifier_name</span>.<span class="ident">parse</span>() {
-            <span class="kw">if</span> <span class="ident">contains_escaped_chars</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
-                    <span class="string">&quot;unicode escaped characters are not allowed in keyword&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">start_pos</span>,
-                ));
-            }
-
             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> <span class="ident">keyword</span> <span class="op">==</span> <span class="ident">Keyword::With</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
                     <span class="string">&quot;using &#39;with&#39; statement not allowed in strict mode&quot;</span>.<span class="ident">into</span>(),
@@ -304,7 +290,7 @@
                 <span class="ident">Keyword::True</span> =&gt; <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>),
                 <span class="ident">Keyword::False</span> =&gt; <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>),
                 <span class="ident">Keyword::Null</span> =&gt; <span class="ident">TokenKind::NullLiteral</span>,
-                <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Keyword</span>(<span class="ident">keyword</span>),
+                <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Keyword</span>((<span class="ident">keyword</span>, <span class="ident">contains_escaped_chars</span>)),
             }
         } <span class="kw">else</span> {
             <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>()

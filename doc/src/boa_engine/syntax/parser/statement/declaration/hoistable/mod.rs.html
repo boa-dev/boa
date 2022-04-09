@@ -231,6 +231,12 @@
 <span id="224">224</span>
 <span id="225">225</span>
 <span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Hoistable declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -308,7 +314,13 @@
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span> <span class="op">|</span> <span class="ident">Keyword::Class</span>, <span class="bool-val">true</span>)) =&gt; {
+                <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                    <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                ))
+            }
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span>, <span class="bool-val">false</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) <span class="op">=</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
                     <span class="ident">GeneratorDeclaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">is_default</span>)
@@ -320,7 +332,7 @@
                         .<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Async</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">2</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) <span class="op">=</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
                     <span class="ident">AsyncGeneratorDeclaration::new</span>(
@@ -336,7 +348,7 @@
                         .<span class="ident">map</span>(<span class="ident">Node::from</span>)
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Class</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Class</span>, <span class="bool-val">false</span>)) =&gt; {
                 <span class="ident">ClassDeclaration::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">is_default</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)

@@ -216,7 +216,7 @@
             .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
             .<span class="ident">kind</span>()
         {
-            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span>) =&gt; {
+            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="prelude-val">Some</span>(<span class="ident">BindingIdentifier::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>)
             }
             <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">name</span>,

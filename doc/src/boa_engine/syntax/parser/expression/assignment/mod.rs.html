@@ -384,12 +384,12 @@
             .<span class="ident">kind</span>()
         {
             <span class="comment">// [+Yield]YieldExpression[?In, ?Await]</span>
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">YieldExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             }
             <span class="comment">// ArrowFunction[?In, ?Yield, ?Await] -&gt; ArrowParameters[?Yield, ?Await] -&gt; BindingIdentifier[?Yield, ?Await]</span>
-            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span>) =&gt; {
+            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">tok</span>) <span class="op">=</span>
                     <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">1</span>, <span class="string">&quot;assignment expression&quot;</span>, <span class="ident">interner</span>)
                 {

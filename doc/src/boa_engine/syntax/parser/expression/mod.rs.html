@@ -692,6 +692,12 @@
 <span id="685">685</span>
 <span id="686">686</span>
 <span id="687">687</span>
+<span id="688">688</span>
+<span id="689">689</span>
+<span id="690">690</span>
+<span id="691">691</span>
+<span id="692">692</span>
+<span id="693">693</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -792,7 +798,7 @@
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                         ).<span class="ident">into</span>();
                     }
-                    <span class="ident">TokenKind::Keyword</span>(<span class="ident">op</span>) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
+                    <span class="ident">TokenKind::Keyword</span>((<span class="ident">op</span>, <span class="bool-val">false</span>)) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
                         <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(
                             <span class="ident">op</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
@@ -1234,7 +1240,13 @@
                     )
                     .<span class="ident">into</span>();
                 }
-                <span class="ident">TokenKind::Keyword</span>(<span class="ident">op</span>)
+                <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::InstanceOf</span> <span class="op">|</span> <span class="ident">Keyword::In</span>, <span class="bool-val">true</span>)) =&gt; {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                        <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                    ));
+                }
+                <span class="ident">TokenKind::Keyword</span>((<span class="ident">op</span>, <span class="bool-val">false</span>))
                     <span class="kw">if</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">Keyword::InstanceOf</span>
                         <span class="op">|</span><span class="op">|</span> (<span class="ident">op</span> <span class="op">==</span> <span class="ident">Keyword::In</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">allow_in</span> <span class="op">==</span> <span class="ident">AllowIn</span>(<span class="bool-val">true</span>)) =&gt;
                 {

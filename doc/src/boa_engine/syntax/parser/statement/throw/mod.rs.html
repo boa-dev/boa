@@ -124,7 +124,7 @@
         <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ThrowStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword::Throw</span>, <span class="string">&quot;throw statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">expect</span>((<span class="ident">Keyword::Throw</span>, <span class="bool-val">false</span>), <span class="string">&quot;throw statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;throw statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 

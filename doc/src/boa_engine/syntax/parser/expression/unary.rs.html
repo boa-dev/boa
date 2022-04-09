@@ -129,6 +129,9 @@
 <span id="122">122</span>
 <span id="123">123</span>
 <span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Unary operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -197,7 +200,10 @@
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">token_start</span> <span class="op">=</span> <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>();
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Delete</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Delete</span> <span class="op">|</span> <span class="ident">Keyword::Void</span> <span class="op">|</span> <span class="ident">Keyword::TypeOf</span>, <span class="bool-val">true</span>)) =&gt; <span class="prelude-val">Err</span>(
+                <span class="ident">ParseError::general</span>(<span class="string">&quot;Keyword must not contain escaped characters&quot;</span>, <span class="ident">token_start</span>),
+            ),
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Delete</span>, <span class="bool-val">false</span>)) =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Delete keyword vanished&quot;</span>);
                 <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
                     .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
@@ -224,11 +230,11 @@
 
                 <span class="prelude-val">Ok</span>(<span class="ident">node::UnaryOp::new</span>(<span class="ident">UnaryOp::Delete</span>, <span class="ident">val</span>).<span class="ident">into</span>())
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Void</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Void</span>, <span class="bool-val">false</span>)) =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Void keyword vanished&quot;</span>); <span class="comment">// Consume the token.</span>
                 <span class="prelude-val">Ok</span>(<span class="ident">node::UnaryOp::new</span>(<span class="ident">UnaryOp::Void</span>, <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>).<span class="ident">into</span>())
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::TypeOf</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::TypeOf</span>, <span class="bool-val">false</span>)) =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;TypeOf keyword vanished&quot;</span>); <span class="comment">// Consume the token.</span>
                 <span class="prelude-val">Ok</span>(<span class="ident">node::UnaryOp::new</span>(<span class="ident">UnaryOp::TypeOf</span>, <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>).<span class="ident">into</span>())
             }

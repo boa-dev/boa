@@ -302,6 +302,13 @@
 <span id="295">295</span>
 <span id="296">296</span>
 <span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -381,7 +388,7 @@
         <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ForStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword::For</span>, <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">expect</span>((<span class="ident">Keyword::For</span>, <span class="bool-val">false</span>), <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">init_position</span> <span class="op">=</span> <span class="ident">cursor</span>
             .<span class="ident">expect</span>(<span class="ident">Punctuator::OpenParen</span>, <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
             .<span class="ident">span</span>()
@@ -392,7 +399,7 @@
             .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
             .<span class="ident">kind</span>()
         {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Var</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Var</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(
                     <span class="ident">VariableDeclarationList::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
@@ -400,7 +407,7 @@
                         .<span class="ident">map</span>(<span class="ident">Node::from</span>)<span class="question-mark">?</span>,
                 )
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Let</span> <span class="op">|</span> <span class="ident">Keyword::Const</span>) =&gt; <span class="prelude-val">Some</span>(
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Let</span> <span class="op">|</span> <span class="ident">Keyword::Const</span>, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(
                 <span class="ident">Declaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
             ),
@@ -411,8 +418,15 @@
             ),
         };
 
-        <span class="kw">match</span> (<span class="ident">init</span>.<span class="ident">as_ref</span>(), <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>) {
-            (<span class="prelude-val">Some</span>(<span class="ident">init</span>), <span class="prelude-val">Some</span>(<span class="ident">tok</span>)) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::In</span>) =&gt; {
+        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+        <span class="kw">match</span> (<span class="ident">init</span>.<span class="ident">as_ref</span>(), <span class="ident">token</span>.<span class="ident">kind</span>()) {
+            (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::In</span> <span class="op">|</span> <span class="ident">Keyword::Of</span>, <span class="bool-val">true</span>))) =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
+                    <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                ));
+            }
+            (<span class="prelude-val">Some</span>(<span class="ident">init</span>), <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::In</span>, <span class="bool-val">false</span>))) =&gt; {
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">node_to_iterable_loop_initializer</span>(<span class="ident">init</span>, <span class="ident">init_position</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
@@ -434,7 +448,7 @@
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ForInLoop::new</span>(<span class="ident">init</span>, <span class="ident">expr</span>, <span class="ident">body</span>).<span class="ident">into</span>());
             }
-            (<span class="prelude-val">Some</span>(<span class="ident">init</span>), <span class="prelude-val">Some</span>(<span class="ident">tok</span>)) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Of</span>) =&gt; {
+            (<span class="prelude-val">Some</span>(<span class="ident">init</span>), <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Of</span>, <span class="bool-val">false</span>))) =&gt; {
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">node_to_iterable_loop_initializer</span>(<span class="ident">init</span>, <span class="ident">init_position</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;

@@ -171,6 +171,10 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Expression Parser</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Implements `TokenParser` fo`AsyncGeneratorExpression`on and outputs</span>
@@ -232,7 +236,11 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AsyncGeneratorExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;async generator expression&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword::Function</span>, <span class="string">&quot;async generator expression&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">expect</span>(
+            (<span class="ident">Keyword::Function</span>, <span class="bool-val">false</span>),
+            <span class="string">&quot;async generator expression&quot;</span>,
+            <span class="ident">interner</span>,
+        )<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>),
             <span class="string">&quot;async generator expression&quot;</span>,

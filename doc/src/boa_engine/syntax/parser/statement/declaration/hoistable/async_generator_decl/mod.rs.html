@@ -115,6 +115,14 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Declaration parsing</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Implements `TokenParser` for `AsyncGeneratorDeclaration`on and outputs an `AsyncGeneratorDecl`</span>
@@ -215,9 +223,17 @@
         <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
         <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword::Async</span>, <span class="string">&quot;async generator declaration&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">expect</span>(
+            (<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>),
+            <span class="string">&quot;async generator declaration&quot;</span>,
+            <span class="ident">interner</span>,
+        )<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;async generator declaration&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Keyword::Function</span>, <span class="string">&quot;async generator declaration&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="ident">cursor</span>.<span class="ident">expect</span>(
+            (<span class="ident">Keyword::Function</span>, <span class="bool-val">false</span>),
+            <span class="string">&quot;async generator declaration&quot;</span>,
+            <span class="ident">interner</span>,
+        )<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Mul</span>, <span class="string">&quot;async generator declaration&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parse_callable_declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;

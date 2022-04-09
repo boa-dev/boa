@@ -1293,35 +1293,35 @@
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) =&gt; <span class="ident">AwaitExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>)
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) =&gt; <span class="ident">AwaitExpression::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                 .<span class="ident">map</span>(<span class="ident">Node::from</span>),
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::If</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::If</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">IfStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Var</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Var</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">VariableStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::While</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::While</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">WhileStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Do</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Do</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">DoWhileStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::For</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::For</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">ForStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Return</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Return</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_return</span>.<span class="number">0</span> {
                     <span class="ident">ReturnStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
@@ -1334,27 +1334,27 @@
                     ))
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Break</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Break</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">BreakStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Continue</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Continue</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">ContinueStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Try</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Try</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">TryStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Throw</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Throw</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">ThrowStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Switch</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Switch</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">SwitchStatement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
                     .<span class="ident">map</span>(<span class="ident">Node::from</span>)
@@ -1638,7 +1638,7 @@
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
         <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span> <span class="op">|</span> <span class="ident">Keyword::Class</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span> <span class="op">|</span> <span class="ident">Keyword::Async</span> <span class="op">|</span> <span class="ident">Keyword::Class</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">if</span> <span class="ident">strict_mode</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">in_block</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                         <span class="string">&quot;Function declaration in blocks not allowed in strict mode&quot;</span>.<span class="ident">into</span>(),
@@ -1647,7 +1647,7 @@
                 }
                 <span class="ident">Declaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">true</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Const</span> <span class="op">|</span> <span class="ident">Keyword::Let</span>) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Const</span> <span class="op">|</span> <span class="ident">Keyword::Let</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">Declaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">true</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
             }
             <span class="kw">_</span> =&gt; <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
@@ -1722,14 +1722,14 @@
                 )))
             }
             <span class="ident">TokenKind::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw-2">*</span><span class="ident">s</span>),
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                 <span class="comment">// Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is &quot;yield&quot;.</span>
                 <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;Unexpected identifier&quot;</span>,
                     <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                 ))
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Yield</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_yield</span>.<span class="number">0</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                     <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                         <span class="string">&quot;yield keyword in binding identifier not allowed in strict mode&quot;</span>,
@@ -1739,15 +1739,15 @@
                     <span class="prelude-val">Ok</span>(<span class="ident">Sym::YIELD</span>)
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">arrow</span>() =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Sym::AWAIT</span>),
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">arrow</span>() =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Sym::AWAIT</span>),
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
                 <span class="comment">// Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is &quot;await&quot;.</span>
                 <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;Unexpected identifier&quot;</span>,
                     <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                 ))
             }
-            <span class="ident">TokenKind::Keyword</span>(<span class="ident">Keyword::Await</span>) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                     <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                         <span class="string">&quot;await keyword in binding identifier not allowed in strict mode&quot;</span>,
