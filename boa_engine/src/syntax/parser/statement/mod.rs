@@ -36,7 +36,10 @@ use self::{
     try_stm::TryStatement,
     variable::VariableStatement,
 };
-use super::{AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
+use super::{
+    expression::PropertyName, AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError,
+    TokenParser,
+};
 use crate::syntax::{
     ast::{
         node::{
@@ -48,7 +51,7 @@ use crate::syntax::{
         },
         Keyword, Node, Position, Punctuator,
     },
-    lexer::{Error as LexError, InputElement, TokenKind},
+    lexer::{Error as LexError, InputElement, Token, TokenKind},
     parser::expression::{await_expr::AwaitExpression, Initializer},
 };
 use boa_interner::{Interner, Sym};
@@ -650,11 +653,13 @@ where
         let mut rest_property_name = None;
 
         loop {
-            let property_name = match cursor
-                .peek(0, interner)?
+            let next_token_is_colon = *cursor
+                .peek(1, interner)?
                 .ok_or(ParseError::AbruptEnd)?
                 .kind()
-            {
+                == TokenKind::Punctuator(Punctuator::Colon);
+            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
@@ -680,35 +685,27 @@ where
                     )?;
                     break;
                 }
-                _ => BindingIdentifier::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?,
-            };
+                _ => {
+                    let is_property_name = match token.kind() {
+                        TokenKind::Punctuator(Punctuator::OpenBracket)
+                        | TokenKind::StringLiteral(_)
+                        | TokenKind::NumericLiteral(_) => true,
+                        TokenKind::Identifier(_) if next_token_is_colon => true,
+                        TokenKind::Keyword(_) if next_token_is_colon => true,
+                        _ => false,
+                    };
 
-            property_names.push(property_name);
-
-            if let Some(peek_token) = cursor.peek(0, interner)? {
-                match peek_token.kind() {
-                    TokenKind::Punctuator(Punctuator::Assign) => {
-                        let init = Initializer::new(
-                            Some(property_name),
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?;
-                        patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name,
-                            property_name,
-                            default_init: Some(init),
-                        });
-                    }
-                    TokenKind::Punctuator(Punctuator::Colon) => {
+                    if is_property_name {
+                        let property_name = PropertyName::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        if let Some(name) = property_name.prop_name() {
+                            property_names.push(name);
+                        }
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::Colon),
                             "object binding pattern",
                             interner,
                         )?;
-
                         if let Some(peek_token) = cursor.peek(0, interner)? {
                             match peek_token.kind() {
                                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -842,13 +839,33 @@ where
                                 }
                             }
                         }
-                    }
-                    _ => {
-                        patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name,
-                            property_name,
-                            default_init: None,
-                        });
+                    } else {
+                        let name = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        property_names.push(name);
+                        match cursor.peek(0, interner)?.map(Token::kind) {
+                            Some(TokenKind::Punctuator(Punctuator::Assign)) => {
+                                let init = Initializer::new(
+                                    Some(name),
+                                    self.allow_in,
+                                    self.allow_yield,
+                                    self.allow_await,
+                                )
+                                .parse(cursor, interner)?;
+                                patterns.push(BindingPatternTypeObject::SingleName {
+                                    ident: name,
+                                    property_name: name.into(),
+                                    default_init: Some(init),
+                                });
+                            }
+                            _ => {
+                                patterns.push(BindingPatternTypeObject::SingleName {
+                                    ident: name,
+                                    property_name: name.into(),
+                                    default_init: None,
+                                });
+                            }
+                        }
                     }
                 }
             }

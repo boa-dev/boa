@@ -149,7 +149,7 @@ pub(crate) fn object_decl_to_declaration_pattern(object: &Object) -> Option<Decl
                 excluded_keys.push(*ident);
                 bindings.push(BindingPatternTypeObject::SingleName {
                     ident: *ident,
-                    property_name: *ident,
+                    property_name: PropertyName::Literal(*ident),
                     default_init: None,
                 });
             }
@@ -158,7 +158,7 @@ pub(crate) fn object_decl_to_declaration_pattern(object: &Object) -> Option<Decl
                     excluded_keys.push(*name);
                     bindings.push(BindingPatternTypeObject::SingleName {
                         ident: *name,
-                        property_name: *name,
+                        property_name: PropertyName::Literal(*name),
                         default_init: None,
                     });
                 }

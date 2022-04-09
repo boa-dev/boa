@@ -2,6 +2,7 @@
 use crate::syntax::ast::node::{
     field::{GetConstField, GetField},
     join_nodes,
+    object::PropertyName,
     statement_list::StatementList,
     Identifier, Node,
 };
@@ -497,7 +498,7 @@ pub enum BindingPatternTypeObject {
     /// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty
     SingleName {
         ident: Sym,
-        property_name: Sym,
+        property_name: PropertyName,
         default_init: Option<Node>,
     },
 
@@ -536,7 +537,7 @@ pub enum BindingPatternTypeObject {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
     BindingPattern {
-        ident: Sym,
+        ident: PropertyName,
         pattern: DeclarationPattern,
         default_init: Option<Node>,
     },
@@ -551,14 +552,24 @@ impl ToInternedString for BindingPatternTypeObject {
                 property_name,
                 default_init,
             } => {
-                let mut buf = if ident == property_name {
-                    format!(" {}", interner.resolve_expect(*ident))
-                } else {
-                    format!(
-                        " {} : {}",
-                        interner.resolve_expect(*property_name),
-                        interner.resolve_expect(*ident)
-                    )
+                let mut buf = match property_name {
+                    PropertyName::Literal(name) if *name == *ident => {
+                        format!(" {}", interner.resolve_expect(*ident))
+                    }
+                    PropertyName::Literal(name) => {
+                        format!(
+                            " {} : {}",
+                            interner.resolve_expect(*name),
+                            interner.resolve_expect(*ident)
+                        )
+                    }
+                    PropertyName::Computed(node) => {
+                        format!(
+                            " [{}] : {}",
+                            node.to_interned_string(interner),
+                            interner.resolve_expect(*ident)
+                        )
+                    }
                 };
                 if let Some(ref init) = default_init {
                     buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
@@ -581,11 +592,22 @@ impl ToInternedString for BindingPatternTypeObject {
                 pattern,
                 default_init,
             } => {
-                let mut buf = format!(
-                    " {} : {}",
-                    interner.resolve_expect(*property_name),
-                    pattern.to_interned_string(interner)
-                );
+                let mut buf = match property_name {
+                    PropertyName::Literal(name) => {
+                        format!(
+                            " {} : {}",
+                            interner.resolve_expect(*name),
+                            pattern.to_interned_string(interner),
+                        )
+                    }
+                    PropertyName::Computed(node) => {
+                        format!(
+                            " [{}] : {}",
+                            node.to_interned_string(interner),
+                            pattern.to_interned_string(interner),
+                        )
+                    }
+                };
                 if let Some(ref init) = default_init {
                     buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
                 }
