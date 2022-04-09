@@ -1148,6 +1148,23 @@
 <span id="1141">1141</span>
 <span id="1142">1142</span>
 <span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1186,7 +1203,10 @@
     <span class="ident">try_stm::TryStatement</span>,
     <span class="ident">variable::VariableStatement</span>,
 };
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>};
+<span class="kw">use</span> <span class="kw">super</span>::{
+    <span class="ident">expression::PropertyName</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
+    <span class="ident">TokenParser</span>,
+};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{
@@ -1198,7 +1218,7 @@
         },
         <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
     },
-    <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
+    <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser::expression</span>::{<span class="ident">await_expr::AwaitExpression</span>, <span class="ident">Initializer</span>},
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
@@ -1800,11 +1820,13 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_property_name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
         <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">property_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>
-                .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+            <span class="kw">let</span> <span class="ident">next_token_is_colon</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">cursor</span>
+                .<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                 .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
                 .<span class="ident">kind</span>()
-            {
+                <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Colon</span>);
+            <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+            <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>) =&gt; {
                     <span class="ident">cursor</span>.<span class="ident">expect</span>(
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>),
@@ -1830,35 +1852,27 @@
                     )<span class="question-mark">?</span>;
                     <span class="kw">break</span>;
                 }
-                <span class="kw">_</span> =&gt; <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
-            };
+                <span class="kw">_</span> =&gt; {
+                    <span class="kw">let</span> <span class="ident">is_property_name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
+                        <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>)
+                        <span class="op">|</span> <span class="ident">TokenKind::StringLiteral</span>(<span class="kw">_</span>)
+                        <span class="op">|</span> <span class="ident">TokenKind::NumericLiteral</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                        <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">next_token_is_colon</span> =&gt; <span class="bool-val">true</span>,
+                        <span class="ident">TokenKind::Keyword</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">next_token_is_colon</span> =&gt; <span class="bool-val">true</span>,
+                        <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                    };
 
-            <span class="ident">property_names</span>.<span class="ident">push</span>(<span class="ident">property_name</span>);
-
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">peek_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
-                            <span class="prelude-val">Some</span>(<span class="ident">property_name</span>),
-                            <span class="self">self</span>.<span class="ident">allow_in</span>,
-                            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                            <span class="self">self</span>.<span class="ident">allow_await</span>,
-                        )
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
-                            <span class="ident">ident</span>: <span class="ident">property_name</span>,
-                            <span class="ident">property_name</span>,
-                            <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">init</span>),
-                        });
-                    }
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Colon</span>) =&gt; {
+                    <span class="kw">if</span> <span class="ident">is_property_name</span> {
+                        <span class="kw">let</span> <span class="ident">property_name</span> <span class="op">=</span> <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">property_name</span>.<span class="ident">prop_name</span>() {
+                            <span class="ident">property_names</span>.<span class="ident">push</span>(<span class="ident">name</span>);
+                        }
                         <span class="ident">cursor</span>.<span class="ident">expect</span>(
                             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Colon</span>),
                             <span class="string">&quot;object binding pattern&quot;</span>,
                             <span class="ident">interner</span>,
                         )<span class="question-mark">?</span>;
-
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">peek_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                             <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
                                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
@@ -1992,13 +2006,33 @@
                                 }
                             }
                         }
-                    }
-                    <span class="kw">_</span> =&gt; {
-                        <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
-                            <span class="ident">ident</span>: <span class="ident">property_name</span>,
-                            <span class="ident">property_name</span>,
-                            <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
-                        });
+                    } <span class="kw">else</span> {
+                        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                        <span class="ident">property_names</span>.<span class="ident">push</span>(<span class="ident">name</span>);
+                        <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">map</span>(<span class="ident">Token::kind</span>) {
+                            <span class="prelude-val">Some</span>(<span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)) =&gt; {
+                                <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
+                                    <span class="prelude-val">Some</span>(<span class="ident">name</span>),
+                                    <span class="self">self</span>.<span class="ident">allow_in</span>,
+                                    <span class="self">self</span>.<span class="ident">allow_yield</span>,
+                                    <span class="self">self</span>.<span class="ident">allow_await</span>,
+                                )
+                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                                <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
+                                    <span class="ident">ident</span>: <span class="ident">name</span>,
+                                    <span class="ident">property_name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
+                                    <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">init</span>),
+                                });
+                            }
+                            <span class="kw">_</span> =&gt; {
+                                <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
+                                    <span class="ident">ident</span>: <span class="ident">name</span>,
+                                    <span class="ident">property_name</span>: <span class="ident">name</span>.<span class="ident">into</span>(),
+                                    <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
+                                });
+                            }
+                        }
                     }
                 }
             }

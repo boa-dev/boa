@@ -2799,6 +2799,24 @@
 <span id="2792">2792</span>
 <span id="2793">2793</span>
 <span id="2794">2794</span>
+<span id="2795">2795</span>
+<span id="2796">2796</span>
+<span id="2797">2797</span>
+<span id="2798">2798</span>
+<span id="2799">2799</span>
+<span id="2800">2800</span>
+<span id="2801">2801</span>
+<span id="2802">2802</span>
+<span id="2803">2803</span>
+<span id="2804">2804</span>
+<span id="2805">2805</span>
+<span id="2806">2806</span>
+<span id="2807">2807</span>
+<span id="2808">2808</span>
+<span id="2809">2809</span>
+<span id="2810">2810</span>
+<span id="2811">2811</span>
+<span id="2812">2812</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments::BindingLocator</span>,
@@ -4877,8 +4895,17 @@
                             <span class="ident">default_init</span>,
                         } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">property_name</span>);
-                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                            <span class="kw">match</span> <span class="ident">property_name</span> {
+                                <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                                }
+                                <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) =&gt; {
+                                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
+                                }
+                            }
 
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
                                 <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::JumpIfNotUndefined</span>);
@@ -4930,8 +4957,17 @@
                             <span class="ident">default_init</span>,
                         } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
-                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                            <span class="kw">match</span> <span class="ident">ident</span> {
+                                <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                                }
+                                <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) =&gt; {
+                                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
+                                }
+                            }
 
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
                                 <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_with_custom_opcode</span>(<span class="ident">Opcode::JumpIfNotUndefined</span>);

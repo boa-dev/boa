@@ -774,10 +774,33 @@
 <span id="767">767</span>
 <span id="768">768</span>
 <span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Declaration nodes</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
     <span class="ident">join_nodes</span>,
+    <span class="ident">object::PropertyName</span>,
     <span class="ident">statement_list::StatementList</span>,
     <span class="ident">Identifier</span>, <span class="ident">Node</span>,
 };
@@ -1273,7 +1296,7 @@
     <span class="doccomment">/// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty</span>
     <span class="ident">SingleName</span> {
         <span class="ident">ident</span>: <span class="ident">Sym</span>,
-        <span class="ident">property_name</span>: <span class="ident">Sym</span>,
+        <span class="ident">property_name</span>: <span class="ident">PropertyName</span>,
         <span class="ident">default_init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     },
 
@@ -1312,7 +1335,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty</span>
     <span class="ident">BindingPattern</span> {
-        <span class="ident">ident</span>: <span class="ident">Sym</span>,
+        <span class="ident">ident</span>: <span class="ident">PropertyName</span>,
         <span class="ident">pattern</span>: <span class="ident">DeclarationPattern</span>,
         <span class="ident">default_init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
     },
@@ -1327,14 +1350,24 @@
                 <span class="ident">property_name</span>,
                 <span class="ident">default_init</span>,
             } =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="ident">property_name</span> {
-                    <span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>))
-                } <span class="kw">else</span> {
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot; {} : {}&quot;</span>,
-                        <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">property_name</span>),
-                        <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>)
-                    )
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">property_name</span> {
+                    <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">ident</span> =&gt; {
+                        <span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>))
+                    }
+                    <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot; {} : {}&quot;</span>,
+                            <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>),
+                            <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>)
+                        )
+                    }
+                    <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) =&gt; {
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot; [{}] : {}&quot;</span>,
+                            <span class="ident">node</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+                            <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>)
+                        )
+                    }
                 };
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
                     <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; = {}&quot;</span>, <span class="ident">init</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)));
@@ -1357,11 +1390,22 @@
                 <span class="ident">pattern</span>,
                 <span class="ident">default_init</span>,
             } =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(
-                    <span class="string">&quot; {} : {}&quot;</span>,
-                    <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">property_name</span>),
-                    <span class="ident">pattern</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)
-                );
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">property_name</span> {
+                    <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot; {} : {}&quot;</span>,
+                            <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>),
+                            <span class="ident">pattern</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+                        )
+                    }
+                    <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) =&gt; {
+                        <span class="macro">format!</span>(
+                            <span class="string">&quot; [{}] : {}&quot;</span>,
+                            <span class="ident">node</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+                            <span class="ident">pattern</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+                        )
+                    }
+                };
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
                     <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; = {}&quot;</span>, <span class="ident">init</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)));
                 }

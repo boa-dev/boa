@@ -450,7 +450,7 @@
                 <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                 <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
                     <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
-                    <span class="ident">property_name</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
+                    <span class="ident">property_name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">ident</span>),
                     <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                 });
             }
@@ -459,7 +459,7 @@
                     <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                     <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
                         <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">name</span>,
-                        <span class="ident">property_name</span>: <span class="kw-2">*</span><span class="ident">name</span>,
+                        <span class="ident">property_name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                     });
                 }
