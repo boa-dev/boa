@@ -2,6 +2,7 @@ use crate::syntax::{
     ast::{
         node::{
             declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
+            object::PropertyName,
             Block, Catch, Declaration, DeclarationList, Finally, Try,
         },
         Const,
@@ -173,12 +174,14 @@ fn check_inline_with_binding_pattern_object() {
                     vec![
                         BindingPatternTypeObject::SingleName {
                             ident: a,
-                            property_name: a,
+                            property_name: PropertyName::Literal(a),
                             default_init: None,
                         },
                         BindingPatternTypeObject::SingleName {
                             ident: interner.get_or_intern_static("c"),
-                            property_name: interner.get_or_intern_static("b"),
+                            property_name: PropertyName::Literal(
+                                interner.get_or_intern_static("b"),
+                            ),
                             default_init: None,
                         },
                     ],

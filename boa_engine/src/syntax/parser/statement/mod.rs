@@ -36,7 +36,10 @@ use self::{
     try_stm::TryStatement,
     variable::VariableStatement,
 };
-use super::{AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
+use super::{
+    expression::PropertyName, AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError,
+    TokenParser,
+};
 use crate::syntax::{
     ast::{
         node::{
@@ -680,24 +683,38 @@ where
                     )?;
                     break;
                 }
-                _ => BindingIdentifier::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?,
+                _ => {
+                    PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?
+                }
             };
 
-            property_names.push(property_name);
+            if let Some(name) = property_name.prop_name() {
+                property_names.push(name);
+            }
 
             if let Some(peek_token) = cursor.peek(0, interner)? {
                 match peek_token.kind() {
                     TokenKind::Punctuator(Punctuator::Assign) => {
+                        let name = if let Some(name) = property_name.literal() {
+                            name
+                        } else {
+                            return Err(ParseError::expected(
+                                [":".to_owned()],
+                                peek_token.to_string(interner),
+                                peek_token.span(),
+                                "binding property",
+                            ));
+                        };
+
                         let init = Initializer::new(
-                            Some(property_name),
+                            property_name.prop_name(),
                             self.allow_in,
                             self.allow_yield,
                             self.allow_await,
                         )
                         .parse(cursor, interner)?;
                         patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name,
+                            ident: name,
                             property_name,
                             default_init: Some(init),
                         });
@@ -844,11 +861,20 @@ where
                         }
                     }
                     _ => {
-                        patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name,
-                            property_name,
-                            default_init: None,
-                        });
+                        if let Some(name) = property_name.literal() {
+                            patterns.push(BindingPatternTypeObject::SingleName {
+                                ident: name,
+                                property_name,
+                                default_init: None,
+                            });
+                        } else {
+                            return Err(ParseError::expected(
+                                [":".to_owned()],
+                                peek_token.to_string(interner),
+                                peek_token.span(),
+                                "binding property",
+                            ));
+                        }
                     }
                 }
             }

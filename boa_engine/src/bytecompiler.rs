@@ -2076,8 +2076,17 @@ impl<'b> ByteCompiler<'b> {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
-                            let index = self.get_or_insert_name(*property_name);
-                            self.emit(Opcode::GetPropertyByName, &[index]);
+                            match property_name {
+                                PropertyName::Literal(name) => {
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::GetPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(node) => {
+                                    self.compile_expr(node, true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    self.emit_opcode(Opcode::GetPropertyByValue);
+                                }
+                            }
 
                             if let Some(init) = default_init {
                                 let skip = self.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
@@ -2129,8 +2138,17 @@ impl<'b> ByteCompiler<'b> {
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
-                            let index = self.get_or_insert_name(*ident);
-                            self.emit(Opcode::GetPropertyByName, &[index]);
+                            match ident {
+                                PropertyName::Literal(name) => {
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::GetPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(node) => {
+                                    self.compile_expr(node, true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    self.emit_opcode(Opcode::GetPropertyByValue);
+                                }
+                            }
 
                             if let Some(init) = default_init {
                                 let skip = self.jump_with_custom_opcode(Opcode::JumpIfNotUndefined);
