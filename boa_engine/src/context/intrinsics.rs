@@ -108,6 +108,7 @@ pub struct StandardConstructors {
     typed_float64_array: StandardConstructor,
     array_buffer: StandardConstructor,
     data_view: StandardConstructor,
+    date_time_format: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -161,6 +162,7 @@ impl Default for StandardConstructors {
             typed_float64_array: StandardConstructor::default(),
             array_buffer: StandardConstructor::default(),
             data_view: StandardConstructor::default(),
+            date_time_format: StandardConstructor::default(),
         };
 
         // The value of `Array.prototype` is the Array prototype object.
@@ -357,6 +359,11 @@ impl StandardConstructors {
     #[inline]
     pub fn data_view(&self) -> &StandardConstructor {
         &self.data_view
+    }
+
+    #[inline]
+    pub fn date_time_format(&self) -> &StandardConstructor {
+        &self.date_time_format
     }
 }
 
