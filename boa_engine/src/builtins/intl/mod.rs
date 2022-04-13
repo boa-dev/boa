@@ -10,7 +10,7 @@
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn, JsArgs},
-    object::{FunctionBuilder, ObjectInitializer},
+    object::{ConstructorBuilder, ObjectInitializer},
     property::Attribute,
     symbol::WellKnownSymbols,
     Context, JsResult, JsString, JsValue,
@@ -33,10 +33,9 @@ impl BuiltIn for Intl {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let string_tag = WellKnownSymbols::to_string_tag();
-        let date_time_format = FunctionBuilder::native(context, DateTimeFormat::constructor)
-            .name("Intl.DateTimeFormat")
+        let date_time_format = ConstructorBuilder::new(context, DateTimeFormat::constructor)
+            .name("DateTimeFormat")
             .length(0)
-            .constructor(true)
             .build();
         ObjectInitializer::new(context)
             .function(Self::get_canonical_locales, "getCanonicalLocales", 1)
@@ -48,7 +47,7 @@ impl BuiltIn for Intl {
             .property(
                 "DateTimeFormat",
                 date_time_format,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+                Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
             )
             .build()
             .conv::<JsValue>()
