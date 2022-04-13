@@ -8,59 +8,49 @@
 //! [spec]: https://tc39.es/ecma402/#datetimeformat-objects
 
 use crate::{
-    builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
     object::internal_methods::get_prototype_from_constructor,
-    object::{JsObject, ObjectData, ObjectInitializer},
-    property::Attribute,
-    symbol::WellKnownSymbols,
-    Context, JsResult, JsValue,
+    object::{ConstructorBuilder, JsObject, ObjectData},
+    Context, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
 
 /// JavaScript `Intl.DateTimeFormat` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct DateTimeFormat {
     initialized_date_time_format: bool,
-    locale: String,
-    calendar: String,
-    numbering_system: String,
-    time_zone: String,
-    weekday: String,
-    era: String,
-    year: String,
-    month: String,
-    day: String,
-    day_period: String,
-    hour: String,
-    minute: String,
-    second: String,
-    fractional_second_digits: String,
-    time_zone_name: String,
-    hour_cycle: String,
-    pattern: String,
-    bound_format: String,
+    locale: JsString,
+    calendar: JsString,
+    numbering_system: JsString,
+    time_zone: JsString,
+    weekday: JsString,
+    era: JsString,
+    year: JsString,
+    month: JsString,
+    day: JsString,
+    day_period: JsString,
+    hour: JsString,
+    minute: JsString,
+    second: JsString,
+    fractional_second_digits: JsString,
+    time_zone_name: JsString,
+    hour_cycle: JsString,
+    pattern: JsString,
+    bound_format: JsString,
 }
 
-impl BuiltIn for DateTimeFormat {
-    const NAME: &'static str = "Intl.DateTimeFormat";
+impl DateTimeFormat {
+    const NAME: &'static str = "DateTimeFormat";
 
-    fn init(context: &mut Context) -> Option<JsValue> {
+    pub(super) fn init(context: &mut Context) -> JsObject {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let string_tag = WellKnownSymbols::to_string_tag();
-        ObjectInitializer::new(context)
-            .property(
-                string_tag,
-                Self::NAME,
-                Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
-            )
+        ConstructorBuilder::new(context, Self::constructor)
+            .name(Self::NAME)
+            .length(0)
             .build()
-            .conv::<JsValue>()
-            .pipe(Some)
     }
 }
 
@@ -84,29 +74,32 @@ impl DateTimeFormat {
             StandardConstructors::date_time_format,
             context,
         )?;
-        // 2. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, "%DateTimeFormat.prototype%", « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]], [[Weekday]], [[Era]], [[Year]], [[Month]], [[Day]], [[DayPeriod]], [[Hour]], [[Minute]], [[Second]], [[FractionalSecondDigits]], [[TimeZoneName]], [[HourCycle]], [[Pattern]], [[BoundFormat]] »).
+        // 2. Let dateTimeFormat be ? OrdinaryCreateFromConstructor(newTarget, "%DateTimeFormat.prototype%",
+        // « [[InitializedDateTimeFormat]], [[Locale]], [[Calendar]], [[NumberingSystem]], [[TimeZone]], [[Weekday]],
+        // [[Era]], [[Year]], [[Month]], [[Day]], [[DayPeriod]], [[Hour]], [[Minute]], [[Second]],
+        // [[FractionalSecondDigits]], [[TimeZoneName]], [[HourCycle]], [[Pattern]], [[BoundFormat]] »).
         let date_time_format = JsObject::from_proto_and_data(
             prototype,
             ObjectData::date_time_format(Box::new(Self {
                 initialized_date_time_format: true,
-                locale: "en-US".to_string(),
-                calendar: "gregory".to_string(),
-                numbering_system: "arab".to_string(),
-                time_zone: "UTC".to_string(),
-                weekday: "narrow".to_string(),
-                era: "narrow".to_string(),
-                year: "numeric".to_string(),
-                month: "narrow".to_string(),
-                day: "numeric".to_string(),
-                day_period: "narrow".to_string(),
-                hour: "numeric".to_string(),
-                minute: "numeric".to_string(),
-                second: "numeric".to_string(),
-                fractional_second_digits: "".to_string(),
-                time_zone_name: "".to_string(),
-                hour_cycle: "h24".to_string(),
-                pattern: "{hour}:{minute}".to_string(),
-                bound_format: "undefined".to_string(),
+                locale: JsString::from("en-US"),
+                calendar: JsString::from("gregory"),
+                numbering_system: JsString::from("arab"),
+                time_zone: JsString::from("UTC"),
+                weekday: JsString::from("narrow"),
+                era: JsString::from("narrow"),
+                year: JsString::from("numeric"),
+                month: JsString::from("narrow"),
+                day: JsString::from("numeric"),
+                day_period: JsString::from("narrow"),
+                hour: JsString::from("numeric"),
+                minute: JsString::from("numeric"),
+                second: JsString::from("numeric"),
+                fractional_second_digits: JsString::from(""),
+                time_zone_name: JsString::from(""),
+                hour_cycle: JsString::from("h24"),
+                pattern: JsString::from("{hour}:{minute}"),
+                bound_format: JsString::from("undefined"),
             })),
         );
         Ok(JsValue::Object(date_time_format))
