@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rayon-1.5.1/src/iter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rayon-1.5.2/src/iter/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../rayon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -3197,6 +3197,122 @@
 <span id="3192">3192</span>
 <span id="3193">3193</span>
 <span id="3194">3194</span>
+<span id="3195">3195</span>
+<span id="3196">3196</span>
+<span id="3197">3197</span>
+<span id="3198">3198</span>
+<span id="3199">3199</span>
+<span id="3200">3200</span>
+<span id="3201">3201</span>
+<span id="3202">3202</span>
+<span id="3203">3203</span>
+<span id="3204">3204</span>
+<span id="3205">3205</span>
+<span id="3206">3206</span>
+<span id="3207">3207</span>
+<span id="3208">3208</span>
+<span id="3209">3209</span>
+<span id="3210">3210</span>
+<span id="3211">3211</span>
+<span id="3212">3212</span>
+<span id="3213">3213</span>
+<span id="3214">3214</span>
+<span id="3215">3215</span>
+<span id="3216">3216</span>
+<span id="3217">3217</span>
+<span id="3218">3218</span>
+<span id="3219">3219</span>
+<span id="3220">3220</span>
+<span id="3221">3221</span>
+<span id="3222">3222</span>
+<span id="3223">3223</span>
+<span id="3224">3224</span>
+<span id="3225">3225</span>
+<span id="3226">3226</span>
+<span id="3227">3227</span>
+<span id="3228">3228</span>
+<span id="3229">3229</span>
+<span id="3230">3230</span>
+<span id="3231">3231</span>
+<span id="3232">3232</span>
+<span id="3233">3233</span>
+<span id="3234">3234</span>
+<span id="3235">3235</span>
+<span id="3236">3236</span>
+<span id="3237">3237</span>
+<span id="3238">3238</span>
+<span id="3239">3239</span>
+<span id="3240">3240</span>
+<span id="3241">3241</span>
+<span id="3242">3242</span>
+<span id="3243">3243</span>
+<span id="3244">3244</span>
+<span id="3245">3245</span>
+<span id="3246">3246</span>
+<span id="3247">3247</span>
+<span id="3248">3248</span>
+<span id="3249">3249</span>
+<span id="3250">3250</span>
+<span id="3251">3251</span>
+<span id="3252">3252</span>
+<span id="3253">3253</span>
+<span id="3254">3254</span>
+<span id="3255">3255</span>
+<span id="3256">3256</span>
+<span id="3257">3257</span>
+<span id="3258">3258</span>
+<span id="3259">3259</span>
+<span id="3260">3260</span>
+<span id="3261">3261</span>
+<span id="3262">3262</span>
+<span id="3263">3263</span>
+<span id="3264">3264</span>
+<span id="3265">3265</span>
+<span id="3266">3266</span>
+<span id="3267">3267</span>
+<span id="3268">3268</span>
+<span id="3269">3269</span>
+<span id="3270">3270</span>
+<span id="3271">3271</span>
+<span id="3272">3272</span>
+<span id="3273">3273</span>
+<span id="3274">3274</span>
+<span id="3275">3275</span>
+<span id="3276">3276</span>
+<span id="3277">3277</span>
+<span id="3278">3278</span>
+<span id="3279">3279</span>
+<span id="3280">3280</span>
+<span id="3281">3281</span>
+<span id="3282">3282</span>
+<span id="3283">3283</span>
+<span id="3284">3284</span>
+<span id="3285">3285</span>
+<span id="3286">3286</span>
+<span id="3287">3287</span>
+<span id="3288">3288</span>
+<span id="3289">3289</span>
+<span id="3290">3290</span>
+<span id="3291">3291</span>
+<span id="3292">3292</span>
+<span id="3293">3293</span>
+<span id="3294">3294</span>
+<span id="3295">3295</span>
+<span id="3296">3296</span>
+<span id="3297">3297</span>
+<span id="3298">3298</span>
+<span id="3299">3299</span>
+<span id="3300">3300</span>
+<span id="3301">3301</span>
+<span id="3302">3302</span>
+<span id="3303">3303</span>
+<span id="3304">3304</span>
+<span id="3305">3305</span>
+<span id="3306">3306</span>
+<span id="3307">3307</span>
+<span id="3308">3308</span>
+<span id="3309">3309</span>
+<span id="3310">3310</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits for writing parallel programs using an iterator-style interface</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! You will rarely need to interact with this module directly unless you have</span>
@@ -3389,7 +3505,7 @@
 };
 
 <span class="kw">mod</span> <span class="ident">step_by</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">step_by</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_step_by_rev</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::step_by::StepBy</span>;
 
 <span class="doccomment">/// `IntoParallelIterator` implements the conversion to a [`ParallelIterator`].</span>
@@ -3656,10 +3772,10 @@
     <span class="kw">fn</span> <span class="ident">try_for_each</span><span class="op">&lt;</span><span class="ident">OP</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="ident">R</span>
     <span class="kw">where</span>
         <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
-        <span class="kw">fn</span> <span class="ident">ok</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw">_</span>: (), <span class="kw">_</span>: ()) -&gt; <span class="ident">R</span> {
-            <span class="ident">R::from_ok</span>(())
+        <span class="kw">fn</span> <span class="ident">ok</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw">_</span>: (), <span class="kw">_</span>: ()) -&gt; <span class="ident">R</span> {
+            <span class="ident">R::from_output</span>(())
         }
 
         <span class="self">self</span>.<span class="ident">map</span>(<span class="ident">op</span>).<span class="ident">try_reduce</span>(<span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::default</span>, <span class="ident">ok</span>)
@@ -3696,10 +3812,10 @@
     <span class="kw">where</span>
         <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Clone</span>,
-        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
-        <span class="kw">fn</span> <span class="ident">ok</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw">_</span>: (), <span class="kw">_</span>: ()) -&gt; <span class="ident">R</span> {
-            <span class="ident">R::from_ok</span>(())
+        <span class="kw">fn</span> <span class="ident">ok</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw">_</span>: (), <span class="kw">_</span>: ()) -&gt; <span class="ident">R</span> {
+            <span class="ident">R::from_output</span>(())
         }
 
         <span class="self">self</span>.<span class="ident">map_with</span>(<span class="ident">init</span>, <span class="ident">op</span>).<span class="ident">try_reduce</span>(<span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::default</span>, <span class="ident">ok</span>)
@@ -3738,10 +3854,10 @@
     <span class="kw">where</span>
         <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;mut</span> <span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">INIT</span>: <span class="ident">Fn</span>() -&gt; <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
-        <span class="kw">fn</span> <span class="ident">ok</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw">_</span>: (), <span class="kw">_</span>: ()) -&gt; <span class="ident">R</span> {
-            <span class="ident">R::from_ok</span>(())
+        <span class="kw">fn</span> <span class="ident">ok</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> ()<span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw">_</span>: (), <span class="kw">_</span>: ()) -&gt; <span class="ident">R</span> {
+            <span class="ident">R::from_output</span>(())
         }
 
         <span class="self">self</span>.<span class="ident">map_init</span>(<span class="ident">init</span>, <span class="ident">op</span>).<span class="ident">try_reduce</span>(<span class="op">&lt;</span>()<span class="op">&gt;</span><span class="ident">::default</span>, <span class="ident">ok</span>)
@@ -4264,7 +4380,7 @@
     <span class="kw">where</span>
         <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) -&gt; <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">ID</span>: <span class="ident">Fn</span>() -&gt; <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">try_reduce::try_reduce</span>(<span class="self">self</span>, <span class="ident">identity</span>, <span class="ident">op</span>)
     }
@@ -4307,7 +4423,7 @@
     <span class="kw">fn</span> <span class="ident">try_reduce_with</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">OP</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">op</span>: <span class="ident">OP</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">OP</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident">T</span>) -&gt; <span class="ident"><span class="self">Self</span>::Item</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+        <span class="ident"><span class="self">Self</span>::Item</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
     {
         <span class="ident">try_reduce_with::try_reduce_with</span>(<span class="self">self</span>, <span class="ident">op</span>)
     }
@@ -4510,7 +4626,7 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">ID</span>: <span class="ident">Fn</span>() -&gt; <span class="ident">T</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">TryFold::new</span>(<span class="self">self</span>, <span class="ident">identity</span>, <span class="ident">fold_op</span>)
     }
@@ -4536,7 +4652,7 @@
     <span class="kw">fn</span> <span class="ident">try_fold_with</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">init</span>: <span class="ident">T</span>, <span class="ident">fold_op</span>: <span class="ident">F</span>) -&gt; <span class="ident">TryFoldWith</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">R</span>, <span class="ident">F</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">T</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">R</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Send</span>,
-        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
+        <span class="ident">R</span>: <span class="ident">Try</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Send</span>,
         <span class="ident">T</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span>,
     {
         <span class="ident">TryFoldWith::new</span>(<span class="self">self</span>, <span class="ident">init</span>, <span class="ident">fold_op</span>)
@@ -5804,7 +5920,7 @@
     <span class="doccomment">/// # Compatibility</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method is only available on Rust 1.38 or greater.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">step_by</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_step_by_rev</span>)]</span>
     <span class="kw">fn</span> <span class="ident">step_by</span>(<span class="self">self</span>, <span class="ident">step</span>: <span class="ident">usize</span>) -&gt; <span class="ident">StepBy</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">StepBy::new</span>(<span class="self">self</span>, <span class="ident">step</span>)
     }
@@ -6007,7 +6123,7 @@
     }
 
     <span class="doccomment">/// Sets the minimum length of iterators desired to process in each</span>
-    <span class="doccomment">/// thread.  Rayon will not split any smaller than this length, but</span>
+    <span class="doccomment">/// rayon job.  Rayon will not split any smaller than this length, but</span>
     <span class="doccomment">/// of course an iterator could already be smaller to begin with.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Producers like `zip` and `interleave` will use greater of the two</span>
@@ -6033,7 +6149,7 @@
     }
 
     <span class="doccomment">/// Sets the maximum length of iterators desired to process in each</span>
-    <span class="doccomment">/// thread.  Rayon will try to split at least below this length,</span>
+    <span class="doccomment">/// rayon job.  Rayon will try to split at least below this length,</span>
     <span class="doccomment">/// unless that would put it below the length from `with_min_len()`.</span>
     <span class="doccomment">/// For example, given min=10 and max=15, a length of 16 will not be</span>
     <span class="doccomment">/// split any further.</span>
@@ -6344,50 +6460,166 @@
 <span class="doccomment">/// We hide the `Try` trait in a private module, as it&#39;s only meant to be a</span>
 <span class="doccomment">/// stable clone of the standard library&#39;s `Try` trait, as yet unstable.</span>
 <span class="kw">mod</span> <span class="ident">private</span> {
+    <span class="kw">use</span> <span class="ident">std::convert::Infallible</span>;
+    <span class="kw">use</span> <span class="ident">std::task::Poll</span>;
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_control_flow</span>)]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">std::ops::ControlFlow</span>;
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">has_control_flow</span>))]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span> <span class="op">=</span> ()<span class="op">&gt;</span> {
+        <span class="ident">Continue</span>(<span class="ident">C</span>),
+        <span class="ident">Break</span>(<span class="ident">B</span>),
+    }
+
+    <span class="kw">use</span> <span class="ident"><span class="self">self</span>::ControlFlow</span>::{<span class="ident">Break</span>, <span class="ident">Continue</span>};
+
     <span class="doccomment">/// Clone of `std::ops::Try`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Implementing this trait is not permitted outside of `rayon`.</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Try</span> {
         <span class="macro">private_decl!</span> {}
 
-        <span class="kw">type</span> <span class="prelude-val">Ok</span>;
-        <span class="kw">type</span> <span class="ident">Error</span>;
-        <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Ok</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span>;
-        <span class="kw">fn</span> <span class="ident">from_ok</span>(<span class="ident">v</span>: <span class="ident"><span class="self">Self</span>::Ok</span>) -&gt; <span class="self">Self</span>;
-        <span class="kw">fn</span> <span class="ident">from_error</span>(<span class="ident">v</span>: <span class="ident"><span class="self">Self</span>::Error</span>) -&gt; <span class="self">Self</span>;
+        <span class="kw">type</span> <span class="ident">Output</span>;
+        <span class="kw">type</span> <span class="ident">Residual</span>;
+
+        <span class="kw">fn</span> <span class="ident">from_output</span>(<span class="ident">output</span>: <span class="ident"><span class="self">Self</span>::Output</span>) -&gt; <span class="self">Self</span>;
+
+        <span class="kw">fn</span> <span class="ident">from_residual</span>(<span class="ident">residual</span>: <span class="ident"><span class="self">Self</span>::Residual</span>) -&gt; <span class="self">Self</span>;
+
+        <span class="kw">fn</span> <span class="ident">branch</span>(<span class="self">self</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Residual</span>, <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_control_flow</span>)]</span>
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> <span class="ident">Try</span> <span class="kw">for</span> <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">C</span><span class="op">&gt;</span> {
+        <span class="macro">private_impl!</span> {}
+
+        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">C</span>;
+        <span class="kw">type</span> <span class="ident">Residual</span> <span class="op">=</span> <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">Infallible</span><span class="op">&gt;</span>;
+
+        <span class="kw">fn</span> <span class="ident">from_output</span>(<span class="ident">output</span>: <span class="ident"><span class="self">Self</span>::Output</span>) -&gt; <span class="self">Self</span> {
+            <span class="ident">Continue</span>(<span class="ident">output</span>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">from_residual</span>(<span class="ident">residual</span>: <span class="ident"><span class="self">Self</span>::Residual</span>) -&gt; <span class="self">Self</span> {
+            <span class="kw">match</span> <span class="ident">residual</span> {
+                <span class="ident">Break</span>(<span class="ident">b</span>) =&gt; <span class="ident">Break</span>(<span class="ident">b</span>),
+                <span class="ident">Continue</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            }
+        }
+
+        <span class="kw">fn</span> <span class="ident">branch</span>(<span class="self">self</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Residual</span>, <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="self">self</span> {
+                <span class="ident">Continue</span>(<span class="ident">c</span>) =&gt; <span class="ident">Continue</span>(<span class="ident">c</span>),
+                <span class="ident">Break</span>(<span class="ident">b</span>) =&gt; <span class="ident">Break</span>(<span class="ident">Break</span>(<span class="ident">b</span>)),
+            }
+        }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Try</span> <span class="kw">for</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="macro">private_impl!</span> {}
 
-        <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span>;
-        <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> ();
+        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
+        <span class="kw">type</span> <span class="ident">Residual</span> <span class="op">=</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Infallible</span><span class="op">&gt;</span>;
 
-        <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, ()<span class="op">&gt;</span> {
-            <span class="self">self</span>.<span class="ident">ok_or</span>(())
+        <span class="kw">fn</span> <span class="ident">from_output</span>(<span class="ident">output</span>: <span class="ident"><span class="self">Self</span>::Output</span>) -&gt; <span class="self">Self</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">output</span>)
         }
-        <span class="kw">fn</span> <span class="ident">from_ok</span>(<span class="ident">v</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span>)
+
+        <span class="kw">fn</span> <span class="ident">from_residual</span>(<span class="ident">residual</span>: <span class="ident"><span class="self">Self</span>::Residual</span>) -&gt; <span class="self">Self</span> {
+            <span class="kw">match</span> <span class="ident">residual</span> {
+                <span class="prelude-val">None</span> =&gt; <span class="prelude-val">None</span>,
+                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            }
         }
-        <span class="kw">fn</span> <span class="ident">from_error</span>(<span class="kw">_</span>: ()) -&gt; <span class="self">Self</span> {
-            <span class="prelude-val">None</span>
+
+        <span class="kw">fn</span> <span class="ident">branch</span>(<span class="self">self</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Residual</span>, <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="self">self</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">Continue</span>(<span class="ident">c</span>),
+                <span class="prelude-val">None</span> =&gt; <span class="ident">Break</span>(<span class="prelude-val">None</span>),
+            }
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Try</span> <span class="kw">for</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
         <span class="macro">private_impl!</span> {}
 
-        <span class="kw">type</span> <span class="prelude-val">Ok</span> <span class="op">=</span> <span class="ident">T</span>;
-        <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">E</span>;
+        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
+        <span class="kw">type</span> <span class="ident">Residual</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Infallible</span>, <span class="ident">E</span><span class="op">&gt;</span>;
 
-        <span class="kw">fn</span> <span class="ident">into_result</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> {
-            <span class="self">self</span>
+        <span class="kw">fn</span> <span class="ident">from_output</span>(<span class="ident">output</span>: <span class="ident"><span class="self">Self</span>::Output</span>) -&gt; <span class="self">Self</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">output</span>)
         }
-        <span class="kw">fn</span> <span class="ident">from_ok</span>(<span class="ident">v</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">v</span>)
+
+        <span class="kw">fn</span> <span class="ident">from_residual</span>(<span class="ident">residual</span>: <span class="ident"><span class="self">Self</span>::Residual</span>) -&gt; <span class="self">Self</span> {
+            <span class="kw">match</span> <span class="ident">residual</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            }
         }
-        <span class="kw">fn</span> <span class="ident">from_error</span>(<span class="ident">v</span>: <span class="ident">E</span>) -&gt; <span class="self">Self</span> {
-            <span class="prelude-val">Err</span>(<span class="ident">v</span>)
+
+        <span class="kw">fn</span> <span class="ident">branch</span>(<span class="self">self</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Residual</span>, <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="self">self</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">c</span>) =&gt; <span class="ident">Continue</span>(<span class="ident">c</span>),
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Break</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+            }
+        }
+    }
+
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Try</span> <span class="kw">for</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="macro">private_impl!</span> {}
+
+        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">Residual</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Infallible</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+
+        <span class="kw">fn</span> <span class="ident">from_output</span>(<span class="ident">output</span>: <span class="ident"><span class="self">Self</span>::Output</span>) -&gt; <span class="self">Self</span> {
+            <span class="ident">output</span>.<span class="ident">map</span>(<span class="prelude-val">Ok</span>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">from_residual</span>(<span class="ident">residual</span>: <span class="ident"><span class="self">Self</span>::Residual</span>) -&gt; <span class="self">Self</span> {
+            <span class="kw">match</span> <span class="ident">residual</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            }
+        }
+
+        <span class="kw">fn</span> <span class="ident">branch</span>(<span class="self">self</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Residual</span>, <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="self">self</span> {
+                <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Continue</span>(<span class="ident">Poll::Pending</span>),
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Ok</span>(<span class="ident">c</span>)) =&gt; <span class="ident">Continue</span>(<span class="ident">Poll::Ready</span>(<span class="ident">c</span>)),
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)) =&gt; <span class="ident">Break</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+            }
+        }
+    }
+
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">Try</span> <span class="kw">for</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="macro">private_impl!</span> {}
+
+        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Poll</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+        <span class="kw">type</span> <span class="ident">Residual</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Infallible</span>, <span class="ident">E</span><span class="op">&gt;</span>;
+
+        <span class="kw">fn</span> <span class="ident">from_output</span>(<span class="ident">output</span>: <span class="ident"><span class="self">Self</span>::Output</span>) -&gt; <span class="self">Self</span> {
+            <span class="kw">match</span> <span class="ident">output</span> {
+                <span class="ident">Poll::Ready</span>(<span class="ident">o</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="ident">o</span>.<span class="ident">map</span>(<span class="prelude-val">Ok</span>)),
+                <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Poll::Pending</span>,
+            }
+        }
+
+        <span class="kw">fn</span> <span class="ident">from_residual</span>(<span class="ident">residual</span>: <span class="ident"><span class="self">Self</span>::Residual</span>) -&gt; <span class="self">Self</span> {
+            <span class="kw">match</span> <span class="ident">residual</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))),
+                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+            }
+        }
+
+        <span class="kw">fn</span> <span class="ident">branch</span>(<span class="self">self</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Residual</span>, <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
+            <span class="kw">match</span> <span class="self">self</span> {
+                <span class="ident">Poll::Pending</span> =&gt; <span class="ident">Continue</span>(<span class="ident">Poll::Pending</span>),
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>) =&gt; <span class="ident">Continue</span>(<span class="ident">Poll::Ready</span>(<span class="prelude-val">None</span>)),
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="ident">c</span>))) =&gt; <span class="ident">Continue</span>(<span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="ident">c</span>))),
+                <span class="ident">Poll::Ready</span>(<span class="prelude-val">Some</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>))) =&gt; <span class="ident">Break</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>)),
+            }
         }
     }
 }

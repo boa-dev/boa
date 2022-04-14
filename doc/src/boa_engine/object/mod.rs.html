@@ -2021,6 +2021,8 @@
 <span id="2014">2014</span>
 <span id="2015">2015</span>
 <span id="2016">2016</span>
+<span id="2017">2017</span>
+<span id="2018">2018</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2082,10 +2084,12 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_methods</span>;
 <span class="kw">mod</span> <span class="ident">jsarray</span>;
 <span class="kw">mod</span> <span class="ident">jsobject</span>;
+<span class="kw">mod</span> <span class="ident">jstypedarray</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">property_map</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsarray</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jstypedarray</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">JsObjectType</span>:
     <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Deref</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="ident">JsObject</span><span class="op">&gt;</span>

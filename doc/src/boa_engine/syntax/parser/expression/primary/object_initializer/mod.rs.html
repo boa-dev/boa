@@ -845,6 +845,10 @@
 <span id="838">838</span>
 <span id="839">839</span>
 <span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1327,6 +1331,10 @@
                 <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">word</span>.<span class="ident">as_str</span>()))).<span class="ident">into</span>()
             }
             <span class="ident">TokenKind::NullLiteral</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">Sym::NULL</span>)).<span class="ident">into</span>(),
+            <span class="ident">TokenKind::BooleanLiteral</span>(<span class="ident">bool</span>) =&gt; <span class="kw">match</span> <span class="ident">bool</span> {
+                <span class="bool-val">true</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;true&quot;</span>))).<span class="ident">into</span>(),
+                <span class="bool-val">false</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;false&quot;</span>))).<span class="ident">into</span>(),
+            },
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::AbruptEnd</span>),
         };
         <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);

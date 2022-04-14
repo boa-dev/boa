@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rayon-1.5.1/src/iter/collect/consumer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>consumer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rayon-1.5.2/src/iter/collect/consumer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>consumer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../rayon/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -162,22 +162,68 @@
 <span id="157">157</span>
 <span id="158">158</span>
 <span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span>::plumbing</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::SendPtr</span>;
 <span class="kw">use</span> <span class="ident">std::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">std::mem::MaybeUninit</span>;
 <span class="kw">use</span> <span class="ident">std::ptr</span>;
 <span class="kw">use</span> <span class="ident">std::slice</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CollectConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// A slice covering the target memory, not yet initialized!</span>
-    <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>],
+    <span class="doccomment">/// See `CollectResult` for explanation of why this is not a slice</span>
+    <span class="ident">start</span>: <span class="ident">SendPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">len</span>: <span class="ident">usize</span>,
+    <span class="ident">marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="ident">T</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Send</span><span class="op">&gt;</span> <span class="ident">CollectConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Create a collector for `len` items in the unused capacity of the vector.</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">appender</span>(<span class="ident">vec</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">CollectConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">len</span>();
+        <span class="macro">assert!</span>(<span class="ident">vec</span>.<span class="ident">capacity</span>() <span class="op">-</span> <span class="ident">start</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span>);
+
+        <span class="comment">// SAFETY: We already made sure to have the additional space allocated.</span>
+        <span class="comment">// The pointer is derived from `Vec` directly, not through a `Deref`,</span>
+        <span class="comment">// so it has provenance over the whole allocation.</span>
+        <span class="kw">unsafe</span> { <span class="ident">CollectConsumer::new</span>(<span class="ident">vec</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">add</span>(<span class="ident">start</span>), <span class="ident">len</span>) }
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="lifetime">&#39;c</span><span class="op">&gt;</span> <span class="ident">CollectConsumer</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The target memory is considered uninitialized, and will be</span>
     <span class="doccomment">/// overwritten without reading or dropping existing values.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident">CollectConsumer</span> { <span class="ident">target</span> }
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">start</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">CollectConsumer</span> {
+            <span class="ident">start</span>: <span class="ident">SendPtr</span>(<span class="ident">start</span>),
+            <span class="ident">len</span>,
+            <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
+        }
     }
 }
 
@@ -187,10 +233,13 @@
 <span class="doccomment">/// the elements will be dropped, unless its ownership is released before then.</span>
 <span class="attribute">#[<span class="ident">must_use</span>]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">CollectResult</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// A slice covering the target memory, initialized up to our separate `len`.</span>
-    <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> [<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>],
-    <span class="doccomment">/// The current initialized length in `target`</span>
-    <span class="ident">len</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// This pointer and length has the same representation as a slice,</span>
+    <span class="doccomment">/// but retains the provenance of the entire array so that we can merge</span>
+    <span class="doccomment">/// these regions together in `CollectReducer`.</span>
+    <span class="ident">start</span>: <span class="ident">SendPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">total_len</span>: <span class="ident">usize</span>,
+    <span class="doccomment">/// The current initialized length after `start`</span>
+    <span class="ident">initialized_len</span>: <span class="ident">usize</span>,
     <span class="doccomment">/// Lifetime invariance guarantees that the data flows from consumer to result,</span>
     <span class="doccomment">/// especially for the `scope_fn` callback in `Collect::with_consumer`.</span>
     <span class="ident">invariant_lifetime</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;c</span> <span class="kw-2">mut</span> [<span class="ident">T</span>]<span class="op">&gt;</span>,
@@ -201,25 +250,26 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">CollectResult</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The current length of the collect result</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">len</span>
+        <span class="self">self</span>.<span class="ident">initialized_len</span>
     }
 
     <span class="doccomment">/// Release ownership of the slice of elements, and return the length</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">release_ownership</span>(<span class="kw-2">mut</span> <span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">len</span>;
-        <span class="self">self</span>.<span class="ident">len</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">initialized_len</span>;
+        <span class="self">self</span>.<span class="ident">initialized_len</span> <span class="op">=</span> <span class="number">0</span>;
         <span class="ident">ret</span>
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">CollectResult</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="comment">// Drop the first `self.len` elements, which have been recorded</span>
+        <span class="comment">// Drop the first `self.initialized_len` elements, which have been recorded</span>
         <span class="comment">// to be initialized by the folder.</span>
         <span class="kw">unsafe</span> {
-            <span class="comment">// TODO: use `MaybeUninit::slice_as_mut_ptr`</span>
-            <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">as_mut_ptr</span>() <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">T</span>;
-            <span class="ident">ptr::drop_in_place</span>(<span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">start</span>, <span class="self">self</span>.<span class="ident">len</span>));
+            <span class="ident">ptr::drop_in_place</span>(<span class="ident">slice::from_raw_parts_mut</span>(
+                <span class="self">self</span>.<span class="ident">start</span>.<span class="number">0</span>,
+                <span class="self">self</span>.<span class="ident">initialized_len</span>,
+            ));
         }
     }
 }
@@ -230,24 +280,27 @@
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="ident">CollectResult</span><span class="op">&lt;</span><span class="lifetime">&#39;c</span>, <span class="ident">T</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">split_at</span>(<span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>, <span class="ident">CollectReducer</span>) {
-        <span class="kw">let</span> <span class="ident">CollectConsumer</span> { <span class="ident">target</span> } <span class="op">=</span> <span class="self">self</span>;
+        <span class="kw">let</span> <span class="ident">CollectConsumer</span> { <span class="ident">start</span>, <span class="ident">len</span>, .. } <span class="op">=</span> <span class="self">self</span>;
 
-        <span class="comment">// Produce new consumers. Normal slicing ensures that the</span>
-        <span class="comment">// memory range given to each consumer is disjoint.</span>
-        <span class="kw">let</span> (<span class="ident">left</span>, <span class="ident">right</span>) <span class="op">=</span> <span class="ident">target</span>.<span class="ident">split_at_mut</span>(<span class="ident">index</span>);
-        (
-            <span class="ident">CollectConsumer::new</span>(<span class="ident">left</span>),
-            <span class="ident">CollectConsumer::new</span>(<span class="ident">right</span>),
-            <span class="ident">CollectReducer</span>,
-        )
+        <span class="comment">// Produce new consumers.</span>
+        <span class="comment">// SAFETY: This assert checks that `index` is a valid offset for `start`</span>
+        <span class="kw">unsafe</span> {
+            <span class="macro">assert!</span>(<span class="ident">index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">len</span>);
+            (
+                <span class="ident">CollectConsumer::new</span>(<span class="ident">start</span>.<span class="number">0</span>, <span class="ident">index</span>),
+                <span class="ident">CollectConsumer::new</span>(<span class="ident">start</span>.<span class="number">0</span>.<span class="ident">add</span>(<span class="ident">index</span>), <span class="ident">len</span> <span class="op">-</span> <span class="ident">index</span>),
+                <span class="ident">CollectReducer</span>,
+            )
+        }
     }
 
     <span class="kw">fn</span> <span class="ident">into_folder</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Folder</span> {
         <span class="comment">// Create a result/folder that consumes values and writes them</span>
-        <span class="comment">// into target. The initial result has length 0.</span>
+        <span class="comment">// into the region after start. The initial result has length 0.</span>
         <span class="ident">CollectResult</span> {
-            <span class="ident">target</span>: <span class="self">self</span>.<span class="ident">target</span>,
-            <span class="ident">len</span>: <span class="number">0</span>,
+            <span class="ident">start</span>: <span class="self">self</span>.<span class="ident">start</span>,
+            <span class="ident">total_len</span>: <span class="self">self</span>.<span class="ident">len</span>,
+            <span class="ident">initialized_len</span>: <span class="number">0</span>,
             <span class="ident">invariant_lifetime</span>: <span class="ident">PhantomData</span>,
         }
     }
@@ -261,15 +314,17 @@
     <span class="kw">type</span> <span class="prelude-ty">Result</span> <span class="op">=</span> <span class="self">Self</span>;
 
     <span class="kw">fn</span> <span class="ident">consume</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">dest</span> <span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">target</span>
-            .<span class="ident">get_mut</span>(<span class="self">self</span>.<span class="ident">len</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;too many values pushed to consumer&quot;</span>);
+        <span class="macro">assert!</span>(
+            <span class="self">self</span>.<span class="ident">initialized_len</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">total_len</span>,
+            <span class="string">&quot;too many values pushed to consumer&quot;</span>
+        );
 
-        <span class="comment">// Write item and increase the initialized length</span>
+        <span class="comment">// SAFETY: The assert above is a bounds check for this write, and we</span>
+        <span class="comment">// avoid assignment here so we do not drop an uninitialized T.</span>
         <span class="kw">unsafe</span> {
-            <span class="ident">dest</span>.<span class="ident">as_mut_ptr</span>().<span class="ident">write</span>(<span class="ident">item</span>);
-            <span class="self">self</span>.<span class="ident">len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            <span class="comment">// Write item and increase the initialized length</span>
+            <span class="self">self</span>.<span class="ident">start</span>.<span class="number">0</span>.<span class="ident">add</span>(<span class="self">self</span>.<span class="ident">initialized_len</span>).<span class="ident">write</span>(<span class="ident">item</span>);
+            <span class="self">self</span>.<span class="ident">initialized_len</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
         <span class="self">self</span>
@@ -310,15 +365,14 @@
         <span class="comment">// Merge if the CollectResults are adjacent and in left to right order</span>
         <span class="comment">// else: drop the right piece now and total length will end up short in the end,</span>
         <span class="comment">// when the correctness of the collected result is asserted.</span>
-        <span class="kw">let</span> <span class="ident">left_end</span> <span class="op">=</span> <span class="ident">left</span>.<span class="ident">target</span>[<span class="ident">left</span>.<span class="ident">len</span>..].<span class="ident">as_ptr</span>();
-        <span class="kw">if</span> <span class="ident">left_end</span> <span class="op">==</span> <span class="ident">right</span>.<span class="ident">target</span>.<span class="ident">as_ptr</span>() {
-            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">left</span>.<span class="ident">len</span> <span class="op">+</span> <span class="ident">right</span>.<span class="ident">release_ownership</span>();
-            <span class="kw">unsafe</span> {
-                <span class="ident">left</span>.<span class="ident">target</span> <span class="op">=</span> <span class="ident">slice::from_raw_parts_mut</span>(<span class="ident">left</span>.<span class="ident">target</span>.<span class="ident">as_mut_ptr</span>(), <span class="ident">len</span>);
+        <span class="kw">unsafe</span> {
+            <span class="kw">let</span> <span class="ident">left_end</span> <span class="op">=</span> <span class="ident">left</span>.<span class="ident">start</span>.<span class="number">0</span>.<span class="ident">add</span>(<span class="ident">left</span>.<span class="ident">initialized_len</span>);
+            <span class="kw">if</span> <span class="ident">left_end</span> <span class="op">==</span> <span class="ident">right</span>.<span class="ident">start</span>.<span class="number">0</span> {
+                <span class="ident">left</span>.<span class="ident">total_len</span> <span class="op">+</span><span class="op">=</span> <span class="ident">right</span>.<span class="ident">total_len</span>;
+                <span class="ident">left</span>.<span class="ident">initialized_len</span> <span class="op">+</span><span class="op">=</span> <span class="ident">right</span>.<span class="ident">release_ownership</span>();
             }
-            <span class="ident">left</span>.<span class="ident">len</span> <span class="op">=</span> <span class="ident">len</span>;
+            <span class="ident">left</span>
         }
-        <span class="ident">left</span>
     }
 }
 </code></pre></div>
