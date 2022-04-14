@@ -36,7 +36,7 @@ fn check_async_generator_expr() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -87,6 +87,6 @@ fn check_nested_async_generator_expr() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

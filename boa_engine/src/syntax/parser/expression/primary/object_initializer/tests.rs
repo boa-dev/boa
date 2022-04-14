@@ -35,7 +35,7 @@ fn check_object_literal() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -70,7 +70,7 @@ fn check_object_short_function() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -115,7 +115,7 @@ fn check_object_short_function_arguments() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -149,7 +149,7 @@ fn check_object_getter() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -193,7 +193,7 @@ fn check_object_setter() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -223,7 +223,7 @@ fn check_object_short_function_get() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -253,7 +253,7 @@ fn check_object_short_function_set() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -288,7 +288,7 @@ fn check_object_shorthand_property_names() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -338,7 +338,7 @@ fn check_object_shorthand_multiple_properties() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -362,7 +362,7 @@ fn check_object_spread() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -392,7 +392,7 @@ fn check_async_method() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -422,7 +422,7 @@ fn check_async_generator_method() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 

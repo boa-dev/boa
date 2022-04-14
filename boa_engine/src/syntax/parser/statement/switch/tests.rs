@@ -201,6 +201,6 @@ fn check_seperated_switch() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }

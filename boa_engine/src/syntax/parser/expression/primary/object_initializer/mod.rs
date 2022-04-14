@@ -17,7 +17,7 @@ use crate::syntax::{
             AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
             GeneratorExpr, Identifier, Node, Object,
         },
-        Const, Keyword, Position, Punctuator,
+        Const, Keyword, Punctuator,
     },
     lexer::{token::Numeric, Error as LexError, TokenKind},
     parser::{
@@ -411,6 +411,25 @@ where
                     )));
                 }
 
+                // It is a Syntax Error if any element of the BoundNames of FormalParameters also occurs in the LexicallyDeclaredNames of FunctionBody.
+                let lexically_declared_names = body.lexically_declared_names();
+                for parameter in params.parameters.iter() {
+                    for name in &parameter.names() {
+                        if lexically_declared_names.contains(&(*name, false)) {
+                            return Err(ParseError::general(
+                                "formal parameter declared in lexically declared names",
+                                params_start_position,
+                            ));
+                        }
+                        if lexically_declared_names.contains(&(*name, true)) {
+                            return Err(ParseError::general(
+                                "formal parameter declared in lexically declared names",
+                                params_start_position,
+                            ));
+                        }
+                    }
+                }
+
                 Ok(object::PropertyDefinition::method_definition(
                     MethodDefinition::Ordinary(FunctionExpr::new(None, params, body)),
                     property_name,
@@ -614,26 +633,10 @@ where
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
-        {
-            let lexically_declared_names = body.lexically_declared_names(interner);
-            for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(&param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!(
-                                "Redeclaration of formal parameter `{}`",
-                                interner.resolve_expect(param_name)
-                            )
-                            .into(),
-                            match cursor.peek(0, interner)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            body_start,
+        )?;
 
         Ok((
             property_name,
@@ -717,26 +720,10 @@ where
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
-        {
-            let lexically_declared_names = body.lexically_declared_names(interner);
-            for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(&param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!(
-                                "Redeclaration of formal parameter `{}`",
-                                interner.resolve_expect(param_name)
-                            )
-                            .into(),
-                            match cursor.peek(0, interner)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            body_start,
+        )?;
 
         Ok((
             property_name,
@@ -815,26 +802,10 @@ where
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
-        {
-            let lexically_declared_names = body.lexically_declared_names(interner);
-            for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(&param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!(
-                                "Redeclaration of formal parameter `{}`",
-                                interner.resolve_expect(param_name)
-                            )
-                            .into(),
-                            match cursor.peek(0, interner)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            body_start,
+        )?;
 
         Ok((
             property_name,

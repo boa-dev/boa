@@ -35,7 +35,7 @@ fn check_async_expression() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -86,6 +86,6 @@ fn check_nested_async_expression() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

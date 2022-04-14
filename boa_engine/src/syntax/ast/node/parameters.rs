@@ -1,3 +1,5 @@
+use crate::syntax::{ast::Position, parser::ParseError};
+
 use super::{Declaration, DeclarationPattern, Node};
 use bitflags::bitflags;
 use boa_gc::{Finalize, Trace};
@@ -76,6 +78,25 @@ impl FormalParameterList {
     /// Indicates if the parameter list has parameters named 'arguments'.
     pub(crate) fn has_arguments(&self) -> bool {
         self.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
+    }
+
+    /// Helper to check if any parameter names are declared in the given list.
+    pub(crate) fn name_in_lexically_declared_names(
+        &self,
+        names: &[Sym],
+        position: Position,
+    ) -> Result<(), ParseError> {
+        for parameter in self.parameters.iter() {
+            for name in &parameter.names() {
+                if names.contains(name) {
+                    return Err(ParseError::General {
+                        message: "formal parameter declared in lexically declared names",
+                        position,
+                    });
+                }
+            }
+        }
+        Ok(())
     }
 }
 

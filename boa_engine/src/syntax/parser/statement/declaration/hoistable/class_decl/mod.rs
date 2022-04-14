@@ -24,7 +24,7 @@ use crate::syntax::{
 };
 use boa_interner::{Interner, Sym};
 use node::Node;
-use rustc_hash::FxHashMap;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
 /// Class declaration parsing.
@@ -555,9 +555,46 @@ where
                 } else {
                     let strict = cursor.strict_mode();
                     cursor.set_strict_mode(true);
+                    let position = cursor
+                        .peek(0, interner)?
+                        .ok_or(ParseError::AbruptEnd)?
+                        .span()
+                        .start();
                     let statement_list =
                         StatementList::new(false, true, false, true, &FUNCTION_BREAK_TOKENS)
                             .parse(cursor, interner)?;
+
+                    let lexically_declared_names = statement_list.lexically_declared_names();
+                    let mut lexically_declared_names_map: FxHashMap<Sym, bool> =
+                        FxHashMap::default();
+                    for (name, is_function_declaration) in &lexically_declared_names {
+                        if let Some(existing_is_function_declaration) =
+                            lexically_declared_names_map.get(name)
+                        {
+                            if !(!cursor.strict_mode()
+                                && *is_function_declaration
+                                && *existing_is_function_declaration)
+                            {
+                                return Err(ParseError::general(
+                                    "lexical name declared multiple times",
+                                    position,
+                                ));
+                            }
+                        }
+                        lexically_declared_names_map.insert(*name, *is_function_declaration);
+                    }
+
+                    let mut var_declared_names = FxHashSet::default();
+                    statement_list.var_declared_names_new(&mut var_declared_names);
+                    for (lex_name, _) in &lexically_declared_names {
+                        if var_declared_names.contains(lex_name) {
+                            return Err(ParseError::general(
+                                "lexical name declared in var names",
+                                position,
+                            ));
+                        }
+                    }
+
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
                         "class definition",

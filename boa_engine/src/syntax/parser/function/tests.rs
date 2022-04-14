@@ -1,10 +1,13 @@
-use crate::syntax::{
-    ast::node::{
-        ArrowFunctionDecl, BinOp, Declaration, DeclarationList, FormalParameter,
-        FormalParameterList, FunctionDecl, Identifier, Node, Return,
+use crate::{
+    syntax::{
+        ast::node::{
+            ArrowFunctionDecl, BinOp, Declaration, DeclarationList, FormalParameter,
+            FormalParameterList, FunctionDecl, Identifier, Node, Return,
+        },
+        ast::{node::FormalParameterListFlags, op::NumOp},
+        parser::{tests::check_parser, Parser},
     },
-    ast::{node::FormalParameterListFlags, op::NumOp},
-    parser::{tests::check_parser, Parser},
+    Context,
 };
 use boa_interner::Interner;
 
@@ -27,7 +30,7 @@ fn check_basic() {
             vec![Return::new(Identifier::from(interner.get_or_intern_static("a")), None).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -57,7 +60,7 @@ fn check_duplicates_strict_off() {
             vec![Return::new(Identifier::from(interner.get_or_intern_static("a")), None).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -65,9 +68,9 @@ fn check_duplicates_strict_off() {
 #[test]
 fn check_duplicates_strict_on() {
     let js = "'use strict'; function foo(a, a) {}";
-    let mut interner = Interner::default();
+    let mut context = Context::default();
 
-    let res = Parser::new(js.as_bytes(), false).parse_all(&mut interner);
+    let res = Parser::new(js.as_bytes(), false).parse_all(&mut context);
     dbg!(&res);
     assert!(res.is_err());
 }
@@ -91,7 +94,7 @@ fn check_basic_semicolon_insertion() {
             vec![Return::new(Identifier::from(interner.get_or_intern_static("a")), None).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -114,7 +117,7 @@ fn check_empty_return() {
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -137,7 +140,7 @@ fn check_empty_return_semicolon_insertion() {
             vec![Return::new::<Node, Option<Node>, Option<_>>(None, None).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -167,7 +170,7 @@ fn check_rest_operator() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -191,7 +194,7 @@ fn check_arrow_only_rest() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -225,7 +228,7 @@ fn check_arrow_rest() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -262,7 +265,7 @@ fn check_arrow() {
             .into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -299,7 +302,7 @@ fn check_arrow_semicolon_insertion() {
             .into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -328,7 +331,7 @@ fn check_arrow_epty_return() {
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -357,7 +360,7 @@ fn check_arrow_empty_return_semicolon_insertion() {
             vec![Return::new::<Node, Option<_>, Option<_>>(None, None).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -395,7 +398,7 @@ fn check_arrow_assignment() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -433,7 +436,7 @@ fn check_arrow_assignment_nobrackets() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -471,7 +474,7 @@ fn check_arrow_assignment_noparenthesis() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -509,7 +512,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -556,7 +559,7 @@ fn check_arrow_assignment_2arg() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -603,7 +606,7 @@ fn check_arrow_assignment_2arg_nobrackets() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -657,7 +660,7 @@ fn check_arrow_assignment_3arg() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -711,6 +714,6 @@ fn check_arrow_assignment_3arg_nobrackets() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

@@ -8,7 +8,7 @@ use crate::syntax::ast::node::{
     declaration::Declaration, identifier::Identifier, DeclarationPattern,
 };
 use boa_gc::{Finalize, Trace};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -24,6 +24,22 @@ pub enum IterableLoopInitializer {
     Let(Declaration),
     Const(Declaration),
     DeclarationPattern(DeclarationPattern),
+}
+
+impl IterableLoopInitializer {
+    pub(crate) fn bound_names(&self) -> Vec<Sym> {
+        match self {
+            //IterableLoopInitializer::Identifier(ident) => vec![ident.sym()],
+            //IterableLoopInitializer::Var(decl)
+            IterableLoopInitializer::Let(decl) | IterableLoopInitializer::Const(decl) => match decl
+            {
+                Declaration::Identifier { ident, .. } => vec![ident.sym()],
+                Declaration::Pattern(pattern) => pattern.idents(),
+            },
+            _ => Vec::new(),
+            //IterableLoopInitializer::DeclarationPattern(pattern) => pattern.idents(),
+        }
+    }
 }
 
 impl ToInternedString for IterableLoopInitializer {

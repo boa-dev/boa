@@ -11,9 +11,15 @@ mod tests;
 pub use self::error::{ParseError, ParseResult};
 
 use self::cursor::Cursor;
-use crate::syntax::{ast::node::StatementList, lexer::TokenKind};
-use boa_interner::Interner;
+use crate::{
+    syntax::{ast::node::StatementList, lexer::TokenKind},
+    Context,
+};
+use boa_interner::{Interner, Sym};
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
+
+use super::ast::Position;
 
 /// Trait implemented by parsers.
 ///
@@ -102,11 +108,80 @@ impl<R> Parser<R> {
         Self { cursor }
     }
 
-    pub fn parse_all(&mut self, interner: &mut Interner) -> Result<StatementList, ParseError>
+    pub fn parse_all(&mut self, context: &mut Context) -> Result<StatementList, ParseError>
     where
         R: Read,
     {
-        Script.parse(&mut self.cursor, interner)
+        let statement_list = Script.parse(&mut self.cursor, context.interner_mut())?;
+
+        // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
+        let mut var_declared_names = FxHashSet::default();
+        statement_list.var_declared_names_new(&mut var_declared_names);
+        let lexically_declared_names = statement_list.lexically_declared_names();
+        let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+        for (name, is_function_declaration) in &lexically_declared_names {
+            if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
+                if !(*is_function_declaration && *existing_is_function_declaration) {
+                    return Err(ParseError::general(
+                        "lexical name declared multiple times",
+                        Position::new(1, 1),
+                    ));
+                }
+            }
+            lexically_declared_names_map.insert(*name, *is_function_declaration);
+
+            if !is_function_declaration && var_declared_names.contains(name) {
+                return Err(ParseError::general(
+                    "lexical name declared in var names",
+                    Position::new(1, 1),
+                ));
+            }
+            if context.has_binding(*name) {
+                return Err(ParseError::general(
+                    "lexical name declared multiple times",
+                    Position::new(1, 1),
+                ));
+            }
+            if !is_function_declaration {
+                let name_str = context.interner().resolve_expect(*name);
+                let desc = context
+                    .realm
+                    .global_property_map
+                    .string_property_map()
+                    .get(name_str);
+                let non_configurable_binding_exists = match desc {
+                    Some(desc) => !matches!(desc.configurable(), Some(true)),
+                    None => false,
+                };
+                if non_configurable_binding_exists {
+                    return Err(ParseError::general(
+                        "lexical name declared in var names",
+                        Position::new(1, 1),
+                    ));
+                }
+            }
+        }
+        for name in var_declared_names {
+            if context.has_binding(name) {
+                return Err(ParseError::general(
+                    "lexical name declared in var names",
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
+        //let desc = context
+        //    .realm
+        //    .global_property_map
+        //    .string_property_map()
+        //    .get(&name_str);
+        //let non_configurable_binding_exists = match desc {
+        //    Some(desc) => !matches!(desc.configurable(), Some(true)),
+        //    None => false,
+        //};
+
+        Ok(statement_list)
     }
 }
 

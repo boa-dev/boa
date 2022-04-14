@@ -49,14 +49,14 @@ use crate::syntax::{
                 DeclarationPatternArray, DeclarationPatternObject,
             },
         },
-        Keyword, Node, Position, Punctuator,
+        Keyword, Node, Punctuator,
     },
     lexer::{Error as LexError, InputElement, Token, TokenKind},
     parser::expression::{await_expr::AwaitExpression, Initializer},
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::{collections::HashSet, io::Read, vec};
+use std::{io::Read, vec};
 
 pub(in crate::syntax::parser) use declaration::ClassTail;
 pub(in crate::syntax) use declaration::PrivateElement;
@@ -310,108 +310,6 @@ where
 
             // move the cursor forward for any consecutive semicolon.
             while cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {}
-        }
-
-        // Handle any redeclarations
-        // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
-        {
-            let mut lexically_declared_names: HashSet<Sym> = HashSet::new();
-            let mut var_declared_names: HashSet<Sym> = HashSet::new();
-
-            // TODO: Use more helpful positions in errors when spans are added to Nodes
-            for item in &items {
-                match item {
-                    Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => {
-                        for decl in decl_list.as_ref() {
-                            // if name in VarDeclaredNames or can't be added to
-                            // LexicallyDeclaredNames, raise an error
-                            match decl {
-                                node::Declaration::Identifier { ident, .. } => {
-                                    if var_declared_names.contains(&ident.sym())
-                                        || !lexically_declared_names.insert(ident.sym())
-                                    {
-                                        return Err(ParseError::lex(LexError::Syntax(
-                                            format!(
-                                                "Redeclaration of variable `{}`",
-                                                interner.resolve_expect(ident.sym())
-                                            )
-                                            .into(),
-                                            match cursor.peek(0, interner)? {
-                                                Some(token) => token.span().end(),
-                                                None => Position::new(1, 1),
-                                            },
-                                        )));
-                                    }
-                                }
-                                node::Declaration::Pattern(p) => {
-                                    for ident in p.idents() {
-                                        if var_declared_names.contains(&ident)
-                                            || !lexically_declared_names.insert(ident)
-                                        {
-                                            return Err(ParseError::lex(LexError::Syntax(
-                                                format!(
-                                                    "Redeclaration of variable `{}`",
-                                                    interner.resolve_expect(ident)
-                                                )
-                                                .into(),
-                                                match cursor.peek(0, interner)? {
-                                                    Some(token) => token.span().end(),
-                                                    None => Position::new(1, 1),
-                                                },
-                                            )));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Node::VarDeclList(decl_list) => {
-                        for decl in decl_list.as_ref() {
-                            match decl {
-                                node::Declaration::Identifier { ident, .. } => {
-                                    // if name in LexicallyDeclaredNames, raise an error
-                                    if lexically_declared_names.contains(&ident.sym()) {
-                                        return Err(ParseError::lex(LexError::Syntax(
-                                            format!(
-                                                "Redeclaration of variable `{}`",
-                                                interner.resolve_expect(ident.sym())
-                                            )
-                                            .into(),
-                                            match cursor.peek(0, interner)? {
-                                                Some(token) => token.span().end(),
-                                                None => Position::new(1, 1),
-                                            },
-                                        )));
-                                    }
-                                    // otherwise, add to VarDeclaredNames
-                                    var_declared_names.insert(ident.sym());
-                                }
-                                node::Declaration::Pattern(p) => {
-                                    for ident in p.idents() {
-                                        // if name in LexicallyDeclaredNames, raise an error
-                                        if lexically_declared_names.contains(&ident) {
-                                            return Err(ParseError::lex(LexError::Syntax(
-                                                format!(
-                                                    "Redeclaration of variable `{}`",
-                                                    interner.resolve_expect(ident)
-                                                )
-                                                .into(),
-                                                match cursor.peek(0, interner)? {
-                                                    Some(token) => token.span().end(),
-                                                    None => Position::new(1, 1),
-                                                },
-                                            )));
-                                        }
-                                        // otherwise, add to VarDeclaredNames
-                                        var_declared_names.insert(ident);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    _ => (),
-                }
-            }
         }
 
         items.sort_by(Node::hoistable_order);

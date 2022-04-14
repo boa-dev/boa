@@ -33,7 +33,7 @@ fn check_generator_function_expression() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -61,6 +61,6 @@ fn check_generator_function_delegate_yield_expression() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

@@ -68,64 +68,86 @@ impl StatementList {
         buf
     }
 
-    pub fn lexically_declared_names(&self, interner: &Interner) -> FxHashSet<Sym> {
-        let mut set = FxHashSet::default();
-        for stmt in self.items() {
-            if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
-                for decl in decl_list.as_ref() {
-                    // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
-                    // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
-                    match decl {
-                        Declaration::Identifier { ident, .. } => {
-                            if !set.insert(ident.sym()) {
-                                unreachable!(
-                                    "Redeclaration of {}",
-                                    interner.resolve_expect(ident.sym())
-                                );
-                            }
-                        }
-                        Declaration::Pattern(p) => {
-                            for ident in p.idents().iter().copied() {
-                                if !set.insert(ident) {
-                                    unreachable!(
-                                        "Redeclaration of {}",
-                                        interner.resolve_expect(ident)
+    pub(crate) fn lexically_declared_names(&self) -> Vec<(Sym, bool)> {
+        let mut names = Vec::new();
+
+        for node in self.items() {
+            match node {
+                Node::FunctionDecl(decl) => {
+                    names.push((decl.name(), true));
+                }
+                Node::GeneratorDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::AsyncFunctionDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::AsyncGeneratorDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::ClassDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => match decl_list {
+                    super::DeclarationList::Const(declarations)
+                    | super::DeclarationList::Let(declarations) => {
+                        for decl in declarations.iter() {
+                            match decl {
+                                Declaration::Identifier { ident, .. } => {
+                                    names.push((ident.sym(), false));
+                                }
+                                Declaration::Pattern(pattern) => {
+                                    names.extend(
+                                        pattern.idents().into_iter().map(|name| (name, false)),
                                     );
                                 }
                             }
                         }
                     }
+                    super::DeclarationList::Var(_) => unreachable!(),
+                },
+                _ => {}
+            }
+        }
+
+        names
+    }
+
+    pub(crate) fn lexically_declared_names_top_level(&self) -> Vec<Sym> {
+        let mut names = Vec::new();
+
+        for node in self.items() {
+            match node {
+                Node::ClassDecl(decl) => {
+                    names.push(decl.name());
                 }
-            }
-        }
-        set
-    }
-
-    pub fn function_declared_names(&self) -> FxHashSet<Sym> {
-        let mut set = FxHashSet::default();
-        for stmt in self.items() {
-            if let Node::FunctionDecl(decl) = stmt {
-                set.insert(decl.name());
-            }
-        }
-        set
-    }
-
-    pub fn var_declared_names(&self) -> FxHashSet<Sym> {
-        let mut set = FxHashSet::default();
-        for stmt in self.items() {
-            if let Node::VarDeclList(decl_list) = stmt {
-                for decl in decl_list.as_ref() {
-                    match decl {
-                        Declaration::Identifier { ident, .. } => {
-                            set.insert(ident.sym());
+                Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => match decl_list {
+                    super::DeclarationList::Const(declarations)
+                    | super::DeclarationList::Let(declarations) => {
+                        for decl in declarations.iter() {
+                            match decl {
+                                Declaration::Identifier { ident, .. } => {
+                                    names.push(ident.sym());
+                                }
+                                Declaration::Pattern(pattern) => {
+                                    names.extend(pattern.idents());
+                                }
+                            }
                         }
-                        Declaration::Pattern(p) => set.extend(p.idents().into_iter()),
                     }
-                }
+                    super::DeclarationList::Var(_) => unreachable!(),
+                },
+                _ => {}
             }
         }
-        set
+
+        names
+    }
+
+    pub(crate) fn var_declared_names_new(&self, vars: &mut FxHashSet<Sym>) {
+        for node in self.items() {
+            node.var_declared_names(vars);
+        }
     }
 }
 
