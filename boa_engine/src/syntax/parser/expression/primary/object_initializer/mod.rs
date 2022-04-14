@@ -480,6 +480,10 @@ where
                 Node::Const(Const::from(interner.get_or_intern_static(word.as_str()))).into()
             }
             TokenKind::NullLiteral => Node::Const(Const::from(Sym::NULL)).into(),
+            TokenKind::BooleanLiteral(bool) => match bool {
+                true => Node::Const(Const::from(interner.get_or_intern_static("true"))).into(),
+                false => Node::Const(Const::from(interner.get_or_intern_static("false"))).into(),
+            },
             _ => return Err(ParseError::AbruptEnd),
         };
         cursor.next(interner).expect("token disappeared");
