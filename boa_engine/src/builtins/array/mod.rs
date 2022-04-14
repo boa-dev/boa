@@ -2071,7 +2071,9 @@ impl Array {
             // c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
             let max = len - actual_start;
             match dc {
-                IntegerOrInfinity::Integer(i) => (i as usize).clamp(0, max),
+                IntegerOrInfinity::Integer(i) => {
+                    usize::try_from(i).unwrap_or_default().clamp(0, max)
+                }
                 IntegerOrInfinity::PositiveInfinity => max,
                 IntegerOrInfinity::NegativeInfinity => 0,
             }
