@@ -24,5 +24,5 @@ colored = "2.0.0"
 fxhash = "0.2.1"
 num-format = "0.4.0"
 gc = { version = "0.4.1", features = ["derive"] }
-rayon = "1.5.1"
+rayon = "1.5.2"
 anyhow = "1.0.56"
