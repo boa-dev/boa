@@ -2935,6 +2935,8 @@
 <span id="2928">2928</span>
 <span id="2929">2929</span>
 <span id="2930">2930</span>
+<span id="2931">2931</span>
+<span id="2932">2932</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -5008,7 +5010,9 @@
             <span class="comment">// c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.</span>
             <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="ident">actual_start</span>;
             <span class="kw">match</span> <span class="ident">dc</span> {
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; (<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">clamp</span>(<span class="number">0</span>, <span class="ident">max</span>),
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; {
+                    <span class="ident">usize::try_from</span>(<span class="ident">i</span>).<span class="ident">unwrap_or_default</span>().<span class="ident">clamp</span>(<span class="number">0</span>, <span class="ident">max</span>)
+                }
                 <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">max</span>,
                 <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             }
