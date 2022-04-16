@@ -135,8 +135,6 @@ impl BuiltIn for Symbol {
             None,
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
-        .callable(true)
-        .constructor(false)
         .property(
             symbol_to_string_tag,
             Self::NAME,
