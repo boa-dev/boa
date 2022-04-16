@@ -138,6 +138,7 @@ bitflags! {
         const DOT_ALL = 0b0000_1000;
         const UNICODE = 0b0001_0000;
         const STICKY = 0b0010_0000;
+        const HAS_INDICES = 0b0100_0000;
     }
 }
 
@@ -154,6 +155,7 @@ impl FromStr for RegExpFlags {
                 b's' => Self::DOT_ALL,
                 b'u' => Self::UNICODE,
                 b'y' => Self::STICKY,
+                b'd' => Self::HAS_INDICES,
                 _ => return Err(format!("invalid regular expression flag {}", char::from(c))),
             };
 
@@ -180,6 +182,9 @@ fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Resul
 impl ToString for RegExpFlags {
     fn to_string(&self) -> String {
         let mut s = String::new();
+        if self.contains(Self::HAS_INDICES) {
+            s.push('d');
+        }
         if self.contains(Self::GLOBAL) {
             s.push('g');
         }

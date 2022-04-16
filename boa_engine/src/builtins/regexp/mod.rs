@@ -63,6 +63,10 @@ impl BuiltIn for RegExp {
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
+        let get_has_indices = FunctionBuilder::native(context, Self::get_has_indices)
+            .name("get hasIndices")
+            .constructor(false)
+            .build();
         let get_global = FunctionBuilder::native(context, Self::get_global)
             .name("get global")
             .constructor(false)
@@ -137,6 +141,7 @@ impl BuiltIn for RegExp {
             (WellKnownSymbols::split(), "[Symbol.split]"),
             2,
         )
+        .accessor("hasIndices", Some(get_has_indices), None, flag_attributes)
         .accessor("global", Some(get_global), None, flag_attributes)
         .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)
         .accessor("multiline", Some(get_multiline), None, flag_attributes)
@@ -145,7 +150,6 @@ impl BuiltIn for RegExp {
         .accessor("sticky", Some(get_sticky), None, flag_attributes)
         .accessor("flags", Some(get_flags), None, flag_attributes)
         .accessor("source", Some(get_source), None, flag_attributes)
-        // TODO: add them RegExp accessor properties
         .build()
         .conv::<JsValue>()
         .pipe(Some)
@@ -333,6 +337,7 @@ impl RegExp {
         if let Some(object) = this.as_object() {
             if let Some(regexp) = object.borrow().as_regexp() {
                 return Ok(JsValue::new(match flag {
+                    b'd' => regexp.flags.contains(RegExpFlags::HAS_INDICES),
                     b'g' => regexp.flags.contains(RegExpFlags::GLOBAL),
                     b'm' => regexp.flags.contains(RegExpFlags::MULTILINE),
                     b's' => regexp.flags.contains(RegExpFlags::DOT_ALL),
@@ -352,6 +357,7 @@ impl RegExp {
         }
 
         let name = match flag {
+            b'd' => "hasIndices",
             b'g' => "global",
             b'm' => "multiline",
             b's' => "dotAll",
@@ -364,6 +370,22 @@ impl RegExp {
         context.throw_type_error(format!(
             "RegExp.prototype.{name} getter called on non-RegExp object",
         ))
+    }
+
+    /// `get RegExp.prototype.hasIndices`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.hasindices
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
+    pub(crate) fn get_has_indices(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Self::regexp_has_flag(this, b'd', context)
     }
 
     /// `get RegExp.prototype.global`
@@ -497,41 +519,48 @@ impl RegExp {
         if let Some(object) = this.as_object() {
             // 3. Let result be the empty String.
             let mut result = String::new();
-            // 4. Let global be ! ToBoolean(? Get(R, "global")).
-            // 5. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
+
+            // 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
+            // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) as the last code unit of result.
+            if object.get("hasIndices", context)?.to_boolean() {
+                result.push('d');
+            }
+
+            // 6. Let global be ! ToBoolean(? Get(R, "global")).
+            // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
             if object.get("global", context)?.to_boolean() {
                 result.push('g');
             }
-            // 6. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
-            // 7. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
+            // 8. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
+            // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
             if object.get("ignoreCase", context)?.to_boolean() {
                 result.push('i');
             }
 
-            // 8. Let multiline be ! ToBoolean(? Get(R, "multiline")).
-            // 9. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
+            // 10. Let multiline be ! ToBoolean(? Get(R, "multiline")).
+            // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
             if object.get("multiline", context)?.to_boolean() {
                 result.push('m');
             }
 
-            // 10. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
-            // 11. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
+            // 12. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
+            // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
             if object.get("dotAll", context)?.to_boolean() {
                 result.push('s');
             }
-            // 12. Let unicode be ! ToBoolean(? Get(R, "unicode")).
-            // 13. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
+            // 14. Let unicode be ! ToBoolean(? Get(R, "unicode")).
+            // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
             if object.get("unicode", context)?.to_boolean() {
                 result.push('u');
             }
 
-            // 14. Let sticky be ! ToBoolean(? Get(R, "sticky")).
-            // 15. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
+            // 16. Let sticky be ! ToBoolean(? Get(R, "sticky")).
+            // 17. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
             if object.get("sticky", context)?.to_boolean() {
                 result.push('y');
             }
 
-            // 16. Return result.
+            // 18. Return result.
             return Ok(result.into());
         }
 
