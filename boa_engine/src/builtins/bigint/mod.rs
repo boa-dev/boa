@@ -46,6 +46,8 @@ impl BuiltIn for BigInt {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .callable(true)
+        .constructor(true)
         .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
         .static_method(Self::as_int_n, "asIntN", 2)
