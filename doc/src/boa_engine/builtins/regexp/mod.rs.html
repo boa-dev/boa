@@ -1718,6 +1718,35 @@
 <span id="1711">1711</span>
 <span id="1712">1712</span>
 <span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -1783,6 +1812,10 @@
 
         <span class="kw">let</span> <span class="ident">flag_attributes</span> <span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span>;
 
+        <span class="kw">let</span> <span class="ident">get_has_indices</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_has_indices</span>)
+            .<span class="ident">name</span>(<span class="string">&quot;get hasIndices&quot;</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
+            .<span class="ident">build</span>();
         <span class="kw">let</span> <span class="ident">get_global</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::get_global</span>)
             .<span class="ident">name</span>(<span class="string">&quot;get global&quot;</span>)
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
@@ -1857,6 +1890,7 @@
             (<span class="ident">WellKnownSymbols::split</span>(), <span class="string">&quot;[Symbol.split]&quot;</span>),
             <span class="number">2</span>,
         )
+        .<span class="ident">accessor</span>(<span class="string">&quot;hasIndices&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_has_indices</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
         .<span class="ident">accessor</span>(<span class="string">&quot;global&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_global</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
         .<span class="ident">accessor</span>(<span class="string">&quot;ignoreCase&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_ignore_case</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
         .<span class="ident">accessor</span>(<span class="string">&quot;multiline&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_multiline</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
@@ -1865,7 +1899,6 @@
         .<span class="ident">accessor</span>(<span class="string">&quot;sticky&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_sticky</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
         .<span class="ident">accessor</span>(<span class="string">&quot;flags&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_flags</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
         .<span class="ident">accessor</span>(<span class="string">&quot;source&quot;</span>, <span class="prelude-val">Some</span>(<span class="ident">get_source</span>), <span class="prelude-val">None</span>, <span class="ident">flag_attributes</span>)
-        <span class="comment">// TODO: add them RegExp accessor properties</span>
         .<span class="ident">build</span>()
         .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
         .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
@@ -2053,6 +2086,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_regexp</span>() {
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="kw">match</span> <span class="ident">flag</span> {
+                    <span class="string">b&#39;d&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::HAS_INDICES</span>),
                     <span class="string">b&#39;g&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::GLOBAL</span>),
                     <span class="string">b&#39;m&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::MULTILINE</span>),
                     <span class="string">b&#39;s&#39;</span> =&gt; <span class="ident">regexp</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">RegExpFlags::DOT_ALL</span>),
@@ -2072,6 +2106,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">flag</span> {
+            <span class="string">b&#39;d&#39;</span> =&gt; <span class="string">&quot;hasIndices&quot;</span>,
             <span class="string">b&#39;g&#39;</span> =&gt; <span class="string">&quot;global&quot;</span>,
             <span class="string">b&#39;m&#39;</span> =&gt; <span class="string">&quot;multiline&quot;</span>,
             <span class="string">b&#39;s&#39;</span> =&gt; <span class="string">&quot;dotAll&quot;</span>,
@@ -2084,6 +2119,22 @@
         <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
             <span class="string">&quot;RegExp.prototype.{name} getter called on non-RegExp object&quot;</span>,
         ))
+    }
+
+    <span class="doccomment">/// `get RegExp.prototype.hasIndices`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.hasindices</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_has_indices</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="ident"><span class="self">Self</span>::regexp_has_flag</span>(<span class="ident">this</span>, <span class="string">b&#39;d&#39;</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp.prototype.global`</span>
@@ -2217,41 +2268,48 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="comment">// 3. Let result be the empty String.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">String::new</span>();
-            <span class="comment">// 4. Let global be ! ToBoolean(? Get(R, &quot;global&quot;)).</span>
-            <span class="comment">// 5. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.</span>
+
+            <span class="comment">// 4. Let hasIndices be ToBoolean(? Get(R, &quot;hasIndices&quot;)).</span>
+            <span class="comment">// 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) as the last code unit of result.</span>
+            <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;hasIndices&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
+                <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;d&#39;</span>);
+            }
+
+            <span class="comment">// 6. Let global be ! ToBoolean(? Get(R, &quot;global&quot;)).</span>
+            <span class="comment">// 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.</span>
             <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;global&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;g&#39;</span>);
             }
-            <span class="comment">// 6. Let ignoreCase be ! ToBoolean(? Get(R, &quot;ignoreCase&quot;)).</span>
-            <span class="comment">// 7. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.</span>
+            <span class="comment">// 8. Let ignoreCase be ! ToBoolean(? Get(R, &quot;ignoreCase&quot;)).</span>
+            <span class="comment">// 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.</span>
             <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;ignoreCase&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;i&#39;</span>);
             }
 
-            <span class="comment">// 8. Let multiline be ! ToBoolean(? Get(R, &quot;multiline&quot;)).</span>
-            <span class="comment">// 9. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.</span>
+            <span class="comment">// 10. Let multiline be ! ToBoolean(? Get(R, &quot;multiline&quot;)).</span>
+            <span class="comment">// 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.</span>
             <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;multiline&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;m&#39;</span>);
             }
 
-            <span class="comment">// 10. Let dotAll be ! ToBoolean(? Get(R, &quot;dotAll&quot;)).</span>
-            <span class="comment">// 11. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.</span>
+            <span class="comment">// 12. Let dotAll be ! ToBoolean(? Get(R, &quot;dotAll&quot;)).</span>
+            <span class="comment">// 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.</span>
             <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;dotAll&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;s&#39;</span>);
             }
-            <span class="comment">// 12. Let unicode be ! ToBoolean(? Get(R, &quot;unicode&quot;)).</span>
-            <span class="comment">// 13. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.</span>
+            <span class="comment">// 14. Let unicode be ! ToBoolean(? Get(R, &quot;unicode&quot;)).</span>
+            <span class="comment">// 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.</span>
             <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;unicode&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;u&#39;</span>);
             }
 
-            <span class="comment">// 14. Let sticky be ! ToBoolean(? Get(R, &quot;sticky&quot;)).</span>
-            <span class="comment">// 15. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.</span>
+            <span class="comment">// 16. Let sticky be ! ToBoolean(? Get(R, &quot;sticky&quot;)).</span>
+            <span class="comment">// 17. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.</span>
             <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;sticky&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>() {
                 <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;y&#39;</span>);
             }
 
-            <span class="comment">// 16. Return result.</span>
+            <span class="comment">// 18. Return result.</span>
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>());
         }
 
