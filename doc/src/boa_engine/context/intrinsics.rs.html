@@ -380,9 +380,27 @@
 <span id="373">373</span>
 <span id="374">374</span>
 <span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">error</span>::<span class="ident">r#type</span><span class="ident">::create_throw_type_error</span>, <span class="ident">iterable::IteratorPrototypes</span>},
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">property::PropertyDescriptorBuilder</span>,
     <span class="ident">Context</span>,
 };
 
@@ -493,13 +511,16 @@
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StandardConstructors</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">object</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">proxy</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">function</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">generator</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">generator_function</span>: <span class="ident">StandardConstructor::default</span>(),
-            <span class="ident">array</span>: <span class="ident">StandardConstructor::default</span>(),
+            <span class="ident">array</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
+                <span class="prelude-val">None</span>,
+                <span class="ident">ObjectData::array</span>(),
+            )),
             <span class="ident">bigint</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">number</span>: <span class="ident">StandardConstructor::with_prototype</span>(<span class="ident">JsObject::from_proto_and_data</span>(
                 <span class="prelude-val">None</span>,
@@ -539,7 +560,20 @@
             <span class="ident">typed_float64_array</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">array_buffer</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">data_view</span>: <span class="ident">StandardConstructor::default</span>(),
-        }
+        };
+
+        <span class="comment">// The value of `Array.prototype` is the Array prototype object.</span>
+        <span class="ident">result</span>.<span class="ident">array</span>.<span class="ident">prototype</span>.<span class="ident">insert</span>(
+            <span class="string">&quot;length&quot;</span>,
+            <span class="ident">PropertyDescriptorBuilder::new</span>()
+                .<span class="ident">value</span>(<span class="number">0</span>)
+                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">build</span>(),
+        );
+
+        <span class="ident">result</span>
     }
 }
 
