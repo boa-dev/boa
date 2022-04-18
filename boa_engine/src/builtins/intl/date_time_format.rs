@@ -102,6 +102,13 @@ impl DateTimeFormat {
                 bound_format: JsString::from("undefined"),
             })),
         );
+
+        // TODO 3. Perform ? InitializeDateTimeFormat(dateTimeFormat, locales, options).
+        // TODO 4. If the implementation supports the normative optional constructor mode of 4.3 Note 1, then
+        // TODO a. Let this be the this value.
+        // TODO b. Return ? ChainDateTimeFormat(dateTimeFormat, NewTarget, this).
+
+        // 5. Return dateTimeFormat.
         Ok(JsValue::Object(date_time_format))
     }
 }
