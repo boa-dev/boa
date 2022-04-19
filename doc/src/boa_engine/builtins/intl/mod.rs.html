@@ -141,6 +141,16 @@
 <span id="134">134</span>
 <span id="135">135</span>
 <span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.</span>
@@ -151,12 +161,16 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma402/#intl-object</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">builtins::intl::date_time_format::DateTimeFormat</span>,
     <span class="ident">builtins</span>::{<span class="ident">Array</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">object::ObjectInitializer</span>,
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">date_time_format</span>;
+
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">indexmap::IndexSet</span>;
 <span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
@@ -172,12 +186,18 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">string_tag</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::to_string_tag</span>();
+        <span class="kw">let</span> <span class="ident">date_time_format</span> <span class="op">=</span> <span class="ident">DateTimeFormat::init</span>(<span class="ident">context</span>);
         <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
             .<span class="ident">function</span>(<span class="ident"><span class="self">Self</span>::get_canonical_locales</span>, <span class="string">&quot;getCanonicalLocales&quot;</span>, <span class="number">1</span>)
             .<span class="ident">property</span>(
                 <span class="ident">string_tag</span>,
                 <span class="ident"><span class="self">Self</span>::NAME</span>,
                 <span class="ident">Attribute::READONLY</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
+            )
+            .<span class="ident">property</span>(
+                <span class="string">&quot;DateTimeFormat&quot;</span>,
+                <span class="ident">date_time_format</span>,
+                <span class="ident">Attribute::WRITABLE</span> <span class="op">|</span> <span class="ident">Attribute::NON_ENUMERABLE</span> <span class="op">|</span> <span class="ident">Attribute::CONFIGURABLE</span>,
             )
             .<span class="ident">build</span>()
             .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
