@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.56/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/anyhow-1.0.57/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../anyhow/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -230,28 +230,6 @@
 <span id="225">225</span>
 <span id="226">226</span>
 <span id="227">227</span>
-<span id="228">228</span>
-<span id="229">229</span>
-<span id="230">230</span>
-<span id="231">231</span>
-<span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
-<span id="242">242</span>
-<span id="243">243</span>
-<span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
 </pre><pre class="rust"><code><span class="doccomment">/// Return early with an error.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This macro is equivalent to `return Err(`[`anyhow!($args...)`][anyhow!]`)`.</span>
@@ -304,30 +282,8 @@
 <span class="doccomment">/// #     Ok(())</span>
 <span class="doccomment">/// # }</span>
 <span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">doc</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
 <span class="macro">macro_rules!</span> <span class="ident">bail</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">literal</span> $(,)<span class="question-mark">?</span>) =&gt; {
-        <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::private::Err</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::__anyhow!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>))
-    };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>:<span class="ident">expr</span> $(,)<span class="question-mark">?</span>) =&gt; {
-        <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::private::Err</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::__anyhow!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">err</span>))
-    };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fmt</span>:<span class="ident">expr</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>) =&gt; {
-        <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::private::Err</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::__anyhow!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">fmt</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="kw-2">*</span>))
-    };
-}
-
-<span class="comment">// Workaround for crates that intentionally contained `{}` in an error message</span>
-<span class="comment">// prior to https://github.com/dtolnay/anyhow/issues/55 catching the missing</span>
-<span class="comment">// format args.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">doc</span>))]</span>
-<span class="attribute">#[<span class="ident">macro_export</span>]</span>
-<span class="macro">macro_rules!</span> <span class="ident">bail</span> {
-    <span class="comment">// https://github.com/estk/log4rs/blob/afa0351af56b3bfd1780389700051d7e4d8bbdc9/src/append/rolling_file/policy/compound/roll/fixed_window.rs#L261</span>
-    (<span class="string">&quot;pattern does not contain `{}`&quot;</span>) =&gt; {
-        <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::private::Err</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Error::msg</span>(<span class="string">&quot;pattern does not contain `{}`&quot;</span>))
-    };
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>:<span class="ident">literal</span> $(,)<span class="question-mark">?</span>) =&gt; {
         <span class="kw">return</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::private::Err</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::__anyhow!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">msg</span>))
     };
