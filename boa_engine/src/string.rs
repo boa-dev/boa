@@ -7,157 +7,180 @@ use std::{
     cell::Cell,
     hash::{Hash, Hasher},
     marker::PhantomData,
+    num::NonZeroUsize,
     ops::Deref,
-    ptr::{copy_nonoverlapping, NonNull},
+    ptr::copy_nonoverlapping,
     rc::Rc,
 };
 
-const CONSTANTS_ARRAY: [&str; 127] = [
+/// A fat pointer representing a static str.
+struct StaticStr(*const u8, usize);
+
+impl StaticStr {
+    /// Build `Self` from a static string slice
+    #[inline]
+    const fn new(s: &'static str) -> Self {
+        Self(s.as_ptr(), s.len())
+    }
+
+    /// Returns the raw pointer of the str.
+    #[inline]
+    const fn ptr(&self) -> *const u8 {
+        self.0
+    }
+
+    /// Returns the length of the str.
+    #[inline]
+    const fn len(&self) -> usize {
+        self.1
+    }
+}
+
+const CONSTANTS_ARRAY: [StaticStr; 126] = [
     // Empty string
-    "",
+    StaticStr::new(""),
     // Misc
-    ",",
-    ":",
+    StaticStr::new(","),
+    StaticStr::new(":"),
     // Generic use
-    "name",
-    "length",
-    "arguments",
-    "prototype",
-    "constructor",
+    StaticStr::new("name"),
+    StaticStr::new("length"),
+    StaticStr::new("arguments"),
+    StaticStr::new("prototype"),
+    StaticStr::new("constructor"),
     // typeof
-    "null",
-    "undefined",
-    "number",
-    "string",
-    "symbol",
-    "bigint",
-    "object",
-    "function",
+    StaticStr::new("null"),
+    StaticStr::new("undefined"),
+    StaticStr::new("number"),
+    StaticStr::new("string"),
+    StaticStr::new("symbol"),
+    StaticStr::new("bigint"),
+    StaticStr::new("object"),
+    StaticStr::new("function"),
     // Property descriptor
-    "value",
-    "get",
-    "set",
-    "writable",
-    "enumerable",
-    "configurable",
+    StaticStr::new("value"),
+    StaticStr::new("get"),
+    StaticStr::new("set"),
+    StaticStr::new("writable"),
+    StaticStr::new("enumerable"),
+    StaticStr::new("configurable"),
     // Object object
-    "Object",
-    "assing",
-    "create",
-    "toString",
-    "valueOf",
-    "is",
-    "seal",
-    "isSealed",
-    "freeze",
-    "isFrozen",
-    "keys",
-    "values",
-    "entries",
+    StaticStr::new("Object"),
+    StaticStr::new("assing"),
+    StaticStr::new("create"),
+    StaticStr::new("toString"),
+    StaticStr::new("valueOf"),
+    StaticStr::new("is"),
+    StaticStr::new("seal"),
+    StaticStr::new("isSealed"),
+    StaticStr::new("freeze"),
+    StaticStr::new("isFrozen"),
+    StaticStr::new("keys"),
+    StaticStr::new("values"),
+    StaticStr::new("entries"),
     // Function object
-    "Function",
-    "apply",
-    "bind",
-    "call",
+    StaticStr::new("Function"),
+    StaticStr::new("apply"),
+    StaticStr::new("bind"),
+    StaticStr::new("call"),
     // Array object
-    "Array",
-    "from",
-    "isArray",
-    "of",
-    "get [Symbol.species]",
-    "copyWithin",
-    "entries",
-    "every",
-    "fill",
-    "filter",
-    "find",
-    "findIndex",
-    "flat",
-    "flatMap",
-    "forEach",
-    "includes",
-    "indexOf",
-    "join",
-    "map",
-    "reduce",
-    "reduceRight",
-    "reverse",
-    "shift",
-    "slice",
-    "some",
-    "sort",
-    "unshift",
-    "push",
-    "pop",
+    StaticStr::new("Array"),
+    StaticStr::new("from"),
+    StaticStr::new("isArray"),
+    StaticStr::new("of"),
+    StaticStr::new("get [Symbol.species]"),
+    StaticStr::new("copyWithin"),
+    StaticStr::new("entries"),
+    StaticStr::new("every"),
+    StaticStr::new("fill"),
+    StaticStr::new("filter"),
+    StaticStr::new("find"),
+    StaticStr::new("findIndex"),
+    StaticStr::new("flat"),
+    StaticStr::new("flatMap"),
+    StaticStr::new("forEach"),
+    StaticStr::new("includes"),
+    StaticStr::new("indexOf"),
+    StaticStr::new("join"),
+    StaticStr::new("map"),
+    StaticStr::new("reduce"),
+    StaticStr::new("reduceRight"),
+    StaticStr::new("reverse"),
+    StaticStr::new("shift"),
+    StaticStr::new("slice"),
+    StaticStr::new("some"),
+    StaticStr::new("sort"),
+    StaticStr::new("unshift"),
+    StaticStr::new("push"),
+    StaticStr::new("pop"),
     // String object
-    "String",
-    "charAt",
-    "charCodeAt",
-    "concat",
-    "endsWith",
-    "includes",
-    "indexOf",
-    "lastIndexOf",
-    "match",
-    "matchAll",
-    "normalize",
-    "padEnd",
-    "padStart",
-    "repeat",
-    "replace",
-    "replaceAll",
-    "search",
-    "slice",
-    "split",
-    "startsWith",
-    "substring",
-    "toLowerString",
-    "toUpperString",
-    "trim",
-    "trimEnd",
-    "trimStart",
+    StaticStr::new("String"),
+    StaticStr::new("charAt"),
+    StaticStr::new("charCodeAt"),
+    StaticStr::new("concat"),
+    StaticStr::new("endsWith"),
+    StaticStr::new("includes"),
+    StaticStr::new("indexOf"),
+    StaticStr::new("lastIndexOf"),
+    StaticStr::new("match"),
+    StaticStr::new("matchAll"),
+    StaticStr::new("normalize"),
+    StaticStr::new("padEnd"),
+    StaticStr::new("padStart"),
+    StaticStr::new("repeat"),
+    StaticStr::new("replace"),
+    StaticStr::new("replaceAll"),
+    StaticStr::new("search"),
+    StaticStr::new("slice"),
+    StaticStr::new("split"),
+    StaticStr::new("startsWith"),
+    StaticStr::new("substring"),
+    StaticStr::new("toLowerString"),
+    StaticStr::new("toUpperString"),
+    StaticStr::new("trim"),
+    StaticStr::new("trimEnd"),
+    StaticStr::new("trimStart"),
     // Number object
-    "Number",
+    StaticStr::new("Number"),
     // Boolean object
-    "Boolean",
+    StaticStr::new("Boolean"),
     // RegExp object
-    "RegExp",
-    "exec",
-    "test",
-    "flags",
-    "index",
-    "lastIndex",
+    StaticStr::new("RegExp"),
+    StaticStr::new("exec"),
+    StaticStr::new("test"),
+    StaticStr::new("flags"),
+    StaticStr::new("index"),
+    StaticStr::new("lastIndex"),
     // Symbol object
-    "Symbol",
-    "for",
-    "keyFor",
-    "description",
-    "[Symbol.toPrimitive]",
-    "",
+    StaticStr::new("Symbol"),
+    StaticStr::new("for"),
+    StaticStr::new("keyFor"),
+    StaticStr::new("description"),
+    StaticStr::new("[Symbol.toPrimitive]"),
     // Map object
-    "Map",
-    "clear",
-    "delete",
-    "get",
-    "has",
-    "set",
-    "size",
+    StaticStr::new("Map"),
+    StaticStr::new("clear"),
+    StaticStr::new("delete"),
+    StaticStr::new("get"),
+    StaticStr::new("has"),
+    StaticStr::new("set"),
+    StaticStr::new("size"),
     // Set object
-    "Set",
+    StaticStr::new("Set"),
     // Reflect object
-    "Reflect",
+    StaticStr::new("Reflect"),
     // Error objects
-    "Error",
-    "TypeError",
-    "RangeError",
-    "SyntaxError",
-    "ReferenceError",
-    "EvalError",
-    "URIError",
-    "message",
+    StaticStr::new("Error"),
+    StaticStr::new("TypeError"),
+    StaticStr::new("RangeError"),
+    StaticStr::new("SyntaxError"),
+    StaticStr::new("ReferenceError"),
+    StaticStr::new("EvalError"),
+    StaticStr::new("URIError"),
+    StaticStr::new("message"),
     // Date object
-    "Date",
-    "toJSON",
+    StaticStr::new("Date"),
+    StaticStr::new("toJSON"),
 ];
 
 const MAX_CONSTANT_STRING_LENGTH: usize = {
@@ -186,10 +209,7 @@ thread_local! {
         let mut constants = FxHashSet::default();
 
         for s in CONSTANTS_ARRAY.iter() {
-            let s = JsString {
-                inner: Inner::new(s),
-                _marker: PhantomData,
-            };
+            let s = JsString::new_static(s);
             constants.insert(s);
         }
 
@@ -215,7 +235,7 @@ struct Inner {
 impl Inner {
     /// Create a new `Inner` from `&str`.
     #[inline]
-    fn new(s: &str) -> NonNull<Self> {
+    fn new(s: &str) -> NonZeroUsize {
         // We get the layout of the `Inner` type and we extend by the size
         // of the string array.
         let inner_layout = Layout::new::<Self>();
@@ -245,12 +265,12 @@ impl Inner {
         };
 
         // Safety: We already know it's not null, so this is safe.
-        unsafe { NonNull::new_unchecked(inner) }
+        unsafe { NonZeroUsize::new_unchecked(inner as usize) }
     }
 
     /// Concatenate array of strings.
     #[inline]
-    fn concat_array(strings: &[&str]) -> NonNull<Self> {
+    fn concat_array(strings: &[&str]) -> NonZeroUsize {
         let mut total_string_size = 0;
         for string in strings {
             total_string_size += string.len();
@@ -289,20 +309,20 @@ impl Inner {
         };
 
         // Safety: We already know it's not null, so this is safe.
-        unsafe { NonNull::new_unchecked(inner) }
+        unsafe { NonZeroUsize::new_unchecked(inner as usize) }
     }
 
     /// Deallocate inner type with string data.
     #[inline]
-    unsafe fn dealloc(x: NonNull<Self>) {
-        let len = (*x.as_ptr()).len;
+    unsafe fn dealloc(x: *mut Self) {
+        let len = (*x).len;
 
         let inner_layout = Layout::new::<Self>();
         let (layout, _offset) = inner_layout
             .extend(Layout::array::<u8>(len).expect("failed to create memory layout"))
             .expect("failed to extend memory layout");
 
-        dealloc(x.as_ptr().cast::<_>(), layout);
+        dealloc(x.cast::<_>(), layout);
     }
 }
 
@@ -314,18 +334,38 @@ impl Inner {
 /// pointer is kept, so its size is the size of a pointer.
 #[derive(Finalize)]
 pub struct JsString {
-    inner: NonNull<Inner>,
+    /// This represents a raw pointer. It maybe a [`StaticStr`], or a [`Inner`].
+    inner: NonZeroUsize,
     _marker: PhantomData<Rc<str>>,
 }
 
 impl Default for JsString {
     #[inline]
     fn default() -> Self {
-        Self::new("")
+        Self::new_static(&CONSTANTS_ARRAY[0])
     }
 }
 
+/// Data stored in [`JsString`].
+enum InnerKind<'a> {
+    // A string allocated on the heap.
+    Heap(&'a Inner),
+    // A static string slice.
+    Static(&'static str),
+}
+
 impl JsString {
+    /// Create a new JavaScript string from [`StaticStr`].
+    #[inline]
+    fn new_static(s: &StaticStr) -> Self {
+        Self {
+            // Safety: We already know it's not null, so this is safe.
+            // Set the first bit to 1, indicating that it is static.
+            inner: unsafe { NonZeroUsize::new_unchecked((s as *const _ as usize) | 1) },
+            _marker: PhantomData,
+        }
+    }
+
     /// Create an empty string, same as calling default.
     #[inline]
     pub fn empty() -> Self {
@@ -390,25 +430,38 @@ impl JsString {
 
     /// Return the inner representation.
     #[inline]
-    fn inner(&self) -> &Inner {
-        unsafe { self.inner.as_ref() }
+    fn inner<'a>(&'a self) -> InnerKind<'a> {
+        let ptr = self.inner.get();
+        // Check the first bit to 1.
+        match ptr & 1 {
+            1 => unsafe {
+                let ptr = &*((ptr & !1) as *const StaticStr);
+                let slice = std::slice::from_raw_parts(ptr.ptr(), ptr.len());
+                InnerKind::Static(std::str::from_utf8_unchecked(slice))
+            },
+            _ => InnerKind::Heap(unsafe { &*(ptr as *const Inner) }),
+        }
     }
 
     /// Return the JavaScript string as a rust `&str`.
     #[inline]
     pub fn as_str(&self) -> &str {
-        let inner = self.inner();
-
-        unsafe {
-            let slice = std::slice::from_raw_parts(inner.data.as_ptr(), inner.len);
-            std::str::from_utf8_unchecked(slice)
+        match self.inner() {
+            InnerKind::Heap(inner) => unsafe {
+                let slice = std::slice::from_raw_parts(inner.data.as_ptr(), inner.len);
+                std::str::from_utf8_unchecked(slice)
+            },
+            InnerKind::Static(inner) => inner,
         }
     }
 
     /// Gets the number of `JsString`s which point to this allocation.
     #[inline]
     pub fn refcount(this: &Self) -> usize {
-        this.inner().refcount.get()
+        match this.inner() {
+            InnerKind::Heap(inner) => inner.refcount.get(),
+            InnerKind::Static(_inner) => 0,
+        }
     }
 
     /// Returns `true` if the two `JsString`s point to the same allocation (in a vein similar to [`ptr::eq`]).
@@ -528,9 +581,9 @@ unsafe impl Trace for JsString {
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        let inner = self.inner();
-        inner.refcount.set(inner.refcount.get() + 1);
-
+        if let InnerKind::Heap(inner) = self.inner() {
+            inner.refcount.set(inner.refcount.get() + 1);
+        }
         Self {
             inner: self.inner,
             _marker: PhantomData,
@@ -541,15 +594,16 @@ impl Clone for JsString {
 impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
-        let inner = self.inner();
-        if inner.refcount.get() == 1 {
-            // Safety: If refcount is 1 and we call drop, that means this is the last
-            // JsString which points to this memory allocation, so deallocating it is safe.
-            unsafe {
-                Inner::dealloc(self.inner);
+        if let InnerKind::Heap(inner) = self.inner() {
+            if inner.refcount.get() == 1 {
+                // Safety: If refcount is 1 and we call drop, that means this is the last
+                // JsString which points to this memory allocation, so deallocating it is safe.
+                unsafe {
+                    Inner::dealloc(self.inner.get() as *mut _);
+                }
+            } else {
+                inner.refcount.set(inner.refcount.get() - 1);
             }
-        } else {
-            inner.refcount.set(inner.refcount.get() - 1);
         }
     }
 }
