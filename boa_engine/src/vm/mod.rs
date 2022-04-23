@@ -1401,6 +1401,7 @@ impl Context {
                 let object = self.vm.pop();
                 if object.is_null_or_undefined() {
                     self.vm.frame_mut().pc = address as usize;
+                    return Ok(ShouldExit::False);
                 }
 
                 let object = object.to_object(self)?;
