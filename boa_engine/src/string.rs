@@ -1,10 +1,11 @@
 use crate::builtins::string::is_trimmable_whitespace;
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashSet, FxHasher};
 use std::{
     alloc::{alloc, dealloc, handle_alloc_error, Layout},
     borrow::Borrow,
     cell::Cell,
+    hash::BuildHasherDefault,
     hash::{Hash, Hasher},
     marker::PhantomData,
     num::NonZeroUsize,
@@ -13,7 +14,7 @@ use std::{
     rc::Rc,
 };
 
-const CONSTANTS_ARRAY: [&'static str; 426] = [
+const CONSTANTS_ARRAY: [&str; 426] = [
     // Empty string
     "",
     // Misc
@@ -494,7 +495,7 @@ unsafe fn try_alloc(layout: Layout) -> *mut u8 {
 thread_local! {
     static CONSTANTS: FxHashSet<JsString> = {
         let len = CONSTANTS_ARRAY.len();
-        let mut constants = FxHashSet::with_capacity_and_hasher(len, Default::default());
+        let mut constants = FxHashSet::with_capacity_and_hasher(len, BuildHasherDefault::<FxHasher>::default());
 
         for idx in 0..len {
             let s = JsString::new_static(idx);
@@ -531,7 +532,7 @@ impl Inner {
             .extend(Layout::array::<u8>(s.len()).expect("failed to create memory layout"))
             .expect("failed to extend memory layout");
 
-        let inner = unsafe {
+        unsafe {
             let inner = try_alloc(layout).cast::<Self>();
 
             // Write the first part, the Inner.
@@ -550,15 +551,12 @@ impl Inner {
             copy_nonoverlapping(s.as_ptr(), data, s.len());
 
             inner
-        };
-
-        // Safety: We already know it's not null, so this is safe.
-        inner
+        }
     }
 
     /// Concatenate array of strings.
     #[inline]
-    fn concat_array(strings: &[&str]) -> NonZeroUsize {
+    fn concat_array(strings: &[&str]) -> *mut Self {
         let mut total_string_size = 0;
         for string in strings {
             total_string_size += string.len();
@@ -571,7 +569,7 @@ impl Inner {
             .extend(Layout::array::<u8>(total_string_size).expect("failed to create memory layout"))
             .expect("failed to extend memory layout");
 
-        let inner = unsafe {
+        unsafe {
             let inner = try_alloc(layout).cast::<Self>();
 
             // Write the first part, the Inner.
@@ -594,10 +592,7 @@ impl Inner {
             }
 
             inner
-        };
-
-        // Safety: We already know it's not null, so this is safe.
-        unsafe { NonZeroUsize::new_unchecked(inner as usize) }
+        }
     }
 
     /// Deallocate inner type with string data.
@@ -688,7 +683,7 @@ impl JsString {
         let y = y.as_ref();
 
         let this = Self {
-            inner: Inner::concat_array(&[x, y]),
+            inner: unsafe { NonZeroUsize::new_unchecked(Inner::concat_array(&[x, y]) as usize) },
             _marker: PhantomData,
         };
 
@@ -704,7 +699,7 @@ impl JsString {
     /// Concatenate array of string.
     pub fn concat_array(strings: &[&str]) -> Self {
         let this = Self {
-            inner: Inner::concat_array(strings),
+            inner: unsafe { NonZeroUsize::new_unchecked(Inner::concat_array(strings) as usize) },
             _marker: PhantomData,
         };
 
