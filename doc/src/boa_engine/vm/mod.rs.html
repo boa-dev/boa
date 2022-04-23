@@ -1854,6 +1854,7 @@
 <span id="1847">1847</span>
 <span id="1848">1848</span>
 <span id="1849">1849</span>
+<span id="1850">1850</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -3257,6 +3258,7 @@
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_null_or_undefined</span>() {
                     <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pc</span> <span class="op">=</span> <span class="ident">address</span> <span class="kw">as</span> <span class="ident">usize</span>;
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>);
                 }
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
