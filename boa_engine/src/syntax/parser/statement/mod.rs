@@ -554,6 +554,13 @@ where
                     next_token.span().start(),
                 )))
             }
+            TokenKind::Keyword((Keyword::Let, _)) if cursor.strict_mode() => {
+                Err(ParseError::lex(LexError::Syntax(
+                    "unexpected identifier 'let' in strict mode".into(),
+                    next_token.span().start(),
+                )))
+            }
+            TokenKind::Keyword((Keyword::Let, _)) => Ok(Sym::LET),
             TokenKind::Identifier(ref s) => Ok(*s),
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".

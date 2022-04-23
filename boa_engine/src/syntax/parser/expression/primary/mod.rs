@@ -142,6 +142,7 @@ where
             TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
             TokenKind::NullLiteral => Ok(Const::Null.into()),
             TokenKind::Identifier(ident) => Ok(Identifier::new(*ident).into()),
+            TokenKind::Keyword((Keyword::Let, _)) => Ok(Identifier::new(Sym::LET).into()),
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(

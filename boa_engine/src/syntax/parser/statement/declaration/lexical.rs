@@ -10,12 +10,14 @@
 use crate::syntax::{
     ast::{
         node::{
-            declaration::{Declaration, DeclarationList},
-            Node,
+            declaration::{
+                Declaration, DeclarationList, DeclarationPatternArray, DeclarationPatternObject,
+            },
+            DeclarationPattern, Node,
         },
         Keyword, Punctuator,
     },
-    lexer::TokenKind,
+    lexer::{Error as LexError, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::Initializer,
@@ -23,7 +25,7 @@ use crate::syntax::{
         AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -268,6 +270,7 @@ where
         let _timer = Profiler::global().start_event("LexicalBinding", "Parsing");
 
         let peek_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let position = peek_token.span().start();
 
         match peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -293,7 +296,17 @@ where
                     None
                 };
 
-                Ok(Declaration::new_with_object_pattern(bindings, init))
+                let declaration =
+                    DeclarationPattern::Object(DeclarationPatternObject::new(bindings, init));
+
+                if declaration.idents().contains(&Sym::LET) {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "'let' is disallowed as a lexically bound name".into(),
+                        position,
+                    )));
+                }
+
+                Ok(Declaration::Pattern(declaration))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 let bindings =
@@ -318,11 +331,28 @@ where
                     None
                 };
 
-                Ok(Declaration::new_with_array_pattern(bindings, init))
+                let declaration =
+                    DeclarationPattern::Array(DeclarationPatternArray::new(bindings, init));
+
+                if declaration.idents().contains(&Sym::LET) {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "'let' is disallowed as a lexically bound name".into(),
+                        position,
+                    )));
+                }
+
+                Ok(Declaration::Pattern(declaration))
             }
             _ => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
+
+                if ident == Sym::LET {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "'let' is disallowed as a lexically bound name".into(),
+                        position,
+                    )));
+                }
 
                 let init = if let Some(t) = cursor.peek(0, interner)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
