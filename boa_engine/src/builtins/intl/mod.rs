@@ -610,13 +610,11 @@ fn resolve_locale(
                 // productions.
 
                 // 3. If optionsValue is the empty String, then
-                let options_val_str = options_value
-                    .to_string(context)
-                    .unwrap_or_else(|_| JsString::new(""))
-                    .to_string();
-                if options_val_str.is_empty() {
-                    // a. Let optionsValue be "true".
-                    options_value = JsValue::String(JsString::new("true"));
+                if let Some(options_val_str) = options_value.as_string() {
+                    if options_val_str.is_empty() {
+                        // a. Let optionsValue be "true".
+                        options_value = JsValue::String(JsString::new("true"));
+                    }
                 }
             }
 
