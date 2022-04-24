@@ -617,10 +617,54 @@ impl Inner {
 /// pointer is kept, so its size is the size of a pointer.
 #[derive(Finalize)]
 pub struct JsString {
-    /// This represents a raw pointer. It maybe an index of [`CONSTANTS_ARRAY`],
-    /// or a [`Inner`]. Use the first bit as the flag.
-    inner: NonZeroUsize,
+    inner: Flag,
     _marker: PhantomData<Rc<str>>,
+}
+
+/// It maybe an index of [`CONSTANTS_ARRAY`], or a raw pointer of [`Inner`].
+/// Use the first bit as the flag.
+/// Detail: https://en.wikipedia.org/wiki/Tagged_pointer
+#[repr(transparent)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct Flag(NonZeroUsize);
+
+impl Flag {
+    #[inline]
+    fn new_heap(inner: *mut Inner) -> Self {
+        // Safety: We already know it's not null, so this is safe.
+        Self(unsafe { NonZeroUsize::new_unchecked(inner as usize) })
+    }
+
+    /// Set the first bit to 1, indicating that it is static. Store the index
+    /// in 1..63 bits.
+    #[inline]
+    const fn new_static(idx: usize) -> Self {
+        // Safety: We already know it's not null, so this is safe.
+        Self(unsafe { NonZeroUsize::new_unchecked((idx << 1) | 1) })
+    }
+
+    /// Check if the first bit is 1.
+    #[inline]
+    const fn is_static(&self) -> bool {
+        self.0.get() & 1 == 1
+    }
+
+    /// # Safety
+    ///
+    /// It maybe a static string.
+    #[inline]
+    const unsafe fn get_heap_unchecked(&self) -> *mut Inner {
+        self.0.get() as *mut _
+    }
+
+    /// # Safety
+    ///
+    /// It maybe a string allocated on the heap.
+    #[inline]
+    const unsafe fn get_static_unchecked(&self) -> &'static str {
+        // shift right to get the index.
+        CONSTANTS_ARRAY[self.0.get() >> 1]
+    }
 }
 
 impl Default for JsString {
@@ -643,9 +687,7 @@ impl JsString {
     #[inline]
     fn new_static(idx: usize) -> Self {
         Self {
-            // Safety: We already know it's not null, so this is safe.
-            // Set the first bit to 1, indicating that it is static.
-            inner: unsafe { NonZeroUsize::new_unchecked((idx << 1) | 1) },
+            inner: Flag::new_static(idx),
             _marker: PhantomData,
         }
     }
@@ -668,7 +710,7 @@ impl JsString {
         }
 
         Self {
-            inner: unsafe { NonZeroUsize::new_unchecked(Inner::new(s) as usize) },
+            inner: Flag::new_heap(Inner::new(s)),
             _marker: PhantomData,
         }
     }
@@ -683,7 +725,7 @@ impl JsString {
         let y = y.as_ref();
 
         let this = Self {
-            inner: unsafe { NonZeroUsize::new_unchecked(Inner::concat_array(&[x, y]) as usize) },
+            inner: Flag::new_heap(Inner::concat_array(&[x, y])),
             _marker: PhantomData,
         };
 
@@ -699,7 +741,7 @@ impl JsString {
     /// Concatenate array of string.
     pub fn concat_array(strings: &[&str]) -> Self {
         let this = Self {
-            inner: unsafe { NonZeroUsize::new_unchecked(Inner::concat_array(strings) as usize) },
+            inner: Flag::new_heap(Inner::concat_array(strings)),
             _marker: PhantomData,
         };
 
@@ -716,9 +758,11 @@ impl JsString {
     #[inline]
     fn inner(&self) -> InnerKind<'_> {
         // Check the first bit to 1.
-        match self.inner.get() & 1 {
-            1 => InnerKind::Static(CONSTANTS_ARRAY[self.inner.get() >> 1]),
-            _ => InnerKind::Heap(unsafe { &*(self.inner.get() as *const _) }),
+        match self.inner.is_static() {
+            // Safety: We already checked.
+            true => InnerKind::Static(unsafe { self.inner.get_static_unchecked() }),
+            // Safety: We already checked.
+            _ => InnerKind::Heap(unsafe { &*self.inner.get_heap_unchecked() }),
         }
     }
 
@@ -878,7 +922,7 @@ impl Drop for JsString {
                 // Safety: If refcount is 1 and we call drop, that means this is the last
                 // JsString which points to this memory allocation, so deallocating it is safe.
                 unsafe {
-                    Inner::dealloc(self.inner.get() as *mut _);
+                    Inner::dealloc(self.inner.get_heap_unchecked());
                 }
             } else {
                 inner.refcount.set(inner.refcount.get() - 1);
