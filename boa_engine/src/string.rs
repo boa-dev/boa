@@ -623,7 +623,7 @@ pub struct JsString {
 
 /// It maybe an index of [`CONSTANTS_ARRAY`], or a raw pointer of [`Inner`].
 /// Use the first bit as the flag.
-/// Detail: https://en.wikipedia.org/wiki/Tagged_pointer
+/// Detail: <https://en.wikipedia.org/wiki/Tagged_pointer>
 #[repr(transparent)]
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Flag(NonZeroUsize);
@@ -758,11 +758,12 @@ impl JsString {
     #[inline]
     fn inner(&self) -> InnerKind<'_> {
         // Check the first bit to 1.
-        match self.inner.is_static() {
+        if self.inner.is_static() {
             // Safety: We already checked.
-            true => InnerKind::Static(unsafe { self.inner.get_static_unchecked() }),
+            InnerKind::Static(unsafe { self.inner.get_static_unchecked() })
+        } else {
             // Safety: We already checked.
-            _ => InnerKind::Heap(unsafe { &*self.inner.get_heap_unchecked() }),
+            InnerKind::Heap(unsafe { &*self.inner.get_heap_unchecked() })
         }
     }
 
