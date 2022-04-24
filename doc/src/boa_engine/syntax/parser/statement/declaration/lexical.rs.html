@@ -348,6 +348,36 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Lexical declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This parses `let` and `const` declarations.</span>
@@ -360,12 +390,14 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{
-            <span class="ident">declaration</span>::{<span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>},
-            <span class="ident">Node</span>,
+            <span class="ident">declaration</span>::{
+                <span class="ident">Declaration</span>, <span class="ident">DeclarationList</span>, <span class="ident">DeclarationPatternArray</span>, <span class="ident">DeclarationPatternObject</span>,
+            },
+            <span class="ident">DeclarationPattern</span>, <span class="ident">Node</span>,
         },
         <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
     },
-    <span class="ident">lexer::TokenKind</span>,
+    <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">cursor</span>::{<span class="ident">Cursor</span>, <span class="ident">SemicolonResult</span>},
         <span class="ident">expression::Initializer</span>,
@@ -373,7 +405,7 @@
         <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
@@ -618,6 +650,7 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;LexicalBinding&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">peek_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">peek_token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
 
         <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
@@ -643,7 +676,17 @@
                     <span class="prelude-val">None</span>
                 };
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Declaration::new_with_object_pattern</span>(<span class="ident">bindings</span>, <span class="ident">init</span>))
+                <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span>
+                    <span class="ident">DeclarationPattern::Object</span>(<span class="ident">DeclarationPatternObject::new</span>(<span class="ident">bindings</span>, <span class="ident">init</span>));
+
+                <span class="kw">if</span> <span class="ident">declaration</span>.<span class="ident">idents</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::LET</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">position</span>,
+                    )));
+                }
+
+                <span class="prelude-val">Ok</span>(<span class="ident">Declaration::Pattern</span>(<span class="ident">declaration</span>))
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
@@ -668,11 +711,28 @@
                     <span class="prelude-val">None</span>
                 };
 
-                <span class="prelude-val">Ok</span>(<span class="ident">Declaration::new_with_array_pattern</span>(<span class="ident">bindings</span>, <span class="ident">init</span>))
+                <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span>
+                    <span class="ident">DeclarationPattern::Array</span>(<span class="ident">DeclarationPatternArray::new</span>(<span class="ident">bindings</span>, <span class="ident">init</span>));
+
+                <span class="kw">if</span> <span class="ident">declaration</span>.<span class="ident">idents</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::LET</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">position</span>,
+                    )));
+                }
+
+                <span class="prelude-val">Ok</span>(<span class="ident">Declaration::Pattern</span>(<span class="ident">declaration</span>))
             }
             <span class="kw">_</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">BindingIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+                <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::LET</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                        <span class="string">&quot;&#39;let&#39; is disallowed as a lexically bound name&quot;</span>.<span class="ident">into</span>(),
+                        <span class="ident">position</span>,
+                    )));
+                }
 
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) {
