@@ -625,7 +625,7 @@ pub struct JsString {
 /// Use the first bit as the flag.
 /// Detail: <https://en.wikipedia.org/wiki/Tagged_pointer>
 #[repr(transparent)]
-#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Flag(NonZeroUsize);
 
 impl Flag {
@@ -645,7 +645,7 @@ impl Flag {
 
     /// Check if the first bit is 1.
     #[inline]
-    const fn is_static(&self) -> bool {
+    const fn is_static(self) -> bool {
         self.0.get() & 1 == 1
     }
 
@@ -653,7 +653,7 @@ impl Flag {
     ///
     /// It maybe a static string.
     #[inline]
-    const unsafe fn get_heap_unchecked(&self) -> *mut Inner {
+    const unsafe fn get_heap_unchecked(self) -> *mut Inner {
         self.0.get() as *mut _
     }
 
@@ -661,7 +661,7 @@ impl Flag {
     ///
     /// It maybe a string allocated on the heap.
     #[inline]
-    const unsafe fn get_static_unchecked(&self) -> &'static str {
+    const unsafe fn get_static_unchecked(self) -> &'static str {
         // shift right to get the index.
         CONSTANTS_ARRAY[self.0.get() >> 1]
     }
@@ -1094,6 +1094,21 @@ mod tests {
     }
 
     #[test]
+    fn static_refcount() {
+        let x = JsString::new("");
+        assert_eq!(JsString::refcount(&x), 0);
+
+        let idx = {
+            let y = x.clone();
+            assert_eq!(JsString::refcount(&x), 0);
+            assert_eq!(JsString::refcount(&y), 0);
+            y.inner
+        };
+
+        assert_eq!(x.inner, idx);
+    }
+
+    #[test]
     fn ptr_eq() {
         let x = JsString::new("Hello");
         let y = x.clone();
@@ -1103,6 +1118,18 @@ mod tests {
         let z = JsString::new("Hello");
         assert!(!JsString::ptr_eq(&x, &z));
         assert!(!JsString::ptr_eq(&y, &z));
+    }
+
+    #[test]
+    fn static_ptr_eq() {
+        let x = JsString::new("");
+        let y = x.clone();
+
+        assert!(JsString::ptr_eq(&x, &y));
+
+        let z = JsString::new("");
+        assert!(JsString::ptr_eq(&x, &z));
+        assert!(JsString::ptr_eq(&y, &z));
     }
 
     #[test]
