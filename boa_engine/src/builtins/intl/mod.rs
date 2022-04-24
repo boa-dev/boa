@@ -10,7 +10,7 @@
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn, JsArgs},
-    object::{JsObject, ObjectInitializer},
+    object::ObjectInitializer,
     property::Attribute,
     symbol::WellKnownSymbols,
     Context, JsResult, JsString, JsValue,
@@ -22,7 +22,7 @@ mod tests;
 
 use boa_profiler::Profiler;
 use indexmap::IndexSet;
-use std::collections::HashMap;
+use rustc_hash::FxHashMap;
 use tap::{Conv, Pipe};
 
 /// JavaScript `Intl` object.
@@ -206,17 +206,14 @@ fn default_locale() -> JsString {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-bestavailablelocale
-fn best_available_locale(available_locales: &[JsString], locale: &JsString) -> JsString {
+fn best_available_locale(available_locales: &[JsString], locale: &JsString) -> Option<JsString> {
     // 1. Let candidate be locale.
     let mut candidate = locale.clone();
     // 2. Repeat
     loop {
         // a. If availableLocales contains an element equal to candidate, return candidate.
-        if available_locales
-            .iter()
-            .any(|loc_name| candidate.eq(loc_name))
-        {
-            return candidate;
+        if available_locales.contains(&candidate) {
+            return Some(candidate);
         }
 
         // b. Let pos be the character index of the last occurrence of "-" (U+002D) within candidate. If that character does not occur, return undefined.
@@ -234,7 +231,7 @@ fn best_available_locale(available_locales: &[JsString], locale: &JsString) -> J
                 // d. Let candidate be the substring of candidate from position 0, inclusive, to position pos, exclusive.
                 candidate = JsString::new(&candidate[..trim_ind]);
             }
-            None => return JsString::new("undefined"),
+            None => return None,
         }
     }
 }
@@ -259,7 +256,7 @@ fn lookup_matcher(available_locales: &[JsString], requested_locales: &[JsString]
         let available_locale = best_available_locale(available_locales, &no_extensions_locale);
 
         // c. If availableLocale is not undefined, then
-        if !available_locale.eq("undefined") {
+        if let Some(available_locale) = available_locale {
             // i. Set result.[[locale]] to availableLocale.
             // Assignment deferred. See return statement below.
             // ii. If locale and noExtensionsLocale are not the same String value, then
@@ -421,27 +418,6 @@ fn unicode_extension_components(extension: &JsString) -> UniExtRecord {
     }
 }
 
-fn js_arr_contains_str(js_arr: &JsValue, str_to_find: &str, context: &mut Context) -> bool {
-    let js_arr_obj = js_arr
-        .to_object(context)
-        .unwrap_or_else(|_| JsObject::empty());
-    let js_arr_len = js_arr_obj.length_of_array_like(context).unwrap_or(0);
-    for index in 0..js_arr_len as u32 {
-        let arr_item = js_arr_obj
-            .get(index, context)
-            .unwrap_or_else(|_| JsValue::undefined())
-            .to_string(context)
-            .unwrap_or_else(|_| JsString::new(""))
-            .to_string();
-
-        if arr_item.eq(str_to_find) {
-            return true;
-        }
-    }
-
-    false
-}
-
 /// The `InsertUnicodeExtensionAndCanonicalize` abstract operation inserts `extension`, which must
 /// be a Unicode locale extension sequence, into `locale`, which must be a String value with a
 /// structurally valid and canonicalized Unicode BCP 47 locale identifier.
@@ -483,22 +459,19 @@ fn insert_unicode_extension_and_canonicalize(locale: &str, extension: &str) -> J
     Intl::canonicalize_locale(&new_locale)
 }
 
+type LocaleDataRecord = FxHashMap<JsString, FxHashMap<JsString, Vec<JsString>>>;
+
 #[derive(Debug)]
-pub struct ResolveLocaleRecord {
-    pub locale: JsString,
-    pub properties: HashMap<JsString, JsValue>,
-    pub data_locale: JsString,
+struct DateTimeFormatRecord {
+    pub(crate) locale_matcher: JsString,
+    pub(crate) properties: FxHashMap<JsString, JsValue>,
 }
 
 #[derive(Debug)]
-pub struct LocaleDataRecord {
-    pub properties: HashMap<JsString, JsValue>,
-}
-
-#[derive(Debug)]
-pub struct DateTimeFormatRecord {
-    pub locale_matcher: JsString,
-    pub properties: HashMap<JsString, JsValue>,
+struct ResolveLocaleRecord {
+    pub(crate) locale: JsString,
+    pub(crate) properties: FxHashMap<JsString, JsValue>,
+    pub(crate) data_locale: JsString,
 }
 
 /// The `ResolveLocale` abstract operation compares a BCP 47 language priority list
@@ -537,7 +510,7 @@ fn resolve_locale(
     // 5. Let result be a new Record.
     let mut result = ResolveLocaleRecord {
         locale: JsString::new(""),
-        properties: HashMap::new(),
+        properties: FxHashMap::default(),
         data_locale: JsString::new(""),
     };
 
@@ -561,27 +534,24 @@ fn resolve_locale(
     for key in relevant_extension_keys {
         // a. Let foundLocaleData be localeData.[[<foundLocale>]].
         // TODO b. Assert: Type(foundLocaleData) is Record.
-        let found_locale_data = match locale_data.properties.get(&found_locale) {
+        let found_locale_data = match locale_data.get(&found_locale) {
             Some(locale_value) => locale_value.clone(),
-            None => JsValue::undefined(),
+            None => FxHashMap::default(),
         };
 
         // c. Let keyLocaleData be foundLocaleData.[[<key>]].
         // TODO d. Assert: Type(keyLocaleData) is List.
-        let key_locale_data = found_locale_data
-            .to_object(context)
-            .unwrap_or_else(|_| JsObject::empty())
-            .get(key.clone(), context)
-            .unwrap_or_else(|_| JsValue::undefined());
+        let key_locale_data = match found_locale_data.get(key) {
+            Some(locale_vec) => locale_vec.clone(),
+            None => Vec::new(),
+        };
 
         // e. Let value be keyLocaleData[0].
         // TODO f. Assert: Type(value) is either String or Null.
-        let first_elt_idx: u32 = 0;
-        let mut value = key_locale_data
-            .to_object(context)
-            .unwrap_or_else(|_| JsObject::empty())
-            .get(first_elt_idx, context)
-            .unwrap_or_else(|_| JsValue::null());
+        let mut value = match key_locale_data.get(0) {
+            Some(first_elt) => JsValue::String(first_elt.clone()),
+            None => JsValue::null(),
+        };
 
         // g. Let supportedExtensionAddition be "".
         let mut supported_extension_addition = JsString::new("");
@@ -598,42 +568,20 @@ fn resolve_locale(
                 // 3. If requestedValue is not the empty String, then
                 if !requested_value.is_empty() {
                     // a. If keyLocaleData contains requestedValue, then
-                    let key_locale_data_obj = key_locale_data
-                        .to_object(context)
-                        .unwrap_or_else(|_| JsObject::empty());
-                    let key_locale_data_len = key_locale_data_obj
-                        .length_of_array_like(context)
-                        .unwrap_or(0);
-                    for index in 0..key_locale_data_len as u32 {
-                        let key_locale = key_locale_data_obj
-                            .get(index, context)
-                            .unwrap_or_else(|_| JsValue::undefined())
-                            .to_string(context)
-                            .unwrap_or_else(|_| JsString::new(""));
-
-                        if key_locale.eq(requested_value) {
-                            // i. Let value be requestedValue.
-                            value = JsValue::String(JsString::new(requested_value));
-                            // ii. Let supportedExtensionAddition be the string-concatenation
-                            // of "-", key, "-", and value.
-                            supported_extension_addition = JsString::new("-");
-                            supported_extension_addition =
-                                JsString::concat(supported_extension_addition, &key);
-                            supported_extension_addition =
-                                JsString::concat(supported_extension_addition, JsString::new("-"));
-                            supported_extension_addition =
-                                JsString::concat(supported_extension_addition, requested_value);
-                            break;
-                        }
+                    if key_locale_data.contains(requested_value) {
+                        // i. Let value be requestedValue.
+                        value = JsValue::String(JsString::new(requested_value));
+                        // ii. Let supportedExtensionAddition be the string-concatenation
+                        // of "-", key, "-", and value.
+                        supported_extension_addition =
+                            JsString::concat_array(&["-", key, "-", requested_value]);
                     }
                 // 4. Else if keyLocaleData contains "true", then
-                } else if js_arr_contains_str(&key_locale_data, "true", context) {
+                } else if key_locale_data.contains(&JsString::new("true")) {
                     // a. Let value be "true".
                     value = JsValue::String(JsString::new("true"));
                     // b. Let supportedExtensionAddition be the string-concatenation of "-" and key.
-                    supported_extension_addition = JsString::new("-");
-                    supported_extension_addition =
-                        JsString::concat(supported_extension_addition, &key);
+                    supported_extension_addition = JsString::concat_array(&["-", key]);
                 }
             }
         }
@@ -675,9 +623,8 @@ fn resolve_locale(
             // iv. If keyLocaleData contains optionsValue, then
             let options_val_str = options_value
                 .to_string(context)
-                .unwrap_or_else(|_| JsString::new(""))
-                .to_string();
-            if js_arr_contains_str(&key_locale_data, &options_val_str, context) {
+                .unwrap_or_else(|_| JsString::new(""));
+            if key_locale_data.contains(&options_val_str) {
                 // 1. If SameValue(optionsValue, value) is false, then
                 if !options_value.eq(&value) {
                     // a. Let value be optionsValue.
@@ -697,8 +644,7 @@ fn resolve_locale(
     }
 
     // 10. If the number of elements in supportedExtension is greater than 2, then
-    let ext_elements = unicode_extension_components(&supported_extension);
-    if ext_elements.keywords.len() > 2 {
+    if supported_extension.len() > 2 {
         // a. Let foundLocale be InsertUnicodeExtensionAndCanonicalize(foundLocale, supportedExtension).
         found_locale =
             insert_unicode_extension_and_canonicalize(&found_locale, &supported_extension);
