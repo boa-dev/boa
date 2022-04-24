@@ -278,6 +278,7 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-toboolean
     pub fn to_boolean(&self) -> bool {
         match *self {
+            Self::Undefined | Self::Null => false,
             Self::Symbol(_) | Self::Object(_) => true,
             Self::String(ref s) if !s.is_empty() => true,
             Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
