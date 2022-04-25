@@ -615,15 +615,24 @@ impl Inner {
 /// on the stack and a pointer to the data (this is also known as fat pointers).
 /// The `JsString` length and data is stored on the heap. and just an non-null
 /// pointer is kept, so its size is the size of a pointer.
+///
+/// We define some commonly used string constants in the data segment. For these
+/// strings, we no longer allocate memory on the heap to reduce the overhead of
+/// memory allocation and reference counting.
 #[derive(Finalize)]
 pub struct JsString {
     inner: Flag,
     _marker: PhantomData<Rc<str>>,
 }
 
-/// It maybe an index of [`CONSTANTS_ARRAY`], or a raw pointer of [`Inner`].
-/// Use the first bit as the flag.
-/// Detail: <https://en.wikipedia.org/wiki/Tagged_pointer>
+/// It may be an index of [`CONSTANTS_ARRAY`], or a raw pointer of [`Inner`]. Use
+/// the first bit as the flag (Detail: <https://en.wikipedia.org/wiki/Tagged_pointer>).
+///
+/// When the first bit is 0, it represents the address of an [`Inner`]. When the
+/// first bit is 1, it represents an index of [`CONSTANTS_ARRAY`], and the index
+/// number is stored in higher bits.
+///
+/// It uses `NonZeroUsize`, which can get benefit from non-null optimization.
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Flag(NonZeroUsize);
@@ -649,6 +658,9 @@ impl Flag {
         self.0.get() & 1 == 1
     }
 
+    /// Returns a reference to a string stroed on the heap, without doing
+    /// flag checking.
+    ///
     /// # Safety
     ///
     /// It maybe a static string.
@@ -657,13 +669,15 @@ impl Flag {
         self.0.get() as *mut _
     }
 
+    /// Returns a reference to a static string, without doing flag checking.
+    ///
     /// # Safety
     ///
-    /// It maybe a string allocated on the heap.
+    /// It maybe a string stroed on the heap.
     #[inline]
-    const unsafe fn get_static_unchecked(self) -> &'static str {
+    unsafe fn get_static_unchecked(self) -> &'static str {
         // shift right to get the index.
-        CONSTANTS_ARRAY[self.0.get() >> 1]
+        CONSTANTS_ARRAY.get_unchecked(self.0.get() >> 1)
     }
 }
 
@@ -1098,14 +1112,13 @@ mod tests {
         let x = JsString::new("");
         assert_eq!(JsString::refcount(&x), 0);
 
-        let idx = {
+        {
             let y = x.clone();
             assert_eq!(JsString::refcount(&x), 0);
             assert_eq!(JsString::refcount(&y), 0);
-            y.inner
         };
 
-        assert_eq!(x.inner, idx);
+        assert_eq!(JsString::refcount(&x), 0);
     }
 
     #[test]
