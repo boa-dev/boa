@@ -312,12 +312,22 @@ fn best_fit_matcher(
     lookup_matcher(available_locales, requested_locales)
 }
 
+/// `Keyword` structure is a pair of keyword key and keyword value.
+#[derive(Debug)]
 struct Keyword {
     key: JsString,
     value: JsString,
 }
 
+/// `UniExtRecord` structure represents unicode extension records.
+///
+/// It contains the list of unicode `extension` attributes and the list of `keywords`.
+///
+/// For example:
+///
+/// - `-u-nu-thai` has no attributes and the list of keywords contains `(nu:thai)` pair.
 #[allow(dead_code)]
+#[derive(Debug)]
 struct UniExtRecord {
     attributes: Vec<JsString>, // never read at this point
     keywords: Vec<Keyword>,
@@ -396,7 +406,7 @@ fn unicode_extension_components(extension: &JsString) -> UniExtRecord {
                 let new_keyword_val = if keyword_val.value.is_empty() {
                     subtag
                 } else {
-                    JsString::new(format!("{}-{}", keyword_val.value, subtag))
+                    JsString::new(format!("{}-{subtag}", keyword_val.value))
                 };
 
                 keyword = Some(Keyword {
@@ -468,6 +478,11 @@ fn insert_unicode_extension_and_canonicalize(locale: &str, extension: &str) -> J
     Intl::canonicalize_locale(&new_locale)
 }
 
+/// `LocaleDataRecord` is the type of `locale_data` argument in `resolve_locale` subroutine.
+///
+/// It is an alias for a map where key is a string and value is another map.
+///
+/// Value of that inner map is a vector of strings representing locale parameters.
 type LocaleDataRecord = FxHashMap<JsString, FxHashMap<JsString, Vec<JsString>>>;
 
 /// `DateTimeFormatRecord` type aggregates `locale_matcher` selector and `properties` map.
