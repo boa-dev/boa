@@ -5,6 +5,7 @@ authors = ["boa-dev"]
 repository = "https://github.com/boa-dev/boa"
 license = "Unlicense/MIT"
 edition = "2021"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

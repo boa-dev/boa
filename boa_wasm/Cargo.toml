@@ -9,6 +9,7 @@ repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["parser-implementations", "wasm", "compilers"]
 license = "Unlicense/MIT"
+publish = false
 
 [dependencies]
 boa_engine = { path = "../boa_engine", features = ["console"], version = "0.14.0" }
