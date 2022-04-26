@@ -8,13 +8,12 @@ use std::{
     hash::BuildHasherDefault,
     hash::{Hash, Hasher},
     marker::PhantomData,
-    num::NonZeroUsize,
     ops::Deref,
-    ptr::copy_nonoverlapping,
+    ptr::{copy_nonoverlapping, NonNull},
     rc::Rc,
 };
 
-const CONSTANTS_ARRAY: [&str; 426] = [
+const CONSTANTS_ARRAY: [&str; 419] = [
     // Empty string
     "",
     // Misc
@@ -57,14 +56,8 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "isSealed",
     "freeze",
     "isFrozen",
-    "preventExtensions",
     "isExtensible",
-    "getOwnPropertyDescriptor",
-    "getOwnPropertyDescriptors",
-    "getOwnPropertyNames",
-    "getOwnPropertySymbols",
     "hasOwnProperty",
-    "propertyIsEnumerable",
     "isPrototypeOf",
     "setPrototypeOf",
     "getPrototypeOf",
@@ -85,14 +78,12 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "call",
     // Generator object
     "Generator",
-    "GeneratorFunction",
     // Array object
     "Array",
     "at",
     "from",
     "isArray",
     "of",
-    "get [Symbol.species]",
     "copyWithin",
     "entries",
     "every",
@@ -168,8 +159,6 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "MIN_SAFE_INTEGER",
     "MAX_VALUE",
     "MIN_VALUE",
-    "NEGATIVE_INFINITY",
-    "POSITIVE_INFINITY",
     "isSafeInteger",
     "isInteger",
     "toExponential",
@@ -195,29 +184,30 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "unicode",
     "sticky",
     "source",
+    "get hasIndices",
+    "get global",
+    "get ignoreCase",
+    "get multiline",
+    "get dotAll",
+    "get unicode",
+    "get sticky",
+    "get flags",
+    "get source",
     // Symbol object
     "Symbol",
     "for",
     "keyFor",
     "description",
     "asyncIterator",
-    "Symbol.asyncIterator",
     "hasInstance",
-    "Symbol.hasInstance",
-    "isConcatSpreadable",
-    "Symbol.isConcatSpreadable",
     "species",
     "Symbol.species",
     "unscopables",
-    "Symbol.unscopables",
-    "[Symbol.hasInstance]",
     "iterator",
     "Symbol.iterator",
-    "[Symbol.iterator]",
     "Symbol.match",
     "[Symbol.match]",
     "Symbol.matchAll",
-    "[Symbol.matchAll]",
     "Symbol.replace",
     "[Symbol.replace]",
     "Symbol.search",
@@ -225,11 +215,8 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "Symbol.split",
     "[Symbol.split]",
     "toStringTag",
-    "Symbol.toStringTag",
-    "[Symbol.toStringTag]",
     "toPrimitive",
-    "Symbol.toPrimitive",
-    "[Symbol.toPrimitive]",
+    "get description",
     // Map object
     "Map",
     "clear",
@@ -254,6 +241,7 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "SyntaxError",
     "ReferenceError",
     "EvalError",
+    "ThrowTypeError",
     "URIError",
     "message",
     // Date object
@@ -269,12 +257,10 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "getSeconds",
     "getTime",
     "getYear",
-    "getTimezoneOffset",
     "getUTCDate",
     "getUTCDay",
     "getUTCFullYear",
     "getUTCHours",
-    "getUTCMilliseconds",
     "getUTCMinutes",
     "getUTCMonth",
     "getUTCSeconds",
@@ -290,7 +276,6 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "setUTCDate",
     "setUTCFullYear",
     "setUTCHours",
-    "setUTCMilliseconds",
     "setUTCMinutes",
     "setUTCMonth",
     "setUTCSeconds",
@@ -305,6 +290,12 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "JSON",
     "parse",
     "stringify",
+    // Iterator object
+    "Array Iterator",
+    "Set Iterator",
+    "String Iterator",
+    "Map Iterator",
+    "For In Iterator",
     // Math object
     "Math",
     "LN10",
@@ -352,13 +343,11 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     // Intl object
     "Intl",
     "DateTimeFormat",
-    "getCanonicalLocales",
     // TypedArray object
     "TypedArray",
     "ArrayBuffer",
     "Int8Array",
     "Uint8Array",
-    "Uint8ClampedArray",
     "Int16Array",
     "Uint16Array",
     "Int32Array",
@@ -367,12 +356,16 @@ const CONSTANTS_ARRAY: [&str; 426] = [
     "BigUint64Array",
     "Float32Array",
     "Float64Array",
-    "BYTES_PER_ELEMENT",
     "buffer",
     "byteLength",
     "byteOffset",
     "isView",
     "subarray",
+    "get byteLength",
+    "get buffer",
+    "get byteOffset",
+    "get size",
+    "get length",
     // DataView object
     "DataView",
     "getBigInt64",
@@ -481,6 +474,10 @@ const MAX_CONSTANT_STRING_LENGTH: usize = {
         }
         i += 1;
     }
+    // The FX algorithm is in hashing 8 bytes at a time on 64-bit platforms.
+    // So set the maximum number to be a multiple of 8, 16 is not a proven
+    // value and may change in the future.
+    assert!(max <= 16);
     max
 };
 
@@ -524,7 +521,7 @@ struct Inner {
 impl Inner {
     /// Create a new `Inner` from `&str`.
     #[inline]
-    fn new(s: &str) -> *mut Self {
+    fn new(s: &str) -> NonNull<Self> {
         // We get the layout of the `Inner` type and we extend by the size
         // of the string array.
         let inner_layout = Layout::new::<Self>();
@@ -532,7 +529,7 @@ impl Inner {
             .extend(Layout::array::<u8>(s.len()).expect("failed to create memory layout"))
             .expect("failed to extend memory layout");
 
-        unsafe {
+        let inner = unsafe {
             let inner = try_alloc(layout).cast::<Self>();
 
             // Write the first part, the Inner.
@@ -551,12 +548,15 @@ impl Inner {
             copy_nonoverlapping(s.as_ptr(), data, s.len());
 
             inner
-        }
+        };
+
+        // Safety: We already know it's not null, so this is safe.
+        unsafe { NonNull::new_unchecked(inner) }
     }
 
     /// Concatenate array of strings.
     #[inline]
-    fn concat_array(strings: &[&str]) -> *mut Self {
+    fn concat_array(strings: &[&str]) -> NonNull<Self> {
         let mut total_string_size = 0;
         for string in strings {
             total_string_size += string.len();
@@ -569,7 +569,7 @@ impl Inner {
             .extend(Layout::array::<u8>(total_string_size).expect("failed to create memory layout"))
             .expect("failed to extend memory layout");
 
-        unsafe {
+        let inner = unsafe {
             let inner = try_alloc(layout).cast::<Self>();
 
             // Write the first part, the Inner.
@@ -592,20 +592,23 @@ impl Inner {
             }
 
             inner
-        }
+        };
+
+        // Safety: We already know it's not null, so this is safe.
+        unsafe { NonNull::new_unchecked(inner) }
     }
 
     /// Deallocate inner type with string data.
     #[inline]
-    unsafe fn dealloc(x: *mut Self) {
-        let len = (*x).len;
+    unsafe fn dealloc(x: NonNull<Self>) {
+        let len = (*x.as_ptr()).len;
 
         let inner_layout = Layout::new::<Self>();
         let (layout, _offset) = inner_layout
             .extend(Layout::array::<u8>(len).expect("failed to create memory layout"))
             .expect("failed to extend memory layout");
 
-        dealloc(x.cast::<_>(), layout);
+        dealloc(x.as_ptr().cast::<_>(), layout);
     }
 }
 
@@ -632,16 +635,15 @@ pub struct JsString {
 /// first bit is 1, it represents an index of [`CONSTANTS_ARRAY`], and the index
 /// number is stored in higher bits.
 ///
-/// It uses `NonZeroUsize`, which can get benefit from non-null optimization.
+/// It uses `NonNull`, which can get benefit from non-null optimization.
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-struct Flag(NonZeroUsize);
+struct Flag(NonNull<Inner>);
 
 impl Flag {
     #[inline]
-    fn new_heap(inner: *mut Inner) -> Self {
-        // Safety: We already know it's not null, so this is safe.
-        Self(unsafe { NonZeroUsize::new_unchecked(inner as usize) })
+    fn new_heap(inner: NonNull<Inner>) -> Self {
+        Self(inner)
     }
 
     /// Set the first bit to 1, indicating that it is static. Store the index
@@ -649,13 +651,13 @@ impl Flag {
     #[inline]
     const fn new_static(idx: usize) -> Self {
         // Safety: We already know it's not null, so this is safe.
-        Self(unsafe { NonZeroUsize::new_unchecked((idx << 1) | 1) })
+        Self(unsafe { NonNull::new_unchecked(((idx << 1) | 1) as *mut _) })
     }
 
     /// Check if the first bit is 1.
     #[inline]
-    const fn is_static(self) -> bool {
-        self.0.get() & 1 == 1
+    fn is_static(self) -> bool {
+        (self.0.as_ptr() as usize) & 1 == 1
     }
 
     /// Returns a reference to a string stroed on the heap, without doing
@@ -665,8 +667,8 @@ impl Flag {
     ///
     /// It maybe a static string.
     #[inline]
-    const unsafe fn get_heap_unchecked(self) -> *mut Inner {
-        self.0.get() as *mut _
+    const unsafe fn get_heap_unchecked(self) -> NonNull<Inner> {
+        self.0
     }
 
     /// Returns a reference to a static string, without doing flag checking.
@@ -677,7 +679,7 @@ impl Flag {
     #[inline]
     unsafe fn get_static_unchecked(self) -> &'static str {
         // shift right to get the index.
-        CONSTANTS_ARRAY.get_unchecked(self.0.get() >> 1)
+        CONSTANTS_ARRAY.get_unchecked((self.0.as_ptr() as usize) >> 1)
     }
 }
 
@@ -777,7 +779,7 @@ impl JsString {
             InnerKind::Static(unsafe { self.inner.get_static_unchecked() })
         } else {
             // Safety: We already checked.
-            InnerKind::Heap(unsafe { &*self.inner.get_heap_unchecked() })
+            InnerKind::Heap(unsafe { self.inner.get_heap_unchecked().as_ref() })
         }
     }
 
