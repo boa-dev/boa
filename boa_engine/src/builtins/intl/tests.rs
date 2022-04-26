@@ -88,7 +88,7 @@ fn evaluate_extensions() {
 #[test]
 fn best_avail_loc() {
     let no_extensions_locale = JsString::new("en-US");
-    let available_locales: Vec<JsString> = vec![];
+    let available_locales = Vec::<JsString>::new();
     assert_eq!(
         crate::builtins::intl::best_available_locale(&available_locales, &no_extensions_locale,),
         None
@@ -122,8 +122,8 @@ fn best_avail_loc() {
 #[test]
 fn lookup_match() {
     // available: [], requested: []
-    let available_locales: Vec<JsString> = vec![];
-    let requested_locales: Vec<JsString> = vec![];
+    let available_locales = Vec::<JsString>::new();
+    let requested_locales = Vec::<JsString>::new();
 
     let matcher = crate::builtins::intl::lookup_matcher(&available_locales, &requested_locales);
     assert_eq!(matcher.locale, crate::builtins::intl::default_locale());
@@ -131,7 +131,7 @@ fn lookup_match() {
 
     // available: [de-DE], requested: []
     let available_locales = vec![JsString::new("de-DE")];
-    let requested_locales: Vec<JsString> = vec![];
+    let requested_locales = Vec::<JsString>::new();
 
     let matcher = crate::builtins::intl::lookup_matcher(&available_locales, &requested_locales);
     assert_eq!(matcher.locale, crate::builtins::intl::default_locale());
@@ -157,7 +157,7 @@ fn lookup_match() {
 #[test]
 fn insert_unicode_ext() {
     let locale = JsString::new("hu-HU");
-    let ext = JsString::new("");
+    let ext = JsString::empty();
     assert_eq!(
         crate::builtins::intl::insert_unicode_extension_and_canonicalize(&locale, &ext),
         locale
@@ -222,9 +222,9 @@ fn locale_resolution() {
     let mut context = Context::default();
 
     // test lookup
-    let available_locales: Vec<JsString> = vec![];
-    let requested_locales: Vec<JsString> = vec![];
-    let relevant_extension_keys: Vec<JsString> = vec![];
+    let available_locales = Vec::<JsString>::new();
+    let requested_locales = Vec::<JsString>::new();
+    let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
     let options = crate::builtins::intl::DateTimeFormatRecord {
         locale_matcher: JsString::new("lookup"),
@@ -250,9 +250,9 @@ fn locale_resolution() {
     assert_eq!(locale_record.properties.is_empty(), true);
 
     // test best fit
-    let available_locales: Vec<JsString> = vec![];
-    let requested_locales: Vec<JsString> = vec![];
-    let relevant_extension_keys: Vec<JsString> = vec![];
+    let available_locales = Vec::<JsString>::new();
+    let requested_locales = Vec::<JsString>::new();
+    let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
     let options = crate::builtins::intl::DateTimeFormatRecord {
         locale_matcher: JsString::new("best-fit"),
@@ -280,7 +280,7 @@ fn locale_resolution() {
     // available: [es-ES], requested: [es-ES]
     let available_locales = vec![JsString::new("es-ES")];
     let requested_locales = vec![JsString::new("es-ES")];
-    let relevant_extension_keys: Vec<JsString> = vec![];
+    let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
     let options = crate::builtins::intl::DateTimeFormatRecord {
         locale_matcher: JsString::new("lookup"),
@@ -301,8 +301,8 @@ fn locale_resolution() {
 
     // available: [zh-CN], requested: []
     let available_locales = vec![JsString::new("zh-CN")];
-    let requested_locales: Vec<JsString> = vec![];
-    let relevant_extension_keys: Vec<JsString> = vec![];
+    let requested_locales = Vec::<JsString>::new();
+    let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
     let options = crate::builtins::intl::DateTimeFormatRecord {
         locale_matcher: JsString::new("lookup"),
