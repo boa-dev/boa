@@ -98,6 +98,7 @@ pub struct Parser<R> {
 }
 
 impl<R> Parser<R> {
+    /// Create a new `Parser` with a reader as the input to parse.
     pub fn new(reader: R, strict_mode: bool) -> Self
     where
         R: Read,
@@ -108,6 +109,10 @@ impl<R> Parser<R> {
         Self { cursor }
     }
 
+    /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
+    /// The resulting `StatementList` can be compiled into boa bytecode and executed in the boa vm.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-Script
     pub fn parse_all(&mut self, context: &mut Context) -> Result<StatementList, ParseError>
     where
         R: Read,
@@ -170,16 +175,6 @@ impl<R> Parser<R> {
                 ));
             }
         }
-
-        //let desc = context
-        //    .realm
-        //    .global_property_map
-        //    .string_property_map()
-        //    .get(&name_str);
-        //let non_configurable_binding_exists = match desc {
-        //    Some(desc) => !matches!(desc.configurable(), Some(true)),
-        //    None => false,
-        //};
 
         Ok(statement_list)
     }

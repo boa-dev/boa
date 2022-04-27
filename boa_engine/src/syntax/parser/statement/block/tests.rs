@@ -13,7 +13,7 @@ use crate::syntax::{
 use boa_interner::Interner;
 
 /// Helper function to check a block.
-// TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
+#[track_caller]
 fn check_block<B>(js: &str, block: B, interner: Interner)
 where
     B: Into<Box<[Node]>>,

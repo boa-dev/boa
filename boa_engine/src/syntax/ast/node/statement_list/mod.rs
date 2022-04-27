@@ -68,6 +68,16 @@ impl StatementList {
         buf
     }
 
+    /// Return the lexically declared names of a `StatementList`.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// If a declared name originates from a function declaration it is flagged as `true` in the returned list.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
     pub(crate) fn lexically_declared_names(&self) -> Vec<(Sym, bool)> {
         let mut names = Vec::new();
 
@@ -113,6 +123,14 @@ impl StatementList {
         names
     }
 
+    /// Return the top level lexically declared names of a `StatementList`.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
     pub(crate) fn lexically_declared_names_top_level(&self) -> Vec<Sym> {
         let mut names = Vec::new();
 
@@ -144,6 +162,12 @@ impl StatementList {
         names
     }
 
+    /// Return the variable declared names of a `StatementList`.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames
     pub(crate) fn var_declared_names_new(&self, vars: &mut FxHashSet<Sym>) {
         for node in self.items() {
             node.var_declared_names(vars);
