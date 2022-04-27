@@ -9,6 +9,7 @@ pub mod console;
 pub mod dataview;
 pub mod date;
 pub mod error;
+pub mod eval;
 pub mod function;
 pub mod generator;
 pub mod generator_function;
@@ -41,6 +42,7 @@ pub(crate) use self::{
         AggregateError, Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError,
         UriError,
     },
+    eval::Eval,
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
@@ -152,6 +154,7 @@ pub fn init(context: &mut Context) {
         DataView,
         Map,
         Number,
+        Eval,
         Set,
         String,
         RegExp,

@@ -670,6 +670,23 @@ impl Context {
         Ok(Gc::new(compiler.finish()))
     }
 
+    /// Compile the AST into a `CodeBlock` with an additional declarative environment.
+    #[inline]
+    pub(crate) fn compile_with_new_declarative(
+        &mut self,
+        statement_list: &StatementList,
+        strict: bool,
+    ) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
+        compiler.compile_statement_list_with_new_declarative(
+            statement_list.items(),
+            true,
+            strict || statement_list.strict(),
+        )?;
+        Ok(Gc::new(compiler.finish()))
+    }
+
     /// Call the VM with a `CodeBlock` and return the result.
     ///
     /// Since this function receives a `Gc<CodeBlock>`, cloning the code is very cheap, since it's

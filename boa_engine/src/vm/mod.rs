@@ -445,30 +445,42 @@ impl Context {
                 binding_locator.throw_mutate_immutable(self)?;
 
                 let value = if binding_locator.is_global() {
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(binding_locator.name())
-                        .into();
-                    match self.global_bindings_mut().get(&key) {
-                        Some(desc) => match desc.kind() {
-                            DescriptorKind::Data {
-                                value: Some(value), ..
-                            } => value.clone(),
-                            DescriptorKind::Accessor { get: Some(get), .. }
-                                if !get.is_undefined() =>
-                            {
-                                let get = get.clone();
-                                self.call(&get, &self.global_object().clone().into(), &[])?
-                            }
+                    if let Some(value) = self
+                        .realm
+                        .environments
+                        .get_value_global_poisoned(binding_locator.name())
+                    {
+                        value
+                    } else {
+                        let key: JsString = self
+                            .interner()
+                            .resolve_expect(binding_locator.name())
+                            .into();
+                        match self.global_bindings_mut().get(&key) {
+                            Some(desc) => match desc.kind() {
+                                DescriptorKind::Data {
+                                    value: Some(value), ..
+                                } => value.clone(),
+                                DescriptorKind::Accessor { get: Some(get), .. }
+                                    if !get.is_undefined() =>
+                                {
+                                    let get = get.clone();
+                                    self.call(&get, &self.global_object().clone().into(), &[])?
+                                }
+                                _ => {
+                                    return self
+                                        .throw_reference_error(format!("{key} is not defined"))
+                                }
+                            },
                             _ => {
                                 return self.throw_reference_error(format!("{key} is not defined"))
                             }
-                        },
-                        _ => return self.throw_reference_error(format!("{key} is not defined")),
+                        }
                     }
                 } else if let Some(value) = self.realm.environments.get_value_optional(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),
+                    binding_locator.name(),
                 ) {
                     value
                 } else {
@@ -484,28 +496,37 @@ impl Context {
                 let binding_locator = self.vm.frame().code.bindings[index as usize];
                 binding_locator.throw_mutate_immutable(self)?;
                 let value = if binding_locator.is_global() {
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(binding_locator.name())
-                        .into();
-                    match self.global_bindings_mut().get(&key) {
-                        Some(desc) => match desc.kind() {
-                            DescriptorKind::Data {
-                                value: Some(value), ..
-                            } => value.clone(),
-                            DescriptorKind::Accessor { get: Some(get), .. }
-                                if !get.is_undefined() =>
-                            {
-                                let get = get.clone();
-                                self.call(&get, &self.global_object().clone().into(), &[])?
-                            }
+                    if let Some(value) = self
+                        .realm
+                        .environments
+                        .get_value_global_poisoned(binding_locator.name())
+                    {
+                        value
+                    } else {
+                        let key: JsString = self
+                            .interner()
+                            .resolve_expect(binding_locator.name())
+                            .into();
+                        match self.global_bindings_mut().get(&key) {
+                            Some(desc) => match desc.kind() {
+                                DescriptorKind::Data {
+                                    value: Some(value), ..
+                                } => value.clone(),
+                                DescriptorKind::Accessor { get: Some(get), .. }
+                                    if !get.is_undefined() =>
+                                {
+                                    let get = get.clone();
+                                    self.call(&get, &self.global_object().clone().into(), &[])?
+                                }
+                                _ => JsValue::undefined(),
+                            },
                             _ => JsValue::undefined(),
-                        },
-                        _ => JsValue::undefined(),
+                        }
                     }
                 } else if let Some(value) = self.realm.environments.get_value_optional(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),
+                    binding_locator.name(),
                 ) {
                     value
                 } else {
@@ -521,31 +542,40 @@ impl Context {
                 binding_locator.throw_mutate_immutable(self)?;
 
                 if binding_locator.is_global() {
-                    let key: JsString = self
-                        .interner()
-                        .resolve_expect(binding_locator.name())
-                        .into();
-                    let exists = self.global_bindings_mut().contains_key(&key);
+                    if !self
+                        .realm
+                        .environments
+                        .put_value_global_poisoned(binding_locator.name(), &value)
+                    {
+                        let key: JsString = self
+                            .interner()
+                            .resolve_expect(binding_locator.name())
+                            .into();
+                        let exists = self.global_bindings_mut().contains_key(&key);
 
-                    if !exists && (self.strict() || self.vm.frame().code.strict) {
-                        return self.throw_reference_error(format!(
-                            "assignment to undeclared variable {key}"
-                        ));
-                    }
+                        if !exists && (self.strict() || self.vm.frame().code.strict) {
+                            return self.throw_reference_error(format!(
+                                "assignment to undeclared variable {key}"
+                            ));
+                        }
 
-                    let success = crate::object::internal_methods::global::global_set_no_receiver(
-                        &key.clone().into(),
-                        value,
-                        self,
-                    )?;
+                        let success =
+                            crate::object::internal_methods::global::global_set_no_receiver(
+                                &key.clone().into(),
+                                value,
+                                self,
+                            )?;
 
-                    if !success && (self.strict() || self.vm.frame().code.strict) {
-                        return self
-                            .throw_type_error(format!("cannot set non-writable property: {key}",));
+                        if !success && (self.strict() || self.vm.frame().code.strict) {
+                            return self.throw_type_error(format!(
+                                "cannot set non-writable property: {key}",
+                            ));
+                        }
                     }
                 } else if !self.realm.environments.put_value_if_initialized(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),
+                    binding_locator.name(),
                     value,
                 ) {
                     self.throw_reference_error(format!(
@@ -1200,6 +1230,95 @@ impl Context {
                 let function = create_generator_function_object(code, self);
                 self.vm.push(function);
             }
+            Opcode::CallEval => {
+                if self.vm.stack_size_limit <= self.vm.stack.len() {
+                    return self.throw_range_error("Maximum call stack size exceeded");
+                }
+                let argument_count = self.vm.read::<u32>();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..argument_count {
+                    arguments.push(self.vm.pop());
+                }
+                arguments.reverse();
+
+                let func = self.vm.pop();
+                let mut this = self.vm.pop();
+
+                let object = match func {
+                    JsValue::Object(ref object) if object.is_callable() => object.clone(),
+                    _ => return self.throw_type_error("not a callable function"),
+                };
+
+                if this.is_null_or_undefined() {
+                    this = self.global_object().clone().into();
+                }
+
+                // A native function with the name "eval" implies, that is this the built-in eval function.
+                let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
+
+                let strict = self.strict() || self.vm.frame().code.strict;
+
+                if eval {
+                    if let Some(x) = arguments.get(0) {
+                        let result =
+                            crate::builtins::eval::Eval::perform_eval(x, true, strict, self)?;
+                        self.vm.push(result);
+                    } else {
+                        self.vm.push(JsValue::Undefined);
+                    }
+                } else {
+                    let result = object.__call__(&this, &arguments, self)?;
+                    self.vm.push(result);
+                }
+            }
+            Opcode::CallEvalWithRest => {
+                if self.vm.stack_size_limit <= self.vm.stack.len() {
+                    return self.throw_range_error("Maximum call stack size exceeded");
+                }
+                let argument_count = self.vm.read::<u32>();
+                let rest_argument = self.vm.pop();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..(argument_count - 1) {
+                    arguments.push(self.vm.pop());
+                }
+                arguments.reverse();
+                let func = self.vm.pop();
+                let mut this = self.vm.pop();
+
+                let iterator_record = rest_argument.get_iterator(self, None, None)?;
+                let mut rest_arguments = Vec::new();
+                while let Some(next) = iterator_record.step(self)? {
+                    rest_arguments.push(next.value(self)?);
+                }
+                arguments.append(&mut rest_arguments);
+
+                let object = match func {
+                    JsValue::Object(ref object) if object.is_callable() => object.clone(),
+                    _ => return self.throw_type_error("not a callable function"),
+                };
+
+                if this.is_null_or_undefined() {
+                    this = self.global_object().clone().into();
+                }
+
+                // A native function with the name "eval" implies, that is this the built-in eval function.
+                let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
+
+                let strict = self.strict() || self.vm.frame().code.strict;
+
+                if eval {
+                    if let Some(x) = arguments.get(0) {
+                        let result =
+                            crate::builtins::eval::Eval::perform_eval(x, true, strict, self)?;
+                        self.vm.push(result);
+                    } else {
+                        self.vm.push(JsValue::Undefined);
+                    }
+                } else {
+                    let result = object.__call__(&this, &arguments, self)?;
+                    self.vm.push(result);
+                }
+            }
             Opcode::Call => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
@@ -1340,14 +1459,23 @@ impl Context {
             }
             Opcode::PushDeclarativeEnvironment => {
                 let num_bindings = self.vm.read::<u32>();
+                let compile_environments_index = self.vm.read::<u32>();
+                let compile_environment = self.vm.frame().code.compile_environments
+                    [compile_environments_index as usize]
+                    .clone();
                 self.realm
                     .environments
-                    .push_declarative(num_bindings as usize);
+                    .push_declarative(num_bindings as usize, compile_environment);
                 self.vm.frame_mut().loop_env_stack_inc();
                 self.vm.frame_mut().try_env_stack_inc();
             }
             Opcode::PushFunctionEnvironment => {
                 let num_bindings = self.vm.read::<u32>();
+                let compile_environments_index = self.vm.read::<u32>();
+                let compile_environment = self.vm.frame().code.compile_environments
+                    [compile_environments_index as usize]
+                    .clone();
+
                 let is_constructor = self.vm.frame().code.constructor;
                 let is_lexical = self.vm.frame().code.this_mode.is_lexical();
                 let this = if is_constructor || !is_lexical {
@@ -1356,9 +1484,11 @@ impl Context {
                     JsValue::undefined()
                 };
 
-                self.realm
-                    .environments
-                    .push_function(num_bindings as usize, this);
+                self.realm.environments.push_function(
+                    num_bindings as usize,
+                    compile_environment,
+                    this,
+                );
             }
             Opcode::PopEnvironment => {
                 self.realm.environments.pop();
@@ -1839,7 +1969,7 @@ impl Context {
             println!("\n");
         }
 
-        if self.vm.stack.is_empty() {
+        if self.vm.stack.len() <= start_stack_size {
             return Ok((JsValue::undefined(), ReturnType::Normal));
         }
 
