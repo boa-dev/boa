@@ -25,6 +25,8 @@ use indexmap::IndexSet;
 use rustc_hash::FxHashMap;
 use tap::{Conv, Pipe};
 
+use icu::locid::Locale;
+
 /// JavaScript `Intl` object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub(crate) struct Intl;
@@ -157,41 +159,6 @@ struct MatcherRecord {
     extension: JsString,
 }
 
-/// Returns the position of the first found unicode locale extension in a given string.
-///
-/// If no extensions found, return the length of requested locale
-fn get_leftmost_unicode_extension_pos(requested_locale: &str) -> usize {
-    let ext_sep = "-u-";
-    let src_locale = requested_locale.to_lowercase();
-    let pos = src_locale.find(ext_sep);
-    match pos {
-        Some(idx) => idx,
-        None => src_locale.len(),
-    }
-}
-
-/// Trims unciode locale extensions from a given string if any.
-///
-/// For example:
-///
-/// - `ja-Jpan-JP-u-ca-japanese-hc-h12` becomes `ja-Jpan-JP`
-/// - `fr-FR` becomes `fr-FR`
-fn trim_unicode_extensions(requested_locale: &str) -> JsString {
-    let trim_pos = get_leftmost_unicode_extension_pos(requested_locale);
-    JsString::new(&requested_locale[..trim_pos])
-}
-
-/// Extracts unciode locale extensions from a given string if any.
-///
-/// For example:
-///
-/// - `ja-Jpan-JP-u-ca-japanese-hc-h12` becomes `-u-ca-japanese-hc-h12`
-/// - `en-US` becomes an empty string
-fn extract_unicode_extensions(requested_locale: &str) -> JsString {
-    let trim_pos = get_leftmost_unicode_extension_pos(requested_locale);
-    JsString::new(&requested_locale[trim_pos..])
-}
-
 /// The `DefaultLocale` abstract operation returns a String value representing the structurally
 /// valid and canonicalized Unicode BCP 47 locale identifier for the host environment's current
 /// locale.
@@ -259,7 +226,9 @@ fn lookup_matcher(available_locales: &[JsString], requested_locales: &[JsString]
     for locale_str in requested_locales {
         // a. Let noExtensionsLocale be the String value that is locale with any Unicode locale
         //    extension sequences removed.
-        let no_extensions_locale = trim_unicode_extensions(locale_str);
+        let parsed_locale =
+            Locale::from_bytes(locale_str.as_bytes()).expect("Locale parsing failed");
+        let no_extensions_locale = JsString::new(parsed_locale.id.to_string());
 
         // b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
         let available_locale = best_available_locale(available_locales, &no_extensions_locale);
@@ -275,7 +244,7 @@ fn lookup_matcher(available_locales: &[JsString], requested_locales: &[JsString]
                 // 1. Let extension be the String value consisting of the substring of the Unicode
                 //    locale extension sequence within locale.
                 // 2. Set result.[[extension]] to extension.
-                extract_unicode_extensions(locale_str)
+                JsString::new(parsed_locale.extensions.to_string())
             };
 
             // iii. Return result.
