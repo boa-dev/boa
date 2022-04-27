@@ -182,6 +182,76 @@
 <span id="175">175</span>
 <span id="176">176</span>
 <span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
 
 <span class="kw">mod</span> <span class="ident">cursor</span>;
@@ -195,9 +265,15 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::error</span>::{<span class="ident">ParseError</span>, <span class="ident">ParseResult</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::cursor::Cursor</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{<span class="ident">ast::node::StatementList</span>, <span class="ident">lexer::TokenKind</span>};
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">syntax</span>::{<span class="ident">ast::node::StatementList</span>, <span class="ident">lexer::TokenKind</span>},
+    <span class="ident">Context</span>,
+};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ast::Position</span>;
 
 <span class="doccomment">/// Trait implemented by parsers.</span>
 <span class="doccomment">///</span>
@@ -276,6 +352,7 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">Parser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Create a new `Parser` with a reader as the input to parse.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">reader</span>: <span class="ident">R</span>, <span class="ident">strict_mode</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
@@ -286,11 +363,74 @@
         <span class="self">Self</span> { <span class="ident">cursor</span> }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
+    <span class="doccomment">/// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.</span>
+    <span class="doccomment">/// The resulting `StatementList` can be compiled into boa bytecode and executed in the boa vm.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Script</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
-        <span class="ident">Script</span>.<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">interner</span>)
+        <span class="kw">let</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">Script</span>.<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">context</span>.<span class="ident">interner_mut</span>())<span class="question-mark">?</span>;
+
+        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.</span>
+        <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_declared_names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+        <span class="ident">statement_list</span>.<span class="ident">var_declared_names_new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">var_declared_names</span>);
+        <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">statement_list</span>.<span class="ident">lexically_declared_names</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+        <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">is_function_declaration</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">lexically_declared_names</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_is_function_declaration</span>) <span class="op">=</span> <span class="ident">lexically_declared_names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
+                <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">is_function_declaration</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">existing_is_function_declaration</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                        <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                    ));
+                }
+            }
+            <span class="ident">lexically_declared_names_map</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="kw-2">*</span><span class="ident">is_function_declaration</span>);
+
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">is_function_declaration</span> <span class="op">&amp;&amp;</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="ident">name</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;lexical name declared in var names&quot;</span>,
+                    <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+            <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="kw-2">*</span><span class="ident">name</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                    <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">is_function_declaration</span> {
+                <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">context</span>
+                    .<span class="ident">realm</span>
+                    .<span class="ident">global_property_map</span>
+                    .<span class="ident">string_property_map</span>()
+                    .<span class="ident">get</span>(<span class="ident">name_str</span>);
+                <span class="kw">let</span> <span class="ident">non_configurable_binding_exists</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span> {
+                    <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">configurable</span>(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)),
+                    <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
+                };
+                <span class="kw">if</span> <span class="ident">non_configurable_binding_exists</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;lexical name declared in var names&quot;</span>,
+                        <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                    ));
+                }
+            }
+        }
+        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">var_declared_names</span> {
+            <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">has_binding</span>(<span class="ident">name</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;lexical name declared in var names&quot;</span>,
+                    <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                ));
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>)
     }
 }
 

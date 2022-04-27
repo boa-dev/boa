@@ -1216,6 +1216,43 @@
 <span id="1209">1209</span>
 <span id="1210">1210</span>
 <span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{
@@ -1242,7 +1279,7 @@
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">node::Node</span>;
-<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="doccomment">/// Class declaration parsing.</span>
@@ -1773,9 +1810,46 @@
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
                     <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
+                    <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
+                        .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                        .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                        .<span class="ident">span</span>()
+                        .<span class="ident">start</span>();
                     <span class="kw">let</span> <span class="ident">statement_list</span> <span class="op">=</span>
                         <span class="ident">StatementList::new</span>(<span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>, <span class="kw-2">&amp;</span><span class="ident">FUNCTION_BREAK_TOKENS</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+                    <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">statement_list</span>.<span class="ident">lexically_declared_names</span>();
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span>
+                        <span class="ident">FxHashMap::default</span>();
+                    <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">is_function_declaration</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">lexically_declared_names</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_is_function_declaration</span>) <span class="op">=</span>
+                            <span class="ident">lexically_declared_names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>)
+                        {
+                            <span class="kw">if</span> <span class="op">!</span>(<span class="op">!</span><span class="ident">cursor</span>.<span class="ident">strict_mode</span>()
+                                <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">is_function_declaration</span>
+                                <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">existing_is_function_declaration</span>)
+                            {
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                                    <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                                    <span class="ident">position</span>,
+                                ));
+                            }
+                        }
+                        <span class="ident">lexically_declared_names_map</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="kw-2">*</span><span class="ident">is_function_declaration</span>);
+                    }
+
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_declared_names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+                    <span class="ident">statement_list</span>.<span class="ident">var_declared_names_new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">var_declared_names</span>);
+                    <span class="kw">for</span> (<span class="ident">lex_name</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">lexically_declared_names</span> {
+                        <span class="kw">if</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="ident">lex_name</span>) {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                                <span class="string">&quot;lexical name declared in var names&quot;</span>,
+                                <span class="ident">position</span>,
+                            ));
+                        }
+                    }
+
                     <span class="ident">cursor</span>.<span class="ident">expect</span>(
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>),
                         <span class="string">&quot;class definition&quot;</span>,

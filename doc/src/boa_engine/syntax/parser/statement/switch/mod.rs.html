@@ -196,6 +196,52 @@
 <span id="189">189</span>
 <span id="190">190</span>
 <span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -207,8 +253,9 @@
         <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="doccomment">/// The possible `TokenKind` which indicate the end of a case statement.</span>
@@ -322,6 +369,11 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cases</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">default</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
+            .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+            .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+            .<span class="ident">span</span>()
+            .<span class="ident">start</span>();
         <span class="kw">loop</span> {
             <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
             <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
@@ -381,6 +433,46 @@
                         <span class="string">&quot;switch case block&quot;</span>,
                     ))
                 }
+            }
+        }
+
+        <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of CaseBlock contains any duplicate entries.</span>
+        <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of CaseBlock also occurs in the VarDeclaredNames of CaseBlock.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_declared_names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+        <span class="kw">for</span> <span class="ident">case</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">cases</span> {
+            <span class="ident">lexically_declared_names</span>.<span class="ident">extend</span>(<span class="ident">case</span>.<span class="ident">body</span>().<span class="ident">lexically_declared_names</span>());
+
+            <span class="ident">case</span>.<span class="ident">body</span>().<span class="ident">var_declared_names_new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">var_declared_names</span>);
+        }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default_clause</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">default</span> {
+            <span class="ident">lexically_declared_names</span>.<span class="ident">extend</span>(<span class="ident">default_clause</span>.<span class="ident">lexically_declared_names</span>());
+
+            <span class="ident">default_clause</span>.<span class="ident">var_declared_names_new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">var_declared_names</span>);
+        }
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+        <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">is_function_declaration</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">lexically_declared_names</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_is_function_declaration</span>) <span class="op">=</span> <span class="ident">lexically_declared_names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
+                <span class="kw">if</span> <span class="op">!</span>(<span class="op">!</span><span class="ident">cursor</span>.<span class="ident">strict_mode</span>()
+                    <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">is_function_declaration</span>
+                    <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">existing_is_function_declaration</span>)
+                {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;lexical name declared multiple times&quot;</span>,
+                        <span class="ident">position</span>,
+                    ));
+                }
+            }
+            <span class="ident">lexically_declared_names_map</span>.<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="kw-2">*</span><span class="ident">is_function_declaration</span>);
+        }
+
+        <span class="kw">for</span> (<span class="ident">name</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">lexically_declared_names</span> {
+            <span class="kw">if</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="ident">name</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                    <span class="string">&quot;lexical name declared in var declared names&quot;</span>,
+                    <span class="ident">position</span>,
+                ));
             }
         }
 

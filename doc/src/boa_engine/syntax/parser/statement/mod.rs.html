@@ -1070,108 +1070,6 @@
 <span id="1063">1063</span>
 <span id="1064">1064</span>
 <span id="1065">1065</span>
-<span id="1066">1066</span>
-<span id="1067">1067</span>
-<span id="1068">1068</span>
-<span id="1069">1069</span>
-<span id="1070">1070</span>
-<span id="1071">1071</span>
-<span id="1072">1072</span>
-<span id="1073">1073</span>
-<span id="1074">1074</span>
-<span id="1075">1075</span>
-<span id="1076">1076</span>
-<span id="1077">1077</span>
-<span id="1078">1078</span>
-<span id="1079">1079</span>
-<span id="1080">1080</span>
-<span id="1081">1081</span>
-<span id="1082">1082</span>
-<span id="1083">1083</span>
-<span id="1084">1084</span>
-<span id="1085">1085</span>
-<span id="1086">1086</span>
-<span id="1087">1087</span>
-<span id="1088">1088</span>
-<span id="1089">1089</span>
-<span id="1090">1090</span>
-<span id="1091">1091</span>
-<span id="1092">1092</span>
-<span id="1093">1093</span>
-<span id="1094">1094</span>
-<span id="1095">1095</span>
-<span id="1096">1096</span>
-<span id="1097">1097</span>
-<span id="1098">1098</span>
-<span id="1099">1099</span>
-<span id="1100">1100</span>
-<span id="1101">1101</span>
-<span id="1102">1102</span>
-<span id="1103">1103</span>
-<span id="1104">1104</span>
-<span id="1105">1105</span>
-<span id="1106">1106</span>
-<span id="1107">1107</span>
-<span id="1108">1108</span>
-<span id="1109">1109</span>
-<span id="1110">1110</span>
-<span id="1111">1111</span>
-<span id="1112">1112</span>
-<span id="1113">1113</span>
-<span id="1114">1114</span>
-<span id="1115">1115</span>
-<span id="1116">1116</span>
-<span id="1117">1117</span>
-<span id="1118">1118</span>
-<span id="1119">1119</span>
-<span id="1120">1120</span>
-<span id="1121">1121</span>
-<span id="1122">1122</span>
-<span id="1123">1123</span>
-<span id="1124">1124</span>
-<span id="1125">1125</span>
-<span id="1126">1126</span>
-<span id="1127">1127</span>
-<span id="1128">1128</span>
-<span id="1129">1129</span>
-<span id="1130">1130</span>
-<span id="1131">1131</span>
-<span id="1132">1132</span>
-<span id="1133">1133</span>
-<span id="1134">1134</span>
-<span id="1135">1135</span>
-<span id="1136">1136</span>
-<span id="1137">1137</span>
-<span id="1138">1138</span>
-<span id="1139">1139</span>
-<span id="1140">1140</span>
-<span id="1141">1141</span>
-<span id="1142">1142</span>
-<span id="1143">1143</span>
-<span id="1144">1144</span>
-<span id="1145">1145</span>
-<span id="1146">1146</span>
-<span id="1147">1147</span>
-<span id="1148">1148</span>
-<span id="1149">1149</span>
-<span id="1150">1150</span>
-<span id="1151">1151</span>
-<span id="1152">1152</span>
-<span id="1153">1153</span>
-<span id="1154">1154</span>
-<span id="1155">1155</span>
-<span id="1156">1156</span>
-<span id="1157">1157</span>
-<span id="1158">1158</span>
-<span id="1159">1159</span>
-<span id="1160">1160</span>
-<span id="1161">1161</span>
-<span id="1162">1162</span>
-<span id="1163">1163</span>
-<span id="1164">1164</span>
-<span id="1165">1165</span>
-<span id="1166">1166</span>
-<span id="1167">1167</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1223,14 +1121,14 @@
                 <span class="ident">DeclarationPatternArray</span>, <span class="ident">DeclarationPatternObject</span>,
             },
         },
-        <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
+        <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>,
     },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser::expression</span>::{<span class="ident">await_expr::AwaitExpression</span>, <span class="ident">Initializer</span>},
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">collections::HashSet</span>, <span class="ident">io::Read</span>, <span class="ident">vec</span>};
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io::Read</span>, <span class="ident">vec</span>};
 
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> <span class="ident">declaration::ClassTail</span>;
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">use</span> <span class="ident">declaration::PrivateElement</span>;
@@ -1484,108 +1382,6 @@
 
             <span class="comment">// move the cursor forward for any consecutive semicolon.</span>
             <span class="kw">while</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Semicolon</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {}
-        }
-
-        <span class="comment">// Handle any redeclarations</span>
-        <span class="comment">// https://tc39.es/ecma262/#sec-block-static-semantics-early-errors</span>
-        {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_declared_names</span>: <span class="ident">HashSet</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashSet::new</span>();
-
-            <span class="comment">// TODO: Use more helpful positions in errors when spans are added to Nodes</span>
-            <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">items</span> {
-                <span class="kw">match</span> <span class="ident">item</span> {
-                    <span class="ident">Node::LetDeclList</span>(<span class="ident">decl_list</span>) <span class="op">|</span> <span class="ident">Node::ConstDeclList</span>(<span class="ident">decl_list</span>) =&gt; {
-                        <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">decl_list</span>.<span class="ident">as_ref</span>() {
-                            <span class="comment">// if name in VarDeclaredNames or can&#39;t be added to</span>
-                            <span class="comment">// LexicallyDeclaredNames, raise an error</span>
-                            <span class="kw">match</span> <span class="ident">decl</span> {
-                                <span class="ident">node::Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                                    <span class="kw">if</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>.<span class="ident">sym</span>())
-                                        <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lexically_declared_names</span>.<span class="ident">insert</span>(<span class="ident">ident</span>.<span class="ident">sym</span>())
-                                    {
-                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                                            <span class="macro">format!</span>(
-                                                <span class="string">&quot;Redeclaration of variable `{}`&quot;</span>,
-                                                <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>())
-                                            )
-                                            .<span class="ident">into</span>(),
-                                            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                                                <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                                                <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-                                            },
-                                        )));
-                                    }
-                                }
-                                <span class="ident">node::Declaration::Pattern</span>(<span class="ident">p</span>) =&gt; {
-                                    <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">idents</span>() {
-                                        <span class="kw">if</span> <span class="ident">var_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>)
-                                            <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lexically_declared_names</span>.<span class="ident">insert</span>(<span class="ident">ident</span>)
-                                        {
-                                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                                                <span class="macro">format!</span>(
-                                                    <span class="string">&quot;Redeclaration of variable `{}`&quot;</span>,
-                                                    <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>)
-                                                )
-                                                .<span class="ident">into</span>(),
-                                                <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                                                    <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                                                    <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-                                                },
-                                            )));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    <span class="ident">Node::VarDeclList</span>(<span class="ident">decl_list</span>) =&gt; {
-                        <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">decl_list</span>.<span class="ident">as_ref</span>() {
-                            <span class="kw">match</span> <span class="ident">decl</span> {
-                                <span class="ident">node::Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                                    <span class="comment">// if name in LexicallyDeclaredNames, raise an error</span>
-                                    <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>.<span class="ident">sym</span>()) {
-                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                                            <span class="macro">format!</span>(
-                                                <span class="string">&quot;Redeclaration of variable `{}`&quot;</span>,
-                                                <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>.<span class="ident">sym</span>())
-                                            )
-                                            .<span class="ident">into</span>(),
-                                            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                                                <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                                                <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-                                            },
-                                        )));
-                                    }
-                                    <span class="comment">// otherwise, add to VarDeclaredNames</span>
-                                    <span class="ident">var_declared_names</span>.<span class="ident">insert</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
-                                }
-                                <span class="ident">node::Declaration::Pattern</span>(<span class="ident">p</span>) =&gt; {
-                                    <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">p</span>.<span class="ident">idents</span>() {
-                                        <span class="comment">// if name in LexicallyDeclaredNames, raise an error</span>
-                                        <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>) {
-                                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                                                <span class="macro">format!</span>(
-                                                    <span class="string">&quot;Redeclaration of variable `{}`&quot;</span>,
-                                                    <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>)
-                                                )
-                                                .<span class="ident">into</span>(),
-                                                <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                                                    <span class="prelude-val">Some</span>(<span class="ident">token</span>) =&gt; <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
-                                                    <span class="prelude-val">None</span> =&gt; <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-                                                },
-                                            )));
-                                        }
-                                        <span class="comment">// otherwise, add to VarDeclaredNames</span>
-                                        <span class="ident">var_declared_names</span>.<span class="ident">insert</span>(<span class="ident">ident</span>);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    <span class="kw">_</span> =&gt; (),
-                }
-            }
         }
 
         <span class="ident">items</span>.<span class="ident">sort_by</span>(<span class="ident">Node::hoistable_order</span>);

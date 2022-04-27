@@ -62,6 +62,27 @@
 <span id="55">55</span>
 <span id="56">56</span>
 <span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Iteration nodes</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
@@ -72,7 +93,7 @@
     <span class="ident">declaration::Declaration</span>, <span class="ident">identifier::Identifier</span>, <span class="ident">DeclarationPattern</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -88,6 +109,27 @@
     <span class="ident">Let</span>(<span class="ident">Declaration</span>),
     <span class="ident">Const</span>(<span class="ident">Declaration</span>),
     <span class="ident">DeclarationPattern</span>(<span class="ident">DeclarationPattern</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">IterableLoopInitializer</span> {
+    <span class="doccomment">/// Return the bound names of a for loop initializer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The returned list may contain duplicates.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bound_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">IterableLoopInitializer::Let</span>(<span class="ident">decl</span>) <span class="op">|</span> <span class="ident">IterableLoopInitializer::Const</span>(<span class="ident">decl</span>) =&gt; <span class="kw">match</span> <span class="ident">decl</span>
+            {
+                <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; <span class="macro">vec!</span>[<span class="ident">ident</span>.<span class="ident">sym</span>()],
+                <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="ident">pattern</span>.<span class="ident">idents</span>(),
+            },
+            <span class="kw">_</span> =&gt; <span class="ident">Vec::new</span>(),
+        }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">IterableLoopInitializer</span> {

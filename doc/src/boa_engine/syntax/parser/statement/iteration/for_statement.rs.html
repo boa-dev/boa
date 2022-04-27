@@ -309,6 +309,62 @@
 <span id="302">302</span>
 <span id="303">303</span>
 <span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -337,8 +393,9 @@
         <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="doccomment">/// For statement parsing</span>
@@ -427,6 +484,7 @@
                 ));
             }
             (<span class="prelude-val">Some</span>(<span class="ident">init</span>), <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::In</span>, <span class="bool-val">false</span>))) =&gt; {
+                <span class="kw">let</span> <span class="ident">init_position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">node_to_iterable_loop_initializer</span>(<span class="ident">init</span>, <span class="ident">init_position</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
@@ -444,6 +502,33 @@
                 <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">body</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_function_declaration_non_strict</span>(<span class="ident">position</span>));
+                }
+
+                <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains &quot;let&quot;.</span>
+                <span class="comment">// It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.</span>
+                <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vars</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+                <span class="ident">body</span>.<span class="ident">var_declared_names</span>(<span class="kw-2">&amp;mut</span> <span class="ident">vars</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bound_names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+                <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">init</span>.<span class="ident">bound_names</span>() {
+                    <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::LET</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;Cannot use &#39;let&#39; as a lexically bound name&quot;</span>,
+                            <span class="ident">init_position</span>,
+                        ));
+                    }
+                    <span class="kw">if</span> <span class="ident">vars</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;For loop initializer declared in loop body&quot;</span>,
+                            <span class="ident">init_position</span>,
+                        ));
+                    }
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">bound_names</span>.<span class="ident">insert</span>(<span class="ident">name</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;For loop initializer cannot contain duplicate identifiers&quot;</span>,
+                            <span class="ident">init_position</span>,
+                        ));
+                    }
                 }
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ForInLoop::new</span>(<span class="ident">init</span>, <span class="ident">expr</span>, <span class="ident">body</span>).<span class="ident">into</span>());
@@ -466,6 +551,33 @@
                 <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">body</span> {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_function_declaration_non_strict</span>(<span class="ident">position</span>));
+                }
+
+                <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains &quot;let&quot;.</span>
+                <span class="comment">// It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.</span>
+                <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vars</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+                <span class="ident">body</span>.<span class="ident">var_declared_names</span>(<span class="kw-2">&amp;mut</span> <span class="ident">vars</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bound_names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+                <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">init</span>.<span class="ident">bound_names</span>() {
+                    <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::LET</span> {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;Cannot use &#39;let&#39; as a lexically bound name&quot;</span>,
+                            <span class="ident">init_position</span>,
+                        ));
+                    }
+                    <span class="kw">if</span> <span class="ident">vars</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;For loop initializer declared in loop body&quot;</span>,
+                            <span class="ident">init_position</span>,
+                        ));
+                    }
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">bound_names</span>.<span class="ident">insert</span>(<span class="ident">name</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                            <span class="string">&quot;For loop initializer cannot contain duplicate identifiers&quot;</span>,
+                            <span class="ident">init_position</span>,
+                        ));
+                    }
                 }
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ForOfLoop::new</span>(<span class="ident">init</span>, <span class="ident">iterable</span>, <span class="ident">body</span>).<span class="ident">into</span>());

@@ -210,7 +210,30 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Declaration</span>, <span class="ident">DeclarationPattern</span>, <span class="ident">Node</span>};
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{<span class="ident">ast::Position</span>, <span class="ident">parser::ParseError</span>};
+
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Declaration</span>, <span class="ident">DeclarationPattern</span>, <span class="ident">Node</span>};
 <span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
@@ -288,6 +311,25 @@
     <span class="doccomment">/// Indicates if the parameter list has parameters named &#39;arguments&#39;.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_ARGUMENTS</span>)
+    }
+
+    <span class="doccomment">/// Helper to check if any parameter names are declared in the given list.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">name_in_lexically_declared_names</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="ident">Sym</span>],
+        <span class="ident">position</span>: <span class="ident">Position</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+            <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">parameter</span>.<span class="ident">names</span>() {
+                <span class="kw">if</span> <span class="ident">names</span>.<span class="ident">contains</span>(<span class="ident">name</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::General</span> {
+                        <span class="ident">message</span>: <span class="string">&quot;formal parameter declared in lexically declared names&quot;</span>,
+                        <span class="ident">position</span>,
+                    });
+                }
+            }
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
