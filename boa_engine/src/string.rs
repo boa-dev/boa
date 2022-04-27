@@ -1,6 +1,6 @@
 use crate::builtins::string::is_trimmable_whitespace;
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
-use rustc_hash::{FxHashSet, FxHasher};
+use rustc_hash::{FxHashMap, FxHasher};
 use std::{
     alloc::{alloc, dealloc, handle_alloc_error, Layout},
     borrow::Borrow,
@@ -486,14 +486,16 @@ unsafe fn try_alloc(layout: Layout) -> *mut u8 {
 }
 
 thread_local! {
-    static CONSTANTS: FxHashSet<JsString> = {
-        let len = CONSTANTS_ARRAY.len();
-        let mut constants = FxHashSet::with_capacity_and_hasher(len, BuildHasherDefault::<FxHasher>::default());
+    static CONSTANTS: FxHashMap<&'static str, JsString> = {
+        let mut constants = FxHashMap::with_capacity_and_hasher(
+            CONSTANTS_ARRAY.len(),
+            BuildHasherDefault::<FxHasher>::default(),
+        );
 
-        for idx in 0..len {
+        for (idx, &s) in CONSTANTS_ARRAY.iter().enumerate() {
             // Safety: We already know it's an index of [`CONSTANTS_ARRAY`].
-            let s = unsafe { JsString::new_static(idx) };
-            constants.insert(s);
+            let v = unsafe { JsString::new_static(idx) };
+            constants.insert(s, v);
         }
 
         constants
@@ -606,6 +608,14 @@ impl Inner {
             .expect("failed to extend memory layout");
 
         dealloc(x.as_ptr().cast::<_>(), layout);
+    }
+
+    #[inline]
+    fn as_str(&self) -> &str {
+        unsafe {
+            let slice = std::slice::from_raw_parts(self.data.as_ptr(), self.len);
+            std::str::from_utf8_unchecked(slice)
+        }
     }
 }
 
@@ -756,36 +766,40 @@ impl JsString {
         let x = x.as_ref();
         let y = y.as_ref();
 
-        let this = Self {
-            // Safety: We already know it's a valid heap pointer.
-            inner: unsafe { Flag::new_heap(Inner::concat_array(&[x, y])) },
-            _marker: PhantomData,
-        };
+        let inner = Inner::concat_array(&[x, y]);
 
-        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
-            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+        if unsafe { inner.as_ref() }.len <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) =
+                CONSTANTS.with(|c| c.get(unsafe { inner.as_ref() }.as_str()).cloned())
+            {
                 return constant;
             }
         }
 
-        this
+        Self {
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { Flag::new_heap(inner) },
+            _marker: PhantomData,
+        }
     }
 
     /// Concatenate array of string.
     pub fn concat_array(strings: &[&str]) -> Self {
-        let this = Self {
-            // Safety: We already know it's a valid heap pointer.
-            inner: unsafe { Flag::new_heap(Inner::concat_array(strings)) },
-            _marker: PhantomData,
-        };
+        let inner = Inner::concat_array(strings);
 
-        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
-            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+        if unsafe { inner.as_ref() }.len <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) =
+                CONSTANTS.with(|c| c.get(unsafe { inner.as_ref() }.as_str()).cloned())
+            {
                 return constant;
             }
         }
 
-        this
+        Self {
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { Flag::new_heap(inner) },
+            _marker: PhantomData,
+        }
     }
 
     /// Return the inner representation.
@@ -805,10 +819,7 @@ impl JsString {
     #[inline]
     pub fn as_str(&self) -> &str {
         match self.inner() {
-            InnerKind::Heap(inner) => unsafe {
-                let slice = std::slice::from_raw_parts(inner.data.as_ptr(), inner.len);
-                std::str::from_utf8_unchecked(slice)
-            },
+            InnerKind::Heap(inner) => inner.as_str(),
             InnerKind::Static(inner) => inner,
         }
     }
