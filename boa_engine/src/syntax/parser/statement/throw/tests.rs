@@ -10,6 +10,6 @@ fn check_throw_parsing() {
     check_parser(
         "throw 'error';",
         vec![Throw::new(Const::from(interner.get_or_intern_static("error"))).into()],
-        &mut interner,
+        interner,
     );
 }

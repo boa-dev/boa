@@ -182,7 +182,7 @@ impl Context {
     where
         S: AsRef<[u8]>,
     {
-        Parser::new(src.as_ref(), self.strict).parse_all(&mut self.interner)
+        Parser::new(src.as_ref(), self.strict).parse_all(self)
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
@@ -202,12 +202,6 @@ impl Context {
     #[inline]
     pub fn global_object(&self) -> &JsObject {
         self.realm.global_object()
-    }
-
-    /// Return a reference to the global object string bindings.
-    #[inline]
-    pub(crate) fn global_bindings(&self) -> &GlobalPropertyMap {
-        self.realm.global_bindings()
     }
 
     /// Return a mutable reference to the global object string bindings.
@@ -648,7 +642,7 @@ impl Context {
         let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
         let parsing_result = Parser::new(src.as_ref(), false)
-            .parse_all(&mut self.interner)
+            .parse_all(self)
             .map_err(|e| e.to_string());
 
         let statement_list = match parsing_result {

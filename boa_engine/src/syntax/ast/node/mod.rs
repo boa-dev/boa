@@ -57,7 +57,8 @@ pub(crate) use self::parameters::FormalParameterListFlags;
 
 use super::Const;
 use boa_gc::{Finalize, Trace};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
+use rustc_hash::FxHashSet;
 use std::cmp::Ordering;
 
 #[cfg(feature = "deser")]
@@ -343,6 +344,118 @@ impl Node {
             Self::ClassExpr(ref expr) => expr.to_indented_string(interner, indentation),
         }
     }
+
+    pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Sym>) {
+        match self {
+            Node::Block(block) => {
+                for node in block.items() {
+                    node.var_declared_names(vars);
+                }
+            }
+            Node::VarDeclList(DeclarationList::Var(declarations)) => {
+                for declaration in declarations.iter() {
+                    match declaration {
+                        Declaration::Identifier { ident, .. } => {
+                            vars.insert(ident.sym());
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                vars.insert(ident);
+                            }
+                        }
+                    }
+                }
+            }
+            Node::If(if_statement) => {
+                if_statement.body().var_declared_names(vars);
+                if let Some(node) = if_statement.else_node() {
+                    node.var_declared_names(vars);
+                }
+            }
+            Node::DoWhileLoop(do_while_loop) => {
+                do_while_loop.body().var_declared_names(vars);
+            }
+            Node::WhileLoop(while_loop) => {
+                while_loop.body().var_declared_names(vars);
+            }
+            Node::ForLoop(for_loop) => {
+                if let Some(Node::VarDeclList(DeclarationList::Var(declarations))) = for_loop.init()
+                {
+                    for declaration in declarations.iter() {
+                        match declaration {
+                            Declaration::Identifier { ident, .. } => {
+                                vars.insert(ident.sym());
+                            }
+                            Declaration::Pattern(pattern) => {
+                                for ident in pattern.idents() {
+                                    vars.insert(ident);
+                                }
+                            }
+                        }
+                    }
+                }
+                for_loop.body().var_declared_names(vars);
+            }
+            Node::ForInLoop(for_in_loop) => {
+                if let iteration::IterableLoopInitializer::Var(declaration) = for_in_loop.init() {
+                    match declaration {
+                        Declaration::Identifier { ident, .. } => {
+                            vars.insert(ident.sym());
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                vars.insert(ident);
+                            }
+                        }
+                    }
+                }
+                for_in_loop.body().var_declared_names(vars);
+            }
+            Node::ForOfLoop(for_of_loop) => {
+                if let iteration::IterableLoopInitializer::Var(declaration) = for_of_loop.init() {
+                    match declaration {
+                        Declaration::Identifier { ident, .. } => {
+                            vars.insert(ident.sym());
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                vars.insert(ident);
+                            }
+                        }
+                    }
+                }
+                for_of_loop.body().var_declared_names(vars);
+            }
+            Node::Switch(switch) => {
+                for case in switch.cases() {
+                    for node in case.body().items() {
+                        node.var_declared_names(vars);
+                    }
+                }
+                if let Some(nodes) = switch.default() {
+                    for node in nodes {
+                        node.var_declared_names(vars);
+                    }
+                }
+            }
+            Node::Try(try_statement) => {
+                for node in try_statement.block().items() {
+                    node.var_declared_names(vars);
+                }
+                if let Some(catch) = try_statement.catch() {
+                    for node in catch.block().items() {
+                        node.var_declared_names(vars);
+                    }
+                }
+                if let Some(finally) = try_statement.finally() {
+                    for node in finally.items() {
+                        node.var_declared_names(vars);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
 }
 
 impl ToInternedString for Node {
@@ -380,7 +493,7 @@ where
 /// level.
 #[cfg(test)]
 fn test_formatting(source: &'static str) {
-    use crate::syntax::Parser;
+    use crate::{syntax::Parser, Context};
 
     // Remove preceding newline.
     let source = &source[1..];
@@ -395,11 +508,11 @@ fn test_formatting(source: &'static str) {
         .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
         .collect::<Vec<&'static str>>()
         .join("\n");
-    let mut interner = Interner::default();
+    let mut context = Context::default();
     let result = Parser::new(scenario.as_bytes(), false)
-        .parse_all(&mut interner)
+        .parse_all(&mut context)
         .expect("parsing failed")
-        .to_interned_string(&interner);
+        .to_interned_string(context.interner());
     if scenario != result {
         eprint!("========= Expected:\n{scenario}");
         eprint!("========= Got:\n{result}");

@@ -143,26 +143,10 @@ where
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        {
-            let lexically_declared_names = body.lexically_declared_names(interner);
-            for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(&param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!(
-                                "Redeclaration of formal parameter `{}`",
-                                interner.resolve_expect(param_name)
-                            )
-                            .into(),
-                            match cursor.peek(0, interner)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            params_start_position,
+        )?;
 
         //implement the below AsyncGeneratorExpr in ast::node
         Ok(AsyncGeneratorExpr::new(name, params, body))

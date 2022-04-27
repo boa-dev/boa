@@ -7,7 +7,6 @@ use super::{
     TestSuite, IGNORED,
 };
 use boa_engine::{syntax::Parser, Context, JsResult, JsValue};
-use boa_interner::Interner;
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;
@@ -161,9 +160,10 @@ impl Test {
             let res = panic::catch_unwind(|| match self.expected_outcome {
                 Outcome::Positive => {
                     // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
+                    let mut context = Context::default();
 
-                    match self.set_up_env(harness, strict) {
-                        Ok(mut context) => {
+                    match self.set_up_env(harness, strict, &mut context) {
+                        Ok(_) => {
                             context.set_strict_mode(strict);
                             let res = context.eval(&self.content.as_ref());
 
@@ -207,14 +207,14 @@ impl Test {
                     phase: Phase::Runtime,
                     ref error_type,
                 } => {
-                    let mut interner = Interner::default();
+                    let mut context = Context::default();
                     if let Err(e) =
-                        Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner)
+                        Parser::new(self.content.as_bytes(), strict).parse_all(&mut context)
                     {
                         (false, format!("Uncaught {e}"))
                     } else {
-                        match self.set_up_env(harness, strict) {
-                            Ok(mut context) => {
+                        match self.set_up_env(harness, strict, &mut context) {
+                            Ok(_) => {
                                 context.set_strict_mode(strict);
                                 match context.eval(&self.content.as_ref()) {
                                     Ok(res) => (false, res.display().to_string()),
@@ -307,15 +307,17 @@ impl Test {
     }
 
     /// Sets the environment up to run the test.
-    fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
-        // Create new Realm
-        let mut context = Context::default();
-
+    fn set_up_env(
+        &self,
+        harness: &Harness,
+        strict: bool,
+        context: &mut Context,
+    ) -> Result<(), String> {
         // Register the print() function.
         context.register_global_function("print", 1, test262_print);
 
         // add the $262 object.
-        let _js262 = js262::init(&mut context);
+        let _js262 = js262::init(context);
 
         if strict {
             context
@@ -347,7 +349,7 @@ impl Test {
                 })?;
         }
 
-        Ok(context)
+        Ok(())
     }
 }
 

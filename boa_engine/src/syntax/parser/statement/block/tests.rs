@@ -13,8 +13,8 @@ use crate::syntax::{
 use boa_interner::Interner;
 
 /// Helper function to check a block.
-// TODO: #[track_caller]: https://github.com/rust-lang/rust/issues/47809
-fn check_block<B>(js: &str, block: B, interner: &mut Interner)
+#[track_caller]
+fn check_block<B>(js: &str, block: B, interner: Interner)
 where
     B: Into<Box<[Node]>>,
 {
@@ -23,8 +23,7 @@ where
 
 #[test]
 fn empty() {
-    let mut interner = Interner::default();
-    check_block("{}", vec![], &mut interner);
+    check_block("{}", vec![], Interner::default());
 }
 
 #[test]
@@ -47,7 +46,7 @@ fn non_empty() {
             .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
         ],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -79,7 +78,7 @@ fn non_empty() {
             .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -112,7 +111,7 @@ fn hoisting() {
             .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
         ],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -129,6 +128,6 @@ fn hoisting() {
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
             DeclarationList::Var(vec![Declaration::new_with_identifier(a, None)].into()).into(),
         ],
-        &mut interner,
+        interner,
     );
 }

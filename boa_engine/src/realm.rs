@@ -46,11 +46,6 @@ impl Realm {
     }
 
     #[inline]
-    pub(crate) fn global_bindings(&self) -> &GlobalPropertyMap {
-        self.global_property_map.string_property_map()
-    }
-
-    #[inline]
     pub(crate) fn global_bindings_mut(&mut self) -> &mut GlobalPropertyMap {
         self.global_property_map.string_property_map_mut()
     }

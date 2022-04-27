@@ -1,6 +1,5 @@
 use crate::{
-    environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsResult,
-    JsString, JsValue,
+    environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
@@ -154,22 +153,13 @@ impl Context {
     ///
     /// Panics if the global environment is not function scoped.
     #[inline]
-    pub(crate) fn create_mutable_binding(
-        &mut self,
-        name: Sym,
-        function_scope: bool,
-        allow_name_reuse: bool,
-    ) -> JsResult<()> {
+    pub(crate) fn create_mutable_binding(&mut self, name: Sym, function_scope: bool) {
         let name_str = JsString::from(self.interner().resolve_expect(name));
 
         for (i, env) in self.realm.compile_env.stack.iter_mut().enumerate().rev() {
             if !function_scope || env.function_scope {
                 if env.bindings.contains_key(&name) {
-                    if allow_name_reuse {
-                        return Ok(());
-                    }
-                    return self
-                        .throw_syntax_error(format!("Redeclaration of variable {}", name_str));
+                    return;
                 }
 
                 if i == 0 {
@@ -178,10 +168,6 @@ impl Context {
                         .global_property_map
                         .string_property_map()
                         .get(&name_str);
-                    let non_configurable_binding_exists = match desc {
-                        Some(desc) => !matches!(desc.configurable(), Some(true)),
-                        None => false,
-                    };
                     if function_scope && desc.is_none() {
                         self.global_bindings_mut().insert(
                             name_str,
@@ -192,15 +178,9 @@ impl Context {
                                 .configurable(true)
                                 .build(),
                         );
-                        return Ok(());
+                        return;
                     } else if function_scope {
-                        return Ok(());
-                    } else if !function_scope
-                        && !allow_name_reuse
-                        && non_configurable_binding_exists
-                    {
-                        return self
-                            .throw_syntax_error(format!("Redeclaration of variable {}", name_str));
+                        return;
                     }
                 }
 
@@ -212,7 +192,7 @@ impl Context {
                         mutable: true,
                     },
                 );
-                return Ok(());
+                return;
             }
             continue;
         }
@@ -249,11 +229,7 @@ impl Context {
     ///
     /// Panics if the global environment does not exist.
     #[inline]
-    pub(crate) fn create_immutable_binding(&mut self, name: Sym) -> JsResult<()> {
-        let name_str = JsString::from(self.interner().resolve_expect(name));
-        let exists_global = self.realm.compile_env.stack.len() == 1
-            && self.global_bindings().contains_key(&name_str);
-
+    pub(crate) fn create_immutable_binding(&mut self, name: Sym) {
         let env = self
             .realm
             .compile_env
@@ -261,19 +237,14 @@ impl Context {
             .last_mut()
             .expect("global environment must always exist");
 
-        if env.bindings.contains_key(&name) || exists_global {
-            self.throw_syntax_error(format!("Redeclaration of variable {}", name_str))
-        } else {
-            let binding_index = env.bindings.len();
-            env.bindings.insert(
-                name,
-                CompileTimeBinding {
-                    index: binding_index,
-                    mutable: false,
-                },
-            );
-            Ok(())
-        }
+        let binding_index = env.bindings.len();
+        env.bindings.insert(
+            name,
+            CompileTimeBinding {
+                index: binding_index,
+                mutable: false,
+            },
+        );
     }
 
     /// Initialize an immutable binding at bytecode compile time and return it's binding locator.

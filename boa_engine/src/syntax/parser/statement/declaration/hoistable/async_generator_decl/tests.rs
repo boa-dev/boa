@@ -15,6 +15,6 @@ fn async_generator_function_declaration() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

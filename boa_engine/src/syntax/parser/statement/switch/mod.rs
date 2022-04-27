@@ -9,8 +9,9 @@ use crate::syntax::{
         Cursor, ParseError, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
 /// The possible `TokenKind` which indicate the end of a case statement.
@@ -124,6 +125,11 @@ where
         let mut cases = Vec::new();
         let mut default = None;
 
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         loop {
             let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
             match token.kind() {
@@ -183,6 +189,46 @@ where
                         "switch case block",
                     ))
                 }
+            }
+        }
+
+        // It is a Syntax Error if the LexicallyDeclaredNames of CaseBlock contains any duplicate entries.
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of CaseBlock also occurs in the VarDeclaredNames of CaseBlock.
+        let mut lexically_declared_names = Vec::new();
+        let mut var_declared_names = FxHashSet::default();
+        for case in &cases {
+            lexically_declared_names.extend(case.body().lexically_declared_names());
+
+            case.body().var_declared_names_new(&mut var_declared_names);
+        }
+        if let Some(default_clause) = &default {
+            lexically_declared_names.extend(default_clause.lexically_declared_names());
+
+            default_clause.var_declared_names_new(&mut var_declared_names);
+        }
+
+        let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+        for (name, is_function_declaration) in &lexically_declared_names {
+            if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
+                if !(!cursor.strict_mode()
+                    && *is_function_declaration
+                    && *existing_is_function_declaration)
+                {
+                    return Err(ParseError::general(
+                        "lexical name declared multiple times",
+                        position,
+                    ));
+                }
+            }
+            lexically_declared_names_map.insert(*name, *is_function_declaration);
+        }
+
+        for (name, _) in &lexically_declared_names {
+            if var_declared_names.contains(name) {
+                return Err(ParseError::general(
+                    "lexical name declared in var declared names",
+                    position,
+                ));
             }
         }
 
