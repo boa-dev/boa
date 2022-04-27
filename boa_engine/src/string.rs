@@ -631,7 +631,7 @@ impl Inner {
 /// memory allocation and reference counting.
 #[derive(Finalize)]
 pub struct JsString {
-    inner: Flag,
+    inner: TaggedInner,
     _marker: PhantomData<Rc<str>>,
 }
 
@@ -646,8 +646,8 @@ pub struct JsString {
 /// an index value for [`CONSTANTS_ARRAY`], where the remaining MSBs store the index.
 /// Otherwise, the whole pointer represents the address of a heap allocated [`Inner`].
 ///
-/// It uses [`NonNull`], which guarantees that `Flag` (and subsequently [`JsString`])
-/// can use the "null pointer optimization" to optimize the size of [`Option<Flag>`].
+/// It uses [`NonNull`], which guarantees that `TaggedInner` (and subsequently [`JsString`])
+/// can use the "null pointer optimization" to optimize the size of [`Option<TaggedInner>`].
 ///
 /// # Provenance
 ///
@@ -659,22 +659,23 @@ pub struct JsString {
 /// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-struct Flag(NonNull<Inner>);
+struct TaggedInner(NonNull<Inner>);
 
-impl Flag {
+impl TaggedInner {
     #[inline]
     unsafe fn new_heap(inner: NonNull<Inner>) -> Self {
         Self(inner)
     }
 
-    /// Create a new static `Flag` from the index of an element inside [`CONSTANTS_ARRAY`].
+    /// Create a new static `TaggedInner` from the index of an element inside
+    /// [`CONSTANTS_ARRAY`].
     #[inline]
     const unsafe fn new_static(idx: usize) -> Self {
         // Safety: We already know it's not null, so this is safe.
         Self(NonNull::new_unchecked(((idx << 1) | 1) as *mut _))
     }
 
-    /// Check if `Flag` contains an index for [`CONSTANTS_ARRAY`].
+    /// Check if `TaggedInner` contains an index for [`CONSTANTS_ARRAY`].
     #[inline]
     fn is_static(self) -> bool {
         (self.0.as_ptr() as usize) & 1 == 1
@@ -685,19 +686,19 @@ impl Flag {
     ///
     /// # Safety
     ///
-    /// Calling this method with a static `Flag` results in Undefined Behaviour.
+    /// Calling this method with a static `TaggedInner` results in Undefined Behaviour.
     #[inline]
     const unsafe fn get_heap_unchecked(self) -> NonNull<Inner> {
         self.0
     }
 
     /// Returns the string inside [`CONSTANTS_ARRAY`] corresponding to the
-    /// index inside `Flag`, without checking its validity.
+    /// index inside `TaggedInner`, without checking its validity.
     ///
     /// # Safety
     ///
-    /// Calling this method with a `Flag` storing an out of bounds index for
-    /// [`CONSTANTS_ARRAY`] or a valid pointer to a heap allocated [`Inner`]
+    /// Calling this method with a `TaggedInner` storing an out of bounds index
+    /// for [`CONSTANTS_ARRAY`] or a valid pointer to a heap allocated [`Inner`]
     /// results in Undefined Behaviour.
     #[inline]
     unsafe fn get_static_unchecked(self) -> &'static str {
@@ -728,7 +729,7 @@ impl JsString {
     #[inline]
     unsafe fn new_static(idx: usize) -> Self {
         Self {
-            inner: Flag::new_static(idx),
+            inner: TaggedInner::new_static(idx),
             _marker: PhantomData,
         }
     }
@@ -752,7 +753,7 @@ impl JsString {
 
         Self {
             // Safety: We already know it's a valid heap pointer.
-            inner: unsafe { Flag::new_heap(Inner::new(s)) },
+            inner: unsafe { TaggedInner::new_heap(Inner::new(s)) },
             _marker: PhantomData,
         }
     }
@@ -778,7 +779,7 @@ impl JsString {
 
         Self {
             // Safety: We already know it's a valid heap pointer.
-            inner: unsafe { Flag::new_heap(inner) },
+            inner: unsafe { TaggedInner::new_heap(inner) },
             _marker: PhantomData,
         }
     }
@@ -797,7 +798,7 @@ impl JsString {
 
         Self {
             // Safety: We already know it's a valid heap pointer.
-            inner: unsafe { Flag::new_heap(inner) },
+            inner: unsafe { TaggedInner::new_heap(inner) },
             _marker: PhantomData,
         }
     }
@@ -826,10 +827,10 @@ impl JsString {
 
     /// Gets the number of `JsString`s which point to this allocation.
     #[inline]
-    pub fn refcount(this: &Self) -> usize {
+    pub fn refcount(this: &Self) -> Option<usize> {
         match this.inner() {
-            InnerKind::Heap(inner) => inner.refcount.get(),
-            InnerKind::Static(_inner) => 0,
+            InnerKind::Heap(inner) => Some(inner.refcount.get()),
+            InnerKind::Static(_inner) => None,
         }
     }
 
@@ -1117,39 +1118,39 @@ mod tests {
     #[test]
     fn refcount() {
         let x = JsString::new("Hello wrold");
-        assert_eq!(JsString::refcount(&x), 1);
+        assert_eq!(JsString::refcount(&x), Some(1));
 
         {
             let y = x.clone();
-            assert_eq!(JsString::refcount(&x), 2);
-            assert_eq!(JsString::refcount(&y), 2);
+            assert_eq!(JsString::refcount(&x), Some(2));
+            assert_eq!(JsString::refcount(&y), Some(2));
 
             {
                 let z = y.clone();
-                assert_eq!(JsString::refcount(&x), 3);
-                assert_eq!(JsString::refcount(&y), 3);
-                assert_eq!(JsString::refcount(&z), 3);
+                assert_eq!(JsString::refcount(&x), Some(3));
+                assert_eq!(JsString::refcount(&y), Some(3));
+                assert_eq!(JsString::refcount(&z), Some(3));
             }
 
-            assert_eq!(JsString::refcount(&x), 2);
-            assert_eq!(JsString::refcount(&y), 2);
+            assert_eq!(JsString::refcount(&x), Some(2));
+            assert_eq!(JsString::refcount(&y), Some(2));
         }
 
-        assert_eq!(JsString::refcount(&x), 1);
+        assert_eq!(JsString::refcount(&x), Some(1));
     }
 
     #[test]
     fn static_refcount() {
         let x = JsString::new("");
-        assert_eq!(JsString::refcount(&x), 0);
+        assert_eq!(JsString::refcount(&x), None);
 
         {
             let y = x.clone();
-            assert_eq!(JsString::refcount(&x), 0);
-            assert_eq!(JsString::refcount(&y), 0);
+            assert_eq!(JsString::refcount(&x), None);
+            assert_eq!(JsString::refcount(&y), None);
         };
 
-        assert_eq!(JsString::refcount(&x), 0);
+        assert_eq!(JsString::refcount(&x), None);
     }
 
     #[test]
@@ -1213,14 +1214,14 @@ mod tests {
 
         let xy = JsString::concat(x, y);
         assert_eq!(xy, "hello, ");
-        assert_eq!(JsString::refcount(&xy), 1);
+        assert_eq!(JsString::refcount(&xy), Some(1));
 
         let xyz = JsString::concat(xy, z);
         assert_eq!(xyz, "hello, world");
-        assert_eq!(JsString::refcount(&xyz), 1);
+        assert_eq!(JsString::refcount(&xyz), Some(1));
 
         let xyzw = JsString::concat(xyz, w);
         assert_eq!(xyzw, "hello, world!");
-        assert_eq!(JsString::refcount(&xyzw), 1);
+        assert_eq!(JsString::refcount(&xyzw), Some(1));
     }
 }
