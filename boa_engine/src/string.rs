@@ -474,10 +474,6 @@ const MAX_CONSTANT_STRING_LENGTH: usize = {
         }
         i += 1;
     }
-    // The FX algorithm is in hashing 8 bytes at a time on 64-bit platforms.
-    // So set the maximum number to be a multiple of 8, 16 is not a proven
-    // value and may change in the future.
-    assert!(max <= 16);
     max
 };
 
@@ -495,7 +491,8 @@ thread_local! {
         let mut constants = FxHashSet::with_capacity_and_hasher(len, BuildHasherDefault::<FxHasher>::default());
 
         for idx in 0..len {
-            let s = JsString::new_static(idx);
+            // Safety: We already know it's an index of [`CONSTANTS_ARRAY`].
+            let s = unsafe { JsString::new_static(idx) };
             constants.insert(s);
         }
 
@@ -619,7 +616,7 @@ impl Inner {
 /// The `JsString` length and data is stored on the heap. and just an non-null
 /// pointer is kept, so its size is the size of a pointer.
 ///
-/// We define some commonly used string constants in the data segment. For these
+/// We define some commonly used string constants in [`CONSTANTS_ARRAY`]. For these
 /// strings, we no longer allocate memory on the heap to reduce the overhead of
 /// memory allocation and reference counting.
 #[derive(Finalize)]
@@ -628,54 +625,70 @@ pub struct JsString {
     _marker: PhantomData<Rc<str>>,
 }
 
-/// It may be an index of [`CONSTANTS_ARRAY`], or a raw pointer of [`Inner`]. Use
-/// the first bit as the flag (Detail: <https://en.wikipedia.org/wiki/Tagged_pointer>).
+/// This struct uses a technique called tagged pointer to benefit from the fact that newly
+/// allocated pointers are always word aligned on 64-bits platforms, making it impossible
+/// to have a LSB equal to 1. More details about this technique on the article of Wikipedia
+/// about [tagged pointers][tagged_wp].
 ///
-/// When the first bit is 0, it represents the address of an [`Inner`]. When the
-/// first bit is 1, it represents an index of [`CONSTANTS_ARRAY`], and the index
-/// number is stored in higher bits.
+/// # Representation
 ///
-/// It uses `NonNull`, which can get benefit from non-null optimization.
+/// If the LSB of the internal [`NonNull<Inner>`] is set (1), then the pointer address represents
+/// an index value for [`CONSTANTS_ARRAY`], where the remaining MSBs store the index.
+/// Otherwise, the whole pointer represents the address of a heap allocated [`Inner`].
+///
+/// It uses [`NonNull`], which guarantees that `Flag` (and subsequently [`JsString`])
+/// can use the "null pointer optimization" to optimize the size of [`Option<Flag>`].
+///
+/// # Provenance
+///
+/// This struct stores a [`NonNull<Inner>`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]
+/// in order to preserve the provenance of our valid heap pointers.
+/// On the other hand, all index values are just casted to invalid pointers,
+/// because we don't need to preserve the provenance of [`usize`] indices.
+///
+/// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
 struct Flag(NonNull<Inner>);
 
 impl Flag {
     #[inline]
-    fn new_heap(inner: NonNull<Inner>) -> Self {
+    unsafe fn new_heap(inner: NonNull<Inner>) -> Self {
         Self(inner)
     }
 
-    /// Set the first bit to 1, indicating that it is static. Store the index
-    /// in 1..63 bits.
+    /// Create a new static `Flag` from the index of an element inside [`CONSTANTS_ARRAY`].
     #[inline]
-    const fn new_static(idx: usize) -> Self {
+    const unsafe fn new_static(idx: usize) -> Self {
         // Safety: We already know it's not null, so this is safe.
-        Self(unsafe { NonNull::new_unchecked(((idx << 1) | 1) as *mut _) })
+        Self(NonNull::new_unchecked(((idx << 1) | 1) as *mut _))
     }
 
-    /// Check if the first bit is 1.
+    /// Check if `Flag` contains an index for [`CONSTANTS_ARRAY`].
     #[inline]
     fn is_static(self) -> bool {
         (self.0.as_ptr() as usize) & 1 == 1
     }
 
-    /// Returns a reference to a string stroed on the heap, without doing
-    /// flag checking.
+    /// Returns a reference to a string stored on the heap,
+    /// without checking if its internal pointer is valid.
     ///
     /// # Safety
     ///
-    /// It maybe a static string.
+    /// Calling this method with a static `Flag` results in Undefined Behaviour.
     #[inline]
     const unsafe fn get_heap_unchecked(self) -> NonNull<Inner> {
         self.0
     }
 
-    /// Returns a reference to a static string, without doing flag checking.
+    /// Returns the string inside [`CONSTANTS_ARRAY`] corresponding to the
+    /// index inside `Flag`, without checking its validity.
     ///
     /// # Safety
     ///
-    /// It maybe a string stroed on the heap.
+    /// Calling this method with a `Flag` storing an out of bounds index for
+    /// [`CONSTANTS_ARRAY`] or a valid pointer to a heap allocated [`Inner`]
+    /// results in Undefined Behaviour.
     #[inline]
     unsafe fn get_static_unchecked(self) -> &'static str {
         // shift right to get the index.
@@ -686,11 +699,13 @@ impl Flag {
 impl Default for JsString {
     #[inline]
     fn default() -> Self {
-        Self::new_static(0)
+        // Safety: We already know it's an index of [`CONSTANTS_ARRAY`].
+        unsafe { Self::new_static(0) }
     }
 }
 
-/// Data stored in [`JsString`].
+/// Enum representing either a reference to a heap allocated [`Inner`]
+/// or a static reference to a [`str`] inside [`CONSTANTS_ARRAY`].
 enum InnerKind<'a> {
     // A string allocated on the heap.
     Heap(&'a Inner),
@@ -701,7 +716,7 @@ enum InnerKind<'a> {
 impl JsString {
     /// Create a new JavaScript string from an index of [`CONSTANTS_ARRAY`].
     #[inline]
-    fn new_static(idx: usize) -> Self {
+    unsafe fn new_static(idx: usize) -> Self {
         Self {
             inner: Flag::new_static(idx),
             _marker: PhantomData,
@@ -726,7 +741,8 @@ impl JsString {
         }
 
         Self {
-            inner: Flag::new_heap(Inner::new(s)),
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { Flag::new_heap(Inner::new(s)) },
             _marker: PhantomData,
         }
     }
@@ -741,7 +757,8 @@ impl JsString {
         let y = y.as_ref();
 
         let this = Self {
-            inner: Flag::new_heap(Inner::concat_array(&[x, y])),
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { Flag::new_heap(Inner::concat_array(&[x, y])) },
             _marker: PhantomData,
         };
 
@@ -757,7 +774,8 @@ impl JsString {
     /// Concatenate array of string.
     pub fn concat_array(strings: &[&str]) -> Self {
         let this = Self {
-            inner: Flag::new_heap(Inner::concat_array(strings)),
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { Flag::new_heap(Inner::concat_array(strings)) },
             _marker: PhantomData,
         };
 
