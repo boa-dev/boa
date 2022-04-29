@@ -159,4 +159,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: -v --document-private-items
+          args: -v --document-private-items --all-features

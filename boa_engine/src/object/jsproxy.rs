@@ -65,6 +65,7 @@ impl JsObjectType for JsProxy {}
 /// accessible from [`JsProxy::builder`]; with the [`JsProxyBuilder::build_revocable`]
 /// method.
 ///
+/// [proxy]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy
 /// [revocable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/revocable
 #[derive(Debug, Trace, Finalize)]
 pub struct JsRevocableProxy {

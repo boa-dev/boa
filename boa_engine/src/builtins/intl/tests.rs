@@ -9,6 +9,7 @@ use crate::{
     Context, JsString, JsValue,
 };
 
+use icu_locale_canonicalizer::LocaleCanonicalizer;
 use rustc_hash::FxHashMap;
 
 #[test]
@@ -47,27 +48,36 @@ fn best_avail_loc() {
 
 #[test]
 fn lookup_match() {
+    let provider = icu_testdata::get_provider();
+    let canonicalizer =
+        LocaleCanonicalizer::new(&provider).expect("Could not create canonicalizer");
     // available: [], requested: []
     let available_locales = Vec::<JsString>::new();
     let requested_locales = Vec::<JsString>::new();
 
-    let matcher = lookup_matcher(&available_locales, &requested_locales);
-    assert_eq!(matcher.locale, default_locale());
+    let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
+    assert_eq!(
+        matcher.locale,
+        default_locale(&canonicalizer).to_string().as_str()
+    );
     assert_eq!(matcher.extension, "");
 
     // available: [de-DE], requested: []
     let available_locales = vec![JsString::new("de-DE")];
     let requested_locales = Vec::<JsString>::new();
 
-    let matcher = lookup_matcher(&available_locales, &requested_locales);
-    assert_eq!(matcher.locale, default_locale());
+    let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
+    assert_eq!(
+        matcher.locale,
+        default_locale(&canonicalizer).to_string().as_str()
+    );
     assert_eq!(matcher.extension, "");
 
     // available: [fr-FR], requested: [fr-FR-u-hc-h12]
     let available_locales = vec![JsString::new("fr-FR")];
     let requested_locales = vec![JsString::new("fr-FR-u-hc-h12")];
 
-    let matcher = lookup_matcher(&available_locales, &requested_locales);
+    let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
     assert_eq!(matcher.locale, "fr-FR");
     assert_eq!(matcher.extension, "u-hc-h12");
 
@@ -75,32 +85,35 @@ fn lookup_match() {
     let available_locales = vec![JsString::new("es-ES")];
     let requested_locales = vec![JsString::new("es-ES")];
 
-    let matcher = best_fit_matcher(&available_locales, &requested_locales);
+    let matcher = best_fit_matcher(&available_locales, &requested_locales, &canonicalizer);
     assert_eq!(matcher.locale, "es-ES");
     assert_eq!(matcher.extension, "");
 }
 
 #[test]
 fn insert_unicode_ext() {
+    let provider = icu_testdata::get_provider();
+    let canonicalizer =
+        LocaleCanonicalizer::new(&provider).expect("Could not create canonicalizer");
     let locale = JsString::new("hu-HU");
     let ext = JsString::empty();
     assert_eq!(
-        insert_unicode_extension_and_canonicalize(&locale, &ext),
+        insert_unicode_extension_and_canonicalize(&locale, &ext, &canonicalizer),
         locale
     );
 
     let locale = JsString::new("hu-HU");
     let ext = JsString::new("-u-hc-h12");
     assert_eq!(
-        insert_unicode_extension_and_canonicalize(&locale, &ext),
+        insert_unicode_extension_and_canonicalize(&locale, &ext, &canonicalizer),
         JsString::new("hu-HU-u-hc-h12")
     );
 
     let locale = JsString::new("hu-HU-x-PRIVATE");
     let ext = JsString::new("-u-hc-h12");
     assert_eq!(
-        insert_unicode_extension_and_canonicalize(&locale, &ext),
-        JsString::new("hu-HU-u-hc-h12-x-PRIVATE")
+        insert_unicode_extension_and_canonicalize(&locale, &ext, &canonicalizer),
+        JsString::new("hu-HU-u-hc-h12-x-private")
     );
 }
 
@@ -165,8 +178,18 @@ fn locale_resolution() {
         &locale_data,
         &mut context,
     );
-    assert_eq!(locale_record.locale, default_locale());
-    assert_eq!(locale_record.data_locale, default_locale());
+    assert_eq!(
+        locale_record.locale,
+        default_locale(context.icu().locale_canonicalizer())
+            .to_string()
+            .as_str()
+    );
+    assert_eq!(
+        locale_record.data_locale,
+        default_locale(context.icu().locale_canonicalizer())
+            .to_string()
+            .as_str()
+    );
     assert!(locale_record.properties.is_empty());
 
     // test best fit
@@ -187,8 +210,18 @@ fn locale_resolution() {
         &locale_data,
         &mut context,
     );
-    assert_eq!(locale_record.locale, default_locale());
-    assert_eq!(locale_record.data_locale, default_locale());
+    assert_eq!(
+        locale_record.locale,
+        default_locale(context.icu().locale_canonicalizer())
+            .to_string()
+            .as_str()
+    );
+    assert_eq!(
+        locale_record.data_locale,
+        default_locale(context.icu().locale_canonicalizer())
+            .to_string()
+            .as_str()
+    );
     assert!(locale_record.properties.is_empty());
 
     // available: [es-ES], requested: [es-ES]
@@ -231,8 +264,18 @@ fn locale_resolution() {
         &locale_data,
         &mut context,
     );
-    assert_eq!(locale_record.locale, default_locale());
-    assert_eq!(locale_record.data_locale, default_locale());
+    assert_eq!(
+        locale_record.locale,
+        default_locale(context.icu().locale_canonicalizer())
+            .to_string()
+            .as_str()
+    );
+    assert_eq!(
+        locale_record.data_locale,
+        default_locale(context.icu().locale_canonicalizer())
+            .to_string()
+            .as_str()
+    );
     assert!(locale_record.properties.is_empty());
 }
 

@@ -2,6 +2,7 @@
 
 use super::Parser;
 use crate::{
+    context::ContextBuilder,
     syntax::ast::{
         node::{
             field::GetConstField, object::PropertyDefinition, ArrowFunctionDecl, Assign, BinOp,
@@ -23,7 +24,7 @@ pub(super) fn check_parser<L>(js: &str, expr: L, interner: Interner)
 where
     L: Into<Box<[Node]>>,
 {
-    let mut context = Context::new(interner);
+    let mut context = ContextBuilder::default().interner(interner).build();
     assert_eq!(
         Parser::new(js.as_bytes())
             .parse_all(&mut context)
@@ -469,7 +470,7 @@ fn hashbang_use_strict_no_with() {
 fn hashbang_use_strict_with_with_statement() {
     check_parser(
         r#"#!\"use strict"
-        
+
         with({}) {}
         "#,
         vec![],

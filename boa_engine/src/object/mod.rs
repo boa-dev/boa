@@ -20,6 +20,8 @@ use self::internal_methods::{
     string::STRING_EXOTIC_INTERNAL_METHODS,
     InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
+#[cfg(feature = "intl")]
+use crate::builtins::intl::date_time_format::DateTimeFormat;
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
@@ -29,7 +31,6 @@ use crate::{
             arguments::ParameterMap, BoundFunction, Captures, Function, NativeFunctionSignature,
         },
         generator::Generator,
-        intl::date_time_format::DateTimeFormat,
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         object::for_in_iterator::ForInIterator,
@@ -45,6 +46,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
+
 use boa_gc::{Finalize, Trace};
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
@@ -168,6 +170,7 @@ pub enum ObjectKind {
     Arguments(Arguments),
     NativeObject(Box<dyn NativeObject>),
     IntegerIndexed(IntegerIndexed),
+    #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
 }
 
@@ -427,6 +430,7 @@ impl ObjectData {
     }
 
     /// Create the `DateTimeFormat` object data
+    #[cfg(feature = "intl")]
     pub fn date_time_format(date_time_fmt: Box<DateTimeFormat>) -> Self {
         Self {
             kind: ObjectKind::DateTimeFormat(date_time_fmt),
@@ -467,6 +471,7 @@ impl Display for ObjectKind {
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
             Self::DataView(_) => "DataView",
+            #[cfg(feature = "intl")]
             Self::DateTimeFormat(_) => "DateTimeFormat",
         })
     }
