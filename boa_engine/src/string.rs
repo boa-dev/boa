@@ -768,11 +768,11 @@ impl JsString {
         let y = y.as_ref();
 
         let inner = Inner::concat_array(&[x, y]);
+        let s = unsafe { inner.as_ref() }.as_str();
 
-        if unsafe { inner.as_ref() }.len <= MAX_CONSTANT_STRING_LENGTH {
-            if let Some(constant) =
-                CONSTANTS.with(|c| c.get(unsafe { inner.as_ref() }.as_str()).cloned())
-            {
+        if s.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(s).cloned()) {
+                unsafe { Inner::dealloc(inner) };
                 return constant;
             }
         }
@@ -787,11 +787,11 @@ impl JsString {
     /// Concatenate array of string.
     pub fn concat_array(strings: &[&str]) -> Self {
         let inner = Inner::concat_array(strings);
+        let s = unsafe { inner.as_ref() }.as_str();
 
-        if unsafe { inner.as_ref() }.len <= MAX_CONSTANT_STRING_LENGTH {
-            if let Some(constant) =
-                CONSTANTS.with(|c| c.get(unsafe { inner.as_ref() }.as_str()).cloned())
-            {
+        if s.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(s).cloned()) {
+                unsafe { Inner::dealloc(inner) };
                 return constant;
             }
         }
