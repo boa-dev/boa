@@ -465,6 +465,10 @@ impl DeclarativeEnvironmentStack {
     ///
     /// This only considers function environments that are poisoned.
     /// All other bindings are set via indices.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the environment or binding index are out of range.
     #[inline]
     pub(crate) fn put_value_global_poisoned(&mut self, name: Sym, value: &JsValue) -> bool {
         for env in self.stack.iter().rev() {
