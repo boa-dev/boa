@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["JsFunction","JavaScript `Function` rust object."]]});

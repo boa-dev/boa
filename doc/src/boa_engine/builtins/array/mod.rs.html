@@ -2964,7 +2964,7 @@
     <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
-        <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
+        <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
@@ -5796,7 +5796,7 @@
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values_intrinsic</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values_intrinsic</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsFunction</span> {
         <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::values</span>)
             .<span class="ident">name</span>(<span class="string">&quot;values&quot;</span>)
             .<span class="ident">length</span>(<span class="number">0</span>)

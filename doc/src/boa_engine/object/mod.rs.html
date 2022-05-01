@@ -2034,6 +2034,8 @@
 <span id="2027">2027</span>
 <span id="2028">2028</span>
 <span id="2029">2029</span>
+<span id="2030">2030</span>
+<span id="2031">2031</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2095,12 +2097,14 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_methods</span>;
 <span class="kw">mod</span> <span class="ident">jsarray</span>;
+<span class="kw">mod</span> <span class="ident">jsfunction</span>;
 <span class="kw">mod</span> <span class="ident">jsobject</span>;
 <span class="kw">mod</span> <span class="ident">jstypedarray</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">property_map</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsarray</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsfunction</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jstypedarray</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">JsObjectType</span>:
@@ -3552,7 +3556,7 @@
 
     <span class="doccomment">/// Build the function object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">JsFunction</span> {
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
             <span class="self">self</span>.<span class="ident">context</span>
                 .<span class="ident">intrinsics</span>()
@@ -3568,7 +3572,7 @@
         <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">property</span>.<span class="ident">clone</span>().<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">length</span>));
         <span class="ident">function</span>.<span class="ident">insert_property</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">property</span>.<span class="ident">value</span>(<span class="self">self</span>.<span class="ident">name</span>));
 
-        <span class="ident">function</span>
+        <span class="ident">JsFunction::from_object_unchecked</span>(<span class="ident">function</span>)
     }
 
     <span class="doccomment">/// Initializes the `Function.prototype` function object.</span>
@@ -3853,8 +3857,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
+        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
         <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
     ) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -3874,8 +3878,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">static_accessor</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">key</span>: <span class="ident">K</span>,
-        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
-        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+        <span class="ident">get</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
+        <span class="ident">set</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsFunction</span><span class="op">&gt;</span>,
         <span class="ident">attribute</span>: <span class="ident">Attribute</span>,
     ) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span>
     <span class="kw">where</span>
@@ -3988,7 +3992,7 @@
     }
 
     <span class="doccomment">/// Build the constructor function object.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsFunction</span> {
         <span class="comment">// Create the native function</span>
         <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">Function::Native</span> {
             <span class="ident">function</span>: <span class="self">self</span>.<span class="ident">function</span>,
@@ -4060,7 +4064,7 @@
             }
         }
 
-        <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">clone</span>()
+        <span class="ident">JsFunction::from_object_unchecked</span>(<span class="self">self</span>.<span class="ident">object</span>.<span class="ident">clone</span>())
     }
 }
 </code></pre></div>
