@@ -9,8 +9,10 @@
 
 use crate::{
     context::intrinsics::StandardConstructors,
-    object::internal_methods::get_prototype_from_constructor,
-    object::{ConstructorBuilder, JsObject, ObjectData},
+    object::{
+        internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsFunction, JsObject,
+        ObjectData,
+    },
     Context, JsResult, JsString, JsValue,
 };
 
@@ -44,7 +46,7 @@ pub struct DateTimeFormat {
 impl DateTimeFormat {
     const NAME: &'static str = "DateTimeFormat";
 
-    pub(super) fn init(context: &mut Context) -> JsObject {
+    pub(super) fn init(context: &mut Context) -> JsFunction {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         ConstructorBuilder::new(context, Self::constructor)
@@ -109,6 +111,6 @@ impl DateTimeFormat {
         // TODO b. Return ? ChainDateTimeFormat(dateTimeFormat, NewTarget, this).
 
         // 5. Return dateTimeFormat.
-        Ok(JsValue::Object(date_time_format))
+        Ok(date_time_format.into())
     }
 }

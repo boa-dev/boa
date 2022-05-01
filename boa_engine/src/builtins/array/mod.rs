@@ -25,7 +25,7 @@ use crate::{
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -2857,7 +2857,7 @@ impl Array {
         }
     }
 
-    pub(crate) fn values_intrinsic(context: &mut Context) -> JsObject {
+    pub(crate) fn values_intrinsic(context: &mut Context) -> JsFunction {
         FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
