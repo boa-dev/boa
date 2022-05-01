@@ -1380,7 +1380,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
+        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
 
         // 5. Return ? Invoke(rx, @@match, « S »).
         rx.invoke(WellKnownSymbols::r#match(), &[JsValue::new(s)], context)
@@ -1991,7 +1991,7 @@ impl String {
         let s = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, "g").
-        let rx = RegExp::create(regexp.clone(), JsValue::new("g"), context)?;
+        let rx = RegExp::create(regexp, &JsValue::new("g"), context)?;
 
         // 5. Return ? Invoke(rx, @@matchAll, « S »).
         rx.invoke(WellKnownSymbols::match_all(), &[JsValue::new(s)], context)
@@ -2080,7 +2080,7 @@ impl String {
         let string = o.to_string(context)?;
 
         // 4. Let rx be ? RegExpCreate(regexp, undefined).
-        let rx = RegExp::create(regexp.clone(), JsValue::undefined(), context)?;
+        let rx = RegExp::create(regexp, &JsValue::Undefined, context)?;
 
         // 5. Return ? Invoke(rx, @@search, « string »).
         rx.invoke(WellKnownSymbols::search(), &[JsValue::new(string)], context)
