@@ -11,14 +11,14 @@ use crate::syntax::{
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::{
-            AssignmentExpression, AsyncGeneratorMethod, AsyncMethod, GeneratorMethod,
-            LeftHandSideExpression, PropertyName,
+            AssignmentExpression, AsyncGeneratorMethod, AsyncMethod, BindingIdentifier,
+            GeneratorMethod, LeftHandSideExpression, PropertyName,
         },
         function::{
             FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters,
             FUNCTION_BREAK_TOKENS,
         },
-        statement::{BindingIdentifier, StatementList},
+        statement::StatementList,
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
 };

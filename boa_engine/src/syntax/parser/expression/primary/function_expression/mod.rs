@@ -14,8 +14,8 @@ use crate::syntax::{
     ast::{node::FunctionExpr, Keyword, Position, Punctuator},
     lexer::{Error as LexError, TokenKind},
     parser::{
+        expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
         Cursor, ParseError, TokenParser,
     },
 };

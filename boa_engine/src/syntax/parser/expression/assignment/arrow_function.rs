@@ -19,8 +19,8 @@ use crate::syntax::{
     lexer::{Error as LexError, TokenKind},
     parser::{
         error::{ErrorContext, ParseError, ParseResult},
+        expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
         AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
     },
 };

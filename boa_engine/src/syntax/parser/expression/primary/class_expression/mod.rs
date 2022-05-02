@@ -2,8 +2,8 @@ use crate::syntax::{
     ast::{Keyword, Node},
     lexer::TokenKind,
     parser::{
-        statement::{BindingIdentifier, ClassTail},
-        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
+        ParseError, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};

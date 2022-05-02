@@ -8,7 +8,7 @@ use crate::syntax::ast::node::{
     ArrayDecl, DeclarationPattern, GetConstField, GetField, Identifier, Node, Object,
 };
 use boa_gc::{Finalize, Trace};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -90,18 +90,18 @@ pub enum AssignTarget {
 impl AssignTarget {
     /// Converts the left-hand-side node of an assignment expression into it's an [`AssignTarget`].
     /// Returns `None` if the given node is an invalid left-hand-side for a assignment expression.
-    pub(crate) fn from_node(node: &Node) -> Option<Self> {
+    pub(crate) fn from_node(node: &Node, strict: bool) -> Option<Self> {
         match node {
             Node::Identifier(target) => Some(Self::Identifier(*target)),
             Node::GetPrivateField(target) => Some(Self::GetPrivateField(target.clone())),
             Node::GetConstField(target) => Some(Self::GetConstField(target.clone())),
             Node::GetField(target) => Some(Self::GetField(target.clone())),
             Node::Object(object) => {
-                let pattern = object_decl_to_declaration_pattern(object)?;
+                let pattern = object_decl_to_declaration_pattern(object, strict)?;
                 Some(Self::DeclarationPattern(pattern))
             }
             Node::ArrayDecl(array) => {
-                let pattern = array_decl_to_declaration_pattern(array)?;
+                let pattern = array_decl_to_declaration_pattern(array, strict)?;
                 Some(Self::DeclarationPattern(pattern))
             }
             _ => None,
@@ -140,11 +140,17 @@ impl From<GetField> for AssignTarget {
 }
 
 /// Converts an object literal into an object declaration pattern.
-pub(crate) fn object_decl_to_declaration_pattern(object: &Object) -> Option<DeclarationPattern> {
+pub(crate) fn object_decl_to_declaration_pattern(
+    object: &Object,
+    strict: bool,
+) -> Option<DeclarationPattern> {
     let mut bindings = Vec::new();
     let mut excluded_keys = Vec::new();
     for (i, property) in object.properties().iter().enumerate() {
         match property {
+            PropertyDefinition::IdentifierReference(ident) if strict && *ident == Sym::EVAL => {
+                return None
+            }
             PropertyDefinition::IdentifierReference(ident) => {
                 excluded_keys.push(*ident);
                 bindings.push(BindingPatternTypeObject::SingleName {
@@ -155,6 +161,9 @@ pub(crate) fn object_decl_to_declaration_pattern(object: &Object) -> Option<Decl
             }
             PropertyDefinition::Property(name, node) => match (name, node) {
                 (PropertyName::Literal(name), Node::Identifier(ident)) if *name == ident.sym() => {
+                    if strict && *name == Sym::EVAL {
+                        return None;
+                    }
                     excluded_keys.push(*name);
                     bindings.push(BindingPatternTypeObject::SingleName {
                         ident: *name,
@@ -196,7 +205,10 @@ pub(crate) fn object_decl_to_declaration_pattern(object: &Object) -> Option<Decl
 }
 
 /// Converts an array declaration into an array declaration pattern.
-pub(crate) fn array_decl_to_declaration_pattern(array: &ArrayDecl) -> Option<DeclarationPattern> {
+pub(crate) fn array_decl_to_declaration_pattern(
+    array: &ArrayDecl,
+    strict: bool,
+) -> Option<DeclarationPattern> {
     if array.has_trailing_comma_spread() {
         return None;
     }
@@ -227,11 +239,11 @@ pub(crate) fn array_decl_to_declaration_pattern(array: &ArrayDecl) -> Option<Dec
                         });
                     }
                     Node::ArrayDecl(array) => {
-                        let pattern = array_decl_to_declaration_pattern(array)?;
+                        let pattern = array_decl_to_declaration_pattern(array, strict)?;
                         bindings.push(BindingPatternTypeArray::BindingPatternRest { pattern });
                     }
                     Node::Object(object) => {
-                        let pattern = object_decl_to_declaration_pattern(object)?;
+                        let pattern = object_decl_to_declaration_pattern(object, strict)?;
                         bindings.push(BindingPatternTypeArray::BindingPatternRest { pattern });
                     }
                     _ => return None,
@@ -268,11 +280,11 @@ pub(crate) fn array_decl_to_declaration_pattern(array: &ArrayDecl) -> Option<Dec
                 AssignTarget::GetPrivateField(_) => return None,
             },
             Node::ArrayDecl(array) => {
-                let pattern = array_decl_to_declaration_pattern(array)?;
+                let pattern = array_decl_to_declaration_pattern(array, strict)?;
                 bindings.push(BindingPatternTypeArray::BindingPattern { pattern });
             }
             Node::Object(object) => {
-                let pattern = object_decl_to_declaration_pattern(object)?;
+                let pattern = object_decl_to_declaration_pattern(object, strict)?;
                 bindings.push(BindingPatternTypeArray::BindingPattern { pattern });
             }
             Node::GetField(get_field) => {

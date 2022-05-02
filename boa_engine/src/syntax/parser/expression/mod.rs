@@ -8,15 +8,17 @@
 //! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-expressions
 
 mod assignment;
+mod identifiers;
 mod left_hand_side;
 mod primary;
-#[cfg(test)]
-mod tests;
 mod unary;
 mod update;
 
-use self::assignment::ExponentiationExpression;
-use super::{AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser};
+pub(in crate::syntax::parser) mod await_expr;
+
+#[cfg(test)]
+mod tests;
+
 use crate::syntax::{
     ast::op::LogOp,
     ast::{
@@ -24,15 +26,18 @@ use crate::syntax::{
         Keyword, Punctuator,
     },
     lexer::{InputElement, TokenKind},
-    parser::ParseError,
+    parser::{
+        expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
+        ParseError, ParseResult, TokenParser,
+    },
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
-pub(in crate::syntax::parser) mod await_expr;
 pub(in crate::syntax::parser) use {
+    identifiers::{BindingIdentifier, LabelIdentifier},
     left_hand_side::LeftHandSideExpression,
     primary::object_initializer::{
         AsyncGeneratorMethod, AsyncMethod, GeneratorMethod, PropertyName,

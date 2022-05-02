@@ -15,13 +15,13 @@ use crate::syntax::{
         node::{
             object::{self, MethodDefinition},
             AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
-            GeneratorExpr, Identifier, Node, Object,
+            GeneratorExpr, Node, Object,
         },
         Const, Keyword, Punctuator,
     },
     lexer::{token::Numeric, Error as LexError, TokenKind},
     parser::{
-        expression::AssignmentExpression,
+        expression::{identifiers::IdentifierReference, AssignmentExpression},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
@@ -146,63 +146,8 @@ where
                 next_token.kind(),
                 TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma)
             ) {
-                let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
-                let ident = match token.kind() {
-                    TokenKind::Identifier(Sym::ARGUMENTS) if cursor.strict_mode() => {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            "unexpected identifier 'arguments' in strict mode".into(),
-                            token.span().start(),
-                        )));
-                    }
-                    TokenKind::Identifier(Sym::EVAL) if cursor.strict_mode() => {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            "unexpected identifier 'eval' in strict mode".into(),
-                            token.span().start(),
-                        )));
-                    }
-                    TokenKind::Identifier(ident) => Identifier::new(*ident),
-                    TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
-                        // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
-                        return Err(ParseError::general(
-                            "Unexpected identifier",
-                            token.span().start(),
-                        ));
-                    }
-                    TokenKind::Keyword((Keyword::Yield, _)) if !self.allow_yield.0 => {
-                        if cursor.strict_mode() {
-                            // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
-                            return Err(ParseError::general(
-                                "Unexpected strict mode reserved word",
-                                token.span().start(),
-                            ));
-                        }
-                        Identifier::new(Sym::YIELD)
-                    }
-                    TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
-                        // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
-                        return Err(ParseError::general(
-                            "Unexpected identifier",
-                            token.span().start(),
-                        ));
-                    }
-                    TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => {
-                        if cursor.strict_mode() {
-                            // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
-                            return Err(ParseError::general(
-                                "Unexpected strict mode reserved word",
-                                token.span().start(),
-                            ));
-                        }
-                        Identifier::new(Sym::YIELD)
-                    }
-                    _ => {
-                        return Err(ParseError::unexpected(
-                            token.to_string(interner),
-                            token.span(),
-                            "expected IdentifierReference",
-                        ));
-                    }
-                };
+                let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
                 return Ok(object::PropertyDefinition::property(ident.sym(), ident));
             }
         }

@@ -18,8 +18,8 @@ use crate::syntax::{
     },
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
-        expression::Initializer,
-        statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern, StatementList},
+        expression::{BindingIdentifier, Initializer},
+        statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
         AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
