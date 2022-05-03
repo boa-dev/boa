@@ -1747,6 +1747,30 @@
 <span id="1740">1740</span>
 <span id="1741">1741</span>
 <span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -1769,7 +1793,7 @@
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
-    <span class="ident">property::Attribute</span>,
+    <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptorBuilder</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">syntax::lexer::regex::RegExpFlags</span>,
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
@@ -1972,10 +1996,10 @@
         };
 
         <span class="comment">// 7. Let O be ? RegExpAlloc(newTarget).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::alloc</span>(<span class="ident">new_target</span>, <span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::alloc</span>(<span class="ident">new_target</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 8.Return ? RegExpInitialize(O, P, F).</span>
-        <span class="ident"><span class="self">Self</span>::initialize</span>(<span class="kw-2">&amp;</span><span class="ident">o</span>, <span class="kw-2">&amp;</span>[<span class="ident">p</span>, <span class="ident">f</span>], <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::initialize</span>(<span class="ident">o</span>, <span class="kw-2">&amp;</span><span class="ident">p</span>, <span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `22.2.3.2.1 RegExpAlloc ( newTarget )`</span>
@@ -1984,10 +2008,26 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpalloc</span>
-    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(<span class="ident">this</span>, <span class="ident">StandardConstructors::regexp</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, &quot;%RegExp.prototype%&quot;, « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).</span>
+        <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span>
+            <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::regexp</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">proto</span>, <span class="ident">ObjectData::ordinary</span>());
 
-        <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">proto</span>, <span class="ident">ObjectData::ordinary</span>()).<span class="ident">into</span>())
+        <span class="comment">// 2. Perform ! DefinePropertyOrThrow(obj, &quot;lastIndex&quot;, PropertyDescriptor { [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).</span>
+        <span class="ident">obj</span>.<span class="ident">define_property_or_throw</span>(
+            <span class="string">&quot;lastIndex&quot;</span>,
+            <span class="ident">PropertyDescriptorBuilder::new</span>()
+                .<span class="ident">writable</span>(<span class="bool-val">true</span>)
+                .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
+                .<span class="ident">build</span>(),
+            <span class="ident">context</span>,
+        )
+        .<span class="ident">expect</span>(<span class="string">&quot;this cannot fail per spec&quot;</span>);
+
+        <span class="comment">// 3. Return obj.</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>)
     }
 
     <span class="doccomment">/// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`</span>
@@ -1996,10 +2036,12 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize</span>
-    <span class="kw">fn</span> <span class="ident">initialize</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
-
+    <span class="kw">fn</span> <span class="ident">initialize</span>(
+        <span class="ident">obj</span>: <span class="ident">JsObject</span>,
+        <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">flags</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If pattern is undefined, let P be the empty String.</span>
         <span class="comment">// 2. Else, let P be ? ToString(pattern).</span>
         <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">is_undefined</span>() {
@@ -2023,9 +2065,15 @@
             <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; <span class="ident">result</span>,
         };
 
+        <span class="comment">// TODO: Correct UTF-16 handling in 6. - 8.</span>
+
+        <span class="comment">// 9. Let parseResult be ParsePattern(patternText, u).</span>
+        <span class="comment">// 10. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.</span>
+        <span class="comment">// 11. Assert: parseResult is a Pattern Parse Node.</span>
         <span class="comment">// 12. Set obj.[[OriginalSource]] to P.</span>
         <span class="comment">// 13. Set obj.[[OriginalFlags]] to F.</span>
-        <span class="comment">// 14. Set obj.[[RegExpMatcher]] to the Abstract Closure that evaluates parseResult by applying the semantics provided in 22.2.2 using patternCharacters as the pattern&#39;s List of SourceCharacter values and F as the flag parameters.</span>
+        <span class="comment">// 14. NOTE: The definitions of DotAll, IgnoreCase, Multiline, and Unicode in 22.2.2.1 refer to this value of obj.[[OriginalFlags]].</span>
+        <span class="comment">// 15. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult.</span>
         <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Regex::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>, <span class="ident">f</span>.<span class="ident">as_ref</span>()) {
             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>
@@ -2033,18 +2081,19 @@
             }
             <span class="prelude-val">Ok</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>,
         };
-
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="self">Self</span> {
             <span class="ident">matcher</span>,
             <span class="ident">flags</span>,
             <span class="ident">original_source</span>: <span class="ident">p</span>,
             <span class="ident">original_flags</span>: <span class="ident">f</span>,
         };
+        <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::reg_exp</span>(<span class="ident">Box::new</span>(<span class="ident">regexp</span>));
 
-        <span class="ident">this</span>.<span class="ident">set_data</span>(<span class="ident">ObjectData::reg_exp</span>(<span class="ident">Box::new</span>(<span class="ident">regexp</span>)));
+        <span class="comment">// 16. Perform ? Set(obj, &quot;lastIndex&quot;, +0𝔽, true).</span>
+        <span class="ident">obj</span>.<span class="ident">set</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="number">0</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 16. Return obj.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `22.2.3.2.4 RegExpCreate ( P, F )`</span>
@@ -2053,16 +2102,15 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpcreate</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">p</span>: <span class="ident">JsValue</span>, <span class="ident">f</span>: <span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create</span>(<span class="ident">p</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let obj be ? RegExpAlloc(%RegExp%).</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::alloc</span>(
             <span class="kw-2">&amp;</span><span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">get</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="kw-2">&amp;</span>[],
             <span class="ident">context</span>,
         )<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Return ? RegExpInitialize(obj, P, F).</span>
-        <span class="ident"><span class="self">Self</span>::initialize</span>(<span class="kw-2">&amp;</span><span class="ident">obj</span>, <span class="kw-2">&amp;</span>[<span class="ident">p</span>, <span class="ident">f</span>], <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::initialize</span>(<span class="ident">obj</span>, <span class="ident">p</span>, <span class="ident">f</span>, <span class="ident">context</span>)
     }
 
     <span class="doccomment">/// `get RegExp [ @@species ]`</span>

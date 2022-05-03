@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-integer-0.1.44/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-integer-0.1.45/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../num_integer/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1346,6 +1346,49 @@
 <span id="1341">1341</span>
 <span id="1342">1342</span>
 <span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
+<span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
+<span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2013-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
@@ -1535,14 +1578,12 @@
                 <span class="ident">gcd</span>: <span class="ident">r</span>.<span class="number">1</span>,
                 <span class="ident">x</span>: <span class="ident">s</span>.<span class="number">1</span>,
                 <span class="ident">y</span>: <span class="ident">t</span>.<span class="number">1</span>,
-                <span class="ident">_hidden</span>: (),
             }
         } <span class="kw">else</span> {
             <span class="ident">ExtendedGcd</span> {
                 <span class="ident">gcd</span>: <span class="ident"><span class="self">Self</span>::zero</span>() <span class="op">-</span> <span class="ident">r</span>.<span class="number">1</span>,
                 <span class="ident">x</span>: <span class="ident"><span class="self">Self</span>::zero</span>() <span class="op">-</span> <span class="ident">s</span>.<span class="number">1</span>,
                 <span class="ident">y</span>: <span class="ident"><span class="self">Self</span>::zero</span>() <span class="op">-</span> <span class="ident">t</span>.<span class="number">1</span>,
-                <span class="ident">_hidden</span>: (),
             }
         }
     }
@@ -1704,7 +1745,6 @@
     <span class="kw">pub</span> <span class="ident">gcd</span>: <span class="ident">A</span>,
     <span class="kw">pub</span> <span class="ident">x</span>: <span class="ident">A</span>,
     <span class="kw">pub</span> <span class="ident">y</span>: <span class="ident">A</span>,
-    <span class="ident">_hidden</span>: (),
 }
 
 <span class="doccomment">/// Simultaneous integer division and modulus</span>
@@ -1734,7 +1774,7 @@
 }
 
 <span class="doccomment">/// Calculates the Greatest Common Divisor (GCD) of the number and `other`. The</span>
-<span class="doccomment">/// result is always positive.</span>
+<span class="doccomment">/// result is always non-negative.</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">always</span>)]</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">gcd</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Integer</span><span class="op">&gt;</span>(<span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="ident">T</span>) -&gt; <span class="ident">T</span> {
     <span class="ident">x</span>.<span class="ident">gcd</span>(<span class="kw-2">&amp;</span><span class="ident">y</span>)
@@ -1805,7 +1845,7 @@
             }
 
             <span class="doccomment">/// Calculates the Greatest Common Divisor (GCD) of the number and</span>
-            <span class="doccomment">/// `other`. The result is always positive.</span>
+            <span class="doccomment">/// `other`. The result is always non-negative.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">gcd</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
                 <span class="comment">// Use Stein&#39;s algorithm</span>
@@ -1891,6 +1931,9 @@
             <span class="doccomment">/// Returns `true` if the number is a multiple of `other`.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+                <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">is_zero</span>() {
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">is_zero</span>();
+                }
                 <span class="kw-2">*</span><span class="self">self</span> <span class="op">%</span> <span class="kw-2">*</span><span class="ident">other</span> <span class="op">==</span> <span class="number">0</span>
             }
 
@@ -1910,6 +1953,29 @@
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">div_rem</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
                 (<span class="kw-2">*</span><span class="self">self</span> <span class="op">/</span> <span class="kw-2">*</span><span class="ident">other</span>, <span class="kw-2">*</span><span class="self">self</span> <span class="op">%</span> <span class="kw-2">*</span><span class="ident">other</span>)
+            }
+
+            <span class="doccomment">/// Rounds up to nearest multiple of argument.</span>
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">next_multiple_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+                <span class="comment">// Avoid the overflow of `MIN % -1`</span>
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">other</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
+                    <span class="kw">return</span> <span class="kw-2">*</span><span class="self">self</span>;
+                }
+
+                <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">Integer::mod_floor</span>(<span class="self">self</span>, <span class="ident">other</span>);
+                <span class="kw-2">*</span><span class="self">self</span> <span class="op">+</span> <span class="kw">if</span> <span class="ident">m</span> <span class="op">==</span> <span class="number">0</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="ident">other</span> <span class="op">-</span> <span class="ident">m</span> }
+            }
+
+            <span class="doccomment">/// Rounds down to nearest multiple of argument.</span>
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">prev_multiple_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+                <span class="comment">// Avoid the overflow of `MIN % -1`</span>
+                <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">other</span> <span class="op">==</span> <span class="op">-</span><span class="number">1</span> {
+                    <span class="kw">return</span> <span class="kw-2">*</span><span class="self">self</span>;
+                }
+
+                <span class="kw-2">*</span><span class="self">self</span> <span class="op">-</span> <span class="ident">Integer::mod_floor</span>(<span class="self">self</span>, <span class="ident">other</span>)
             }
         }
 
@@ -1957,8 +2023,9 @@
             <span class="kw">fn</span> <span class="ident">test_div_mod_floor</span>() {
                 <span class="kw">fn</span> <span class="ident">test_nd_dm</span>(<span class="ident">nd</span>: (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>), <span class="ident">dm</span>: (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)) {
                     <span class="kw">let</span> (<span class="ident">n</span>, <span class="ident">d</span>) <span class="op">=</span> <span class="ident">nd</span>;
-                    <span class="kw">let</span> <span class="ident">separate_div_mod_floor</span> <span class="op">=</span> (<span class="ident">n</span>.<span class="ident">div_floor</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>), <span class="ident">n</span>.<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>));
-                    <span class="kw">let</span> <span class="ident">combined_div_mod_floor</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">div_mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">d</span>);
+                    <span class="kw">let</span> <span class="ident">separate_div_mod_floor</span> <span class="op">=</span>
+                        (<span class="ident">Integer::div_floor</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="ident">d</span>), <span class="ident">Integer::mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="ident">d</span>));
+                    <span class="kw">let</span> <span class="ident">combined_div_mod_floor</span> <span class="op">=</span> <span class="ident">Integer::div_mod_floor</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>, <span class="kw-2">&amp;</span><span class="ident">d</span>);
 
                     <span class="macro">assert_eq!</span>(<span class="ident">separate_div_mod_floor</span>, <span class="ident">dm</span>);
                     <span class="macro">assert_eq!</span>(<span class="ident">combined_div_mod_floor</span>, <span class="ident">dm</span>);
@@ -2132,6 +2199,16 @@
                 <span class="macro">assert_eq!</span>((<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_odd</span>(), <span class="bool-val">true</span>);
                 <span class="macro">assert_eq!</span>((<span class="number">4</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_odd</span>(), <span class="bool-val">false</span>);
             }
+
+            <span class="attribute">#[<span class="ident">test</span>]</span>
+            <span class="kw">fn</span> <span class="ident">test_multiple_of_one_limits</span>() {
+                <span class="kw">for</span> <span class="ident">x</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span><span class="ident">::min_value</span>(), <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span><span class="op">&gt;</span><span class="ident">::max_value</span>()] {
+                    <span class="kw">for</span> <span class="ident">one</span> <span class="kw">in</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="op">-</span><span class="number">1</span>] {
+                        <span class="macro">assert_eq!</span>(<span class="ident">Integer::next_multiple_of</span>(<span class="ident">x</span>, <span class="ident">one</span>), <span class="kw-2">*</span><span class="ident">x</span>);
+                        <span class="macro">assert_eq!</span>(<span class="ident">Integer::prev_multiple_of</span>(<span class="ident">x</span>, <span class="ident">one</span>), <span class="kw-2">*</span><span class="ident">x</span>);
+                    }
+                }
+            }
         }
     };
 }
@@ -2232,6 +2309,9 @@
             <span class="doccomment">/// Returns `true` if the number is a multiple of `other`.</span>
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">bool</span> {
+                <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">is_zero</span>() {
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">is_zero</span>();
+                }
                 <span class="kw-2">*</span><span class="self">self</span> <span class="op">%</span> <span class="kw-2">*</span><span class="ident">other</span> <span class="op">==</span> <span class="number">0</span>
             }
 
@@ -2261,15 +2341,16 @@
 
             <span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="ident">test_div_mod_floor</span>() {
-                <span class="macro">assert_eq!</span>((<span class="number">10</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">div_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), <span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
-                <span class="macro">assert_eq!</span>((<span class="number">10</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), <span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
-                <span class="macro">assert_eq!</span>((<span class="number">10</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">div_mod_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), (<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>));
-                <span class="macro">assert_eq!</span>((<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">div_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), <span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
-                <span class="macro">assert_eq!</span>((<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
-                <span class="macro">assert_eq!</span>((<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">div_mod_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), (<span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>));
-                <span class="macro">assert_eq!</span>((<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">div_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">7</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
-                <span class="macro">assert_eq!</span>((<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">mod_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">7</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), <span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
-                <span class="macro">assert_eq!</span>((<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">div_mod_floor</span>(<span class="kw-2">&amp;</span>(<span class="number">7</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)), (<span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>));
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::div_floor</span>(<span class="kw-2">&amp;</span><span class="number">10</span>, <span class="kw-2">&amp;</span><span class="number">3</span>), <span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::mod_floor</span>(<span class="kw-2">&amp;</span><span class="number">10</span>, <span class="kw-2">&amp;</span><span class="number">3</span>), <span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::div_mod_floor</span>(<span class="kw-2">&amp;</span><span class="number">10</span>, <span class="kw-2">&amp;</span><span class="number">3</span>), (<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>));
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::div_floor</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="kw-2">&amp;</span><span class="number">5</span>), <span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::mod_floor</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="kw-2">&amp;</span><span class="number">5</span>), <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::div_mod_floor</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="kw-2">&amp;</span><span class="number">5</span>), (<span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>));
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::div_floor</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="number">7</span>), <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::div_floor</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="number">7</span>), <span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::mod_floor</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="number">7</span>), <span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>);
+                <span class="macro">assert_eq!</span>(<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span> <span class="kw">as</span> <span class="ident">Integer</span><span class="op">&gt;</span><span class="ident">::div_mod_floor</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="kw-2">&amp;</span><span class="number">7</span>), (<span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>, <span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>));
             }
 
             <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -2327,9 +2408,14 @@
 
             <span class="attribute">#[<span class="ident">test</span>]</span>
             <span class="kw">fn</span> <span class="ident">test_is_multiple_of</span>() {
+                <span class="macro">assert!</span>((<span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span>(<span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)));
                 <span class="macro">assert!</span>((<span class="number">6</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span>(<span class="number">6</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)));
                 <span class="macro">assert!</span>((<span class="number">6</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span>(<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)));
                 <span class="macro">assert!</span>((<span class="number">6</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span>(<span class="number">1</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)));
+
+                <span class="macro">assert!</span>(<span class="op">!</span>(<span class="number">42</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span>(<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)));
+                <span class="macro">assert!</span>(<span class="op">!</span>(<span class="number">5</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span>(<span class="number">3</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)));
+                <span class="macro">assert!</span>(<span class="op">!</span>(<span class="number">42</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>).<span class="ident">is_multiple_of</span>(<span class="kw-2">&amp;</span>(<span class="number">0</span> <span class="kw">as</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">T</span>)));
             }
 
             <span class="attribute">#[<span class="ident">test</span>]</span>
