@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.14/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../num_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -589,6 +589,60 @@
 <span id="584">584</span>
 <span id="585">585</span>
 <span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2013-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
@@ -631,6 +685,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ops::checked</span>::{
     <span class="ident">CheckedAdd</span>, <span class="ident">CheckedDiv</span>, <span class="ident">CheckedMul</span>, <span class="ident">CheckedNeg</span>, <span class="ident">CheckedRem</span>, <span class="ident">CheckedShl</span>, <span class="ident">CheckedShr</span>, <span class="ident">CheckedSub</span>,
 };
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ops::euclid</span>::{<span class="ident">CheckedEuclid</span>, <span class="ident">Euclid</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ops::inv::Inv</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ops::mul_add</span>::{<span class="ident">MulAdd</span>, <span class="ident">MulAddAssign</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ops::saturating</span>::{<span class="ident">Saturating</span>, <span class="ident">SaturatingAdd</span>, <span class="ident">SaturatingMul</span>, <span class="ident">SaturatingSub</span>};
@@ -686,7 +741,7 @@
     <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span>;
 }
 
-<span class="doccomment">/// The trait for types implementing basic numeric operations</span>
+<span class="doccomment">/// Generic trait for types implementing basic numeric operations</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is automatically implemented for types which implement the operators.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NumOps</span><span class="op">&lt;</span><span class="ident">Rhs</span> <span class="op">=</span> <span class="self">Self</span>, <span class="ident">Output</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span>:
@@ -714,14 +769,16 @@
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NumRef</span>: <span class="ident">Num</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> <span class="ident">NumOps</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="self">Self</span><span class="op">&gt;</span> {}
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">NumRef</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">Num</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> <span class="ident">NumOps</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">T</span><span class="op">&gt;</span> {}
 
-<span class="doccomment">/// The trait for references which implement numeric operations, taking the</span>
+<span class="doccomment">/// The trait for `Num` references which implement numeric operations, taking the</span>
 <span class="doccomment">/// second operand either by value or by reference.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This is automatically implemented for types which implement the operators.</span>
+<span class="doccomment">/// This is automatically implemented for all types which implement the operators. It covers</span>
+<span class="doccomment">/// every type implementing the operations though, regardless of it being a reference or</span>
+<span class="doccomment">/// related to `Num`.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">RefNum</span><span class="op">&lt;</span><span class="ident">Base</span><span class="op">&gt;</span>: <span class="ident">NumOps</span><span class="op">&lt;</span><span class="ident">Base</span>, <span class="ident">Base</span><span class="op">&gt;</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> <span class="ident">NumOps</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">Base</span>, <span class="ident">Base</span><span class="op">&gt;</span> {}
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Base</span><span class="op">&gt;</span> <span class="ident">RefNum</span><span class="op">&lt;</span><span class="ident">Base</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span> <span class="kw">where</span> <span class="ident">T</span>: <span class="ident">NumOps</span><span class="op">&lt;</span><span class="ident">Base</span>, <span class="ident">Base</span><span class="op">&gt;</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;r</span><span class="op">&gt;</span> <span class="ident">NumOps</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;r</span> <span class="ident">Base</span>, <span class="ident">Base</span><span class="op">&gt;</span> {}
 
-<span class="doccomment">/// The trait for types implementing numeric assignment operators (like `+=`).</span>
+<span class="doccomment">/// Generic trait for types implementing numeric assignment operators (like `+=`).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This is automatically implemented for types which implement the operators.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">NumAssignOps</span><span class="op">&lt;</span><span class="ident">Rhs</span> <span class="op">=</span> <span class="self">Self</span><span class="op">&gt;</span>:
@@ -766,11 +823,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Num</span><span class="op">&gt;</span> <span class="ident">Num</span> <span class="kw">for</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">Add</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="ident">Sub</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="ident">Mul</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="ident">Div</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>
-        <span class="op">+</span> <span class="ident">Rem</span><span class="op">&lt;</span><span class="ident">Output</span> <span class="op">=</span> <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">Wrapping</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>: <span class="ident">NumOps</span>,
 {
     <span class="kw">type</span> <span class="ident">FromStrRadixErr</span> <span class="op">=</span> <span class="ident">T::FromStrRadixErr</span>;
     <span class="kw">fn</span> <span class="ident">from_str_radix</span>(<span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">radix</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::FromStrRadixErr</span><span class="op">&gt;</span> {
@@ -801,6 +854,14 @@
     }
 }
 
+<span class="kw">fn</span> <span class="ident">str_to_ascii_lower_eq_str</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
+    <span class="ident">a</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">b</span>.<span class="ident">len</span>()
+        <span class="op">&amp;&amp;</span> <span class="ident">a</span>.<span class="ident">bytes</span>().<span class="ident">zip</span>(<span class="ident">b</span>.<span class="ident">bytes</span>()).<span class="ident">all</span>(<span class="op">|</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">a_to_ascii_lower</span> <span class="op">=</span> <span class="ident">a</span> <span class="op">|</span> (((<span class="string">b&#39;A&#39;</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">a</span> <span class="op">&amp;&amp;</span> <span class="ident">a</span> <span class="op">&lt;</span><span class="op">=</span> <span class="string">b&#39;Z&#39;</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">5</span>);
+            <span class="ident">a_to_ascii_lower</span> <span class="op">==</span> <span class="ident">b</span>
+        })
+}
+
 <span class="comment">// FIXME: The standard library from_str_radix on floats was deprecated, so we&#39;re stuck</span>
 <span class="comment">// with this implementation ourselves until we want to make a breaking change.</span>
 <span class="comment">// (would have to drop it from `Num` though)</span>
@@ -815,12 +876,26 @@
                 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::FloatErrorKind</span>::<span class="kw-2">*</span>;
                 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::ParseFloatError</span> <span class="kw">as</span> <span class="ident">PFE</span>;
 
+                <span class="comment">// Special case radix 10 to use more accurate standard library implementation</span>
+                <span class="kw">if</span> <span class="ident">radix</span> <span class="op">==</span> <span class="number">10</span> {
+                    <span class="kw">return</span> <span class="ident">src</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">PFE</span> {
+                        <span class="ident">kind</span>: <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">is_empty</span>() { <span class="ident">Empty</span> } <span class="kw">else</span> { <span class="ident">Invalid</span> },
+                    });
+                }
+
                 <span class="comment">// Special values</span>
-                <span class="kw">match</span> <span class="ident">src</span> {
-                    <span class="string">&quot;inf&quot;</span>   =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::INFINITY</span>),
-                    <span class="string">&quot;-inf&quot;</span>  =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NEG_INFINITY</span>),
-                    <span class="string">&quot;NaN&quot;</span>   =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NAN</span>),
-                    <span class="kw">_</span>       =&gt; {},
+                <span class="kw">if</span> <span class="ident">str_to_ascii_lower_eq_str</span>(<span class="ident">src</span>, <span class="string">&quot;inf&quot;</span>)
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">str_to_ascii_lower_eq_str</span>(<span class="ident">src</span>, <span class="string">&quot;infinity&quot;</span>)
+                {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::INFINITY</span>);
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">str_to_ascii_lower_eq_str</span>(<span class="ident">src</span>, <span class="string">&quot;-inf&quot;</span>)
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">str_to_ascii_lower_eq_str</span>(<span class="ident">src</span>, <span class="string">&quot;-infinity&quot;</span>)
+                {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NEG_INFINITY</span>);
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">str_to_ascii_lower_eq_str</span>(<span class="ident">src</span>, <span class="string">&quot;nan&quot;</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NAN</span>);
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">str_to_ascii_lower_eq_str</span>(<span class="ident">src</span>, <span class="string">&quot;-nan&quot;</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="op">-</span><span class="ident">core</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">t::NAN</span>);
                 }
 
                 <span class="kw">fn</span> <span class="ident">slice_shift_char</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="kw-2">&amp;</span><span class="ident">str</span>)<span class="op">&gt;</span> {
@@ -1100,6 +1175,28 @@
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">from_str_radix_ignore_case</span>() {
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">f32::from_str_radix</span>(<span class="string">&quot;InF&quot;</span>, <span class="number">16</span>).<span class="ident">unwrap</span>(),
+        <span class="ident">::core::f32::INFINITY</span>
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">f32::from_str_radix</span>(<span class="string">&quot;InfinitY&quot;</span>, <span class="number">16</span>).<span class="ident">unwrap</span>(),
+        <span class="ident">::core::f32::INFINITY</span>
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">f32::from_str_radix</span>(<span class="string">&quot;-InF&quot;</span>, <span class="number">8</span>).<span class="ident">unwrap</span>(),
+        <span class="ident">::core::f32::NEG_INFINITY</span>
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">f32::from_str_radix</span>(<span class="string">&quot;-InfinitY&quot;</span>, <span class="number">8</span>).<span class="ident">unwrap</span>(),
+        <span class="ident">::core::f32::NEG_INFINITY</span>
+    );
+    <span class="macro">assert!</span>(<span class="ident">f32::from_str_radix</span>(<span class="string">&quot;nAn&quot;</span>, <span class="number">4</span>).<span class="ident">unwrap</span>().<span class="ident">is_nan</span>());
+    <span class="macro">assert!</span>(<span class="ident">f32::from_str_radix</span>(<span class="string">&quot;-nAn&quot;</span>, <span class="number">4</span>).<span class="ident">unwrap</span>().<span class="ident">is_nan</span>());
+}
+
+<span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">wrapping_is_num</span>() {
     <span class="kw">fn</span> <span class="ident">require_num</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Num</span><span class="op">&gt;</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) {}
     <span class="ident">require_num</span>(<span class="kw-2">&amp;</span><span class="ident">Wrapping</span>(<span class="number">42_u32</span>));
@@ -1173,8 +1270,19 @@
     <span class="macro">assert_eq!</span>(<span class="ident">compute</span>(<span class="number">1</span>, <span class="number">2</span>), <span class="number">1</span>)
 }
 
-<span class="comment">// TODO test `NumAssignRef`, but even the standard numeric types don&#39;t</span>
-<span class="comment">// implement this yet. (see rust pr41336)</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_int_assignop_ref</span>)]</span>
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">check_numassignref_ops</span>() {
+    <span class="kw">fn</span> <span class="ident">compute</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">NumAssignRef</span> <span class="op">+</span> <span class="ident">Copy</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">x</span>: <span class="ident">T</span>, <span class="ident">y</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">T</span> {
+        <span class="ident">x</span> <span class="kw-2">*</span><span class="op">=</span> <span class="ident">y</span>;
+        <span class="ident">x</span> <span class="op">/</span><span class="op">=</span> <span class="ident">y</span>;
+        <span class="ident">x</span> <span class="op">%</span><span class="op">=</span> <span class="ident">y</span>;
+        <span class="ident">x</span> <span class="op">+</span><span class="op">=</span> <span class="ident">y</span>;
+        <span class="ident">x</span> <span class="op">-</span><span class="op">=</span> <span class="ident">y</span>;
+        <span class="ident">x</span>
+    }
+    <span class="macro">assert_eq!</span>(<span class="ident">compute</span>(<span class="number">1</span>, <span class="kw-2">&amp;</span><span class="number">2</span>), <span class="number">1</span>)
+}
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="num_traits" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
 </body></html>

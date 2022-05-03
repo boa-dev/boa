@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["checked",""],["inv",""],["mul_add",""],["overflowing",""],["saturating",""],["wrapping",""]]});
+initSidebarItems({"mod":[["checked",""],["euclid",""],["inv",""],["mul_add",""],["overflowing",""],["saturating",""],["wrapping",""]]});

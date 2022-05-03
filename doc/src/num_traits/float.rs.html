@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.14/src/float.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/num-traits-0.2.15/src/float.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>float.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../num_traits/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2354,45 +2354,6 @@
 <span id="2349">2349</span>
 <span id="2350">2350</span>
 <span id="2351">2351</span>
-<span id="2352">2352</span>
-<span id="2353">2353</span>
-<span id="2354">2354</span>
-<span id="2355">2355</span>
-<span id="2356">2356</span>
-<span id="2357">2357</span>
-<span id="2358">2358</span>
-<span id="2359">2359</span>
-<span id="2360">2360</span>
-<span id="2361">2361</span>
-<span id="2362">2362</span>
-<span id="2363">2363</span>
-<span id="2364">2364</span>
-<span id="2365">2365</span>
-<span id="2366">2366</span>
-<span id="2367">2367</span>
-<span id="2368">2368</span>
-<span id="2369">2369</span>
-<span id="2370">2370</span>
-<span id="2371">2371</span>
-<span id="2372">2372</span>
-<span id="2373">2373</span>
-<span id="2374">2374</span>
-<span id="2375">2375</span>
-<span id="2376">2376</span>
-<span id="2377">2377</span>
-<span id="2378">2378</span>
-<span id="2379">2379</span>
-<span id="2380">2380</span>
-<span id="2381">2381</span>
-<span id="2382">2382</span>
-<span id="2383">2383</span>
-<span id="2384">2384</span>
-<span id="2385">2385</span>
-<span id="2386">2386</span>
-<span id="2387">2387</span>
-<span id="2388">2388</span>
-<span id="2389">2389</span>
-<span id="2390">2390</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::mem</span>;
 <span class="kw">use</span> <span class="ident">core::num::FpCategory</span>;
 <span class="kw">use</span> <span class="ident">core::ops</span>::{<span class="ident">Add</span>, <span class="ident">Div</span>, <span class="ident">Neg</span>};
@@ -3178,6 +3139,17 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">is_sign_negative</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">const</span> <span class="ident">SIGN_MASK</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0x80000000</span>;
+
+        <span class="comment">// Safety: this identical to the implementation of f32::to_bits(),</span>
+        <span class="comment">// which is only available starting at Rust 1.20</span>
+        <span class="kw">let</span> <span class="ident">bits</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>(<span class="self">self</span>) };
+        <span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">SIGN_MASK</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
     <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="comment">// Use a constant for better precision.</span>
         <span class="kw">const</span> <span class="ident">PIS_IN_180</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="number">57.2957795130823208767981548141051703_f32</span>;
@@ -3212,6 +3184,23 @@
         <span class="ident"><span class="self">Self</span>::powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span>;
         <span class="ident"><span class="self">Self</span>::to_degrees</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         <span class="ident"><span class="self">Self</span>::to_radians</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="macro">forward!</span> {
+        <span class="ident">libm::floorf</span> <span class="kw">as</span> <span class="ident">floor</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::ceilf</span> <span class="kw">as</span> <span class="ident">ceil</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::roundf</span> <span class="kw">as</span> <span class="ident">round</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::truncf</span> <span class="kw">as</span> <span class="ident">trunc</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fabsf</span> <span class="kw">as</span> <span class="ident">abs</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fminf</span> <span class="kw">as</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fmaxf</span> <span class="kw">as</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span> <span class="op">-</span> <span class="ident">libm::truncf</span>(<span class="self">self</span>)
     }
 }
 
@@ -3252,6 +3241,17 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">is_sign_negative</span>(<span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">const</span> <span class="ident">SIGN_MASK</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="number">0x8000000000000000</span>;
+
+        <span class="comment">// Safety: this identical to the implementation of f64::to_bits(),</span>
+        <span class="comment">// which is only available starting at Rust 1.20</span>
+        <span class="kw">let</span> <span class="ident">bits</span>: <span class="ident">u64</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">mem::transmute</span>(<span class="self">self</span>) };
+        <span class="ident">bits</span> <span class="op">&amp;</span> <span class="ident">SIGN_MASK</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>))]</span>
     <span class="kw">fn</span> <span class="ident">to_degrees</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
         <span class="comment">// The division here is correctly rounded with respect to the true</span>
         <span class="comment">// value of 180/π. (This differs from f32, where a constant must be</span>
@@ -3287,6 +3287,23 @@
         <span class="ident"><span class="self">Self</span>::powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span>;
         <span class="ident"><span class="self">Self</span>::to_degrees</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
         <span class="ident"><span class="self">Self</span>::to_radians</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="macro">forward!</span> {
+        <span class="ident">libm::floor</span> <span class="kw">as</span> <span class="ident">floor</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::ceil</span> <span class="kw">as</span> <span class="ident">ceil</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::round</span> <span class="kw">as</span> <span class="ident">round</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::trunc</span> <span class="kw">as</span> <span class="ident">trunc</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fabs</span> <span class="kw">as</span> <span class="ident">abs</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fmin</span> <span class="kw">as</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fmax</span> <span class="kw">as</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span> <span class="op">-</span> <span class="ident">libm::trunc</span>(<span class="self">self</span>)
     }
 }
 
@@ -4201,6 +4218,35 @@
     <span class="doccomment">/// assert!(abs_difference &lt; 1e-10);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">integer_decode</span>(<span class="self">self</span>) -&gt; (<span class="ident">u64</span>, <span class="ident">i16</span>, <span class="ident">i8</span>);
+
+    <span class="doccomment">/// Returns a number composed of the magnitude of `self` and the sign of</span>
+    <span class="doccomment">/// `sign`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Equal to `self` if the sign of `self` and `sign` are the same, otherwise</span>
+    <span class="doccomment">/// equal to `-self`. If `self` is a `NAN`, then a `NAN` with the sign of</span>
+    <span class="doccomment">/// `sign` is returned.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use num_traits::Float;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let f = 3.5_f32;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(f.copysign(0.42), 3.5_f32);</span>
+    <span class="doccomment">/// assert_eq!(f.copysign(-0.42), -3.5_f32);</span>
+    <span class="doccomment">/// assert_eq!((-f).copysign(0.42), 3.5_f32);</span>
+    <span class="doccomment">/// assert_eq!((-f).copysign(-0.42), -3.5_f32);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(f32::nan().copysign(1.0).is_nan());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">copysign</span>(<span class="self">self</span>, <span class="ident">sign</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_sign_negative</span>() <span class="op">==</span> <span class="ident">sign</span>.<span class="ident">is_sign_negative</span>() {
+            <span class="self">self</span>
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">neg</span>()
+        }
+    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
@@ -4278,6 +4324,12 @@
                 <span class="ident"><span class="self">Self</span>::acosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
                 <span class="ident"><span class="self">Self</span>::atanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
             }
+
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_copysign</span>)]</span>
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">copysign</span>(<span class="self">self</span>, <span class="ident">sign</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
+                <span class="ident"><span class="self">Self</span>::copysign</span>(<span class="self">self</span>, <span class="ident">sign</span>)
+            }
         }
     };
 }
@@ -4303,7 +4355,7 @@
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
         <span class="kw">fn</span> <span class="ident">fract</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-            <span class="self">self</span> <span class="op">-</span> <span class="ident">FloatCore::trunc</span>(<span class="self">self</span>)
+            <span class="self">self</span> <span class="op">-</span> <span class="ident">Float::trunc</span>(<span class="self">self</span>)
         }
 
         <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -4324,8 +4376,6 @@
             <span class="ident">FloatCore::powi</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">i32</span>) -&gt; <span class="self">Self</span>;
             <span class="ident">FloatCore::to_degrees</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
             <span class="ident">FloatCore::to_radians</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
-            <span class="ident">FloatCore::max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
-            <span class="ident">FloatCore::min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
         }
     };
 }
@@ -4376,129 +4426,42 @@
     <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">libm::fdimf</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::floorf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::ceilf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::roundf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::truncf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::fabsf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::fmaf</span>(<span class="self">self</span>, <span class="ident">a</span>, <span class="ident">b</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::powf</span>(<span class="self">self</span>, <span class="ident">n</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::sqrtf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::expf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::exp2f</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::logf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::log2f</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::log10f</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::cbrtf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::hypotf</span>(<span class="self">self</span>, <span class="ident">other</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::sinf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::cosf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::tanf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::asinf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::acosf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::atanf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::atan2f</span>(<span class="self">self</span>, <span class="ident">other</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
-        <span class="ident">libm::sincosf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::expm1f</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::log1pf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::sinhf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::coshf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::tanhf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::asinhf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::acoshf</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::atanhf</span>(<span class="self">self</span>)
+
+    <span class="macro">forward!</span> {
+        <span class="ident">libm::floorf</span> <span class="kw">as</span> <span class="ident">floor</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::ceilf</span> <span class="kw">as</span> <span class="ident">ceil</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::roundf</span> <span class="kw">as</span> <span class="ident">round</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::truncf</span> <span class="kw">as</span> <span class="ident">trunc</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fabsf</span> <span class="kw">as</span> <span class="ident">abs</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fmaf</span> <span class="kw">as</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::powf</span> <span class="kw">as</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sqrtf</span> <span class="kw">as</span> <span class="ident">sqrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::expf</span> <span class="kw">as</span> <span class="ident">exp</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::exp2f</span> <span class="kw">as</span> <span class="ident">exp2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::logf</span> <span class="kw">as</span> <span class="ident">ln</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::log2f</span> <span class="kw">as</span> <span class="ident">log2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::log10f</span> <span class="kw">as</span> <span class="ident">log10</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::cbrtf</span> <span class="kw">as</span> <span class="ident">cbrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::hypotf</span> <span class="kw">as</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sinf</span> <span class="kw">as</span> <span class="ident">sin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::cosf</span> <span class="kw">as</span> <span class="ident">cos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::tanf</span> <span class="kw">as</span> <span class="ident">tan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::asinf</span> <span class="kw">as</span> <span class="ident">asin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::acosf</span> <span class="kw">as</span> <span class="ident">acos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::atanf</span> <span class="kw">as</span> <span class="ident">atan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::atan2f</span> <span class="kw">as</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sincosf</span> <span class="kw">as</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>);
+        <span class="ident">libm::expm1f</span> <span class="kw">as</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::log1pf</span> <span class="kw">as</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sinhf</span> <span class="kw">as</span> <span class="ident">sinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::coshf</span> <span class="kw">as</span> <span class="ident">cosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::tanhf</span> <span class="kw">as</span> <span class="ident">tanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::asinhf</span> <span class="kw">as</span> <span class="ident">asinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::acoshf</span> <span class="kw">as</span> <span class="ident">acosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::atanhf</span> <span class="kw">as</span> <span class="ident">atanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fmaxf</span> <span class="kw">as</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fminf</span> <span class="kw">as</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::copysignf</span> <span class="kw">as</span> <span class="ident">copysign</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
     }
 }
 
@@ -4511,129 +4474,42 @@
     <span class="kw">fn</span> <span class="ident">abs_sub</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">libm::fdim</span>(<span class="self">self</span>, <span class="ident">other</span>)
     }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">floor</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::floor</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ceil</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::ceil</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">round</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::round</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">trunc</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::trunc</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">abs</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::fabs</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::fma</span>(<span class="self">self</span>, <span class="ident">a</span>, <span class="ident">b</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::pow</span>(<span class="self">self</span>, <span class="ident">n</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sqrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::sqrt</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::exp</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::exp2</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::log</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::log2</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">log10</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::log10</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cbrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::cbrt</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::hypot</span>(<span class="self">self</span>, <span class="ident">other</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::sin</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::cos</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::tan</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::asin</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::acos</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::atan</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::atan2</span>(<span class="self">self</span>, <span class="ident">other</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>) {
-        <span class="ident">libm::sincos</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::expm1</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::log1p</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">sinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::sinh</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">cosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::cosh</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">tanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::tanh</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">asinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::asinh</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">acosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::acosh</span>(<span class="self">self</span>)
-    }
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">atanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">libm::atanh</span>(<span class="self">self</span>)
+
+    <span class="macro">forward!</span> {
+        <span class="ident">libm::floor</span> <span class="kw">as</span> <span class="ident">floor</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::ceil</span> <span class="kw">as</span> <span class="ident">ceil</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::round</span> <span class="kw">as</span> <span class="ident">round</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::trunc</span> <span class="kw">as</span> <span class="ident">trunc</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fabs</span> <span class="kw">as</span> <span class="ident">abs</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fma</span> <span class="kw">as</span> <span class="ident">mul_add</span>(<span class="self">self</span>, <span class="ident">a</span>: <span class="self">Self</span>, <span class="ident">b</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::pow</span> <span class="kw">as</span> <span class="ident">powf</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sqrt</span> <span class="kw">as</span> <span class="ident">sqrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::exp</span> <span class="kw">as</span> <span class="ident">exp</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::exp2</span> <span class="kw">as</span> <span class="ident">exp2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::log</span> <span class="kw">as</span> <span class="ident">ln</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::log2</span> <span class="kw">as</span> <span class="ident">log2</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::log10</span> <span class="kw">as</span> <span class="ident">log10</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::cbrt</span> <span class="kw">as</span> <span class="ident">cbrt</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::hypot</span> <span class="kw">as</span> <span class="ident">hypot</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sin</span> <span class="kw">as</span> <span class="ident">sin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::cos</span> <span class="kw">as</span> <span class="ident">cos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::tan</span> <span class="kw">as</span> <span class="ident">tan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::asin</span> <span class="kw">as</span> <span class="ident">asin</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::acos</span> <span class="kw">as</span> <span class="ident">acos</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::atan</span> <span class="kw">as</span> <span class="ident">atan</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::atan2</span> <span class="kw">as</span> <span class="ident">atan2</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sincos</span> <span class="kw">as</span> <span class="ident">sin_cos</span>(<span class="self">self</span>) -&gt; (<span class="self">Self</span>, <span class="self">Self</span>);
+        <span class="ident">libm::expm1</span> <span class="kw">as</span> <span class="ident">exp_m1</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::log1p</span> <span class="kw">as</span> <span class="ident">ln_1p</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::sinh</span> <span class="kw">as</span> <span class="ident">sinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::cosh</span> <span class="kw">as</span> <span class="ident">cosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::tanh</span> <span class="kw">as</span> <span class="ident">tanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::asinh</span> <span class="kw">as</span> <span class="ident">asinh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::acosh</span> <span class="kw">as</span> <span class="ident">acosh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::atanh</span> <span class="kw">as</span> <span class="ident">atanh</span>(<span class="self">self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fmax</span> <span class="kw">as</span> <span class="ident">max</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::fmin</span> <span class="kw">as</span> <span class="ident">min</span>(<span class="self">self</span>, <span class="ident">other</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
+        <span class="ident">libm::copysign</span> <span class="kw">as</span> <span class="ident">copysign</span>(<span class="self">self</span>, <span class="ident">sign</span>: <span class="self">Self</span>) -&gt; <span class="self">Self</span>;
     }
 }
 
@@ -4781,6 +4657,52 @@
 
         <span class="ident">check</span>::<span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>(<span class="number">1e-6</span>);
         <span class="ident">check</span>::<span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>(<span class="number">1e-12</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">copysign</span>() {
+        <span class="kw">use</span> <span class="ident">float::Float</span>;
+        <span class="ident">test_copysign_generic</span>(<span class="number">2.0_f32</span>, <span class="op">-</span><span class="number">2.0_f32</span>, <span class="ident">f32::nan</span>());
+        <span class="ident">test_copysign_generic</span>(<span class="number">2.0_f64</span>, <span class="op">-</span><span class="number">2.0_f64</span>, <span class="ident">f64::nan</span>());
+        <span class="ident">test_copysignf</span>(<span class="number">2.0_f32</span>, <span class="op">-</span><span class="number">2.0_f32</span>, <span class="ident">f32::nan</span>());
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">test_copysignf</span>(<span class="ident">p</span>: <span class="ident">f32</span>, <span class="ident">n</span>: <span class="ident">f32</span>, <span class="ident">nan</span>: <span class="ident">f32</span>) {
+        <span class="kw">use</span> <span class="ident">core::ops::Neg</span>;
+        <span class="kw">use</span> <span class="ident">float::Float</span>;
+
+        <span class="macro">assert!</span>(<span class="ident">p</span>.<span class="ident">is_sign_positive</span>());
+        <span class="macro">assert!</span>(<span class="ident">n</span>.<span class="ident">is_sign_negative</span>());
+        <span class="macro">assert!</span>(<span class="ident">nan</span>.<span class="ident">is_nan</span>());
+
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="ident">Float::copysign</span>(<span class="ident">p</span>, <span class="ident">p</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>.<span class="ident">neg</span>(), <span class="ident">Float::copysign</span>(<span class="ident">p</span>, <span class="ident">n</span>));
+
+        <span class="macro">assert_eq!</span>(<span class="ident">n</span>, <span class="ident">Float::copysign</span>(<span class="ident">n</span>, <span class="ident">n</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">n</span>.<span class="ident">neg</span>(), <span class="ident">Float::copysign</span>(<span class="ident">n</span>, <span class="ident">p</span>));
+
+        <span class="comment">// FIXME: is_sign... only works on NaN starting in Rust 1.20</span>
+        <span class="comment">// assert!(Float::copysign(nan, p).is_sign_positive());</span>
+        <span class="comment">// assert!(Float::copysign(nan, n).is_sign_negative());</span>
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;libm&quot;</span>))]</span>
+    <span class="kw">fn</span> <span class="ident">test_copysign_generic</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">::float::Float</span> <span class="op">+</span> <span class="ident">::core::fmt::Debug</span><span class="op">&gt;</span>(<span class="ident">p</span>: <span class="ident">F</span>, <span class="ident">n</span>: <span class="ident">F</span>, <span class="ident">nan</span>: <span class="ident">F</span>) {
+        <span class="macro">assert!</span>(<span class="ident">p</span>.<span class="ident">is_sign_positive</span>());
+        <span class="macro">assert!</span>(<span class="ident">n</span>.<span class="ident">is_sign_negative</span>());
+        <span class="macro">assert!</span>(<span class="ident">nan</span>.<span class="ident">is_nan</span>());
+
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>, <span class="ident">p</span>.<span class="ident">copysign</span>(<span class="ident">p</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">p</span>.<span class="ident">neg</span>(), <span class="ident">p</span>.<span class="ident">copysign</span>(<span class="ident">n</span>));
+
+        <span class="macro">assert_eq!</span>(<span class="ident">n</span>, <span class="ident">n</span>.<span class="ident">copysign</span>(<span class="ident">n</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">n</span>.<span class="ident">neg</span>(), <span class="ident">n</span>.<span class="ident">copysign</span>(<span class="ident">p</span>));
+
+        <span class="comment">// FIXME: is_sign... only works on NaN starting in Rust 1.20</span>
+        <span class="comment">// assert!(nan.copysign(p).is_sign_positive());</span>
+        <span class="comment">// assert!(nan.copysign(n).is_sign_negative());</span>
     }
 }
 </code></pre></div>
