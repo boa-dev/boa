@@ -1,0 +1,97 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Zero-copy vector abstractions over byte arrays."><meta name="keywords" content="rust, rustlang, rust-lang, zerovec"><title>zerovec - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate zerovec</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.6.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li></ul></div></section><div id="sidebar-vars" data-name="zerovec" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../zerovec/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">zerovec</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/zerovec/lib.rs.html#5-119">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Zero-copy vector abstractions over byte arrays.</p>
+<p><code>zerovec</code> enable vectors of multibyte types to be backed by a byte array, abstracting away
+issues including memory alignment and endianness.</p>
+<p>This crate has four main types:</p>
+<ul>
+<li><a href="enum.ZeroVec.html"><code>ZeroVec&lt;T&gt;</code></a> for fixed-width types like <code>u32</code></li>
+<li><a href="varzerovec/enum.VarZeroVec.html"><code>VarZeroVec&lt;T&gt;</code></a> for variable-width types like <code>str</code></li>
+<li><a href="map/struct.ZeroMap.html"><code>ZeroMap&lt;K, V&gt;</code></a> to map from <code>K</code> to <code>V</code></li>
+<li><a href="map2d/struct.ZeroMap2d.html"><code>ZeroMap2d&lt;K0, K1, V&gt;</code></a> to map from the pair <code>(K0, K1)</code> to <code>V</code></li>
+</ul>
+<p>The first two are intended as drop-in replacements for <code>Vec&lt;T&gt;</code> in Serde structs serialized
+with a format supporting a borrowed byte buffer, like Bincode. The third and fourth are
+intended as a replacement for <code>HashMap</code> or <code>LiteMap</code>.</p>
+<p>Clients upgrading to <code>zerovec</code> benefit from zero heap allocations when deserializing
+read-only data.</p>
+<p>This crate has two optional features: <code>serde</code> and <code>yoke</code>. <code>serde</code> allows serializing and deserializing
+<code>zerovec</code>’s abstractions via <a href="https://docs.rs/serde"><code>serde</code></a>, and <code>yoke</code> enables implementations of <code>Yokeable</code>
+from the <a href="https://docs.rs/yoke/"><code>yoke</code></a> crate.</p>
+<h2 id="performance"><a href="#performance">Performance</a></h2>
+<p><code>zerovec</code> is designed for fast deserialization from byte buffers with zero memory allocations
+while minimizing performance regressions for common vector operations.</p>
+<p>Benchmark results on x86_64:</p>
+<div><table><thead><tr><th>Operation</th><th><code>Vec&lt;T&gt;</code></th><th><code>zerovec</code></th></tr></thead><tbody>
+<tr><td>Deserialize vec of 100 <code>u32</code></td><td>233.18 ns</td><td>14.120 ns</td></tr>
+<tr><td>Compute sum of vec of 100 <code>u32</code> (read every element)</td><td>8.7472 ns</td><td>10.775 ns</td></tr>
+<tr><td>Binary search vec of 1000 <code>u32</code> 50 times</td><td>442.80 ns</td><td>472.51 ns</td></tr>
+<tr><td>Deserialize vec of 100 strings</td><td>7.3740 μs*</td><td>1.4495 μs</td></tr>
+<tr><td>Count chars in vec of 100 strings (read every element)</td><td>747.50 ns</td><td>955.28 ns</td></tr>
+<tr><td>Binary search vec of 500 strings 10 times</td><td>466.09 ns</td><td>790.33 ns</td></tr>
+</tbody></table>
+</div>
+<p>* <em>This result is reported for <code>Vec&lt;String&gt;</code>. However, Serde also supports deserializing to <code>Vec&lt;&amp;str&gt;</code>; this gives 1.8420 μs, much faster than <code>Vec&lt;String&gt;</code> but a bit slower than <code>zerovec</code>.</em></p>
+<div><table><thead><tr><th>Operation</th><th><code>HashMap&lt;K,V&gt;</code></th><th><code>LiteMap&lt;K,V&gt;</code></th><th><code>ZeroMap&lt;K,V&gt;</code></th></tr></thead><tbody>
+<tr><td>Deserialize a small map</td><td>2.72 μs</td><td>1.28 μs</td><td>480 ns</td></tr>
+<tr><td>Deserialize a large map</td><td>50.5 ms</td><td>18.3 ms</td><td>3.74 ms</td></tr>
+<tr><td>Look up from a small deserialized map</td><td>49 ns</td><td>42 ns</td><td>54 ns</td></tr>
+<tr><td>Look up from a large deserialized map</td><td>51 ns</td><td>155 ns</td><td>213 ns</td></tr>
+</tbody></table>
+</div>
+<p>Small = 16 elements, large = 131,072 elements. Maps contain <code>&lt;String, String&gt;</code>.</p>
+<p>The benches used to generate the above table can be found in the <code>benches</code> directory in the project repository.
+<code>zeromap</code> benches are named by convention, e.g. <code>zeromap/deserialize/small</code>, <code>zeromap/lookup/large</code>. The type
+is appended for baseline comparisons, e.g. <code>zeromap/lookup/small/hashmap</code>.</p>
+<h2 id="features"><a href="#features">Features</a></h2>
+<ul>
+<li><code>serde</code>: enables Serde Serialize/Deserialize impls for ZeroVec and VarZeroVec.</li>
+</ul>
+<h2 id="examples"><a href="#examples">Examples</a></h2>
+<p>Serialize and deserialize a struct with ZeroVec and VarZeroVec with Bincode:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">zerovec</span>::{<span class="ident">ZeroVec</span>, <span class="ident">VarZeroVec</span>};
+
+<span class="comment">// This example requires the &quot;serde&quot; feature</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">borrow</span>)]</span>
+    <span class="ident">nums</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">borrow</span>)]</span>
+    <span class="ident">strs</span>: <span class="ident">VarZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">DataStruct</span> {
+    <span class="ident">nums</span>: <span class="ident">ZeroVec::from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">211</span>, <span class="number">281</span>, <span class="number">421</span>, <span class="number">461</span>]),
+    <span class="ident">strs</span>: <span class="ident">VarZeroVec::from</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;hello&quot;</span>, <span class="string">&quot;world&quot;</span>]),
+};
+<span class="kw">let</span> <span class="ident">bincode_bytes</span> <span class="op">=</span> <span class="ident">bincode::serialize</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>)
+    .<span class="ident">expect</span>(<span class="string">&quot;Serialization should be successful&quot;</span>);
+<span class="macro">assert_eq!</span>(<span class="number">54</span>, <span class="ident">bincode_bytes</span>.<span class="ident">len</span>());
+
+<span class="kw">let</span> <span class="ident">deserialized</span>: <span class="ident">DataStruct</span> <span class="op">=</span> <span class="ident">bincode::deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">bincode_bytes</span>)
+    .<span class="ident">expect</span>(<span class="string">&quot;Deserialization should be successful&quot;</span>);
+<span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="number">211</span>), <span class="ident">deserialized</span>.<span class="ident">nums</span>.<span class="ident">first</span>());
+<span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>(<span class="string">&quot;world&quot;</span>), <span class="ident">deserialized</span>.<span class="ident">strs</span>.<span class="ident">get</span>(<span class="number">1</span>));
+<span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">deserialized</span>.<span class="ident">nums</span>, <span class="ident">ZeroVec::Borrowed</span>(<span class="kw">_</span>)));</code></pre></div>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use crate::map::<a class="struct" href="map/struct.ZeroMap.html" title="struct zerovec::map::ZeroMap">ZeroMap</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::map2d::<a class="struct" href="map2d/struct.ZeroMap2d.html" title="struct zerovec::map2d::ZeroMap2d">ZeroMap2d</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::varzerovec::<a class="enum" href="varzerovec/enum.VarZeroVec.html" title="enum zerovec::varzerovec::VarZeroVec">VarZeroVec</a>;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="map/index.html" title="zerovec::map mod">map</a></div><div class="item-right docblock-short"><p>See <a href="map/struct.ZeroMap.html" title="ZeroMap"><code>ZeroMap</code></a> for details.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="map2d/index.html" title="zerovec::map2d mod">map2d</a></div><div class="item-right docblock-short"><p>See <a href="map2d/struct.ZeroMap2d.html" title="ZeroMap2d"><code>ZeroMap2d</code></a> for details.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ule/index.html" title="zerovec::ule mod">ule</a></div><div class="item-right docblock-short"><p>Traits over unaligned little-endian data (ULE, pronounced “yule”).</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="varzerovec/index.html" title="zerovec::varzerovec mod">varzerovec</a></div><div class="item-right docblock-short"></div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.VarZeroSlice.html" title="zerovec::VarZeroSlice struct">VarZeroSlice</a></div><div class="item-right docblock-short"><p>A zero-copy “slice”, that works for unsized types, i.e. the zero-copy version of <code>[T]</code>
+where <code>T</code> is not <code>Sized</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ZeroSlice.html" title="zerovec::ZeroSlice struct">ZeroSlice</a></div><div class="item-right docblock-short"><p>A zero-copy “slice”, i.e. the zero-copy version of <code>[T]</code>. This behaves
+similarly to <a href="enum.ZeroVec.html" title="ZeroVec&lt;T&gt;"><code>ZeroVec&lt;T&gt;</code></a>, however <a href="enum.ZeroVec.html" title="ZeroVec&lt;T&gt;"><code>ZeroVec&lt;T&gt;</code></a> is allowed to contain
+owned data and as such is ideal for deserialization since most human readable
+serialization formats cannot unconditionally deserialize zero-copy.</p>
+</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ZeroVec.html" title="zerovec::ZeroVec enum">ZeroVec</a></div><div class="item-right docblock-short"><p>A zero-copy vector for fixed-width types.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.ZeroVecError.html" title="zerovec::ZeroVecError enum">ZeroVecError</a></div><div class="item-right docblock-short"><p>A generic error type to be used for decoding slices of ULE types</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="zerovec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
+</body></html>

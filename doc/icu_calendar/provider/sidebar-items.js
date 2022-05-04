@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["key","Resource keys for `icu_decimal`."]],"struct":[["EraStartDate","The date at which an era started"],["JapaneseErasV1",""],["JapaneseErasV1Marker","Marker type for [`JapaneseErasV1`]"]]});

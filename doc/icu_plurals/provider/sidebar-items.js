@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["key",""]],"struct":[["PluralRulesV1","Plural rule strings conforming to UTS 35 syntax. Includes separate fields for five of the six standard plural forms. If none of the rules match, the “other” category is assumed."],["PluralRulesV1Marker","Marker type for [`PluralRulesV1`]"]]});

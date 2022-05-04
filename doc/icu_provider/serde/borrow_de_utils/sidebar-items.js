@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["array_of_cow",""],["option_of_cow",""]],"struct":[["CowWrap",""]]});

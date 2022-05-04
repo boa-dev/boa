@@ -1,0 +1,135 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A TOML-parsing library"><meta name="keywords" content="rust, rustlang, rust-lang, toml"><title>toml - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../toml/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate toml</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.5.9</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li></ul></div></section><div id="sidebar-vars" data-name="toml" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../toml/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">toml</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/toml/lib.rs.html#1-180">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A <a href="https://github.com/toml-lang/toml">TOML</a>-parsing library</p>
+<p>This library implements a <a href="https://github.com/toml-lang/toml">TOML</a> v0.5.0 compatible parser,
+primarily supporting the <a href="https://serde.rs/"><code>serde</code></a> library for encoding/decoding
+various types in Rust.</p>
+<p>TOML itself is a simple, ergonomic, and readable configuration format:</p>
+<div class="example-wrap"><pre class="language-toml"><code>[package]
+name = &quot;toml&quot;
+version = &quot;0.4.2&quot;
+authors = [&quot;Alex Crichton &lt;alex@alexcrichton.com&gt;&quot;]
+
+[dependencies]
+serde = &quot;1.0&quot;</code></pre></div>
+<p>The TOML format tends to be relatively common throughout the Rust community
+for configuration, notably being used by <a href="https://crates.io/">Cargo</a>, Rust’s package manager.</p>
+<h3 id="toml-values"><a href="#toml-values">TOML values</a></h3>
+<p>A value in TOML is represented with the <a href="value/enum.Value.html" title="Value"><code>Value</code></a> enum in this crate:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Value</span> {
+    <span class="ident">String</span>(<span class="ident">String</span>),
+    <span class="ident">Integer</span>(<span class="ident">i64</span>),
+    <span class="ident">Float</span>(<span class="ident">f64</span>),
+    <span class="ident">Boolean</span>(<span class="ident">bool</span>),
+    <span class="ident">Datetime</span>(<span class="ident">Datetime</span>),
+    <span class="ident">Array</span>(<span class="ident">Array</span>),
+    <span class="ident">Table</span>(<span class="ident">Table</span>),
+}</code></pre></div>
+<p>TOML is similar to JSON with the notable addition of a <a href="value/struct.Datetime.html" title="Datetime"><code>Datetime</code></a>
+type. In general, TOML and JSON are interchangeable in terms of
+formats.</p>
+<h3 id="parsing-toml"><a href="#parsing-toml">Parsing TOML</a></h3>
+<p>The easiest way to parse a TOML document is via the <a href="value/enum.Value.html" title="Value"><code>Value</code></a> type:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">toml::Value</span>;
+
+<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="string">&quot;foo = &#39;bar&#39;&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
+
+<span class="macro">assert_eq!</span>(<span class="ident">value</span>[<span class="string">&quot;foo&quot;</span>].<span class="ident">as_str</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;bar&quot;</span>));</code></pre></div>
+<p>The <a href="value/enum.Value.html" title="Value"><code>Value</code></a> type implements a number of convenience methods and
+traits; the example above uses <a href="https://doc.rust-lang.org/1.60.0/core/str/traits/trait.FromStr.html" title="FromStr"><code>FromStr</code></a> to parse a <a href="https://doc.rust-lang.org/1.60.0/std/primitive.str.html" title="str"><code>str</code></a> into a
+<a href="value/enum.Value.html" title="Value"><code>Value</code></a>.</p>
+<h3 id="deserialization-and-serialization"><a href="#deserialization-and-serialization">Deserialization and Serialization</a></h3>
+<p>This crate supports <a href="https://serde.rs/"><code>serde</code></a> 1.0 with a number of
+implementations of the <code>Deserialize</code>, <code>Serialize</code>, <code>Deserializer</code>, and
+<code>Serializer</code> traits. Namely, you’ll find:</p>
+<ul>
+<li><code>Deserialize for Value</code></li>
+<li><code>Serialize for Value</code></li>
+<li><code>Deserialize for Datetime</code></li>
+<li><code>Serialize for Datetime</code></li>
+<li><code>Deserializer for de::Deserializer</code></li>
+<li><code>Serializer for ser::Serializer</code></li>
+<li><code>Deserializer for Value</code></li>
+</ul>
+<p>This means that you can use Serde to deserialize/serialize the
+<a href="value/enum.Value.html" title="Value"><code>Value</code></a> type as well as the <a href="value/struct.Datetime.html" title="Datetime"><code>Datetime</code></a> type in this crate. You can also
+use the <a href="de/struct.Deserializer.html" title="Deserializer"><code>Deserializer</code></a>, <a href="ser/struct.Serializer.html" title="Serializer"><code>Serializer</code></a>, or <a href="value/enum.Value.html" title="Value"><code>Value</code></a> type itself to act as
+a deserializer/serializer for arbitrary types.</p>
+<p>An example of deserializing with TOML is:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">serde_derive::Deserialize</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Config</span> {
+    <span class="ident">ip</span>: <span class="ident">String</span>,
+    <span class="ident">port</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
+    <span class="ident">keys</span>: <span class="ident">Keys</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Deserialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Keys</span> {
+    <span class="ident">github</span>: <span class="ident">String</span>,
+    <span class="ident">travis</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="ident">config</span>: <span class="ident">Config</span> <span class="op">=</span> <span class="ident">toml::from_str</span>(<span class="string">r#&quot;
+        ip = &#39;127.0.0.1&#39;
+
+        [keys]
+        github = &#39;xxxxxxxxxxxxxxxxx&#39;
+        travis = &#39;yyyyyyyyyyyyyyyyy&#39;
+    &quot;#</span>).<span class="ident">unwrap</span>();
+
+    <span class="macro">assert_eq!</span>(<span class="ident">config</span>.<span class="ident">ip</span>, <span class="string">&quot;127.0.0.1&quot;</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">config</span>.<span class="ident">port</span>, <span class="prelude-val">None</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">config</span>.<span class="ident">keys</span>.<span class="ident">github</span>, <span class="string">&quot;xxxxxxxxxxxxxxxxx&quot;</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">config</span>.<span class="ident">keys</span>.<span class="ident">travis</span>.<span class="ident">as_ref</span>().<span class="ident">unwrap</span>(), <span class="string">&quot;yyyyyyyyyyyyyyyyy&quot;</span>);
+}</code></pre></div>
+<p>You can serialize types in a similar fashion:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">serde_derive::Serialize</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Config</span> {
+    <span class="ident">ip</span>: <span class="ident">String</span>,
+    <span class="ident">port</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span>,
+    <span class="ident">keys</span>: <span class="ident">Keys</span>,
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Keys</span> {
+    <span class="ident">github</span>: <span class="ident">String</span>,
+    <span class="ident">travis</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">fn</span> <span class="ident">main</span>() {
+    <span class="kw">let</span> <span class="ident">config</span> <span class="op">=</span> <span class="ident">Config</span> {
+        <span class="ident">ip</span>: <span class="string">&quot;127.0.0.1&quot;</span>.<span class="ident">to_string</span>(),
+        <span class="ident">port</span>: <span class="prelude-val">None</span>,
+        <span class="ident">keys</span>: <span class="ident">Keys</span> {
+            <span class="ident">github</span>: <span class="string">&quot;xxxxxxxxxxxxxxxxx&quot;</span>.<span class="ident">to_string</span>(),
+            <span class="ident">travis</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;yyyyyyyyyyyyyyyyy&quot;</span>.<span class="ident">to_string</span>()),
+        },
+    };
+
+    <span class="kw">let</span> <span class="ident">toml</span> <span class="op">=</span> <span class="ident">toml::to_string</span>(<span class="kw-2">&amp;</span><span class="ident">config</span>).<span class="ident">unwrap</span>();
+}</code></pre></div>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left import-item"><code>pub use crate::value::<a class="enum" href="value/enum.Value.html" title="enum toml::value::Value">Value</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::ser::<a class="fn" href="ser/fn.to_string.html" title="fn toml::ser::to_string">to_string</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::ser::<a class="fn" href="ser/fn.to_string_pretty.html" title="fn toml::ser::to_string_pretty">to_string_pretty</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::ser::<a class="fn" href="ser/fn.to_vec.html" title="fn toml::ser::to_vec">to_vec</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::ser::<a class="struct" href="ser/struct.Serializer.html" title="struct toml::ser::Serializer">Serializer</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::de::<a class="fn" href="de/fn.from_slice.html" title="fn toml::de::from_slice">from_slice</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::de::<a class="fn" href="de/fn.from_str.html" title="fn toml::de::from_str">from_str</a>;</code></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left import-item"><code>pub use crate::de::<a class="struct" href="de/struct.Deserializer.html" title="struct toml::de::Deserializer">Deserializer</a>;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="de/index.html" title="toml::de mod">de</a></div><div class="item-right docblock-short"><p>Deserializing TOML into Rust structures.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="map/index.html" title="toml::map mod">map</a></div><div class="item-right docblock-short"><p>A map of String to toml::Value.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="ser/index.html" title="toml::ser mod">ser</a></div><div class="item-right docblock-short"><p>Serializing Rust structures into TOML.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="value/index.html" title="toml::value mod">value</a></div><div class="item-right docblock-short"><p>Definition of a TOML value</p>
+</div></div></div><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.toml.html" title="toml::toml macro">toml</a></div><div class="item-right docblock-short"><p>Construct a <a href="value/enum.Value.html"><code>toml::Value</code></a> from TOML syntax.</p>
+</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Spanned.html" title="toml::Spanned struct">Spanned</a></div><div class="item-right docblock-short"><p>A spanned value, indicating the range at which it is defined in the source.</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="toml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
+</body></html>

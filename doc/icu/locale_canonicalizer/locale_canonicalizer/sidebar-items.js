@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["CanonicalizationResult","Used to track the result of a canonicalization operation that potentially modifies its argument in place."]],"struct":[["LocaleCanonicalizer","LocaleCanonicalizer implementation."]]});

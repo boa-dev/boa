@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Key","A single item used in a list of `Other` extensions."],["Other","A list of `Other Use Extensions` as defined in `Unicode Locale Identifier` specification."]]});

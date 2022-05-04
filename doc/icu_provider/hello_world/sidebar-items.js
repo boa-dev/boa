@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["key",""]],"struct":[["HelloWorldJsonProvider",""],["HelloWorldProvider","A data provider returning Hello World strings in different languages."],["HelloWorldV1","A struct containing “Hello World” in the requested language."],["HelloWorldV1Marker","Marker type for [`HelloWorldV1`]."]]});

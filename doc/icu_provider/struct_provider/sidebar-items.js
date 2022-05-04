@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["AnyPayloadProvider","A data provider that returns clones of a constant type-erased payload."]]});

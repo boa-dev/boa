@@ -1,0 +1,1 @@
+initSidebarItems({"constant":[["SYMBOLS_V1","Resource key: symbols used for basic decimal formatting."]]});

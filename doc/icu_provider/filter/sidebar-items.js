@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["RequestFilterDataProvider","A data provider that selectively filters out data requests."]],"trait":[["Filterable",""]]});

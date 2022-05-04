@@ -1,0 +1,1 @@
+initSidebarItems({"derive":[["Yokeable","Custom derive for `yoke::Yokeable`,"],["ZeroCopyFrom","Custom derive for `yoke::ZeroCopyFrom`,"]]});

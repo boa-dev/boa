@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["InvariantDataProvider","A locale-invariant data provider. Sometimes useful for testing. Not intended to be used in production environments."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Fields","A list of [`Key`]-[`Value`] pairs representing functional information about content transformations."],["Key","A key used in a list of `Fields`."],["Transform","A list of `Unicode BCP47 T Extensions` as defined in `Unicode Locale Identifier` specification."],["Value",""]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["EncodeAsVarULE","Allows types to be encoded as VarULEs. This is highly useful for implementing VarULE on custom DSTs where the type cannot be obtained as a reference to some other type."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["YokeTraitHack","A wrapper around a type `T`, forwarding trait calls down to the inner type."]]});

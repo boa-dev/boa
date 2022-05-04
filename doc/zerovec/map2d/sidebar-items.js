@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ZeroMap2d","A zero-copy, two-dimensional map datastructure ."],["ZeroMap2dBorrowed","A borrowed-only version of `ZeroMap2d`"]]});
