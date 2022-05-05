@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1651696126557,
+  "lastUpdate": 1651764181584,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -77783,6 +77783,432 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Execution)",
             "value": 625129,
             "range": "± 3562",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "distinct": false,
+          "id": "0e49ce863bf1e8e4c584c842cfc74d20ee0f87a1",
+          "message": "Bump webpack-dev-server from 4.8.1 to 4.9.0 (#2061)\n\nBumps [webpack-dev-server](https://github.com/webpack/webpack-dev-server) from 4.8.1 to 4.9.0.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a href=\"https://github.com/webpack/webpack-dev-server/releases\">webpack-dev-server's releases</a>.</em></p>\n<blockquote>\n<h2>v4.9.0</h2>\n<h2><a href=\"https://github.com/webpack/webpack-dev-server/compare/v4.8.1...v4.9.0\">4.9.0</a> (2022-05-04)</h2>\n<h3>Features</h3>\n<ul>\n<li>support Trusted Types for client overlay (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4404\">#4404</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/8132e1d029badab7b1e836f8f240844c2d843ecc\">8132e1d</a>)</li>\n</ul>\n<h3>Bug Fixes</h3>\n<ul>\n<li>ie11 runtime (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4403\">#4403</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/256d5fb5fea7ee5a6683f77ea347ac79816ad639\">256d5fb</a>)</li>\n<li>replace portfinder with custom implementation and fix security problem (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4384\">#4384</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/eea50f342e3090483f6da4932b84ed52bba44c58\">eea50f3</a>)</li>\n<li>use the host in options to check if port is available (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4385\">#4385</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/a10c7cfd290d29384d14405d7cf79e105c7b5d15\">a10c7cf</a>)</li>\n</ul>\n</blockquote>\n</details>\n<details>\n<summary>Changelog</summary>\n<p><em>Sourced from <a href=\"https://github.com/webpack/webpack-dev-server/blob/master/CHANGELOG.md\">webpack-dev-server's changelog</a>.</em></p>\n<blockquote>\n<h2><a href=\"https://github.com/webpack/webpack-dev-server/compare/v4.8.1...v4.9.0\">4.9.0</a> (2022-05-04)</h2>\n<h3>Features</h3>\n<ul>\n<li>support Trusted Types for client overlay (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4404\">#4404</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/8132e1d029badab7b1e836f8f240844c2d843ecc\">8132e1d</a>)</li>\n</ul>\n<h3>Bug Fixes</h3>\n<ul>\n<li>ie11 runtime (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4403\">#4403</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/256d5fb5fea7ee5a6683f77ea347ac79816ad639\">256d5fb</a>)</li>\n<li>replace portfinder with custom implementation and fix security problem (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4384\">#4384</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/eea50f342e3090483f6da4932b84ed52bba44c58\">eea50f3</a>)</li>\n<li>use the host in options to check if port is available (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4385\">#4385</a>) (<a href=\"https://github.com/webpack/webpack-dev-server/commit/a10c7cfd290d29384d14405d7cf79e105c7b5d15\">a10c7cf</a>)</li>\n</ul>\n</blockquote>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/4340c73fbc3cfcada3cfa3efd1c87895f9135659\"><code>4340c73</code></a> chore(release): 4.9.0</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/2b386fb671f2ad45ef9ee49fd66be090a338dac9\"><code>2b386fb</code></a> test: update (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4427\">#4427</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/925370ec6cf6649416168bd4879df66a3cef0dc3\"><code>925370e</code></a> chore(deps-dev): bump marked from 4.0.14 to 4.0.15 (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4426\">#4426</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/8132e1d029badab7b1e836f8f240844c2d843ecc\"><code>8132e1d</code></a> feat: support Trusted Types for client overlay (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4404\">#4404</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/79536ab657ffe06587b1c774bbb6093bae85f1c1\"><code>79536ab</code></a> chore(deps-dev): bump core-js from 3.22.3 to 3.22.4 (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4425\">#4425</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/c2fee3b585307017c66b322afd78220e6b6c835a\"><code>c2fee3b</code></a> chore(deps-dev): bump <code>@​babel/preset-env</code> from 7.16.11 to 7.17.10 (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4422\">#4422</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/a6a367a4ce2a48ab0bd61bbe5e799b5f816be1e1\"><code>a6a367a</code></a> chore(deps-dev): bump <code>@​babel/plugin-transform-runtime</code> (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4423\">#4423</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/710f2e265297afd7bd3cdffbb844f7eca10a028e\"><code>710f2e2</code></a> chore: bump <code>@​commitlint/config-conventional</code> (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4411\">#4411</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/e42d691de99d87f9b97802ad1808a0d7fcb854b1\"><code>e42d691</code></a> chore(deps): bump ws from 8.5.0 to 8.6.0 (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4418\">#4418</a>)</li>\n<li><a href=\"https://github.com/webpack/webpack-dev-server/commit/401493d9b00020040ede3cef30a38d39b567b7bb\"><code>401493d</code></a> chore(deps): bump express from 4.18.0 to 4.18.1 (<a href=\"https://github-redirect.dependabot.com/webpack/webpack-dev-server/issues/4419\">#4419</a>)</li>\n<li>Additional commits viewable in <a href=\"https://github.com/webpack/webpack-dev-server/compare/v4.8.1...v4.9.0\">compare view</a></li>\n</ul>\n</details>\n<br />\n\n\n[![Dependabot compatibility score](https://dependabot-badges.githubapp.com/badges/compatibility_score?dependency-name=webpack-dev-server&package-manager=npm_and_yarn&previous-version=4.8.1&new-version=4.9.0)](https://docs.github.com/en/github/managing-security-vulnerabilities/about-dependabot-security-updates#about-compatibility-scores)\n\nDependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after your CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge and block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating it. You can achieve the same result by closing it manually\n- `@dependabot ignore this major version` will close this PR and stop Dependabot creating any more for this major version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop Dependabot creating any more for this minor version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop Dependabot creating any more for this dependency (unless you reopen the PR or upgrade to it yourself)\n\n\n</details>",
+          "timestamp": "2022-05-05T14:47:59Z",
+          "tree_id": "66311772fd2542fe8f32d58925d7bed8034f25cf",
+          "url": "https://github.com/boa-dev/boa/commit/0e49ce863bf1e8e4c584c842cfc74d20ee0f87a1"
+        },
+        "date": 1651764116168,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 279,
+            "range": "± 16",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Parser)",
+            "value": 4197,
+            "range": "± 309",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 13751,
+            "range": "± 622",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Parser)",
+            "value": 16039,
+            "range": "± 744",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Parser)",
+            "value": 8821,
+            "range": "± 398",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Parser)",
+            "value": 9607,
+            "range": "± 442",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Parser)",
+            "value": 11697,
+            "range": "± 514",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Parser)",
+            "value": 6955,
+            "range": "± 421",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Parser)",
+            "value": 8830,
+            "range": "± 483",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Parser)",
+            "value": 8178,
+            "range": "± 429",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Parser)",
+            "value": 10209,
+            "range": "± 597",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Parser)",
+            "value": 12154,
+            "range": "± 595",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Parser)",
+            "value": 13868,
+            "range": "± 586",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Parser)",
+            "value": 143378,
+            "range": "± 6029",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Parser)",
+            "value": 7762,
+            "range": "± 621",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Parser)",
+            "value": 11005,
+            "range": "± 432",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Parser)",
+            "value": 5710,
+            "range": "± 475",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Parser)",
+            "value": 12719,
+            "range": "± 164",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Parser)",
+            "value": 15824,
+            "range": "± 616",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Parser)",
+            "value": 15325,
+            "range": "± 558",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Parser)",
+            "value": 5885,
+            "range": "± 426",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 30795,
+            "range": "± 1874",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 26129,
+            "range": "± 1384",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Compiler)",
+            "value": 940,
+            "range": "± 83",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Compiler)",
+            "value": 1896,
+            "range": "± 103",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Compiler)",
+            "value": 2208,
+            "range": "± 110",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Compiler)",
+            "value": 1402,
+            "range": "± 276",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Compiler)",
+            "value": 1510,
+            "range": "± 101",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Compiler)",
+            "value": 1676,
+            "range": "± 72",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Compiler)",
+            "value": 1401,
+            "range": "± 78",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Compiler)",
+            "value": 1364,
+            "range": "± 64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Compiler)",
+            "value": 1606,
+            "range": "± 77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Compiler)",
+            "value": 1602,
+            "range": "± 71",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Compiler)",
+            "value": 1268,
+            "range": "± 73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Compiler)",
+            "value": 1689,
+            "range": "± 77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Compiler)",
+            "value": 3762,
+            "range": "± 285",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Compiler)",
+            "value": 1611,
+            "range": "± 87",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Compiler)",
+            "value": 2020,
+            "range": "± 113",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Compiler)",
+            "value": 1509,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Compiler)",
+            "value": 1082,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Compiler)",
+            "value": 1000,
+            "range": "± 65",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Compiler)",
+            "value": 1501,
+            "range": "± 58",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Compiler)",
+            "value": 541,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Compiler)",
+            "value": 3373,
+            "range": "± 149",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Compiler)",
+            "value": 3202,
+            "range": "± 125",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4217,
+            "range": "± 206",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 15370,
+            "range": "± 731",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 1367613,
+            "range": "± 108359",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Execution)",
+            "value": 5173,
+            "range": "± 246",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Execution)",
+            "value": 5302,
+            "range": "± 237",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Execution)",
+            "value": 5749,
+            "range": "± 308",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Execution)",
+            "value": 10568,
+            "range": "± 237",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Execution)",
+            "value": 10871,
+            "range": "± 341",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Execution)",
+            "value": 13822,
+            "range": "± 2796",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 13599,
+            "range": "± 513",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Execution)",
+            "value": 8906,
+            "range": "± 280",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Execution)",
+            "value": 2693838,
+            "range": "± 112900",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1170853,
+            "range": "± 48794",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Execution)",
+            "value": 5239,
+            "range": "± 52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Execution)",
+            "value": 5404,
+            "range": "± 66",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 4808,
+            "range": "± 52",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Execution)",
+            "value": 3403,
+            "range": "± 185",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Execution)",
+            "value": 4453,
+            "range": "± 315",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Execution)",
+            "value": 6480,
+            "range": "± 350",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Execution)",
+            "value": 646,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 669707,
+            "range": "± 32852",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 655754,
+            "range": "± 37251",
             "unit": "ns/iter"
           }
         ]
