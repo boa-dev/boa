@@ -1,4 +1,4 @@
-use crate::{Context, JsString};
+use crate::{object::JsObject, Context, JsString, JsValue};
 
 use rustc_hash::FxHashMap;
 
@@ -243,4 +243,522 @@ fn locale_resolution() {
         crate::builtins::intl::default_locale()
     );
     assert_eq!(locale_record.properties.is_empty(), true);
+}
+
+#[test]
+fn get_opt() {
+    let mut context = Context::default();
+
+    let values = Vec::<JsValue>::new();
+    let options_obj = JsValue::undefined();
+    let get_option_result = crate::builtins::intl::get_option(
+        &options_obj,
+        "",
+        "",
+        &values,
+        &JsValue::String(JsString::empty()),
+        &mut context,
+    );
+    assert_eq!(get_option_result.is_err(), true);
+
+    let values = Vec::<JsValue>::new();
+    let fallback = JsValue::String(JsString::new("fallback"));
+    let options_obj = JsValue::new(JsObject::empty());
+    let get_option_result =
+        crate::builtins::intl::get_option(&options_obj, "", "", &values, &fallback, &mut context)
+            .expect("GetOption should not fail on fallback test");
+    assert_eq!(get_option_result, fallback);
+
+    let values = Vec::<JsValue>::new();
+    let fallback = JsValue::String(JsString::new("fallback"));
+    let options_obj = JsObject::empty();
+    let locale_value = JsValue::String(JsString::new("en-US"));
+    options_obj
+        .set("Locale", locale_value.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let get_option_result = crate::builtins::intl::get_option(
+        &JsValue::new(options_obj),
+        "Locale",
+        "number",
+        &values,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result.is_err(), true);
+
+    let values = Vec::<JsValue>::new();
+    let fallback = JsValue::String(JsString::new("fallback"));
+    let options_obj = JsObject::empty();
+    let locale_value = JsValue::String(JsString::new("en-US"));
+    options_obj
+        .set("Locale", locale_value.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let get_option_result = crate::builtins::intl::get_option(
+        &JsValue::new(options_obj),
+        "Locale",
+        "string",
+        &values,
+        &fallback,
+        &mut context,
+    )
+    .expect("GetOption should not fail on string test");
+    assert_eq!(get_option_result, locale_value);
+
+    let fallback = JsValue::String(JsString::new("fallback"));
+    let options_obj = JsObject::empty();
+    let locale_value = JsValue::String(JsString::new("en-US"));
+    let values = vec![locale_value.clone()];
+    options_obj
+        .set("Locale", locale_value.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let get_option_result = crate::builtins::intl::get_option(
+        &JsValue::new(options_obj),
+        "Locale",
+        "string",
+        &values,
+        &fallback,
+        &mut context,
+    )
+    .expect("GetOption should not fail on values test");
+    assert_eq!(get_option_result, locale_value);
+
+    let fallback = JsValue::String(JsString::new("fallback"));
+    let options_obj = JsObject::empty();
+    let locale_value = JsValue::String(JsString::new("en-US"));
+    let other_locale_value = JsValue::String(JsString::new("de-DE"));
+    let values = vec![other_locale_value];
+    options_obj
+        .set("Locale", locale_value.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let get_option_result = crate::builtins::intl::get_option(
+        &JsValue::new(options_obj),
+        "Locale",
+        "string",
+        &values,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result.is_err(), true);
+
+    let value = JsValue::undefined();
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::default_number_option(
+        &value,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result, Ok(fallback));
+
+    let value = JsValue::nan();
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::default_number_option(
+        &value,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result.is_err(), true);
+
+    let value = JsValue::new(0);
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::default_number_option(
+        &value,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result.is_err(), true);
+
+    let value = JsValue::new(11);
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::default_number_option(
+        &value,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result.is_err(), true);
+
+    let value = JsValue::new(7);
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::default_number_option(
+        &value,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result, Ok(value));
+
+    let options = JsValue::undefined();
+    let property = "fractionalSecondDigits";
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::get_number_option(
+        &options,
+        &property,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result.is_err(), true);
+
+    let options = JsValue::Object(JsObject::empty());
+    let property = "fractionalSecondDigits";
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::get_number_option(
+        &options,
+        &property,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result, Ok(fallback));
+
+    let options = JsObject::empty();
+    let value = JsValue::new(8);
+    let property = "fractionalSecondDigits";
+    options
+        .set(property, value.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let options = JsValue::Object(options);
+    let minimum = JsValue::new(1);
+    let maximum = JsValue::new(10);
+    let fallback = JsValue::new(5);
+    let get_option_result = crate::builtins::intl::get_number_option(
+        &options,
+        &property,
+        &minimum,
+        &maximum,
+        &fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result, Ok(value));
+}
+
+#[test]
+fn to_date_time_opts() {
+    let mut context = Context::default();
+
+    let options_obj = JsObject::empty();
+    options_obj
+        .set("timeStyle", JsObject::empty(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+        &JsValue::new(options_obj),
+        "date",
+        "date",
+        &mut context,
+    );
+    assert_eq!(date_time_opts.is_err(), true);
+
+    let options_obj = JsObject::empty();
+    options_obj
+        .set("dateStyle", JsObject::empty(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+        &JsValue::new(options_obj),
+        "time",
+        "time",
+        &mut context,
+    );
+    assert_eq!(date_time_opts.is_err(), true);
+
+    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+        &JsValue::undefined(),
+        "date",
+        "date",
+        &mut context,
+    )
+    .expect("toDateTimeOptions should not fail in date test");
+
+    let numeric_jsstring = JsValue::String(JsString::new("numeric"));
+    assert_eq!(
+        date_time_opts.get("year", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("month", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("day", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+
+    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+        &JsValue::undefined(),
+        "time",
+        "time",
+        &mut context,
+    )
+    .expect("toDateTimeOptions should not fail in time test");
+
+    let numeric_jsstring = JsValue::String(JsString::new("numeric"));
+    assert_eq!(
+        date_time_opts.get("hour", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("minute", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("second", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+
+    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+        &JsValue::undefined(),
+        "any",
+        "all",
+        &mut context,
+    )
+    .expect("toDateTimeOptions should not fail when testing required = 'any'");
+
+    let numeric_jsstring = JsValue::String(JsString::new("numeric"));
+    assert_eq!(
+        date_time_opts.get("year", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("month", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("day", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("hour", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("minute", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+    assert_eq!(
+        date_time_opts.get("second", &mut context),
+        Ok(numeric_jsstring.clone())
+    );
+}
+
+#[test]
+fn date_time_style_fmt() {
+    let mut context = Context::default();
+
+    let date_style = JsValue::undefined();
+    let time_style = JsValue::undefined();
+    let styles = crate::builtins::intl::date_time_format::StylesRecord {
+        time_format: FxHashMap::default(),
+        date_format: FxHashMap::default(),
+        date_time_format: FxHashMap::default(),
+        date_time_range_format: FxHashMap::default(),
+    };
+    let format = crate::builtins::intl::date_time_format::date_time_style_format(
+        &date_style,
+        &time_style,
+        &styles,
+        &mut context,
+    );
+    assert_eq!(format.is_err(), true);
+
+    let date_style = JsValue::String(JsString::new("invalid"));
+    let time_style = JsValue::undefined();
+    let styles = crate::builtins::intl::date_time_format::StylesRecord {
+        time_format: FxHashMap::default(),
+        date_format: FxHashMap::default(),
+        date_time_format: FxHashMap::default(),
+        date_time_range_format: FxHashMap::default(),
+    };
+    let format = crate::builtins::intl::date_time_format::date_time_style_format(
+        &date_style,
+        &time_style,
+        &styles,
+        &mut context,
+    );
+    assert_eq!(format.is_err(), true);
+
+    let date_style = JsValue::undefined();
+    let time_style = JsValue::String(JsString::new("invalid"));
+    let styles = crate::builtins::intl::date_time_format::StylesRecord {
+        time_format: FxHashMap::default(),
+        date_format: FxHashMap::default(),
+        date_time_format: FxHashMap::default(),
+        date_time_range_format: FxHashMap::default(),
+    };
+    let format = crate::builtins::intl::date_time_format::date_time_style_format(
+        &date_style,
+        &time_style,
+        &styles,
+        &mut context,
+    );
+    assert_eq!(format.is_err(), true);
+
+    let date_style = JsValue::undefined();
+    let time_style = JsValue::String(JsString::new("full"));
+    let time_format_full = JsObject::empty();
+    time_format_full
+        .set(
+            "pattern",
+            JsString::new("{hour}:{minute}:{second}"),
+            true,
+            &mut context,
+        )
+        .expect("Setting a property should not fail");
+
+    let mut styles = crate::builtins::intl::date_time_format::StylesRecord {
+        time_format: FxHashMap::default(),
+        date_format: FxHashMap::default(),
+        date_time_format: FxHashMap::default(),
+        date_time_range_format: FxHashMap::default(),
+    };
+    styles.time_format.insert(
+        JsString::new("full"),
+        JsValue::Object(time_format_full.clone()),
+    );
+
+    let format = crate::builtins::intl::date_time_format::date_time_style_format(
+        &date_style,
+        &time_style,
+        &styles,
+        &mut context,
+    );
+    assert_eq!(format, Ok(JsValue::Object(time_format_full)));
+
+    let date_style = JsValue::String(JsString::new("full"));
+    let time_style = JsValue::undefined();
+    let date_format_full = JsObject::empty();
+    date_format_full
+        .set(
+            "pattern",
+            JsString::new("{year}-{month}-{day}"),
+            true,
+            &mut context,
+        )
+        .expect("Setting a property should not fail");
+
+    let mut styles = crate::builtins::intl::date_time_format::StylesRecord {
+        time_format: FxHashMap::default(),
+        date_format: FxHashMap::default(),
+        date_time_format: FxHashMap::default(),
+        date_time_range_format: FxHashMap::default(),
+    };
+    styles.date_format.insert(
+        JsString::new("full"),
+        JsValue::Object(date_format_full.clone()),
+    );
+
+    let format = crate::builtins::intl::date_time_format::date_time_style_format(
+        &date_style,
+        &time_style,
+        &styles,
+        &mut context,
+    );
+    assert_eq!(format, Ok(JsValue::Object(date_format_full)));
+
+    let time_style = JsValue::String(JsString::new("full"));
+    let time_format_full = JsObject::empty();
+    time_format_full
+        .set(
+            "pattern",
+            JsString::new("{hour}:{minute}:{second}"),
+            true,
+            &mut context,
+        )
+        .expect("Setting a property should not fail");
+    let time_fmt = JsObject::empty();
+    time_fmt
+        .set("full", time_format_full.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+
+    let date_style = JsValue::String(JsString::new("full"));
+    let date_format_full = JsObject::empty();
+    date_format_full
+        .set(
+            "pattern",
+            JsString::new("{year}-{month}-{day}"),
+            true,
+            &mut context,
+        )
+        .expect("Setting a property should not fail");
+    let date_fmt = JsObject::empty();
+    date_fmt
+        .set("full", date_format_full.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+
+    let connector = JsString::new("timeFormat: {0}, dateFormat: {1}");
+    let date_time_fmt = JsObject::empty();
+    date_time_fmt
+        .set("full", connector.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+
+    let mut styles = crate::builtins::intl::date_time_format::StylesRecord {
+        time_format: FxHashMap::default(),
+        date_format: FxHashMap::default(),
+        date_time_format: FxHashMap::default(),
+        date_time_range_format: FxHashMap::default(),
+    };
+    styles.time_format.insert(
+        JsString::new("full"),
+        JsValue::Object(time_format_full.clone()),
+    );
+    styles.date_format.insert(
+        JsString::new("full"),
+        JsValue::Object(date_format_full.clone()),
+    );
+    styles
+        .date_time_format
+        .insert(JsString::new("full"), JsValue::String(connector));
+    let range_patterns = JsObject::empty();
+    let dtr_fmt = crate::builtins::intl::date_time_format::DateTimeRangeFormat {
+        range_patterns: range_patterns.clone(),
+        range_patterns12: None,
+    };
+    let mut dtr_fmt_map = FxHashMap::default();
+    dtr_fmt_map.insert(JsString::new("full"), dtr_fmt);
+    styles
+        .date_time_range_format
+        .insert(JsString::new("full"), dtr_fmt_map);
+
+    let format = crate::builtins::intl::date_time_format::date_time_style_format(
+        &date_style,
+        &time_style,
+        &styles,
+        &mut context,
+    )
+    .expect("DateTimeStyleFormat failure is unexpected");
+
+    let format_obj = format
+        .to_object(&mut context)
+        .expect("Failed to cast DateTimeStyleFormat to object");
+
+    let pattern_value = JsValue::String(JsString::new(
+        "timeFormat: {hour}:{minute}:{second}, dateFormat: {year}-{month}-{day}",
+    ));
+    assert_eq!(format_obj.get("pattern", &mut context), Ok(pattern_value));
+    assert_eq!(
+        format_obj.get("rangePatterns", &mut context),
+        Ok(JsValue::Object(range_patterns))
+    );
 }
