@@ -134,52 +134,50 @@ pub(crate) fn to_date_time_options(
 ) -> JsResult<JsObject> {
     // 1. If options is undefined, let options be null;
     // otherwise let options be ? ToObject(options).
-    let maybe_options = if options.is_undefined() {
-        Ok(JsObject::empty())
-    } else {
-        options.to_object(context)
-    };
-    let options = maybe_options.unwrap_or_else(|_| JsObject::empty());
-
     // 2. Let options be ! OrdinaryObjectCreate(options).
-    let options = JsObject::from_proto_and_data(options, ObjectData::ordinary());
+    let options = if options.is_undefined() {
+        JsObject::from_proto_and_data(None, ObjectData::ordinary())
+    } else {
+        let opt = options.to_object(context)?;
+        JsObject::from_proto_and_data(opt, ObjectData::ordinary())
+    };
 
     // 3. Let needDefaults be true.
     let mut need_defaults = true;
 
     // 4. If required is "date" or "any", then
-    if required.eq("date") || required.eq("any") {
+    if ["date", "any"].contains(&required) {
         // a. For each property name prop of « "weekday", "year", "month", "day" », do
-        let property_names = vec!["weekday", "year", "month", "day"];
-        // i. Let value be ? Get(options, prop).
-        // ii. If value is not undefined, let needDefaults be false.
-        need_defaults = property_names.iter().all(|prop_name| {
-            options
-                .get(*prop_name, context)
-                .unwrap_or_else(|_| JsValue::undefined())
-                .is_undefined()
-        });
+        for property in ["weekday", "year", "month", "day"] {
+            // i. Let value be ? Get(options, prop).
+            let value = options.get(property, context)?;
+
+            // ii. If value is not undefined, let needDefaults be false.
+            if !value.is_undefined() {
+                need_defaults = false;
+            }
+        }
     }
 
     // 5. If required is "time" or "any", then
-    if required.eq("time") || required.eq("any") {
+    if ["time", "any"].contains(&required) {
         // a. For each property name prop of « "dayPeriod", "hour", "minute", "second",
         // "fractionalSecondDigits" », do
-        let property_names = vec![
+        for property in [
             "dayPeriod",
             "hour",
             "minute",
             "second",
             "fractionalSecondDigits",
-        ];
-        // i. Let value be ? Get(options, prop).
-        // ii. If value is not undefined, let needDefaults be false.
-        need_defaults = property_names.iter().all(|prop_name| {
-            options
-                .get(*prop_name, context)
-                .unwrap_or_else(|_| JsValue::undefined())
-                .is_undefined()
-        });
+        ] {
+            // i. Let value be ? Get(options, prop).
+            let value = options.get(property, context)?;
+
+            // ii. If value is not undefined, let needDefaults be false.
+            if !value.is_undefined() {
+                need_defaults = false;
+            }
+        }
     }
 
     // 6. Let dateStyle be ? Get(options, "dateStyle").
@@ -188,9 +186,7 @@ pub(crate) fn to_date_time_options(
         .unwrap_or_else(|_| JsValue::undefined());
 
     // 7. Let timeStyle be ? Get(options, "timeStyle").
-    let time_style = options
-        .get("timeStyle", context)
-        .unwrap_or_else(|_| JsValue::undefined());
+    let time_style = options.get("timeStyle", context)?;
 
     // 8. If dateStyle is not undefined or timeStyle is not undefined, let needDefaults be false.
     if !date_style.is_undefined() || !time_style.is_undefined() {
@@ -210,26 +206,20 @@ pub(crate) fn to_date_time_options(
     }
 
     // 11. If needDefaults is true and defaults is either "date" or "all", then
-    if need_defaults && (defaults.eq("date") || defaults.eq("all")) {
+    if need_defaults && ["date", "all"].contains(&defaults) {
         // a. For each property name prop of « "year", "month", "day" », do
-        let property_names = vec!["year", "month", "day"];
-        // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-        for prop_name in property_names {
-            options
-                .create_data_property_or_throw(prop_name, "numeric", context)
-                .expect("CreateDataPropertyOrThrow must not fail");
+        for property in ["year", "month", "day"] {
+            // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
+            options.create_data_property_or_throw(property, "numeric", context)?;
         }
     }
 
     // 12. If needDefaults is true and defaults is either "time" or "all", then
-    if need_defaults && (defaults.eq("time") || defaults.eq("all")) {
+    if need_defaults && ["time", "all"].contains(&defaults) {
         // a. For each property name prop of « "hour", "minute", "second" », do
-        let property_names = vec!["hour", "minute", "second"];
-        // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
-        for prop_name in property_names {
-            options
-                .create_data_property_or_throw(prop_name, "numeric", context)
-                .expect("CreateDataPropertyOrThrow must not fail");
+        for property in ["hour", "minute", "second"] {
+            // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
+            options.create_data_property_or_throw(property, "numeric", context)?;
         }
     }
 

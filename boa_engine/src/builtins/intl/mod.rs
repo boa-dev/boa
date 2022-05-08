@@ -16,6 +16,9 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 
+#[cfg(test)]
+use crate::object::JsObject;
+
 pub mod date_time_format;
 #[cfg(test)]
 mod tests;
@@ -654,6 +657,12 @@ fn resolve_locale(
     result
 }
 
+#[cfg(test)]
+pub(crate) enum GetOptionType {
+    String,
+    Boolean,
+}
+
 /// The abstract operation `GetOption` extracts the value of the property named `property` from the
 /// provided `options` object, converts it to the required `type`, checks whether it is one of a
 /// `List` of allowed `values`, and fills in a `fallback` value if necessary. If `values` is
@@ -665,26 +674,16 @@ fn resolve_locale(
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
 #[cfg(test)]
 pub(crate) fn get_option(
-    options: &JsValue,
+    options: &JsObject,
     property: &str,
-    r#type: &str,
-    values: &[JsValue],
+    r#type: &GetOptionType,
+    values: &[JsString],
     fallback: &JsValue,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. Assert: Type(options) is Object.
-    if !options.is_object() {
-        return context.throw_type_error("GetOption: options should be an Object");
-    }
-
-    let options_obj = options
-        .to_object(context)
-        .expect("GetOption: options should be an Object");
-
     // 2. Let value be ? Get(options, property).
-    let mut value = options_obj
-        .get(property, context)
-        .unwrap_or_else(|_| JsValue::undefined());
+    let mut value = options.get(property, context)?;
 
     // 3. If value is undefined, return fallback.
     if value.is_undefined() {
@@ -692,31 +691,22 @@ pub(crate) fn get_option(
     }
 
     // 4. Assert: type is "boolean" or "string".
-    if r#type.ne("boolean") && r#type.ne("string") {
-        return context.throw_type_error("GetOption: type should be either 'boolean' or 'string'");
-    }
-
     // 5. If type is "boolean", then
-    if r#type.eq("boolean") {
-        // a. Set value to ! ToBoolean(value).
-        value = JsValue::Boolean(value.to_boolean());
-    }
-
+    //      a. Set value to ! ToBoolean(value).
     // 6. If type is "string", then
-    if r#type.eq("string") {
-        // a. Set value to ? ToString(value).
-        value = JsValue::String(
-            value
-                .to_string(context)
-                .expect("GetOption: failed to convert value to string"),
-        );
-    }
-
+    //      a. Set value to ? ToString(value).
     // 7. If values is not undefined and values does not contain an element equal to value,
     // throw a RangeError exception.
-    if !values.is_empty() && !values.contains(&value) {
-        return context.throw_range_error("GetOption: values array does not contain value");
-    }
+    value = match r#type {
+        GetOptionType::Boolean => JsValue::Boolean(value.to_boolean()),
+        GetOptionType::String => {
+            let string_value = value.to_string(context)?;
+            if !values.is_empty() && !values.contains(&string_value) {
+                return context.throw_range_error("GetOption: values array does not contain value");
+            }
+            JsValue::String(string_value)
+        }
+    };
 
     // 8. Return value.
     Ok(value)
@@ -732,27 +722,16 @@ pub(crate) fn get_option(
 /// [spec]: https://tc39.es/ecma402/#sec-getnumberoption
 #[cfg(test)]
 pub(crate) fn get_number_option(
-    options: &JsValue,
+    options: &JsObject,
     property: &str,
-    minimum: &JsValue,
-    maximum: &JsValue,
-    fallback: &JsValue,
+    minimum: f64,
+    maximum: f64,
+    fallback: Option<f64>,
     context: &mut Context,
-) -> JsResult<JsValue> {
-    // FIXME untested
+) -> JsResult<f64> {
     // 1. Assert: Type(options) is Object.
-    if !options.is_object() {
-        return context.throw_type_error("GetOption: options should be an Object");
-    }
-
-    let options_obj = options
-        .to_object(context)
-        .expect("GetOption: options should be an Object");
-
     // 2. Let value be ? Get(options, property).
-    let value = options_obj
-        .get(property, context)
-        .unwrap_or_else(|_| JsValue::undefined());
+    let value = options.get(property, context)?;
 
     // 3. Return ? DefaultNumberOption(value, minimum, maximum, fallback).
     default_number_option(&value, minimum, maximum, fallback, context)
@@ -768,20 +747,21 @@ pub(crate) fn get_number_option(
 #[cfg(test)]
 pub(crate) fn default_number_option(
     value: &JsValue,
-    minimum: &JsValue,
-    maximum: &JsValue,
-    fallback: &JsValue,
+    minimum: f64,
+    maximum: f64,
+    fallback: Option<f64>,
     context: &mut Context,
-) -> JsResult<JsValue> {
+) -> JsResult<f64> {
     // 1. If value is undefined, return fallback.
     if value.is_undefined() {
-        return Ok(fallback.clone());
+        match fallback {
+            Some(val_f64) => return Ok(val_f64),
+            None => return context.throw_type_error("DefaultNumberOption: no fallback provided"),
+        };
     }
 
     // 2. Set value to ? ToNumber(value).
     let value = value.to_number(context)?;
-    let minimum = minimum.to_number(context).unwrap_or(f64::NEG_INFINITY);
-    let maximum = maximum.to_number(context).unwrap_or(f64::INFINITY);
 
     // 3. If value is NaN or less than minimum or greater than maximum, throw a RangeError exception.
     if value.is_nan() || value.lt(&minimum) || value.gt(&maximum) {
@@ -789,5 +769,5 @@ pub(crate) fn default_number_option(
     }
 
     // 4. Return floor(value).
-    Ok(JsValue::new(value.floor()))
+    Ok(value.floor())
 }

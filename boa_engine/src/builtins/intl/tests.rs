@@ -249,54 +249,33 @@ fn locale_resolution() {
 fn get_opt() {
     let mut context = Context::default();
 
-    let values = Vec::<JsValue>::new();
-    let options_obj = JsValue::undefined();
+    let values = Vec::<JsString>::new();
+    let fallback = JsValue::String(JsString::new("fallback"));
+    let options_obj = JsObject::empty();
+    let option_type = crate::builtins::intl::GetOptionType::String;
     let get_option_result = crate::builtins::intl::get_option(
         &options_obj,
         "",
-        "",
-        &values,
-        &JsValue::String(JsString::empty()),
-        &mut context,
-    );
-    assert_eq!(get_option_result.is_err(), true);
-
-    let values = Vec::<JsValue>::new();
-    let fallback = JsValue::String(JsString::new("fallback"));
-    let options_obj = JsValue::new(JsObject::empty());
-    let get_option_result =
-        crate::builtins::intl::get_option(&options_obj, "", "", &values, &fallback, &mut context)
-            .expect("GetOption should not fail on fallback test");
-    assert_eq!(get_option_result, fallback);
-
-    let values = Vec::<JsValue>::new();
-    let fallback = JsValue::String(JsString::new("fallback"));
-    let options_obj = JsObject::empty();
-    let locale_value = JsValue::String(JsString::new("en-US"));
-    options_obj
-        .set("Locale", locale_value.clone(), true, &mut context)
-        .expect("Setting a property should not fail");
-    let get_option_result = crate::builtins::intl::get_option(
-        &JsValue::new(options_obj),
-        "Locale",
-        "number",
+        &option_type,
         &values,
         &fallback,
         &mut context,
-    );
-    assert_eq!(get_option_result.is_err(), true);
+    )
+    .expect("GetOption should not fail on fallback test");
+    assert_eq!(get_option_result, fallback);
 
-    let values = Vec::<JsValue>::new();
+    let values = Vec::<JsString>::new();
     let fallback = JsValue::String(JsString::new("fallback"));
     let options_obj = JsObject::empty();
     let locale_value = JsValue::String(JsString::new("en-US"));
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
+    let option_type = crate::builtins::intl::GetOptionType::String;
     let get_option_result = crate::builtins::intl::get_option(
-        &JsValue::new(options_obj),
+        &options_obj,
         "Locale",
-        "string",
+        &option_type,
         &values,
         &fallback,
         &mut context,
@@ -306,15 +285,17 @@ fn get_opt() {
 
     let fallback = JsValue::String(JsString::new("fallback"));
     let options_obj = JsObject::empty();
-    let locale_value = JsValue::String(JsString::new("en-US"));
-    let values = vec![locale_value.clone()];
+    let locale_string = JsString::new("en-US");
+    let locale_value = JsValue::String(locale_string.clone());
+    let values = vec![locale_string];
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
+    let option_type = crate::builtins::intl::GetOptionType::String;
     let get_option_result = crate::builtins::intl::get_option(
-        &JsValue::new(options_obj),
+        &options_obj,
         "Locale",
-        "string",
+        &option_type,
         &values,
         &fallback,
         &mut context,
@@ -322,18 +303,38 @@ fn get_opt() {
     .expect("GetOption should not fail on values test");
     assert_eq!(get_option_result, locale_value);
 
+    let fallback = JsValue::new(false);
+    let options_obj = JsObject::empty();
+    let boolean_value = JsValue::new(true);
+    let values = Vec::<JsString>::new();
+    options_obj
+        .set("boolean_val", boolean_value.clone(), true, &mut context)
+        .expect("Setting a property should not fail");
+    let option_type = crate::builtins::intl::GetOptionType::Boolean;
+    let get_option_result = crate::builtins::intl::get_option(
+        &options_obj,
+        "boolean_val",
+        &option_type,
+        &values,
+        &fallback,
+        &mut context,
+    )
+    .expect("GetOption should not fail on boolean test");
+    assert_eq!(get_option_result, boolean_value);
+
     let fallback = JsValue::String(JsString::new("fallback"));
     let options_obj = JsObject::empty();
     let locale_value = JsValue::String(JsString::new("en-US"));
-    let other_locale_value = JsValue::String(JsString::new("de-DE"));
-    let values = vec![other_locale_value];
+    let other_locale_str = JsString::new("de-DE");
+    let values = vec![other_locale_str];
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
+    let option_type = crate::builtins::intl::GetOptionType::String;
     let get_option_result = crate::builtins::intl::get_option(
-        &JsValue::new(options_obj),
+        &options_obj,
         "Locale",
-        "string",
+        &option_type,
         &values,
         &fallback,
         &mut context,
@@ -341,119 +342,107 @@ fn get_opt() {
     assert_eq!(get_option_result.is_err(), true);
 
     let value = JsValue::undefined();
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
+    let minimum = 1.0;
+    let maximum = 10.0;
+    let fallback_val = 5.0;
+    let fallback = Some(fallback_val);
     let get_option_result = crate::builtins::intl::default_number_option(
         &value,
-        &minimum,
-        &maximum,
-        &fallback,
+        minimum,
+        maximum,
+        fallback,
         &mut context,
     );
-    assert_eq!(get_option_result, Ok(fallback));
+    assert_eq!(get_option_result, Ok(fallback_val));
 
     let value = JsValue::nan();
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
+    let minimum = 1.0;
+    let maximum = 10.0;
+    let fallback = Some(5.0);
     let get_option_result = crate::builtins::intl::default_number_option(
         &value,
-        &minimum,
-        &maximum,
-        &fallback,
+        minimum,
+        maximum,
+        fallback,
         &mut context,
     );
     assert_eq!(get_option_result.is_err(), true);
 
     let value = JsValue::new(0);
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
+    let minimum = 1.0;
+    let maximum = 10.0;
+    let fallback = Some(5.0);
     let get_option_result = crate::builtins::intl::default_number_option(
         &value,
-        &minimum,
-        &maximum,
-        &fallback,
+        minimum,
+        maximum,
+        fallback,
         &mut context,
     );
     assert_eq!(get_option_result.is_err(), true);
 
     let value = JsValue::new(11);
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
+    let minimum = 1.0;
+    let maximum = 10.0;
+    let fallback = Some(5.0);
     let get_option_result = crate::builtins::intl::default_number_option(
         &value,
-        &minimum,
-        &maximum,
-        &fallback,
+        minimum,
+        maximum,
+        fallback,
         &mut context,
     );
     assert_eq!(get_option_result.is_err(), true);
 
-    let value = JsValue::new(7);
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
+    let value_f64 = 7.0;
+    let value = JsValue::new(value_f64);
+    let minimum = 1.0;
+    let maximum = 10.0;
+    let fallback = Some(5.0);
     let get_option_result = crate::builtins::intl::default_number_option(
         &value,
-        &minimum,
-        &maximum,
-        &fallback,
+        minimum,
+        maximum,
+        fallback,
         &mut context,
     );
-    assert_eq!(get_option_result, Ok(value));
-
-    let options = JsValue::undefined();
-    let property = "fractionalSecondDigits";
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
-    let get_option_result = crate::builtins::intl::get_number_option(
-        &options,
-        &property,
-        &minimum,
-        &maximum,
-        &fallback,
-        &mut context,
-    );
-    assert_eq!(get_option_result.is_err(), true);
-
-    let options = JsValue::Object(JsObject::empty());
-    let property = "fractionalSecondDigits";
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
-    let get_option_result = crate::builtins::intl::get_number_option(
-        &options,
-        &property,
-        &minimum,
-        &maximum,
-        &fallback,
-        &mut context,
-    );
-    assert_eq!(get_option_result, Ok(fallback));
+    assert_eq!(get_option_result, Ok(value_f64));
 
     let options = JsObject::empty();
-    let value = JsValue::new(8);
+    let property = "fractionalSecondDigits";
+    let minimum = 1.0;
+    let maximum = 10.0;
+    let fallback_val = 5.0;
+    let fallback = Some(fallback_val);
+    let get_option_result = crate::builtins::intl::get_number_option(
+        &options,
+        &property,
+        minimum,
+        maximum,
+        fallback,
+        &mut context,
+    );
+    assert_eq!(get_option_result, Ok(fallback_val));
+
+    let options = JsObject::empty();
+    let value_f64 = 8.0;
+    let value = JsValue::new(value_f64);
     let property = "fractionalSecondDigits";
     options
         .set(property, value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
-    let options = JsValue::Object(options);
-    let minimum = JsValue::new(1);
-    let maximum = JsValue::new(10);
-    let fallback = JsValue::new(5);
+    let minimum = 1.0;
+    let maximum = 10.0;
+    let fallback = Some(5.0);
     let get_option_result = crate::builtins::intl::get_number_option(
         &options,
         &property,
-        &minimum,
-        &maximum,
-        &fallback,
+        minimum,
+        maximum,
+        fallback,
         &mut context,
     );
-    assert_eq!(get_option_result, Ok(value));
+    assert_eq!(get_option_result, Ok(value_f64));
 }
 
 #[test]
