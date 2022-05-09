@@ -1015,6 +1015,39 @@
 <span id="1008">1008</span>
 <span id="1009">1009</span>
 <span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1028,7 +1061,7 @@
         <span class="ident">generator</span>::{<span class="ident">Generator</span>, <span class="ident">GeneratorContext</span>, <span class="ident">GeneratorState</span>},
     },
     <span class="ident">context::intrinsics::StandardConstructors</span>,
-    <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">DeclarativeEnvironmentStack</span>},
+    <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>, <span class="ident">DeclarativeEnvironmentStack</span>},
     <span class="ident">object</span>::{<span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">syntax::ast::node::FormalParameterList</span>,
@@ -1117,6 +1150,9 @@
     <span class="doccomment">/// Similar to the `[[ClassFieldInitializerName]]` slot in the spec.</span>
     <span class="doccomment">/// Holds class field names that are computed at class declaration time.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">computed_field_names</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PropertyKey</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+
+    <span class="doccomment">/// Compile time environments in this function.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">compile_environments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">CompileTimeEnvironment</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CodeBlock</span> {
@@ -1138,6 +1174,7 @@
             <span class="ident">lexical_name_argument</span>: <span class="bool-val">false</span>,
             <span class="ident">arguments_binding</span>: <span class="prelude-val">None</span>,
             <span class="ident">computed_field_names</span>: <span class="prelude-val">None</span>,
+            <span class="ident">compile_environments</span>: <span class="ident">Vec::new</span>(),
         }
     }
 
@@ -1207,6 +1244,8 @@
             <span class="op">|</span> <span class="ident">Opcode::LogicalAnd</span>
             <span class="op">|</span> <span class="ident">Opcode::LogicalOr</span>
             <span class="op">|</span> <span class="ident">Opcode::Coalesce</span>
+            <span class="op">|</span> <span class="ident">Opcode::CallEval</span>
+            <span class="op">|</span> <span class="ident">Opcode::CallEvalWithRest</span>
             <span class="op">|</span> <span class="ident">Opcode::Call</span>
             <span class="op">|</span> <span class="ident">Opcode::CallWithRest</span>
             <span class="op">|</span> <span class="ident">Opcode::New</span>
@@ -1215,13 +1254,14 @@
             <span class="op">|</span> <span class="ident">Opcode::ForInLoopNext</span>
             <span class="op">|</span> <span class="ident">Opcode::ConcatToString</span>
             <span class="op">|</span> <span class="ident">Opcode::CopyDataProperties</span>
-            <span class="op">|</span> <span class="ident">Opcode::GeneratorNextDelegate</span>
-            <span class="op">|</span> <span class="ident">Opcode::PushDeclarativeEnvironment</span> =&gt; {
+            <span class="op">|</span> <span class="ident">Opcode::GeneratorNextDelegate</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>).<span class="ident">to_string</span>();
                 <span class="kw-2">*</span><span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="ident">result</span>
             }
-            <span class="ident">Opcode::TryStart</span> =&gt; {
+            <span class="ident">Opcode::TryStart</span>
+            <span class="op">|</span> <span class="ident">Opcode::PushDeclarativeEnvironment</span>
+            <span class="op">|</span> <span class="ident">Opcode::PushFunctionEnvironment</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">operand1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>);
                 <span class="kw-2">*</span><span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="ident">operand2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>);
@@ -1339,7 +1379,6 @@
             <span class="op">|</span> <span class="ident">Opcode::FinallyEnd</span>
             <span class="op">|</span> <span class="ident">Opcode::This</span>
             <span class="op">|</span> <span class="ident">Opcode::Return</span>
-            <span class="op">|</span> <span class="ident">Opcode::PushFunctionEnvironment</span>
             <span class="op">|</span> <span class="ident">Opcode::PopEnvironment</span>
             <span class="op">|</span> <span class="ident">Opcode::LoopStart</span>
             <span class="op">|</span> <span class="ident">Opcode::LoopContinue</span>
@@ -1651,10 +1690,19 @@
                     <span class="ident">this</span>.<span class="ident">clone</span>()
                 };
 
-                <span class="ident">context</span>
-                    .<span class="ident">realm</span>
-                    .<span class="ident">environments</span>
-                    .<span class="ident">push_function</span>(<span class="ident">code</span>.<span class="ident">num_bindings</span>, <span class="ident">this</span>.<span class="ident">clone</span>());
+                <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>() {
+                    <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">push_function</span>(
+                        <span class="ident">code</span>.<span class="ident">num_bindings</span>,
+                        <span class="ident">code</span>.<span class="ident">compile_environments</span>[<span class="number">1</span>].<span class="ident">clone</span>(),
+                        <span class="ident">this</span>.<span class="ident">clone</span>(),
+                    );
+                } <span class="kw">else</span> {
+                    <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">push_function</span>(
+                        <span class="ident">code</span>.<span class="ident">num_bindings</span>,
+                        <span class="ident">code</span>.<span class="ident">compile_environments</span>[<span class="number">0</span>].<span class="ident">clone</span>(),
+                        <span class="ident">this</span>.<span class="ident">clone</span>(),
+                    );
+                }
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="ident">code</span>.<span class="ident">arguments_binding</span> {
                     <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span>
@@ -1750,10 +1798,19 @@
                     <span class="ident">this</span>.<span class="ident">clone</span>()
                 };
 
-                <span class="ident">context</span>
-                    .<span class="ident">realm</span>
-                    .<span class="ident">environments</span>
-                    .<span class="ident">push_function</span>(<span class="ident">code</span>.<span class="ident">num_bindings</span>, <span class="ident">this</span>.<span class="ident">clone</span>());
+                <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>() {
+                    <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">push_function</span>(
+                        <span class="ident">code</span>.<span class="ident">num_bindings</span>,
+                        <span class="ident">code</span>.<span class="ident">compile_environments</span>[<span class="number">1</span>].<span class="ident">clone</span>(),
+                        <span class="ident">this</span>.<span class="ident">clone</span>(),
+                    );
+                } <span class="kw">else</span> {
+                    <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">push_function</span>(
+                        <span class="ident">code</span>.<span class="ident">num_bindings</span>,
+                        <span class="ident">code</span>.<span class="ident">compile_environments</span>[<span class="number">0</span>].<span class="ident">clone</span>(),
+                        <span class="ident">this</span>.<span class="ident">clone</span>(),
+                    );
+                }
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="ident">code</span>.<span class="ident">arguments_binding</span> {
                     <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span>
@@ -1921,10 +1978,19 @@
                     <span class="ident">this</span>
                 };
 
-                <span class="ident">context</span>
-                    .<span class="ident">realm</span>
-                    .<span class="ident">environments</span>
-                    .<span class="ident">push_function</span>(<span class="ident">code</span>.<span class="ident">num_bindings</span>, <span class="ident">this</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
+                <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>() {
+                    <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">push_function</span>(
+                        <span class="ident">code</span>.<span class="ident">num_bindings</span>,
+                        <span class="ident">code</span>.<span class="ident">compile_environments</span>[<span class="number">1</span>].<span class="ident">clone</span>(),
+                        <span class="ident">this</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                    );
+                } <span class="kw">else</span> {
+                    <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">push_function</span>(
+                        <span class="ident">code</span>.<span class="ident">num_bindings</span>,
+                        <span class="ident">code</span>.<span class="ident">compile_environments</span>[<span class="number">0</span>].<span class="ident">clone</span>(),
+                        <span class="ident">this</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                    );
+                }
 
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span> <span class="bool-val">false</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_simple_parameter_list</span> <span class="op">=</span> <span class="bool-val">true</span>;

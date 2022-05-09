@@ -64,6 +64,9 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Conceptually, a realm consists of a set of intrinsic objects, an ECMAScript global environment,</span>
 <span class="doccomment">//! all of the ECMAScript code that is loaded within the scope of that global environment,</span>
 <span class="doccomment">//! and other associated state and resources.</span>
@@ -71,9 +74,10 @@
 <span class="doccomment">//! A realm is represented in this implementation as a Realm struct with the fields specified from the spec.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environments</span>::{<span class="ident">CompileTimeEnvironmentStack</span>, <span class="ident">DeclarativeEnvironmentStack</span>},
+    <span class="ident">environments</span>::{<span class="ident">CompileTimeEnvironment</span>, <span class="ident">DeclarativeEnvironmentStack</span>},
     <span class="ident">object</span>::{<span class="ident">GlobalPropertyMap</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PropertyMap</span>},
 };
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Gc</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 
 <span class="doccomment">/// Representation of a Realm.</span>
@@ -85,7 +89,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">global_extensible</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">global_property_map</span>: <span class="ident">PropertyMap</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">compile_env</span>: <span class="ident">CompileTimeEnvironmentStack</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">compile_env</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">CompileTimeEnvironment</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Realm</span> {
@@ -97,12 +101,14 @@
         <span class="comment">// Allow identification of the global object easily</span>
         <span class="kw">let</span> <span class="ident">global_object</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="prelude-val">None</span>, <span class="ident">ObjectData::global</span>());
 
+        <span class="kw">let</span> <span class="ident">global_compile_environment</span> <span class="op">=</span> <span class="ident">Gc::new</span>(<span class="ident">Cell::new</span>(<span class="ident">CompileTimeEnvironment::new_global</span>()));
+
         <span class="self">Self</span> {
             <span class="ident">global_object</span>,
             <span class="ident">global_extensible</span>: <span class="bool-val">true</span>,
             <span class="ident">global_property_map</span>: <span class="ident">PropertyMap::default</span>(),
-            <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack::new</span>(),
-            <span class="ident">compile_env</span>: <span class="ident">CompileTimeEnvironmentStack::new</span>(),
+            <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack::new</span>(<span class="ident">global_compile_environment</span>.<span class="ident">clone</span>()),
+            <span class="ident">compile_env</span>: <span class="ident">global_compile_environment</span>,
         }
     }
 
@@ -119,7 +125,7 @@
     <span class="doccomment">/// Set the number of bindings on the global environment.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_global_binding_number</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">binding_number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_env</span>.<span class="ident">get_binding_number</span>();
+        <span class="kw">let</span> <span class="ident">binding_number</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">compile_env</span>.<span class="ident">borrow</span>().<span class="ident">num_bindings</span>();
         <span class="self">self</span>.<span class="ident">environments</span>.<span class="ident">set_global_binding_number</span>(<span class="ident">binding_number</span>);
     }
 }

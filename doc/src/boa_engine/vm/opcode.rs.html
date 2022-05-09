@@ -1382,6 +1382,24 @@
 <span id="1375">1375</span>
 <span id="1376">1376</span>
 <span id="1377">1377</span>
+<span id="1378">1378</span>
+<span id="1379">1379</span>
+<span id="1380">1380</span>
+<span id="1381">1381</span>
+<span id="1382">1382</span>
+<span id="1383">1383</span>
+<span id="1384">1384</span>
+<span id="1385">1385</span>
+<span id="1386">1386</span>
+<span id="1387">1387</span>
+<span id="1388">1388</span>
+<span id="1389">1389</span>
+<span id="1390">1390</span>
+<span id="1391">1391</span>
+<span id="1392">1392</span>
+<span id="1393">1393</span>
+<span id="1394">1394</span>
+<span id="1395">1395</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -2209,6 +2227,20 @@
     <span class="doccomment">/// Stack: **=&gt;** func</span>
     <span class="ident">GetGenerator</span>,
 
+    <span class="doccomment">/// Call a function named &quot;eval&quot;.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: func, this, argument_1, ... argument_n **=&gt;** result</span>
+    <span class="ident">CallEval</span>,
+
+    <span class="doccomment">/// Call a function named &quot;eval&quot; where the last argument is a rest parameter.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: func, this, argument_1, ... argument_n **=&gt;** result</span>
+    <span class="ident">CallEvalWithRest</span>,
+
     <span class="doccomment">/// Call a function.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: argument_count: `u32`</span>
@@ -2246,14 +2278,14 @@
 
     <span class="doccomment">/// Push a declarative environment.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands: num_bindings: `u32`</span>
+    <span class="doccomment">/// Operands: num_bindings: `u32`, compile_environments_index: `u32`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: **=&gt;**</span>
     <span class="ident">PushDeclarativeEnvironment</span>,
 
     <span class="doccomment">/// Push a function environment.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">/// Operands: num_bindings: `u32`, compile_environments_index: `u32`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: **=&gt;**</span>
     <span class="ident">PushFunctionEnvironment</span>,
@@ -2539,6 +2571,8 @@
             <span class="ident">Opcode::Default</span> =&gt; <span class="string">&quot;Default&quot;</span>,
             <span class="ident">Opcode::GetFunction</span> =&gt; <span class="string">&quot;GetFunction&quot;</span>,
             <span class="ident">Opcode::GetGenerator</span> =&gt; <span class="string">&quot;GetGenerator&quot;</span>,
+            <span class="ident">Opcode::CallEval</span> =&gt; <span class="string">&quot;CallEval&quot;</span>,
+            <span class="ident">Opcode::CallEvalWithRest</span> =&gt; <span class="string">&quot;CallEvalWithRest&quot;</span>,
             <span class="ident">Opcode::Call</span> =&gt; <span class="string">&quot;Call&quot;</span>,
             <span class="ident">Opcode::CallWithRest</span> =&gt; <span class="string">&quot;CallWithRest&quot;</span>,
             <span class="ident">Opcode::New</span> =&gt; <span class="string">&quot;New&quot;</span>,
@@ -2671,6 +2705,8 @@
             <span class="ident">Opcode::Default</span> =&gt; <span class="string">&quot;INST - Default&quot;</span>,
             <span class="ident">Opcode::GetFunction</span> =&gt; <span class="string">&quot;INST - GetFunction&quot;</span>,
             <span class="ident">Opcode::GetGenerator</span> =&gt; <span class="string">&quot;INST - GetGenerator&quot;</span>,
+            <span class="ident">Opcode::CallEval</span> =&gt; <span class="string">&quot;INST - CallEval&quot;</span>,
+            <span class="ident">Opcode::CallEvalWithRest</span> =&gt; <span class="string">&quot;INST - CallEvalWithRest&quot;</span>,
             <span class="ident">Opcode::Call</span> =&gt; <span class="string">&quot;INST - Call&quot;</span>,
             <span class="ident">Opcode::CallWithRest</span> =&gt; <span class="string">&quot;INST - CallWithRest&quot;</span>,
             <span class="ident">Opcode::New</span> =&gt; <span class="string">&quot;INST - New&quot;</span>,
