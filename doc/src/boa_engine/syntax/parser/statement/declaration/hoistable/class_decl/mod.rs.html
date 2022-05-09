@@ -1266,14 +1266,14 @@
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::{
-            <span class="ident">AssignmentExpression</span>, <span class="ident">AsyncGeneratorMethod</span>, <span class="ident">AsyncMethod</span>, <span class="ident">GeneratorMethod</span>,
-            <span class="ident">LeftHandSideExpression</span>, <span class="ident">PropertyName</span>,
+            <span class="ident">AssignmentExpression</span>, <span class="ident">AsyncGeneratorMethod</span>, <span class="ident">AsyncMethod</span>, <span class="ident">BindingIdentifier</span>,
+            <span class="ident">GeneratorMethod</span>, <span class="ident">LeftHandSideExpression</span>, <span class="ident">PropertyName</span>,
         },
         <span class="ident">function</span>::{
             <span class="ident">FormalParameter</span>, <span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>,
             <span class="ident">FUNCTION_BREAK_TOKENS</span>,
         },
-        <span class="ident">statement</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">StatementList</span>},
+        <span class="ident">statement::StatementList</span>,
         <span class="ident">AllowAwait</span>, <span class="ident">AllowDefault</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
     },
 };

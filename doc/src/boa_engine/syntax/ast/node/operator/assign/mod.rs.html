@@ -299,6 +299,18 @@
 <span id="292">292</span>
 <span id="293">293</span>
 <span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{
     <span class="ident">declaration</span>::{
         <span class="ident">BindingPatternTypeArray</span>, <span class="ident">BindingPatternTypeObject</span>, <span class="ident">DeclarationPatternArray</span>,
@@ -309,7 +321,7 @@
     <span class="ident">ArrayDecl</span>, <span class="ident">DeclarationPattern</span>, <span class="ident">GetConstField</span>, <span class="ident">GetField</span>, <span class="ident">Identifier</span>, <span class="ident">Node</span>, <span class="ident">Object</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -391,18 +403,18 @@
 <span class="kw">impl</span> <span class="ident">AssignTarget</span> {
     <span class="doccomment">/// Converts the left-hand-side node of an assignment expression into it&#39;s an [`AssignTarget`].</span>
     <span class="doccomment">/// Returns `None` if the given node is an invalid left-hand-side for a assignment expression.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_node</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">node</span> {
             <span class="ident">Node::Identifier</span>(<span class="ident">target</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="kw-2">*</span><span class="ident">target</span>)),
             <span class="ident">Node::GetPrivateField</span>(<span class="ident">target</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::GetPrivateField</span>(<span class="ident">target</span>.<span class="ident">clone</span>())),
             <span class="ident">Node::GetConstField</span>(<span class="ident">target</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::GetConstField</span>(<span class="ident">target</span>.<span class="ident">clone</span>())),
             <span class="ident">Node::GetField</span>(<span class="ident">target</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::GetField</span>(<span class="ident">target</span>.<span class="ident">clone</span>())),
             <span class="ident">Node::Object</span>(<span class="ident">object</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::DeclarationPattern</span>(<span class="ident">pattern</span>))
             }
             <span class="ident">Node::ArrayDecl</span>(<span class="ident">array</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::DeclarationPattern</span>(<span class="ident">pattern</span>))
             }
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
@@ -441,11 +453,17 @@
 }
 
 <span class="doccomment">/// Converts an object literal into an object declaration pattern.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">Object</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DeclarationPattern</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">object_decl_to_declaration_pattern</span>(
+    <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">Object</span>,
+    <span class="ident">strict</span>: <span class="ident">bool</span>,
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DeclarationPattern</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">excluded_keys</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">property</span>) <span class="kw">in</span> <span class="ident">object</span>.<span class="ident">properties</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
         <span class="kw">match</span> <span class="ident">property</span> {
+            <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="ident">ident</span>) <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::EVAL</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">None</span>
+            }
             <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="ident">ident</span>) =&gt; {
                 <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                 <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
@@ -456,6 +474,9 @@
             }
             <span class="ident">PropertyDefinition::Property</span>(<span class="ident">name</span>, <span class="ident">node</span>) =&gt; <span class="kw">match</span> (<span class="ident">name</span>, <span class="ident">node</span>) {
                 (<span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>), <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>)) <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">==</span> <span class="ident">ident</span>.<span class="ident">sym</span>() =&gt; {
+                    <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::EVAL</span> {
+                        <span class="kw">return</span> <span class="prelude-val">None</span>;
+                    }
                     <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                     <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
                         <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">name</span>,
@@ -497,7 +518,10 @@
 }
 
 <span class="doccomment">/// Converts an array declaration into an array declaration pattern.</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayDecl</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DeclarationPattern</span><span class="op">&gt;</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_decl_to_declaration_pattern</span>(
+    <span class="ident">array</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayDecl</span>,
+    <span class="ident">strict</span>: <span class="ident">bool</span>,
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DeclarationPattern</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">array</span>.<span class="ident">has_trailing_comma_spread</span>() {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
@@ -528,11 +552,11 @@
                         });
                     }
                     <span class="ident">Node::ArrayDecl</span>(<span class="ident">array</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>;
                         <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPatternRest</span> { <span class="ident">pattern</span> });
                     }
                     <span class="ident">Node::Object</span>(<span class="ident">object</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>;
                         <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPatternRest</span> { <span class="ident">pattern</span> });
                     }
                     <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
@@ -569,11 +593,11 @@
                 <span class="ident">AssignTarget::GetPrivateField</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
             },
             <span class="ident">Node::ArrayDecl</span>(<span class="ident">array</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>;
                 <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPattern</span> { <span class="ident">pattern</span> });
             }
             <span class="ident">Node::Object</span>(<span class="ident">object</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>;
                 <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPattern</span> { <span class="ident">pattern</span> });
             }
             <span class="ident">Node::GetField</span>(<span class="ident">get_field</span>) =&gt; {

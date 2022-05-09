@@ -90,8 +90,8 @@
     <span class="ident">ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Node</span>},
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{
-        <span class="ident">statement</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">ClassTail</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">expression::BindingIdentifier</span>, <span class="ident">statement::ClassTail</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>,
+        <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
