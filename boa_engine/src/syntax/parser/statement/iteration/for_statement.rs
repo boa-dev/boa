@@ -118,7 +118,8 @@ where
             }
             (Some(init), TokenKind::Keyword((Keyword::In, false))) => {
                 let init_position = token.span().start();
-                let init = node_to_iterable_loop_initializer(init, init_position)?;
+                let init =
+                    node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
 
                 let _next = cursor.next(interner)?;
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -167,7 +168,8 @@ where
                 return Ok(ForInLoop::new(init, expr, body).into());
             }
             (Some(init), TokenKind::Keyword((Keyword::Of, false))) => {
-                let init = node_to_iterable_loop_initializer(init, init_position)?;
+                let init =
+                    node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
 
                 let _next = cursor.next(interner)?;
                 let iterable = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -277,6 +279,7 @@ where
 fn node_to_iterable_loop_initializer(
     node: &Node,
     position: Position,
+    strict: bool,
 ) -> Result<IterableLoopInitializer, ParseError> {
     match node {
         Node::Identifier(name) => Ok(IterableLoopInitializer::Identifier(*name)),
@@ -333,7 +336,7 @@ fn node_to_iterable_loop_initializer(
             position,
         ))),
         Node::Object(object) => {
-            if let Some(pattern) = object_decl_to_declaration_pattern(object) {
+            if let Some(pattern) = object_decl_to_declaration_pattern(object, strict) {
                 Ok(IterableLoopInitializer::DeclarationPattern(pattern))
             } else {
                 Err(ParseError::lex(LexError::Syntax(
@@ -343,7 +346,7 @@ fn node_to_iterable_loop_initializer(
             }
         }
         Node::ArrayDecl(array) => {
-            if let Some(pattern) = array_decl_to_declaration_pattern(array) {
+            if let Some(pattern) = array_decl_to_declaration_pattern(array, strict) {
                 Ok(IterableLoopInitializer::DeclarationPattern(pattern))
             } else {
                 Err(ParseError::lex(LexError::Syntax(

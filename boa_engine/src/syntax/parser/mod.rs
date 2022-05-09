@@ -1,25 +1,29 @@
 //! Boa parser implementation.
 
 mod cursor;
-pub mod error;
 mod expression;
-pub(crate) mod function;
 mod statement;
+
+pub(crate) mod function;
+
+pub mod error;
+
 #[cfg(test)]
 mod tests;
 
-pub use self::error::{ParseError, ParseResult};
-
-use self::cursor::Cursor;
 use crate::{
-    syntax::{ast::node::StatementList, lexer::TokenKind},
+    syntax::{
+        ast::{node::StatementList, Position},
+        lexer::TokenKind,
+        parser::cursor::Cursor,
+    },
     Context,
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
-use super::ast::Position;
+pub use self::error::{ParseError, ParseResult};
 
 /// Trait implemented by parsers.
 ///

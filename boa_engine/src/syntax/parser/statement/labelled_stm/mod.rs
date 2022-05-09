@@ -4,9 +4,9 @@ use crate::syntax::{
     parser::{
         cursor::Cursor,
         error::ParseError,
+        expression::LabelIdentifier,
         statement::{
-            declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn, LabelIdentifier,
-            Statement,
+            declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn, Statement,
         },
         AllowYield, TokenParser,
     },

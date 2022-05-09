@@ -5,8 +5,8 @@ use crate::syntax::{
     ast::{node::AsyncFunctionExpr, Keyword, Position, Punctuator},
     lexer::{Error as LexError, TokenKind},
     parser::{
+        expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
         AllowYield, Cursor, ParseError, TokenParser,
     },
 };

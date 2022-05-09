@@ -10,12 +10,12 @@
 #[cfg(test)]
 mod tests;
 
-use super::LabelIdentifier;
 use crate::syntax::{
     ast::{node::Break, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::{Cursor, SemicolonResult},
+        expression::LabelIdentifier,
         AllowAwait, AllowYield, ParseError, TokenParser,
     },
 };
