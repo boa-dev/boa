@@ -825,6 +825,20 @@ pub enum Opcode {
     /// Stack: **=>** func
     GetGenerator,
 
+    /// Call a function named "eval".
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: func, this, argument_1, ... argument_n **=>** result
+    CallEval,
+
+    /// Call a function named "eval" where the last argument is a rest parameter.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: func, this, argument_1, ... argument_n **=>** result
+    CallEvalWithRest,
+
     /// Call a function.
     ///
     /// Operands: argument_count: `u32`
@@ -862,14 +876,14 @@ pub enum Opcode {
 
     /// Push a declarative environment.
     ///
-    /// Operands: num_bindings: `u32`
+    /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
     ///
     /// Stack: **=>**
     PushDeclarativeEnvironment,
 
     /// Push a function environment.
     ///
-    /// Operands:
+    /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
     ///
     /// Stack: **=>**
     PushFunctionEnvironment,
@@ -1155,6 +1169,8 @@ impl Opcode {
             Opcode::Default => "Default",
             Opcode::GetFunction => "GetFunction",
             Opcode::GetGenerator => "GetGenerator",
+            Opcode::CallEval => "CallEval",
+            Opcode::CallEvalWithRest => "CallEvalWithRest",
             Opcode::Call => "Call",
             Opcode::CallWithRest => "CallWithRest",
             Opcode::New => "New",
@@ -1287,6 +1303,8 @@ impl Opcode {
             Opcode::Default => "INST - Default",
             Opcode::GetFunction => "INST - GetFunction",
             Opcode::GetGenerator => "INST - GetGenerator",
+            Opcode::CallEval => "INST - CallEval",
+            Opcode::CallEvalWithRest => "INST - CallEvalWithRest",
             Opcode::Call => "INST - Call",
             Opcode::CallWithRest => "INST - CallWithRest",
             Opcode::New => "INST - New",

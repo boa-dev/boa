@@ -11,7 +11,7 @@ use crate::{
         generator::{Generator, GeneratorContext, GeneratorState},
     },
     context::intrinsics::StandardConstructors,
-    environments::{BindingLocator, DeclarativeEnvironmentStack},
+    environments::{BindingLocator, CompileTimeEnvironment, DeclarativeEnvironmentStack},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     syntax::ast::node::FormalParameterList,
@@ -100,6 +100,9 @@ pub struct CodeBlock {
     /// Similar to the `[[ClassFieldInitializerName]]` slot in the spec.
     /// Holds class field names that are computed at class declaration time.
     pub(crate) computed_field_names: Option<Cell<Vec<PropertyKey>>>,
+
+    /// Compile time environments in this function.
+    pub(crate) compile_environments: Vec<Gc<Cell<CompileTimeEnvironment>>>,
 }
 
 impl CodeBlock {
@@ -121,6 +124,7 @@ impl CodeBlock {
             lexical_name_argument: false,
             arguments_binding: None,
             computed_field_names: None,
+            compile_environments: Vec::new(),
         }
     }
 
@@ -190,6 +194,8 @@ impl CodeBlock {
             | Opcode::LogicalAnd
             | Opcode::LogicalOr
             | Opcode::Coalesce
+            | Opcode::CallEval
+            | Opcode::CallEvalWithRest
             | Opcode::Call
             | Opcode::CallWithRest
             | Opcode::New
@@ -198,13 +204,14 @@ impl CodeBlock {
             | Opcode::ForInLoopNext
             | Opcode::ConcatToString
             | Opcode::CopyDataProperties
-            | Opcode::GeneratorNextDelegate
-            | Opcode::PushDeclarativeEnvironment => {
+            | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
             }
-            Opcode::TryStart => {
+            Opcode::TryStart
+            | Opcode::PushDeclarativeEnvironment
+            | Opcode::PushFunctionEnvironment => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -322,7 +329,6 @@ impl CodeBlock {
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Return
-            | Opcode::PushFunctionEnvironment
             | Opcode::PopEnvironment
             | Opcode::LoopStart
             | Opcode::LoopContinue
@@ -634,10 +640,19 @@ impl JsObject {
                     this.clone()
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone(),
+                    );
+                }
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj =
@@ -733,10 +748,19 @@ impl JsObject {
                     this.clone()
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone(),
+                    );
+                }
 
                 if let Some(binding) = code.arguments_binding {
                     let arguments_obj =
@@ -904,10 +928,19 @@ impl JsObject {
                     this
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone().into());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone().into(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone().into(),
+                    );
+                }
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
