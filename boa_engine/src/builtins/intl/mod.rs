@@ -728,7 +728,7 @@ pub(crate) fn get_number_option(
     maximum: f64,
     fallback: Option<f64>,
     context: &mut Context,
-) -> JsResult<f64> {
+) -> JsResult<Option<f64>> {
     // 1. Assert: Type(options) is Object.
     // 2. Let value be ? Get(options, property).
     let value = options.get(property, context)?;
@@ -751,13 +751,10 @@ pub(crate) fn default_number_option(
     maximum: f64,
     fallback: Option<f64>,
     context: &mut Context,
-) -> JsResult<f64> {
+) -> JsResult<Option<f64>> {
     // 1. If value is undefined, return fallback.
     if value.is_undefined() {
-        match fallback {
-            Some(val_f64) => return Ok(val_f64),
-            None => return context.throw_type_error("DefaultNumberOption: no fallback provided"),
-        };
+        return Ok(fallback);
     }
 
     // 2. Set value to ? ToNumber(value).
@@ -769,5 +766,5 @@ pub(crate) fn default_number_option(
     }
 
     // 4. Return floor(value).
-    Ok(value.floor())
+    Ok(Some(value.floor()))
 }
