@@ -51,6 +51,11 @@ pub use self::{
     throw::Throw,
     try_node::{Catch, Finally, Try},
 };
+use self::{
+    declaration::class_decl::ClassElement,
+    iteration::IterableLoopInitializer,
+    object::{MethodDefinition, PropertyDefinition},
+};
 
 pub(crate) use self::parameters::FormalParameterListFlags;
 
@@ -396,7 +401,7 @@ impl Node {
                 for_loop.body().var_declared_names(vars);
             }
             Node::ForInLoop(for_in_loop) => {
-                if let iteration::IterableLoopInitializer::Var(declaration) = for_in_loop.init() {
+                if let IterableLoopInitializer::Var(declaration) = for_in_loop.init() {
                     match declaration {
                         Declaration::Identifier { ident, .. } => {
                             vars.insert(ident.sym());
@@ -411,7 +416,7 @@ impl Node {
                 for_in_loop.body().var_declared_names(vars);
             }
             Node::ForOfLoop(for_of_loop) => {
-                if let iteration::IterableLoopInitializer::Var(declaration) = for_of_loop.init() {
+                if let IterableLoopInitializer::Var(declaration) = for_of_loop.init() {
                     match declaration {
                         Declaration::Identifier { ident, .. } => {
                             vars.insert(ident.sym());
@@ -569,7 +574,32 @@ impl Node {
                 }
             }
             Node::ForInLoop(for_in_loop) => {
-                // TODO: initializer
+                match for_in_loop.init() {
+                    IterableLoopInitializer::Var(declaration)
+                    | IterableLoopInitializer::Let(declaration)
+                    | IterableLoopInitializer::Const(declaration) => match declaration {
+                        Declaration::Identifier { init, .. } => {
+                            if let Some(init) = init {
+                                {
+                                    if init.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        Declaration::Pattern(pattern) => {
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                        }
+                    },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        if pattern.contains_arguments() {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::Identifier(_) => {}
+                }
                 if for_in_loop.expr().contains_arguments() {
                     return true;
                 }
@@ -578,7 +608,32 @@ impl Node {
                 }
             }
             Node::ForOfLoop(for_of_loop) => {
-                // TODO: initializer
+                match for_of_loop.init() {
+                    IterableLoopInitializer::Var(declaration)
+                    | IterableLoopInitializer::Let(declaration)
+                    | IterableLoopInitializer::Const(declaration) => match declaration {
+                        Declaration::Identifier { init, .. } => {
+                            if let Some(init) = init {
+                                {
+                                    if init.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        Declaration::Pattern(pattern) => {
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                        }
+                    },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        if pattern.contains_arguments() {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::Identifier(_) => {}
+                }
                 if for_of_loop.iterable().contains_arguments() {
                     return true;
                 }
@@ -635,7 +690,47 @@ impl Node {
                     }
                 }
             }
-            //Node::Object(_) => todo!(),
+            Node::Object(object) => {
+                for property in object.properties() {
+                    match property {
+                        PropertyDefinition::IdentifierReference(ident) => {
+                            if *ident == Sym::ARGUMENTS {
+                                return true;
+                            }
+                        }
+                        PropertyDefinition::Property(_, node)
+                        | PropertyDefinition::SpreadObject(node) => {
+                            if node.contains_arguments() {
+                                return true;
+                            }
+                        }
+                        PropertyDefinition::MethodDefinition(method, _) => match method {
+                            MethodDefinition::Get(function)
+                            | MethodDefinition::Set(function)
+                            | MethodDefinition::Ordinary(function) => {
+                                if let Some(Sym::ARGUMENTS) = function.name() {
+                                    return true;
+                                }
+                            }
+                            MethodDefinition::Generator(generator) => {
+                                if let Some(Sym::ARGUMENTS) = generator.name() {
+                                    return true;
+                                }
+                            }
+                            MethodDefinition::AsyncGenerator(async_generator) => {
+                                if let Some(Sym::ARGUMENTS) = async_generator.name() {
+                                    return true;
+                                }
+                            }
+                            MethodDefinition::Async(function) => {
+                                if let Some(Sym::ARGUMENTS) = function.name() {
+                                    return true;
+                                }
+                            }
+                        },
+                    }
+                }
+            }
             Node::Return(r#return) => {
                 if let Some(node) = r#return.expr() {
                     if node.contains_arguments() {
@@ -728,8 +823,60 @@ impl Node {
                     }
                 }
             }
-            //Node::ClassDecl(_) => todo!(),
-            //Node::ClassExpr(_) => todo!(),
+            Node::ClassExpr(class) | Node::ClassDecl(class) => {
+                if let Some(node) = class.super_ref() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                    for element in class.elements() {
+                        match element {
+                            ClassElement::MethodDefinition(_, method)
+                            | ClassElement::StaticMethodDefinition(_, method) => match method {
+                                MethodDefinition::Get(function)
+                                | MethodDefinition::Set(function)
+                                | MethodDefinition::Ordinary(function) => {
+                                    if let Some(Sym::ARGUMENTS) = function.name() {
+                                        return true;
+                                    }
+                                }
+                                MethodDefinition::Generator(generator) => {
+                                    if let Some(Sym::ARGUMENTS) = generator.name() {
+                                        return true;
+                                    }
+                                }
+                                MethodDefinition::AsyncGenerator(async_generator) => {
+                                    if let Some(Sym::ARGUMENTS) = async_generator.name() {
+                                        return true;
+                                    }
+                                }
+                                MethodDefinition::Async(function) => {
+                                    if let Some(Sym::ARGUMENTS) = function.name() {
+                                        return true;
+                                    }
+                                }
+                            },
+                            ClassElement::FieldDefinition(_, node)
+                            | ClassElement::StaticFieldDefinition(_, node)
+                            | ClassElement::PrivateFieldDefinition(_, node)
+                            | ClassElement::PrivateStaticFieldDefinition(_, node) => {
+                                if let Some(node) = node {
+                                    if node.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                            ClassElement::StaticBlock(statement_list) => {
+                                for node in statement_list.items() {
+                                    if node.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
             _ => {}
         }
         false
