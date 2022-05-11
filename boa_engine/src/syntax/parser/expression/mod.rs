@@ -36,6 +36,7 @@ use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
+pub(in crate::syntax) use identifiers::RESERVED_IDENTIFIERS_STRICT;
 pub(in crate::syntax::parser) use {
     identifiers::{BindingIdentifier, LabelIdentifier},
     left_hand_side::LeftHandSideExpression,

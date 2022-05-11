@@ -15,7 +15,7 @@ use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
-const RESERVED_IDENTIFIERS_STRICT: [Sym; 9] = [
+pub(in crate::syntax) const RESERVED_IDENTIFIERS_STRICT: [Sym; 9] = [
     Sym::IMPLEMENTS,
     Sym::INTERFACE,
     Sym::LET,

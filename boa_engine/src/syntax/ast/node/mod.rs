@@ -23,7 +23,6 @@ pub mod throw;
 pub mod try_node;
 pub mod r#yield;
 
-use self::field::get_private_field::GetPrivateField;
 pub use self::{
     array::ArrayDecl,
     await_expr::AwaitExpr,
@@ -36,7 +35,7 @@ pub use self::{
         ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
         DeclarationPattern, FunctionDecl, FunctionExpr,
     },
-    field::{GetConstField, GetField},
+    field::{get_private_field::GetPrivateField, GetConstField, GetField},
     identifier::Identifier,
     iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
     new::New,
@@ -456,6 +455,285 @@ impl Node {
             _ => {}
         }
     }
+
+    /// Returns true if the node contains a identifier reference named 'arguments'.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            Node::Identifier(ident) if ident.sym() == Sym::ARGUMENTS => return true,
+            Node::ArrayDecl(array) => {
+                for node in array.as_ref() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::ArrowFunctionDecl(decl) => {
+                for node in decl.body().items() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::Assign(assign) => {
+                if assign.rhs().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::AwaitExpr(r#await) => {
+                if r#await.expr().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::BinOp(bin_op) => {
+                if bin_op.lhs().contains_arguments() || bin_op.rhs().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::Block(block) => {
+                for node in block.items() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::Call(call) => {
+                if call.expr().contains_arguments() {
+                    return true;
+                }
+                for node in call.args() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::ConditionalOp(conditional) => {
+                if conditional.cond().contains_arguments() {
+                    return true;
+                }
+                if conditional.if_true().contains_arguments() {
+                    return true;
+                }
+                if conditional.if_false().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::DoWhileLoop(do_while_loop) => {
+                if do_while_loop.body().contains_arguments() {
+                    return true;
+                }
+                if do_while_loop.cond().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::GetConstField(get_const_field) => {
+                if get_const_field.obj().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::GetPrivateField(get_private_field) => {
+                if get_private_field.obj().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::GetField(get_field) => {
+                if get_field.obj().contains_arguments() {
+                    return true;
+                }
+                if get_field.field().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::ForLoop(for_loop) => {
+                if let Some(node) = for_loop.init() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if let Some(node) = for_loop.condition() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if let Some(node) = for_loop.final_expr() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if for_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::ForInLoop(for_in_loop) => {
+                // TODO: initializer
+                if for_in_loop.expr().contains_arguments() {
+                    return true;
+                }
+                if for_in_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::ForOfLoop(for_of_loop) => {
+                // TODO: initializer
+                if for_of_loop.iterable().contains_arguments() {
+                    return true;
+                }
+                if for_of_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::If(r#if) => {
+                if r#if.cond().contains_arguments() {
+                    return true;
+                }
+                if r#if.body().contains_arguments() {
+                    return true;
+                }
+                if let Some(node) = r#if.else_node() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::VarDeclList(decl_list)
+            | Node::ConstDeclList(decl_list)
+            | Node::LetDeclList(decl_list) => match decl_list {
+                DeclarationList::Const(declarations)
+                | DeclarationList::Let(declarations)
+                | DeclarationList::Var(declarations) => {
+                    for declaration in declarations.iter() {
+                        match declaration {
+                            Declaration::Identifier { init, .. } => {
+                                if let Some(init) = init {
+                                    {
+                                        if init.contains_arguments() {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                            Declaration::Pattern(pattern) => {
+                                if pattern.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            Node::New(new) => {
+                if new.expr().contains_arguments() {
+                    return true;
+                }
+                for node in new.args() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            //Node::Object(_) => todo!(),
+            Node::Return(r#return) => {
+                if let Some(node) = r#return.expr() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::Switch(r#switch) => {
+                if r#switch.val().contains_arguments() {
+                    return true;
+                }
+                for case in r#switch.cases() {
+                    if case.condition().contains_arguments() {
+                        return true;
+                    }
+                    for node in case.body().items() {
+                        if node.contains_arguments() {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Node::Spread(spread) => {
+                if spread.val().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::TaggedTemplate(tagged_template) => {
+                if tagged_template.tag().contains_arguments() {
+                    return true;
+                }
+                for node in tagged_template.exprs() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::TemplateLit(template_lit) => {
+                for element in template_lit.elements() {
+                    if let template::TemplateElement::Expr(node) = element {
+                        if node.contains_arguments() {
+                            return false;
+                        }
+                    }
+                }
+            }
+            Node::Throw(throw) => {
+                if throw.expr().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::Try(r#try) => {
+                for node in r#try.block().items() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if let Some(catch) = r#try.catch() {
+                    for node in catch.block().items() {
+                        if node.contains_arguments() {
+                            return true;
+                        }
+                    }
+                }
+                if let Some(finally) = r#try.finally() {
+                    for node in finally.items() {
+                        if node.contains_arguments() {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Node::UnaryOp(unary_op) => {
+                if unary_op.target().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::WhileLoop(while_loop) => {
+                if while_loop.cond().contains_arguments() {
+                    return true;
+                }
+                if while_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::Yield(r#yield) => {
+                if let Some(node) = r#yield.expr() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            //Node::ClassDecl(_) => todo!(),
+            //Node::ClassExpr(_) => todo!(),
+            _ => {}
+        }
+        false
+    }
 }
 
 impl ToInternedString for Node {
@@ -509,7 +787,7 @@ fn test_formatting(source: &'static str) {
         .collect::<Vec<&'static str>>()
         .join("\n");
     let mut context = Context::default();
-    let result = Parser::new(scenario.as_bytes(), false)
+    let result = Parser::new(scenario.as_bytes())
         .parse_all(&mut context)
         .expect("parsing failed")
         .to_interned_string(context.interner());

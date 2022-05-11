@@ -240,7 +240,6 @@ pub(super) struct StatementList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    in_block: bool,
     break_nodes: &'static [TokenKind],
 }
 
@@ -250,7 +249,6 @@ impl StatementList {
         allow_yield: Y,
         allow_await: A,
         allow_return: R,
-        in_block: bool,
         break_nodes: &'static [TokenKind],
     ) -> Self
     where
@@ -262,7 +260,6 @@ impl StatementList {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
-            in_block,
             break_nodes,
         }
     }
@@ -299,13 +296,9 @@ where
                 _ => {}
             }
 
-            let item = StatementListItem::new(
-                self.allow_yield,
-                self.allow_await,
-                self.allow_return,
-                self.in_block,
-            )
-            .parse(cursor, interner)?;
+            let item =
+                StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor, interner)?;
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
@@ -333,12 +326,11 @@ struct StatementListItem {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    in_block: bool,
 }
 
 impl StatementListItem {
     /// Creates a new `StatementListItem` parser.
-    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R, in_block: bool) -> Self
+    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -348,7 +340,6 @@ impl StatementListItem {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
-            in_block,
         }
     }
 }
@@ -365,20 +356,13 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
-        let strict_mode = cursor.strict_mode();
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, _)) => {
-                if strict_mode && self.in_block {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "Function declaration in blocks not allowed in strict mode".into(),
-                        tok.span().start(),
-                    )));
-                }
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
-            }
-            TokenKind::Keyword((Keyword::Const | Keyword::Let, _)) => {
+            TokenKind::Keyword((
+                Keyword::Function | Keyword::Async | Keyword::Class | Keyword::Const | Keyword::Let,
+                _,
+            )) => {
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)

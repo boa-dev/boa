@@ -113,7 +113,8 @@ where
             }
             TokenKind::Keyword((Keyword::Class, _)) => {
                 cursor.next(interner).expect("token disappeared");
-                ClassExpression::new(self.name, false, false).parse(cursor, interner)
+                ClassExpression::new(self.name, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
             }
             TokenKind::Keyword((Keyword::Async, false)) => {
                 cursor.next(interner).expect("token disappeared");

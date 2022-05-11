@@ -82,9 +82,6 @@ pub struct Context {
     /// Intrinsic objects
     intrinsics: Intrinsics,
 
-    /// Whether or not global strict mode is active.
-    strict: bool,
-
     pub(crate) vm: Vm,
 }
 
@@ -96,7 +93,6 @@ impl Default for Context {
             #[cfg(feature = "console")]
             console: Console::default(),
             intrinsics: Intrinsics::default(),
-            strict: false,
             vm: Vm {
                 frame: None,
                 stack: Vec::with_capacity(1024),
@@ -149,18 +145,6 @@ impl Context {
         &mut self.console
     }
 
-    /// Returns if strict mode is currently active.
-    #[inline]
-    pub fn strict(&self) -> bool {
-        self.strict
-    }
-
-    /// Set the global strict mode of the context.
-    #[inline]
-    pub fn set_strict_mode(&mut self, strict: bool) {
-        self.strict = strict;
-    }
-
     /// Sets up the default global objects within Global
     #[inline]
     fn create_intrinsics(&mut self) {
@@ -178,11 +162,23 @@ impl Context {
         )
     }
 
+    /// Parse the given source text.
     pub fn parse<S>(&mut self, src: S) -> Result<StatementList, ParseError>
     where
         S: AsRef<[u8]>,
     {
-        Parser::new(src.as_ref(), self.strict).parse_all(self)
+        let mut parser = Parser::new(src.as_ref());
+        parser.parse_all(self)
+    }
+
+    /// Parse the given source text in strict mode.
+    pub(crate) fn parse_strict<S>(&mut self, src: S) -> Result<StatementList, ParseError>
+    where
+        S: AsRef<[u8]>,
+    {
+        let mut parser = Parser::new(src.as_ref());
+        parser.set_strict();
+        parser.parse_all(self)
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
@@ -641,7 +637,7 @@ impl Context {
     {
         let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
-        let parsing_result = Parser::new(src.as_ref(), false)
+        let parsing_result = Parser::new(src.as_ref())
             .parse_all(self)
             .map_err(|e| e.to_string());
 

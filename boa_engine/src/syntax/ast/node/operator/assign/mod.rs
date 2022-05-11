@@ -1,11 +1,14 @@
-use crate::syntax::ast::node::{
-    declaration::{
-        BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPatternArray,
-        DeclarationPatternObject,
+use crate::syntax::{
+    ast::node::{
+        declaration::{
+            BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPatternArray,
+            DeclarationPatternObject,
+        },
+        field::get_private_field::GetPrivateField,
+        object::{PropertyDefinition, PropertyName},
+        ArrayDecl, DeclarationPattern, GetConstField, GetField, Identifier, Node, Object,
     },
-    field::get_private_field::GetPrivateField,
-    object::{PropertyDefinition, PropertyName},
-    ArrayDecl, DeclarationPattern, GetConstField, GetField, Identifier, Node, Object,
+    parser::RESERVED_IDENTIFIERS_STRICT,
 };
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -152,6 +155,10 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 return None
             }
             PropertyDefinition::IdentifierReference(ident) => {
+                if strict && RESERVED_IDENTIFIERS_STRICT.contains(ident) {
+                    return None;
+                }
+
                 excluded_keys.push(*ident);
                 bindings.push(BindingPatternTypeObject::SingleName {
                     ident: *ident,
@@ -164,6 +171,10 @@ pub(crate) fn object_decl_to_declaration_pattern(
                     if strict && *name == Sym::EVAL {
                         return None;
                     }
+                    if strict && RESERVED_IDENTIFIERS_STRICT.contains(name) {
+                        return None;
+                    }
+
                     excluded_keys.push(*name);
                     bindings.push(BindingPatternTypeObject::SingleName {
                         ident: *name,
@@ -217,6 +228,10 @@ pub(crate) fn array_decl_to_declaration_pattern(
     for (i, node) in array.as_ref().iter().enumerate() {
         match node {
             Node::Identifier(ident) => {
+                if strict && ident.sym() == Sym::ARGUMENTS {
+                    return None;
+                }
+
                 bindings.push(BindingPatternTypeArray::SingleName {
                     ident: ident.sym(),
                     default_init: None,

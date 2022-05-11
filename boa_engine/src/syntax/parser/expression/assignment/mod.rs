@@ -243,6 +243,22 @@ where
                     }
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
+                    if cursor.strict_mode() {
+                        if let Node::Identifier(ident) = lhs {
+                            if ident.sym() == Sym::ARGUMENTS {
+                                return Err(ParseError::lex(LexError::Syntax(
+                                    "unexpected identifier 'arguments' in strict mode".into(),
+                                    position,
+                                )));
+                            } else if ident.sym() == Sym::EVAL {
+                                return Err(ParseError::lex(LexError::Syntax(
+                                    "unexpected identifier 'eval' in strict mode".into(),
+                                    position,
+                                )));
+                            }
+                        }
+                    }
+
                     cursor.next(interner)?.expect("token vanished");
                     if is_assignable(&lhs) {
                         let binop = p.as_binop().expect("binop disappeared");

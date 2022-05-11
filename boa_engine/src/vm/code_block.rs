@@ -634,10 +634,14 @@ impl JsObject {
                     } else {
                         context.global_object().clone().into()
                     }
-                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                } else if code.strict {
+                    this.clone()
+                } else if this.is_null_or_undefined() {
                     context.global_object().clone().into()
                 } else {
-                    this.clone()
+                    this.to_object(context)
+                        .expect("conversion cannot fail")
+                        .into()
                 };
 
                 if code.params.has_expressions() {
@@ -655,19 +659,18 @@ impl JsObject {
                 }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -742,7 +745,7 @@ impl JsObject {
                     } else {
                         context.global_object().clone().into()
                     }
-                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                } else if !code.strict && this.is_null_or_undefined() {
                     context.global_object().clone().into()
                 } else {
                     this.clone()
@@ -763,19 +766,18 @@ impl JsObject {
                 }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -957,19 +959,18 @@ impl JsObject {
                 }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
