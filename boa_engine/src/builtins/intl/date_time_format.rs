@@ -115,6 +115,17 @@ impl DateTimeFormat {
     }
 }
 
+/// Enumeration for `required` and `defaults` arguments in `toDateTimeOptions` subroutine
+/// `required` can take Date/Time/Any values, `defaults` can take Date/Time/All
+/// `Any` and `All` are merged into one `AnyAll` value.
+#[cfg(test)]
+#[derive(Debug, PartialEq)]
+pub(crate) enum DateTimeReqs {
+    Date,
+    Time,
+    AnyAll,
+}
+
 /// The abstract operation `toDateTimeOptions` is called with arguments `options`, `required` and
 /// `defaults`.
 ///
@@ -125,8 +136,8 @@ impl DateTimeFormat {
 #[cfg(test)]
 pub(crate) fn to_date_time_options(
     options: &JsValue,
-    required: &str,
-    defaults: &str,
+    required: &DateTimeReqs,
+    defaults: &DateTimeReqs,
     context: &mut Context,
 ) -> JsResult<JsObject> {
     // 1. If options is undefined, let options be null;
@@ -143,7 +154,7 @@ pub(crate) fn to_date_time_options(
     let mut need_defaults = true;
 
     // 4. If required is "date" or "any", then
-    if ["date", "any"].contains(&required) {
+    if [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(&required) {
         // a. For each property name prop of « "weekday", "year", "month", "day" », do
         for property in ["weekday", "year", "month", "day"] {
             // i. Let value be ? Get(options, prop).
@@ -157,7 +168,7 @@ pub(crate) fn to_date_time_options(
     }
 
     // 5. If required is "time" or "any", then
-    if ["time", "any"].contains(&required) {
+    if [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(&required) {
         // a. For each property name prop of « "dayPeriod", "hour", "minute", "second",
         // "fractionalSecondDigits" », do
         for property in [
@@ -191,19 +202,19 @@ pub(crate) fn to_date_time_options(
     }
 
     // 9. If required is "date" and timeStyle is not undefined, then
-    if required.eq("date") && !time_style.is_undefined() {
+    if required == &DateTimeReqs::Date && !time_style.is_undefined() {
         // a. Throw a TypeError exception.
         return context.throw_type_error("'date' is required, but timeStyle was defined");
     }
 
     // 10. If required is "time" and dateStyle is not undefined, then
-    if required.eq("time") && !date_style.is_undefined() {
+    if required == &DateTimeReqs::Time && !date_style.is_undefined() {
         // a. Throw a TypeError exception.
         return context.throw_type_error("'time' is required, but dateStyle was defined");
     }
 
     // 11. If needDefaults is true and defaults is either "date" or "all", then
-    if need_defaults && ["date", "all"].contains(&defaults) {
+    if need_defaults && [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(&defaults) {
         // a. For each property name prop of « "year", "month", "day" », do
         for property in ["year", "month", "day"] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
@@ -212,7 +223,7 @@ pub(crate) fn to_date_time_options(
     }
 
     // 12. If needDefaults is true and defaults is either "time" or "all", then
-    if need_defaults && ["time", "all"].contains(&defaults) {
+    if need_defaults && [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(&defaults) {
         // a. For each property name prop of « "hour", "minute", "second" », do
         for property in ["hour", "minute", "second"] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").

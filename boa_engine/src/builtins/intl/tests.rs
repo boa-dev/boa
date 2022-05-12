@@ -455,8 +455,8 @@ fn to_date_time_opts() {
         .expect("Setting a property should not fail");
     let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
         &JsValue::new(options_obj),
-        "date",
-        "date",
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
         &mut context,
     );
     assert_eq!(date_time_opts.is_err(), true);
@@ -467,16 +467,16 @@ fn to_date_time_opts() {
         .expect("Setting a property should not fail");
     let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
         &JsValue::new(options_obj),
-        "time",
-        "time",
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
         &mut context,
     );
     assert_eq!(date_time_opts.is_err(), true);
 
     let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
         &JsValue::undefined(),
-        "date",
-        "date",
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
         &mut context,
     )
     .expect("toDateTimeOptions should not fail in date test");
@@ -497,8 +497,8 @@ fn to_date_time_opts() {
 
     let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
         &JsValue::undefined(),
-        "time",
-        "time",
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
+        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
         &mut context,
     )
     .expect("toDateTimeOptions should not fail in time test");
@@ -519,8 +519,8 @@ fn to_date_time_opts() {
 
     let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
         &JsValue::undefined(),
-        "any",
-        "all",
+        &crate::builtins::intl::date_time_format::DateTimeReqs::AnyAll,
+        &crate::builtins::intl::date_time_format::DateTimeReqs::AnyAll,
         &mut context,
     )
     .expect("toDateTimeOptions should not fail when testing required = 'any'");
