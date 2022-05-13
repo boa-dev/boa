@@ -1,4 +1,13 @@
-use crate::{object::JsObject, Context, JsString, JsValue};
+use crate::{
+    builtins::intl::date_time_format::{to_date_time_options, DateTimeReqs},
+    builtins::intl::{
+        best_available_locale, best_fit_matcher, default_locale, default_number_option,
+        get_number_option, get_option, insert_unicode_extension_and_canonicalize, lookup_matcher,
+        resolve_locale, unicode_extension_components, DateTimeFormatRecord, GetOptionType,
+    },
+    object::JsObject,
+    Context, JsString, JsValue,
+};
 
 use rustc_hash::FxHashMap;
 
@@ -7,14 +16,14 @@ fn best_avail_loc() {
     let no_extensions_locale = JsString::new("en-US");
     let available_locales = Vec::<JsString>::new();
     assert_eq!(
-        crate::builtins::intl::best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, &no_extensions_locale,),
         None
     );
 
     let no_extensions_locale = JsString::new("de-DE");
     let available_locales = vec![no_extensions_locale.clone()];
     assert_eq!(
-        crate::builtins::intl::best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, &no_extensions_locale,),
         Some(no_extensions_locale)
     );
 
@@ -22,7 +31,7 @@ fn best_avail_loc() {
     let no_extensions_locale = JsString::new(locale_part.clone() + &"-CA".to_string());
     let available_locales = vec![JsString::new(locale_part.clone())];
     assert_eq!(
-        crate::builtins::intl::best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, &no_extensions_locale,),
         Some(JsString::new(locale_part))
     );
 
@@ -31,7 +40,7 @@ fn best_avail_loc() {
     let no_extensions_locale = JsString::new("ja-Kana-JP-t-it-latn-it");
     let available_locales = vec![ja_kana_t.clone(), ja_kana.clone()];
     assert_eq!(
-        crate::builtins::intl::best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, &no_extensions_locale,),
         Some(ja_kana)
     );
 }
@@ -42,23 +51,23 @@ fn lookup_match() {
     let available_locales = Vec::<JsString>::new();
     let requested_locales = Vec::<JsString>::new();
 
-    let matcher = crate::builtins::intl::lookup_matcher(&available_locales, &requested_locales);
-    assert_eq!(matcher.locale, crate::builtins::intl::default_locale());
+    let matcher = lookup_matcher(&available_locales, &requested_locales);
+    assert_eq!(matcher.locale, default_locale());
     assert_eq!(matcher.extension, "");
 
     // available: [de-DE], requested: []
     let available_locales = vec![JsString::new("de-DE")];
     let requested_locales = Vec::<JsString>::new();
 
-    let matcher = crate::builtins::intl::lookup_matcher(&available_locales, &requested_locales);
-    assert_eq!(matcher.locale, crate::builtins::intl::default_locale());
+    let matcher = lookup_matcher(&available_locales, &requested_locales);
+    assert_eq!(matcher.locale, default_locale());
     assert_eq!(matcher.extension, "");
 
     // available: [fr-FR], requested: [fr-FR-u-hc-h12]
     let available_locales = vec![JsString::new("fr-FR")];
     let requested_locales = vec![JsString::new("fr-FR-u-hc-h12")];
 
-    let matcher = crate::builtins::intl::lookup_matcher(&available_locales, &requested_locales);
+    let matcher = lookup_matcher(&available_locales, &requested_locales);
     assert_eq!(matcher.locale, "fr-FR");
     assert_eq!(matcher.extension, "-u-hc-h12");
 
@@ -66,7 +75,7 @@ fn lookup_match() {
     let available_locales = vec![JsString::new("es-ES")];
     let requested_locales = vec![JsString::new("es-ES")];
 
-    let matcher = crate::builtins::intl::best_fit_matcher(&available_locales, &requested_locales);
+    let matcher = best_fit_matcher(&available_locales, &requested_locales);
     assert_eq!(matcher.locale, "es-ES");
     assert_eq!(matcher.extension, "");
 }
@@ -76,21 +85,21 @@ fn insert_unicode_ext() {
     let locale = JsString::new("hu-HU");
     let ext = JsString::empty();
     assert_eq!(
-        crate::builtins::intl::insert_unicode_extension_and_canonicalize(&locale, &ext),
+        insert_unicode_extension_and_canonicalize(&locale, &ext),
         locale
     );
 
     let locale = JsString::new("hu-HU");
     let ext = JsString::new("-u-hc-h12");
     assert_eq!(
-        crate::builtins::intl::insert_unicode_extension_and_canonicalize(&locale, &ext),
+        insert_unicode_extension_and_canonicalize(&locale, &ext),
         JsString::new("hu-HU-u-hc-h12")
     );
 
     let locale = JsString::new("hu-HU-x-PRIVATE");
     let ext = JsString::new("-u-hc-h12");
     assert_eq!(
-        crate::builtins::intl::insert_unicode_extension_and_canonicalize(&locale, &ext),
+        insert_unicode_extension_and_canonicalize(&locale, &ext),
         JsString::new("hu-HU-u-hc-h12-x-PRIVATE")
     );
 }
@@ -98,7 +107,7 @@ fn insert_unicode_ext() {
 #[test]
 fn uni_ext_comp() {
     let ext = JsString::new("-u-ca-japanese-hc-h12");
-    let components = crate::builtins::intl::unicode_extension_components(&ext);
+    let components = unicode_extension_components(&ext);
     assert_eq!(components.attributes.is_empty(), true);
     assert_eq!(components.keywords.len(), 2);
     assert_eq!(components.keywords[0].key, "ca");
@@ -107,7 +116,7 @@ fn uni_ext_comp() {
     assert_eq!(components.keywords[1].value, "h12");
 
     let ext = JsString::new("-u-alias-co-phonebk-ka-shifted");
-    let components = crate::builtins::intl::unicode_extension_components(&ext);
+    let components = unicode_extension_components(&ext);
     assert_eq!(components.attributes, vec![JsString::new("alias")]);
     assert_eq!(components.keywords.len(), 2);
     assert_eq!(components.keywords[0].key, "co");
@@ -116,7 +125,7 @@ fn uni_ext_comp() {
     assert_eq!(components.keywords[1].value, "shifted");
 
     let ext = JsString::new("-u-ca-buddhist-kk-nu-thai");
-    let components = crate::builtins::intl::unicode_extension_components(&ext);
+    let components = unicode_extension_components(&ext);
     assert_eq!(components.attributes.is_empty(), true);
     assert_eq!(components.keywords.len(), 3);
     assert_eq!(components.keywords[0].key, "ca");
@@ -127,7 +136,7 @@ fn uni_ext_comp() {
     assert_eq!(components.keywords[2].value, "thai");
 
     let ext = JsString::new("-u-ca-islamic-civil");
-    let components = crate::builtins::intl::unicode_extension_components(&ext);
+    let components = unicode_extension_components(&ext);
     assert_eq!(components.attributes.is_empty(), true);
     assert_eq!(components.keywords.len(), 1);
     assert_eq!(components.keywords[0].key, "ca");
@@ -143,12 +152,12 @@ fn locale_resolution() {
     let requested_locales = Vec::<JsString>::new();
     let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
-    let options = crate::builtins::intl::DateTimeFormatRecord {
+    let options = DateTimeFormatRecord {
         locale_matcher: JsString::new("lookup"),
         properties: FxHashMap::default(),
     };
 
-    let locale_record = crate::builtins::intl::resolve_locale(
+    let locale_record = resolve_locale(
         &available_locales,
         &requested_locales,
         &options,
@@ -156,14 +165,8 @@ fn locale_resolution() {
         &locale_data,
         &mut context,
     );
-    assert_eq!(
-        locale_record.locale,
-        crate::builtins::intl::default_locale()
-    );
-    assert_eq!(
-        locale_record.data_locale,
-        crate::builtins::intl::default_locale()
-    );
+    assert_eq!(locale_record.locale, default_locale());
+    assert_eq!(locale_record.data_locale, default_locale());
     assert_eq!(locale_record.properties.is_empty(), true);
 
     // test best fit
@@ -171,12 +174,12 @@ fn locale_resolution() {
     let requested_locales = Vec::<JsString>::new();
     let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
-    let options = crate::builtins::intl::DateTimeFormatRecord {
+    let options = DateTimeFormatRecord {
         locale_matcher: JsString::new("best-fit"),
         properties: FxHashMap::default(),
     };
 
-    let locale_record = crate::builtins::intl::resolve_locale(
+    let locale_record = resolve_locale(
         &available_locales,
         &requested_locales,
         &options,
@@ -184,14 +187,8 @@ fn locale_resolution() {
         &locale_data,
         &mut context,
     );
-    assert_eq!(
-        locale_record.locale,
-        crate::builtins::intl::default_locale()
-    );
-    assert_eq!(
-        locale_record.data_locale,
-        crate::builtins::intl::default_locale()
-    );
+    assert_eq!(locale_record.locale, default_locale());
+    assert_eq!(locale_record.data_locale, default_locale());
     assert_eq!(locale_record.properties.is_empty(), true);
 
     // available: [es-ES], requested: [es-ES]
@@ -199,12 +196,12 @@ fn locale_resolution() {
     let requested_locales = vec![JsString::new("es-ES")];
     let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
-    let options = crate::builtins::intl::DateTimeFormatRecord {
+    let options = DateTimeFormatRecord {
         locale_matcher: JsString::new("lookup"),
         properties: FxHashMap::default(),
     };
 
-    let locale_record = crate::builtins::intl::resolve_locale(
+    let locale_record = resolve_locale(
         &available_locales,
         &requested_locales,
         &options,
@@ -221,12 +218,12 @@ fn locale_resolution() {
     let requested_locales = Vec::<JsString>::new();
     let relevant_extension_keys = Vec::<JsString>::new();
     let locale_data = FxHashMap::default();
-    let options = crate::builtins::intl::DateTimeFormatRecord {
+    let options = DateTimeFormatRecord {
         locale_matcher: JsString::new("lookup"),
         properties: FxHashMap::default(),
     };
 
-    let locale_record = crate::builtins::intl::resolve_locale(
+    let locale_record = resolve_locale(
         &available_locales,
         &requested_locales,
         &options,
@@ -234,14 +231,8 @@ fn locale_resolution() {
         &locale_data,
         &mut context,
     );
-    assert_eq!(
-        locale_record.locale,
-        crate::builtins::intl::default_locale()
-    );
-    assert_eq!(
-        locale_record.data_locale,
-        crate::builtins::intl::default_locale()
-    );
+    assert_eq!(locale_record.locale, default_locale());
+    assert_eq!(locale_record.data_locale, default_locale());
     assert_eq!(locale_record.properties.is_empty(), true);
 }
 
@@ -252,8 +243,8 @@ fn get_opt() {
     let values = Vec::<JsString>::new();
     let fallback = JsValue::String(JsString::new("fallback"));
     let options_obj = JsObject::empty();
-    let option_type = crate::builtins::intl::GetOptionType::String;
-    let get_option_result = crate::builtins::intl::get_option(
+    let option_type = GetOptionType::String;
+    let get_option_result = get_option(
         &options_obj,
         "",
         &option_type,
@@ -271,8 +262,8 @@ fn get_opt() {
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
-    let option_type = crate::builtins::intl::GetOptionType::String;
-    let get_option_result = crate::builtins::intl::get_option(
+    let option_type = GetOptionType::String;
+    let get_option_result = get_option(
         &options_obj,
         "Locale",
         &option_type,
@@ -291,8 +282,8 @@ fn get_opt() {
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
-    let option_type = crate::builtins::intl::GetOptionType::String;
-    let get_option_result = crate::builtins::intl::get_option(
+    let option_type = GetOptionType::String;
+    let get_option_result = get_option(
         &options_obj,
         "Locale",
         &option_type,
@@ -310,8 +301,8 @@ fn get_opt() {
     options_obj
         .set("boolean_val", boolean_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
-    let option_type = crate::builtins::intl::GetOptionType::Boolean;
-    let get_option_result = crate::builtins::intl::get_option(
+    let option_type = GetOptionType::Boolean;
+    let get_option_result = get_option(
         &options_obj,
         "boolean_val",
         &option_type,
@@ -330,8 +321,8 @@ fn get_opt() {
     options_obj
         .set("Locale", locale_value.clone(), true, &mut context)
         .expect("Setting a property should not fail");
-    let option_type = crate::builtins::intl::GetOptionType::String;
-    let get_option_result = crate::builtins::intl::get_option(
+    let option_type = GetOptionType::String;
+    let get_option_result = get_option(
         &options_obj,
         "Locale",
         &option_type,
@@ -346,52 +337,28 @@ fn get_opt() {
     let maximum = 10.0;
     let fallback_val = 5.0;
     let fallback = Some(fallback_val);
-    let get_option_result = crate::builtins::intl::default_number_option(
-        &value,
-        minimum,
-        maximum,
-        fallback,
-        &mut context,
-    );
+    let get_option_result = default_number_option(&value, minimum, maximum, fallback, &mut context);
     assert_eq!(get_option_result, Ok(fallback));
 
     let value = JsValue::nan();
     let minimum = 1.0;
     let maximum = 10.0;
     let fallback = Some(5.0);
-    let get_option_result = crate::builtins::intl::default_number_option(
-        &value,
-        minimum,
-        maximum,
-        fallback,
-        &mut context,
-    );
+    let get_option_result = default_number_option(&value, minimum, maximum, fallback, &mut context);
     assert_eq!(get_option_result.is_err(), true);
 
     let value = JsValue::new(0);
     let minimum = 1.0;
     let maximum = 10.0;
     let fallback = Some(5.0);
-    let get_option_result = crate::builtins::intl::default_number_option(
-        &value,
-        minimum,
-        maximum,
-        fallback,
-        &mut context,
-    );
+    let get_option_result = default_number_option(&value, minimum, maximum, fallback, &mut context);
     assert_eq!(get_option_result.is_err(), true);
 
     let value = JsValue::new(11);
     let minimum = 1.0;
     let maximum = 10.0;
     let fallback = Some(5.0);
-    let get_option_result = crate::builtins::intl::default_number_option(
-        &value,
-        minimum,
-        maximum,
-        fallback,
-        &mut context,
-    );
+    let get_option_result = default_number_option(&value, minimum, maximum, fallback, &mut context);
     assert_eq!(get_option_result.is_err(), true);
 
     let value_f64 = 7.0;
@@ -399,13 +366,7 @@ fn get_opt() {
     let minimum = 1.0;
     let maximum = 10.0;
     let fallback = Some(5.0);
-    let get_option_result = crate::builtins::intl::default_number_option(
-        &value,
-        minimum,
-        maximum,
-        fallback,
-        &mut context,
-    );
+    let get_option_result = default_number_option(&value, minimum, maximum, fallback, &mut context);
     assert_eq!(get_option_result, Ok(Some(value_f64)));
 
     let options = JsObject::empty();
@@ -414,7 +375,7 @@ fn get_opt() {
     let maximum = 10.0;
     let fallback_val = 5.0;
     let fallback = Some(fallback_val);
-    let get_option_result = crate::builtins::intl::get_number_option(
+    let get_option_result = get_number_option(
         &options,
         &property,
         minimum,
@@ -434,7 +395,7 @@ fn get_opt() {
     let minimum = 1.0;
     let maximum = 10.0;
     let fallback = Some(5.0);
-    let get_option_result = crate::builtins::intl::get_number_option(
+    let get_option_result = get_number_option(
         &options,
         &property,
         minimum,
@@ -453,10 +414,10 @@ fn to_date_time_opts() {
     options_obj
         .set("timeStyle", JsObject::empty(), true, &mut context)
         .expect("Setting a property should not fail");
-    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+    let date_time_opts = to_date_time_options(
         &JsValue::new(options_obj),
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
+        &DateTimeReqs::Date,
+        &DateTimeReqs::Date,
         &mut context,
     );
     assert_eq!(date_time_opts.is_err(), true);
@@ -465,18 +426,18 @@ fn to_date_time_opts() {
     options_obj
         .set("dateStyle", JsObject::empty(), true, &mut context)
         .expect("Setting a property should not fail");
-    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+    let date_time_opts = to_date_time_options(
         &JsValue::new(options_obj),
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
+        &DateTimeReqs::Time,
+        &DateTimeReqs::Time,
         &mut context,
     );
     assert_eq!(date_time_opts.is_err(), true);
 
-    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+    let date_time_opts = to_date_time_options(
         &JsValue::undefined(),
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Date,
+        &DateTimeReqs::Date,
+        &DateTimeReqs::Date,
         &mut context,
     )
     .expect("toDateTimeOptions should not fail in date test");
@@ -495,10 +456,10 @@ fn to_date_time_opts() {
         Ok(numeric_jsstring.clone())
     );
 
-    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+    let date_time_opts = to_date_time_options(
         &JsValue::undefined(),
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
-        &crate::builtins::intl::date_time_format::DateTimeReqs::Time,
+        &DateTimeReqs::Time,
+        &DateTimeReqs::Time,
         &mut context,
     )
     .expect("toDateTimeOptions should not fail in time test");
@@ -517,10 +478,10 @@ fn to_date_time_opts() {
         Ok(numeric_jsstring.clone())
     );
 
-    let date_time_opts = crate::builtins::intl::date_time_format::to_date_time_options(
+    let date_time_opts = to_date_time_options(
         &JsValue::undefined(),
-        &crate::builtins::intl::date_time_format::DateTimeReqs::AnyAll,
-        &crate::builtins::intl::date_time_format::DateTimeReqs::AnyAll,
+        &DateTimeReqs::AnyAll,
+        &DateTimeReqs::AnyAll,
         &mut context,
     )
     .expect("toDateTimeOptions should not fail when testing required = 'any'");

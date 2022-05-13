@@ -10,14 +10,11 @@
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn, JsArgs},
-    object::ObjectInitializer,
+    object::{JsObject, ObjectInitializer},
     property::Attribute,
     symbol::WellKnownSymbols,
     Context, JsResult, JsString, JsValue,
 };
-
-#[cfg(test)]
-use crate::object::JsObject;
 
 pub mod date_time_format;
 #[cfg(test)]
@@ -657,7 +654,7 @@ fn resolve_locale(
     result
 }
 
-#[cfg(test)]
+#[allow(unused)]
 pub(crate) enum GetOptionType {
     String,
     Boolean,
@@ -672,7 +669,7 @@ pub(crate) enum GetOptionType {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
-#[cfg(test)]
+#[allow(unused)]
 pub(crate) fn get_option(
     options: &JsObject,
     property: &str,
@@ -720,7 +717,7 @@ pub(crate) fn get_option(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getnumberoption
-#[cfg(test)]
+#[allow(unused)]
 pub(crate) fn get_number_option(
     options: &JsObject,
     property: &str,
@@ -744,7 +741,7 @@ pub(crate) fn get_number_option(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultnumberoption
-#[cfg(test)]
+#[allow(unused)]
 pub(crate) fn default_number_option(
     value: &JsValue,
     minimum: f64,
@@ -761,7 +758,7 @@ pub(crate) fn default_number_option(
     let value = value.to_number(context)?;
 
     // 3. If value is NaN or less than minimum or greater than maximum, throw a RangeError exception.
-    if value.is_nan() || value.lt(&minimum) || value.gt(&maximum) {
+    if value.is_nan() || value < minimum || value > maximum {
         return context.throw_range_error("DefaultNumberOption: value is out of range.");
     }
 

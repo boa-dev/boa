@@ -115,10 +115,12 @@ impl DateTimeFormat {
     }
 }
 
-/// Enumeration for `required` and `defaults` arguments in `toDateTimeOptions` subroutine
-/// `required` can take Date/Time/Any values, `defaults` can take Date/Time/All
-/// `Any` and `All` are merged into one `AnyAll` value.
-#[cfg(test)]
+/// Represents the `required` and `defaults` arguments in the abstract operation
+/// `toDateTimeOptions`.
+///
+/// Since `required` and `defaults` differ only in the `any` and `all` variants,
+/// we combine both in a single variant `AnyAll`.
+#[allow(unused)]
 #[derive(Debug, PartialEq)]
 pub(crate) enum DateTimeReqs {
     Date,
@@ -133,7 +135,7 @@ pub(crate) enum DateTimeReqs {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-todatetimeoptions
-#[cfg(test)]
+#[allow(unused)]
 pub(crate) fn to_date_time_options(
     options: &JsValue,
     required: &DateTimeReqs,
@@ -144,17 +146,17 @@ pub(crate) fn to_date_time_options(
     // otherwise let options be ? ToObject(options).
     // 2. Let options be ! OrdinaryObjectCreate(options).
     let options = if options.is_undefined() {
-        JsObject::from_proto_and_data(None, ObjectData::ordinary())
+        None
     } else {
-        let opt = options.to_object(context)?;
-        JsObject::from_proto_and_data(opt, ObjectData::ordinary())
+        Some(options.to_object(context)?)
     };
+    let options = JsObject::from_proto_and_data(options, ObjectData::ordinary());
 
     // 3. Let needDefaults be true.
     let mut need_defaults = true;
 
     // 4. If required is "date" or "any", then
-    if [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(&required) {
+    if [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(required) {
         // a. For each property name prop of « "weekday", "year", "month", "day" », do
         for property in ["weekday", "year", "month", "day"] {
             // i. Let value be ? Get(options, prop).
@@ -168,7 +170,7 @@ pub(crate) fn to_date_time_options(
     }
 
     // 5. If required is "time" or "any", then
-    if [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(&required) {
+    if [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(required) {
         // a. For each property name prop of « "dayPeriod", "hour", "minute", "second",
         // "fractionalSecondDigits" », do
         for property in [
@@ -189,9 +191,7 @@ pub(crate) fn to_date_time_options(
     }
 
     // 6. Let dateStyle be ? Get(options, "dateStyle").
-    let date_style = options
-        .get("dateStyle", context)
-        .unwrap_or_else(|_| JsValue::undefined());
+    let date_style = options.get("dateStyle", context)?;
 
     // 7. Let timeStyle be ? Get(options, "timeStyle").
     let time_style = options.get("timeStyle", context)?;
@@ -214,7 +214,7 @@ pub(crate) fn to_date_time_options(
     }
 
     // 11. If needDefaults is true and defaults is either "date" or "all", then
-    if need_defaults && [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(&defaults) {
+    if need_defaults && [DateTimeReqs::Date, DateTimeReqs::AnyAll].contains(defaults) {
         // a. For each property name prop of « "year", "month", "day" », do
         for property in ["year", "month", "day"] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
@@ -223,7 +223,7 @@ pub(crate) fn to_date_time_options(
     }
 
     // 12. If needDefaults is true and defaults is either "time" or "all", then
-    if need_defaults && [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(&defaults) {
+    if need_defaults && [DateTimeReqs::Time, DateTimeReqs::AnyAll].contains(defaults) {
         // a. For each property name prop of « "hour", "minute", "second" », do
         for property in ["hour", "minute", "second"] {
             // i. Perform ? CreateDataPropertyOrThrow(options, prop, "numeric").
