@@ -10,7 +10,7 @@
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn, JsArgs},
-    object::ObjectInitializer,
+    object::{JsObject, ObjectInitializer},
     property::Attribute,
     symbol::WellKnownSymbols,
     Context, JsResult, JsString, JsValue,
@@ -652,4 +652,116 @@ fn resolve_locale(
 
     // 12. Return result.
     result
+}
+
+#[allow(unused)]
+pub(crate) enum GetOptionType {
+    String,
+    Boolean,
+}
+
+/// The abstract operation `GetOption` extracts the value of the property named `property` from the
+/// provided `options` object, converts it to the required `type`, checks whether it is one of a
+/// `List` of allowed `values`, and fills in a `fallback` value if necessary. If `values` is
+/// undefined, there is no fixed set of values and any is permitted.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-getoption
+#[allow(unused)]
+pub(crate) fn get_option(
+    options: &JsObject,
+    property: &str,
+    r#type: &GetOptionType,
+    values: &[JsString],
+    fallback: &JsValue,
+    context: &mut Context,
+) -> JsResult<JsValue> {
+    // 1. Assert: Type(options) is Object.
+    // 2. Let value be ? Get(options, property).
+    let mut value = options.get(property, context)?;
+
+    // 3. If value is undefined, return fallback.
+    if value.is_undefined() {
+        return Ok(fallback.clone());
+    }
+
+    // 4. Assert: type is "boolean" or "string".
+    // 5. If type is "boolean", then
+    //      a. Set value to ! ToBoolean(value).
+    // 6. If type is "string", then
+    //      a. Set value to ? ToString(value).
+    // 7. If values is not undefined and values does not contain an element equal to value,
+    // throw a RangeError exception.
+    value = match r#type {
+        GetOptionType::Boolean => JsValue::Boolean(value.to_boolean()),
+        GetOptionType::String => {
+            let string_value = value.to_string(context)?;
+            if !values.is_empty() && !values.contains(&string_value) {
+                return context.throw_range_error("GetOption: values array does not contain value");
+            }
+            JsValue::String(string_value)
+        }
+    };
+
+    // 8. Return value.
+    Ok(value)
+}
+
+/// The abstract operation `GetNumberOption` extracts the value of the property named `property`
+/// from the provided `options` object, converts it to a `Number value`, checks whether it is in
+/// the allowed range, and fills in a `fallback` value if necessary.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-getnumberoption
+#[allow(unused)]
+pub(crate) fn get_number_option(
+    options: &JsObject,
+    property: &str,
+    minimum: f64,
+    maximum: f64,
+    fallback: Option<f64>,
+    context: &mut Context,
+) -> JsResult<Option<f64>> {
+    // 1. Assert: Type(options) is Object.
+    // 2. Let value be ? Get(options, property).
+    let value = options.get(property, context)?;
+
+    // 3. Return ? DefaultNumberOption(value, minimum, maximum, fallback).
+    default_number_option(&value, minimum, maximum, fallback, context)
+}
+
+/// The abstract operation `DefaultNumberOption` converts `value` to a `Number value`, checks
+/// whether it is in the allowed range, and fills in a `fallback` value if necessary.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-defaultnumberoption
+#[allow(unused)]
+pub(crate) fn default_number_option(
+    value: &JsValue,
+    minimum: f64,
+    maximum: f64,
+    fallback: Option<f64>,
+    context: &mut Context,
+) -> JsResult<Option<f64>> {
+    // 1. If value is undefined, return fallback.
+    if value.is_undefined() {
+        return Ok(fallback);
+    }
+
+    // 2. Set value to ? ToNumber(value).
+    let value = value.to_number(context)?;
+
+    // 3. If value is NaN or less than minimum or greater than maximum, throw a RangeError exception.
+    if value.is_nan() || value < minimum || value > maximum {
+        return context.throw_range_error("DefaultNumberOption: value is out of range.");
+    }
+
+    // 4. Return floor(value).
+    Ok(Some(value.floor()))
 }
