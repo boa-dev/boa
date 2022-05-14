@@ -95,11 +95,13 @@ dependencies = [
  "boa_profiler",
  "boa_unicode",
  "chrono",
+ "chrono-tz",
  "criterion",
  "dyn-clone",
  "fast-float",
  "float-cmp",
  "gc",
+ "icu",
  "icu_datetime",
  "icu_locale_canonicalizer",
  "icu_locid",
@@ -202,7 +204,7 @@ checksum = "ba3569f383e8f1598449f1a423e72e99569137b47740b1da11ef19af3d5c3223"
 dependencies = [
  "lazy_static",
  "memchr",
- "regex-automata",
+ "regex-automata 0.1.10",
  "serde",
 ]
 
@@ -250,6 +252,28 @@ dependencies = [
  "num-traits",
  "time",
  "winapi",
+]
+
+[[package]]
+name = "chrono-tz"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "58549f1842da3080ce63002102d5bc954c7bc843d4f47818e642abdc36253552"
+dependencies = [
+ "chrono",
+ "chrono-tz-build",
+ "phf",
+]
+
+[[package]]
+name = "chrono-tz-build"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db058d493fb2f65f41861bfed7e3fe6335264a9f0f92710cab5bdf01fef09069"
+dependencies = [
+ "parse-zoneinfo",
+ "phf",
+ "phf_codegen",
 ]
 
 [[package]]
@@ -655,6 +679,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "icu"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15a4e90a2faa6719f4b3b1dac871d1f2794474d453b8e6ca1264062c4bf2c9da"
+dependencies = [
+ "fixed_decimal",
+ "icu_calendar",
+ "icu_datetime",
+ "icu_decimal",
+ "icu_list",
+ "icu_locale_canonicalizer",
+ "icu_locid",
+ "icu_plurals",
+ "icu_properties",
+ "writeable",
+]
+
+[[package]]
 name = "icu_calendar"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -665,6 +707,19 @@ dependencies = [
  "icu_provider",
  "serde",
  "tinystr",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_codepointtrie"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6cdb6b96093158ec0031f9831283085cf897cf4bffc9a1a35a8360a777141058"
+dependencies = [
+ "displaydoc",
+ "icu_uniset",
+ "yoke",
+ "zerofrom",
  "zerovec",
 ]
 
@@ -684,6 +739,33 @@ dependencies = [
  "serde",
  "smallvec",
  "tinystr",
+ "writeable",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_decimal"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "614ff51266354e8c8d75bfc65f806fbc0d0177da079c2482402cfc20b72de47d"
+dependencies = [
+ "displaydoc",
+ "fixed_decimal",
+ "icu_locid",
+ "icu_provider",
+ "writeable",
+]
+
+[[package]]
+name = "icu_list"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c144d074b8de0f6adcb6941ac4544abf83483fa5681154dcc361253c3a122c5c"
+dependencies = [
+ "displaydoc",
+ "icu_locid",
+ "icu_provider",
+ "regex-automata 0.2.0",
  "writeable",
  "zerovec",
 ]
@@ -727,6 +809,19 @@ dependencies = [
  "icu_locid",
  "icu_provider",
  "serde",
+ "zerovec",
+]
+
+[[package]]
+name = "icu_properties"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97ca8f26685a463ff47dc0d9f7b270e8d955d3c2dd9f748292af14940b659671"
+dependencies = [
+ "displaydoc",
+ "icu_codepointtrie",
+ "icu_provider",
+ "icu_uniset",
  "zerovec",
 ]
 
@@ -781,6 +876,19 @@ checksum = "a5580eeaa6ea70b94f286120ffcfb70f75ac8d759d95ccf6223a3c479ff99285"
 dependencies = [
  "icu_provider",
  "icu_provider_blob",
+]
+
+[[package]]
+name = "icu_uniset"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ecdc2859b6efd75ae22e6350e62f21c87cfe3cfdc11bef6f9565995e88d14ba9"
+dependencies = [
+ "displaydoc",
+ "tinystr",
+ "yoke",
+ "zerofrom",
+ "zerovec",
 ]
 
 [[package]]
@@ -1073,6 +1181,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "parse-zoneinfo"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c705f256449c60da65e11ff6626e0c16a0a0b96aaa348de61376b249bc340f41"
+dependencies = [
+ "regex",
+]
+
+[[package]]
 name = "perf-event-open-sys"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1090,6 +1207,16 @@ dependencies = [
  "phf_macros",
  "phf_shared",
  "proc-macro-hack",
+]
+
+[[package]]
+name = "phf_codegen"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb1c3a8bc4dd4e5cfce29b44ffc14bedd2ee294559a294e2a4d4c9e9a6a13cd"
+dependencies = [
+ "phf_generator",
+ "phf_shared",
 ]
 
 [[package]]
@@ -1123,6 +1250,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6796ad771acdc0123d2a88dc428b5e38ef24456743ddb1744ed628f9815c096"
 dependencies = [
  "siphasher",
+ "uncased",
 ]
 
 [[package]]
@@ -1323,6 +1451,15 @@ name = "regex-automata"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c230d73fb8d8c1b9c0b3135c5142a8acee3a0558fb8db5cf1cb65f8d7862132"
+
+[[package]]
+name = "regex-automata"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e9368763f5a9b804326f3af749e16f9abf378d227bcdee7634b13d8f17793782"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "regex-syntax"
@@ -1700,6 +1837,15 @@ name = "tinyvec_macros"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
+
+[[package]]
+name = "uncased"
+version = "0.9.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "09b01702b0fd0b3fadcf98e098780badda8742d4f4a7676615cad90e8ac73622"
+dependencies = [
+ "version_check",
+]
 
 [[package]]
 name = "unicode-general-category"

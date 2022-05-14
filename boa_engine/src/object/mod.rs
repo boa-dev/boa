@@ -1155,6 +1155,17 @@ impl Object {
         }
     }
 
+    #[inline]
+    pub fn as_date_time_format_mut(&mut self) -> Option<&mut DateTimeFormat> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::DateTimeFormat(ref mut date_time_fmt),
+                ..
+            } => Some(date_time_fmt),
+            _ => None,
+        }
+    }
+
     /// Gets the prototype instance of this object.
     #[inline]
     pub fn prototype(&self) -> &JsPrototype {

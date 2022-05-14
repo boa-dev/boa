@@ -422,7 +422,10 @@ fn insert_unicode_extension_and_canonicalize(
 /// [spec]: https://tc39.es/ecma402/#sec-canonicalizelocalelist
 /// [bcp-47]: https://unicode.org/reports/tr35/#Unicode_locale_identifier
 /// [canon]: https://unicode.org/reports/tr35/#LocaleId_Canonicalization
-fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult<Vec<Locale>> {
+pub(crate) fn canonicalize_locale_list(
+    args: &[JsValue],
+    context: &mut Context,
+) -> JsResult<Vec<Locale>> {
     // 1. If locales is undefined, then
     let locales = args.get_or_undefined(0);
     if locales.is_undefined() {
@@ -704,7 +707,6 @@ fn resolve_locale(
     result
 }
 
-#[allow(unused)]
 pub(crate) enum GetOptionType {
     String,
     Boolean,
@@ -721,7 +723,6 @@ pub(crate) enum GetOptionType {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getoption
-#[allow(unused)]
 pub(crate) fn get_option(
     options: &JsObject,
     property: &str,
@@ -771,7 +772,6 @@ pub(crate) fn get_option(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-getnumberoption
-#[allow(unused)]
 pub(crate) fn get_number_option(
     options: &JsObject,
     property: &str,
@@ -797,7 +797,6 @@ pub(crate) fn get_number_option(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaultnumberoption
-#[allow(unused)]
 pub(crate) fn default_number_option(
     value: &JsValue,
     minimum: f64,

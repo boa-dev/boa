@@ -1,5 +1,10 @@
 use crate::{
-    builtins::intl::date_time_format::{to_date_time_options, DateTimeReqs},
+    builtins::intl::date_time_format::{
+        basic_format_matcher, build_formats, canonicalize_time_zone_name, date_time_style_format,
+        is_valid_time_zone_name, month_to_value, numeric_to_value, string_to_hour_cycle,
+        text_to_value, time_zone_to_value, to_date_time_options, value_to_date_style,
+        value_to_time_style, year_to_value, DateTimeReqs, FormatOptionsRecord, StylesRecord,
+    },
     builtins::intl::{
         best_available_locale, best_fit_matcher, default_locale, default_number_option,
         get_number_option, get_option, insert_unicode_extension_and_canonicalize, lookup_matcher,
@@ -9,6 +14,10 @@ use crate::{
     Context, JsString, JsValue,
 };
 
+use icu::datetime::{
+    options::{components, length, preferences},
+    DateTimeFormatOptions,
+};
 use icu_locale_canonicalizer::LocaleCanonicalizer;
 use rustc_hash::FxHashMap;
 
@@ -541,5 +550,285 @@ fn to_date_time_opts() {
     assert_eq!(
         date_time_opts.get("second", &mut context),
         Ok(numeric_jsstring)
+    );
+}
+
+#[test]
+fn nonterminals() {
+    let mut context = Context::default();
+
+    let nonterminal_calendar_options = vec![
+        JsValue::String(JsString::new("")),
+        JsValue::String(JsString::new("a")),
+        JsValue::String(JsString::new("ab")),
+        JsValue::String(JsString::new("abcdefghi")),
+        JsValue::String(JsString::new("abc-abcdefghi")),
+        JsValue::String(JsString::new("!invalid!")),
+        JsValue::String(JsString::new("-gregory-")),
+        JsValue::String(JsString::new("gregory-")),
+        JsValue::String(JsString::new("gregory--")),
+        JsValue::String(JsString::new("gregory-nu")),
+        JsValue::String(JsString::new("gregory-nu-")),
+        JsValue::String(JsString::new("gregory-nu-latn")),
+        JsValue::String(JsString::new("gregoryé")),
+        JsValue::String(JsString::new("gregory역법")),
+    ];
+
+    for calendar_opt in nonterminal_calendar_options {
+        assert_eq!(
+            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt, &mut context),
+            true
+        );
+    }
+
+    let terminal_calendar_options = vec![
+        JsValue::String(JsString::new("buddhist")),
+        JsValue::String(JsString::new("chinese")),
+        JsValue::String(JsString::new("coptic")),
+        JsValue::String(JsString::new("dangi")),
+        JsValue::String(JsString::new("ethioaa")),
+        JsValue::String(JsString::new("ethiopic")),
+        JsValue::String(JsString::new("gregory")),
+        JsValue::String(JsString::new("hebrew")),
+        JsValue::String(JsString::new("indian")),
+        JsValue::String(JsString::new("islamic")),
+        JsValue::String(JsString::new("islamic-umalqura")),
+        JsValue::String(JsString::new("islamic-tbla")),
+        JsValue::String(JsString::new("islamic-civil")),
+        JsValue::String(JsString::new("islamic-rgsa")),
+        JsValue::String(JsString::new("iso8601")),
+        JsValue::String(JsString::new("japanese")),
+        JsValue::String(JsString::new("persian")),
+        JsValue::String(JsString::new("roc")),
+    ];
+
+    for calendar_opt in terminal_calendar_options {
+        assert_eq!(
+            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt, &mut context),
+            false
+        );
+    }
+}
+
+#[test]
+fn build_date_time_fmt() {
+    let mut context = Context::default();
+
+    let date_time_fmt_obj = crate::builtins::intl::date_time_format::DateTimeFormat::constructor(
+        &JsValue::undefined(),
+        &Vec::<JsValue>::new(),
+        &mut context,
+    );
+    assert_eq!(date_time_fmt_obj.is_err(), false);
+}
+
+#[test]
+fn is_valid_tz() {
+    assert_eq!(is_valid_time_zone_name(&JsString::new("UTC")), true);
+    assert_eq!(is_valid_time_zone_name(&JsString::new("Israel")), true);
+    assert_eq!(
+        is_valid_time_zone_name(&JsString::new("Atlantic/Reykjavik")),
+        true
+    );
+    assert_eq!(is_valid_time_zone_name(&JsString::new("Etc/Zulu")), true);
+    assert_eq!(
+        is_valid_time_zone_name(&JsString::new("Etc/Jamaica")),
+        false
+    );
+
+    println!(
+        "DEBUG: {}",
+        canonicalize_time_zone_name(&JsString::new("Brazil/West")).to_string()
+    );
+}
+
+#[test]
+fn js_to_dtf() {
+    let mut context = Context::default();
+
+    assert_eq!(
+        string_to_hour_cycle(&JsString::new("h11")),
+        preferences::HourCycle::H11
+    );
+    assert_eq!(
+        string_to_hour_cycle(&JsString::new("h12")),
+        preferences::HourCycle::H12
+    );
+    assert_eq!(
+        string_to_hour_cycle(&JsString::new("h23")),
+        preferences::HourCycle::H23
+    );
+    assert_eq!(
+        string_to_hour_cycle(&JsString::new("h24")),
+        preferences::HourCycle::H24
+    );
+
+    assert_eq!(
+        value_to_date_style(&JsValue::String(JsString::new("full")), &mut context),
+        Some(length::Date::Full)
+    );
+    assert_eq!(
+        value_to_date_style(&JsValue::String(JsString::new("long")), &mut context),
+        Some(length::Date::Long)
+    );
+    assert_eq!(
+        value_to_date_style(&JsValue::String(JsString::new("medium")), &mut context),
+        Some(length::Date::Medium)
+    );
+    assert_eq!(
+        value_to_date_style(&JsValue::String(JsString::new("short")), &mut context),
+        Some(length::Date::Short)
+    );
+    assert_eq!(
+        value_to_date_style(&JsValue::String(JsString::new("narrow")), &mut context),
+        None
+    );
+
+    assert_eq!(
+        value_to_time_style(&JsValue::String(JsString::new("full")), &mut context),
+        Some(length::Time::Full)
+    );
+    assert_eq!(
+        value_to_time_style(&JsValue::String(JsString::new("long")), &mut context),
+        Some(length::Time::Long)
+    );
+    assert_eq!(
+        value_to_time_style(&JsValue::String(JsString::new("medium")), &mut context),
+        Some(length::Time::Medium)
+    );
+    assert_eq!(
+        value_to_time_style(&JsValue::String(JsString::new("short")), &mut context),
+        Some(length::Time::Short)
+    );
+    assert_eq!(
+        value_to_time_style(&JsValue::String(JsString::new("narrow")), &mut context),
+        None
+    );
+
+    assert_eq!(
+        text_to_value(Some(components::Text::Long)),
+        JsValue::String(JsString::from("long"))
+    );
+    assert_eq!(
+        text_to_value(Some(components::Text::Short)),
+        JsValue::String(JsString::from("short"))
+    );
+    assert_eq!(
+        text_to_value(Some(components::Text::Narrow)),
+        JsValue::String(JsString::from("narrow"))
+    );
+    assert_eq!(text_to_value(None), JsValue::undefined());
+
+    assert_eq!(
+        year_to_value(Some(components::Year::Numeric)),
+        JsValue::String(JsString::from("numeric"))
+    );
+    assert_eq!(
+        year_to_value(Some(components::Year::TwoDigit)),
+        JsValue::String(JsString::from("2-digit"))
+    );
+    assert_eq!(
+        year_to_value(Some(components::Year::NumericWeekOf)),
+        JsValue::String(JsString::from("numericWeek"))
+    );
+    assert_eq!(
+        year_to_value(Some(components::Year::TwoDigitWeekOf)),
+        JsValue::String(JsString::from("2-digitWeek"))
+    );
+    assert_eq!(year_to_value(None), JsValue::undefined());
+
+    assert_eq!(
+        month_to_value(Some(components::Month::Numeric)),
+        JsValue::String(JsString::from("numeric"))
+    );
+    assert_eq!(
+        month_to_value(Some(components::Month::TwoDigit)),
+        JsValue::String(JsString::from("2-digit"))
+    );
+    assert_eq!(
+        month_to_value(Some(components::Month::Long)),
+        JsValue::String(JsString::from("long"))
+    );
+    assert_eq!(
+        month_to_value(Some(components::Month::Short)),
+        JsValue::String(JsString::from("short"))
+    );
+    assert_eq!(
+        month_to_value(Some(components::Month::Narrow)),
+        JsValue::String(JsString::from("narrow"))
+    );
+    assert_eq!(month_to_value(None), JsValue::undefined());
+
+    assert_eq!(
+        numeric_to_value(Some(components::Numeric::Numeric)),
+        JsValue::String(JsString::from("numeric"))
+    );
+    assert_eq!(
+        numeric_to_value(Some(components::Numeric::TwoDigit)),
+        JsValue::String(JsString::from("2-digit"))
+    );
+    assert_eq!(numeric_to_value(None), JsValue::undefined());
+
+    assert_eq!(
+        time_zone_to_value(Some(components::TimeZoneName::ShortSpecific)),
+        JsValue::String(JsString::from("short"))
+    );
+    assert_eq!(
+        time_zone_to_value(Some(components::TimeZoneName::LongSpecific)),
+        JsValue::String(JsString::from("long"))
+    );
+    assert_eq!(
+        time_zone_to_value(Some(components::TimeZoneName::GmtOffset)),
+        JsValue::String(JsString::from("gmt"))
+    );
+    assert_eq!(
+        time_zone_to_value(Some(components::TimeZoneName::ShortGeneric)),
+        JsValue::String(JsString::from("shortGeneric"))
+    );
+    assert_eq!(
+        time_zone_to_value(Some(components::TimeZoneName::LongGeneric)),
+        JsValue::String(JsString::from("longGeneric"))
+    );
+    assert_eq!(time_zone_to_value(None), JsValue::undefined());
+}
+
+#[test]
+fn build_fmts() {
+    let mut context = Context::default();
+
+    let formats = build_formats(&JsString::new("fr"), &JsString::new("gregory"));
+    assert_eq!(formats.is_empty(), false);
+
+    let formats = build_formats(&JsString::new("de-DE"), &JsString::new("buddhist"));
+    assert_eq!(formats.is_empty(), false);
+
+    let formats = build_formats(&JsString::new("ja-Kana-JP"), &JsString::new("japanese"));
+    assert_eq!(formats.is_empty(), false);
+
+    let formats = build_formats(&JsString::new("it"), &JsString::new("julian"));
+    assert_eq!(formats.is_empty(), true);
+
+    let formats = build_formats(&JsString::new("en-US"), &JsString::new("gregory"));
+    assert_eq!(formats.is_empty(), false);
+
+    let format_options = FormatOptionsRecord {
+        date_time_format_opts: DateTimeFormatOptions::default(),
+        components: FxHashMap::default(),
+    };
+    assert_eq!(
+        basic_format_matcher(&format_options, &formats).is_none(),
+        false
+    );
+
+    let styles = StylesRecord {
+        locale: JsString::new("en-US"),
+        calendar: JsString::new("gregory"),
+    };
+
+    let date_style = JsValue::String(JsString::from("full"));
+    let time_style = JsValue::String(JsString::from("full"));
+    assert_eq!(
+        date_time_style_format(&date_style, &time_style, &styles, &mut context).is_none(),
+        false
     );
 }
