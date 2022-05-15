@@ -298,7 +298,10 @@ pub(crate) fn is_terminal(opt: &JsValue, context: &mut Context) -> bool {
             return true;
         }
 
-        if option.chars().any(|character| !character.is_alphanumeric()) {
+        if option
+            .chars()
+            .any(|character| !character.is_ascii_alphanumeric())
+        {
             return true;
         }
     }
@@ -312,7 +315,7 @@ pub(crate) fn is_terminal(opt: &JsValue, context: &mut Context) -> bool {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-intl.datetimeformat-internal-slots
-fn build_locale_data(context: &Context) -> LocaleDataRecord {
+fn build_locale_data(available_locales: &[JsString]) -> LocaleDataRecord {
     let mut locale_data_entry = FxHashMap::default();
     let nu_values = vec![JsString::new("arab")];
     locale_data_entry.insert(JsString::new("nu"), nu_values);
@@ -332,8 +335,10 @@ fn build_locale_data(context: &Context) -> LocaleDataRecord {
     locale_data_entry.insert(JsString::new("hourCycle"), hour_cycle_values);
 
     let mut locale_data = FxHashMap::default();
-    let default_locale_str = default_locale(context.icu().locale_canonicalizer()).to_string();
-    locale_data.insert(JsString::new(default_locale_str), locale_data_entry);
+
+    for avail_locale in available_locales {
+        locale_data.insert(avail_locale.clone(), locale_data_entry.clone());
+    }
 
     locale_data
 }
@@ -649,27 +654,15 @@ fn build_date_time_components() -> Vec<DateTimeComponents> {
         },
         DateTimeComponents {
             property: JsString::new("hour"),
-            values: vec![
-                JsString::new("narrow"),
-                JsString::new("short"),
-                JsString::new("long"),
-            ],
+            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
         },
         DateTimeComponents {
             property: JsString::new("minute"),
-            values: vec![
-                JsString::new("narrow"),
-                JsString::new("short"),
-                JsString::new("long"),
-            ],
+            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
         },
         DateTimeComponents {
             property: JsString::new("second"),
-            values: vec![
-                JsString::new("narrow"),
-                JsString::new("short"),
-                JsString::new("long"),
-            ],
+            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
         },
         DateTimeComponents {
             property: JsString::new("fractionalSecondDigits"),
@@ -1078,6 +1071,8 @@ fn initialize_date_time_format(
     // 1. Let requestedLocales be ? CanonicalizeLocaleList(locales).
     let locales_arr = if locales.is_undefined() {
         vec![JsValue::undefined()]
+    } else if locales.is_string() {
+        vec![locales.clone()]
     } else {
         let locales_obj = locales
             .to_object(context)
@@ -1204,9 +1199,9 @@ fn initialize_date_time_format(
     opt.properties.insert(JsString::new("hc"), hour_cycle);
 
     // 16. Let localeData be %DateTimeFormat%.[[LocaleData]].
-    let locale_data = build_locale_data(context);
-    let relevant_ext_keys = build_relevant_ext_keys();
     let available_locales = build_available_locales(context);
+    let locale_data = build_locale_data(&available_locales);
+    let relevant_ext_keys = build_relevant_ext_keys();
 
     // 17. Let r be ResolveLocale(%DateTimeFormat%.[[AvailableLocales]], requestedLocales, opt,
     // %DateTimeFormat%.[[RelevantExtensionKeys]], localeData).

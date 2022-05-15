@@ -151,6 +151,41 @@ fn best_available_locale(available_locales: &[JsString], locale: &JsString) -> O
     }
 }
 
+/// Returns the position of the first found unicode locale extension in a given string.
+///
+/// If no extensions found, return the length of requested locale
+fn get_leftmost_unicode_extension_pos(requested_locale: &str) -> usize {
+    let ext_sep = "-u-";
+    let src_locale = requested_locale.to_lowercase();
+    let pos = src_locale.find(ext_sep);
+    match pos {
+        Some(idx) => idx,
+        None => src_locale.len(),
+    }
+}
+
+/// Trims unciode locale extensions from a given string if any.
+///
+/// For example:
+///
+/// - `ja-Jpan-JP-u-ca-japanese-hc-h12` becomes `ja-Jpan-JP`
+/// - `fr-FR` becomes `fr-FR`
+fn trim_unicode_extensions(requested_locale: &str) -> JsString {
+    let trim_pos = get_leftmost_unicode_extension_pos(requested_locale);
+    JsString::new(&requested_locale[..trim_pos])
+}
+
+/// Extracts unciode locale extensions from a given string if any.
+///
+/// For example:
+///
+/// - `ja-Jpan-JP-u-ca-japanese-hc-h12` becomes `-u-ca-japanese-hc-h12`
+/// - `en-US` becomes an empty string
+fn extract_unicode_extensions(requested_locale: &str) -> JsString {
+    let trim_pos = get_leftmost_unicode_extension_pos(requested_locale);
+    JsString::new(&requested_locale[trim_pos..])
+}
+
 /// Abstract operation `LookupMatcher ( availableLocales, requestedLocales )`
 ///
 /// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
@@ -171,9 +206,11 @@ fn lookup_matcher(
     for locale_str in requested_locales {
         // a. Let noExtensionsLocale be the String value that is locale with any Unicode locale
         //    extension sequences removed.
-        let parsed_locale =
-            Locale::from_bytes(locale_str.as_bytes()).expect("Locale parsing failed");
-        let no_extensions_locale = JsString::new(parsed_locale.id.to_string());
+        let maybe_locale = Locale::from_bytes(locale_str.as_bytes());
+        let no_extensions_locale = match &maybe_locale {
+            Ok(parsed_locale) => JsString::new(parsed_locale.id.to_string()),
+            Err(_) => trim_unicode_extensions(locale_str),
+        };
 
         // b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
         let available_locale = best_available_locale(available_locales, &no_extensions_locale);
@@ -189,7 +226,10 @@ fn lookup_matcher(
                 // 1. Let extension be the String value consisting of the substring of the Unicode
                 //    locale extension sequence within locale.
                 // 2. Set result.[[extension]] to extension.
-                JsString::new(parsed_locale.extensions.to_string())
+                match maybe_locale {
+                    Ok(parsed_locale) => JsString::new(parsed_locale.extensions.to_string()),
+                    Err(_) => extract_unicode_extensions(locale_str),
+                }
             };
 
             // iii. Return result.
@@ -524,7 +564,6 @@ struct ResolveLocaleRecord {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-resolvelocale
-#[allow(dead_code)]
 fn resolve_locale(
     available_locales: &[JsString],
     requested_locales: &[JsString],
