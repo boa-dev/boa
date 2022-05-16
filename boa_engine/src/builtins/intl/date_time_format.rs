@@ -267,11 +267,7 @@ pub(crate) fn to_date_time_options(
 ///  - [Unicode LDML reference][spec]
 ///
 /// [spec]: https://www.unicode.org/reports/tr35/#Unicode_locale_identifier
-pub(crate) fn is_terminal(opt: &JsValue, context: &mut Context) -> bool {
-    let opt_str = opt
-        .to_string(context)
-        .unwrap_or_else(|_| JsString::empty())
-        .to_string();
+pub(crate) fn is_terminal(opt_str: &str) -> bool {
     if opt_str.is_empty() {
         return true;
     }
@@ -298,9 +294,9 @@ pub(crate) fn is_terminal(opt: &JsValue, context: &mut Context) -> bool {
             return true;
         }
 
-        if option
+        if !option
             .chars()
-            .any(|character| !character.is_ascii_alphanumeric())
+            .all(|character| character.is_ascii_alphanumeric())
         {
             return true;
         }
@@ -317,21 +313,21 @@ pub(crate) fn is_terminal(opt: &JsValue, context: &mut Context) -> bool {
 /// [spec]: https://tc39.es/ecma402/#sec-intl.datetimeformat-internal-slots
 fn build_locale_data(available_locales: &[JsString]) -> LocaleDataRecord {
     let mut locale_data_entry = FxHashMap::default();
-    let nu_values = vec![JsString::new("arab")];
+    let nu_values = Vec::from([JsString::new("arab")]);
     locale_data_entry.insert(JsString::new("nu"), nu_values);
 
-    let hc_values = vec![
+    let hc_values = Vec::from([
         JsString::new("h11"),
         JsString::new("h12"),
         JsString::new("h23"),
         JsString::new("h24"),
-    ];
+    ]);
     locale_data_entry.insert(JsString::new("hc"), hc_values);
 
-    let ca_values = vec![JsString::new("gregory")];
+    let ca_values = Vec::from([JsString::new("gregory")]);
     locale_data_entry.insert(JsString::new("ca"), ca_values);
 
-    let hour_cycle_values = vec![JsString::new("h24")];
+    let hour_cycle_values = Vec::from([JsString::new("h24")]);
     locale_data_entry.insert(JsString::new("hourCycle"), hour_cycle_values);
 
     let mut locale_data = FxHashMap::default();
@@ -426,16 +422,13 @@ pub(crate) fn canonicalize_time_zone_name(time_zone: &JsString) -> JsString {
 
 /// Converts `hour_cycle_str` to `preferences::HourCycle`
 pub(crate) fn string_to_hour_cycle(hour_cycle_str: &JsString) -> preferences::HourCycle {
-    let mut string_to_hc_map = FxHashMap::<JsString, preferences::HourCycle>::default();
-    string_to_hc_map.insert(JsString::from("h11"), preferences::HourCycle::H11);
-    string_to_hc_map.insert(JsString::from("h12"), preferences::HourCycle::H12);
-    string_to_hc_map.insert(JsString::from("h23"), preferences::HourCycle::H23);
-    string_to_hc_map.insert(JsString::from("h24"), preferences::HourCycle::H24);
-
-    let hour_cycle = string_to_hc_map
-        .get(hour_cycle_str)
-        .expect("Invalid hour cycle");
-    *hour_cycle
+    match hour_cycle_str.as_str() {
+        "h11" => preferences::HourCycle::H11,
+        "h12" => preferences::HourCycle::H12,
+        "h23" => preferences::HourCycle::H23,
+        "h24" => preferences::HourCycle::H24,
+        _ => panic!("Invalid hour cycle"),
+    }
 }
 
 /// Converts `JsValue` to `length::Date`
@@ -449,15 +442,12 @@ pub(crate) fn value_to_date_style(
     let date_style_str = date_style_val
         .to_string(context)
         .unwrap_or_else(|_| JsString::empty());
-    let mut string_to_style_map = FxHashMap::<JsString, Option<length::Date>>::default();
-    string_to_style_map.insert(JsString::from("full"), Some(length::Date::Full));
-    string_to_style_map.insert(JsString::from("long"), Some(length::Date::Long));
-    string_to_style_map.insert(JsString::from("medium"), Some(length::Date::Medium));
-    string_to_style_map.insert(JsString::from("short"), Some(length::Date::Short));
-
-    match string_to_style_map.get(&date_style_str) {
-        Some(date_style) => *date_style,
-        None => None,
+    match date_style_str.as_str() {
+        "full" => Some(length::Date::Full),
+        "long" => Some(length::Date::Long),
+        "medium" => Some(length::Date::Medium),
+        "short" => Some(length::Date::Short),
+        _ => None,
     }
 }
 
@@ -472,15 +462,12 @@ pub(crate) fn value_to_time_style(
     let time_style_str = time_style_val
         .to_string(context)
         .unwrap_or_else(|_| JsString::empty());
-    let mut string_to_style_map = FxHashMap::<JsString, Option<length::Time>>::default();
-    string_to_style_map.insert(JsString::from("full"), Some(length::Time::Full));
-    string_to_style_map.insert(JsString::from("long"), Some(length::Time::Long));
-    string_to_style_map.insert(JsString::from("medium"), Some(length::Time::Medium));
-    string_to_style_map.insert(JsString::from("short"), Some(length::Time::Short));
-
-    match string_to_style_map.get(&time_style_str) {
-        Some(time_style) => *time_style,
-        None => None,
+    match time_style_str.as_str() {
+        "full" => Some(length::Time::Full),
+        "long" => Some(length::Time::Long),
+        "medium" => Some(length::Time::Medium),
+        "short" => Some(length::Time::Short),
+        _ => None,
     }
 }
 
@@ -569,26 +556,17 @@ pub(crate) fn time_zone_to_value(maybe_tz: Option<components::TimeZoneName>) -> 
 
 /// Fetches field with name `property` from `format` bag
 fn get_format_field(format: &components::Bag, property: &str) -> JsValue {
-    if property == "weekday" {
-        text_to_value(format.weekday)
-    } else if property == "era" {
-        text_to_value(format.era)
-    } else if property == "year" {
-        year_to_value(format.year)
-    } else if property == "month" {
-        month_to_value(format.month)
-    } else if property == "day" {
-        day_to_value(format.day)
-    } else if property == "hour" {
-        numeric_to_value(format.hour)
-    } else if property == "minute" {
-        numeric_to_value(format.minute)
-    } else if property == "second" {
-        numeric_to_value(format.second)
-    } else if property == "timeZoneName" {
-        time_zone_to_value(format.time_zone_name)
-    } else {
-        JsValue::undefined()
+    match property {
+        "weekday" => text_to_value(format.weekday),
+        "era" => text_to_value(format.era),
+        "year" => year_to_value(format.year),
+        "month" => month_to_value(format.month),
+        "day" => day_to_value(format.day),
+        "hour" => numeric_to_value(format.hour),
+        "minute" => numeric_to_value(format.minute),
+        "second" => numeric_to_value(format.second),
+        "timeZoneName" => time_zone_to_value(format.time_zone_name),
+        _ => JsValue::undefined(),
     }
 }
 
@@ -609,81 +587,81 @@ struct DateTimeComponents {
 
 /// Builds a list of `DateTimeComponents` which is commonly referred to as "Table 6"
 fn build_date_time_components() -> Vec<DateTimeComponents> {
-    vec![
+    Vec::from([
         DateTimeComponents {
             property: JsString::new("weekday"),
-            values: vec![
+            values: Vec::from([
                 JsString::new("narrow"),
                 JsString::new("short"),
                 JsString::new("long"),
-            ],
+            ]),
         },
         DateTimeComponents {
             property: JsString::new("era"),
-            values: vec![
+            values: Vec::from([
                 JsString::new("narrow"),
                 JsString::new("short"),
                 JsString::new("long"),
-            ],
+            ]),
         },
         DateTimeComponents {
             property: JsString::new("year"),
-            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
+            values: Vec::from([JsString::new("2-digit"), JsString::new("numeric")]),
         },
         DateTimeComponents {
             property: JsString::new("month"),
-            values: vec![
+            values: Vec::from([
                 JsString::new("2-digit"),
                 JsString::new("numeric"),
                 JsString::new("narrow"),
                 JsString::new("short"),
                 JsString::new("long"),
-            ],
+            ]),
         },
         DateTimeComponents {
             property: JsString::new("day"),
-            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
+            values: Vec::from([JsString::new("2-digit"), JsString::new("numeric")]),
         },
         DateTimeComponents {
             property: JsString::new("dayPeriod"),
-            values: vec![
+            values: Vec::from([
                 JsString::new("narrow"),
                 JsString::new("short"),
                 JsString::new("long"),
-            ],
+            ]),
         },
         DateTimeComponents {
             property: JsString::new("hour"),
-            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
+            values: Vec::from([JsString::new("2-digit"), JsString::new("numeric")]),
         },
         DateTimeComponents {
             property: JsString::new("minute"),
-            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
+            values: Vec::from([JsString::new("2-digit"), JsString::new("numeric")]),
         },
         DateTimeComponents {
             property: JsString::new("second"),
-            values: vec![JsString::new("2-digit"), JsString::new("numeric")],
+            values: Vec::from([JsString::new("2-digit"), JsString::new("numeric")]),
         },
         DateTimeComponents {
             property: JsString::new("fractionalSecondDigits"),
-            values: vec![
+            values: Vec::from([
                 JsString::new("1.0"),
                 JsString::new("2.0"),
                 JsString::new("3.0"),
-            ],
+            ]),
         },
         DateTimeComponents {
             property: JsString::new("timeZoneName"),
-            values: vec![
+            values: Vec::from([
                 JsString::new("short"),
                 JsString::new("long"),
                 JsString::new("shortOffset"),
                 JsString::new("longOffset"),
                 JsString::new("shortGeneric"),
                 JsString::new("longGeneric"),
-            ],
+            ]),
         },
-    ]
+    ])
 }
 
 fn build_dtf_options(
@@ -775,9 +753,9 @@ pub(crate) struct StylesRecord {
 /// The `DateTimeStyleFormat` abstract operation accepts arguments `dateStyle` and `timeStyle`,
 /// which are each either undefined, "full", "long", "medium", or "short", at least one of which
 /// is not undefined, and styles, which is a record from
-/// %`DateTimeFormat`%.[[`LocaleData`]].[[<locale>]].[[styles]].[[<calendar>]] for some locale
-/// `locale` and calendar `calendar`. It returns the appropriate format record for date time
-/// formatting based on the parameters.
+/// `%DateTimeFormat%.[[LocaleData]].[[<locale>]].[[styles]].[[<calendar>]]` for some locale and
+/// calendar. It returns the appropriate format record for date time formatting based on the
+/// parameters.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -1133,7 +1111,10 @@ fn initialize_date_time_format(
     if !calendar.is_undefined() {
         // a. If calendar does not match the Unicode Locale Identifier type nonterminal,
         // throw a RangeError exception.
-        if is_terminal(&calendar, context) {
+        let calendar_str = calendar
+            .to_string(context)
+            .unwrap_or_else(|_| JsString::empty());
+        if is_terminal(&calendar_str) {
             return context.throw_range_error("calendar must be nonterminal");
         }
     }
@@ -1155,7 +1136,10 @@ fn initialize_date_time_format(
     if !numbering_system.is_undefined() {
         // a. If numberingSystem does not match the Unicode Locale Identifier type nonterminal,
         // throw a RangeError exception.
-        if is_terminal(&numbering_system, context) {
+        let numbering_system_str = numbering_system
+            .to_string(context)
+            .unwrap_or_else(|_| JsString::empty());
+        if is_terminal(&numbering_system_str) {
             return context.throw_range_error("numberingSystem must be nonterminal");
         }
     }

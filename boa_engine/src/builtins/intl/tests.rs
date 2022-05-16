@@ -555,56 +555,54 @@ fn to_date_time_opts() {
 
 #[test]
 fn nonterminals() {
-    let mut context = Context::default();
-
     let nonterminal_calendar_options = vec![
-        JsValue::String(JsString::new("")),
-        JsValue::String(JsString::new("a")),
-        JsValue::String(JsString::new("ab")),
-        JsValue::String(JsString::new("abcdefghi")),
-        JsValue::String(JsString::new("abc-abcdefghi")),
-        JsValue::String(JsString::new("!invalid!")),
-        JsValue::String(JsString::new("-gregory-")),
-        JsValue::String(JsString::new("gregory-")),
-        JsValue::String(JsString::new("gregory--")),
-        JsValue::String(JsString::new("gregory-nu")),
-        JsValue::String(JsString::new("gregory-nu-")),
-        JsValue::String(JsString::new("gregory-nu-latn")),
-        JsValue::String(JsString::new("gregoryé")),
-        JsValue::String(JsString::new("gregory역법")),
+        JsString::new(""),
+        JsString::new("a"),
+        JsString::new("ab"),
+        JsString::new("abcdefghi"),
+        JsString::new("abc-abcdefghi"),
+        JsString::new("!invalid!"),
+        JsString::new("-gregory-"),
+        JsString::new("gregory-"),
+        JsString::new("gregory--"),
+        JsString::new("gregory-nu"),
+        JsString::new("gregory-nu-"),
+        JsString::new("gregory-nu-latn"),
+        JsString::new("gregoryé"),
+        JsString::new("gregory역법"),
     ];
 
     for calendar_opt in nonterminal_calendar_options {
         assert_eq!(
-            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt, &mut context),
+            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt),
             true
         );
     }
 
     let terminal_calendar_options = vec![
-        JsValue::String(JsString::new("buddhist")),
-        JsValue::String(JsString::new("chinese")),
-        JsValue::String(JsString::new("coptic")),
-        JsValue::String(JsString::new("dangi")),
-        JsValue::String(JsString::new("ethioaa")),
-        JsValue::String(JsString::new("ethiopic")),
-        JsValue::String(JsString::new("gregory")),
-        JsValue::String(JsString::new("hebrew")),
-        JsValue::String(JsString::new("indian")),
-        JsValue::String(JsString::new("islamic")),
-        JsValue::String(JsString::new("islamic-umalqura")),
-        JsValue::String(JsString::new("islamic-tbla")),
-        JsValue::String(JsString::new("islamic-civil")),
-        JsValue::String(JsString::new("islamic-rgsa")),
-        JsValue::String(JsString::new("iso8601")),
-        JsValue::String(JsString::new("japanese")),
-        JsValue::String(JsString::new("persian")),
-        JsValue::String(JsString::new("roc")),
+        JsString::new("buddhist"),
+        JsString::new("chinese"),
+        JsString::new("coptic"),
+        JsString::new("dangi"),
+        JsString::new("ethioaa"),
+        JsString::new("ethiopic"),
+        JsString::new("gregory"),
+        JsString::new("hebrew"),
+        JsString::new("indian"),
+        JsString::new("islamic"),
+        JsString::new("islamic-umalqura"),
+        JsString::new("islamic-tbla"),
+        JsString::new("islamic-civil"),
+        JsString::new("islamic-rgsa"),
+        JsString::new("iso8601"),
+        JsString::new("japanese"),
+        JsString::new("persian"),
+        JsString::new("roc"),
     ];
 
     for calendar_opt in terminal_calendar_options {
         assert_eq!(
-            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt, &mut context),
+            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt),
             false
         );
     }
