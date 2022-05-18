@@ -189,6 +189,7 @@ impl Proxy {
 /// This builder can be used when you need to create [`Proxy`] objects
 /// from Rust instead of Javascript, which should generate faster
 /// trap functions than its JS counterpart.
+#[must_use]
 #[derive(Clone)]
 pub struct ProxyBuilder {
     target: JsObject,
@@ -250,7 +251,7 @@ impl std::fmt::Debug for ProxyBuilder {
 
 impl ProxyBuilder {
     /// Create a new `ProxyBuilder` structure with every trap set to `undefined`.
-    pub fn new(target: JsObject) -> ProxyBuilder {
+    pub fn new(target: JsObject) -> Self {
         Self {
             target,
             apply: None,
@@ -443,6 +444,7 @@ impl ProxyBuilder {
     /// Equivalent to the `Proxy ( target, handler )` constructor, but returns a
     /// [`JsObject`] in case there's a need to manipulate the returned object
     /// inside Rust code.
+    #[must_use]
     pub fn build(self, context: &mut Context) -> JsObject {
         let handler = context.construct_object();
 
@@ -559,7 +561,8 @@ impl ProxyBuilder {
     /// but returns a [`JsObject`] for the proxy and a [`JsFunction`] for the
     /// revoker in case there's a need to manipulate the returned objects
     /// inside Rust code.
-    pub fn build_revokable(self, context: &mut Context) -> (JsObject, JsFunction) {
+    #[must_use]
+    pub fn build_revocable(self, context: &mut Context) -> (JsObject, JsFunction) {
         let proxy = self.build(context);
         let revoker = Proxy::revoker(proxy.clone(), context);
 
