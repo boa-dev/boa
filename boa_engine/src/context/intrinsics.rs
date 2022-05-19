@@ -74,6 +74,7 @@ impl StandardConstructor {
 pub struct StandardConstructors {
     object: StandardConstructor,
     proxy: StandardConstructor,
+    date: StandardConstructor,
     function: StandardConstructor,
     generator: StandardConstructor,
     generator_function: StandardConstructor,
@@ -116,6 +117,7 @@ impl Default for StandardConstructors {
         let result = Self {
             object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
+            date: StandardConstructor::default(),
             function: StandardConstructor::default(),
             generator: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
@@ -189,6 +191,11 @@ impl StandardConstructors {
     #[inline]
     pub fn proxy(&self) -> &StandardConstructor {
         &self.proxy
+    }
+
+    #[inline]
+    pub fn date(&self) -> &StandardConstructor {
+        &self.date
     }
 
     #[inline]
