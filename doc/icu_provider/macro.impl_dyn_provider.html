@@ -14,7 +14,7 @@
 via <a href="dynutil/trait.UpcastDataPayload.html" title="UpcastDataPayload"><code>UpcastDataPayload</code></a>.</p>
 <p>Use this macro to add support to your data provider for:</p>
 <ul>
-<li><a href="(crate::any::AnyPayload)"><code>AnyPayload</code></a> if your provider can return typed objects as <a href="https://doc.rust-lang.org/1.60.0/core/any/trait.Any.html"><code>Any</code></a></li>
+<li><a href="(crate::any::AnyPayload)"><code>AnyPayload</code></a> if your provider can return typed objects as <a href="https://doc.rust-lang.org/1.61.0/core/any/trait.Any.html"><code>Any</code></a></li>
 <li><a href="(crate::serde::SerializeMarker)"><code>SerializeMarker</code></a> if your provider returns objects implementing <a href="../serde/ser/trait.Serialize.html" title="serde::Serialize"><code>serde::Serialize</code></a></li>
 </ul>
 <p>The second argument is a match-like construction mapping from resource keys to structs. To map
@@ -68,5 +68,5 @@ shorthands <code>ANY</code> or <code>SERDE_SE</code>.</p>
 <span class="macro">icu_provider::impl_dyn_provider!</span>(<span class="ident">MyProvider</span>, {
     <span class="kw">_</span> =&gt; <span class="ident">CowStrMarker</span>,
 }, <span class="ident">ANY</span>);</code></pre></div>
-</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="icu_provider" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
+</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="icu_provider" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
 </body></html>

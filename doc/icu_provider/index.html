@@ -49,7 +49,7 @@ are typically deserialized later via Serde. This allows for a Serde-enabled prov
 to be saved as a trait object without being specific to a data struct type.</p>
 <h4 id="anyprovider"><a href="#anyprovider"><code>AnyProvider</code></a></h4>
 <p>The trait <a href="any/trait.AnyProvider.html"><code>AnyProvider</code></a> removes the type argument from <a href="prelude/trait.DataProvider.html"><code>DataProvider</code></a> and requires
-that all data structs be convertible to the <a href="https://doc.rust-lang.org/1.60.0/core/any/trait.Any.html"><code>Any</code></a> type. This enables the
+that all data structs be convertible to the <a href="https://doc.rust-lang.org/1.61.0/core/any/trait.Any.html"><code>Any</code></a> type. This enables the
 processing of data without the caller knowing the underlying data struct.</p>
 <p>Since <a href="any/trait.AnyProvider.html"><code>AnyProvider</code></a> is not specific to a single type, it can be useful for caches or
 other bulk data operations.</p>
@@ -83,5 +83,5 @@ via <a href="dynutil/trait.UpcastDataPayload.html" title="UpcastDataPayload"><co
 </div></div></div><h2 id="attributes" class="small-section-header"><a href="#attributes">Attribute Macros</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="attr" href="attr.data_struct.html" title="icu_provider::data_struct attr">data_struct</a></div><div class="item-right docblock-short"><p>The <code>#[data_struct]</code> attribute should be applied to all types intended
 for use in a <code>DataStruct</code>. It does the following things:</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="icu_provider" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.60.0 (7737e0b5c 2022-04-04)" ></div>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="icu_provider" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
 </body></html>
