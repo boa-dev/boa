@@ -15,16 +15,16 @@ impl IntegerOrInfinity {
         assert!(min <= max);
 
         match self {
-            IntegerOrInfinity::Integer(i) => i.clamp(min, max),
-            IntegerOrInfinity::PositiveInfinity => max,
-            IntegerOrInfinity::NegativeInfinity => min,
+            Self::Integer(i) => i.clamp(min, max),
+            Self::PositiveInfinity => max,
+            Self::NegativeInfinity => min,
         }
     }
 
     /// Gets the wrapped `i64` if the variant is an `Integer`.
     pub fn as_integer(self) -> Option<i64> {
         match self {
-            IntegerOrInfinity::Integer(i) => Some(i),
+            Self::Integer(i) => Some(i),
             _ => None,
         }
     }
@@ -33,7 +33,7 @@ impl IntegerOrInfinity {
 impl PartialEq<i64> for IntegerOrInfinity {
     fn eq(&self, other: &i64) -> bool {
         match self {
-            IntegerOrInfinity::Integer(i) => i == other,
+            Self::Integer(i) => i == other,
             _ => false,
         }
     }
@@ -51,9 +51,9 @@ impl PartialEq<IntegerOrInfinity> for i64 {
 impl PartialOrd<i64> for IntegerOrInfinity {
     fn partial_cmp(&self, other: &i64) -> Option<Ordering> {
         match self {
-            IntegerOrInfinity::PositiveInfinity => Some(Ordering::Greater),
-            IntegerOrInfinity::Integer(i) => i.partial_cmp(other),
-            IntegerOrInfinity::NegativeInfinity => Some(Ordering::Less),
+            Self::PositiveInfinity => Some(Ordering::Greater),
+            Self::Integer(i) => i.partial_cmp(other),
+            Self::NegativeInfinity => Some(Ordering::Less),
         }
     }
 }

@@ -278,7 +278,6 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-toboolean
     pub fn to_boolean(&self) -> bool {
         match *self {
-            Self::Undefined | Self::Null => false,
             Self::Symbol(_) | Self::Object(_) => true,
             Self::String(ref s) if !s.is_empty() => true,
             Self::Rational(n) if n != 0.0 && !n.is_nan() => true,
@@ -387,9 +386,9 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint
     pub fn to_bigint(&self, context: &mut Context) -> JsResult<JsBigInt> {
         match self {
-            JsValue::Null => context.throw_type_error("cannot convert null to a BigInt"),
-            JsValue::Undefined => context.throw_type_error("cannot convert undefined to a BigInt"),
-            JsValue::String(ref string) => {
+            Self::Null => context.throw_type_error("cannot convert null to a BigInt"),
+            Self::Undefined => context.throw_type_error("cannot convert undefined to a BigInt"),
+            Self::String(ref string) => {
                 if let Some(value) = JsBigInt::from_string(string) {
                     Ok(value)
                 } else {
@@ -398,17 +397,17 @@ impl JsValue {
                     ))
                 }
             }
-            JsValue::Boolean(true) => Ok(JsBigInt::one()),
-            JsValue::Boolean(false) => Ok(JsBigInt::zero()),
-            JsValue::Integer(_) | JsValue::Rational(_) => {
+            Self::Boolean(true) => Ok(JsBigInt::one()),
+            Self::Boolean(false) => Ok(JsBigInt::zero()),
+            Self::Integer(_) | Self::Rational(_) => {
                 context.throw_type_error("cannot convert Number to a BigInt")
             }
-            JsValue::BigInt(b) => Ok(b.clone()),
-            JsValue::Object(_) => {
+            Self::BigInt(b) => Ok(b.clone()),
+            Self::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::Number)?;
                 primitive.to_bigint(context)
             }
-            JsValue::Symbol(_) => context.throw_type_error("cannot convert Symbol to a BigInt"),
+            Self::Symbol(_) => context.throw_type_error("cannot convert Symbol to a BigInt"),
         }
     }
 
@@ -439,15 +438,15 @@ impl JsValue {
     /// This function is equivalent to `String(value)` in JavaScript.
     pub fn to_string(&self, context: &mut Context) -> JsResult<JsString> {
         match self {
-            JsValue::Null => Ok("null".into()),
-            JsValue::Undefined => Ok("undefined".into()),
-            JsValue::Boolean(boolean) => Ok(boolean.to_string().into()),
-            JsValue::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
-            JsValue::Integer(integer) => Ok(integer.to_string().into()),
-            JsValue::String(string) => Ok(string.clone()),
-            JsValue::Symbol(_) => context.throw_type_error("can't convert symbol to string"),
-            JsValue::BigInt(ref bigint) => Ok(bigint.to_string().into()),
-            JsValue::Object(_) => {
+            Self::Null => Ok("null".into()),
+            Self::Undefined => Ok("undefined".into()),
+            Self::Boolean(boolean) => Ok(boolean.to_string().into()),
+            Self::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
+            Self::Integer(integer) => Ok(integer.to_string().into()),
+            Self::String(string) => Ok(string.clone()),
+            Self::Symbol(_) => context.throw_type_error("can't convert symbol to string"),
+            Self::BigInt(ref bigint) => Ok(bigint.to_string().into()),
+            Self::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::String)?;
                 primitive.to_string(context)
             }
@@ -461,31 +460,31 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, context: &mut Context) -> JsResult<JsObject> {
         match self {
-            JsValue::Undefined | JsValue::Null => {
+            Self::Undefined | Self::Null => {
                 context.throw_type_error("cannot convert 'null' or 'undefined' to object")
             }
-            JsValue::Boolean(boolean) => {
+            Self::Boolean(boolean) => {
                 let prototype = context.intrinsics().constructors().boolean().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::boolean(*boolean),
                 ))
             }
-            JsValue::Integer(integer) => {
+            Self::Integer(integer) => {
                 let prototype = context.intrinsics().constructors().number().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(f64::from(*integer)),
                 ))
             }
-            JsValue::Rational(rational) => {
+            Self::Rational(rational) => {
                 let prototype = context.intrinsics().constructors().number().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::number(*rational),
                 ))
             }
-            JsValue::String(ref string) => {
+            Self::String(ref string) => {
                 let prototype = context.intrinsics().constructors().string().prototype();
 
                 let object =
@@ -501,14 +500,14 @@ impl JsValue {
                 );
                 Ok(object)
             }
-            JsValue::Symbol(ref symbol) => {
+            Self::Symbol(ref symbol) => {
                 let prototype = context.intrinsics().constructors().symbol().prototype();
                 Ok(JsObject::from_proto_and_data(
                     prototype,
                     ObjectData::symbol(symbol.clone()),
                 ))
             }
-            JsValue::BigInt(ref bigint) => {
+            Self::BigInt(ref bigint) => {
                 let prototype = context
                     .intrinsics()
                     .constructors()
@@ -519,7 +518,7 @@ impl JsValue {
                     ObjectData::big_int(bigint.clone()),
                 ))
             }
-            JsValue::Object(jsobject) => Ok(jsobject.clone()),
+            Self::Object(jsobject) => Ok(jsobject.clone()),
         }
     }
 
@@ -529,12 +528,12 @@ impl JsValue {
     pub fn to_property_key(&self, context: &mut Context) -> JsResult<PropertyKey> {
         Ok(match self {
             // Fast path:
-            JsValue::String(string) => string.clone().into(),
-            JsValue::Symbol(symbol) => symbol.clone().into(),
+            Self::String(string) => string.clone().into(),
+            Self::Symbol(symbol) => symbol.clone().into(),
             // Slow path:
             _ => match self.to_primitive(context, PreferredType::String)? {
-                JsValue::String(ref string) => string.clone().into(),
-                JsValue::Symbol(ref symbol) => symbol.clone().into(),
+                Self::String(ref string) => string.clone().into(),
+                Self::Symbol(ref symbol) => symbol.clone().into(),
                 primitive => primitive.to_string(context)?.into(),
             },
         })
@@ -853,15 +852,15 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-tonumber>
     pub fn to_number(&self, context: &mut Context) -> JsResult<f64> {
         match *self {
-            JsValue::Null => Ok(0.0),
-            JsValue::Undefined => Ok(f64::NAN),
-            JsValue::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            JsValue::String(ref string) => Ok(string.string_to_number()),
-            JsValue::Rational(number) => Ok(number),
-            JsValue::Integer(integer) => Ok(f64::from(integer)),
-            JsValue::Symbol(_) => context.throw_type_error("argument must not be a symbol"),
-            JsValue::BigInt(_) => context.throw_type_error("argument must not be a bigint"),
-            JsValue::Object(_) => {
+            Self::Null => Ok(0.0),
+            Self::Undefined => Ok(f64::NAN),
+            Self::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
+            Self::String(ref string) => Ok(string.string_to_number()),
+            Self::Rational(number) => Ok(number),
+            Self::Integer(integer) => Ok(f64::from(integer)),
+            Self::Symbol(_) => context.throw_type_error("argument must not be a symbol"),
+            Self::BigInt(_) => context.throw_type_error("argument must not be a bigint"),
+            Self::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::Number)?;
                 primitive.to_number(context)
             }

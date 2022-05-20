@@ -546,8 +546,8 @@ pub enum BindingPatternTypeObject {
 impl ToInternedString for BindingPatternTypeObject {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            BindingPatternTypeObject::Empty => String::new(),
-            BindingPatternTypeObject::SingleName {
+            Self::Empty => String::new(),
+            Self::SingleName {
                 ident,
                 property_name,
                 default_init,
@@ -576,18 +576,18 @@ impl ToInternedString for BindingPatternTypeObject {
                 }
                 buf
             }
-            BindingPatternTypeObject::RestProperty {
+            Self::RestProperty {
                 ident: property_name,
                 excluded_keys: _,
             } => {
                 format!(" ... {}", interner.resolve_expect(*property_name))
             }
-            BindingPatternTypeObject::RestGetConstField {
+            Self::RestGetConstField {
                 get_const_field, ..
             } => {
                 format!(" ... {}", get_const_field.to_interned_string(interner))
             }
-            BindingPatternTypeObject::BindingPattern {
+            Self::BindingPattern {
                 ident: property_name,
                 pattern,
                 default_init,
@@ -733,9 +733,9 @@ pub enum BindingPatternTypeArray {
 impl ToInternedString for BindingPatternTypeArray {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            BindingPatternTypeArray::Empty => String::new(),
-            BindingPatternTypeArray::Elision => " ".to_owned(),
-            BindingPatternTypeArray::SingleName {
+            Self::Empty => String::new(),
+            Self::Elision => " ".to_owned(),
+            Self::SingleName {
                 ident,
                 default_init,
             } => {
@@ -745,25 +745,25 @@ impl ToInternedString for BindingPatternTypeArray {
                 }
                 buf
             }
-            BindingPatternTypeArray::GetField { get_field } => {
+            Self::GetField { get_field } => {
                 format!(" {}", get_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::GetConstField { get_const_field } => {
+            Self::GetConstField { get_const_field } => {
                 format!(" {}", get_const_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::BindingPattern { pattern } => {
+            Self::BindingPattern { pattern } => {
                 format!(" {}", pattern.to_interned_string(interner))
             }
-            BindingPatternTypeArray::SingleNameRest { ident } => {
+            Self::SingleNameRest { ident } => {
                 format!(" ... {}", interner.resolve_expect(*ident))
             }
-            BindingPatternTypeArray::GetFieldRest { get_field } => {
+            Self::GetFieldRest { get_field } => {
                 format!(" ... {}", get_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+            Self::GetConstFieldRest { get_const_field } => {
                 format!(" ... {}", get_const_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::BindingPatternRest { pattern } => {
+            Self::BindingPatternRest { pattern } => {
                 format!(" ... {}", pattern.to_interned_string(interner))
             }
         }
