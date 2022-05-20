@@ -3438,22 +3438,22 @@ impl TypedArrayKind {
     #[inline]
     pub(crate) const fn name(&self) -> &str {
         match self {
-            TypedArrayKind::Int8 => "Int8Array",
-            TypedArrayKind::Uint8 => "Uint8Array",
-            TypedArrayKind::Uint8Clamped => "Uint8ClampedArray",
-            TypedArrayKind::Int16 => "Int16Array",
-            TypedArrayKind::Uint16 => "Uint16Array",
-            TypedArrayKind::Int32 => "Int32Array",
-            TypedArrayKind::Uint32 => "Uint32Array",
-            TypedArrayKind::BigInt64 => "BigInt64Array",
-            TypedArrayKind::BigUint64 => "BigUint64Array",
-            TypedArrayKind::Float32 => "Float32Array",
-            TypedArrayKind::Float64 => "Float64Array",
+            Self::Int8 => "Int8Array",
+            Self::Uint8 => "Uint8Array",
+            Self::Uint8Clamped => "Uint8ClampedArray",
+            Self::Int16 => "Int16Array",
+            Self::Uint16 => "Uint16Array",
+            Self::Int32 => "Int32Array",
+            Self::Uint32 => "Uint32Array",
+            Self::BigInt64 => "BigInt64Array",
+            Self::BigUint64 => "BigUint64Array",
+            Self::Float32 => "Float32Array",
+            Self::Float64 => "Float64Array",
         }
     }
 
     pub(crate) fn is_big_int_element_type(self) -> bool {
-        matches!(self, TypedArrayKind::BigUint64 | TypedArrayKind::BigInt64)
+        matches!(self, Self::BigUint64 | Self::BigInt64)
     }
 }
 
