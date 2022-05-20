@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.11.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1223,6 +1223,25 @@
 <span id="1218">1218</span>
 <span id="1219">1219</span>
 <span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Overview</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `once_cell` provides two new cell-like types, [`unsync::OnceCell`] and [`sync::OnceCell`]. A `OnceCell`</span>
@@ -1536,6 +1555,10 @@
 <span class="doccomment">//! At the moment, `unsync` has an additional benefit that reentrant initialization causes a panic, which</span>
 <span class="doccomment">//! might be easier to debug than a deadlock.</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//! **Does this crate support async?**</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! No, but you can use [`async_once_cell`](https://crates.io/crates/async_once_cell) instead.</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! # Related crates</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! * [double-checked-cell](https://github.com/niklasf/double-checked-cell)</span>
@@ -1543,6 +1566,7 @@
 <span class="doccomment">//! * [lazycell](https://crates.io/crates/lazycell)</span>
 <span class="doccomment">//! * [mitochondria](https://crates.io/crates/mitochondria)</span>
 <span class="doccomment">//! * [lazy_static](https://crates.io/crates/lazy_static)</span>
+<span class="doccomment">//! * [async_once_cell](https://crates.io/crates/async_once_cell)</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Most of this crate&#39;s functionality is available in `std` in nightly Rust.</span>
 <span class="doccomment">//! See the [tracking issue](https://github.com/rust-lang/rust/issues/74465).</span>
@@ -1624,14 +1648,17 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">OnceCell::new</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>() {
-                <span class="kw">match</span> <span class="ident">res</span>.<span class="ident">set</span>(<span class="ident">value</span>.<span class="ident">clone</span>()) {
-                    <span class="prelude-val">Ok</span>(()) =&gt; (),
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-                }
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">OnceCell::with_value</span>(<span class="ident">value</span>.<span class="ident">clone</span>()),
+                <span class="prelude-val">None</span> =&gt; <span class="ident">OnceCell::new</span>(),
             }
-            <span class="ident">res</span>
+        }
+
+        <span class="kw">fn</span> <span class="ident">clone_from</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+            <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">get_mut</span>(), <span class="ident">source</span>.<span class="ident">get</span>()) {
+                (<span class="prelude-val">Some</span>(<span class="ident">this</span>), <span class="prelude-val">Some</span>(<span class="ident">source</span>)) =&gt; <span class="ident">this</span>.<span class="ident">clone_from</span>(<span class="ident">source</span>),
+                <span class="kw">_</span> =&gt; <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">clone</span>(),
+            }
         }
     }
 
@@ -1645,7 +1672,7 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-            <span class="ident">OnceCell</span> { <span class="ident">inner</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>)) }
+            <span class="ident">OnceCell::with_value</span>(<span class="ident">value</span>)
         }
     }
 
@@ -1653,6 +1680,11 @@
         <span class="doccomment">/// Creates a new empty cell.</span>
         <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
             <span class="ident">OnceCell</span> { <span class="ident">inner</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>) }
+        }
+
+        <span class="doccomment">/// Creates a new initialized cell.</span>
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_value</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="ident">OnceCell</span> { <span class="ident">inner</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>)) }
         }
 
         <span class="doccomment">/// Gets a reference to the underlying value.</span>
@@ -2035,22 +2067,23 @@
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">clone</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">OnceCell::new</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>() {
-                <span class="kw">match</span> <span class="ident">res</span>.<span class="ident">set</span>(<span class="ident">value</span>.<span class="ident">clone</span>()) {
-                    <span class="prelude-val">Ok</span>(()) =&gt; (),
-                    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
-                }
+            <span class="kw">match</span> <span class="self">self</span>.<span class="ident">get</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident"><span class="self">Self</span>::with_value</span>(<span class="ident">value</span>.<span class="ident">clone</span>()),
+                <span class="prelude-val">None</span> =&gt; <span class="ident"><span class="self">Self</span>::new</span>(),
             }
-            <span class="ident">res</span>
+        }
+
+        <span class="kw">fn</span> <span class="ident">clone_from</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) {
+            <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">get_mut</span>(), <span class="ident">source</span>.<span class="ident">get</span>()) {
+                (<span class="prelude-val">Some</span>(<span class="ident">this</span>), <span class="prelude-val">Some</span>(<span class="ident">source</span>)) =&gt; <span class="ident">this</span>.<span class="ident">clone_from</span>(<span class="ident">source</span>),
+                <span class="kw">_</span> =&gt; <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">clone</span>(),
+            }
         }
     }
 
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-            <span class="kw">let</span> <span class="ident">cell</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>();
-            <span class="ident">cell</span>.<span class="ident">get_or_init</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>);
-            <span class="ident">cell</span>
+            <span class="ident"><span class="self">Self</span>::with_value</span>(<span class="ident">value</span>)
         }
     }
 
@@ -2066,6 +2099,11 @@
         <span class="doccomment">/// Creates a new empty cell.</span>
         <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
             <span class="ident">OnceCell</span>(<span class="ident">Imp::new</span>())
+        }
+
+        <span class="doccomment">/// Creates a new initialized cell.</span>
+        <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_value</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="ident">OnceCell</span>(<span class="ident">Imp::with_value</span>(<span class="ident">value</span>))
         }
 
         <span class="doccomment">/// Gets the reference to the underlying value.</span>
