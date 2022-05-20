@@ -69,7 +69,7 @@ fn lookup_match() {
 
     let matcher = lookup_matcher(&available_locales, &requested_locales);
     assert_eq!(matcher.locale, "fr-FR");
-    assert_eq!(matcher.extension, "-u-hc-h12");
+    assert_eq!(matcher.extension, "u-hc-h12");
 
     // available: [es-ES], requested: [es-ES]
     let available_locales = vec![JsString::new("es-ES")];
