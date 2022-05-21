@@ -1939,6 +1939,10 @@
 <span id="1932">1932</span>
 <span id="1933">1933</span>
 <span id="1934">1934</span>
+<span id="1935">1935</span>
+<span id="1936">1936</span>
+<span id="1937">1937</span>
+<span id="1938">1938</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -2032,68 +2036,72 @@
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="ident">ConstructorBuilder::new</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::constructor</span>)
-            .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
-            .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_date</span>), <span class="string">&quot;getDate&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_day</span>), <span class="string">&quot;getDay&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_full_year</span>), <span class="string">&quot;getFullYear&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_hours</span>), <span class="string">&quot;getHours&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_milliseconds</span>), <span class="string">&quot;getMilliseconds&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_minutes</span>), <span class="string">&quot;getMinutes&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_month</span>), <span class="string">&quot;getMonth&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_seconds</span>), <span class="string">&quot;getSeconds&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_time</span>), <span class="string">&quot;getTime&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_year</span>), <span class="string">&quot;getYear&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_timezone_offset</span>, <span class="string">&quot;getTimezoneOffset&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_date</span>), <span class="string">&quot;getUTCDate&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_day</span>), <span class="string">&quot;getUTCDay&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_full_year</span>), <span class="string">&quot;getUTCFullYear&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_hours</span>), <span class="string">&quot;getUTCHours&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(
-                <span class="macro">getter_method!</span>(<span class="ident">get_utc_milliseconds</span>),
-                <span class="string">&quot;getUTCMilliseconds&quot;</span>,
-                <span class="number">0</span>,
-            )
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_minutes</span>), <span class="string">&quot;getUTCMinutes&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_month</span>), <span class="string">&quot;getUTCMonth&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_seconds</span>), <span class="string">&quot;getUTCSeconds&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_date</span>, <span class="string">&quot;setDate&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_full_year</span>, <span class="string">&quot;setFullYear&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_hours</span>, <span class="string">&quot;setHours&quot;</span>, <span class="number">4</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_milliseconds</span>, <span class="string">&quot;setMilliseconds&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_minutes</span>, <span class="string">&quot;setMinutes&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_month</span>, <span class="string">&quot;setMonth&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_seconds</span>, <span class="string">&quot;setSeconds&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_year</span>, <span class="string">&quot;setYear&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_time</span>, <span class="string">&quot;setTime&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_date</span>, <span class="string">&quot;setUTCDate&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_full_year</span>, <span class="string">&quot;setUTCFullYear&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_hours</span>, <span class="string">&quot;setUTCHours&quot;</span>, <span class="number">4</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_milliseconds</span>, <span class="string">&quot;setUTCMilliseconds&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_minutes</span>, <span class="string">&quot;setUTCMinutes&quot;</span>, <span class="number">3</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_month</span>, <span class="string">&quot;setUTCMonth&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_seconds</span>, <span class="string">&quot;setUTCSeconds&quot;</span>, <span class="number">2</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_date_string</span>, <span class="string">&quot;toDateString&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">to_gmt_string</span>), <span class="string">&quot;toGMTString&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_iso_string</span>, <span class="string">&quot;toISOString&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_json</span>, <span class="string">&quot;toJSON&quot;</span>, <span class="number">1</span>)
-            <span class="comment">// Locale strings</span>
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_time_string</span>, <span class="string">&quot;toTimeString&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">to_utc_string</span>), <span class="string">&quot;toUTCString&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">value_of</span>), <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">method</span>(
-                <span class="ident"><span class="self">Self</span>::to_primitive</span>,
-                (<span class="ident">WellKnownSymbols::to_primitive</span>(), <span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
-                <span class="number">1</span>,
-            )
-            .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::now</span>, <span class="string">&quot;now&quot;</span>, <span class="number">0</span>)
-            .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::parse</span>, <span class="string">&quot;parse&quot;</span>, <span class="number">1</span>)
-            .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::utc</span>, <span class="string">&quot;UTC&quot;</span>, <span class="number">7</span>)
-            .<span class="ident">build</span>()
-            .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
-            .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
+        <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
+            <span class="ident">context</span>,
+            <span class="ident"><span class="self">Self</span>::constructor</span>,
+            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">date</span>().<span class="ident">clone</span>(),
+        )
+        .<span class="ident">name</span>(<span class="ident"><span class="self">Self</span>::NAME</span>)
+        .<span class="ident">length</span>(<span class="ident"><span class="self">Self</span>::LENGTH</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_date</span>), <span class="string">&quot;getDate&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_day</span>), <span class="string">&quot;getDay&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_full_year</span>), <span class="string">&quot;getFullYear&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_hours</span>), <span class="string">&quot;getHours&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_milliseconds</span>), <span class="string">&quot;getMilliseconds&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_minutes</span>), <span class="string">&quot;getMinutes&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_month</span>), <span class="string">&quot;getMonth&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_seconds</span>), <span class="string">&quot;getSeconds&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_time</span>), <span class="string">&quot;getTime&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_year</span>), <span class="string">&quot;getYear&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::get_timezone_offset</span>, <span class="string">&quot;getTimezoneOffset&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_date</span>), <span class="string">&quot;getUTCDate&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_day</span>), <span class="string">&quot;getUTCDay&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_full_year</span>), <span class="string">&quot;getUTCFullYear&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_hours</span>), <span class="string">&quot;getUTCHours&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(
+            <span class="macro">getter_method!</span>(<span class="ident">get_utc_milliseconds</span>),
+            <span class="string">&quot;getUTCMilliseconds&quot;</span>,
+            <span class="number">0</span>,
+        )
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_minutes</span>), <span class="string">&quot;getUTCMinutes&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_month</span>), <span class="string">&quot;getUTCMonth&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">get_utc_seconds</span>), <span class="string">&quot;getUTCSeconds&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_date</span>, <span class="string">&quot;setDate&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_full_year</span>, <span class="string">&quot;setFullYear&quot;</span>, <span class="number">3</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_hours</span>, <span class="string">&quot;setHours&quot;</span>, <span class="number">4</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_milliseconds</span>, <span class="string">&quot;setMilliseconds&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_minutes</span>, <span class="string">&quot;setMinutes&quot;</span>, <span class="number">3</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_month</span>, <span class="string">&quot;setMonth&quot;</span>, <span class="number">2</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_seconds</span>, <span class="string">&quot;setSeconds&quot;</span>, <span class="number">2</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_year</span>, <span class="string">&quot;setYear&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_time</span>, <span class="string">&quot;setTime&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_date</span>, <span class="string">&quot;setUTCDate&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_full_year</span>, <span class="string">&quot;setUTCFullYear&quot;</span>, <span class="number">3</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_hours</span>, <span class="string">&quot;setUTCHours&quot;</span>, <span class="number">4</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_milliseconds</span>, <span class="string">&quot;setUTCMilliseconds&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_minutes</span>, <span class="string">&quot;setUTCMinutes&quot;</span>, <span class="number">3</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_month</span>, <span class="string">&quot;setUTCMonth&quot;</span>, <span class="number">2</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::set_utc_seconds</span>, <span class="string">&quot;setUTCSeconds&quot;</span>, <span class="number">2</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_date_string</span>, <span class="string">&quot;toDateString&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">to_gmt_string</span>), <span class="string">&quot;toGMTString&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_iso_string</span>, <span class="string">&quot;toISOString&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_json</span>, <span class="string">&quot;toJSON&quot;</span>, <span class="number">1</span>)
+        <span class="comment">// Locale strings</span>
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_string</span>, <span class="string">&quot;toString&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::to_time_string</span>, <span class="string">&quot;toTimeString&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">to_utc_string</span>), <span class="string">&quot;toUTCString&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(<span class="macro">getter_method!</span>(<span class="ident">value_of</span>), <span class="string">&quot;valueOf&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">method</span>(
+            <span class="ident"><span class="self">Self</span>::to_primitive</span>,
+            (<span class="ident">WellKnownSymbols::to_primitive</span>(), <span class="string">&quot;[Symbol.toPrimitive]&quot;</span>),
+            <span class="number">1</span>,
+        )
+        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::now</span>, <span class="string">&quot;now&quot;</span>, <span class="number">0</span>)
+        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::parse</span>, <span class="string">&quot;parse&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::utc</span>, <span class="string">&quot;UTC&quot;</span>, <span class="number">7</span>)
+        .<span class="ident">build</span>()
+        .<span class="ident">conv</span>::<span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>()
+        .<span class="ident">pipe</span>(<span class="prelude-val">Some</span>)
     }
 }
 
@@ -2278,7 +2286,7 @@
             <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::make_date_string</span>())
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
-                <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::date</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
                 <span class="ident"><span class="self">Self</span>::make_date_now</span>(<span class="ident">prototype</span>)
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
