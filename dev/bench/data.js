@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1653097095888,
+  "lastUpdate": 1653098746794,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -84599,6 +84599,432 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Execution)",
             "value": 832921,
             "range": "± 88215",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "committer": {
+            "email": "49699333+dependabot[bot]@users.noreply.github.com",
+            "name": "dependabot[bot]",
+            "username": "dependabot[bot]"
+          },
+          "distinct": false,
+          "id": "ace28e51f4b73da7a8d951c4ae31568c82a5c095",
+          "message": "Update icu requirement from 0.5.0 to 0.6.0 in /boa_engine (#2078)\n\nUpdates the requirements on [icu](https://github.com/unicode-org/icu4x) to permit the latest version.\n<details>\n<summary>Release notes</summary>\n<p><em>Sourced from <a href=\"https://github.com/unicode-org/icu4x/releases\">icu's releases</a>.</em></p>\n<blockquote>\n<h2>ICU4X 0.5.0 (January 31, 2022)</h2>\n<p>ICU4X 0.5.0 is our major winter release.  Key changes:</p>\n<ol>\n<li>Major improvements to the <code>datetime</code> component, including support for non-gregorian calendars, week-of-year, and eras</li>\n<li>Lots of improvements to the <code>properties</code> component, including support for <code>Canonical_Combining_Class</code>, <code>Script_Extensions</code>, <code>Grapheme_Cluster_Break</code>, <code>Word_Break</code>, <code>Sentence_Break</code>.</li>\n<li>Improvements to our data infrastructure crates <code>yoke</code> and <code>zerovec</code></li>\n</ol>\n<p>There are also bug fixes and feature improvements in other components including <code>LocaleCanonicalizer</code>.  For more details, see the <a href=\"https://github.com/unicode-org/icu4x/blob/main/CHANGELOG.md#icu4x-050-jan-31-2022\">changelog</a>.</p>\n<p>We hope to continue bringing early adopters onboard as we eye a stable 1.0 release in the first half of 2022.</p>\n</blockquote>\n</details>\n<details>\n<summary>Changelog</summary>\n<p><em>Sourced from <a href=\"https://github.com/unicode-org/icu4x/blob/main/CHANGELOG.md\">icu's changelog</a>.</em></p>\n<blockquote>\n<h2>icu4x 0.5.0 (Jan 31, 2022)</h2>\n<ul>\n<li>General data model\n<ul>\n<li><code>DataPayload</code> no longer needs a lifetime (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1297\">#1297</a>, <a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1279\">#1279</a>)</li>\n<li>Re-write ResourceKey (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1511\">#1511</a>)</li>\n<li>Rewrite ErasedDataProvider as AnyProvider (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1495\">#1495</a>)</li>\n<li>Add EitherProvider and rename IterableDataProviderCore to IterableProvider (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1455\">#1455</a>)</li>\n<li>Change DataRequest to be borrowed in BufferProvider (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1416\">#1416</a>)</li>\n<li>Replace SerdeDeDataProvider with BufferProvider (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1369\">#1369</a>, <a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1384\">#1384</a>)</li>\n</ul>\n</li>\n<li>Components\n<ul>\n<li><code>calendar</code>:\n<ul>\n<li>Julian, Japanese, and Buddhist calendars (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1351\">#1351</a>, <a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1394\">#1394</a>, <a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1305\">#1305</a>)</li>\n<li><code>DateTimeFormat</code> integration (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1339\">#1339</a>)</li>\n<li>Bugfix around arithmetic (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1352\">#1352</a>)</li>\n</ul>\n</li>\n<li><code>datetime</code>:\n<ul>\n<li>Week-of-year support (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1206\">#1206</a>)</li>\n<li><code>DateTimeFormat::resolve_components()</code> (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1362\">#1362</a>)</li>\n<li>Era formatting (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1346\">#1346</a>)</li>\n<li><code>TimeZoneFormatConfig</code> (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1256\">#1256</a>)</li>\n<li>New data model for organizing calendar data (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1300\">#1300</a>)</li>\n<li>Bugfix around missing localized strings in time zone data (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1405\">#1405</a>)</li>\n</ul>\n</li>\n<li><code>decimal</code>: No updates</li>\n<li><code>locale_canonicalizer</code>:\n<ul>\n<li>Bugfix in maximization (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1171\">#1171</a>)</li>\n<li>Update data model to use <code>LiteMap</code> (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1275\">#1275</a>)</li>\n</ul>\n</li>\n<li><code>locid</code>: No updates</li>\n<li><code>plurals</code>:\n<ul>\n<li>Update data model to use <code>ZeroVec</code> (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1240\">#1240</a>)</li>\n</ul>\n</li>\n<li><code>properties</code>:\n<ul>\n<li>Rename resource key category for properties (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1406\">#1406</a>)</li>\n<li>Rename enums for <code>General_Category</code> (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1355\">#1355</a>)</li>\n<li>Implement the <code>Canonical_Combining_Class</code> property (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1347\">#1347</a>)</li>\n<li>Implement <code>Script_Extensions</code> property (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1353\">#1353</a>)</li>\n<li>Add <code>General_Category</code> predicate functions (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1310\">#1310</a>)</li>\n<li>Implement <code>Grapheme_Cluster_Break</code>, <code>Word_Break</code>, and <code>Sentence_Break</code> Unicode properties (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1233\">#1233</a>)</li>\n</ul>\n</li>\n</ul>\n</li>\n<li>Utilities\n<ul>\n<li><code>codepointtrie</code>: No changes</li>\n<li><code>deduplicating_array</code>: New utility for efficient serialized representation of data with duplicates</li>\n<li><code>fixed_decimal</code>:\n<ul>\n<li>Padding and truncation APIs (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1482\">#1482</a>, <a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1507\">#1507</a>, <a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1195\">#1195</a>)</li>\n<li>Add double-to-decimal via ryū (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1217\">#1217</a>)</li>\n<li>Handle exponents in <code>FixedDecimal::from_str()</code> (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1265\">#1265</a>)</li>\n</ul>\n</li>\n<li><code>litemap</code>:\n<ul>\n<li>Add <code>LiteMap::get_indexed()</code> and <code>LiteMap::find_index()</code></li>\n<li>Handle serialization of tuples (etc) in litemaps (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1306\">#1306</a>)</li>\n</ul>\n</li>\n<li><code>pattern</code>: No updates</li>\n<li><code>uniset</code>: No updates</li>\n<li><code>writeable</code>:\n<ul>\n<li>Adding parts functionality to <code>Writeable</code> (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1438\">#1438</a>)</li>\n<li>Change <code>Writeable::writeable_to_string</code> to return a Cow (<a href=\"https://github-redirect.dependabot.com/unicode-org/icu4x/issues/1452\">#1452</a>)</li>\n</ul>\n</li>\n</ul>\n</li>\n</ul>\n<!-- raw HTML omitted -->\n</blockquote>\n<p>... (truncated)</p>\n</details>\n<details>\n<summary>Commits</summary>\n<ul>\n<li>See full diff in <a href=\"https://github.com/unicode-org/icu4x/compare/icu@0.5.0...icu@0.5.0\">compare view</a></li>\n</ul>\n</details>\n<br />\n\n\nDependabot will resolve any conflicts with this PR as long as you don't alter it yourself. You can also trigger a rebase manually by commenting `@dependabot rebase`.\n\n[//]: # (dependabot-automerge-start)\n[//]: # (dependabot-automerge-end)\n\n---\n\n<details>\n<summary>Dependabot commands and options</summary>\n<br />\n\nYou can trigger Dependabot actions by commenting on this PR:\n- `@dependabot rebase` will rebase this PR\n- `@dependabot recreate` will recreate this PR, overwriting any edits that have been made to it\n- `@dependabot merge` will merge this PR after your CI passes on it\n- `@dependabot squash and merge` will squash and merge this PR after your CI passes on it\n- `@dependabot cancel merge` will cancel a previously requested merge and block automerging\n- `@dependabot reopen` will reopen this PR if it is closed\n- `@dependabot close` will close this PR and stop Dependabot recreating it. You can achieve the same result by closing it manually\n- `@dependabot ignore this major version` will close this PR and stop Dependabot creating any more for this major version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this minor version` will close this PR and stop Dependabot creating any more for this minor version (unless you reopen the PR or upgrade to it yourself)\n- `@dependabot ignore this dependency` will close this PR and stop Dependabot creating any more for this dependency (unless you reopen the PR or upgrade to it yourself)\n\n\n</details>\n\nCo-authored-by: jedel1043 <jedel0124@gmail.com>",
+          "timestamp": "2022-05-21T01:26:05Z",
+          "tree_id": "eecabe0938efa1ba24ef77d441de51a7529d5acf",
+          "url": "https://github.com/boa-dev/boa/commit/ace28e51f4b73da7a8d951c4ae31568c82a5c095"
+        },
+        "date": 1653098679979,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 267,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Parser)",
+            "value": 5290,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 17165,
+            "range": "± 22",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Parser)",
+            "value": 19468,
+            "range": "± 34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Parser)",
+            "value": 11181,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Parser)",
+            "value": 12010,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Parser)",
+            "value": 12972,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Parser)",
+            "value": 7690,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Parser)",
+            "value": 10157,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Parser)",
+            "value": 9781,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Parser)",
+            "value": 12138,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Parser)",
+            "value": 14537,
+            "range": "± 81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Parser)",
+            "value": 16863,
+            "range": "± 54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Parser)",
+            "value": 169514,
+            "range": "± 131",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Parser)",
+            "value": 9204,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Parser)",
+            "value": 13185,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Parser)",
+            "value": 6985,
+            "range": "± 32",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Parser)",
+            "value": 13161,
+            "range": "± 62",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Parser)",
+            "value": 16888,
+            "range": "± 59",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Parser)",
+            "value": 16800,
+            "range": "± 55",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Parser)",
+            "value": 6617,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 35974,
+            "range": "± 53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 31517,
+            "range": "± 77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Compiler)",
+            "value": 1184,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Compiler)",
+            "value": 2889,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Compiler)",
+            "value": 3031,
+            "range": "± 53",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Compiler)",
+            "value": 1737,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Compiler)",
+            "value": 1768,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Compiler)",
+            "value": 2066,
+            "range": "± 4",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Compiler)",
+            "value": 1716,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Compiler)",
+            "value": 1708,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Compiler)",
+            "value": 1967,
+            "range": "± 47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Compiler)",
+            "value": 1985,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Compiler)",
+            "value": 1571,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Compiler)",
+            "value": 2517,
+            "range": "± 14",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Compiler)",
+            "value": 4218,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Compiler)",
+            "value": 1926,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Compiler)",
+            "value": 2430,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Compiler)",
+            "value": 1625,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Compiler)",
+            "value": 1106,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Compiler)",
+            "value": 1158,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Compiler)",
+            "value": 1561,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Compiler)",
+            "value": 519,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Compiler)",
+            "value": 5211,
+            "range": "± 38",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Compiler)",
+            "value": 4593,
+            "range": "± 48",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4511,
+            "range": "± 28",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 16960,
+            "range": "± 215",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 1484540,
+            "range": "± 6571",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Execution)",
+            "value": 5486,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Execution)",
+            "value": 5701,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Execution)",
+            "value": 5838,
+            "range": "± 20",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Execution)",
+            "value": 9771,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Execution)",
+            "value": 9784,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Execution)",
+            "value": 12808,
+            "range": "± 73",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 12870,
+            "range": "± 81",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Execution)",
+            "value": 9079,
+            "range": "± 36",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Execution)",
+            "value": 2541195,
+            "range": "± 4294",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1157023,
+            "range": "± 3695",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Execution)",
+            "value": 4910,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Execution)",
+            "value": 5057,
+            "range": "± 54",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 4597,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Execution)",
+            "value": 3678,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Execution)",
+            "value": 4703,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Execution)",
+            "value": 6808,
+            "range": "± 42",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Execution)",
+            "value": 531,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 766875,
+            "range": "± 4129",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 717860,
+            "range": "± 6474",
             "unit": "ns/iter"
           }
         ]
