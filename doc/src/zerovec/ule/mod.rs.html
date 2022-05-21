@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.6.0/src/ule/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.7.0/src/ule/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -340,22 +340,80 @@
 <span id="335">335</span>
 <span id="336">336</span>
 <span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::upper_case_acronyms</span>)]</span>
-<span class="doccomment">//! Traits over unaligned little-endian data (ULE, pronounced &quot;yule&quot;).</span>
 
+<span class="doccomment">//! Traits over unaligned little-endian data (ULE, pronounced &quot;yule&quot;).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The main traits for this module are [`ULE`], [`AsULE`] and, [`VarULE`].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! See [the design doc](https://github.com/unicode-org/icu4x/blob/main/utils/zerovec/design_doc.md) for details on how these traits</span>
+<span class="doccomment">//! works under the hood.</span>
 <span class="kw">mod</span> <span class="ident">chars</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">doc</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">custom</span>;
-<span class="kw">mod</span> <span class="ident">pair</span>;
+<span class="kw">mod</span> <span class="ident">encode</span>;
+<span class="kw">mod</span> <span class="ident">multi</span>;
+<span class="kw">mod</span> <span class="ident">option</span>;
 <span class="kw">mod</span> <span class="ident">plain</span>;
 <span class="kw">mod</span> <span class="ident">slices</span>;
 
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">tuple</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ZeroVecError</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">chars::CharULE</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pair::PairULE</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">encode</span>::{<span class="ident">encode_varule_to_box</span>, <span class="ident">EncodeAsVarULE</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">multi::MultiFieldsULE</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">option</span>::{<span class="ident">OptionULE</span>, <span class="ident">OptionVarULE</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">plain::RawBytesULE</span>;
 
 <span class="kw">use</span> <span class="ident">alloc::alloc::Layout</span>;
@@ -364,6 +422,9 @@
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">mem</span>, <span class="ident">slice</span>};
 
 <span class="doccomment">/// Fixed-width, byte-aligned data that can be cast to and from a little-endian byte slice.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If you need to implement this trait, consider using [`#[make_ule]`](crate::make_ule) or</span>
+<span class="doccomment">///  [`#[derive(ULE)]`](macro@ULE) instead.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Types that are not fixed-width can implement [`VarULE`] instead.</span>
 <span class="doccomment">///</span>
@@ -479,6 +540,8 @@
 }
 
 <span class="doccomment">/// A trait for any type that has a 1:1 mapping with an unaligned little-endian (ULE) type.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// If you need to implement this trait, consider using [`#[make_varule]`](crate::make_ule) instead.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">AsULE</span>: <span class="ident">Copy</span> {
     <span class="doccomment">/// The ULE type corresponding to `Self`.</span>
     <span class="doccomment">///</span>
@@ -493,7 +556,7 @@
     <span class="doccomment">/// This function may involve byte order swapping (native-endian to little-endian).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// For best performance, mark your implementation of this function `#[inline]`.</span>
-    <span class="kw">fn</span> <span class="ident">as_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span>;
+    <span class="kw">fn</span> <span class="ident">to_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span>;
 
     <span class="doccomment">/// Converts from `Self::ULE` to `Self`.</span>
     <span class="doccomment">///</span>
@@ -530,7 +593,7 @@
     <span class="doccomment">/// Converts from `&amp;[Self]` to `&amp;[Self::ULE]` if possible.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// In general, this function returns `Some` on little-endian and `None` on big-endian.</span>
-    <span class="kw">fn</span> <span class="ident">slice_as_unaligned</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::ULE</span>]<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">slice_to_unaligned</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::ULE</span>]<span class="op">&gt;</span>;
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>)]</span>
@@ -539,7 +602,7 @@
     <span class="ident">T</span>: <span class="ident">EqULE</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">slice_as_unaligned</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::ULE</span>]<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">slice_to_unaligned</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::ULE</span>]<span class="op">&gt;</span> {
         <span class="comment">// This is safe because on little-endian platforms, the byte sequence of &amp;[T]</span>
         <span class="comment">// is equivalent to the byte sequence of &amp;[T::ULE] by the contract of EqULE,</span>
         <span class="comment">// and &amp;[T::ULE] has equal or looser alignment than &amp;[T].</span>
@@ -555,18 +618,25 @@
     <span class="ident">T</span>: <span class="ident">EqULE</span>,
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">slice_as_unaligned</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::ULE</span>]<span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">slice_to_unaligned</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident"><span class="self">Self</span>::ULE</span>]<span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 }
 
 <span class="doccomment">/// Variable-width, byte-aligned data that can be cast to and from a little-endian byte slice.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// If you need to implement this trait, consider using [`#[make_varule]`](crate::make_varule) or</span>
+<span class="doccomment">///  [`#[derive(VarULE)]`](macro@VarULE) instead.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// This trait is mostly for unsized types like `str` and `[T]`. It can be implemented on sized types;</span>
-<span class="doccomment">/// however, it is much more preferable to use [`ULE`] for that purpose.</span>
+<span class="doccomment">/// however, it is much more preferable to use [`ULE`] for that purpose. The [`custom`] module contains</span>
+<span class="doccomment">/// additional documentation on how this type can be implemented on custom types.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// If deserialization with `VarZeroVec` is desired is recommended to implement `Deserialize` for</span>
 <span class="doccomment">/// `Box&lt;T&gt;` (serde does not do this automatically for unsized `T`).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For convenience it is typically desired to implement [`EncodeAsVarULE`] and [`ZeroFrom`](zerofrom::ZeroFrom)</span>
+<span class="doccomment">/// on some stack type to convert to and from the ULE type efficiently when necessary.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Safety</span>
 <span class="doccomment">///</span>
@@ -677,6 +747,30 @@
         }
     }
 }
+
+<span class="comment">// Proc macro reexports</span>
+<span class="comment">//</span>
+<span class="comment">// These exist so that our docs can use intra-doc links.</span>
+<span class="comment">// Due to quirks of how rustdoc does documentation on reexports, these must be in this module and not reexported from</span>
+<span class="comment">// a submodule</span>
+
+<span class="doccomment">/// Custom derive for [`ULE`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This can be attached to [`Copy`] structs containing only [`ULE`] types.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Most of the time, it is recommended one use [`#[make_ule]`](crate::make_ule) instead of defining</span>
+<span class="doccomment">/// a custom ULE type.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zerovec_derive::ULE</span>;
+
+<span class="doccomment">/// Custom derive for [`VarULE`]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This can be attached to structs containing only [`ULE`] types with one [`VarULE`] type at the end.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Most of the time, it is recommended one use [`#[make_varule]`](crate::make_varule) instead of defining</span>
+<span class="doccomment">/// a custom [`VarULE`] type.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zerovec_derive::VarULE</span>;
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="zerovec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
 </body></html>

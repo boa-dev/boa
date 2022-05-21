@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_plurals-0.5.0/src/operands.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>operands.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_plurals-0.6.0/src/operands.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>operands.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_plurals/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -283,6 +283,12 @@
 <span id="278">278</span>
 <span id="279">279</span>
 <span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -356,7 +362,8 @@
 <span class="doccomment">///    c: 0,</span>
 <span class="doccomment">/// }), FixedDecimal::from(12345).multiplied_pow10(-2).map(|d| (&amp;d).into()))</span>
 <span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// mostly stable, new operands may be added at the cadence of ICU&#39;s release cycle</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PluralOperands</span> {
     <span class="doccomment">/// Integer value of input</span>
     <span class="kw">pub</span> <span class="ident">i</span>: <span class="ident">u64</span>,
@@ -386,6 +393,7 @@
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Display</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">OperandsError</span> {
     <span class="doccomment">/// Input to the Operands parsing was empty.</span>
     <span class="attribute">#[<span class="ident">displaydoc</span>(<span class="string">&quot;Input to the Operands parsing was empty&quot;</span>)]</span>
@@ -413,7 +421,9 @@
 
 <span class="kw">fn</span> <span class="ident">get_exponent</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">usize</span>), <span class="ident">OperandsError</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">e_idx</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">find</span>(<span class="string">&#39;e&#39;</span>) {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">usize::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[<span class="ident">e_idx</span> <span class="op">+</span> <span class="number">1</span>..])<span class="question-mark">?</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="prelude-val">Ok</span>((<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="ident">e_idx</span>], <span class="ident">e</span>))
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>((<span class="ident">input</span>, <span class="number">0</span>))
@@ -438,7 +448,9 @@
             <span class="ident">fraction_digits</span>,
             <span class="ident">exponent</span>,
         ) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sep_idx</span>) <span class="op">=</span> <span class="ident">abs_str</span>.<span class="ident">find</span>(<span class="string">&#39;.&#39;</span>) {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
             <span class="kw">let</span> <span class="ident">int_str</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">abs_str</span>[..<span class="ident">sep_idx</span>];
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
             <span class="kw">let</span> (<span class="ident">dec_str</span>, <span class="ident">exponent</span>) <span class="op">=</span> <span class="ident">get_exponent</span>(<span class="kw-2">&amp;</span><span class="ident">abs_str</span>[(<span class="ident">sep_idx</span> <span class="op">+</span> <span class="number">1</span>)..])<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">integer_digits</span> <span class="op">=</span> <span class="ident">u64::from_str</span>(<span class="ident">int_str</span>)<span class="question-mark">?</span>;

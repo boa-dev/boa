@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["DateTimeFormat","`DateTimeFormat` is the main structure of the `icu_datetime` component. When constructed, it uses data from the [`DataProvider`], selected [`Locale`] and provided options to collect all data necessary to format any dates into that locale."]]});
+initSidebarItems({"struct":[["DateTimeFormat","`DateTimeFormat` is the main structure of the `icu_datetime` component. When constructed, it uses data from the data provider, selected [`Locale`] and provided options to collect all data necessary to format any dates into that locale."]]});

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_calendar-0.5.0/src/arithmetic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arithmetic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_calendar-0.6.0/src/arithmetic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arithmetic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_calendar/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -417,6 +417,71 @@
 <span id="412">412</span>
 <span id="413">413</span>
 <span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -428,6 +493,9 @@
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MIN_UNIT_DAYS</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">14</span>;
 
     <span class="doccomment">/// Information about how a given calendar assigns weeks to a year or month.</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// this type is stable</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CalendarInfo</span> {
         <span class="doccomment">/// The first day of a week.</span>
         <span class="kw">pub</span> <span class="ident">first_weekday</span>: <span class="ident">IsoWeekday</span>,
@@ -439,6 +507,15 @@
         <span class="doccomment">/// Returns the zero based index of `weekday` vs this calendar&#39;s start of week.</span>
         <span class="kw">fn</span> <span class="ident">weekday_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">weekday</span>: <span class="ident">IsoWeekday</span>) -&gt; <span class="ident">i8</span> {
             (<span class="number">7</span> <span class="op">+</span> (<span class="ident">weekday</span> <span class="kw">as</span> <span class="ident">i8</span>) <span class="op">-</span> (<span class="self">self</span>.<span class="ident">first_weekday</span> <span class="kw">as</span> <span class="ident">i8</span>)) <span class="op">%</span> <span class="number">7</span>
+        }
+    }
+
+    <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">CalendarInfo</span> {
+        <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+            <span class="self">Self</span> {
+                <span class="ident">first_weekday</span>: <span class="ident">IsoWeekday::Monday</span>,
+                <span class="ident">min_week_days</span>: <span class="number">1</span>,
+            }
         }
     }
 
@@ -527,6 +604,7 @@
 
     <span class="doccomment">/// The year or month that a calendar assigns a week to relative to the year/month that it is in.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this type is stable</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RelativeUnit</span> {
         <span class="doccomment">/// A week that is assigned to previous year/month. e.g. 2021-01-01 is week 54 of 2020 per the ISO calendar.</span>
         <span class="ident">Previous</span>,
@@ -538,6 +616,7 @@
 
     <span class="doccomment">/// The week number assigned to a given week according to a calendar.</span>
     <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// this type is stable</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WeekOf</span> {
         <span class="doccomment">/// Week of month/year. 1 based.</span>
         <span class="kw">pub</span> <span class="ident">week</span>: <span class="ident">u16</span>,
@@ -587,6 +666,32 @@
                 <span class="ident">unit</span>: <span class="ident">RelativeUnit::Next</span>,
             }),
         }
+    }
+
+    <span class="doccomment">/// Computes &amp; returns the week of given month or year accoding to a calendar with min_week_days = 1.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Arguments</span>
+    <span class="doccomment">///  - first_weekday: The first day of a week.</span>
+    <span class="doccomment">///  - day: 1-based day of the month or year.</span>
+    <span class="doccomment">///  - week_day: The weekday of `day`.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">simple_week_of</span>(<span class="ident">first_weekday</span>: <span class="ident">IsoWeekday</span>, <span class="ident">day</span>: <span class="ident">u16</span>, <span class="ident">week_day</span>: <span class="ident">IsoWeekday</span>) -&gt; <span class="ident">u16</span> {
+        <span class="kw">let</span> <span class="ident">calendar</span> <span class="op">=</span> <span class="ident">CalendarInfo</span> {
+            <span class="ident">first_weekday</span>,
+            <span class="ident">min_week_days</span>: <span class="number">1</span>,
+        };
+
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="ident">week_of</span>(
+            <span class="kw-2">&amp;</span><span class="ident">calendar</span>,
+            <span class="comment">// The duration of the current and previous unit does not influence the result if min_week_days = 1</span>
+            <span class="comment">// so we only need to use a valid value.</span>
+            <span class="ident">MIN_UNIT_DAYS</span>,
+            <span class="ident">MIN_UNIT_DAYS</span>,
+            <span class="ident">day</span>,
+            <span class="ident">week_day</span>,
+        )
+        .<span class="ident">expect</span>(<span class="string">&quot;week_of should can&#39;t fail with MIN_UNIT_DAYS&quot;</span>)
+        .<span class="ident">week</span>
     }
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -829,6 +934,31 @@
 
             <span class="prelude-val">Ok</span>(())
         }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">test_simple_week_of</span>() {
+        <span class="comment">// The 1st is a Monday and the week starts on Mondays.</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">simple_week_of</span>(<span class="ident">IsoWeekday::Monday</span>, <span class="number">2</span>, <span class="ident">IsoWeekday::Tuesday</span>),
+            <span class="number">1</span>
+        );
+        <span class="macro">assert_eq!</span>(<span class="ident">simple_week_of</span>(<span class="ident">IsoWeekday::Monday</span>, <span class="number">7</span>, <span class="ident">IsoWeekday::Sunday</span>), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">simple_week_of</span>(<span class="ident">IsoWeekday::Monday</span>, <span class="number">8</span>, <span class="ident">IsoWeekday::Monday</span>), <span class="number">2</span>);
+
+        <span class="comment">// The 1st is a Wednesday and the week starts on Tuesdays.</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">simple_week_of</span>(<span class="ident">IsoWeekday::Tuesday</span>, <span class="number">1</span>, <span class="ident">IsoWeekday::Wednesday</span>),
+            <span class="number">1</span>
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">simple_week_of</span>(<span class="ident">IsoWeekday::Tuesday</span>, <span class="number">6</span>, <span class="ident">IsoWeekday::Monday</span>),
+            <span class="number">1</span>
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">simple_week_of</span>(<span class="ident">IsoWeekday::Tuesday</span>, <span class="number">7</span>, <span class="ident">IsoWeekday::Tuesday</span>),
+            <span class="number">2</span>
+        );
     }
 }
 </code></pre></div>

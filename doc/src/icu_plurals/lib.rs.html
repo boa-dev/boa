@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_plurals-0.5.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_plurals-0.6.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_plurals/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -469,6 +469,87 @@
 <span id="464">464</span>
 <span id="465">465</span>
 <span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -495,14 +576,12 @@
 <span class="doccomment">//! # Examples</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//! use icu::locid::macros::langid;</span>
+<span class="doccomment">//! use icu::locid::locale;</span>
 <span class="doccomment">//! use icu::plurals::{PluralRules, PluralRuleType, PluralCategory};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let lid = langid!(&quot;en&quot;);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let pr = PluralRules::try_new(lid, &amp;provider, PluralRuleType::Cardinal)</span>
+<span class="doccomment">//! let pr = PluralRules::try_new(locale!(&quot;en&quot;), &amp;provider, PluralRuleType::Cardinal)</span>
 <span class="doccomment">//!     .expect(&quot;Failed to construct a PluralRules struct.&quot;);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! assert_eq!(pr.select(5_usize), PluralCategory::Other);</span>
@@ -536,7 +615,19 @@
 <span class="doccomment">//! [`Language Plural Rules`]: https://unicode.org/reports/tr35/tr35-numbers.html#Language_Plural_Rules</span>
 <span class="doccomment">//! [`CLDR`]: http://cldr.unicode.org/</span>
 
+<span class="comment">// https://github.com/unicode-org/icu4x/blob/main/docs/process/boilerplate.md#library-annotations</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(
+    <span class="ident">not</span>(<span class="ident">test</span>),
+    <span class="ident">deny</span>(
+        <span class="ident">clippy::indexing_slicing</span>,
+        <span class="ident">clippy::unwrap_used</span>,
+        <span class="ident">clippy::expect_used</span>,
+        <span class="ident">clippy::panic</span>,
+        <span class="ident">clippy::exhaustive_structs</span>,
+        <span class="ident">clippy::exhaustive_enums</span>
+    )
+)]</span>
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
@@ -550,12 +641,15 @@
 <span class="kw">use</span> <span class="ident">icu_locid::Locale</span>;
 <span class="kw">use</span> <span class="ident">icu_provider::prelude</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operands::PluralOperands</span>;
-<span class="kw">use</span> <span class="ident">provider::PluralRulesV1Marker</span>;
+<span class="kw">use</span> <span class="ident">provider::CardinalV1Marker</span>;
+<span class="kw">use</span> <span class="ident">provider::ErasedPluralRulesV1Marker</span>;
+<span class="kw">use</span> <span class="ident">provider::OrdinalV1Marker</span>;
 <span class="kw">use</span> <span class="ident">rules::runtime::test_rule</span>;
 
 <span class="doccomment">/// A type of a plural rule which can be associated with the [`PluralRules`] struct.</span>
 <span class="doccomment">///</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PluralRuleType</span> {
     <span class="doccomment">/// Cardinal plural forms express quantities of units such as time, currency or distance,</span>
     <span class="doccomment">/// used in conjunction with a number expressed in decimal digits (i.e. &quot;2&quot;, not &quot;two&quot;).</span>
@@ -594,24 +688,22 @@
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use icu::locid::macros::langid;</span>
+<span class="doccomment">/// use icu::locid::locale;</span>
 <span class="doccomment">/// use icu::plurals::{PluralRules, PluralRuleType, PluralCategory};</span>
 <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let lid = langid!(&quot;en&quot;);</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// let dp = InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let pr = PluralRules::try_new(lid, &amp;dp, PluralRuleType::Cardinal)</span>
+<span class="doccomment">/// let pr = PluralRules::try_new(locale!(&quot;en&quot;), &amp;dp, PluralRuleType::Cardinal)</span>
 <span class="doccomment">///     .expect(&quot;Failed to construct a PluralRules struct.&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(pr.select(5_usize), PluralCategory::Other);</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Hash</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this type is mostly stable. new categories may potentially be added in the future,</span>
+                                   <span class="comment">// but at a cadence slower than the ICU4X release cycle</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PluralCategory</span> {
     <span class="doccomment">/// CLDR &quot;zero&quot; plural category. Used in Arabic and Latvian, among others.</span>
     <span class="doccomment">///</span>
@@ -723,15 +815,13 @@
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use icu::locid::macros::langid;</span>
+<span class="doccomment">/// use icu::locid::locale;</span>
 <span class="doccomment">/// use icu::plurals::{PluralRules, PluralRuleType, PluralCategory};</span>
 <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let lid = langid!(&quot;en&quot;);</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// let dp = InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let pr = PluralRules::try_new(lid, &amp;dp, PluralRuleType::Cardinal)</span>
+<span class="doccomment">/// let pr = PluralRules::try_new(locale!(&quot;en&quot;), &amp;dp, PluralRuleType::Cardinal)</span>
 <span class="doccomment">///     .expect(&quot;Failed to construct a PluralRules struct.&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(pr.select(5_usize), PluralCategory::Other);</span>
@@ -742,7 +832,7 @@
 <span class="doccomment">/// [`Plural Category`]: PluralCategory</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PluralRules</span> {
     <span class="ident">_locale</span>: <span class="ident">Locale</span>,
-    <span class="ident">rules</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">PluralRulesV1Marker</span><span class="op">&gt;</span>,
+    <span class="ident">rules</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">ErasedPluralRulesV1Marker</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">PluralRules</span> {
@@ -753,11 +843,11 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
     <span class="doccomment">/// use icu::plurals::{PluralRules, PluralRuleType};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let lid = langid!(&quot;en&quot;);</span>
+    <span class="doccomment">/// let lid = locale!(&quot;en&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let dp = InvariantDataProvider;</span>
     <span class="doccomment">///</span>
@@ -765,31 +855,109 @@
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [`type`]: PluralRuleType</span>
-    <span class="doccomment">/// [`data provider`]: icu_provider::DataProvider</span>
+    <span class="doccomment">/// [`data provider`]: icu_provider</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>, <span class="ident">D</span><span class="op">&gt;</span>(
         <span class="ident">locale</span>: <span class="ident">T</span>,
         <span class="ident">data_provider</span>: <span class="kw-2">&amp;</span><span class="ident">D</span>,
         <span class="ident">rule_type</span>: <span class="ident">PluralRuleType</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">PluralRulesError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">PluralRulesV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+        <span class="ident">D</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">CardinalV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">OrdinalV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">match</span> <span class="ident">rule_type</span> {
+            <span class="ident">PluralRuleType::Cardinal</span> =&gt; <span class="ident"><span class="self">Self</span>::try_new_cardinal</span>(<span class="ident">locale</span>, <span class="ident">data_provider</span>),
+            <span class="ident">PluralRuleType::Ordinal</span> =&gt; <span class="ident"><span class="self">Self</span>::try_new_ordinal</span>(<span class="ident">locale</span>, <span class="ident">data_provider</span>),
+        }
+    }
+
+    <span class="doccomment">/// Constructs a new `PluralRules` for a given locale for cardinal numbers.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Cardinal plural forms express quantities of units such as time, currency or distance,</span>
+    <span class="doccomment">/// used in conjunction with a number expressed in decimal digits (i.e. &quot;2&quot;, not &quot;two&quot;).</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For example, English has two forms for cardinals:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// * [`One`]: `1 day`</span>
+    <span class="doccomment">/// * [`Other`]: `0 days`, `2 days`, `10 days`, `0.3 days`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
+    <span class="doccomment">/// use icu::plurals::{PluralRules, PluralCategory};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let dp = icu_testdata::get_provider();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let rules = PluralRules::try_new_cardinal(locale!(&quot;ru&quot;), &amp;dp)</span>
+    <span class="doccomment">///     .expect(&quot;Data should be present&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(rules.select(2_usize), PluralCategory::Few);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`One`]: PluralCategory::One</span>
+    <span class="doccomment">/// [`Other`]: PluralCategory::Other</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new_cardinal</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>, <span class="ident">D</span><span class="op">&gt;</span>(
+        <span class="ident">locale</span>: <span class="ident">T</span>,
+        <span class="ident">data_provider</span>: <span class="kw-2">&amp;</span><span class="ident">D</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">PluralRulesError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">D</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">CardinalV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
     {
         <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">into</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">rule_type</span> {
-            <span class="ident">PluralRuleType::Cardinal</span> =&gt; <span class="ident">provider::key::CARDINAL_V1</span>,
-            <span class="ident">PluralRuleType::Ordinal</span> =&gt; <span class="ident">provider::key::ORDINAL_V1</span>,
-        };
         <span class="kw">let</span> <span class="ident">rules</span> <span class="op">=</span> <span class="ident">data_provider</span>
-            .<span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
-                <span class="ident">resource_path</span>: <span class="ident">ResourcePath</span> {
-                    <span class="ident">key</span>,
-                    <span class="ident">options</span>: <span class="ident">ResourceOptions</span> {
-                        <span class="ident">variant</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="ident">locale</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
-                    },
-                },
+            .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
+                <span class="ident">options</span>: <span class="ident">locale</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
             })<span class="question-mark">?</span>
-            .<span class="ident">take_payload</span>()<span class="question-mark">?</span>;
+            .<span class="ident">take_payload</span>()<span class="question-mark">?</span>
+            .<span class="ident">cast</span>();
+        <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">locale</span>, <span class="ident">rules</span>)
+    }
+
+    <span class="doccomment">/// Constructs a new `PluralRules` for a given locale for ordinal numbers.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Ordinal plural forms denote the order of items in a set and are always integers.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For example, English has four forms for ordinals:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// * [`One`]: `1st floor`, `21st floor`, `101st floor`</span>
+    <span class="doccomment">/// * [`Two`]: `2nd floor`, `22nd floor`, `102nd floor`</span>
+    <span class="doccomment">/// * [`Few`]: `3rd floor`, `23rd floor`, `103rd floor`</span>
+    <span class="doccomment">/// * [`Other`]: `4th floor`, `11th floor`, `96th floor`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
+    <span class="doccomment">/// use icu::plurals::{PluralRules, PluralCategory};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let dp = icu_testdata::get_provider();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let rules = PluralRules::try_new_ordinal(locale!(&quot;ru&quot;), &amp;dp)</span>
+    <span class="doccomment">///     .expect(&quot;Data should be present&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(rules.select(2_usize), PluralCategory::Other);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`One`]: PluralCategory::One</span>
+    <span class="doccomment">/// [`Two`]: PluralCategory::Two</span>
+    <span class="doccomment">/// [`Few`]: PluralCategory::Few</span>
+    <span class="doccomment">/// [`Other`]: PluralCategory::Other</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new_ordinal</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>, <span class="ident">D</span><span class="op">&gt;</span>(
+        <span class="ident">locale</span>: <span class="ident">T</span>,
+        <span class="ident">data_provider</span>: <span class="kw-2">&amp;</span><span class="ident">D</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">PluralRulesError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">D</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">OrdinalV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">rules</span> <span class="op">=</span> <span class="ident">data_provider</span>
+            .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
+                <span class="ident">options</span>: <span class="ident">locale</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
+            })<span class="question-mark">?</span>
+            .<span class="ident">take_payload</span>()<span class="question-mark">?</span>
+            .<span class="ident">cast</span>();
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">locale</span>, <span class="ident">rules</span>)
     }
 
@@ -798,15 +966,13 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
     <span class="doccomment">/// use icu::plurals::{PluralRules, PluralRuleType, PluralCategory};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let lid = langid!(&quot;en&quot;);</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// let dp = InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let pr = PluralRules::try_new(lid, &amp;dp, PluralRuleType::Cardinal)</span>
+    <span class="doccomment">/// let pr = PluralRules::try_new(locale!(&quot;en&quot;), &amp;dp, PluralRuleType::Cardinal)</span>
     <span class="doccomment">///     .expect(&quot;Failed to construct a PluralRules struct.&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// match pr.select(1_usize) {</span>
@@ -828,16 +994,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// use std::convert::TryFrom;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
     <span class="doccomment">/// use icu::plurals::{PluralRules, PluralRuleType};</span>
     <span class="doccomment">/// use icu::plurals::{PluralCategory, PluralOperands};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # let lid = langid!(&quot;en&quot;);</span>
-    <span class="doccomment">/// #</span>
     <span class="doccomment">/// # let dp = InvariantDataProvider;</span>
     <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # let pr = PluralRules::try_new(lid, &amp;dp, PluralRuleType::Cardinal)</span>
+    <span class="doccomment">/// # let pr = PluralRules::try_new(locale!(&quot;en&quot;), &amp;dp, PluralRuleType::Cardinal)</span>
     <span class="doccomment">/// #     .expect(&quot;Failed to construct a PluralRules struct.&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let operands = PluralOperands::try_from(-5)</span>
@@ -882,15 +1046,13 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
     <span class="doccomment">/// use icu::plurals::{PluralRules, PluralRuleType, PluralCategory};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let lid = langid!(&quot;fr&quot;);</span>
-    <span class="doccomment">///</span>
     <span class="doccomment">/// let dp = icu_testdata::get_provider();</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let pr = PluralRules::try_new(lid, &amp;dp, PluralRuleType::Cardinal)</span>
+    <span class="doccomment">/// let pr = PluralRules::try_new(locale!(&quot;fr&quot;), &amp;dp, PluralRuleType::Cardinal)</span>
     <span class="doccomment">///     .expect(&quot;Failed to construct a PluralRules struct.&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut categories = pr.categories();</span>
@@ -924,9 +1086,9 @@
 
     <span class="doccomment">/// Lower-level constructor that allows constructing a [`PluralRules`] directly from</span>
     <span class="doccomment">/// data obtained from a provider.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span><span class="op">&gt;</span>(
+    <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span><span class="op">&gt;</span>(
         <span class="ident">locale</span>: <span class="ident">T</span>,
-        <span class="ident">rules</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">PluralRulesV1Marker</span><span class="op">&gt;</span>,
+        <span class="ident">rules</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">ErasedPluralRulesV1Marker</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">PluralRulesError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">into</span>();
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> {

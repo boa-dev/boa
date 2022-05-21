@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu-0.5.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu-0.6.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -439,6 +439,67 @@
 <span id="434">434</span>
 <span id="435">435</span>
 <span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -479,36 +540,26 @@
 <span class="doccomment">//! ICU4X components share a set of common features that control whether core pieces of</span>
 <span class="doccomment">//! functionality are compiled. These features are:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! - `provider_serde`: Whether to include Serde Serialize/Deserialize implementations for</span>
-<span class="doccomment">//!   ICU4X locale data structs, such as [`SymbolsV1`]. (On by default)</span>
-<span class="doccomment">//! - `serde`: Whether to include Serde Serialize/Deserialize implementations for core libary</span>
-<span class="doccomment">//!   types, such as [`Locale`].</span>
+<span class="doccomment">//! - `serialize`: Whether to include Serde Deserialize implementations for</span>
+<span class="doccomment">//!   ICU4X locale data structs, such as [`SymbolsV1`], and Serialize/Deserialize implementations</span>
+<span class="doccomment">//!   for core libary types, such as [`Locale`] (On by default)</span>
+<span class="doccomment">//! - `datagen`: Whether to include Serde Serialize and other data generation traits for ICU4X locale data structs.</span>
 <span class="doccomment">//! - `bench`: Whether to enable exhaustive benchmarks. This can be enabled on individual crates</span>
 <span class="doccomment">//!   when running `cargo bench`.</span>
 <span class="doccomment">//! - `experimental`: Whether to enable experimental preview features. Modules enabled with</span>
 <span class="doccomment">//!   this feature may not be production-ready and could change at any time.</span>
-<span class="doccomment">//! - `provider_transform_internals`: This is code that is useful for transforming CLDR data, but</span>
-<span class="doccomment">//!   may be risky to ship as a public API. For instance in DateTimeFormat code we may want to</span>
-<span class="doccomment">//!   manipulate patterns, but not allow end users to do the same.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Example</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//! use icu::locid::Locale;</span>
-<span class="doccomment">//! use icu::locid::macros::langid;</span>
+<span class="doccomment">//! use icu::locid::locale;</span>
 <span class="doccomment">//! use icu::datetime::{DateTimeFormat, options::length, mock::parse_gregorian_from_str};</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let locale: Locale = langid!(&quot;en&quot;).into();</span>
+<span class="doccomment">//! let options = length::Bag::from_date_time_style(length::Date::Long, length::Time::Medium).into();</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let options = length::Bag {</span>
-<span class="doccomment">//!     date: Some(length::Date::Long),</span>
-<span class="doccomment">//!     time: Some(length::Time::Medium),</span>
-<span class="doccomment">//!     ..Default::default()</span>
-<span class="doccomment">//! }.into();</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let dtf = DateTimeFormat::try_new(locale, &amp;provider, &amp;options)</span>
+<span class="doccomment">//! let dtf = DateTimeFormat::try_new(locale!(&quot;en&quot;), &amp;provider, &amp;options)</span>
 <span class="doccomment">//!     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let date = parse_gregorian_from_str(&quot;2020-09-12T12:35:00&quot;)</span>
@@ -524,7 +575,17 @@
 <span class="doccomment">//! [`Locale`]: crate::locid::Locale</span>
 <span class="doccomment">//! [`SymbolsV1`]: crate::decimal::provider::DecimalSymbolsV1</span>
 
+<span class="comment">// https://github.com/unicode-org/icu4x/blob/main/docs/process/boilerplate.md#library-annotations</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(
+    <span class="ident">not</span>(<span class="ident">test</span>),
+    <span class="ident">deny</span>(
+        <span class="ident">clippy::indexing_slicing</span>,
+        <span class="ident">clippy::unwrap_used</span>,
+        <span class="ident">clippy::expect_used</span>,
+        <span class="ident">clippy::panic</span>
+    )
+)]</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">calendar</span> {
     <span class="doccomment">//! Contains the core types used by ICU4X for dealing</span>
@@ -552,21 +613,13 @@
     <span class="doccomment">//! # Examples</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! ```</span>
-    <span class="doccomment">//! use icu::locid::Locale;</span>
-    <span class="doccomment">//! use icu::locid::macros::langid;</span>
+    <span class="doccomment">//! use icu::locid::locale;</span>
     <span class="doccomment">//! use icu::datetime::{DateTimeFormat, options::length, mock::parse_gregorian_from_str};</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let locale: Locale = langid!(&quot;en&quot;).into();</span>
-    <span class="doccomment">//!</span>
-    <span class="doccomment">//! let options = length::Bag {</span>
-    <span class="doccomment">//!     date: Some(length::Date::Medium),</span>
-    <span class="doccomment">//!     time: Some(length::Time::Short),</span>
-    <span class="doccomment">//!     ..Default::default()</span>
-    <span class="doccomment">//! }.into();</span>
-    <span class="doccomment">//!</span>
-    <span class="doccomment">//! let dtf = DateTimeFormat::try_new(locale, &amp;provider, &amp;options)</span>
+    <span class="doccomment">//! let options = length::Bag::from_date_time_style(length::Date::Medium, length::Time::Short).into();</span>
+    <span class="doccomment">//! let dtf = DateTimeFormat::try_new(locale!(&quot;en&quot;), &amp;provider, &amp;options)</span>
     <span class="doccomment">//!     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! let date = parse_gregorian_from_str(&quot;2020-09-12T12:35:00&quot;)</span>
@@ -593,18 +646,16 @@
     <span class="doccomment">//!</span>
     <span class="doccomment">//! ```</span>
     <span class="doccomment">//! use icu::decimal::FixedDecimalFormat;</span>
-    <span class="doccomment">//! use icu::locid::Locale;</span>
-    <span class="doccomment">//! use icu::locid::macros::langid;</span>
+    <span class="doccomment">//! use icu::locid::locale;</span>
     <span class="doccomment">//! use writeable::Writeable;</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let locale: Locale = langid!(&quot;bn&quot;).into();</span>
     <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
-    <span class="doccomment">//! let fdf = FixedDecimalFormat::try_new(locale, &amp;provider, Default::default())</span>
+    <span class="doccomment">//! let fdf = FixedDecimalFormat::try_new(locale!(&quot;bn&quot;), &amp;provider, Default::default())</span>
     <span class="doccomment">//!     .expect(&quot;Data should load successfully&quot;);</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! let fixed_decimal = 1000007.into();</span>
     <span class="doccomment">//! let formatted_value = fdf.format(&amp;fixed_decimal);</span>
-    <span class="doccomment">//! let formatted_str = formatted_value.writeable_to_string();</span>
+    <span class="doccomment">//! let formatted_str = formatted_value.write_to_string();</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! assert_eq!(&quot;১০,০০,০০৭&quot;, formatted_str);</span>
     <span class="doccomment">//! ```</span>
@@ -617,16 +668,15 @@
     <span class="doccomment">//! use icu::locid::Locale;</span>
     <span class="doccomment">//! use writeable::Writeable;</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let locale = Locale::und();</span>
     <span class="doccomment">//! let provider = icu_provider::inv::InvariantDataProvider;</span>
-    <span class="doccomment">//! let fdf = FixedDecimalFormat::try_new(locale, &amp;provider, Default::default())</span>
+    <span class="doccomment">//! let fdf = FixedDecimalFormat::try_new(Locale::UND, &amp;provider, Default::default())</span>
     <span class="doccomment">//!     .expect(&quot;Data should load successfully&quot;);</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! let fixed_decimal = FixedDecimal::from(200050)</span>
     <span class="doccomment">//!     .multiplied_pow10(-2)</span>
     <span class="doccomment">//!     .expect(&quot;Operation is fully in range&quot;);</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! assert_eq!(&quot;2,000.50&quot;, fdf.format(&amp;fixed_decimal).writeable_to_string());</span>
+    <span class="doccomment">//! assert_eq!(&quot;2,000.50&quot;, fdf.format(&amp;fixed_decimal).write_to_string());</span>
     <span class="doccomment">//! ```</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! [`FixedDecimal`]: fixed_decimal::FixedDecimal</span>
@@ -706,23 +756,16 @@
     <span class="doccomment">//! # Examples</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! ```</span>
-    <span class="doccomment">//! use icu::locid::Locale;</span>
-    <span class="doccomment">//! use icu::locid::subtags::{Language, Region};</span>
+    <span class="doccomment">//! use icu::locid::{language, locale, region};</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let mut loc: Locale = &quot;en-US&quot;.parse()</span>
-    <span class="doccomment">//!     .expect(&quot;Parsing failed.&quot;);</span>
+    <span class="doccomment">//! let mut loc = locale!(&quot;en-US&quot;).clone();</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let lang: Language = &quot;en&quot;.parse()</span>
-    <span class="doccomment">//!     .expect(&quot;Parsing failed.&quot;);</span>
-    <span class="doccomment">//! let region: Region = &quot;US&quot;.parse()</span>
-    <span class="doccomment">//!     .expect(&quot;Parsing failed.&quot;);</span>
-    <span class="doccomment">//!</span>
-    <span class="doccomment">//! assert_eq!(loc.id.language, lang);</span>
+    <span class="doccomment">//! assert_eq!(loc.id.language, language!(&quot;en&quot;));</span>
     <span class="doccomment">//! assert_eq!(loc.id.script, None);</span>
-    <span class="doccomment">//! assert_eq!(loc.id.region, Some(region));</span>
+    <span class="doccomment">//! assert_eq!(loc.id.region, Some(region!(&quot;US&quot;)));</span>
     <span class="doccomment">//! assert_eq!(loc.id.variants.len(), 0);</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let region: Region = &quot;GB&quot;.parse().expect(&quot;Parsing failed.&quot;);</span>
+    <span class="doccomment">//! let region = region!(&quot;GB&quot;);</span>
     <span class="doccomment">//! loc.id.region = Some(region);</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! assert_eq!(loc.to_string(), &quot;en-GB&quot;);</span>
@@ -734,10 +777,6 @@
     <span class="doccomment">//! [`ICU4X`]: https://github.com/unicode-org/icu4x</span>
     <span class="doccomment">//! [`Unicode Extensions`]: extensions</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">icu_locid</span>::<span class="kw-2">*</span>;
-
-    <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">macros</span> {
-        <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">icu_locid_macros</span>::<span class="kw-2">*</span>;
-    }
 }
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">plurals</span> {
@@ -763,14 +802,12 @@
     <span class="doccomment">//! # Examples</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! ```</span>
-    <span class="doccomment">//! use icu::locid::macros::langid;</span>
+    <span class="doccomment">//! use icu::locid::locale;</span>
     <span class="doccomment">//! use icu::plurals::{PluralRules, PluralRuleType, PluralCategory};</span>
-    <span class="doccomment">//!</span>
-    <span class="doccomment">//! let lid = langid!(&quot;en&quot;);</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let pr = PluralRules::try_new(lid, &amp;provider, PluralRuleType::Cardinal)</span>
+    <span class="doccomment">//! let pr = PluralRules::try_new(locale!(&quot;en&quot;), &amp;provider, PluralRuleType::Cardinal)</span>
     <span class="doccomment">//!     .expect(&quot;Failed to construct a PluralRules struct.&quot;);</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! assert_eq!(pr.select(5_usize), PluralCategory::Other);</span>
@@ -823,7 +860,7 @@
     <span class="doccomment">//! ## Property data as `UnicodeSet`s</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! ```</span>
-    <span class="doccomment">//! use icu::properties::{sets, GeneralCategory};</span>
+    <span class="doccomment">//! use icu::properties::{maps, sets, GeneralCategory};</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
     <span class="doccomment">//!</span>
@@ -840,11 +877,10 @@
     <span class="doccomment">//!</span>
     <span class="doccomment">//! // An individual enumerated property value as a `UnicodeSet`</span>
     <span class="doccomment">//!</span>
-    <span class="doccomment">//! let payload =</span>
-    <span class="doccomment">//!     sets::get_for_general_category(&amp;provider, GeneralCategory::LineSeparator)</span>
-    <span class="doccomment">//!         .expect(&quot;The data should be valid&quot;);</span>
+    <span class="doccomment">//! let payload = maps::get_general_category(&amp;provider).expect(&quot;The data should be valid&quot;);</span>
     <span class="doccomment">//! let data_struct = payload.get();</span>
-    <span class="doccomment">//! let line_sep = &amp;data_struct.inv_list;</span>
+    <span class="doccomment">//! let gc = &amp;data_struct.code_point_trie;</span>
+    <span class="doccomment">//! let line_sep = gc.get_set_for_value(GeneralCategory::LineSeparator);</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! assert!(line_sep.contains_u32(0x2028));</span>
     <span class="doccomment">//! assert!(!line_sep.contains_u32(0x2029));</span>
@@ -867,6 +903,48 @@
     <span class="doccomment">//! assert_eq!(script.get(&#39;木&#39; as u32), Script::Han);  // U+6728</span>
     <span class="doccomment">//! ```</span>
     <span class="doccomment">//!</span>
+    <span class="doccomment">//! ## Property data for `Script` and `Script_Extensions`</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! ```</span>
+    <span class="doccomment">//! use icu::properties::{script, Script};</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! let payload =</span>
+    <span class="doccomment">//!     script::get_script_with_extensions(&amp;provider)</span>
+    <span class="doccomment">//!         .expect(&quot;The data should be valid&quot;);</span>
+    <span class="doccomment">//! let data_struct = payload.get();</span>
+    <span class="doccomment">//! let swe = &amp;data_struct.data;</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! // get the `Script` property value</span>
+    <span class="doccomment">//! assert_eq!(swe.get_script_val(0x0650), Script::Inherited); // U+0650 ARABIC KASRA</span>
+    <span class="doccomment">//! assert_eq!(swe.get_script_val(0x0660), Script::Arabic); // U+0660 ARABIC-INDIC DIGIT ZERO</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! // get the `Script_Extensions` property value</span>
+    <span class="doccomment">//! assert_eq!(</span>
+    <span class="doccomment">//!     swe.get_script_extensions_val(0x0640) // U+0640 ARABIC TATWEEL</span>
+    <span class="doccomment">//!         .iter().collect::&lt;Vec&lt;Script&gt;&gt;(),</span>
+    <span class="doccomment">//!     vec![Script::Arabic, Script::Syriac, Script::Mandaic, Script::Manichaean,</span>
+    <span class="doccomment">//!          Script::PsalterPahlavi, Script::Adlam, Script::HanifiRohingya, Script::Sogdian,</span>
+    <span class="doccomment">//!          Script::OldUyghur]</span>
+    <span class="doccomment">//! );</span>
+    <span class="doccomment">//! assert_eq!(</span>
+    <span class="doccomment">//!     swe.get_script_extensions_val(&#39;௫&#39; as u32) // U+0BEB TAMIL DIGIT FIVE</span>
+    <span class="doccomment">//!         .iter().collect::&lt;Vec&lt;Script&gt;&gt;(),</span>
+    <span class="doccomment">//!     vec![Script::Tamil, Script::Grantha]</span>
+    <span class="doccomment">//! );</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! // check containment of a `Script` value in the `Script_Extensions` value</span>
+    <span class="doccomment">//! // U+0650 ARABIC KASRA</span>
+    <span class="doccomment">//! assert!(swe.has_script(0x0650, Script::Arabic));</span>
+    <span class="doccomment">//! assert!(swe.has_script(0x0650, Script::Syriac));</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! // get a `UnicodeSet` for when `Script` value is contained in `Script_Extensions` value</span>
+    <span class="doccomment">//! let syriac = swe.get_script_extensions_set(Script::Syriac);</span>
+    <span class="doccomment">//! assert!(syriac.contains_u32(0x0650)); // ARABIC KASRA</span>
+    <span class="doccomment">//! assert!(!syriac.contains_u32(0x0660)); // ARABIC-INDIC DIGIT ZERO</span>
+    <span class="doccomment">//! ```</span>
+    <span class="doccomment">//!</span>
     <span class="doccomment">//! [`ICU4X`]: ../icu/index.html</span>
     <span class="doccomment">//! [Unicode Properties]: https://unicode-org.github.io/icu/userguide/strings/properties.html</span>
     <span class="doccomment">//! [`UnicodeSet`]: ../../icu_uniset/struct.UnicodeSet.html</span>
@@ -874,6 +952,50 @@
     <span class="doccomment">//! [`CodePointTrie`]: ../../icu_codepointtrie/codepointtrie/struct.CodePointTrie.html</span>
     <span class="doccomment">//! [`maps`]: maps</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">icu_properties</span>::<span class="kw-2">*</span>;
+}
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">list</span> {
+    <span class="doccomment">//! List formatting</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! This API provides the [`ListFormatter`] which renders sequences of [`Writeable`](</span>
+    <span class="doccomment">//! writeable::Writeable)s as lists in a locale-sensitive way.</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! # Examples</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! ## Format a list of strings in Spanish</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! ```</span>
+    <span class="doccomment">//! use icu::list::{ListFormatter, ListStyle};</span>
+    <span class="doccomment">//! use icu::locid::locale;</span>
+    <span class="doccomment">//! use writeable::Writeable;</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! let provider = icu_testdata::get_provider();</span>
+    <span class="doccomment">//! let list_formatter = ListFormatter::try_new_and(locale!(&quot;es&quot;), &amp;provider, ListStyle::Wide)</span>
+    <span class="doccomment">//!     .expect(&quot;Data should load successfully&quot;);</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! assert_eq!(</span>
+    <span class="doccomment">//!     list_formatter.format([&quot;España&quot;, &quot;Suiza&quot;].iter())</span>
+    <span class="doccomment">//!         .write_to_string(),</span>
+    <span class="doccomment">//!     &quot;España y Suiza&quot;</span>
+    <span class="doccomment">//! );</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! // The Spanish &#39;y&#39; sometimes becomes an &#39;e&#39;:</span>
+    <span class="doccomment">//! assert_eq!(</span>
+    <span class="doccomment">//!     list_formatter.format([&quot;España&quot;, &quot;Suiza&quot;, &quot;Italia&quot;].iter())</span>
+    <span class="doccomment">//!         .write_to_string(),</span>
+    <span class="doccomment">//!     &quot;España, Suiza e Italia&quot;</span>
+    <span class="doccomment">//! );</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! // We can use any Writeables as inputs:</span>
+    <span class="doccomment">//! assert_eq!(</span>
+    <span class="doccomment">//!     list_formatter.format(1..=10).write_to_string(),</span>
+    <span class="doccomment">//!     &quot;1, 2, 3, 4, 5, 6, 7, 8, 9 y 10&quot;</span>
+    <span class="doccomment">//! );</span>
+    <span class="doccomment">//!```</span>
+    <span class="doccomment">//!</span>
+    <span class="doccomment">//! [`ListFormatter`]: ListFormatter</span>
+
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">icu_list</span>::<span class="kw-2">*</span>;
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="icu" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>

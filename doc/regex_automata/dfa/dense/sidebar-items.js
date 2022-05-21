@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["DFA","A dense table-based deterministic finite automaton (DFA)."]]});

@@ -1,0 +1,104 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Documentation on zero-copy deserialization of locale types."><meta name="keywords" content="rust, rustlang, rust-lang, zerovec"><title>icu_locid::zerovec - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_locid/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../icu_locid/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Module zerovec</a></h2><div class="sidebar-elems"><div id="sidebar-vars" data-name="zerovec" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../icu_locid/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">icu_locid</a>::<wbr><a class="mod" href="#">zerovec</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/icu_locid/zerovec.rs.html#5-366">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Documentation on zero-copy deserialization of locale types.</p>
+<p><a href="../struct.Locale.html"><code>Locale</code></a> and <a href="../struct.LanguageIdentifier.html"><code>LanguageIdentifier</code></a> are highly structured types that cannot be directly
+stored in a zero-copy data structure, such as those provided by the <a href="../../zerovec/index.html" title="zerovec"><code>zerovec</code></a> crate.
+This page explains how to indirectly store these types in a <a href="../../zerovec/index.html" title="zerovec"><code>zerovec</code></a>.</p>
+<p>There are two main use cases, which have different solutions:</p>
+<ol>
+<li><strong>Lookup:</strong> You need to locate a locale in a zero-copy vector, such as when querying a map.</li>
+<li><strong>Obtain:</strong> You have a locale stored in a zero-copy vector, and you need to obtain a proper
+<a href="../struct.Locale.html"><code>Locale</code></a> or <a href="../struct.LanguageIdentifier.html"><code>LanguageIdentifier</code></a> for use elsewhere in your program.</li>
+</ol>
+<h2 id="lookup"><a href="#lookup">Lookup</a></h2>
+<p>To perform lookup, store the stringified locale in a canonical BCP-47 form as a byte array,
+and then use <a href="../struct.Locale.html#method.cmp_bytes"><code>Locale::cmp_bytes()</code></a> to perform an efficient, zero-allocation lookup.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
+<span class="kw">use</span> <span class="ident">icu_locid::Locale</span>;
+<span class="kw">use</span> <span class="ident">zerovec::ZeroMap</span>;
+
+<span class="comment">// ZeroMap from locales to integers</span>
+<span class="kw">let</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[(<span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">u32</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    (<span class="string">b&quot;de-DE-u-hc-h12&quot;</span>, <span class="number">5</span>),
+    (<span class="string">b&quot;en-US-u-ca-buddhist&quot;</span>, <span class="number">10</span>),
+    (<span class="string">b&quot;my-MM&quot;</span>, <span class="number">15</span>),
+    (<span class="string">b&quot;sr-Cyrl-ME&quot;</span>, <span class="number">20</span>),
+    (<span class="string">b&quot;zh-TW&quot;</span>, <span class="number">25</span>),
+];
+<span class="kw">let</span> <span class="ident">zm</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span>[<span class="ident">u8</span>], <span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>();
+
+<span class="comment">// Get the value associated with a locale</span>
+<span class="kw">let</span> <span class="ident">loc</span>: <span class="ident">Locale</span> <span class="op">=</span> <span class="string">&quot;en-US-u-ca-buddhist&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">zm</span>.<span class="ident">get_copied_by</span>(<span class="op">|</span><span class="ident">bytes</span><span class="op">|</span> <span class="ident">loc</span>.<span class="ident">cmp_bytes</span>(<span class="ident">bytes</span>).<span class="ident">reverse</span>());
+<span class="macro">assert_eq!</span>(<span class="ident">value</span>, <span class="prelude-val">Some</span>(<span class="number">10</span>));</code></pre></div>
+<h2 id="obtain"><a href="#obtain">Obtain</a></h2>
+<p>Obtaining a <a href="../struct.Locale.html"><code>Locale</code></a> or <a href="../struct.LanguageIdentifier.html"><code>LanguageIdentifier</code></a> is not generally a zero-copy operation, since
+both of these types may require memory allocation. If possible, architect your code such that
+you do not need to obtain a structured type.</p>
+<p>If need the structured type, such as if you need to manipulate it in some way, there are two
+options: storing subtags, and storing a string for parsing.</p>
+<h3 id="storing-subtags"><a href="#storing-subtags">Storing Subtags</a></h3>
+<p>If the data being stored only contains a limited number of subtags, you can store them as a
+tuple, and then construct the <a href="../struct.LanguageIdentifier.html"><code>LanguageIdentifier</code></a> externally.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">icu_locid::LanguageIdentifier</span>;
+<span class="kw">use</span> <span class="ident">icu_locid::subtags</span>::{<span class="ident">Language</span>, <span class="ident">Script</span>, <span class="ident">Region</span>};
+<span class="kw">use</span> <span class="ident">icu_locid</span>::{<span class="ident">language</span>, <span class="ident">script</span>, <span class="ident">region</span>, <span class="ident">langid</span>};
+<span class="kw">use</span> <span class="ident">zerovec::ZeroMap</span>;
+
+<span class="comment">// ZeroMap from integer to LSR (language-script-region)</span>
+<span class="kw">let</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[(<span class="ident">u32</span>, (<span class="ident">Language</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Script</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>))] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    (<span class="number">5</span>, (<span class="macro">language!</span>(<span class="string">&quot;de&quot;</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="macro">region!</span>(<span class="string">&quot;DE&quot;</span>)))),
+    (<span class="number">10</span>, (<span class="macro">language!</span>(<span class="string">&quot;en&quot;</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="macro">region!</span>(<span class="string">&quot;US&quot;</span>)))),
+    (<span class="number">15</span>, (<span class="macro">language!</span>(<span class="string">&quot;my&quot;</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="macro">region!</span>(<span class="string">&quot;MM&quot;</span>)))),
+    (<span class="number">20</span>, (<span class="macro">language!</span>(<span class="string">&quot;sr&quot;</span>), <span class="prelude-val">Some</span>(<span class="macro">script!</span>(<span class="string">&quot;Cyrl&quot;</span>)), <span class="prelude-val">Some</span>(<span class="macro">region!</span>(<span class="string">&quot;ME&quot;</span>)))),
+    (<span class="number">25</span>, (<span class="macro">language!</span>(<span class="string">&quot;zh&quot;</span>), <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="macro">region!</span>(<span class="string">&quot;TW&quot;</span>)))),
+];
+<span class="kw">let</span> <span class="ident">zm</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="ident">u32</span>, (<span class="ident">Language</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Script</span><span class="op">&gt;</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="op">=</span>
+    <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>();
+
+<span class="comment">// Construct a LanguageIdentifier from a tuple entry</span>
+<span class="kw">let</span> <span class="ident">lid</span>: <span class="ident">LanguageIdentifier</span> <span class="op">=</span> <span class="ident">zm</span>.<span class="ident">get_copied</span>(<span class="kw-2">&amp;</span><span class="number">25</span>)
+    .<span class="ident">expect</span>(<span class="string">&quot;element is present&quot;</span>)
+    .<span class="ident">into</span>();
+
+<span class="macro">assert_eq!</span>(<span class="ident">lid</span>, <span class="macro">langid!</span>(<span class="string">&quot;zh-TW&quot;</span>));</code></pre></div>
+<h3 id="storing-strings"><a href="#storing-strings">Storing Strings</a></h3>
+<p>If it is necessary to store and obtain an arbitrary locale, it is currently recommended to
+store a BCP-47 string and parse it when needed.</p>
+<p>Since the string is stored in an unparsed state, it is not safe to <code>unwrap</code> the result from
+<code>Locale::from_bytes()</code>. See <a href="https://github.com/unicode-org/icu4x/issues/831">icu4x#831</a>
+for a discussion on potential data models that could ensure that the locale is valid during
+deserialization.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">icu_locid::Locale</span>;
+<span class="kw">use</span> <span class="ident">icu_locid::langid</span>;
+<span class="kw">use</span> <span class="ident">zerovec::ZeroMap</span>;
+
+<span class="comment">// ZeroMap from integer to locale string</span>
+<span class="kw">let</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[(<span class="ident">u32</span>, <span class="kw-2">&amp;</span>[<span class="ident">u8</span>])] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    (<span class="number">5</span>, <span class="string">b&quot;de-DE-u-hc-h12&quot;</span>),
+    (<span class="number">10</span>, <span class="string">b&quot;en-US-u-ca-buddhist&quot;</span>),
+    (<span class="number">15</span>, <span class="string">b&quot;my-MM&quot;</span>),
+    (<span class="number">20</span>, <span class="string">b&quot;sr-Cyrl-ME&quot;</span>),
+    (<span class="number">25</span>, <span class="string">b&quot;zh-TW&quot;</span>),
+    (<span class="number">30</span>, <span class="string">b&quot;INVALID&quot;</span>),
+];
+<span class="kw">let</span> <span class="ident">zm</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="ident">u32</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">collect</span>();
+
+<span class="comment">// Construct a Locale by parsing the string.</span>
+<span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">zm</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">25</span>).<span class="ident">expect</span>(<span class="string">&quot;element is present&quot;</span>);
+<span class="kw">let</span> <span class="ident">loc</span> <span class="op">=</span> <span class="ident">Locale::from_bytes</span>(<span class="ident">value</span>);
+<span class="macro">assert_eq!</span>(<span class="ident">loc</span>, <span class="prelude-val">Ok</span>(<span class="macro">langid!</span>(<span class="string">&quot;zh-TW&quot;</span>).<span class="ident">into</span>()));
+
+<span class="comment">// Invalid entries are fallible</span>
+<span class="kw">let</span> <span class="ident">err_value</span> <span class="op">=</span> <span class="ident">zm</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">30</span>).<span class="ident">expect</span>(<span class="string">&quot;element is present&quot;</span>);
+<span class="kw">let</span> <span class="ident">err_loc</span> <span class="op">=</span> <span class="ident">Locale::from_bytes</span>(<span class="ident">err_value</span>);
+<span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">err_loc</span>, <span class="prelude-val">Err</span>(<span class="kw">_</span>)));</code></pre></div>
+</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="icu_locid" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</body></html>

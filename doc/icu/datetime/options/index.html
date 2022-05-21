@@ -12,13 +12,7 @@ may alter how the selected pattern is formatted.</p>
 <h2 id="examples"><a href="#examples">Examples</a></h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">icu::datetime</span>::{<span class="ident">DateTimeFormatOptions</span>, <span class="ident">options::length</span>};
 
-<span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">DateTimeFormatOptions::Length</span>(
-    <span class="ident">length::Bag</span> {
-         <span class="ident">date</span>: <span class="prelude-val">Some</span>(<span class="ident">length::Date::Medium</span>),
-         <span class="ident">time</span>: <span class="prelude-val">Some</span>(<span class="ident">length::Time::Short</span>),
-        ..<span class="ident">Default::default</span>()
-    }
-);</code></pre></div>
+<span class="kw">let</span> <span class="ident">bag</span> <span class="op">=</span> <span class="ident">length::Bag::from_date_time_style</span>(<span class="ident">length::Date::Medium</span>, <span class="ident">length::Time::Short</span>);</code></pre></div>
 <p>At the moment only the <a href="length/struct.Bag.html" title="length::Bag"><code>length::Bag</code></a> works, and we plan to extend that to support
 <code>ECMA402</code>-like components bag later.</p>
 </div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/yoke-0.4.0/src/yokeable.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>yokeable.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/yoke-0.5.0/src/yokeable.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>yokeable.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../yoke/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -294,6 +294,40 @@
 <span id="289">289</span>
 <span id="290">290</span>
 <span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -302,15 +336,23 @@
 <span class="kw">use</span> <span class="ident">alloc::borrow</span>::{<span class="ident">Cow</span>, <span class="ident">ToOwned</span>};
 <span class="kw">use</span> <span class="ident">core::mem</span>;
 
+<span class="doccomment">/// The `Yokeable&lt;&#39;a&gt;` trait is implemented on the `&#39;static` version of any zero-copy type; for</span>
+<span class="doccomment">/// example, `Cow&lt;&#39;static, T&gt;` implements `Yokeable&lt;&#39;a&gt;` (for all `&#39;a`). One can use</span>
+<span class="doccomment">/// `Yokeable::Output` on this trait to obtain the &quot;lifetime&#39;d&quot; value of the `Cow&lt;&#39;static, T&gt;`,</span>
+<span class="doccomment">/// e.g. `&lt;Cow&lt;&#39;static, T&gt; as Yokeable&lt;&#39;a&gt;&#39;&gt;::Output` is `Cow&lt;&#39;a, T&gt;`.</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// A [`Yokeable`] type is essentially one with a covariant lifetime parameter,</span>
 <span class="doccomment">/// matched to the parameter in the trait definition. The trait allows one to cast</span>
 <span class="doccomment">/// the covariant lifetime to and from `&#39;static`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// **Most of the time, if you need to implement [`Yokeable`], you should be able to use the safe</span>
+<span class="doccomment">/// [`#[derive(Yokeable)]`](yoke_derive::Yokeable) custom derive.**</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// While Rust does not yet have GAT syntax, for the purpose of this documentation</span>
 <span class="doccomment">/// we shall refer to &quot;`Self` with a lifetime `&#39;a`&quot; with the syntax `Self&lt;&#39;a&gt;`.</span>
 <span class="doccomment">/// Self&lt;&#39;static&gt; is a stand-in for the HKT Self&lt;&#39;_&gt;: lifetime -&gt; type.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`Yokeable`]  exposes ways to cast between `Self&lt;&#39;static&gt;` and `Self&lt;&#39;a&gt;` generically.</span>
+<span class="doccomment">/// With this terminology, [`Yokeable`]  exposes ways to cast between `Self&lt;&#39;static&gt;` and `Self&lt;&#39;a&gt;` generically.</span>
 <span class="doccomment">/// This is useful for turning covariant lifetimes to _dynamic_ lifetimes, where `&#39;static` is</span>
 <span class="doccomment">/// used as a way to &quot;erase&quot; the lifetime.</span>
 <span class="doccomment">///</span>
@@ -334,10 +376,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Implementation example</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This crate will eventually expose a custom derive that makes it possible to implement this</span>
-<span class="doccomment">/// trait safely without much ceremony. Such a custom derive will include static checks</span>
-<span class="doccomment">/// for the covariance of each field. In the meantime, this trait can typically be implemented as</span>
-<span class="doccomment">/// follows:</span>
+<span class="doccomment">/// Implementing this trait manually is unsafe. Where possible, you should use the safe</span>
+<span class="doccomment">/// [`#[derive(Yokeable)]`](yoke_derive::Yokeable) custom derive instead. We include an example</span>
+<span class="doccomment">/// in case you have your own zero-copy abstractions you wish to make yokeable.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
 <span class="doccomment">/// # use yoke::Yokeable;</span>
@@ -583,6 +624,33 @@
     {
         <span class="comment">// Cast away the lifetime of Self</span>
         <span class="kw">unsafe</span> { <span class="ident">f</span>(<span class="ident">mem::transmute</span>::<span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">Self</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span>(<span class="self">self</span>)) }
+    }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">Yokeable</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">alloc::vec::Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">alloc::vec::Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">transform</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">alloc::vec::Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="comment">// Doesn&#39;t need unsafe: `&#39;a` is covariant so this lifetime cast is always safe</span>
+        <span class="self">self</span>
+    }
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">transform_owned</span>(<span class="self">self</span>) -&gt; <span class="ident">alloc::vec::Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+        <span class="comment">// Doesn&#39;t need unsafe: `&#39;a` is covariant so this lifetime cast is always safe</span>
+        <span class="self">self</span>
+    }
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">make</span>(<span class="ident">from</span>: <span class="ident">alloc::vec::Vec</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">from</span>
+    }
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">transform_mut</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">f</span>: <span class="ident">F</span>)
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident"><span class="self">Self</span>::Output</span>),
+    {
+        <span class="comment">// Doesn&#39;t need unsafe: `&#39;a` is covariant so this lifetime cast is always safe</span>
+        <span class="ident">f</span>(<span class="self">self</span>)
     }
 }
 </code></pre></div>

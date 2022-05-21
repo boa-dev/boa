@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.5.0/src/data_provider.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data_provider.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.6.0/src/data_provider.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>data_provider.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_provider/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -868,112 +868,19 @@
 <span id="863">863</span>
 <span id="864">864</span>
 <span id="865">865</span>
-<span id="866">866</span>
-<span id="867">867</span>
-<span id="868">868</span>
-<span id="869">869</span>
-<span id="870">870</span>
-<span id="871">871</span>
-<span id="872">872</span>
-<span id="873">873</span>
-<span id="874">874</span>
-<span id="875">875</span>
-<span id="876">876</span>
-<span id="877">877</span>
-<span id="878">878</span>
-<span id="879">879</span>
-<span id="880">880</span>
-<span id="881">881</span>
-<span id="882">882</span>
-<span id="883">883</span>
-<span id="884">884</span>
-<span id="885">885</span>
-<span id="886">886</span>
-<span id="887">887</span>
-<span id="888">888</span>
-<span id="889">889</span>
-<span id="890">890</span>
-<span id="891">891</span>
-<span id="892">892</span>
-<span id="893">893</span>
-<span id="894">894</span>
-<span id="895">895</span>
-<span id="896">896</span>
-<span id="897">897</span>
-<span id="898">898</span>
-<span id="899">899</span>
-<span id="900">900</span>
-<span id="901">901</span>
-<span id="902">902</span>
-<span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
-<span id="928">928</span>
-<span id="929">929</span>
-<span id="930">930</span>
-<span id="931">931</span>
-<span id="932">932</span>
-<span id="933">933</span>
-<span id="934">934</span>
-<span id="935">935</span>
-<span id="936">936</span>
-<span id="937">937</span>
-<span id="938">938</span>
-<span id="939">939</span>
-<span id="940">940</span>
-<span id="941">941</span>
-<span id="942">942</span>
-<span id="943">943</span>
-<span id="944">944</span>
-<span id="945">945</span>
-<span id="946">946</span>
-<span id="947">947</span>
-<span id="948">948</span>
-<span id="949">949</span>
-<span id="950">950</span>
-<span id="951">951</span>
-<span id="952">952</span>
-<span id="953">953</span>
-<span id="954">954</span>
-<span id="955">955</span>
-<span id="956">956</span>
-<span id="957">957</span>
-<span id="958">958</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serialize&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">test</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::buf::BufferMarker</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">DataError</span>, <span class="ident">DataErrorKind</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::marker::DataMarker</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::marker</span>::{<span class="ident">DataMarker</span>, <span class="ident">ResourceMarker</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource::ResourceKey</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource::ResourcePath</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource::ResourceOptions</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::yoke::trait_hack::YokeTraitHack</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::yoke</span>::<span class="kw-2">*</span>;
 
@@ -985,76 +892,20 @@
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">icu_locid::LanguageIdentifier</span>;
 
-<span class="doccomment">/// A struct to request a certain piece of data from a data provider.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataRequestMetadata</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataRequest</span> {
-    <span class="kw">pub</span> <span class="ident">resource_path</span>: <span class="ident">ResourcePath</span>,
+    <span class="kw">pub</span> <span class="ident">options</span>: <span class="ident">ResourceOptions</span>,
+    <span class="kw">pub</span> <span class="ident">metadata</span>: <span class="ident">DataRequestMetadata</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">DataRequest</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(
-            <span class="ident">f</span>,
-            <span class="string">&quot;{}/{}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">resource_path</span>.<span class="ident">key</span>, <span class="self">self</span>.<span class="ident">resource_path</span>.<span class="ident">options</span>
-        )
-    }
-}
-
-<span class="doccomment">/// Create a [`DataRequest`] to a particular [`ResourceKey`] with default options.</span>
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ResourceKey</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">DataRequest</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">key</span>: <span class="ident">ResourceKey</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">resource_path</span>: <span class="ident">ResourcePath</span> {
-                <span class="ident">key</span>,
-                <span class="ident">options</span>: <span class="ident">Default::default</span>(),
-            },
-        }
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">DataRequest</span> {
-    <span class="doccomment">/// Returns the [`LanguageIdentifier`] for this [`DataRequest`], or an error if it is not present.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu_provider::prelude::*;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// const FOO_BAR: ResourceKey = icu_provider::resource_key!(&quot;foo/bar@1&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req_no_langid = DataRequest {</span>
-    <span class="doccomment">///     resource_path: ResourcePath {</span>
-    <span class="doccomment">///         key: FOO_BAR,</span>
-    <span class="doccomment">///         options: ResourceOptions::default(),</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let req_with_langid = DataRequest {</span>
-    <span class="doccomment">///     resource_path: ResourcePath {</span>
-    <span class="doccomment">///         key: FOO_BAR,</span>
-    <span class="doccomment">///         options: ResourceOptions {</span>
-    <span class="doccomment">///             variant: None,</span>
-    <span class="doccomment">///             langid: Some(icu_locid_macros::langid!(&quot;ar-EG&quot;)),</span>
-    <span class="doccomment">///         },</span>
-    <span class="doccomment">///     }</span>
-    <span class="doccomment">/// };</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert!(matches!(</span>
-    <span class="doccomment">///     req_no_langid.try_langid(),</span>
-    <span class="doccomment">///     Err(DataError { kind: DataErrorKind::NeedsLocale, .. })</span>
-    <span class="doccomment">/// ));</span>
-    <span class="doccomment">/// assert!(matches!(</span>
-    <span class="doccomment">///     req_with_langid.try_langid(),</span>
-    <span class="doccomment">///     Ok(_)</span>
-    <span class="doccomment">/// ));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_langid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">LanguageIdentifier</span>, <span class="ident">DataError</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">resource_path</span>
-            .<span class="ident">options</span>
-            .<span class="ident">langid</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">DataErrorKind::NeedsLocale</span>.<span class="ident">with_req</span>(<span class="self">self</span>))
+        <span class="ident">fmt::Display::fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">options</span>, <span class="ident">f</span>)
     }
 }
 
@@ -1068,7 +919,7 @@
     <span class="kw">pub</span> <span class="ident">buffer_format</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::buf::BufferFormat</span><span class="op">&gt;</span>,
 }
 
-<span class="doccomment">/// A container for data payloads returned from a [`DataProvider`].</span>
+<span class="doccomment">/// A container for data payloads returned from a data provider.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`DataPayload`] is built on top of the [`yoke`] framework, which allows for cheap, zero-copy</span>
 <span class="doccomment">/// operations on data via the use of self-references. A [`DataPayload`] may be backed by one of</span>
@@ -1440,10 +1291,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Same example as above, but this time, do not move out of `p1`:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// ***[#1061](https://github.com/unicode-org/icu4x/issues/1061): The following example</span>
-    <span class="doccomment">/// requires Rust 1.57.***</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```ignore</span>
+    <span class="doccomment">/// ```</span>
     <span class="doccomment">/// // Same imports and definitions as above</span>
     <span class="doccomment">/// # use icu_provider::hello_world::*;</span>
     <span class="doccomment">/// # use icu_provider::prelude::*;</span>
@@ -1489,10 +1337,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Capture a string from the context and append it to the message:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// ***[#1061](https://github.com/unicode-org/icu4x/issues/1061): The following example</span>
-    <span class="doccomment">/// requires Rust 1.57.***</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```ignore</span>
+    <span class="doccomment">/// ```</span>
     <span class="doccomment">/// // Same imports and definitions as above</span>
     <span class="doccomment">/// # use icu_provider::hello_world::*;</span>
     <span class="doccomment">/// # use icu_provider::prelude::*;</span>
@@ -1512,34 +1357,6 @@
     <span class="doccomment">///     &quot;Extra&quot;,</span>
     <span class="doccomment">///     |mut obj, capture, _| {</span>
     <span class="doccomment">///         obj.message.to_mut().push_str(capture);</span>
-    <span class="doccomment">///         obj.message</span>
-    <span class="doccomment">///     });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(&quot;Hello WorldExtra&quot;, p2.get());</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prior to Rust 1.57, pass the capture by value instead of by reference:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// // Same imports and definitions as above</span>
-    <span class="doccomment">/// # use icu_provider::hello_world::*;</span>
-    <span class="doccomment">/// # use icu_provider::prelude::*;</span>
-    <span class="doccomment">/// # use std::borrow::Cow;</span>
-    <span class="doccomment">/// # struct HelloWorldV1MessageMarker;</span>
-    <span class="doccomment">/// # impl DataMarker for HelloWorldV1MessageMarker {</span>
-    <span class="doccomment">/// #     type Yokeable = Cow&lt;&#39;static, str&gt;;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let p1: DataPayload&lt;HelloWorldV1Marker&gt; = DataPayload::from_owned(HelloWorldV1 {</span>
-    <span class="doccomment">///     message: Cow::Borrowed(&quot;Hello World&quot;)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(&quot;Hello World&quot;, p1.get().message);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let p2: DataPayload&lt;HelloWorldV1MessageMarker&gt; = p1.map_project_with_capture(</span>
-    <span class="doccomment">///     &quot;Extra&quot;.to_string(),</span>
-    <span class="doccomment">///     |mut obj, capture, _| {</span>
-    <span class="doccomment">///         obj.message.to_mut().push_str(&amp;capture);</span>
     <span class="doccomment">///         obj.message</span>
     <span class="doccomment">///     });</span>
     <span class="doccomment">///</span>
@@ -1570,10 +1387,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Same example as above, but this time, do not move out of `p1`:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// ***[#1061](https://github.com/unicode-org/icu4x/issues/1061): The following example</span>
-    <span class="doccomment">/// requires Rust 1.57.***</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```ignore</span>
+    <span class="doccomment">/// ```</span>
     <span class="doccomment">/// // Same imports and definitions as above</span>
     <span class="doccomment">/// # use icu_provider::hello_world::*;</span>
     <span class="doccomment">/// # use icu_provider::prelude::*;</span>
@@ -1626,10 +1440,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Same example as above, but bubble up an error:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// ***[#1061](https://github.com/unicode-org/icu4x/issues/1061): The following example</span>
-    <span class="doccomment">/// requires Rust 1.57.***</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```ignore</span>
+    <span class="doccomment">/// ```</span>
     <span class="doccomment">/// // Same imports and definitions as above</span>
     <span class="doccomment">/// # use icu_provider::hello_world::*;</span>
     <span class="doccomment">/// # use icu_provider::prelude::*;</span>
@@ -1658,38 +1469,6 @@
     <span class="doccomment">/// assert_eq!(&quot;Hello WorldExtra&quot;, p2.get());</span>
     <span class="doccomment">/// # Ok::&lt;(), &amp;&#39;static str&gt;(())</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Prior to Rust 1.57, pass the capture by value instead of by reference:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// // Same imports and definitions as above</span>
-    <span class="doccomment">/// # use icu_provider::hello_world::*;</span>
-    <span class="doccomment">/// # use icu_provider::prelude::*;</span>
-    <span class="doccomment">/// # use std::borrow::Cow;</span>
-    <span class="doccomment">/// # struct HelloWorldV1MessageMarker;</span>
-    <span class="doccomment">/// # impl DataMarker for HelloWorldV1MessageMarker {</span>
-    <span class="doccomment">/// #     type Yokeable = Cow&lt;&#39;static, str&gt;;</span>
-    <span class="doccomment">/// # }</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let p1: DataPayload&lt;HelloWorldV1Marker&gt; = DataPayload::from_owned(HelloWorldV1 {</span>
-    <span class="doccomment">///     message: Cow::Borrowed(&quot;Hello World&quot;)</span>
-    <span class="doccomment">/// });</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(&quot;Hello World&quot;, p1.get().message);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let p2: DataPayload&lt;HelloWorldV1MessageMarker&gt; = p1.try_map_project_with_capture(</span>
-    <span class="doccomment">///     &quot;Extra&quot;.to_string(),</span>
-    <span class="doccomment">///     |mut obj, capture, _| {</span>
-    <span class="doccomment">///         if obj.message.is_empty() {</span>
-    <span class="doccomment">///             return Err(())</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///         obj.message.to_mut().push_str(&amp;capture);</span>
-    <span class="doccomment">///         Ok(obj.message)</span>
-    <span class="doccomment">///     })?;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(&quot;Hello WorldExtra&quot;, p2.get());</span>
-    <span class="doccomment">/// # Ok::&lt;(), ()&gt;(())</span>
-    <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::type_complexity</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_map_project_with_capture</span><span class="op">&lt;</span><span class="ident">M2</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
@@ -1715,10 +1494,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Same example as above, but bubble up an error:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// ***[#1061](https://github.com/unicode-org/icu4x/issues/1061): The following example</span>
-    <span class="doccomment">/// requires Rust 1.57.***</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```ignore</span>
+    <span class="doccomment">/// ```</span>
     <span class="doccomment">/// // Same imports and definitions as above</span>
     <span class="doccomment">/// # use icu_provider::hello_world::*;</span>
     <span class="doccomment">/// # use icu_provider::prelude::*;</span>
@@ -1767,6 +1543,14 @@
             <span class="ident">yoke</span>: <span class="self">self</span>.<span class="ident">yoke</span>.<span class="ident">try_project_cloned_with_capture</span>(<span class="ident">capture</span>, <span class="ident">f</span>)<span class="question-mark">?</span>,
         })
     }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cast</span><span class="op">&lt;</span><span class="ident">M2</span><span class="op">&gt;</span>(<span class="self">self</span>) -&gt; <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">M2</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">M2</span>: <span class="ident">DataMarker</span><span class="op">&lt;</span><span class="ident">Yokeable</span> <span class="op">=</span> <span class="ident">M::Yokeable</span><span class="op">&gt;</span>,
+    {
+        <span class="ident">DataPayload</span> { <span class="ident">yoke</span>: <span class="self">self</span>.<span class="ident">yoke</span> }
+    }
 }
 
 <span class="kw">impl</span> <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">BufferMarker</span><span class="op">&gt;</span> {
@@ -1803,6 +1587,7 @@
 }
 
 <span class="doccomment">/// A response object containing an object as payload and metadata about it.</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataResponse</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">M</span>: <span class="ident">DataMarker</span>,
@@ -1902,14 +1687,13 @@
     <span class="macro">assert_eq!</span>(<span class="string">&quot;DataResponse { metadata: DataResponseMetadata { data_langid: None, buffer_format: None }, payload: Some(HelloWorldV1 { message: \&quot;foo\&quot; }) }&quot;</span>, <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">resp</span>));
 }
 
-<span class="doccomment">/// A generic data provider that loads a payload of a specific type.</span>
+<span class="doccomment">/// A data provider that loads data for a specific data type.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// See examples on some of the concrete implementations:</span>
+<span class="doccomment">/// Unlike [`ResourceProvider`], there may be multiple keys corresponding to the same data type.</span>
+<span class="doccomment">/// This is often the case when returning `dyn` trait objects such as [`SerializeMarker`].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// - [`HelloWorldProvider`](crate::hello_world::HelloWorldProvider)</span>
-<span class="doccomment">/// - [`AnyPayloadProvider`](crate::struct_provider::AnyPayloadProvider)</span>
-<span class="doccomment">/// - [`InvariantDataProvider`](crate::inv::InvariantDataProvider)</span>
-<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>
+<span class="doccomment">/// [`SerializeMarker`]: crate::serde::SerializeMarker</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">DynProvider</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">M</span>: <span class="ident">DataMarker</span>,
 {
@@ -1917,7 +1701,37 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns [`Ok`] if the request successfully loaded data. If data failed to load, returns an</span>
     <span class="doccomment">/// Error with more information.</span>
-    <span class="kw">fn</span> <span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">DataRequest</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataResponse</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>, <span class="ident">DataError</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">load_payload</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">key</span>: <span class="ident">ResourceKey</span>,
+        <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">DataRequest</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataResponse</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>, <span class="ident">DataError</span><span class="op">&gt;</span>;
+}
+
+<span class="doccomment">/// A data provider that loads data for a specific [`ResourceKey`].</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">M</span>: <span class="ident">ResourceMarker</span>,
+{
+    <span class="doccomment">/// Query the provider for data, returning the result.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns [`Ok`] if the request successfully loaded data. If data failed to load, returns an</span>
+    <span class="doccomment">/// Error with more information.</span>
+    <span class="kw">fn</span> <span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">DataRequest</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataResponse</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>, <span class="ident">DataError</span><span class="op">&gt;</span>;
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">P</span><span class="op">&gt;</span> <span class="ident">DynProvider</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">alloc::boxed::Box</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">M</span>: <span class="ident">DataMarker</span>,
+    <span class="ident">P</span>: <span class="ident">DynProvider</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+{
+    <span class="kw">fn</span> <span class="ident">load_payload</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">key</span>: <span class="ident">ResourceKey</span>,
+        <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">DataRequest</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataResponse</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>, <span class="ident">DataError</span><span class="op">&gt;</span> {
+        (<span class="kw-2">*</span><span class="kw-2">*</span><span class="self">self</span>).<span class="ident">load_payload</span>(<span class="ident">key</span>, <span class="ident">req</span>)
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="icu_provider" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>

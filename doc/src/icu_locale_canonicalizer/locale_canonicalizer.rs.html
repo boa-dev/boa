@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locale_canonicalizer-0.5.0/src/locale_canonicalizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>locale_canonicalizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locale_canonicalizer-0.6.0/src/locale_canonicalizer.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>locale_canonicalizer.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_locale_canonicalizer/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -754,6 +754,99 @@
 <span id="749">749</span>
 <span id="750">750</span>
 <span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -761,19 +854,23 @@
 <span class="doccomment">//! The collection of code for locale canonicalization.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">alloc::string::ToString</span>;
 <span class="kw">use</span> <span class="ident">alloc::vec</span>;
 <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
+<span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">core::mem</span>;
+<span class="kw">use</span> <span class="ident">icu_locid::subtags</span>::{<span class="ident">Language</span>, <span class="ident">Region</span>, <span class="ident">Script</span>};
 <span class="kw">use</span> <span class="ident">icu_locid</span>::{
-    <span class="ident">extensions::unicode</span>::{<span class="ident">Key</span>, <span class="ident">Value</span>},
-    <span class="ident">subtags</span>, <span class="ident">LanguageIdentifier</span>, <span class="ident">Locale</span>,
+    <span class="ident">extensions::unicode::Key</span>,
+    <span class="ident">language</span>,
+    <span class="ident">subtags</span>::{<span class="ident">Variant</span>, <span class="ident">Variants</span>},
+    <span class="ident">LanguageIdentifier</span>, <span class="ident">Locale</span>,
 };
 <span class="kw">use</span> <span class="ident">icu_provider::prelude</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">tinystr</span>::{<span class="ident">tinystr4</span>, <span class="ident">TinyStr4</span>, <span class="ident">TinyStr8</span>};
+<span class="kw">use</span> <span class="ident">tinystr</span>::{<span class="ident">tinystr</span>, <span class="ident">TinyAsciiStr</span>};
 
 <span class="doccomment">/// Used to track the result of a canonicalization operation that potentially modifies its argument in place.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this enum is stable</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CanonicalizationResult</span> {
     <span class="doccomment">/// The canonicalization operation modified the locale.</span>
     <span class="ident">Modified</span>,
@@ -867,25 +964,54 @@
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">uts35_rule_matches</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">Locale</span>, <span class="ident">ruletype</span>: <span class="kw-2">&amp;</span><span class="ident">LanguageIdentifier</span>) -&gt; <span class="ident">bool</span> {
-    (<span class="ident">ruletype</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ruletype</span>.<span class="ident">language</span> <span class="op">==</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">language</span>)
-        <span class="op">&amp;&amp;</span> (<span class="ident">ruletype</span>.<span class="ident">script</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ruletype</span>.<span class="ident">script</span> <span class="op">==</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">script</span>)
-        <span class="op">&amp;&amp;</span> (<span class="ident">ruletype</span>.<span class="ident">region</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">ruletype</span>.<span class="ident">region</span> <span class="op">==</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">region</span>)
-        <span class="op">&amp;&amp;</span> (<span class="ident">ruletype</span>.<span class="ident">variants</span>.<span class="ident">is_empty</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="ident">ruletype</span>
-                .<span class="ident">variants</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">all</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">contains</span>(<span class="ident">v</span>)))
+<span class="kw">fn</span> <span class="ident">uts35_rule_matches</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">V</span>, <span class="ident">L</span><span class="op">&gt;</span>(
+    <span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="ident">Locale</span>,
+    <span class="ident">language</span>: <span class="ident">L</span>,
+    <span class="ident">script</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Script</span><span class="op">&gt;</span>,
+    <span class="ident">region</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
+    <span class="ident">variants</span>: <span class="ident">I</span>,
+) -&gt; <span class="ident">bool</span>
+<span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">V</span><span class="op">&gt;</span>,
+    <span class="ident">Variant</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
+    <span class="ident">Language</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">L</span><span class="op">&gt;</span>,
+{
+    (<span class="ident">Language::UND</span> <span class="op">==</span> <span class="ident">language</span> <span class="op">|</span><span class="op">|</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">language</span> <span class="op">==</span> <span class="ident">language</span>)
+        <span class="op">&amp;&amp;</span> (<span class="ident">script</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">script</span> <span class="op">==</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">script</span>)
+        <span class="op">&amp;&amp;</span> (<span class="ident">region</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">region</span> <span class="op">==</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">region</span>)
+        <span class="op">&amp;&amp;</span> {
+            <span class="comment">// Checks if variants are a subset of source variants.</span>
+            <span class="comment">// As both iterators are sorted, this can be done linearly.</span>
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">source_variants</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">iter</span>();
+            <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">it</span> <span class="kw">in</span> <span class="ident">variants</span> {
+                <span class="kw">for</span> <span class="ident">cand</span> <span class="kw">in</span> <span class="ident">source_variants</span>.<span class="ident">by_ref</span>() {
+                    <span class="kw">match</span> <span class="ident">cand</span>.<span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="ident">it</span>) {
+                        <span class="prelude-val">Some</span>(<span class="ident">Ordering::Equal</span>) =&gt; {
+                            <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
+                        }
+                        <span class="prelude-val">Some</span>(<span class="ident">Ordering::Less</span>) =&gt; {}
+                        <span class="kw">_</span> =&gt; {
+                            <span class="kw">return</span> <span class="bool-val">false</span>;
+                        }
+                    }
+                }
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            }
+            <span class="bool-val">true</span>
+        }
 }
 
-<span class="kw">fn</span> <span class="ident">uts35_replacement</span>(
+<span class="kw">fn</span> <span class="ident">uts35_replacement</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">V</span><span class="op">&gt;</span>(
     <span class="ident">source</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Locale</span>,
     <span class="ident">ruletype_has_language</span>: <span class="ident">bool</span>,
     <span class="ident">ruletype_has_script</span>: <span class="ident">bool</span>,
     <span class="ident">ruletype_has_region</span>: <span class="ident">bool</span>,
-    <span class="ident">ruletype_variants</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">subtags::Variants</span><span class="op">&gt;</span>,
+    <span class="ident">ruletype_variants</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
     <span class="ident">replacement</span>: <span class="kw-2">&amp;</span><span class="ident">LanguageIdentifier</span>,
-) {
+) <span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">V</span><span class="op">&gt;</span>,
+    <span class="ident">Variant</span>: <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>,
+{
     <span class="kw">if</span> <span class="ident">ruletype_has_language</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">replacement</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>())
     {
         <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">language</span> <span class="op">=</span> <span class="ident">replacement</span>.<span class="ident">language</span>;
@@ -896,23 +1022,56 @@
     <span class="kw">if</span> <span class="ident">ruletype_has_region</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">region</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">replacement</span>.<span class="ident">region</span>.<span class="ident">is_some</span>()) {
         <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">region</span> <span class="op">=</span> <span class="ident">replacement</span>.<span class="ident">region</span>;
     }
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ruletype_variants</span>) <span class="op">=</span> <span class="ident">ruletype_variants</span> {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">skips</span>) <span class="op">=</span> <span class="ident">ruletype_variants</span> {
         <span class="comment">// The rule matches if the ruletype variants are a subset of the source variants.</span>
         <span class="comment">// This means ja-Latn-fonipa-hepburn-heploc matches against the rule for</span>
         <span class="comment">// hepburn-heploc and is canonicalized to ja-Latn-alalc97-fonipa</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variants</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">subtags::Variant</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">source</span>
-            .<span class="ident">id</span>
-            .<span class="ident">variants</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><span class="ident">ruletype_variants</span>.<span class="ident">contains</span>(<span class="ident">x</span>))
-            .<span class="ident">copied</span>()
-            .<span class="ident">collect</span>();
-        <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">replacement</span>.<span class="ident">variants</span>.<span class="ident">iter</span>() {
-            <span class="ident">variants</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">variant</span>);
+
+        <span class="comment">// We&#39;re merging three sorted deduped iterators into a new sequence:</span>
+        <span class="comment">// sources - skips + replacements</span>
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sources</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">peekable</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replacements</span> <span class="op">=</span> <span class="ident">replacement</span>.<span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">copied</span>().<span class="ident">peekable</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">skips</span> <span class="op">=</span> <span class="ident">skips</span>.<span class="ident">peekable</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">variants</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+
+        <span class="kw">loop</span> {
+            <span class="kw">match</span> (<span class="ident">sources</span>.<span class="ident">peek</span>(), <span class="ident">skips</span>.<span class="ident">peek</span>(), <span class="ident">replacements</span>.<span class="ident">peek</span>()) {
+                (<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>), <span class="prelude-val">Some</span>(<span class="ident">skip</span>), <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">source</span> <span class="op">&gt;</span> <span class="kw-2">*</span><span class="ident">skip</span> =&gt; {
+                    <span class="ident">skips</span>.<span class="ident">next</span>();
+                }
+                (<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>), <span class="prelude-val">Some</span>(<span class="ident">skip</span>), <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">source</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">skip</span> =&gt; {
+                    <span class="ident">skips</span>.<span class="ident">next</span>();
+                    <span class="ident">sources</span>.<span class="ident">next</span>();
+                }
+                (<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>), <span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">replacement</span>))
+                    <span class="kw">if</span> <span class="ident">replacement</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>) <span class="op">==</span> <span class="ident">Ordering::Less</span> =&gt;
+                {
+                    <span class="ident">variants</span>.<span class="ident">push</span>(<span class="ident">replacement</span>);
+                    <span class="ident">replacements</span>.<span class="ident">next</span>();
+                }
+                (<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>), <span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">replacement</span>))
+                    <span class="kw">if</span> <span class="ident">replacement</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>) <span class="op">==</span> <span class="ident">Ordering::Equal</span> =&gt;
+                {
+                    <span class="ident">variants</span>.<span class="ident">push</span>(<span class="ident">source</span>);
+                    <span class="ident">sources</span>.<span class="ident">next</span>();
+                    <span class="ident">replacements</span>.<span class="ident">next</span>();
+                }
+                (<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>), <span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
+                    <span class="ident">variants</span>.<span class="ident">push</span>(<span class="ident">source</span>);
+                    <span class="ident">sources</span>.<span class="ident">next</span>();
+                }
+                (<span class="prelude-val">None</span>, <span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">replacement</span>)) =&gt; {
+                    <span class="ident">variants</span>.<span class="ident">push</span>(<span class="ident">replacement</span>);
+                    <span class="ident">replacements</span>.<span class="ident">next</span>();
+                }
+                (<span class="prelude-val">None</span>, <span class="kw">_</span>, <span class="prelude-val">None</span>) =&gt; {
+                    <span class="kw">break</span>;
+                }
+            }
         }
-        <span class="ident">variants</span>.<span class="ident">sort</span>();
-        <span class="ident">variants</span>.<span class="ident">dedup</span>();
-        <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">variants</span> <span class="op">=</span> <span class="ident">subtags::Variants::from_vec_unchecked</span>(<span class="ident">variants</span>);
+        <span class="ident">source</span>.<span class="ident">id</span>.<span class="ident">variants</span> <span class="op">=</span> <span class="ident">Variants::from_vec_unchecked</span>(<span class="ident">variants</span>);
     }
 }
 
@@ -921,17 +1080,21 @@
     <span class="ident">locale</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Locale</span>,
     <span class="ident">alias_data</span>: <span class="kw-2">&amp;</span><span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">AliasesV1Marker</span><span class="op">&gt;</span>,
 ) -&gt; <span class="ident">CanonicalizationResult</span> {
-    <span class="kw">let</span> <span class="ident">maybe_lang</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TinyStr4</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span>.<span class="ident">into</span>();
-    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">lang</span>) <span class="op">=</span> <span class="ident">maybe_lang</span> {
-        <span class="kw">let</span> <span class="ident">aliases</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lang</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
-            <span class="kw-2">&amp;</span><span class="ident">alias_data</span>.<span class="ident">get</span>().<span class="ident">language_len2</span>
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() {
+        <span class="kw">let</span> <span class="ident">lang</span>: <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">3</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">lang</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">2</span> {
+            <span class="ident">alias_data</span>.<span class="ident">get</span>().<span class="ident">language_len2</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">lang</span>.<span class="ident">resize</span>())
         } <span class="kw">else</span> {
-            <span class="kw-2">&amp;</span><span class="ident">alias_data</span>.<span class="ident">get</span>().<span class="ident">language_len3</span>
+            <span class="ident">alias_data</span>.<span class="ident">get</span>().<span class="ident">language_len3</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">lang</span>)
         };
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">aliases</span>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">lang</span>, <span class="op">|</span><span class="ident">alias</span><span class="op">|</span> <span class="ident">alias</span>.<span class="number">0</span>) {
-            <span class="ident">uts35_replacement</span>(<span class="ident">locale</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="ident">aliases</span>[<span class="ident">index</span>].<span class="number">1</span>);
-            <span class="kw">return</span> <span class="ident">CanonicalizationResult::Modified</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">replacement</span>) <span class="op">=</span> <span class="ident">replacement</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">langid</span>) <span class="op">=</span> <span class="ident">replacement</span>.<span class="ident">parse</span>() {
+                <span class="ident">uts35_replacement</span>::<span class="op">&lt;</span><span class="ident">core::iter::Empty</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&gt;</span>, <span class="ident">Variant</span><span class="op">&gt;</span>(
+                    <span class="ident">locale</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="ident">langid</span>,
+                );
+                <span class="kw">return</span> <span class="ident">CanonicalizationResult::Modified</span>;
+            }
         }
     }
 
@@ -940,23 +1103,25 @@
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">fn</span> <span class="ident">update_langid</span>(
-    <span class="ident">entry</span>: <span class="kw-2">&amp;</span><span class="ident">LanguageIdentifier</span>,
+    <span class="ident">language</span>: <span class="ident">Language</span>,
+    <span class="ident">script</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Script</span><span class="op">&gt;</span>,
+    <span class="ident">region</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>,
     <span class="ident">langid</span>: <span class="kw-2">&amp;mut</span> <span class="ident">LanguageIdentifier</span>,
 ) -&gt; <span class="ident">CanonicalizationResult</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modified</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-    <span class="kw">if</span> <span class="ident">langid</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">entry</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() {
-        <span class="ident">langid</span>.<span class="ident">language</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">language</span>;
+    <span class="kw">if</span> <span class="ident">langid</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">language</span>.<span class="ident">is_empty</span>() {
+        <span class="ident">langid</span>.<span class="ident">language</span> <span class="op">=</span> <span class="ident">language</span>;
         <span class="ident">modified</span> <span class="op">=</span> <span class="bool-val">true</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">langid</span>.<span class="ident">script</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">entry</span>.<span class="ident">script</span>.<span class="ident">is_some</span>() {
-        <span class="ident">langid</span>.<span class="ident">script</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">script</span>;
+    <span class="kw">if</span> <span class="ident">langid</span>.<span class="ident">script</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">script</span>.<span class="ident">is_some</span>() {
+        <span class="ident">langid</span>.<span class="ident">script</span> <span class="op">=</span> <span class="ident">script</span>;
         <span class="ident">modified</span> <span class="op">=</span> <span class="bool-val">true</span>;
     }
 
-    <span class="kw">if</span> <span class="ident">langid</span>.<span class="ident">region</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">entry</span>.<span class="ident">region</span>.<span class="ident">is_some</span>() {
-        <span class="ident">langid</span>.<span class="ident">region</span> <span class="op">=</span> <span class="ident">entry</span>.<span class="ident">region</span>;
+    <span class="kw">if</span> <span class="ident">langid</span>.<span class="ident">region</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">region</span>.<span class="ident">is_some</span>() {
+        <span class="ident">langid</span>.<span class="ident">region</span> <span class="op">=</span> <span class="ident">region</span>;
         <span class="ident">modified</span> <span class="op">=</span> <span class="bool-val">true</span>;
     }
 
@@ -967,37 +1132,40 @@
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">maximize_locale</span> {
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">langid</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">table</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span>:<span class="ident">expr</span> ) =&gt; {{
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">language_identifier</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">table</span>.<span class="ident">get</span>(<span class="op">&amp;&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span>) {
-            <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">language_identifier</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">langid</span>);
+<span class="kw">fn</span> <span class="ident">is_iter_sorted</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="ident">bool</span>
+<span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">PartialOrd</span>,
+{
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">mut</span> <span class="ident">last</span>) <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">next</span>() {
+        <span class="kw">for</span> <span class="ident">curr</span> <span class="kw">in</span> <span class="ident">iter</span> {
+            <span class="kw">if</span> <span class="ident">last</span> <span class="op">&gt;</span> <span class="ident">curr</span> {
+                <span class="kw">return</span> <span class="bool-val">false</span>;
+            }
+            <span class="ident">last</span> <span class="op">=</span> <span class="ident">curr</span>;
         }
-    }};
-    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">langid</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">table</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key1</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key2</span>:<span class="ident">expr</span> ) =&gt; {{
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">language_identifier</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">table</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">key1</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key2</span>)) {
-            <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">language_identifier</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">langid</span>);
-        }
-    }};
+    }
+    <span class="bool-val">true</span>
 }
 
 <span class="kw">impl</span> <span class="ident">LocaleCanonicalizer</span> {
-    <span class="doccomment">/// A constructor which takes a [`DataProvider`] and creates a [`LocaleCanonicalizer`].</span>
+    <span class="doccomment">/// A constructor which takes a [`ResourceProvider`] and creates a [`LocaleCanonicalizer`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">provider</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">LocaleCanonicalizer</span>, <span class="ident">DataError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">P</span>: <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">AliasesV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">LikelySubtagsV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+        <span class="ident">P</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">AliasesV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">LikelySubtagsV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
     {
         <span class="comment">// The `rg` region override and `sd` regional subdivision keys may contain</span>
         <span class="comment">// language codes that require canonicalization.</span>
         <span class="kw">let</span> <span class="ident">extension_keys</span> <span class="op">=</span> <span class="macro">vec!</span>[
-            <span class="ident">Key::from_tinystr4_unchecked</span>(<span class="macro">tinystr4!</span>(<span class="string">&quot;rg&quot;</span>)),
-            <span class="ident">Key::from_tinystr4_unchecked</span>(<span class="macro">tinystr4!</span>(<span class="string">&quot;sd&quot;</span>)),
+            <span class="ident">Key::from_tinystr_unchecked</span>(<span class="macro">tinystr!</span>(<span class="number">2</span>, <span class="string">&quot;rg&quot;</span>)),
+            <span class="ident">Key::from_tinystr_unchecked</span>(<span class="macro">tinystr!</span>(<span class="number">2</span>, <span class="string">&quot;sd&quot;</span>)),
         ];
         <span class="kw">let</span> <span class="ident">aliases</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">AliasesV1Marker</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">provider</span>
-            .<span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest::from</span>(<span class="ident">key::ALIASES_V1</span>))<span class="question-mark">?</span>
+            .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest::default</span>())<span class="question-mark">?</span>
             .<span class="ident">take_payload</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">likely_subtags</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">LikelySubtagsV1Marker</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">provider</span>
-            .<span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest::from</span>(<span class="ident">key::LIKELY_SUBTAGS_V1</span>))<span class="question-mark">?</span>
+            .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest::default</span>())<span class="question-mark">?</span>
             .<span class="ident">take_payload</span>()<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">LocaleCanonicalizer</span> {
@@ -1037,56 +1205,87 @@
 
         <span class="comment">// This loops until we get a &#39;fixed point&#39;, where applying the rules do not</span>
         <span class="comment">// result in any more changes.</span>
-        <span class="kw">loop</span> {
-            <span class="kw">let</span> <span class="ident">language_aliases</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">is_empty</span>() {
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">language</span>
-            } <span class="kw">else</span> {
-                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">language_variants</span>
-            };
-
-            <span class="comment">// This is a linear search due to the ordering imposed by the canonicalization</span>
+        <span class="lifetime">&#39;outer</span>: <span class="kw">loop</span> {
+            <span class="comment">// These are linear searches due to the ordering imposed by the canonicalization</span>
             <span class="comment">// rules, where rules with more variants should be considered first. With the</span>
             <span class="comment">// current data in CLDR, we will only do this for locales which have variants,</span>
-            <span class="comment">// and there are fewer than 20 rules to consider. In benchmarking, the run</span>
-            <span class="comment">// time of this loop was negligible.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="kw">for</span> <span class="ident">rule</span> <span class="kw">in</span> <span class="ident">language_aliases</span>.<span class="ident">iter</span>() {
-                <span class="kw">if</span> <span class="ident">uts35_rule_matches</span>(<span class="ident">locale</span>, <span class="kw-2">&amp;</span><span class="ident">rule</span>.<span class="number">0</span>) {
-                    <span class="ident">uts35_replacement</span>(
-                        <span class="ident">locale</span>,
-                        <span class="op">!</span><span class="ident">rule</span>.<span class="number">0</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>(),
-                        <span class="ident">rule</span>.<span class="number">0</span>.<span class="ident">script</span>.<span class="ident">is_some</span>(),
-                        <span class="ident">rule</span>.<span class="number">0</span>.<span class="ident">region</span>.<span class="ident">is_some</span>(),
-                        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">rule</span>.<span class="number">0</span>.<span class="ident">variants</span>),
-                        <span class="kw-2">&amp;</span><span class="ident">rule</span>.<span class="number">1</span>,
-                    );
-                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
-                    <span class="ident">matched</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                    <span class="kw">break</span>;
+            <span class="comment">// or new rules which we haven&#39;t special-cased yet (of which there are fewer</span>
+            <span class="comment">// than 20).</span>
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">is_empty</span>() {
+                <span class="comment">// These language/variant comibnations have around 20 rules</span>
+                <span class="kw">for</span> <span class="ident">StrStrPair</span>(<span class="ident">raw_lang_variants</span>, <span class="ident">raw_to</span>) <span class="kw">in</span> <span class="self">self</span>
+                    .<span class="ident">aliases</span>
+                    .<span class="ident">get</span>()
+                    .<span class="ident">language_variants</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="ident">zerofrom::ZeroFrom::zero_from</span>)
+                {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subtags</span> <span class="op">=</span> <span class="ident">raw_lang_variants</span>.<span class="ident">split</span>(<span class="string">&#39;-&#39;</span>);
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">raw_lang</span>) <span class="op">=</span> <span class="ident">subtags</span>.<span class="ident">next</span>() {
+                        <span class="kw">if</span> <span class="ident">is_iter_sorted</span>(<span class="ident">subtags</span>.<span class="ident">clone</span>())
+                            <span class="op">&amp;&amp;</span> <span class="ident">uts35_rule_matches</span>(<span class="ident">locale</span>, <span class="ident">raw_lang</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="ident">subtags</span>.<span class="ident">clone</span>())
+                        {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">to</span>) <span class="op">=</span> <span class="ident">raw_to</span>.<span class="ident">parse</span>() {
+                                <span class="ident">uts35_replacement</span>(
+                                    <span class="ident">locale</span>,
+                                    <span class="ident">Language::UND</span> <span class="op">!</span><span class="op">=</span> <span class="ident">raw_lang</span>,
+                                    <span class="bool-val">false</span>,
+                                    <span class="bool-val">false</span>,
+                                    <span class="prelude-val">Some</span>(<span class="ident">subtags</span>),
+                                    <span class="kw-2">&amp;</span><span class="ident">to</span>,
+                                );
+                                <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
+                                <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
+                            }
+                        }
+                    }
                 }
-            }
-
-            <span class="kw">if</span> <span class="ident">matched</span> {
-                <span class="kw">continue</span>;
+            } <span class="kw">else</span> {
+                <span class="comment">// These are absolute fallbacks, and currently empty.</span>
+                <span class="kw">for</span> <span class="ident">StrStrPair</span>(<span class="ident">raw_from</span>, <span class="ident">raw_to</span>) <span class="kw">in</span> <span class="self">self</span>
+                    .<span class="ident">aliases</span>
+                    .<span class="ident">get</span>()
+                    .<span class="ident">language</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">map</span>(<span class="ident">zerofrom::ZeroFrom::zero_from</span>)
+                {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">from</span>) <span class="op">=</span> <span class="ident">raw_from</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">LanguageIdentifier</span><span class="op">&gt;</span>() {
+                        <span class="kw">if</span> <span class="ident">uts35_rule_matches</span>(
+                            <span class="ident">locale</span>,
+                            <span class="ident">from</span>.<span class="ident">language</span>,
+                            <span class="ident">from</span>.<span class="ident">script</span>,
+                            <span class="ident">from</span>.<span class="ident">region</span>,
+                            <span class="ident">from</span>.<span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">copied</span>(),
+                        ) {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">to</span>) <span class="op">=</span> <span class="ident">raw_to</span>.<span class="ident">parse</span>() {
+                                <span class="ident">uts35_replacement</span>(
+                                    <span class="ident">locale</span>,
+                                    <span class="op">!</span><span class="ident">from</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>(),
+                                    <span class="ident">from</span>.<span class="ident">script</span>.<span class="ident">is_some</span>(),
+                                    <span class="ident">from</span>.<span class="ident">region</span>.<span class="ident">is_some</span>(),
+                                    <span class="prelude-val">Some</span>(<span class="ident">from</span>.<span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">copied</span>()),
+                                    <span class="kw-2">&amp;</span><span class="ident">to</span>,
+                                );
+                                <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
+                                <span class="kw">continue</span> <span class="lifetime">&#39;outer</span>;
+                            }
+                        }
+                    }
+                }
             }
 
             <span class="kw">if</span> <span class="op">!</span><span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() {
                 <span class="comment">// If the region is specified, check sgn-region rules first</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">region</span> {
-                    <span class="kw">if</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span> <span class="op">==</span> <span class="string">&quot;sgn&quot;</span> {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>
-                            .<span class="ident">aliases</span>
-                            .<span class="ident">get</span>()
-                            .<span class="ident">sgn_region</span>
-                            .<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">into</span>(), <span class="op">|</span><span class="ident">alias</span><span class="op">|</span> <span class="ident">alias</span>.<span class="number">0</span>)
-                        {
-                            <span class="ident">uts35_replacement</span>(
+                    <span class="kw">if</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span> <span class="op">==</span> <span class="macro">language!</span>(<span class="string">&quot;sgn&quot;</span>) {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">sgn_lang</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">sgn_region</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">into</span>()) {
+                            <span class="ident">uts35_replacement</span>::<span class="op">&lt;</span><span class="ident">core::iter::Empty</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&gt;</span>, <span class="ident">Variant</span><span class="op">&gt;</span>(
                                 <span class="ident">locale</span>,
                                 <span class="bool-val">true</span>,
                                 <span class="bool-val">false</span>,
                                 <span class="bool-val">true</span>,
                                 <span class="prelude-val">None</span>,
-                                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">sgn_region</span>[<span class="ident">index</span>].<span class="number">1</span>,
+                                <span class="kw-2">&amp;</span><span class="ident">sgn_lang</span>.<span class="ident">into</span>(),
                             );
                             <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
                             <span class="kw">continue</span>;
@@ -1103,71 +1302,45 @@
             }
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">script</span>) <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">script</span> {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">aliases</span>
-                    .<span class="ident">get</span>()
-                    .<span class="ident">script</span>
-                    .<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">script</span>.<span class="ident">into</span>(), <span class="op">|</span><span class="ident">alias</span><span class="op">|</span> <span class="ident">alias</span>.<span class="number">0</span>)
-                {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">replacement</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">script</span>[<span class="ident">index</span>].<span class="number">1</span>.<span class="ident">parse</span>() {
-                        <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">script</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacement</span>);
-                        <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
-                        <span class="kw">continue</span>;
-                    }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">replacement</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">script</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">script</span>.<span class="ident">into</span>()) {
+                    <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">script</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacement</span>);
+                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
+                    <span class="kw">continue</span>;
                 }
             }
 
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">region</span> {
-                <span class="kw">let</span> <span class="ident">region_aliases</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">region</span>.<span class="ident">is_alphabetic</span>() {
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">region_alpha</span>
+                <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">region</span>.<span class="ident">is_alphabetic</span>() {
+                    <span class="kw">let</span> <span class="ident">region</span>: <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">3</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">region</span>.<span class="ident">into</span>();
+                    <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">region_alpha</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">resize</span>())
                 } <span class="kw">else</span> {
-                    <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">region_num</span>
+                    <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">region_num</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">into</span>())
                 };
-
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span>
-                    <span class="ident">region_aliases</span>.<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">into</span>(), <span class="op">|</span><span class="ident">alias</span><span class="op">|</span> <span class="ident">alias</span>.<span class="number">0</span>)
-                {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">replacement</span>) <span class="op">=</span> <span class="ident">region_aliases</span>[<span class="ident">index</span>].<span class="number">1</span>.<span class="ident">parse</span>() {
-                        <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">region</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacement</span>);
-                        <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
-                        <span class="kw">continue</span>;
-                    }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">replacement</span>) <span class="op">=</span> <span class="ident">replacement</span> {
+                    <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">region</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacement</span>);
+                    <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
+                    <span class="kw">continue</span>;
                 }
 
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">aliases</span>
-                    .<span class="ident">get</span>()
-                    .<span class="ident">complex_region</span>
-                    .<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">into</span>(), <span class="op">|</span><span class="ident">alias</span><span class="op">|</span> <span class="ident">alias</span>.<span class="number">0</span>)
-                {
-                    <span class="kw">let</span> <span class="ident">rule</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">complex_region</span>[<span class="ident">index</span>];
-
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">for_likely</span> <span class="op">=</span> <span class="ident">LanguageIdentifier</span> {
-                        <span class="ident">language</span>: <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span>,
-                        <span class="ident">script</span>: <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">script</span>,
-                        <span class="ident">region</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">variants</span>: <span class="ident">subtags::Variants::default</span>(),
-                    };
-
-                    <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span>
-                        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">maximize</span>(<span class="kw-2">&amp;mut</span> <span class="ident">for_likely</span>) <span class="op">==</span> <span class="ident">CanonicalizationResult::Modified</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">likely_region</span>) <span class="op">=</span> <span class="ident">for_likely</span>.<span class="ident">region</span> {
-                                <span class="kw">let</span> <span class="ident">as_tinystr4</span>: <span class="ident">TinyStr4</span> <span class="op">=</span> <span class="ident">likely_region</span>.<span class="ident">into</span>();
-                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span>
-                                    <span class="ident">rule</span>.<span class="number">1</span>.<span class="ident">iter</span>().<span class="ident">find</span>(<span class="op">|</span><span class="ident">region</span><span class="op">|</span> <span class="ident">as_tinystr4</span> <span class="op">==</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">region</span>)
-                                {
-                                    <span class="ident">region</span>
-                                } <span class="kw">else</span> {
-                                    <span class="kw-2">&amp;</span><span class="ident">rule</span>.<span class="number">1</span>[<span class="number">0</span>]
-                                }
-                            } <span class="kw">else</span> {
-                                <span class="kw-2">&amp;</span><span class="ident">rule</span>.<span class="number">1</span>[<span class="number">0</span>]
-                            }
-                        } <span class="kw">else</span> {
-                            <span class="kw-2">&amp;</span><span class="ident">rule</span>.<span class="number">1</span>[<span class="number">0</span>]
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regions</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">complex_region</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">into</span>()) {
+                    <span class="comment">// Skip if regions are empty</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default_region</span>) <span class="op">=</span> <span class="ident">regions</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">maximized</span> <span class="op">=</span> <span class="ident">LanguageIdentifier</span> {
+                            <span class="ident">language</span>: <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">language</span>,
+                            <span class="ident">script</span>: <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">script</span>,
+                            <span class="ident">region</span>: <span class="prelude-val">None</span>,
+                            <span class="ident">variants</span>: <span class="ident">Variants::default</span>(),
                         };
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">replacement</span>) <span class="op">=</span> <span class="ident">replacement</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">subtags::Region</span><span class="op">&gt;</span>() {
-                        <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">region</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">replacement</span>);
+
+                        <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">region</span> <span class="op">=</span>
+                            <span class="prelude-val">Some</span>(<span class="kw">match</span> (<span class="self">self</span>.<span class="ident">maximize</span>(<span class="kw-2">&amp;mut</span> <span class="ident">maximized</span>), <span class="ident">maximized</span>.<span class="ident">region</span>) {
+                                (<span class="ident">CanonicalizationResult::Modified</span>, <span class="prelude-val">Some</span>(<span class="ident">candidate</span>))
+                                    <span class="kw">if</span> <span class="ident">regions</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">candidate</span>) =&gt;
+                                {
+                                    <span class="ident">candidate</span>
+                                }
+                                <span class="kw">_</span> =&gt; <span class="ident">default_region</span>,
+                            });
                         <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
                         <span class="kw">continue</span>;
                     }
@@ -1177,19 +1350,9 @@
             <span class="kw">if</span> <span class="op">!</span><span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">is_empty</span>() {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">modified</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unmodified</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">iter</span>() {
-                    <span class="kw">let</span> <span class="ident">variant_as_tinystr</span>: <span class="ident">TinyStr8</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">variant</span>).<span class="ident">into</span>();
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">aliases</span>
-                        .<span class="ident">get</span>()
-                        .<span class="ident">variant</span>
-                        .<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">variant_as_tinystr</span>, <span class="op">|</span><span class="ident">alias</span><span class="op">|</span> <span class="ident">alias</span>.<span class="number">0</span>)
-                    {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">updated</span>) <span class="op">=</span> <span class="ident">subtags::Variant::from_bytes</span>(
-                            <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">variant</span>[<span class="ident">index</span>].<span class="number">1</span>.<span class="ident">as_bytes</span>(),
-                        ) {
-                            <span class="ident">modified</span>.<span class="ident">push</span>(<span class="ident">updated</span>);
-                        }
+                <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">variant</span> <span class="kw">in</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">variants</span>.<span class="ident">iter</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">updated</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">variant</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">into</span>()) {
+                        <span class="ident">modified</span>.<span class="ident">push</span>(<span class="ident">updated</span>);
                     } <span class="kw">else</span> {
                         <span class="ident">unmodified</span>.<span class="ident">push</span>(<span class="ident">variant</span>);
                     }
@@ -1197,11 +1360,11 @@
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">modified</span>.<span class="ident">is_empty</span>() {
                     <span class="kw">for</span> <span class="ident">variant</span> <span class="kw">in</span> <span class="ident">unmodified</span> {
-                        <span class="ident">modified</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">variant</span>);
+                        <span class="ident">modified</span>.<span class="ident">push</span>(<span class="ident">variant</span>);
                     }
                     <span class="ident">modified</span>.<span class="ident">sort</span>();
                     <span class="ident">modified</span>.<span class="ident">dedup</span>();
-                    <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">variants</span> <span class="op">=</span> <span class="ident">subtags::Variants::from_vec_unchecked</span>(<span class="ident">modified</span>);
+                    <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">variants</span> <span class="op">=</span> <span class="ident">Variants::from_vec_unchecked</span>(<span class="ident">modified</span>);
                     <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
                     <span class="kw">continue</span>;
                 }
@@ -1235,16 +1398,11 @@
 
         <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">extension_keys</span>.<span class="ident">iter</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">extensions</span>.<span class="ident">unicode</span>.<span class="ident">keywords</span>.<span class="ident">get_mut</span>(<span class="ident">key</span>) {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">value_as_tinystr</span>) <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_string</span>().<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">TinyStr8</span><span class="op">&gt;</span>() {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="self">self</span>
-                        .<span class="ident">aliases</span>
-                        .<span class="ident">get</span>()
-                        .<span class="ident">subdivision</span>
-                        .<span class="ident">binary_search_by_key</span>(<span class="kw-2">&amp;</span><span class="ident">value_as_tinystr</span>, <span class="op">|</span><span class="ident">alias</span><span class="op">|</span> <span class="ident">alias</span>.<span class="number">0</span>)
+                <span class="kw">if</span> <span class="kw">let</span> <span class="kw-2">&amp;</span>[<span class="ident">only_value</span>] <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_tinystr_slice</span>() {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">modified_value</span>) <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">subdivision</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">only_value</span>.<span class="ident">resize</span>())
                     {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">modified_value</span>) <span class="op">=</span>
-                            <span class="ident">Value::from_bytes</span>(<span class="self">self</span>.<span class="ident">aliases</span>.<span class="ident">get</span>().<span class="ident">subdivision</span>[<span class="ident">index</span>].<span class="number">1</span>.<span class="ident">as_bytes</span>())
-                        {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">modified_value</span>) <span class="op">=</span> <span class="ident">modified_value</span>.<span class="ident">parse</span>() {
                             <span class="kw-2">*</span><span class="ident">value</span> <span class="op">=</span> <span class="ident">modified_value</span>;
                             <span class="ident">result</span> <span class="op">=</span> <span class="ident">CanonicalizationResult::Modified</span>;
                         }
@@ -1294,25 +1452,62 @@
             <span class="kw">return</span> <span class="ident">CanonicalizationResult::Unmodified</span>;
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">language</span>) <span class="op">=</span> <span class="ident">langid</span>.<span class="ident">language</span>.<span class="ident">into</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">langid</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">langid</span>.<span class="ident">region</span> {
-                <span class="macro">maximize_locale!</span>(<span class="ident">langid</span>, <span class="ident">data</span>.<span class="ident">language_region</span>, <span class="ident">language</span>, <span class="ident">region</span>.<span class="ident">into</span>());
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">script</span>) <span class="op">=</span> <span class="ident">data</span>
+                    .<span class="ident">language_region</span>
+                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">langid</span>.<span class="ident">language</span>.<span class="ident">into</span>(), <span class="ident">region</span>.<span class="ident">into</span>()))
+                    .<span class="ident">copied</span>()
+                {
+                    <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">Language::UND</span>, <span class="prelude-val">Some</span>(<span class="ident">script</span>), <span class="prelude-val">None</span>, <span class="ident">langid</span>);
+                }
             }
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">script</span>) <span class="op">=</span> <span class="ident">langid</span>.<span class="ident">script</span> {
-                <span class="macro">maximize_locale!</span>(<span class="ident">langid</span>, <span class="ident">data</span>.<span class="ident">language_script</span>, <span class="ident">language</span>, <span class="ident">script</span>.<span class="ident">into</span>());
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">data</span>
+                    .<span class="ident">language_script</span>
+                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">langid</span>.<span class="ident">language</span>.<span class="ident">into</span>(), <span class="ident">script</span>.<span class="ident">into</span>()))
+                    .<span class="ident">copied</span>()
+                {
+                    <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">Language::UND</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">region</span>), <span class="ident">langid</span>);
+                }
             }
-            <span class="macro">maximize_locale!</span>(<span class="ident">langid</span>, <span class="ident">data</span>.<span class="ident">language</span>, <span class="ident">language</span>);
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">script</span>, <span class="ident">region</span>)) <span class="op">=</span> <span class="ident">data</span>
+                .<span class="ident">language</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">langid</span>.<span class="ident">language</span>.<span class="ident">into</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">u</span><span class="op">|</span> <span class="ident">zerovec::ule::AsULE::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">u</span>))
+            {
+                <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">Language::UND</span>, <span class="prelude-val">Some</span>(<span class="ident">script</span>), <span class="prelude-val">Some</span>(<span class="ident">region</span>), <span class="ident">langid</span>);
+            }
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">script</span>) <span class="op">=</span> <span class="ident">langid</span>.<span class="ident">script</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">langid</span>.<span class="ident">region</span> {
-                <span class="macro">maximize_locale!</span>(<span class="ident">langid</span>, <span class="ident">data</span>.<span class="ident">script_region</span>, <span class="ident">script</span>.<span class="ident">into</span>(), <span class="ident">region</span>.<span class="ident">into</span>());
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">language</span>) <span class="op">=</span> <span class="ident">data</span>
+                    .<span class="ident">script_region</span>
+                    .<span class="ident">get</span>(<span class="kw-2">&amp;</span>(<span class="ident">script</span>.<span class="ident">into</span>(), <span class="ident">region</span>.<span class="ident">into</span>()))
+                    .<span class="ident">copied</span>()
+                {
+                    <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">language</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="ident">langid</span>);
+                }
             }
-            <span class="macro">maximize_locale!</span>(<span class="ident">langid</span>, <span class="ident">data</span>.<span class="ident">script</span>, <span class="ident">script</span>.<span class="ident">into</span>());
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">language</span>, <span class="ident">region</span>)) <span class="op">=</span> <span class="ident">data</span>
+                .<span class="ident">script</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">script</span>.<span class="ident">into</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">u</span><span class="op">|</span> <span class="ident">zerovec::ule::AsULE::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">u</span>))
+            {
+                <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">language</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">region</span>), <span class="ident">langid</span>);
+            }
         }
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">region</span>) <span class="op">=</span> <span class="ident">langid</span>.<span class="ident">region</span> {
-            <span class="macro">maximize_locale!</span>(<span class="ident">langid</span>, <span class="ident">data</span>.<span class="ident">region</span>, <span class="ident">region</span>.<span class="ident">into</span>());
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">language</span>, <span class="ident">script</span>)) <span class="op">=</span> <span class="ident">data</span>
+                .<span class="ident">region</span>
+                .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">region</span>.<span class="ident">into</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">u</span><span class="op">|</span> <span class="ident">zerovec::ule::AsULE::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">u</span>))
+            {
+                <span class="kw">return</span> <span class="ident">update_langid</span>(<span class="ident">language</span>, <span class="prelude-val">Some</span>(<span class="ident">script</span>), <span class="prelude-val">None</span>, <span class="ident">langid</span>);
+            }
         }
-        <span class="ident">update_langid</span>(<span class="kw-2">&amp;</span><span class="ident">data</span>.<span class="ident">und</span>, <span class="ident">langid</span>)
+
+        <span class="ident">update_langid</span>(<span class="ident">data</span>.<span class="ident">und</span>.<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">data</span>.<span class="ident">und</span>.<span class="number">1</span>), <span class="prelude-val">Some</span>(<span class="ident">data</span>.<span class="ident">und</span>.<span class="number">2</span>), <span class="ident">langid</span>)
     }
 
     <span class="doccomment">/// This returns a new Locale that is the result of running the</span>
@@ -1446,64 +1641,55 @@
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_uts35_rule_matches</span>() {
-    <span class="macro">assert!</span>(<span class="ident">uts35_rule_matches</span>(
-        <span class="kw-2">&amp;</span><span class="string">&quot;ja&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-        <span class="kw-2">&amp;</span><span class="ident">LanguageIdentifier::und</span>()
-    ));
-
-    <span class="macro">assert!</span>(<span class="ident">uts35_rule_matches</span>(
-        <span class="kw-2">&amp;</span><span class="string">&quot;und-heploc-hepburn&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-        <span class="kw-2">&amp;</span><span class="string">&quot;und-hepburn&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()
-    ));
-
-    <span class="macro">assert!</span>(<span class="ident">uts35_rule_matches</span>(
-        <span class="kw-2">&amp;</span><span class="string">&quot;ja-heploc-hepburn&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-        <span class="kw-2">&amp;</span><span class="string">&quot;und-hepburn&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()
-    ));
-
-    <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">uts35_rule_matches</span>(
-        <span class="kw-2">&amp;</span><span class="string">&quot;ja-hepburn&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-        <span class="kw-2">&amp;</span><span class="string">&quot;und-hepburn-heploc&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()
-    ));
+    <span class="kw">for</span> (<span class="ident">source</span>, <span class="ident">rule</span>, <span class="ident">result</span>) <span class="kw">in</span> [
+        (<span class="string">&quot;ja&quot;</span>, <span class="string">&quot;und&quot;</span>, <span class="bool-val">true</span>),
+        (<span class="string">&quot;und-heploc-hepburn&quot;</span>, <span class="string">&quot;und-hepburn&quot;</span>, <span class="bool-val">true</span>),
+        (<span class="string">&quot;ja-heploc-hepburn&quot;</span>, <span class="string">&quot;und-hepburn&quot;</span>, <span class="bool-val">true</span>),
+        (<span class="string">&quot;ja-hepburn&quot;</span>, <span class="string">&quot;und-hepburn-heploc&quot;</span>, <span class="bool-val">false</span>),
+    ] {
+        <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="ident">source</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">rule</span> <span class="op">=</span> <span class="ident">rule</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">LanguageIdentifier</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">uts35_rule_matches</span>(
+                <span class="kw-2">&amp;</span><span class="ident">source</span>,
+                <span class="ident">rule</span>.<span class="ident">language</span>,
+                <span class="ident">rule</span>.<span class="ident">script</span>,
+                <span class="ident">rule</span>.<span class="ident">region</span>,
+                <span class="ident">rule</span>.<span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">copied</span>(),
+            ),
+            <span class="ident">result</span>,
+            <span class="string">&quot;{}&quot;</span>,
+            <span class="ident">source</span>
+        );
+    }
 }
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_uts35_replacement</span>() {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locale</span> <span class="op">=</span> <span class="string">&quot;ja-Latn-fonipa-hepburn-heploc&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">ruletype</span>: <span class="ident">LanguageIdentifier</span> <span class="op">=</span> <span class="string">&quot;und-hepburn-heploc&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
-    <span class="ident">uts35_replacement</span>(
-        <span class="kw-2">&amp;mut</span> <span class="ident">locale</span>,
-        <span class="op">!</span><span class="ident">ruletype</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>(),
-        <span class="ident">ruletype</span>.<span class="ident">script</span>.<span class="ident">is_some</span>(),
-        <span class="ident">ruletype</span>.<span class="ident">region</span>.<span class="ident">is_some</span>(),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ruletype</span>.<span class="ident">variants</span>),
-        <span class="kw-2">&amp;</span><span class="string">&quot;und-alalc97&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-    );
-    <span class="macro">assert_eq!</span>(<span class="ident">locale</span>, <span class="string">&quot;ja-Latn-alalc97-fonipa&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>());
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locale</span> <span class="op">=</span> <span class="string">&quot;sgn-DD&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">ruletype</span>: <span class="ident">LanguageIdentifier</span> <span class="op">=</span> <span class="string">&quot;und-DD&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
-    <span class="ident">uts35_replacement</span>(
-        <span class="kw-2">&amp;mut</span> <span class="ident">locale</span>,
-        <span class="op">!</span><span class="ident">ruletype</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>(),
-        <span class="ident">ruletype</span>.<span class="ident">script</span>.<span class="ident">is_some</span>(),
-        <span class="ident">ruletype</span>.<span class="ident">region</span>.<span class="ident">is_some</span>(),
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ruletype</span>.<span class="ident">variants</span>),
-        <span class="kw-2">&amp;</span><span class="string">&quot;und-DE&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-    );
-    <span class="macro">assert_eq!</span>(<span class="ident">locale</span>, <span class="string">&quot;sgn-DE&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>());
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locale</span> <span class="op">=</span> <span class="string">&quot;sgn-DE&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
-    <span class="kw">let</span> <span class="ident">ruletype</span>: <span class="ident">LanguageIdentifier</span> <span class="op">=</span> <span class="string">&quot;sgn-DE&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
-    <span class="ident">uts35_replacement</span>(
-        <span class="kw-2">&amp;mut</span> <span class="ident">locale</span>,
-        <span class="op">!</span><span class="ident">ruletype</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>(),
-        <span class="ident">ruletype</span>.<span class="ident">script</span>.<span class="ident">is_some</span>(),
-        <span class="ident">ruletype</span>.<span class="ident">region</span>.<span class="ident">is_some</span>(),
-        <span class="prelude-val">None</span>,
-        <span class="kw-2">&amp;</span><span class="string">&quot;gsg&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>(),
-    );
-    <span class="macro">assert_eq!</span>(<span class="ident">locale</span>, <span class="string">&quot;gsg&quot;</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>());
+    <span class="kw">for</span> (<span class="ident">locale</span>, <span class="ident">rule_0</span>, <span class="ident">rule_1</span>, <span class="ident">result</span>) <span class="kw">in</span> [
+        (
+            <span class="string">&quot;ja-Latn-fonipa-hepburn-heploc&quot;</span>,
+            <span class="string">&quot;und-hepburn-heploc&quot;</span>,
+            <span class="string">&quot;und-alalc97&quot;</span>,
+            <span class="string">&quot;ja-Latn-alalc97-fonipa&quot;</span>,
+        ),
+        (<span class="string">&quot;sgn-DD&quot;</span>, <span class="string">&quot;und-DD&quot;</span>, <span class="string">&quot;und-DE&quot;</span>, <span class="string">&quot;sgn-DE&quot;</span>),
+        (<span class="string">&quot;sgn-DE&quot;</span>, <span class="string">&quot;sgn-DE&quot;</span>, <span class="string">&quot;gsg&quot;</span>, <span class="string">&quot;gsg&quot;</span>),
+    ] {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">rule_0</span> <span class="op">=</span> <span class="ident">rule_0</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">LanguageIdentifier</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">rule_1</span> <span class="op">=</span> <span class="ident">rule_1</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>().<span class="ident">unwrap</span>();
+        <span class="ident">uts35_replacement</span>(
+            <span class="kw-2">&amp;mut</span> <span class="ident">locale</span>,
+            <span class="op">!</span><span class="ident">rule_0</span>.<span class="ident">language</span>.<span class="ident">is_empty</span>(),
+            <span class="ident">rule_0</span>.<span class="ident">script</span>.<span class="ident">is_some</span>(),
+            <span class="ident">rule_0</span>.<span class="ident">region</span>.<span class="ident">is_some</span>(),
+            <span class="prelude-val">Some</span>(<span class="ident">rule_0</span>.<span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">copied</span>()),
+            <span class="kw-2">&amp;</span><span class="ident">rule_1</span>,
+        );
+        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="ident">locale</span>);
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="icu_locale_canonicalizer" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>

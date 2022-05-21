@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_plurals-0.5.0/src/rules/runtime/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_plurals-0.6.0/src/rules/runtime/ast.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ast.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../icu_plurals/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -568,146 +568,78 @@
 <span id="563">563</span>
 <span id="564">564</span>
 <span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
-<span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
-<span id="591">591</span>
-<span id="592">592</span>
-<span id="593">593</span>
-<span id="594">594</span>
-<span id="595">595</span>
-<span id="596">596</span>
-<span id="597">597</span>
-<span id="598">598</span>
-<span id="599">599</span>
-<span id="600">600</span>
-<span id="601">601</span>
-<span id="602">602</span>
-<span id="603">603</span>
-<span id="604">604</span>
-<span id="605">605</span>
-<span id="606">606</span>
-<span id="607">607</span>
-<span id="608">608</span>
-<span id="609">609</span>
-<span id="610">610</span>
-<span id="611">611</span>
-<span id="612">612</span>
-<span id="613">613</span>
-<span id="614">614</span>
-<span id="615">615</span>
-<span id="616">616</span>
-<span id="617">617</span>
-<span id="618">618</span>
-<span id="619">619</span>
-<span id="620">620</span>
-<span id="621">621</span>
-<span id="622">622</span>
-<span id="623">623</span>
-<span id="624">624</span>
-<span id="625">625</span>
-<span id="626">626</span>
-<span id="627">627</span>
-<span id="628">628</span>
-<span id="629">629</span>
-<span id="630">630</span>
-<span id="631">631</span>
-<span id="632">632</span>
-<span id="633">633</span>
-<span id="634">634</span>
-<span id="635">635</span>
-<span id="636">636</span>
-<span id="637">637</span>
-<span id="638">638</span>
-<span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span>
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::rules::reference</span>;
-<span class="kw">use</span> <span class="ident">core</span>::{
-    <span class="ident">convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>},
-    <span class="ident">fmt</span>,
-    <span class="ident">str::FromStr</span>,
-};
-<span class="kw">use</span> <span class="ident">icu_provider::yoke</span>::{<span class="self">self</span>, <span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">num_enum</span>::{<span class="ident">IntoPrimitive</span>, <span class="ident">TryFromPrimitive</span>, <span class="ident">UnsafeFromPrimitive</span>};
+<span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">fmt</span>, <span class="ident">str::FromStr</span>};
+<span class="kw">use</span> <span class="ident">icu_provider</span>::{<span class="ident">yoke</span>, <span class="ident">zerofrom</span>};
 <span class="kw">use</span> <span class="ident">zerovec</span>::{
-    <span class="ident">ule</span>::{<span class="ident">custom::EncodeAsVarULE</span>, <span class="ident">AsULE</span>, <span class="ident">PairULE</span>, <span class="ident">RawBytesULE</span>, <span class="ident">VarULE</span>, <span class="ident">ZeroVecError</span>, <span class="ident">ULE</span>},
+    <span class="ident">ule</span>::{<span class="ident">tuple::Tuple2ULE</span>, <span class="ident">AsULE</span>, <span class="ident">ZeroVecError</span>, <span class="ident">ULE</span>},
     {<span class="ident">VarZeroVec</span>, <span class="ident">ZeroVec</span>},
 };
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Yokeable</span>, <span class="ident">ZeroCopyFrom</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rule</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">VarZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">RelationULE</span><span class="op">&gt;</span>);
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">yoke::Yokeable</span>, <span class="ident">zerofrom::ZeroFrom</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Rule</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">VarZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">RelationULE</span><span class="op">&gt;</span>);
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AndOr</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">AndOr</span> {
     <span class="ident">Or</span>,
     <span class="ident">And</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">Debug</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Polarity</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Polarity</span> {
     <span class="ident">Negative</span>,
     <span class="ident">Positive</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">IntoPrimitive</span>, <span class="ident">UnsafeFromPrimitive</span>, <span class="ident">TryFromPrimitive</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Operand</span> {
-    <span class="ident">N</span>,
-    <span class="ident">I</span>,
-    <span class="ident">V</span>,
-    <span class="ident">W</span>,
-    <span class="ident">F</span>,
-    <span class="ident">T</span>,
-    <span class="ident">C</span>,
-    <span class="ident">E</span>,
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">OperandULE</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Operand</span> {
+    <span class="ident">N</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="ident">I</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="ident">V</span> <span class="op">=</span> <span class="number">2</span>,
+    <span class="ident">W</span> <span class="op">=</span> <span class="number">3</span>,
+    <span class="ident">F</span> <span class="op">=</span> <span class="number">4</span>,
+    <span class="ident">T</span> <span class="op">=</span> <span class="number">5</span>,
+    <span class="ident">C</span> <span class="op">=</span> <span class="number">6</span>,
+    <span class="ident">E</span> <span class="op">=</span> <span class="number">7</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">RangeOrValue</span> {
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">RangeOrValue</span> {
     <span class="ident">Range</span>(<span class="ident">u32</span>, <span class="ident">u32</span>),
     <span class="ident">Value</span>(<span class="ident">u32</span>),
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Relation</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">and_or</span>: <span class="ident">AndOr</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">polarity</span>: <span class="ident">Polarity</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">operand</span>: <span class="ident">Operand</span>,
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_varule</span>(<span class="ident">RelationULE</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Relation</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">aopo</span>: <span class="ident">AndOrPolarityOperand</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">modulo</span>: <span class="ident">u32</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">range_list</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">RangeOrValue</span><span class="op">&gt;</span>,
 }
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AndOrPolarityOperand</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">and_or</span>: <span class="ident">AndOr</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">polarity</span>: <span class="ident">Polarity</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">operand</span>: <span class="ident">Operand</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">RelationULE</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="self">self</span>.<span class="ident">as_relation</span>().<span class="ident">fmt</span>(<span class="ident">f</span>)
+    }
+}
 <span class="comment">/////</span>
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">reference::ast::Rule</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Rule</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
@@ -729,10 +661,14 @@
                     <span class="ident">AndOr::And</span>
                 };
 
-                <span class="ident">relations</span>.<span class="ident">push</span>(<span class="ident">Relation</span> {
+                <span class="kw">let</span> <span class="ident">aopo</span> <span class="op">=</span> <span class="ident">AndOrPolarityOperand</span> {
                     <span class="ident">and_or</span>,
                     <span class="ident">polarity</span>: <span class="ident">relation</span>.<span class="ident">operator</span>.<span class="ident">into</span>(),
                     <span class="ident">operand</span>: <span class="ident">relation</span>.<span class="ident">expression</span>.<span class="ident">operand</span>.<span class="ident">into</span>(),
+                };
+
+                <span class="ident">relations</span>.<span class="ident">push</span>(<span class="ident">Relation</span> {
+                    <span class="ident">aopo</span>,
                     <span class="ident">modulo</span>: <span class="ident">get_modulo</span>(<span class="kw-2">&amp;</span><span class="ident">relation</span>.<span class="ident">expression</span>.<span class="ident">modulus</span>),
                     <span class="ident">range_list</span>: <span class="ident">ZeroVec::alloc_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">range_list</span>),
                 })
@@ -751,12 +687,12 @@
             <span class="kw">let</span> <span class="ident">rel</span> <span class="op">=</span> <span class="ident">rel</span>.<span class="ident">as_relation</span>();
             <span class="kw">let</span> <span class="ident">list</span> <span class="op">=</span> <span class="ident">rel</span>.<span class="ident">range_list</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Into::into</span>).<span class="ident">collect</span>();
             <span class="kw">let</span> <span class="ident">relation</span> <span class="op">=</span> <span class="ident">reference::ast::Relation</span> {
-                <span class="ident">expression</span>: (<span class="ident">rel</span>.<span class="ident">operand</span>, <span class="ident">rel</span>.<span class="ident">modulo</span>).<span class="ident">into</span>(),
-                <span class="ident">operator</span>: <span class="ident">rel</span>.<span class="ident">polarity</span>.<span class="ident">into</span>(),
+                <span class="ident">expression</span>: (<span class="ident">rel</span>.<span class="ident">aopo</span>.<span class="ident">operand</span>, <span class="ident">rel</span>.<span class="ident">modulo</span>).<span class="ident">into</span>(),
+                <span class="ident">operator</span>: <span class="ident">rel</span>.<span class="ident">aopo</span>.<span class="ident">polarity</span>.<span class="ident">into</span>(),
                 <span class="ident">range_list</span>: <span class="ident">reference::ast::RangeList</span>(<span class="ident">list</span>),
             };
 
-            <span class="kw">if</span> <span class="ident">rel</span>.<span class="ident">and_or</span> <span class="op">==</span> <span class="ident">AndOr::And</span> {
+            <span class="kw">if</span> <span class="ident">rel</span>.<span class="ident">aopo</span>.<span class="ident">and_or</span> <span class="op">==</span> <span class="ident">AndOr::And</span> {
                 <span class="ident">and_conditions</span>.<span class="ident">push</span>(<span class="ident">relation</span>);
             } <span class="kw">else</span> {
                 <span class="ident">or_conditions</span>.<span class="ident">push</span>(<span class="ident">reference::ast::AndCondition</span>(<span class="ident">and_conditions</span>));
@@ -850,6 +786,7 @@
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">reference::ast::Value</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">u32</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">reference::ast::Value</span>) -&gt; <span class="self">Self</span> {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="ident">v</span>.<span class="number">0</span>.<span class="ident">try_into</span>().<span class="ident">expect</span>(<span class="string">&quot;Failed to convert u64 into u32&quot;</span>)
     }
 }
@@ -896,89 +833,50 @@
     }
 }
 
-<span class="doccomment">/// `RelationULE` is a type optimized for efficent storing and</span>
-<span class="doccomment">/// deserialization of `rule::runtime::ast::Rule` `ZeroVec` model.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The serialization model packages the rule into 4 bytes plus</span>
-<span class="doccomment">/// variable length of the list of ranges.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The first byte is used to store:</span>
-<span class="doccomment">///  * One bit to store the state of AndOr.</span>
-<span class="doccomment">///  * One bit to store the state of Polarity.</span>
-<span class="doccomment">///  * Six bits to store the Operand.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The following four bytes store the value of the modulo as `u32`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Finally, the remaining variable length is used to store a list</span>
-<span class="doccomment">/// of `RangeOrValue` elements which have `[u32;2]` layout.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Diagram</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```text</span>
-<span class="doccomment">/// ┌───────────────┬───────────────┬───────────────┐</span>
-<span class="doccomment">/// │      u8       │    [u8;4]     │     [u8]      │</span>
-<span class="doccomment">/// ├─┬─┬─┬─┬─┬─┬─┬─┼───┬───┬───┬───┼───────────────┤</span>
-<span class="doccomment">/// ├─┼─┼─┴─┴─┴─┴─┴─┼───┴───┴───┴───┼───────────────┤</span>
-<span class="doccomment">/// │ │ │  Operand  │    Modulo     │  RangeOrValue │</span>
-<span class="doccomment">/// └─┴─┴───────────┴───────────────┴───────────────┘</span>
-<span class="doccomment">///  ▲ ▲</span>
-<span class="doccomment">///  │ │</span>
-<span class="doccomment">///  │ Polarity</span>
-<span class="doccomment">///  │</span>
-<span class="doccomment">///  AndOr</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Optimization</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This model is optimized for efficient packaging of the `Relation` elements</span>
-<span class="doccomment">/// and performant deserialization from the `RelationULE` to `Relation` type.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Constraints</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The model constraints the `Operand` to 64 variants, and `Modulo` to `u32::MAX`.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">packed</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RelationULE</span> {
-    <span class="doccomment">/// This maps to (AndOr, Polarity, Operand),</span>
-    <span class="doccomment">/// with the first bit mapping to AndOr (1 == And), the second bit</span>
-    <span class="doccomment">/// to Polarity (1 == Positive), and the remaining bits to Operand</span>
-    <span class="doccomment">/// encoded via Operand::encode. It is unsound for the Operand bits to</span>
-    <span class="doccomment">/// not be a valid encoded Operand.</span>
-    <span class="ident">andor_polarity_operand</span>: <span class="ident">u8</span>,
-    <span class="ident">modulo</span>: <span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span>,
-    <span class="ident">range_list</span>: [<span class="ident">RangeOrValueULE</span>],
-}
-
 <span class="kw">impl</span> <span class="ident">RelationULE</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_relation</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Relation</span> {
-        <span class="kw">let</span> (<span class="ident">and_or</span>, <span class="ident">polarity</span>, <span class="ident">operand</span>) <span class="op">=</span>
-            <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::decode_andor_polarity_operand</span>(<span class="self">self</span>.<span class="ident">andor_polarity_operand</span>) };
-        <span class="ident">Relation</span> {
-            <span class="ident">and_or</span>,
-            <span class="ident">polarity</span>,
-            <span class="ident">operand</span>,
-            <span class="ident">modulo</span>: <span class="ident">u32::from_unaligned</span>(<span class="self">self</span>.<span class="ident">modulo</span>),
-            <span class="ident">range_list</span>: <span class="ident">ZeroVec::Borrowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">range_list</span>),
+        <span class="ident">zerofrom::ZeroFrom::zero_from</span>(<span class="self">self</span>)
+    }
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">AndOrPolarityOperandULE</span>(<span class="ident">u8</span>);
+
+<span class="comment">// Safety (based on the safety checklist on the ULE trait):</span>
+<span class="comment">//  1. AndOrPolarityOperandULE does not include any uninitialized or padding bytes</span>
+<span class="comment">//     (achieved by `#[repr(transparent)]` on a type that satisfies this invariant)</span>
+<span class="doccomment">/// 2. AndOrPolarityOperandULE is aligned to 1 byte</span>
+<span class="comment">//     (achieved by `#[repr(transparent)]` on a type that satisfies this invariant)</span>
+<span class="comment">//  3. The impl of validate_byte_slice() returns an error if any byte is not valid.</span>
+<span class="comment">//  4. The impl of validate_byte_slice() returns an error if there are extra bytes</span>
+<span class="comment">//     (impossible since it is of size 1 byte)</span>
+<span class="comment">//  5 The other ULE methods use the default impl.</span>
+<span class="comment">//  6. AndOrPolarityOperandULE byte equality is semantic equality.</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">ULE</span> <span class="kw">for</span> <span class="ident">AndOrPolarityOperandULE</span> {
+    <span class="kw">fn</span> <span class="ident">validate_byte_slice</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ZeroVecError</span><span class="op">&gt;</span> {
+        <span class="kw">for</span> <span class="ident">byte</span> <span class="kw">in</span> <span class="ident">bytes</span> {
+            <span class="ident">Operand::new_from_u8</span>(<span class="ident">byte</span> <span class="op">&amp;</span> <span class="number">0b0011_1111</span>).<span class="ident">ok_or_else</span>(<span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)<span class="question-mark">?</span>;
         }
-    }
-
-    <span class="kw">fn</span> <span class="ident">encode_andor_polarity_operand</span>(<span class="ident">and_or</span>: <span class="ident">AndOr</span>, <span class="ident">polarity</span>: <span class="ident">Polarity</span>, <span class="ident">operand</span>: <span class="ident">Operand</span>) -&gt; <span class="ident">u8</span> {
-        <span class="kw">let</span> <span class="ident">encoded_operand</span> <span class="op">=</span> <span class="ident">u8::from</span>(<span class="ident">operand</span>);
-        <span class="macro">debug_assert!</span>(<span class="ident">encoded_operand</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0b0011_1111</span>);
-        (((<span class="ident">and_or</span> <span class="op">==</span> <span class="ident">AndOr::And</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>)
-            <span class="op">+</span> (((<span class="ident">polarity</span> <span class="op">==</span> <span class="ident">Polarity::Positive</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>)
-            <span class="op">+</span> <span class="ident">encoded_operand</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">validate_andor_polarity_operand</span>(<span class="ident">encoded</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ZeroVecError</span><span class="op">&gt;</span> {
-        <span class="ident">Operand::try_from</span>(<span class="ident">encoded</span> <span class="op">&amp;</span> <span class="number">0b0011_1111</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
+}
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">decode_andor_polarity_operand</span>(<span class="ident">encoded</span>: <span class="ident">u8</span>) -&gt; (<span class="ident">AndOr</span>, <span class="ident">Polarity</span>, <span class="ident">Operand</span>) {
+<span class="kw">impl</span> <span class="ident">AsULE</span> <span class="kw">for</span> <span class="ident">AndOrPolarityOperand</span> {
+    <span class="kw">type</span> <span class="ident">ULE</span> <span class="op">=</span> <span class="ident">AndOrPolarityOperandULE</span>;
+    <span class="kw">fn</span> <span class="ident">to_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident">AndOrPolarityOperandULE</span> {
+        <span class="kw">let</span> <span class="ident">encoded_operand</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">operand</span>.<span class="ident">to_unaligned</span>().<span class="number">0</span>;
+        <span class="macro">debug_assert!</span>(<span class="ident">encoded_operand</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">0b0011_1111</span>);
+        <span class="ident">AndOrPolarityOperandULE</span>(
+            (((<span class="self">self</span>.<span class="ident">and_or</span> <span class="op">==</span> <span class="ident">AndOr::And</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">7</span>)
+                <span class="op">+</span> (((<span class="self">self</span>.<span class="ident">polarity</span> <span class="op">==</span> <span class="ident">Polarity::Positive</span>) <span class="kw">as</span> <span class="ident">u8</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">6</span>)
+                <span class="op">+</span> <span class="ident">encoded_operand</span>,
+        )
+    }
+
+    <span class="kw">fn</span> <span class="ident">from_unaligned</span>(<span class="ident">other</span>: <span class="ident">AndOrPolarityOperandULE</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">other</span>.<span class="number">0</span>;
         <span class="kw">let</span> <span class="ident">and_or</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">encoded</span> <span class="op">&amp;</span> <span class="number">0b1000_0000</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
             <span class="ident">AndOr::And</span>
         } <span class="kw">else</span> {
@@ -991,84 +889,29 @@
             <span class="ident">Polarity::Negative</span>
         };
 
-        <span class="kw">let</span> <span class="ident">operand</span> <span class="op">=</span> <span class="ident">Operand::from_unchecked</span>(<span class="ident">encoded</span> <span class="op">&amp;</span> <span class="number">0b0011_1111</span>);
-        (<span class="ident">and_or</span>, <span class="ident">polarity</span>, <span class="ident">operand</span>)
-    }
-}
-
-<span class="comment">// Safety (based on the safety checklist on the ULE trait):</span>
-<span class="comment">//  1. RelationULE does not include any uninitialized or padding bytes.</span>
-<span class="comment">//     (achieved by `#[repr(packed)]` on a type that satisfies this invariant)</span>
-<span class="comment">//  2. RelationULE is aligned to 1 byte</span>
-<span class="comment">//     (achieved by `#[repr(packed)]` on a type that satisfies this invariant)</span>
-<span class="comment">//  3. The impl of validate_byte_slice() returns an error if any byte is not valid.</span>
-<span class="comment">//  4. The impl of validate_byte_slice() returns an error if there are extra bytes.</span>
-<span class="comment">//  5. The impl of `from_byte_slice_unchecked()` returns a reference to the same data.</span>
-<span class="comment">//  6. The other VarULE methods use the default impl.</span>
-<span class="comment">//  7. RelationULE byte equality is semantic equality.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">VarULE</span> <span class="kw">for</span> <span class="ident">RelationULE</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_byte_slice_unchecked</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_ptr</span>();
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">len</span>();
-        <span class="comment">// subtract length of andor_polarity_operand and modulo and then convert between a slice of bytes and RangeOrValueULE</span>
-        <span class="kw">let</span> <span class="ident">len_new</span> <span class="op">=</span> (<span class="ident">len</span> <span class="op">-</span> <span class="number">5</span>) <span class="op">/</span> <span class="number">8</span>;
-
-        <span class="comment">// Keep this in sync with `RelationULE`</span>
-        <span class="kw">struct</span> <span class="ident">RelationULESized</span> {
-            <span class="ident">_andor_polarity_operand</span>: <span class="ident">u8</span>,
-            <span class="ident">_modulo</span>: <span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span>,
+        <span class="comment">// note that this is unsafe, since OperandULE has its own</span>
+        <span class="comment">// safety requirements</span>
+        <span class="comment">// we can guarantee safety here since these bits can only come</span>
+        <span class="comment">// from validated OperandULEs</span>
+        <span class="kw">let</span> <span class="ident">operand</span> <span class="op">=</span> <span class="ident">OperandULE</span>(<span class="ident">encoded</span> <span class="op">&amp;</span> <span class="number">0b0011_1111</span>);
+        <span class="self">Self</span> {
+            <span class="ident">and_or</span>,
+            <span class="ident">polarity</span>,
+            <span class="ident">operand</span>: <span class="ident">Operand::from_unaligned</span>(<span class="ident">operand</span>),
         }
-        <span class="macro">debug_assert_eq!</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">RelationULESized</span><span class="op">&gt;</span>(), <span class="number">5</span>);
-        <span class="macro">debug_assert_eq!</span>(<span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">RangeOrValueULE</span><span class="op">&gt;</span>(), <span class="number">8</span>);
-
-        <span class="comment">// it&#39;s hard constructing custom DSTs, we fake a pointer/length construction</span>
-        <span class="comment">// eventually we can use the Pointer::Metadata APIs when they stabilize</span>
-        <span class="kw">let</span> <span class="ident">fake_slice</span> <span class="op">=</span> <span class="ident">core::ptr::slice_from_raw_parts</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">RangeOrValueULE</span>, <span class="ident">len_new</span>);
-        <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="ident">fake_slice</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="self">Self</span>);
-        <span class="macro">debug_assert_eq!</span>(<span class="ident">core::mem::size_of_val</span>(<span class="ident">ret</span>), <span class="ident">core::mem::size_of_val</span>(<span class="ident">bytes</span>));
-        <span class="ident">ret</span>
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">validate_byte_slice</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ZeroVecError</span><span class="op">&gt;</span> {
-        <span class="ident">RelationULE::validate_andor_polarity_operand</span>(<span class="ident">bytes</span>[<span class="number">0</span>])<span class="question-mark">?</span>;
-        <span class="comment">// Skip bytes 1-4 as they&#39;re always valid `u32` for `Modulo`.</span>
-        <span class="kw">if</span> <span class="ident">bytes</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">5</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
-        }
-        <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">5</span>..];
-        <span class="ident">RangeOrValueULE::validate_byte_slice</span>(<span class="ident">remaining</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="comment">// Safety</span>
-<span class="comment">//</span>
-<span class="comment">// the slices to the callback must, when concatenated,</span>
-<span class="comment">// are a valid instance of the RelationULE type.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">EncodeAsVarULE</span><span class="op">&lt;</span><span class="ident">RelationULE</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Relation</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">encode_var_ule_as_slices</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cb</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>[<span class="ident">u8</span>]]) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
-        <span class="kw">let</span> <span class="ident">encoded</span> <span class="op">=</span>
-            <span class="ident">RelationULE::encode_andor_polarity_operand</span>(<span class="self">self</span>.<span class="ident">and_or</span>, <span class="self">self</span>.<span class="ident">polarity</span>, <span class="self">self</span>.<span class="ident">operand</span>);
-        <span class="ident">cb</span>(<span class="kw-2">&amp;</span>[
-            <span class="kw-2">&amp;</span>[<span class="ident">encoded</span>],
-            <span class="ident">RawBytesULE</span>::<span class="op">&lt;</span><span class="number">4</span><span class="op">&gt;</span><span class="ident">::as_byte_slice</span>(<span class="kw-2">&amp;</span>[<span class="self">self</span>.<span class="ident">modulo</span>.<span class="ident">as_unaligned</span>()]),
-            <span class="self">self</span>.<span class="ident">range_list</span>.<span class="ident">as_bytes</span>(),
-        ])
-    }
-}
-
-<span class="kw">type</span> <span class="ident">RangeOrValueULE</span> <span class="op">=</span> <span class="ident">PairULE</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span>, <span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">RangeOrValueULE</span> <span class="op">=</span> <span class="ident">Tuple2ULE</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span>, <span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span><span class="op">&gt;</span>;
 
 <span class="kw">impl</span> <span class="ident">AsULE</span> <span class="kw">for</span> <span class="ident">RangeOrValue</span> {
     <span class="kw">type</span> <span class="ident">ULE</span> <span class="op">=</span> <span class="ident">RangeOrValueULE</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span> {
+    <span class="kw">fn</span> <span class="ident">to_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Range</span>(<span class="ident">start</span>, <span class="ident">end</span>) =&gt; <span class="ident">PairULE</span>(<span class="ident">start</span>.<span class="ident">as_unaligned</span>(), <span class="ident">end</span>.<span class="ident">as_unaligned</span>()),
-            <span class="ident"><span class="self">Self</span>::Value</span>(<span class="ident">idx</span>) =&gt; <span class="ident">PairULE</span>(<span class="ident">idx</span>.<span class="ident">as_unaligned</span>(), <span class="ident">idx</span>.<span class="ident">as_unaligned</span>()),
+            <span class="ident"><span class="self">Self</span>::Range</span>(<span class="ident">start</span>, <span class="ident">end</span>) =&gt; <span class="ident">Tuple2ULE</span>(<span class="ident">start</span>.<span class="ident">to_unaligned</span>(), <span class="ident">end</span>.<span class="ident">to_unaligned</span>()),
+            <span class="ident"><span class="self">Self</span>::Value</span>(<span class="ident">idx</span>) =&gt; <span class="ident">Tuple2ULE</span>(<span class="ident">idx</span>.<span class="ident">to_unaligned</span>(), <span class="ident">idx</span>.<span class="ident">to_unaligned</span>()),
         }
     }
 
@@ -1084,7 +927,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">serde</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident">::serde</span>::{<span class="ident">de</span>, <span class="ident">ser</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>};
@@ -1194,11 +1037,13 @@
         <span class="macro">assert_eq!</span>(
             <span class="ident">relation</span>,
             <span class="ident">Relation</span> {
-                <span class="ident">and_or</span>: <span class="ident">AndOr::And</span>,
-                <span class="ident">polarity</span>: <span class="ident">Polarity::Positive</span>,
-                <span class="ident">operand</span>: <span class="ident">Operand::I</span>,
+                <span class="ident">aopo</span>: <span class="ident">AndOrPolarityOperand</span> {
+                    <span class="ident">and_or</span>: <span class="ident">AndOr::And</span>,
+                    <span class="ident">polarity</span>: <span class="ident">Polarity::Positive</span>,
+                    <span class="ident">operand</span>: <span class="ident">Operand::I</span>,
+                },
                 <span class="ident">modulo</span>: <span class="number">0</span>,
-                <span class="ident">range_list</span>: <span class="ident">ZeroVec::Borrowed</span>(<span class="kw-2">&amp;</span>[<span class="ident">RangeOrValue::Value</span>(<span class="number">1</span>).<span class="ident">as_unaligned</span>()])
+                <span class="ident">range_list</span>: <span class="ident">ZeroVec::Borrowed</span>(<span class="kw-2">&amp;</span>[<span class="ident">RangeOrValue::Value</span>(<span class="number">1</span>).<span class="ident">to_unaligned</span>()])
             }
         );
 
@@ -1257,12 +1102,12 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">range_or_value_ule_test</span>() {
         <span class="kw">let</span> <span class="ident">rov</span> <span class="op">=</span> <span class="ident">RangeOrValue::Value</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">rov</span>.<span class="ident">as_unaligned</span>();
+        <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">rov</span>.<span class="ident">to_unaligned</span>();
         <span class="kw">let</span> <span class="ident">ref_bytes</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>];
         <span class="macro">assert_eq!</span>(<span class="ident">ULE::as_byte_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">ule</span>]), <span class="kw-2">*</span><span class="ident">ref_bytes</span>);
 
         <span class="kw">let</span> <span class="ident">rov</span> <span class="op">=</span> <span class="ident">RangeOrValue::Range</span>(<span class="number">2</span>, <span class="number">4</span>);
-        <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">rov</span>.<span class="ident">as_unaligned</span>();
+        <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">rov</span>.<span class="ident">to_unaligned</span>();
         <span class="kw">let</span> <span class="ident">ref_bytes</span> <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">2</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">4</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>];
         <span class="macro">assert_eq!</span>(<span class="ident">ULE::as_byte_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">ule</span>]), <span class="kw-2">*</span><span class="ident">ref_bytes</span>);
     }
@@ -1270,10 +1115,13 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">relation_ule_test</span>() {
         <span class="kw">let</span> <span class="ident">rov</span> <span class="op">=</span> <span class="ident">RangeOrValue::Value</span>(<span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">relation</span> <span class="op">=</span> <span class="ident">Relation</span> {
+        <span class="kw">let</span> <span class="ident">aopo</span> <span class="op">=</span> <span class="ident">AndOrPolarityOperand</span> {
             <span class="ident">and_or</span>: <span class="ident">AndOr::And</span>,
             <span class="ident">polarity</span>: <span class="ident">Polarity::Positive</span>,
             <span class="ident">operand</span>: <span class="ident">Operand::N</span>,
+        };
+        <span class="kw">let</span> <span class="ident">relation</span> <span class="op">=</span> <span class="ident">Relation</span> {
+            <span class="ident">aopo</span>,
             <span class="ident">modulo</span>: <span class="number">0</span>,
             <span class="ident">range_list</span>: <span class="ident">ZeroVec::alloc_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">rov</span>]),
         };

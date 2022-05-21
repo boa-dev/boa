@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["calendar","Data providers for the Gregorian Calendar."],["key","A collection of [`ResourceKey`] structs for DateTime providers."],["time_zones","Data providers for time zones."]]});
+initSidebarItems({"mod":[["calendar","Data providers for the Gregorian Calendar."],["time_zones","Data providers for time zones."],["week_data","Provider for week data."]]});

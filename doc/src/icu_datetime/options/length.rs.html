@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/options/length.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/options/length.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>length.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -270,6 +270,34 @@
 <span id="265">265</span>
 <span id="266">266</span>
 <span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -293,11 +321,10 @@
 <span class="doccomment">//! use icu::datetime::DateTimeFormatOptions;</span>
 <span class="doccomment">//! use icu::datetime::options::length;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let bag = length::Bag {</span>
-<span class="doccomment">//!      date: Some(length::Date::Medium), // `Medium` length connector will be used</span>
-<span class="doccomment">//!      time: Some(length::Time::Short),</span>
-<span class="doccomment">//!      preferences: None,</span>
-<span class="doccomment">//! };</span>
+<span class="doccomment">//! let bag = length::Bag::from_date_time_style(</span>
+<span class="doccomment">//!     length::Date::Medium, // &quot;medium&quot; date connector will be used</span>
+<span class="doccomment">//!     length::Time::Short</span>
+<span class="doccomment">//! );</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let options = DateTimeFormatOptions::Length(bag);</span>
 <span class="doccomment">//! ```</span>
@@ -330,11 +357,7 @@
 <span class="doccomment">/// use icu::datetime::DateTimeFormatOptions;</span>
 <span class="doccomment">/// use icu::datetime::options::length;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let bag = length::Bag {</span>
-<span class="doccomment">///      date: Some(length::Date::Medium),</span>
-<span class="doccomment">///      time: Some(length::Time::Short),</span>
-<span class="doccomment">///      preferences: None,</span>
-<span class="doccomment">/// };</span>
+<span class="doccomment">/// let bag = length::Bag::from_date_time_style(length::Date::Medium, length::Time::Short);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let options = DateTimeFormatOptions::Length(bag);</span>
 <span class="doccomment">/// ```</span>
@@ -351,6 +374,7 @@
 <span class="doccomment">/// [`Element dateFormats`]: https://unicode.org/reports/tr35/tr35-dates.html#dateFormats</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bag</span> {
     <span class="doccomment">/// Configure the date part of the datetime.</span>
     <span class="kw">pub</span> <span class="ident">date</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&gt;</span>,
@@ -361,6 +385,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Bag</span> {
+    <span class="doccomment">/// Constructs a Bag with long date and time options</span>
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">date</span>: <span class="prelude-val">Some</span>(<span class="ident">Date::Long</span>),
@@ -370,6 +395,45 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">Bag</span> {
+    <span class="doccomment">/// Constructs a Bag with all fields set to None</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that the [`Default`] implementation returns long date and time options</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">date</span>: <span class="prelude-val">None</span>,
+            <span class="ident">time</span>: <span class="prelude-val">None</span>,
+            <span class="ident">preferences</span>: <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Constructs a Bag given a date and time field (preferences set to None)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_date_time_style</span>(<span class="ident">date</span>: <span class="ident">Date</span>, <span class="ident">time</span>: <span class="ident">Time</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">date</span>: <span class="prelude-val">Some</span>(<span class="ident">date</span>),
+            <span class="ident">time</span>: <span class="prelude-val">Some</span>(<span class="ident">time</span>),
+            <span class="ident">preferences</span>: <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Constructs a Bag given a date field (preferences and time set to None)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_date_style</span>(<span class="ident">date</span>: <span class="ident">Date</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">date</span>: <span class="prelude-val">Some</span>(<span class="ident">date</span>),
+            <span class="ident">time</span>: <span class="prelude-val">None</span>,
+            <span class="ident">preferences</span>: <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Constructs a Bag given a time field (preferences and date set to None)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_time_style</span>(<span class="ident">time</span>: <span class="ident">Time</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">date</span>: <span class="prelude-val">None</span>,
+            <span class="ident">time</span>: <span class="prelude-val">Some</span>(<span class="ident">time</span>),
+            <span class="ident">preferences</span>: <span class="prelude-val">None</span>,
+        }
+    }
+}
 <span class="doccomment">/// Represents different lengths a [`DateTimeInput`] implementer can be formatted into.</span>
 <span class="doccomment">/// Each length has associated best pattern for it for a given locale.</span>
 <span class="doccomment">///</span>
@@ -380,12 +444,7 @@
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// use icu::datetime::options::length;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let bag = length::Bag {</span>
-<span class="doccomment">///     date: Some(length::Date::Long),</span>
-<span class="doccomment">///     time: None,</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     preferences: None,</span>
-<span class="doccomment">/// };</span>
+<span class="doccomment">/// let bag = length::Bag::from_date_style(length::Date::Long);</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The available lengths correspond to [`UTS #35: Unicode LDML 4. Dates`], section 2.4 [`Element dateFormats`].</span>
@@ -399,6 +458,7 @@
 <span class="doccomment">/// [`DateTimeFormat`]: super::super::DateTimeFormat</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Date</span> {
     <span class="doccomment">/// Full length, usually with weekday name.</span>
     <span class="doccomment">///</span>
@@ -464,12 +524,7 @@
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// use icu::datetime::options::length;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let bag = length::Bag {</span>
-<span class="doccomment">///     date: None,</span>
-<span class="doccomment">///     time: Some(length::Time::Medium),</span>
-<span class="doccomment">///</span>
-<span class="doccomment">///     preferences: None,</span>
-<span class="doccomment">/// };</span>
+<span class="doccomment">/// let bag = length::Bag::from_time_style(length::Time::Medium);</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The available lengths correspond to [`UTS #35: Unicode LDML 4. Dates`], section 2.4 [`Element timeFormats`].</span>
@@ -483,6 +538,7 @@
 <span class="doccomment">/// [`DateTimeFormat`]: super::super::DateTimeFormat</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Time</span> {
     <span class="doccomment">/// Full length, with spelled out time zone name.</span>
     <span class="doccomment">///</span>

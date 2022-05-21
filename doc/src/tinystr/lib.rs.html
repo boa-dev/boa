@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinystr-0.4.12/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinystr-0.6.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tinystr/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -100,129 +100,103 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-</pre><pre class="rust"><code><span class="doccomment">//! `tinystr` is a small ASCII-only bounded length string representation.</span>
+</pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
+<span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
+<span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
+
+<span class="doccomment">//! `tinystr` is a utility crate of the [`ICU4X`] project.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The crate is meant to be used for scenarios where one needs a fast</span>
-<span class="doccomment">//! and memory efficient way to store and manipulate short ASCII-only strings.</span>
+<span class="doccomment">//! It includes [`TinyAsciiStr`], a core API for representing small ASCII-only bounded length strings.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! `tinystr` converts each string into an unsigned integer, and uses bitmasking</span>
-<span class="doccomment">//! to compare, convert cases and test for common characteristics of strings.</span>
+<span class="doccomment">//! It is optimized for operations on strings of size 8 or smaller. When use cases involve comparison</span>
+<span class="doccomment">//! and conversion of strings for lowercase/uppercase/titlecase, or checking</span>
+<span class="doccomment">//! numeric/alphabetic/alphanumeric, `TinyAsciiStr` is the edge performance library.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! # Details</span>
+<span class="doccomment">//! # Examples</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The crate provides three structs and an enum:</span>
-<span class="doccomment">//! * `TinyStr4` an ASCII-only string limited to 4 characters.</span>
-<span class="doccomment">//! * `TinyStr8` an ASCII-only string limited to 8 characters.</span>
-<span class="doccomment">//! * `TinyStr16` an ASCII-only string limited to 16 characters.</span>
-<span class="doccomment">//! * `TinyStrAuto` (enum):</span>
-<span class="doccomment">//!   * `Tiny` when the string is 16 characters or less.</span>
-<span class="doccomment">//!   * `Heap` when the string is 17 or more characters.</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use tinystr::TinyAsciiStr;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! `TinyStrAuto` stores the string as a TinyStr16 when it is short enough, or else falls back to a</span>
-<span class="doccomment">//! standard `String`. You should use TinyStrAuto when you expect most strings to be 16 characters</span>
-<span class="doccomment">//! or smaller, but occasionally you receive one that exceeds that length. Unlike the structs,</span>
-<span class="doccomment">//! `TinyStrAuto` does not implement `Copy`.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Macros</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Compile-time macros are available to convert string literals into const TinyStrs:</span>
-<span class="doccomment">//! * `tinystr4!(&quot;abc&quot;)`</span>
-<span class="doccomment">//! * `tinystr8!(&quot;abcdefg&quot;)`</span>
-<span class="doccomment">//! * `tinystr16!(&quot;longer-string&quot;)`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # no_std</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Disable the `std` feature of this crate to make it `#[no_std]`. Doing so disables `TinyStrAuto`.</span>
-<span class="doccomment">//! You can re-enable `TinyStrAuto` in `#[no_std]` mode by enabling the `alloc` feature.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! # Example</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ```</span>
-<span class="doccomment">//! use tinystr::{TinyStr4, TinyStr8, TinyStr16, TinyStrAuto};</span>
-<span class="doccomment">//! use tinystr::{tinystr4, tinystr8, tinystr16};</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let s1: TinyStr4 = tinystr4!(&quot;tEsT&quot;);</span>
+<span class="doccomment">//! let s1: TinyAsciiStr::&lt;4&gt; = &quot;tEsT&quot;.parse().expect(&quot;Failed to parse.&quot;);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! assert_eq!(s1, &quot;tEsT&quot;);</span>
 <span class="doccomment">//! assert_eq!(s1.to_ascii_uppercase(), &quot;TEST&quot;);</span>
 <span class="doccomment">//! assert_eq!(s1.to_ascii_lowercase(), &quot;test&quot;);</span>
 <span class="doccomment">//! assert_eq!(s1.to_ascii_titlecase(), &quot;Test&quot;);</span>
 <span class="doccomment">//! assert_eq!(s1.is_ascii_alphanumeric(), true);</span>
+<span class="doccomment">//! assert_eq!(s1.is_ascii_numeric(), false);</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let s2: TinyStr8 = tinystr8!(&quot;New York&quot;);</span>
+<span class="doccomment">//! let s2 = TinyAsciiStr::&lt;8&gt;::try_from_raw(*b&quot;New York&quot;).expect(&quot;Failed to parse.&quot;);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! assert_eq!(s2, &quot;New York&quot;);</span>
 <span class="doccomment">//! assert_eq!(s2.to_ascii_uppercase(), &quot;NEW YORK&quot;);</span>
 <span class="doccomment">//! assert_eq!(s2.to_ascii_lowercase(), &quot;new york&quot;);</span>
 <span class="doccomment">//! assert_eq!(s2.to_ascii_titlecase(), &quot;New york&quot;);</span>
 <span class="doccomment">//! assert_eq!(s2.is_ascii_alphanumeric(), false);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let s3: TinyStr16 = tinystr16!(&quot;metaMoRphosis123&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! assert_eq!(s3, &quot;metaMoRphosis123&quot;);</span>
-<span class="doccomment">//! assert_eq!(s3.to_ascii_uppercase(), &quot;METAMORPHOSIS123&quot;);</span>
-<span class="doccomment">//! assert_eq!(s3.to_ascii_lowercase(), &quot;metamorphosis123&quot;);</span>
-<span class="doccomment">//! assert_eq!(s3.to_ascii_titlecase(), &quot;Metamorphosis123&quot;);</span>
-<span class="doccomment">//! assert_eq!(s3.is_ascii_alphanumeric(), true);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let s4: TinyStrAuto = &quot;shortNoAlloc&quot;.parse()</span>
-<span class="doccomment">//!     .expect(&quot;Failed to parse.&quot;);</span>
-<span class="doccomment">//! assert!(matches!(s4, TinyStrAuto::Tiny { .. }));</span>
-<span class="doccomment">//! assert_eq!(s4, &quot;shortNoAlloc&quot;);</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! let s5: TinyStrAuto = &quot;longFallbackToHeap&quot;.parse()</span>
-<span class="doccomment">//!     .expect(&quot;Failed to parse.&quot;);</span>
-<span class="doccomment">//! assert!(matches!(s5, TinyStrAuto::Heap { .. }));</span>
-<span class="doccomment">//! assert_eq!(s5, &quot;longFallbackToHeap&quot;);</span>
 <span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! # Details</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! When strings are of size 8 or smaller, the struct transforms the strings as `u32`/`u64` and uses</span>
+<span class="doccomment">//! bitmasking to provide basic string manipulation operations:</span>
+<span class="doccomment">//! * `is_ascii_numeric`</span>
+<span class="doccomment">//! * `is_ascii_alphabetic`</span>
+<span class="doccomment">//! * `is_ascii_alphanumeric`</span>
+<span class="doccomment">//! * `to_ascii_lowercase`</span>
+<span class="doccomment">//! * `to_ascii_uppercase`</span>
+<span class="doccomment">//! * `to_ascii_titlecase`</span>
+<span class="doccomment">//! * `PartialEq`</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! `TinyAsciiStr` will fall back to `u8` character manipulation for strings of length greater than 8.</span>
 
-<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">no_std</span>)]</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [`ICU4X`]: ../icu/index.html</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">test</span>))]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span>;
+<span class="comment">// https://github.com/unicode-org/icu4x/blob/main/docs/process/boilerplate.md#library-annotations</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(
+    <span class="ident">not</span>(<span class="ident">test</span>),
+    <span class="ident">deny</span>(
+        <span class="ident">clippy::indexing_slicing</span>,
+        <span class="ident">clippy::unwrap_used</span>,
+        <span class="ident">clippy::expect_used</span>,
+        <span class="ident">clippy::panic</span>
+    )
+)]</span>
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>), <span class="ident">not</span>(<span class="ident">test</span>)))]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">core</span> <span class="kw">as</span> <span class="ident">std</span>;
+<span class="kw">mod</span> <span class="ident">macros</span>;
+
+<span class="kw">mod</span> <span class="ident">ascii</span>;
+<span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">mod</span> <span class="ident">int_ops</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
-<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
-
-<span class="attribute">#[<span class="ident">macro_use</span>]</span>
-<span class="kw">mod</span> <span class="ident">macros</span>;
-<span class="kw">mod</span> <span class="ident">tinystr16</span>;
-<span class="kw">mod</span> <span class="ident">tinystr4</span>;
-<span class="kw">mod</span> <span class="ident">tinystr8</span>;
+<span class="kw">mod</span> <span class="ident">serde</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;zerovec&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">ule</span>;
+<span class="kw">mod</span> <span class="ident">ule</span>;
 
-<span class="doccomment">/// Re-export of the low-level tinystr_macros crate, required by the macros.</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tinystr_macros</span> <span class="kw">as</span> <span class="ident">raw_macros</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
-<span class="kw">mod</span> <span class="ident">tinystrauto</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">ascii::TinyAsciiStr</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">error::TinyStrError</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tinystr16::TinyStr16</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tinystr4::TinyStr4</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tinystr8::TinyStr8</span>;
+<span class="doccomment">/// These are temporary compatability reexports that will be removed</span>
+<span class="doccomment">/// in a future version.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TinyStr4</span> <span class="op">=</span> <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">4</span><span class="op">&gt;</span>;
+<span class="doccomment">/// These are temporary compatability reexports that will be removed</span>
+<span class="doccomment">/// in a future version.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TinyStr8</span> <span class="op">=</span> <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">8</span><span class="op">&gt;</span>;
+<span class="doccomment">/// These are temporary compatability reexports that will be removed</span>
+<span class="doccomment">/// in a future version.</span>
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">TinyStr16</span> <span class="op">=</span> <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">16</span><span class="op">&gt;</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tinystrauto::TinyStrAuto</span>;
-
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">tinystr_raw::Error</span>;
+<span class="comment">// /// Allows unit tests to use the macro</span>
+<span class="comment">// #[cfg(test)]</span>
+<span class="comment">// mod tinystr {</span>
+<span class="comment">//     pub use super::{TinyAsciiStr, TinyStrError};</span>
+<span class="comment">// }</span>
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="tinystr" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
 </body></html>

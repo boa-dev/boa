@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_codepointtrie-0.3.3/src/codepointtrie.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>codepointtrie.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_codepointtrie-0.4.0/src/codepointtrie.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>codepointtrie.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_codepointtrie/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1022,6 +1022,77 @@
 <span id="1017">1017</span>
 <span id="1018">1018</span>
 <span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -1031,11 +1102,12 @@
 
 <span class="kw">use</span> <span class="ident">core::convert::TryFrom</span>;
 <span class="kw">use</span> <span class="ident">core::fmt::Display</span>;
+<span class="kw">use</span> <span class="ident">core::iter::FromIterator</span>;
 <span class="kw">use</span> <span class="ident">core::num::TryFromIntError</span>;
 <span class="kw">use</span> <span class="ident">core::ops::RangeInclusive</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">yoke</span>::{<span class="ident">Yokeable</span>, <span class="ident">ZeroCopyFrom</span>};
+<span class="kw">use</span> <span class="ident">icu_uniset::UnicodeSet</span>;
+<span class="kw">use</span> <span class="ident">yoke::Yokeable</span>;
+<span class="kw">use</span> <span class="ident">zerofrom::ZeroFrom</span>;
 <span class="kw">use</span> <span class="ident">zerovec::ZeroVec</span>;
 <span class="kw">use</span> <span class="ident">zerovec::ZeroVecError</span>;
 
@@ -1043,7 +1115,8 @@
 <span class="doccomment">/// would make it small or fast.</span>
 <span class="doccomment">/// See [`UCPTrieType`](https://unicode-org.github.io/icu-docs/apidoc/dev/icu4c/ucptrie_8h.html) in ICU4C.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde_serialize&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TrieType</span> {
     <span class="doccomment">/// Represents the &quot;fast&quot; type code point tries for the</span>
     <span class="doccomment">/// [`TrieType`] trait. The &quot;fast max&quot; limit is set to `0xffff`.</span>
@@ -1073,7 +1146,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TrieValue</span> <span class="kw">for</span> <span class="ident">u8</span> {
-    <span class="kw">const</span> <span class="ident">DATA_GET_ERROR_VALUE</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="ident">u8::MAX</span>;
+    <span class="kw">const</span> <span class="ident">DATA_GET_ERROR_VALUE</span>: <span class="ident">u8</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">type</span> <span class="ident">TryFromU32Error</span> <span class="op">=</span> <span class="ident">TryFromIntError</span>;
     <span class="kw">fn</span> <span class="ident">try_from_u32</span>(<span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::TryFromU32Error</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::try_from</span>(<span class="ident">i</span>)
@@ -1081,7 +1154,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TrieValue</span> <span class="kw">for</span> <span class="ident">u16</span> {
-    <span class="kw">const</span> <span class="ident">DATA_GET_ERROR_VALUE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="ident">u16::MAX</span>;
+    <span class="kw">const</span> <span class="ident">DATA_GET_ERROR_VALUE</span>: <span class="ident">u16</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">type</span> <span class="ident">TryFromU32Error</span> <span class="op">=</span> <span class="ident">TryFromIntError</span>;
     <span class="kw">fn</span> <span class="ident">try_from_u32</span>(<span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::TryFromU32Error</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::try_from</span>(<span class="ident">i</span>)
@@ -1089,7 +1162,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">TrieValue</span> <span class="kw">for</span> <span class="ident">u32</span> {
-    <span class="kw">const</span> <span class="ident">DATA_GET_ERROR_VALUE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">u32::MAX</span>;
+    <span class="kw">const</span> <span class="ident">DATA_GET_ERROR_VALUE</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">type</span> <span class="ident">TryFromU32Error</span> <span class="op">=</span> <span class="ident">TryFromIntError</span>;
     <span class="kw">fn</span> <span class="ident">try_from_u32</span>(<span class="ident">i</span>: <span class="ident">u32</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident"><span class="self">Self</span>::TryFromU32Error</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">i</span>)
@@ -1126,8 +1199,9 @@
 <span class="doccomment">/// For more information:</span>
 <span class="doccomment">/// - [ICU Site design doc](http://site.icu-project.org/design/struct/utrie)</span>
 <span class="doccomment">/// - [ICU User Guide section on Properties lookup](https://unicode-org.github.io/icu/userguide/strings/properties.html#lookup)</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Yokeable</span>, <span class="ident">ZeroCopyFrom</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde_serialize&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Yokeable</span>, <span class="ident">ZeroFrom</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CodePointTrie</span><span class="op">&lt;</span><span class="lifetime">&#39;trie</span>, <span class="ident">T</span>: <span class="ident">TrieValue</span><span class="op">&gt;</span> {
     <span class="ident">header</span>: <span class="ident">CodePointTrieHeader</span>,
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
@@ -1137,8 +1211,9 @@
 }
 
 <span class="doccomment">/// This struct contains the fixed-length header fields of a [`CodePointTrie`].</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Yokeable</span>, <span class="ident">ZeroCopyFrom</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde_serialize&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Yokeable</span>, <span class="ident">ZeroFrom</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CodePointTrieHeader</span> {
     <span class="doccomment">/// The code point of the start of the last range of the trie. A</span>
     <span class="doccomment">/// range is defined as a partition of the code point space such that the</span>
@@ -1400,30 +1475,6 @@
             <span class="ident">data</span>: <span class="ident">converted_data</span>,
         })
     }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;trie</span>, <span class="ident">T</span>: <span class="ident">TrieValue</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">CodePointTrie</span><span class="op">&lt;</span><span class="lifetime">&#39;trie</span>, <span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Returns the value that is associated with `code_point` for this [`CodePointTrie`]</span>
-    <span class="doccomment">/// as a `u32`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Examples</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu_codepointtrie::planes;</span>
-    <span class="doccomment">/// let trie = planes::get_planes_trie();</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let cp = &#39;𑖎&#39; as u32;</span>
-    <span class="doccomment">/// assert_eq!(cp, 0x1158E);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let plane_num: u8 = trie.get(cp);</span>
-    <span class="doccomment">/// assert_eq!(trie.get_u32(cp), plane_num as u32);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="doccomment">///</span>
-    <span class="comment">// Note: This API method maintains consistency with the corresponding</span>
-    <span class="comment">// original ICU APIs.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_u32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code_point</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
-        <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">code_point</span>).<span class="ident">into</span>()
-    }
 
     <span class="doccomment">/// Returns a [`CodePointMapRange`] struct which represents a range of code</span>
     <span class="doccomment">/// points associated with the same trie value. The returned range will be</span>
@@ -1680,9 +1731,16 @@
                                 <span class="comment">// as a transformation by applying maybe_filter_value()</span>
                                 <span class="comment">// to the trie value.</span>
                                 <span class="comment">// The current trie value `trie_value_2` within this data block</span>
-                                <span class="comment">// differs here from `trie_value`, and updating `trie_value`</span>
-                                <span class="comment">// with the new value may or may not help in computing the</span>
-                                <span class="comment">// range and/or yield a different result for maybe_filter_range().</span>
+                                <span class="comment">// differs here from the previous value in `trie_value`.</span>
+                                <span class="comment">// But both map to `value` after applying `maybe_filter_value`.</span>
+                                <span class="comment">// It is not clear whether the previous or the current trie value</span>
+                                <span class="comment">// (or neither) is more likely to match potential subsequent trie</span>
+                                <span class="comment">// values that would extend the range by mapping to `value`.</span>
+                                <span class="comment">// On the assumption of locality -- often times consecutive</span>
+                                <span class="comment">// characters map to the same trie values -- remembering the new</span>
+                                <span class="comment">// one might make it faster to extend this range further</span>
+                                <span class="comment">// (by increasing the chance that the next `trie_value_2 !=</span>
+                                <span class="comment">// trie_value` test will be false).</span>
                                 <span class="ident">trie_value</span> <span class="op">=</span> <span class="ident">trie_value_2</span>; <span class="comment">// may or may not help</span>
                             }
                         } <span class="kw">else</span> {
@@ -1718,9 +1776,16 @@
                                 <span class="comment">// as a transformation by applying maybe_filter_value()</span>
                                 <span class="comment">// to the trie value.</span>
                                 <span class="comment">// The current trie value `trie_value_2` within this data block</span>
-                                <span class="comment">// differs here from `trie_value`, and updating `trie_value`</span>
-                                <span class="comment">// with the new value may or may not help in computing the</span>
-                                <span class="comment">// range and/or yield a different result for maybe_filter_range().</span>
+                                <span class="comment">// differs here from the previous value in `trie_value`.</span>
+                                <span class="comment">// But both map to `value` after applying `maybe_filter_value`.</span>
+                                <span class="comment">// It is not clear whether the previous or the current trie value</span>
+                                <span class="comment">// (or neither) is more likely to match potential subsequent trie</span>
+                                <span class="comment">// values that would extend the range by mapping to `value`.</span>
+                                <span class="comment">// On the assumption of locality -- often times consecutive</span>
+                                <span class="comment">// characters map to the same trie values -- remembering the new</span>
+                                <span class="comment">// one might make it faster to extend this range further</span>
+                                <span class="comment">// (by increasing the chance that the next `trie_value_2 !=</span>
+                                <span class="comment">// trie_value` test will be false).</span>
                                 <span class="ident">trie_value</span> <span class="op">=</span> <span class="ident">trie_value_2</span>; <span class="comment">// may or may not help</span>
                             }
 
@@ -1806,6 +1871,83 @@
             <span class="ident">cpm_range</span>: <span class="ident">init_range</span>,
         }
     }
+
+    <span class="doccomment">/// Yields an [`Iterator`] returning the ranges of the code points whose values</span>
+    <span class="doccomment">/// match `value` in the [`CodePointTrie`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu_codepointtrie::planes;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let trie = planes::get_planes_trie();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let plane_val = 2;</span>
+    <span class="doccomment">/// let mut sip_range_iter = trie.get_ranges_for_value(plane_val as u8);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let start = plane_val * 0x1_0000;</span>
+    <span class="doccomment">/// let end = start + 0xffff;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let sip_range = sip_range_iter.next()</span>
+    <span class="doccomment">///     .expect(&quot;Plane 2 (SIP) should exist in planes data&quot;);</span>
+    <span class="doccomment">/// assert_eq!(start..=end, sip_range);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(sip_range_iter.next().is_none());</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_ranges_for_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
+        <span class="self">self</span>.<span class="ident">iter_ranges</span>()
+            .<span class="ident">filter</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">cpm_range</span><span class="op">|</span> <span class="ident">cpm_range</span>.<span class="ident">value</span> <span class="op">==</span> <span class="ident">value</span>)
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">cpm_range</span><span class="op">|</span> <span class="ident">cpm_range</span>.<span class="ident">range</span>)
+    }
+
+    <span class="doccomment">/// Returns a [`UnicodeSet`] for the code points that have the given</span>
+    <span class="doccomment">/// [`TrieValue`] in the trie.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu_codepointtrie::planes;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let trie = planes::get_planes_trie();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let plane_val = 2;</span>
+    <span class="doccomment">/// let sip = trie.get_set_for_value(plane_val as u8);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let start = plane_val * 0x1_0000;</span>
+    <span class="doccomment">/// let end = start + 0xffff;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(!sip.contains_u32(start - 1));</span>
+    <span class="doccomment">/// assert!(sip.contains_u32(start));</span>
+    <span class="doccomment">/// assert!(sip.contains_u32(end));</span>
+    <span class="doccomment">/// assert!(!sip.contains_u32(end + 1));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_set_for_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">UnicodeSet</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">value_ranges</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_ranges_for_value</span>(<span class="ident">value</span>);
+        <span class="ident">UnicodeSet::from_iter</span>(<span class="ident">value_ranges</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;trie</span>, <span class="ident">T</span>: <span class="ident">TrieValue</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">CodePointTrie</span><span class="op">&lt;</span><span class="lifetime">&#39;trie</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Returns the value that is associated with `code_point` for this [`CodePointTrie`]</span>
+    <span class="doccomment">/// as a `u32`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu_codepointtrie::planes;</span>
+    <span class="doccomment">/// let trie = planes::get_planes_trie();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let cp = &#39;𑖎&#39; as u32;</span>
+    <span class="doccomment">/// assert_eq!(cp, 0x1158E);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let plane_num: u8 = trie.get(cp);</span>
+    <span class="doccomment">/// assert_eq!(trie.get_u32(cp), plane_num as u32);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="comment">// Note: This API method maintains consistency with the corresponding</span>
+    <span class="comment">// original ICU APIs.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_u32</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">code_point</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> {
+        <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">code_point</span>).<span class="ident">into</span>()
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;trie</span>, <span class="ident">T</span>: <span class="ident">TrieValue</span><span class="op">&gt;</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">CodePointTrie</span><span class="op">&lt;</span><span class="lifetime">&#39;trie</span>, <span class="ident">T</span><span class="op">&gt;</span>
@@ -1838,7 +1980,7 @@
     <span class="ident">cpm_range</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CodePointMapRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">TrieValue</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">CodePointMapRangeIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>: <span class="ident">TrieValue</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">CodePointMapRangeIterator</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">CodePointMapRange</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
@@ -1862,11 +2004,11 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::planes</span>;
     <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde_serialize&quot;</span>)]</span>
     <span class="kw">use</span> <span class="ident">zerovec::ZeroVec</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde_serialize&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_serde_with_postcard_roundtrip</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">postcard::Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">trie</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::planes::get_planes_trie</span>();
         <span class="kw">let</span> <span class="ident">trie_serialized</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">postcard::to_allocvec</span>(<span class="kw-2">&amp;</span><span class="ident">trie</span>).<span class="ident">unwrap</span>();

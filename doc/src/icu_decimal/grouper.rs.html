@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_decimal-0.5.0/src/grouper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grouper.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_decimal-0.6.0/src/grouper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>grouper.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_decimal/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -141,7 +141,6 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
-<span id="139">139</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -187,11 +186,12 @@
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_grouper</span>() {
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::options</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider</span>::<span class="kw-2">*</span>;
     <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::FixedDecimalFormat</span>;
     <span class="kw">use</span> <span class="ident">fixed_decimal::FixedDecimal</span>;
     <span class="kw">use</span> <span class="ident">icu_locid::LanguageIdentifier</span>;
     <span class="kw">use</span> <span class="ident">icu_provider::prelude</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident">icu_provider::struct_provider::AnyPayloadProvider</span>;
+    <span class="kw">use</span> <span class="ident">icu_provider_adapters::struct_provider::AnyPayloadProvider</span>;
     <span class="kw">use</span> <span class="ident">writeable::Writeable</span>;
 
     <span class="kw">let</span> <span class="ident">western_sizes</span> <span class="op">=</span> <span class="ident">GroupingSizesV1</span> {
@@ -260,24 +260,22 @@
                 ..<span class="ident">Default::default</span>()
             };
             <span class="kw">let</span> <span class="ident">provider</span> <span class="op">=</span> <span class="ident">AnyPayloadProvider</span> {
-                <span class="ident">key</span>: <span class="ident"><span class="kw">crate</span>::provider::key::SYMBOLS_V1</span>,
-                <span class="ident">data</span>: <span class="ident">DataPayload</span>::<span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::provider::DecimalSymbolsV1Marker</span><span class="op">&gt;</span><span class="ident">::from_owned</span>(
-                    <span class="ident">data_struct</span>,
-                )
-                .<span class="ident">wrap_into_any_payload</span>(),
+                <span class="ident">key</span>: <span class="ident">DecimalSymbolsV1Marker::KEY</span>,
+                <span class="ident">data</span>: <span class="ident">DataPayload</span>::<span class="op">&lt;</span><span class="ident">DecimalSymbolsV1Marker</span><span class="op">&gt;</span><span class="ident">::from_owned</span>(<span class="ident">data_struct</span>)
+                    .<span class="ident">wrap_into_any_payload</span>(),
             };
             <span class="kw">let</span> <span class="ident">options</span> <span class="op">=</span> <span class="ident">options::FixedDecimalFormatOptions</span> {
                 <span class="ident">grouping_strategy</span>: <span class="ident">cas</span>.<span class="ident">strategy</span>,
                 ..<span class="ident">Default::default</span>()
             };
             <span class="kw">let</span> <span class="ident">fdf</span> <span class="op">=</span> <span class="ident">FixedDecimalFormat::try_new</span>(
-                <span class="ident">LanguageIdentifier::und</span>(),
+                <span class="ident">LanguageIdentifier::UND</span>,
                 <span class="kw-2">&amp;</span><span class="ident">provider</span>.<span class="ident">as_downcasting</span>(),
                 <span class="ident">options</span>,
             )
             .<span class="ident">unwrap</span>();
             <span class="kw">let</span> <span class="ident">actual</span> <span class="op">=</span> <span class="ident">fdf</span>.<span class="ident">format</span>(<span class="kw-2">&amp;</span><span class="ident">dec</span>);
-            <span class="macro">assert_eq!</span>(<span class="ident">cas</span>.<span class="ident">expected</span>[<span class="ident">i</span>], <span class="ident">actual</span>.<span class="ident">writeable_to_string</span>(), <span class="string">&quot;{:?}&quot;</span>, <span class="ident">cas</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">cas</span>.<span class="ident">expected</span>[<span class="ident">i</span>], <span class="ident">actual</span>.<span class="ident">write_to_string</span>(), <span class="string">&quot;{:?}&quot;</span>, <span class="ident">cas</span>);
         }
     }
 }

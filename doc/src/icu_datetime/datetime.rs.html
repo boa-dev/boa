@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -235,15 +235,6 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
-<span id="233">233</span>
-<span id="234">234</span>
-<span id="235">235</span>
-<span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
-<span id="240">240</span>
-<span id="241">241</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -254,18 +245,19 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">options</span>::{<span class="ident">components</span>, <span class="ident">DateTimeFormatOptions</span>},
     <span class="ident">provider::calendar</span>::{<span class="ident">DatePatternsV1Marker</span>, <span class="ident">DateSkeletonPatternsV1Marker</span>, <span class="ident">DateSymbolsV1Marker</span>},
+    <span class="ident">provider::week_data::WeekDataV1Marker</span>,
     <span class="ident">raw</span>,
 };
 <span class="kw">use</span> <span class="ident">alloc::string::String</span>;
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
-<span class="kw">use</span> <span class="ident">icu_locid::Locale</span>;
-<span class="kw">use</span> <span class="ident">icu_plurals::provider::PluralRulesV1Marker</span>;
+<span class="kw">use</span> <span class="ident">icu_locid</span>::{<span class="ident">unicode_ext_key</span>, <span class="ident">Locale</span>};
+<span class="kw">use</span> <span class="ident">icu_plurals::provider::OrdinalV1Marker</span>;
 <span class="kw">use</span> <span class="ident">icu_provider::prelude</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">date::DateTimeInput</span>, <span class="ident">CldrCalendar</span>, <span class="ident">DateTimeFormatError</span>, <span class="ident">FormattedDateTime</span>};
 
 <span class="doccomment">/// [`DateTimeFormat`] is the main structure of the [`icu_datetime`] component.</span>
-<span class="doccomment">/// When constructed, it uses data from the [`DataProvider`], selected [`Locale`] and provided options to</span>
+<span class="doccomment">/// When constructed, it uses data from the [data provider], selected [`Locale`] and provided options to</span>
 <span class="doccomment">/// collect all data necessary to format any dates into that locale.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// For that reason, one should think of the process of formatting a date in two steps - first, a computational</span>
@@ -277,58 +269,52 @@
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use icu::locid::Locale;</span>
-<span class="doccomment">/// use icu::locid::macros::langid;</span>
+<span class="doccomment">/// use icu::locid::locale;</span>
 <span class="doccomment">/// use icu::datetime::{DateTimeFormat, options::length};</span>
 <span class="doccomment">/// use icu::calendar::{DateTime, Gregorian};</span>
 <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// let provider = InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let options = length::Bag {</span>
-<span class="doccomment">///     date: Some(length::Date::Medium),</span>
-<span class="doccomment">///     time: Some(length::Time::Short),</span>
-<span class="doccomment">///     ..Default::default()</span>
-<span class="doccomment">/// };</span>
-<span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale, &amp;provider, &amp;options.into())</span>
+<span class="doccomment">/// let mut options = length::Bag::from_date_time_style(length::Date::Medium, length::Time::Short);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale!(&quot;en&quot;), &amp;provider, &amp;options.into())</span>
 <span class="doccomment">///     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28)</span>
+<span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28, 0)</span>
 <span class="doccomment">///     .expect(&quot;Failed to construct DateTime.&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let value = dtf.format_to_string(&amp;datetime);</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This model replicates that of `ICU` and `ECMA402`. In the future this will become even more pronounced</span>
-<span class="doccomment">/// when we introduce asynchronous [`DataProvider`] and corresponding asynchronous constructor.</span>
+<span class="doccomment">/// This model replicates that of `ICU` and `ECMA402`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [data provider]: icu_provider</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DateTimeFormat</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>(<span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">raw::DateTimeFormat</span>, <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">C</span>: <span class="ident">CldrCalendar</span><span class="op">&gt;</span> <span class="ident">DateTimeFormat</span><span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constructor that takes a selected [`Locale`], reference to a [`DataProvider`] and</span>
+    <span class="doccomment">/// Constructor that takes a selected [`Locale`], reference to a [data provider] and</span>
     <span class="doccomment">/// a list of options, then collects all data necessary to format date and time values into the given locale.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
     <span class="doccomment">/// use icu::calendar::Gregorian;</span>
     <span class="doccomment">/// use icu::datetime::{DateTimeFormat, DateTimeFormatOptions};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let provider = InvariantDataProvider;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let options = DateTimeFormatOptions::default();</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale, &amp;provider, &amp;options);</span>
+    <span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale!(&quot;en&quot;), &amp;provider, &amp;options);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(dtf.is_ok(), true);</span>
     <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [data provider]: icu_provider</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_new</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>, <span class="ident">D</span><span class="op">&gt;</span>(
         <span class="ident">locale</span>: <span class="ident">T</span>,
@@ -336,13 +322,21 @@
         <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">DateTimeFormatOptions</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">D</span>: <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">DateSymbolsV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">DatePatternsV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">DateSkeletonPatternsV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">PluralRulesV1Marker</span><span class="op">&gt;</span>,
+        <span class="ident">D</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">DateSymbolsV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">DatePatternsV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">DateSkeletonPatternsV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">OrdinalV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">WeekDataV1Marker</span><span class="op">&gt;</span>,
     {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">into</span>();
+        <span class="comment">// TODO(#419): Resolve the locale calendar with the API calendar.</span>
+        <span class="ident">locale</span>
+            .<span class="ident">extensions</span>
+            .<span class="ident">unicode</span>
+            .<span class="ident">keywords</span>
+            .<span class="ident">set</span>(<span class="macro">unicode_ext_key!</span>(<span class="string">&quot;ca&quot;</span>), <span class="ident">C::BCP_47_IDENTIFIER</span>);
         <span class="prelude-val">Ok</span>(<span class="self">Self</span>(
-            <span class="ident">raw::DateTimeFormat::try_new</span>(<span class="ident">locale</span>, <span class="ident">data_provider</span>, <span class="ident">options</span>, <span class="ident">C::IDENTIFIER</span>)<span class="question-mark">?</span>,
+            <span class="ident">raw::DateTimeFormat::try_new</span>(<span class="ident">locale</span>, <span class="ident">data_provider</span>, <span class="ident">options</span>)<span class="question-mark">?</span>,
             <span class="ident">PhantomData</span>,
         ))
     }
@@ -353,18 +347,16 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
     <span class="doccomment">/// use icu::datetime::{DateTimeFormat, DateTimeFormatOptions};</span>
     <span class="doccomment">/// use icu::calendar::{DateTime, Gregorian};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
-    <span class="doccomment">/// # let locale: Locale = langid!(&quot;en&quot;).into();</span>
+    <span class="doccomment">/// # let locale = icu::locid::locale!(&quot;en&quot;);</span>
     <span class="doccomment">/// # let provider = InvariantDataProvider;</span>
     <span class="doccomment">/// # let options = DateTimeFormatOptions::default();</span>
     <span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale, &amp;provider, &amp;options)</span>
     <span class="doccomment">///     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28)</span>
+    <span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28, 0)</span>
     <span class="doccomment">///     .expect(&quot;Failed to construct DateTime.&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let formatted_date = dtf.format(&amp;datetime);</span>
@@ -389,18 +381,16 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
     <span class="doccomment">/// use icu::datetime::{DateTimeFormat, DateTimeFormatOptions};</span>
     <span class="doccomment">/// use icu::calendar::{DateTime, Gregorian};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
-    <span class="doccomment">/// # let locale: Locale = langid!(&quot;en&quot;).into();</span>
+    <span class="doccomment">/// # let locale = icu::locid::locale!(&quot;en&quot;);</span>
     <span class="doccomment">/// # let provider = InvariantDataProvider;</span>
     <span class="doccomment">/// # let options = DateTimeFormatOptions::default();</span>
     <span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale, &amp;provider, &amp;options.into())</span>
     <span class="doccomment">///     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28)</span>
+    <span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28, 0)</span>
     <span class="doccomment">///     .expect(&quot;Failed to construct DateTime.&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut buffer = String::new();</span>
@@ -423,18 +413,16 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
     <span class="doccomment">/// use icu::datetime::{DateTimeFormat, DateTimeFormatOptions};</span>
     <span class="doccomment">/// use icu::calendar::{DateTime, Gregorian};</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
-    <span class="doccomment">/// # let locale: Locale = langid!(&quot;en&quot;).into();</span>
+    <span class="doccomment">/// # let locale = icu::locid::locale!(&quot;en&quot;);</span>
     <span class="doccomment">/// # let provider = InvariantDataProvider;</span>
     <span class="doccomment">/// # let options = DateTimeFormatOptions::default();</span>
     <span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale, &amp;provider, &amp;options.into())</span>
     <span class="doccomment">///     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28)</span>
+    <span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28, 0)</span>
     <span class="doccomment">///     .expect(&quot;Failed to construct DateTime.&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let _ = dtf.format_to_string(&amp;datetime);</span>
@@ -457,28 +445,22 @@
     <span class="doccomment">///     options::{components, length},</span>
     <span class="doccomment">///     DateTimeFormat, DateTimeFormatOptions,</span>
     <span class="doccomment">/// };</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
-    <span class="doccomment">/// use icu::locid::Locale;</span>
+    <span class="doccomment">/// use icu::locid::locale;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let options = DateTimeFormatOptions::Length(length::Bag {</span>
-    <span class="doccomment">///     date: Some(length::Date::Medium),</span>
-    <span class="doccomment">///     time: None,</span>
-    <span class="doccomment">///     preferences: None,</span>
-    <span class="doccomment">/// });</span>
+    <span class="doccomment">/// let options = length::Bag::from_date_style(length::Date::Medium).into();</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
     <span class="doccomment">/// let provider = icu_testdata::get_provider();</span>
-    <span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale, &amp;provider, &amp;options)</span>
+    <span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale!(&quot;en&quot;), &amp;provider, &amp;options)</span>
     <span class="doccomment">///     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut expected_components_bag = components::Bag::default();</span>
+    <span class="doccomment">/// expected_components_bag.year = Some(components::Year::Numeric);</span>
+    <span class="doccomment">/// expected_components_bag.month = Some(components::Month::Short);</span>
+    <span class="doccomment">/// expected_components_bag.day = Some(components::Day::NumericDayOfMonth);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     dtf.resolve_components(),</span>
-    <span class="doccomment">///     components::Bag {</span>
-    <span class="doccomment">///         year: Some(components::Year::Numeric),</span>
-    <span class="doccomment">///         month: Some(components::Month::Short),</span>
-    <span class="doccomment">///         day: Some(components::Numeric::Numeric),</span>
-    <span class="doccomment">///         ..Default::default()</span>
-    <span class="doccomment">///     }</span>
+    <span class="doccomment">///     expected_components_bag</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve_components</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">components::Bag</span> {

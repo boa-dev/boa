@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/fields/symbols.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbols.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/fields/symbols.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>symbols.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -396,11 +396,6 @@
 <span id="391">391</span>
 <span id="392">392</span>
 <span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -408,9 +403,10 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fields::FieldLength</span>;
 <span class="kw">use</span> <span class="ident">core</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">convert::TryFrom</span>};
 <span class="kw">use</span> <span class="ident">displaydoc::Display</span>;
-<span class="kw">use</span> <span class="ident">icu_provider::yoke</span>::{<span class="self">self</span>, <span class="ident">Yokeable</span>, <span class="ident">ZeroCopyFrom</span>};
+<span class="kw">use</span> <span class="ident">icu_provider</span>::{<span class="ident">yoke</span>, <span class="ident">zerofrom</span>};
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Display</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Display</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">SymbolError</span> {
     <span class="doccomment">/// Invalid field symbol index.</span>
     <span class="attribute">#[<span class="ident">displaydoc</span>(<span class="string">&quot;Invalid field symbol index: {0}&quot;</span>)]</span>
@@ -426,10 +422,7 @@
 <span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">SymbolError</span> {}
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FieldSymbol</span> {
     <span class="ident">Era</span>,
     <span class="ident">Year</span>(<span class="ident">Year</span>),
@@ -637,19 +630,12 @@
         })
         .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Year::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Year</span>))
         .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Month::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Month</span>))
-        .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-            <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;w&#39;</span> {
-                <span class="ident">Week::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Week</span>)
-            } <span class="kw">else</span> {
-                <span class="comment">// TODO(#488): Add support for &#39;W&#39;.</span>
-                <span class="prelude-val">Err</span>(<span class="ident">SymbolError::Unknown</span>(<span class="ident">ch</span>))
-            }
-        })
+        .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Week::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Week</span>))
         .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Day::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Day</span>))
         .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Weekday::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Weekday</span>))
         .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">DayPeriod::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::DayPeriod</span>))
         .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">Hour::try_from</span>(<span class="ident">ch</span>).<span class="ident">map</span>(<span class="ident"><span class="self">Self</span>::Hour</span>))
-        .<span class="ident">or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+        .<span class="ident">or</span>({
             <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">&#39;m&#39;</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::Minute</span>)
             } <span class="kw">else</span> {
@@ -692,14 +678,14 @@
 }
 
 <span class="macro">field_type!</span>(<span class="ident">Year</span>; {
-    <span class="string">&#39;y&#39;</span> =&gt; <span class="ident">Calendar</span>,
-    <span class="string">&#39;Y&#39;</span> =&gt; <span class="ident">WeekOf</span>
-}; <span class="ident">Numeric</span>);
+    <span class="string">&#39;y&#39;</span> =&gt; <span class="ident">Calendar</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;Y&#39;</span> =&gt; <span class="ident">WeekOf</span> <span class="op">=</span> <span class="number">1</span>,
+}; <span class="ident">Numeric</span>; <span class="ident">YearULE</span>);
 
 <span class="macro">field_type!</span>(<span class="ident">Month</span>; {
-    <span class="string">&#39;M&#39;</span> =&gt; <span class="ident">Format</span>,
-    <span class="string">&#39;L&#39;</span> =&gt; <span class="ident">StandAlone</span>
-});
+    <span class="string">&#39;M&#39;</span> =&gt; <span class="ident">Format</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;L&#39;</span> =&gt; <span class="ident">StandAlone</span> <span class="op">=</span> <span class="number">1</span>,
+}; <span class="ident">MonthULE</span>);
 
 <span class="kw">impl</span> <span class="ident">LengthType</span> <span class="kw">for</span> <span class="ident">Month</span> {
     <span class="kw">fn</span> <span class="ident">get_length_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">length</span>: <span class="ident">FieldLength</span>) -&gt; <span class="ident">TextOrNumeric</span> {
@@ -710,40 +696,44 @@
             <span class="ident">FieldLength::Wide</span> =&gt; <span class="ident">TextOrNumeric::Text</span>,
             <span class="ident">FieldLength::Narrow</span> =&gt; <span class="ident">TextOrNumeric::Text</span>,
             <span class="ident">FieldLength::Six</span> =&gt; <span class="ident">TextOrNumeric::Text</span>,
+            <span class="ident">FieldLength::Fixed</span>(<span class="kw">_</span>) =&gt; {
+                <span class="macro">debug_assert!</span>(<span class="bool-val">false</span>, <span class="string">&quot;Fixed field length is only supported for seconds&quot;</span>);
+                <span class="ident">TextOrNumeric::Text</span>
+            }
         }
     }
 }
 
 <span class="macro">field_type!</span>(<span class="ident">Day</span>; {
-    <span class="string">&#39;d&#39;</span> =&gt; <span class="ident">DayOfMonth</span>,
-    <span class="string">&#39;D&#39;</span> =&gt; <span class="ident">DayOfYear</span>,
-    <span class="string">&#39;F&#39;</span> =&gt; <span class="ident">DayOfWeekInMonth</span>,
-    <span class="string">&#39;g&#39;</span> =&gt; <span class="ident">ModifiedJulianDay</span>
-}; <span class="ident">Numeric</span>);
+    <span class="string">&#39;d&#39;</span> =&gt; <span class="ident">DayOfMonth</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;D&#39;</span> =&gt; <span class="ident">DayOfYear</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="string">&#39;F&#39;</span> =&gt; <span class="ident">DayOfWeekInMonth</span> <span class="op">=</span> <span class="number">2</span>,
+    <span class="string">&#39;g&#39;</span> =&gt; <span class="ident">ModifiedJulianDay</span> <span class="op">=</span> <span class="number">3</span>,
+}; <span class="ident">Numeric</span>; <span class="ident">DayULE</span>);
 
 <span class="macro">field_type!</span>(<span class="ident">Hour</span>; {
-    <span class="string">&#39;K&#39;</span> =&gt; <span class="ident">H11</span>,
-    <span class="string">&#39;h&#39;</span> =&gt; <span class="ident">H12</span>,
-    <span class="string">&#39;H&#39;</span> =&gt; <span class="ident">H23</span>,
-    <span class="string">&#39;k&#39;</span> =&gt; <span class="ident">H24</span>
-}; <span class="ident">Numeric</span>);
+    <span class="string">&#39;K&#39;</span> =&gt; <span class="ident">H11</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;h&#39;</span> =&gt; <span class="ident">H12</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="string">&#39;H&#39;</span> =&gt; <span class="ident">H23</span> <span class="op">=</span> <span class="number">2</span>,
+    <span class="string">&#39;k&#39;</span> =&gt; <span class="ident">H24</span> <span class="op">=</span> <span class="number">3</span>,
+}; <span class="ident">Numeric</span>; <span class="ident">HourULE</span>);
 
 <span class="macro">field_type!</span>(<span class="ident">Second</span>; {
-    <span class="string">&#39;s&#39;</span> =&gt; <span class="ident">Second</span>,
-    <span class="string">&#39;S&#39;</span> =&gt; <span class="ident">FractionalSecond</span>,
-    <span class="string">&#39;A&#39;</span> =&gt; <span class="ident">Millisecond</span>
-}; <span class="ident">Numeric</span>);
+    <span class="string">&#39;s&#39;</span> =&gt; <span class="ident">Second</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;S&#39;</span> =&gt; <span class="ident">FractionalSecond</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="string">&#39;A&#39;</span> =&gt; <span class="ident">Millisecond</span> <span class="op">=</span> <span class="number">2</span>,
+}; <span class="ident">Numeric</span>; <span class="ident">SecondULE</span>);
 
 <span class="macro">field_type!</span>(<span class="ident">Week</span>; {
-    <span class="string">&#39;w&#39;</span> =&gt; <span class="ident">WeekOfYear</span>,
-    <span class="string">&#39;W&#39;</span> =&gt; <span class="ident">WeekOfMonth</span>
-}; <span class="ident">Numeric</span>);
+    <span class="string">&#39;w&#39;</span> =&gt; <span class="ident">WeekOfYear</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;W&#39;</span> =&gt; <span class="ident">WeekOfMonth</span> <span class="op">=</span> <span class="number">1</span>,
+}; <span class="ident">Numeric</span>; <span class="ident">WeekULE</span>);
 
 <span class="macro">field_type!</span>(<span class="ident">Weekday</span>; {
-    <span class="string">&#39;E&#39;</span> =&gt; <span class="ident">Format</span>,
-    <span class="string">&#39;e&#39;</span> =&gt; <span class="ident">Local</span>,
-    <span class="string">&#39;c&#39;</span> =&gt; <span class="ident">StandAlone</span>
-});
+    <span class="string">&#39;E&#39;</span> =&gt; <span class="ident">Format</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;e&#39;</span> =&gt; <span class="ident">Local</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="string">&#39;c&#39;</span> =&gt; <span class="ident">StandAlone</span> <span class="op">=</span> <span class="number">2</span>,
+}; <span class="ident">WeekdayULE</span>);
 
 <span class="kw">impl</span> <span class="ident">LengthType</span> <span class="kw">for</span> <span class="ident">Weekday</span> {
     <span class="kw">fn</span> <span class="ident">get_length_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">length</span>: <span class="ident">FieldLength</span>) -&gt; <span class="ident">TextOrNumeric</span> {
@@ -758,19 +748,19 @@
 }
 
 <span class="macro">field_type!</span>(<span class="ident">DayPeriod</span>; {
-    <span class="string">&#39;a&#39;</span> =&gt; <span class="ident">AmPm</span>,
-    <span class="string">&#39;b&#39;</span> =&gt; <span class="ident">NoonMidnight</span>
-}; <span class="ident">Text</span>);
+    <span class="string">&#39;a&#39;</span> =&gt; <span class="ident">AmPm</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;b&#39;</span> =&gt; <span class="ident">NoonMidnight</span> <span class="op">=</span> <span class="number">1</span>,
+}; <span class="ident">Text</span>; <span class="ident">DayPeriodULE</span>);
 
 <span class="macro">field_type!</span>(<span class="ident">TimeZone</span>; {
-    <span class="string">&#39;z&#39;</span> =&gt; <span class="ident">LowerZ</span>,
-    <span class="string">&#39;Z&#39;</span> =&gt; <span class="ident">UpperZ</span>,
-    <span class="string">&#39;O&#39;</span> =&gt; <span class="ident">UpperO</span>,
-    <span class="string">&#39;v&#39;</span> =&gt; <span class="ident">LowerV</span>,
-    <span class="string">&#39;V&#39;</span> =&gt; <span class="ident">UpperV</span>,
-    <span class="string">&#39;x&#39;</span> =&gt; <span class="ident">LowerX</span>,
-    <span class="string">&#39;X&#39;</span> =&gt; <span class="ident">UpperX</span>
-});
+    <span class="string">&#39;z&#39;</span> =&gt; <span class="ident">LowerZ</span> <span class="op">=</span> <span class="number">0</span>,
+    <span class="string">&#39;Z&#39;</span> =&gt; <span class="ident">UpperZ</span> <span class="op">=</span> <span class="number">1</span>,
+    <span class="string">&#39;O&#39;</span> =&gt; <span class="ident">UpperO</span> <span class="op">=</span> <span class="number">2</span>,
+    <span class="string">&#39;v&#39;</span> =&gt; <span class="ident">LowerV</span> <span class="op">=</span> <span class="number">3</span>,
+    <span class="string">&#39;V&#39;</span> =&gt; <span class="ident">UpperV</span> <span class="op">=</span> <span class="number">4</span>,
+    <span class="string">&#39;x&#39;</span> =&gt; <span class="ident">LowerX</span> <span class="op">=</span> <span class="number">5</span>,
+    <span class="string">&#39;X&#39;</span> =&gt; <span class="ident">UpperX</span> <span class="op">=</span> <span class="number">6</span>,
+}; <span class="ident">TimeZoneULE</span>);
 
 <span class="kw">impl</span> <span class="ident">LengthType</span> <span class="kw">for</span> <span class="ident">TimeZone</span> {
     <span class="kw">fn</span> <span class="ident">get_length_type</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">length</span>: <span class="ident">FieldLength</span>) -&gt; <span class="ident">TextOrNumeric</span> {

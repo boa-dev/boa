@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["AnyCalendar","This is a calendar that encompasses all formattable calendars supported by this crate"],["AnyCalendarKind","Convenient type for selecting the kind of AnyCalendar to construct"],["AnyDateInner","The inner date type for [`AnyCalendar`]"]],"trait":[["IncludedInAnyCalendar","Trait for calendars that may be converted to [`AnyCalendar`]"]]});

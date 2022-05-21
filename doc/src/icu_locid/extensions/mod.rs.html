@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locid-0.5.0/src/extensions/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locid-0.6.0/src/extensions/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_locid/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -232,6 +232,61 @@
 <span id="227">227</span>
 <span id="228">228</span>
 <span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -268,7 +323,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let key: Key = &quot;ca&quot;.parse().expect(&quot;Parsing key failed.&quot;);</span>
 <span class="doccomment">//! let value: Value = &quot;buddhist&quot;.parse().expect(&quot;Parsing value failed.&quot;);</span>
-<span class="doccomment">//! assert_eq!(loc.extensions.unicode.keywords.get(key),</span>
+<span class="doccomment">//! assert_eq!(loc.extensions.unicode.keywords.get(&amp;key),</span>
 <span class="doccomment">//!            Some(&amp;value));</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
@@ -290,12 +345,12 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">unicode::Unicode</span>;
 
 <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
-<span class="kw">use</span> <span class="ident">core::iter::Peekable</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::ParserError</span>;
-
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::SubtagIterator</span>;
 <span class="doccomment">/// Defines the type of extension.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ExtensionType</span> {
     <span class="doccomment">/// Transform Extension Type marked as `t`.</span>
     <span class="ident">Transform</span>,
@@ -324,6 +379,7 @@
 <span class="doccomment">/// A map of extensions associated with a given [`Locale`](crate::Locale).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// TODO(#1028) - Add missing docs.</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Extensions</span> {
     <span class="kw">pub</span> <span class="ident">unicode</span>: <span class="ident">Unicode</span>,
     <span class="kw">pub</span> <span class="ident">transform</span>: <span class="ident">Transform</span>,
@@ -370,9 +426,46 @@
             <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">other</span>.<span class="ident">is_empty</span>()
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_from_iter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(
-        <span class="ident">iter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Peekable</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParserError</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Retains the specified extension types, clearing all others.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use std::str::FromStr;</span>
+    <span class="doccomment">/// use icu::locid::Locale;</span>
+    <span class="doccomment">/// use icu::locid::extensions::ExtensionType;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let loc: Locale = &quot;und-a-hello-t-mul-u-world-z-zzz-x-extra&quot;.parse().unwrap();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut only_unicode = loc.clone();</span>
+    <span class="doccomment">/// only_unicode.extensions.retain_by_type(|t| t == ExtensionType::Unicode);</span>
+    <span class="doccomment">/// assert_eq!(only_unicode, &quot;und-u-world&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut only_t_z = loc.clone();</span>
+    <span class="doccomment">/// only_t_z.extensions.retain_by_type(|t| {</span>
+    <span class="doccomment">///     t == ExtensionType::Transform</span>
+    <span class="doccomment">///         || t == ExtensionType::Other(b&#39;z&#39;)</span>
+    <span class="doccomment">/// });</span>
+    <span class="doccomment">/// assert_eq!(only_t_z, &quot;und-t-mul-z-zzz&quot;);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">retain_by_type</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">predicate</span>: <span class="ident">F</span>)
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">ExtensionType</span>) -&gt; <span class="ident">bool</span>,
+    {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">predicate</span>(<span class="ident">ExtensionType::Unicode</span>) {
+            <span class="self">self</span>.<span class="ident">unicode</span>.<span class="ident">clear</span>();
+        }
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">predicate</span>(<span class="ident">ExtensionType::Transform</span>) {
+            <span class="self">self</span>.<span class="ident">transform</span>.<span class="ident">clear</span>();
+        }
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">predicate</span>(<span class="ident">ExtensionType::Private</span>) {
+            <span class="self">self</span>.<span class="ident">private</span>.<span class="ident">clear</span>();
+        }
+        <span class="self">self</span>.<span class="ident">other</span>
+            .<span class="ident">retain</span>(<span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="ident">predicate</span>(<span class="ident">ExtensionType::Other</span>(<span class="ident">o</span>.<span class="ident">get_ext_byte</span>())));
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">try_from_iter</span>(<span class="ident">iter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">SubtagIterator</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParserError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transform</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">private</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -412,54 +505,71 @@
             <span class="ident">other</span>,
         })
     }
-}
 
-<span class="kw">impl</span> <span class="ident">core::fmt::Display</span> <span class="kw">for</span> <span class="ident">Extensions</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">core::fmt::Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
-        <span class="ident">writeable::Writeable::write_to</span>(<span class="self">self</span>, <span class="ident">f</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">writeable::Writeable</span> <span class="kw">for</span> <span class="ident">Extensions</span> {
-    <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">core::fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">core::fmt::Result</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">for_each_subtag_str</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>,
+    {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wrote_tu</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="comment">// Alphabetic by singleton</span>
         <span class="self">self</span>.<span class="ident">other</span>.<span class="ident">iter</span>().<span class="ident">try_for_each</span>(<span class="op">|</span><span class="ident">other</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="ident">other</span>.<span class="ident">get_ext</span>() <span class="op">&gt;</span> <span class="string">&#39;t&#39;</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">wrote_tu</span> {
                 <span class="comment">// Since &#39;t&#39; and &#39;u&#39; are next to each other in alphabetical</span>
                 <span class="comment">// order, write both now.</span>
-                <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">transform</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
-                <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">unicode</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">transform</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">unicode</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
                 <span class="ident">wrote_tu</span> <span class="op">=</span> <span class="bool-val">true</span>;
             }
-            <span class="ident">writeable::Writeable::write_to</span>(<span class="ident">other</span>, <span class="ident">sink</span>)
+            <span class="ident">other</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(())
         })<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">wrote_tu</span> {
-            <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">transform</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
-            <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">unicode</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">transform</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">unicode</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
         }
 
         <span class="comment">// Private must be written last, since it allows single character</span>
         <span class="comment">// keys. Extensions must also be written in alphabetical order,</span>
         <span class="comment">// which would seem to imply that other extensions `y` and `z` are</span>
         <span class="comment">// invalid, but this is not specified.</span>
-        <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">private</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">private</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
+}
 
-    <span class="kw">fn</span> <span class="ident">write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">writeable::LengthHint</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">writeable::LengthHint::exact</span>(<span class="number">0</span>);
-        <span class="ident">result</span> <span class="op">+</span><span class="op">=</span> <span class="ident">writeable::Writeable::write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">transform</span>);
-        <span class="ident">result</span> <span class="op">+</span><span class="op">=</span> <span class="ident">writeable::Writeable::write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">unicode</span>);
-        <span class="ident">result</span> <span class="op">+</span><span class="op">=</span> <span class="ident">writeable::Writeable::write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">private</span>);
-        <span class="ident">result</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>
-            .<span class="ident">other</span>
-            .<span class="ident">iter</span>()
-            .<span class="ident">map</span>(<span class="ident">writeable::Writeable::write_len</span>)
-            .<span class="ident">sum</span>::<span class="op">&lt;</span><span class="ident">writeable::LengthHint</span><span class="op">&gt;</span>();
-        <span class="ident">result</span>
-    }
+<span class="macro">impl_writeable_for_each_subtag_str_no_test!</span>(<span class="ident">Extensions</span>);
+
+<span class="attribute">#[<span class="ident">test</span>]</span>
+<span class="kw">fn</span> <span class="ident">test_writeable</span>() {
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Locale</span>;
+    <span class="kw">use</span> <span class="ident">core::str::FromStr</span>;
+    <span class="kw">use</span> <span class="ident">writeable::assert_writeable_eq</span>;
+    <span class="macro">assert_writeable_eq!</span>(<span class="ident">Extensions::new</span>(), <span class="string">&quot;&quot;</span>,);
+    <span class="macro">assert_writeable_eq!</span>(
+        <span class="ident">Locale::from_str</span>(<span class="string">&quot;my-t-my-d0-zawgyi&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">extensions</span>,
+        <span class="string">&quot;t-my-d0-zawgyi&quot;</span>,
+    );
+    <span class="macro">assert_writeable_eq!</span>(
+        <span class="ident">Locale::from_str</span>(<span class="string">&quot;ar-SA-u-ca-islamic-civil&quot;</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">extensions</span>,
+        <span class="string">&quot;u-ca-islamic-civil&quot;</span>,
+    );
+    <span class="macro">assert_writeable_eq!</span>(
+        <span class="ident">Locale::from_str</span>(<span class="string">&quot;en-001-x-foo-bar&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">extensions</span>,
+        <span class="string">&quot;x-foo-bar&quot;</span>,
+    );
+    <span class="macro">assert_writeable_eq!</span>(
+        <span class="ident">Locale::from_str</span>(<span class="string">&quot;und-t-m0-true&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">extensions</span>,
+        <span class="string">&quot;t-m0-true&quot;</span>,
+    );
+    <span class="macro">assert_writeable_eq!</span>(
+        <span class="ident">Locale::from_str</span>(<span class="string">&quot;und-a-foo-t-foo-u-foo-w-foo-z-foo-x-foo&quot;</span>)
+            .<span class="ident">unwrap</span>()
+            .<span class="ident">extensions</span>,
+        <span class="string">&quot;a-foo-t-foo-u-foo-w-foo-z-foo-x-foo&quot;</span>,
+    );
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="icu_locid" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>

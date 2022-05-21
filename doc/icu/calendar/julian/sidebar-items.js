@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Julian",""],["JulianDateInner",""]]});
+initSidebarItems({"struct":[["Julian","The Julian calendar"],["JulianDateInner",""]]});

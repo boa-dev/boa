@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locid-0.5.0/src/locale.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>locale.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locid-0.6.0/src/locale.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>locale.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_locid/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -299,6 +299,128 @@
 <span id="294">294</span>
 <span id="295">295</span>
 <span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
+<span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -307,6 +429,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">extensions</span>, <span class="ident">subtags</span>, <span class="ident">LanguageIdentifier</span>};
 <span class="kw">use</span> <span class="ident">alloc::string::String</span>;
 <span class="kw">use</span> <span class="ident">alloc::string::ToString</span>;
+<span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">core::str::FromStr</span>;
 
 <span class="doccomment">/// A core struct representing a [`Unicode Locale Identifier`].</span>
@@ -336,7 +459,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// let key: Key = &quot;ca&quot;.parse().expect(&quot;Parsing key failed.&quot;);</span>
 <span class="doccomment">/// let value: Value = &quot;buddhist&quot;.parse().expect(&quot;Parsing value failed.&quot;);</span>
-<span class="doccomment">/// assert_eq!(loc.extensions.unicode.keywords.get(key),</span>
+<span class="doccomment">/// assert_eq!(loc.extensions.unicode.keywords.get(&amp;key),</span>
 <span class="doccomment">///     Some(&amp;value));</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
@@ -352,7 +475,7 @@
 <span class="doccomment">/// `_` separators to `-` and adjusting casing to conform to the Unicode standard.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Any bogus subtags will cause the parsing to fail with an error.</span>
-<span class="doccomment">/// No subtag validation is performed.</span>
+<span class="doccomment">/// No subtag validation or canonicalization is performed.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -370,6 +493,7 @@
 <span class="doccomment">/// [`Unicode Locale Identifier`]: https://unicode.org/reports/tr35/tr35.html#Unicode_locale_identifier</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// TODO(#1028) - Add missing docs.</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// This struct is stable (and invoked by a macro)</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Locale</span> {
     <span class="comment">// Language component of the Locale</span>
     <span class="kw">pub</span> <span class="ident">id</span>: <span class="ident">LanguageIdentifier</span>,
@@ -395,24 +519,20 @@
         <span class="ident">parse_locale</span>(<span class="ident">v</span>)
     }
 
-    <span class="doccomment">/// Returns the default undefined locale &quot;und&quot;. Same as [`default()`](Default::default()), but is `const`.</span>
+    <span class="doccomment">/// The default undefined locale &quot;und&quot;. Same as [`default()`](Default::default()).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// use icu::locid::Locale;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// const loc: Locale = Locale::und();</span>
-    <span class="doccomment">/// assert_eq!(Locale::default(), loc);</span>
-    <span class="doccomment">/// assert_eq!(&quot;und&quot;, loc.to_string());</span>
+    <span class="doccomment">/// assert_eq!(Locale::default(), Locale::UND);</span>
+    <span class="doccomment">/// assert_eq!(&quot;und&quot;, Locale::UND.to_string());</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">und</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">id</span>: <span class="ident">LanguageIdentifier::und</span>(),
-            <span class="ident">extensions</span>: <span class="ident">extensions::Extensions::new</span>(),
-        }
-    }
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UND</span>: <span class="self">Self</span> <span class="op">=</span> <span class="self">Self</span> {
+        <span class="ident">id</span>: <span class="ident">LanguageIdentifier::UND</span>,
+        <span class="ident">extensions</span>: <span class="ident">extensions::Extensions::new</span>(),
+    };
 
     <span class="doccomment">/// This is a best-effort operation that performs all available levels of canonicalization.</span>
     <span class="doccomment">///</span>
@@ -431,26 +551,66 @@
         <span class="prelude-val">Ok</span>(<span class="ident">locale</span>.<span class="ident">to_string</span>())
     }
 
-    <span class="doccomment">/// Accessor method for unicode extensions.</span>
+    <span class="doccomment">/// Compare this `Locale` with a BCP-47 string.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The return value is equivalent to what would happen if you first converted this</span>
+    <span class="doccomment">/// `Locale` to a BCP-47 string and then performed a byte comparison.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function is case-sensitive and results in a *total order*, so it is appropriate for</span>
+    <span class="doccomment">/// binary search. The only argument producing [`Ordering::Equal`] is `self.to_string()`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu::locid::{extensions::unicode::Key, Locale};</span>
+    <span class="doccomment">/// use icu::locid::Locale;</span>
+    <span class="doccomment">/// use std::cmp::Ordering;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let loc = Locale::from_bytes(&quot;en-US-u-hc-h12&quot;.as_bytes())</span>
-    <span class="doccomment">///     .expect(&quot;Parsing failed.&quot;);</span>
-    <span class="doccomment">/// let key = &quot;hc&quot;.parse::&lt;Key&gt;()</span>
-    <span class="doccomment">///     .expect(&quot;Invalid key.&quot;);</span>
-    <span class="doccomment">/// let ext = loc.get_unicode_extension(&amp;key)</span>
-    <span class="doccomment">///     .expect(&quot;Extension not defined&quot;);</span>
-    <span class="doccomment">/// assert_eq!(ext.to_string(), &quot;h12&quot;);</span>
+    <span class="doccomment">/// let bcp47_strings: &amp;[&amp;[u8]] = &amp;[</span>
+    <span class="doccomment">///     b&quot;pl-Latn-PL&quot;,</span>
+    <span class="doccomment">///     b&quot;und&quot;,</span>
+    <span class="doccomment">///     b&quot;und-fonipa&quot;,</span>
+    <span class="doccomment">///     b&quot;und-t-m0-true&quot;,</span>
+    <span class="doccomment">///     b&quot;und-u-ca-hebrew&quot;,</span>
+    <span class="doccomment">///     b&quot;und-u-ca-japanese&quot;,</span>
+    <span class="doccomment">///     b&quot;zh&quot;,</span>
+    <span class="doccomment">/// ];</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// for ab in bcp47_strings.windows(2) {</span>
+    <span class="doccomment">///     let a = ab[0];</span>
+    <span class="doccomment">///     let b = ab[1];</span>
+    <span class="doccomment">///     assert!(a.cmp(b) == Ordering::Less);</span>
+    <span class="doccomment">///     let a_langid = Locale::from_bytes(a).unwrap();</span>
+    <span class="doccomment">///     assert!(a_langid.cmp_bytes(b) == Ordering::Less);</span>
+    <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unicode_extension</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">extensions::unicode::Key</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">extensions::unicode::Value</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">extensions</span>.<span class="ident">unicode</span>.<span class="ident">keywords</span>.<span class="ident">get</span>(<span class="ident">key</span>)
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cmp_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Ordering</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">other_iter</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">split</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">b</span> <span class="op">==</span> <span class="string">b&#39;-&#39;</span>);
+        <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">for_each_subtag_str</span>(<span class="kw-2">&amp;mut</span> <span class="op">|</span><span class="ident">subtag</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">other</span>) <span class="op">=</span> <span class="ident">other_iter</span>.<span class="ident">next</span>() {
+                <span class="kw">match</span> <span class="ident">subtag</span>.<span class="ident">as_bytes</span>().<span class="ident">cmp</span>(<span class="ident">other</span>) {
+                    <span class="ident">Ordering::Equal</span> =&gt; <span class="prelude-val">Ok</span>(()),
+                    <span class="ident">not_equal</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">not_equal</span>),
+                }
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Err</span>(<span class="ident">Ordering::Greater</span>)
+            }
+        });
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">r</span> {
+            <span class="kw">return</span> <span class="ident">o</span>;
+        }
+        <span class="kw">if</span> <span class="ident">other_iter</span>.<span class="ident">next</span>().<span class="ident">is_some</span>() {
+            <span class="kw">return</span> <span class="ident">Ordering::Less</span>;
+        }
+        <span class="ident">Ordering::Equal</span>
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">for_each_subtag_str</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">F</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">E</span><span class="op">&gt;</span>,
+    {
+        <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">extensions</span>.<span class="ident">for_each_subtag_str</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(())
     }
 }
 
@@ -495,30 +655,12 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">core::fmt::Display</span> <span class="kw">for</span> <span class="ident">Locale</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">core::fmt::Formatter</span>) -&gt; <span class="ident">core::fmt::Result</span> {
-        <span class="ident">writeable::Writeable::write_to</span>(<span class="self">self</span>, <span class="ident">f</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">writeable::Writeable</span> <span class="kw">for</span> <span class="ident">Locale</span> {
-    <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">core::fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">core::fmt::Result</span> {
-        <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">id</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
-        <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">extensions</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">fn</span> <span class="ident">write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">writeable::LengthHint</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">writeable::Writeable::write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">id</span>);
-        <span class="ident">result</span> <span class="op">+</span><span class="op">=</span> <span class="ident">writeable::Writeable::write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">extensions</span>);
-        <span class="ident">result</span>
-    }
-}
+<span class="macro">impl_writeable_for_each_subtag_str_no_test!</span>(<span class="ident">Locale</span>);
 
 <span class="attribute">#[<span class="ident">test</span>]</span>
 <span class="kw">fn</span> <span class="ident">test_writeable</span>() {
     <span class="kw">use</span> <span class="ident">writeable::assert_writeable_eq</span>;
-    <span class="macro">assert_writeable_eq!</span>(<span class="ident">Locale::und</span>(), <span class="string">&quot;und&quot;</span>);
+    <span class="macro">assert_writeable_eq!</span>(<span class="ident">Locale::UND</span>, <span class="string">&quot;und&quot;</span>);
     <span class="macro">assert_writeable_eq!</span>(<span class="ident">Locale::from_str</span>(<span class="string">&quot;und-001&quot;</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;und-001&quot;</span>);
     <span class="macro">assert_writeable_eq!</span>(<span class="ident">Locale::from_str</span>(<span class="string">&quot;und-Mymr&quot;</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;und-Mymr&quot;</span>);
     <span class="macro">assert_writeable_eq!</span>(<span class="ident">Locale::from_str</span>(<span class="string">&quot;my-Mymr-MM&quot;</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;my-Mymr-MM&quot;</span>);
@@ -542,6 +684,7 @@
         <span class="ident">Locale::from_str</span>(<span class="string">&quot;en-001-x-foo-bar&quot;</span>).<span class="ident">unwrap</span>(),
         <span class="string">&quot;en-001-x-foo-bar&quot;</span>,
     );
+    <span class="macro">assert_writeable_eq!</span>(<span class="ident">Locale::from_str</span>(<span class="string">&quot;und-t-m0-true&quot;</span>).<span class="ident">unwrap</span>(), <span class="string">&quot;und-t-m0-true&quot;</span>,);
 }
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Locale</span> {
@@ -561,7 +704,7 @@
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Locale</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">get_subtag_iterator</span>(<span class="ident">other</span>.<span class="ident">as_bytes</span>()).<span class="ident">peekable</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">get_subtag_iterator</span>(<span class="ident">other</span>.<span class="ident">as_bytes</span>());
         <span class="kw">if</span> <span class="op">!</span><span class="macro">subtag_matches!</span>(<span class="ident">subtags::Language</span>, <span class="ident">iter</span>, <span class="self">self</span>.<span class="ident">id</span>.<span class="ident">language</span>) {
             <span class="kw">return</span> <span class="bool-val">false</span>;
         }
@@ -593,6 +736,107 @@
             }
         }
         <span class="ident">iter</span>.<span class="ident">next</span>() <span class="op">==</span> <span class="prelude-val">None</span>
+    }
+}
+
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use icu::locid::Locale;</span>
+<span class="doccomment">/// use icu::locid::language;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let language = language!(&quot;en&quot;);</span>
+<span class="doccomment">/// let loc = Locale::from(language);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(loc.id.language, &quot;en&quot;);</span>
+<span class="doccomment">/// assert_eq!(loc, &quot;en&quot;);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">subtags::Language</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Locale</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">language</span>: <span class="ident">subtags::Language</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">id</span>: <span class="ident">language</span>.<span class="ident">into</span>(),
+            ..<span class="ident">Default::default</span>()
+        }
+    }
+}
+
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use icu::locid::Locale;</span>
+<span class="doccomment">/// use icu::locid::script;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let script = script!(&quot;latn&quot;);</span>
+<span class="doccomment">/// let loc = Locale::from(Some(script));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(loc.id.script.unwrap(), &quot;Latn&quot;);</span>
+<span class="doccomment">/// assert_eq!(loc, &quot;und-Latn&quot;);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Script</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Locale</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">script</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Script</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">id</span>: <span class="ident">script</span>.<span class="ident">into</span>(),
+            ..<span class="ident">Default::default</span>()
+        }
+    }
+}
+
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use icu::locid::Locale;</span>
+<span class="doccomment">/// use icu::locid::region;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let region = region!(&quot;US&quot;);</span>
+<span class="doccomment">/// let loc = Locale::from(Some(region));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(loc.id.region.unwrap(), &quot;US&quot;);</span>
+<span class="doccomment">/// assert_eq!(loc, &quot;und-US&quot;);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Region</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Locale</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">region</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Region</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">id</span>: <span class="ident">region</span>.<span class="ident">into</span>(),
+            ..<span class="ident">Default::default</span>()
+        }
+    }
+}
+
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use icu::locid::Locale;</span>
+<span class="doccomment">/// use icu::locid::{language, script, region};</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let lang = language!(&quot;en&quot;);</span>
+<span class="doccomment">/// let script = script!(&quot;Latn&quot;);</span>
+<span class="doccomment">/// let region = region!(&quot;US&quot;);</span>
+<span class="doccomment">/// let loc = Locale::from((lang, Some(script), Some(region)));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(loc.id.language, &quot;en&quot;);</span>
+<span class="doccomment">/// assert_eq!(loc.id.script.unwrap(), &quot;Latn&quot;);</span>
+<span class="doccomment">/// assert_eq!(loc.id.region.unwrap(), &quot;US&quot;);</span>
+<span class="doccomment">/// assert_eq!(loc.id.variants.len(), 0);</span>
+<span class="doccomment">/// assert_eq!(loc, &quot;en-Latn-US&quot;);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">impl</span>
+    <span class="ident">From</span><span class="op">&lt;</span>(
+        <span class="ident">subtags::Language</span>,
+        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Script</span><span class="op">&gt;</span>,
+        <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Region</span><span class="op">&gt;</span>,
+    )<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Locale</span>
+{
+    <span class="kw">fn</span> <span class="ident">from</span>(
+        <span class="ident">lsr</span>: (
+            <span class="ident">subtags::Language</span>,
+            <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Script</span><span class="op">&gt;</span>,
+            <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">subtags::Region</span><span class="op">&gt;</span>,
+        ),
+    ) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">id</span>: <span class="ident">lsr</span>.<span class="ident">into</span>(),
+            ..<span class="ident">Default::default</span>()
+        }
     }
 }
 </code></pre></div>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.5.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.6.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_provider/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -166,108 +166,171 @@
 <span id="161">161</span>
 <span id="162">162</span>
 <span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="doccomment">//! `icu_provider` is one of the [`ICU4X`] components.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! It defines traits and structs for transmitting data through the ICU4X locale data pipeline.</span>
-<span class="doccomment">//! The primary trait is [`DataProvider`]. It has one method, which transforms a [`Request`] into</span>
-<span class="doccomment">//! a [`Response`]:</span>
+<span class="doccomment">//! `icu_provider` defines traits and structs for transmitting data through the ICU4X locale</span>
+<span class="doccomment">//! data pipeline. The primary trait is [`ResourceProvider`]. It is parameterized by a</span>
+<span class="doccomment">//! [`ResourceMarker`], which contains the data type and a [`ResourceKey`]. It has one method,</span>
+<span class="doccomment">//! [`ResourceProvider::load_resource`], which transforms a [`DataRequest`]</span>
+<span class="doccomment">//! into a [`DataResponse`].</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ```ignore</span>
-<span class="doccomment">//! fn load_payload(&amp;self, req: &amp;DataRequest) -&gt; Result&lt;DataResponse&lt;&#39;data&gt;, DataError&gt;</span>
-<span class="doccomment">//! ```</span>
+<span class="doccomment">//! - [`ResourceKey`] is a fixed identifier for the data type, such as `&quot;plurals/cardinal@1&quot;`.</span>
+<span class="doccomment">//! - [`DataRequest`] contains additional annotations to choose a specific variant of the key,</span>
+<span class="doccomment">//!   such as a locale.</span>
+<span class="doccomment">//! - [`DataResponse`] contains the data if the request was successful.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! A [`Request`] contains a [`ResourceKey`] (a fixed identifier such as &quot;plurals/cardinal@1&quot;) and</span>
-<span class="doccomment">//! [`ResourceOptions`] (a language identifier and optional variant, e.g. &quot;fr&quot;) being requested.</span>
-<span class="doccomment">//! The Response contains the data payload corresponding to the Request.</span>
+<span class="doccomment">//! In addition, there are three other traits which are widely implemented:</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! A [`Response`] contains a [`DataPayload`] along with other metadata.</span>
+<span class="doccomment">//! - [`AnyProvider`] returns data as `dyn Any` trait objects.</span>
+<span class="doccomment">//! - [`BufferProvider`] returns data as `[u8]` buffers.</span>
+<span class="doccomment">//! - [`DynProvider`] returns structured data but is not specific to a key.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The most common types required for ICU4X [`DataProvider`] are included via the prelude:</span>
+<span class="doccomment">//! The most common types required for this crate are included via the prelude:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//! use icu_provider::prelude::*;</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ## Concrete Implementations of Data Providers</span>
+<span class="doccomment">//! ## Types of Data Providers</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Any object implementing [`DataProvider`] can be used to supply ICU4X with locale data. ICU4X ships</span>
-<span class="doccomment">//! with some pre-built data providers:</span>
+<span class="doccomment">//! All nontrivial data providers can fit into one of two classes.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! - [`CldrJsonDataProvider`](../icu_provider_cldr/transform/struct.CldrJsonDataProvider.html) reads structured</span>
-<span class="doccomment">//!   data directly from CLDR source files.</span>
-<span class="doccomment">//! - [`FsDataProvider`](../icu_provider_fs/struct.FsDataProvider.html) reads structured data from the</span>
-<span class="doccomment">//!   filesystem. It can also write out that filesystem structure. More efficient than CldrJsonDataProvider.</span>
+<span class="doccomment">//! 1. Type 1: Those whose data originates as structured Rust objects</span>
+<span class="doccomment">//! 2. Type 2: Those whose data originates as unstructured `[u8]` buffers</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Type 1 Providers</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Type 1 providers generally implement [`AnyProvider`], which returns structured data cast into</span>
+<span class="doccomment">//! `dyn Any` trait objects. Users can call [`as_downcasting()`] to get an object implementing</span>
+<span class="doccomment">//! [`ResourceProvider`] by downcasting the trait objects.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Examples of Type 1 providers:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! - [`CldrJsonDataProvider`] reads structured data from CLDR JSON source files and returns</span>
+<span class="doccomment">//!   structured Rust objects.</span>
+<span class="doccomment">//! - [`AnyPayloadProvider`] wraps a specific data struct and returns it.</span>
+<span class="doccomment">//! - The upcoming `crabbake` provider which reads structured data from Rust source files</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Type 2 Providers</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Type 2 providers generally implement [`BufferProvider`], which returns unstructured data</span>
+<span class="doccomment">//! typically represented as [`serde`]-serialized buffers. Users can call [`as_deserializing()`]</span>
+<span class="doccomment">//! to get an object implementing [`ResourceProvider`] by invoking Serde Deserialize.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Examples of Type 2 providers:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! - [`FsDataProvider`] reads individual buffers from the filesystem.</span>
+<span class="doccomment">//! - [`BlobDataProvider`] reads buffers from a large in-memory blob.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### Special-Purpose Providers</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate also contains some concrete implementations for testing purposes:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - [`InvariantDataProvider`] returns fixed data that does not vary by locale.</span>
-<span class="doccomment">//! - [`AnyPayloadProvider`] wraps a particular instance of a struct and returns it.</span>
 <span class="doccomment">//! - [`HelloWorldProvider`] returns &quot;hello world&quot; strings in several languages.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ## Provider Adapters</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ICU4X offers several built-in modules to combine providers in interesting ways.</span>
+<span class="doccomment">//! These can be found in the [`icu_provider_adapters`] crate.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Types and Lifetimes</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Types compatible with [`Yokeable`] can be passed through the data provider, so long as they are</span>
 <span class="doccomment">//! associated with a marker type implementing [`DataMarker`].</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Most [`DataProvider`] traits take one lifetime argument: `&#39;data`. This lifetime allows data</span>
-<span class="doccomment">//! structs to borrow zero-copy data. In practice, it also represents the lifetime of data that</span>
-<span class="doccomment">//! the Cart of the Yoke of the DataPayload borrows; for more information on carts and yokes,</span>
-<span class="doccomment">//! see [`yoke`].</span>
+<span class="doccomment">//! Data structs should generally have one lifetime argument: `&#39;data`. This lifetime allows data</span>
+<span class="doccomment">//! structs to borrow zero-copy data.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ## Additional Traits</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! ### `IterableDataProvider`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Data providers can implement [`IterableProvider`], allowing iteration over all [`ResourceOptions`]</span>
-<span class="doccomment">//! instances supported for a certain key in the data provider.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! For more information, see the [`iter`] module.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ### `BufferProvider`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The trait [`BufferProvider`] represents a data provider that produces buffers (`[u8]`), which</span>
-<span class="doccomment">//! are typically deserialized later via Serde. This allows for a Serde-enabled provider</span>
-<span class="doccomment">//! to be saved as a trait object without being specific to a data struct type.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! ### `AnyProvider`</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! The trait [`AnyProvider`] removes the type argument from [`DataProvider`] and requires</span>
-<span class="doccomment">//! that all data structs be convertible to the [`Any`](core::any::Any) type. This enables the</span>
-<span class="doccomment">//! processing of data without the caller knowing the underlying data struct.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! Since [`AnyProvider`] is not specific to a single type, it can be useful for caches or</span>
-<span class="doccomment">//! other bulk data operations.</span>
-<span class="doccomment">//!</span>
 <span class="doccomment">//! ### `DataProvider&lt;SerializeMarker&gt;`</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! *Enabled with the &quot;serialize&quot; feature*</span>
+<span class="doccomment">//! *Enabled with the &quot;datagen&quot; feature*</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Data providers capable of returning opaque `erased_serde::Serialize` trait objects can be used as</span>
-<span class="doccomment">//! input to a data exporter, such as when writing data to the filesystem.</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//! This trait is normally implemented using the [`impl_dyn_provider!`] macro.</span>
+<span class="doccomment">//! Data providers capable of returning opaque `erased_serde::Serialize` trait objects can be use</span>
+<span class="doccomment">//! as input to a data exporter, such as when writing data to the filesystem.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This trait is normally implemented using the [`impl_dyn_provider!`] macro.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ### `IterableDataProvider`</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! *Enabled with the &quot;datagen&quot; feature*</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Data providers can implement [`IterableDynProvider`]/[`IterableResourceProvider`], allowing</span>
+<span class="doccomment">//! iteration over all [`ResourceOptions`] instances supported for a certain key in the data provider.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This trait is normally implemented using the [`impl_dyn_provider!`] macro using the `ITERABLE_SERDE_SE` option.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [`ICU4X`]: ../icu/index.html</span>
 <span class="doccomment">//! [`DataProvider`]: data_provider::DataProvider</span>
-<span class="doccomment">//! [`Request`]: data_provider::DataRequest</span>
-<span class="doccomment">//! [`Response`]: data_provider::DataResponse</span>
 <span class="doccomment">//! [`ResourceKey`]: resource::ResourceKey</span>
 <span class="doccomment">//! [`ResourceOptions`]: resource::ResourceOptions</span>
-<span class="doccomment">//! [`IterableProvider`]: iter::IterableProvider</span>
+<span class="doccomment">//! [`IterableDynProvider`]: datagen::IterableDynProvider</span>
+<span class="doccomment">//! [`IterableResourceProvider`]: datagen::IterableResourceProvider</span>
 <span class="doccomment">//! [`InvariantDataProvider`]: inv::InvariantDataProvider</span>
-<span class="doccomment">//! [`AnyPayloadProvider`]: struct_provider::AnyPayloadProvider</span>
+<span class="doccomment">//! [`AnyPayloadProvider`]: ../icu_provider_adapters/struct_provider/struct.AnyPayloadProvider.html</span>
 <span class="doccomment">//! [`HelloWorldProvider`]: hello_world::HelloWorldProvider</span>
 <span class="doccomment">//! [`AnyProvider`]: any::AnyProvider</span>
 <span class="doccomment">//! [`Yokeable`]: yoke::Yokeable</span>
 <span class="doccomment">//! [`impl_dyn_provider!`]: impl_dyn_provider</span>
+<span class="doccomment">//! [`icu_provider_adapters`]: ../icu_provider_adapters/index.html</span>
+<span class="doccomment">//! [`as_downcasting()`]: AsDowncastingAnyProvider::as_downcasting</span>
+<span class="doccomment">//! [`as_deserializing()`]: AsDeserializingBufferProvider::as_deserializing</span>
+<span class="doccomment">//! [`CldrJsonDataProvider`]: ../icu_datagen/cldr/struct.CldrJsonDataProvider.html</span>
+<span class="doccomment">//! [`FsDataProvider`]: ../icu_provider_fs/struct.FsDataProvider.html</span>
+<span class="doccomment">//! [`BlobDataProvider`]: ../icu_provider_blob/struct.BlobDataProvider.html</span>
 
+<span class="comment">// https://github.com/unicode-org/icu4x/blob/main/docs/process/boilerplate.md#library-annotations</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">test</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(
+    <span class="ident">not</span>(<span class="ident">test</span>),
+    <span class="ident">deny</span>(
+        <span class="ident">clippy::indexing_slicing</span>,
+        <span class="ident">clippy::unwrap_used</span>,
+        <span class="ident">clippy::expect_used</span>,
+        <span class="ident">clippy::panic</span>,
+        <span class="ident">clippy::exhaustive_structs</span>,
+        <span class="ident">clippy::exhaustive_enums</span>
+    )
+)]</span>
 
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
@@ -277,28 +340,25 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">any</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">buf</span>;
 <span class="kw">mod</span> <span class="ident">data_provider</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">either</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">datagen</span>;
 <span class="kw">mod</span> <span class="ident">error</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">export</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">filter</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">fork</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">hello_world</span>;
 <span class="kw">mod</span> <span class="ident">helpers</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">inv</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">iter</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">marker</span>;
 <span class="attribute">#[<span class="ident">macro_use</span>]</span>
 <span class="kw">mod</span> <span class="ident">resource</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">serde</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">struct_provider</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;macros&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">icu_provider_macros::data_struct</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">prelude</span> {
-    <span class="doccomment">//! Core selection of APIs and structures for [`DataProvider`].</span>
+    <span class="doccomment">//! Core selection of APIs and structures for the ICU4X data provider.</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::any::AnyMarker</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::any::AnyPayload</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::any::AnyProvider</span>;
@@ -306,26 +366,32 @@
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::buf::BufferMarker</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::buf::BufferProvider</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_provider::DataPayload</span>;
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_provider::DataProvider</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_provider::DataRequest</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_provider::DataResponse</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_provider::DataResponseMetadata</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_provider::DynProvider</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::data_provider::ResourceProvider</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::DataError</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::DataErrorKind</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::marker::DataMarker</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::marker::ResourceMarker</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource::ResourceKey</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource::ResourceKeyHash</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource::ResourceOptions</span>;
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource::ResourcePath</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::resource_key</span>;
 
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::any::AsDataProviderAnyMarkerWrap</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::any::AsDowncastingAnyProvider</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::any::AsDynProviderAnyMarkerWrap</span>;
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::serde::AsDeserializingBufferProvider</span>;
+
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">yoke</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zerofrom</span>;
 }
 
-<span class="doccomment">/// Re-export of the yoke crate for convenience of downstream implementors.</span>
+<span class="doccomment">/// Re-export of the yoke and zerofrom crates for convenience of downstream implementors.</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">yoke</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zerofrom</span>;
 
 <span class="comment">// Also include the same symbols at the top level for selective inclusion</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">prelude</span>::<span class="kw-2">*</span>;

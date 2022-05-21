@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/writeable-0.3.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/writeable-0.4.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../writeable/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -356,26 +356,48 @@
 <span id="351">351</span>
 <span id="352">352</span>
 <span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
+<span class="comment">// https://github.com/unicode-org/icu4x/blob/main/docs/process/boilerplate.md#library-annotations</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">test</span>), <span class="ident">no_std</span>)]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(
+    <span class="ident">not</span>(<span class="ident">test</span>),
+    <span class="ident">deny</span>(
+        <span class="ident">clippy::indexing_slicing</span>,
+        <span class="ident">clippy::unwrap_used</span>,
+        <span class="ident">clippy::expect_used</span>,
+        <span class="ident">clippy::panic</span>
+    )
+)]</span>
 
 <span class="doccomment">//! `writeable` is a utility crate of the [`ICU4X`] project.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! It includes [`Writeable`], a core trait representing an object that can be written to a</span>
-<span class="doccomment">//! sink implementing std::fmt::Write. It is an alternative to std::fmt::Display with the</span>
+<span class="doccomment">//! sink implementing `std::fmt::Write`. It is an alternative to `std::fmt::Display` with the</span>
 <span class="doccomment">//! addition of a function indicating the number of bytes to be written.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Writeable improves upon std::fmt::Display in two ways:</span>
+<span class="doccomment">//! `Writeable` improves upon `std::fmt::Display` in two ways:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! 1. More efficient, since the sink can pre-allocate bytes.</span>
 <span class="doccomment">//! 2. Smaller code, since the format machinery can be short-circuited.</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! Types implementing Writeable have a defaulted writeable_to_string function.</span>
-<span class="doccomment">//! If desired, types implementing Writeable can manually implement ToString</span>
-<span class="doccomment">//! to wrap writeable_to_string.</span>
+<span class="doccomment">//! Types implementing Writeable have a defaulted [`write_to_string`](Writeable::write_to_string)</span>
+<span class="doccomment">//! function. If desired, types implementing `Writeable` can manually implement `ToString`</span>
+<span class="doccomment">//! to wrap `write_to_string`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Examples</span>
 <span class="doccomment">//!</span>
@@ -419,15 +441,16 @@
 <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
 
-<span class="doccomment">/// A hint to help consumers of Writeable pre-allocate bytes before they call write_to.</span>
+<span class="doccomment">/// A hint to help consumers of `Writeable` pre-allocate bytes before they call</span>
+<span class="doccomment">/// [`write_to`](Writeable::write_to).</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This behaves like Iterator::size_hint: it is a tuple where the first element is the</span>
+<span class="doccomment">/// This behaves like `Iterator::size_hint`: it is a tuple where the first element is the</span>
 <span class="doccomment">/// lower bound, and the second element is the upper bound. If the upper bound is `None`</span>
-<span class="doccomment">/// either there is no known upper bound, or the upper bound is larger than usize.</span>
+<span class="doccomment">/// either there is no known upper bound, or the upper bound is larger than `usize`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// LengthHint implements std::ops::{Add, Mul} and similar traits for easy composition.</span>
-<span class="doccomment">/// During computation, the lower bound will saturate at usize::MAX, while the upper</span>
-<span class="doccomment">/// bound will become None if usize::MAX is exceeded.</span>
+<span class="doccomment">/// `LengthHint` implements std`::ops::{Add, Mul}` and similar traits for easy composition.</span>
+<span class="doccomment">/// During computation, the lower bound will saturate at `usize::MAX`, while the upper</span>
+<span class="doccomment">/// bound will become `None` if `usize::MAX` is exceeded.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LengthHint</span>(<span class="kw">pub</span> <span class="ident">usize</span>, <span class="kw">pub</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
 
@@ -436,22 +459,22 @@
         <span class="self">Self</span>(<span class="number">0</span>, <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// This is the exact length from write_to.</span>
+    <span class="doccomment">/// This is the exact length from `write_to`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">exact</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">n</span>, <span class="prelude-val">Some</span>(<span class="ident">n</span>))
     }
 
-    <span class="doccomment">/// This is at least the length from write_to.</span>
+    <span class="doccomment">/// This is at least the length from `write_to`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_least</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">n</span>, <span class="prelude-val">None</span>)
     }
 
-    <span class="doccomment">/// This is at most the length from write_to.</span>
+    <span class="doccomment">/// This is at most the length from `write_to`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">at_most</span>(<span class="ident">n</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="number">0</span>, <span class="prelude-val">Some</span>(<span class="ident">n</span>))
     }
 
-    <span class="doccomment">/// The length from write_to is in between n and m.</span>
+    <span class="doccomment">/// The length from `write_to` is in between `n` and `m`.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">between</span>(<span class="ident">n</span>: <span class="ident">usize</span>, <span class="ident">m</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">Ord::min</span>(<span class="ident">n</span>, <span class="ident">m</span>), <span class="prelude-val">Some</span>(<span class="ident">Ord::max</span>(<span class="ident">n</span>, <span class="ident">m</span>)))
     }
@@ -476,7 +499,7 @@
         }
     }
 
-    <span class="doccomment">/// Returns whether the LengthHint indicates that the string is exactly 0 bytes long.</span>
+    <span class="doccomment">/// Returns whether the `LengthHint` indicates that the string is exactly 0 bytes long.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_zero</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">1</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="number">0</span>)
     }
@@ -488,7 +511,7 @@
     <span class="kw">pub</span> <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
 }
 
-<span class="doccomment">/// A sink that supports annotating parts of the string with Parts.</span>
+<span class="doccomment">/// A sink that supports annotating parts of the string with `Part`s.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">PartsWrite</span>: <span class="ident">fmt::Write</span> {
     <span class="kw">type</span> <span class="ident">SubPartsWrite</span>: <span class="ident">PartsWrite</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>;
 
@@ -499,11 +522,11 @@
     ) -&gt; <span class="ident">fmt::Result</span>;
 }
 
-<span class="doccomment">/// Writeable is an alternative to std::fmt::Display with the addition of a length function.</span>
+<span class="doccomment">/// `Writeable` is an alternative to `std::fmt::Display` with the addition of a length function.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Writeable</span> {
     <span class="doccomment">/// Writes bytes to the given sink. Errors from the sink are bubbled up.</span>
-    <span class="doccomment">/// The default implementation delegates to write_to_parts, and discards any</span>
-    <span class="doccomment">/// Part annotations.</span>
+    <span class="doccomment">/// The default implementation delegates to `write_to_parts`, and discards any</span>
+    <span class="doccomment">/// `Part` annotations.</span>
     <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">struct</span> <span class="ident">CoreWriteAsPartsWrite</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="ident">W</span>);
         <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">fmt::Write</span> <span class="kw">for</span> <span class="ident">CoreWriteAsPartsWrite</span><span class="op">&lt;</span><span class="ident">W</span><span class="op">&gt;</span> {
@@ -531,9 +554,9 @@
         <span class="self">self</span>.<span class="ident">write_to_parts</span>(<span class="kw-2">&amp;mut</span> <span class="ident">CoreWriteAsPartsWrite</span>(<span class="ident">sink</span>))
     }
 
-    <span class="doccomment">/// Write bytes and Part annotations to the given sink. Errors from the</span>
-    <span class="doccomment">/// sink are bubbled up. The default implementation delegates to write_to,</span>
-    <span class="doccomment">/// and doesn&#39;t produce any Part annotations.</span>
+    <span class="doccomment">/// Write bytes and `Part` annotations to the given sink. Errors from the</span>
+    <span class="doccomment">/// sink are bubbled up. The default implementation delegates to `write_to`,</span>
+    <span class="doccomment">/// and doesn&#39;t produce any `Part` annotations.</span>
     <span class="kw">fn</span> <span class="ident">write_to_parts</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">PartsWrite</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">S</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="self">self</span>.<span class="ident">write_to</span>(<span class="ident">sink</span>)
     }
@@ -545,10 +568,10 @@
         <span class="ident">LengthHint::undefined</span>()
     }
 
-    <span class="doccomment">/// Creates a new String with the data from this Writeable. Like ToString,</span>
+    <span class="doccomment">/// Creates a new `String` with the data from this `Writeable`. Like `ToString`,</span>
     <span class="doccomment">/// but smaller and faster.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The default impl allocates an owned String. However, if it is possible to return a</span>
+    <span class="doccomment">/// The default impl allocates an owned `String`. However, if it is possible to return a</span>
     <span class="doccomment">/// borrowed string, overwrite this method to return a `Cow::Borrowed`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// To remove the `Cow` wrapper, call `.into_owned()`.</span>
@@ -566,7 +589,7 @@
     <span class="doccomment">///     W: Writeable + ?Sized,</span>
     <span class="doccomment">///     S: Write + ?Sized,</span>
     <span class="doccomment">/// {</span>
-    <span class="doccomment">///     let s = w.writeable_to_string();</span>
+    <span class="doccomment">///     let s = w.write_to_string();</span>
     <span class="doccomment">///     if s.is_ascii() {</span>
     <span class="doccomment">///         sink.write_str(&amp;s)</span>
     <span class="doccomment">///     } else {</span>
@@ -581,11 +604,12 @@
     <span class="doccomment">/// use writeable::Writeable;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// fn make_string(w: &amp;impl Writeable) -&gt; String {</span>
-    <span class="doccomment">///     w.writeable_to_string().into_owned()</span>
+    <span class="doccomment">///     w.write_to_string().into_owned()</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">writeable_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">output</span> <span class="op">=</span> <span class="ident">String::with_capacity</span>(<span class="self">self</span>.<span class="ident">write_len</span>().<span class="ident">capacity</span>());
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="self">self</span>.<span class="ident">write_to</span>(<span class="kw-2">&amp;mut</span> <span class="ident">output</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;impl Write for String is infallible&quot;</span>);
         <span class="ident">Cow::Owned</span>(<span class="ident">output</span>)
@@ -636,7 +660,7 @@
         <span class="kw">let</span> <span class="ident">actual_writeable</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">actual_writeable</span>;
         <span class="kw">let</span> (<span class="ident">actual_str</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::writeable_to_parts_for_test</span>(<span class="ident">actual_writeable</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">actual_str</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected_str</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="kw-2">*</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">actual_str</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Writeable::writeable_to_string</span>(<span class="ident">actual_writeable</span>), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="op">+</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">actual_str</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Writeable::write_to_string</span>(<span class="ident">actual_writeable</span>), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="op">+</span>);
         <span class="kw">let</span> <span class="ident">length_hint</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Writeable::write_len</span>(<span class="ident">actual_writeable</span>);
         <span class="macro">assert!</span>(<span class="ident">length_hint</span>.<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">actual_str</span>.<span class="ident">len</span>(), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="kw-2">*</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">upper</span>) <span class="op">=</span> <span class="ident">length_hint</span>.<span class="number">1</span> {
@@ -654,7 +678,7 @@
         <span class="kw">let</span> <span class="ident">actual_writeable</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">actual_writeable</span>;
         <span class="kw">let</span> (<span class="ident">actual_str</span>, <span class="ident">actual_parts</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::writeable_to_parts_for_test</span>(<span class="ident">actual_writeable</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">actual_str</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected_str</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="op">+</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">actual_str</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Writeable::writeable_to_string</span>(<span class="ident">actual_writeable</span>), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="op">+</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">actual_str</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Writeable::write_to_string</span>(<span class="ident">actual_writeable</span>), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="op">+</span>);
         <span class="macro">assert_eq!</span>(<span class="ident">actual_parts</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">expected_parts</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="op">+</span>);
         <span class="kw">let</span> <span class="ident">length_hint</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::Writeable::write_len</span>(<span class="ident">actual_writeable</span>);
         <span class="macro">assert!</span>(<span class="ident">length_hint</span>.<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">actual_str</span>.<span class="ident">len</span>(), $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>)<span class="op">+</span>);

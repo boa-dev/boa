@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_calendar-0.5.0/src/julian.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>julian.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_calendar-0.6.0/src/julian.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>julian.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_calendar/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -360,28 +360,82 @@
 <span id="355">355</span>
 <span id="356">356</span>
 <span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
-<span class="doccomment">//! This module contains types and implementations for the Julian calendar</span>
+<span class="doccomment">//! This module contains types and implementations for the Julian calendar.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```rust</span>
+<span class="doccomment">//! use icu::calendar::{Date, DateTime,</span>
+<span class="doccomment">//!                     types::IsoHour, types::IsoMinute, types::IsoSecond,</span>
+<span class="doccomment">//!                     julian::Julian};</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // `Date` type</span>
+<span class="doccomment">//! let date_iso = Date::new_iso_date_from_integers(1970, 1, 2).unwrap();</span>
+<span class="doccomment">//! let date_julian = Date::new_from_iso(date_iso, Julian);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // `DateTime` type</span>
+<span class="doccomment">//! let datetime_iso = DateTime::new_iso_datetime_from_integers(1970, 1, 2, 13, 1, 0).unwrap();</span>
+<span class="doccomment">//! let datetime_julian = DateTime::new_from_iso(datetime_iso, Julian);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // `Date` checks</span>
+<span class="doccomment">//! assert_eq!(date_julian.year().number, 1969);</span>
+<span class="doccomment">//! assert_eq!(date_julian.month().number, 12);</span>
+<span class="doccomment">//! assert_eq!(date_julian.day_of_month().0, 20);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! // `DateTime` type</span>
+<span class="doccomment">//! assert_eq!(datetime_julian.date.year().number, 1969);</span>
+<span class="doccomment">//! assert_eq!(datetime_julian.date.month().number, 12);</span>
+<span class="doccomment">//! assert_eq!(datetime_julian.date.day_of_month().0, 20);</span>
+<span class="doccomment">//! assert_eq!(datetime_julian.time.hour, IsoHour::new_unchecked(13));</span>
+<span class="doccomment">//! assert_eq!(datetime_julian.time.minute, IsoMinute::new_unchecked(1));</span>
+<span class="doccomment">//! assert_eq!(datetime_julian.time.second, IsoSecond::new_unchecked(0));</span>
+<span class="doccomment">//! ```</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::iso</span>::{<span class="ident">Iso</span>, <span class="ident">IsoDateInner</span>, <span class="ident">IsoDay</span>, <span class="ident">IsoMonth</span>, <span class="ident">IsoYear</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">types</span>, <span class="ident">Calendar</span>, <span class="ident">Date</span>, <span class="ident">DateDuration</span>, <span class="ident">DateDurationUnit</span>, <span class="ident">DateTime</span>, <span class="ident">DateTimeError</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::iso</span>::{<span class="ident">Iso</span>, <span class="ident">IsoYear</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">types</span>, <span class="ident">ArithmeticDate</span>, <span class="ident">Calendar</span>, <span class="ident">CalendarArithmetic</span>, <span class="ident">Date</span>, <span class="ident">DateDuration</span>, <span class="ident">DateDurationUnit</span>,
+    <span class="ident">DateTime</span>, <span class="ident">DateTimeError</span>,
+};
 <span class="kw">use</span> <span class="ident">core::convert::TryInto</span>;
+<span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
+<span class="kw">use</span> <span class="ident">tinystr::tinystr</span>;
 
 <span class="comment">// Julian epoch is equivalent to fixed_from_iso of December 30th of 0 year</span>
 <span class="comment">// 1st Jan of 1st year Julian is equivalent to December 30th of 0th year of ISO year</span>
 <span class="kw">const</span> <span class="ident">JULIAN_EPOCH</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>;
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
-<span class="comment">// The Julian calendar</span>
+<span class="doccomment">/// The Julian calendar</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Hash</span>, <span class="ident">Default</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Julian</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Hash</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="comment">// The inner date type used for representing Date&lt;Julian&gt;</span>
-<span class="comment">// The inner date uses IsoDateInner, but represent Julian Dates</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JulianDateInner</span>(<span class="ident">IsoDateInner</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JulianDateInner</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ArithmeticDate</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">CalendarArithmetic</span> <span class="kw">for</span> <span class="ident">Julian</span> {
+    <span class="kw">fn</span> <span class="ident">month_days</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u8</span>) -&gt; <span class="ident">u8</span> {
+        <span class="kw">match</span> <span class="ident">month</span> {
+            <span class="number">4</span> <span class="op">|</span> <span class="number">6</span> <span class="op">|</span> <span class="number">9</span> <span class="op">|</span> <span class="number">11</span> =&gt; <span class="number">30</span>,
+            <span class="number">2</span> <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_leap_year</span>(<span class="ident">year</span>) =&gt; <span class="number">29</span>,
+            <span class="number">2</span> =&gt; <span class="number">28</span>,
+            <span class="number">1</span> <span class="op">|</span> <span class="number">3</span> <span class="op">|</span> <span class="number">5</span> <span class="op">|</span> <span class="number">7</span> <span class="op">|</span> <span class="number">8</span> <span class="op">|</span> <span class="number">10</span> <span class="op">|</span> <span class="number">12</span> =&gt; <span class="number">31</span>,
+            <span class="kw">_</span> =&gt; <span class="number">0</span>,
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">months_for_every_year</span>() -&gt; <span class="ident">u8</span> {
+        <span class="number">12</span>
+    }
+
+    <span class="kw">fn</span> <span class="ident">is_leap_year</span>(<span class="ident">year</span>: <span class="ident">i32</span>) -&gt; <span class="ident">bool</span> {
+        <span class="ident">year</span> <span class="op">%</span> <span class="number">4</span> <span class="op">==</span> <span class="number">0</span>
+    }
+}
 
 <span class="kw">impl</span> <span class="ident">Calendar</span> <span class="kw">for</span> <span class="ident">Julian</span> {
     <span class="kw">type</span> <span class="ident">DateInner</span> <span class="op">=</span> <span class="ident">JulianDateInner</span>;
@@ -396,19 +450,15 @@
     }
 
     <span class="kw">fn</span> <span class="ident">months_in_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">u8</span> {
-        <span class="ident">Iso</span>.<span class="ident">months_in_year</span>(<span class="kw-2">&amp;</span><span class="ident">date</span>.<span class="number">0</span>)
+        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">months_in_year</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">days_in_year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_leap_year</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>) {
-            <span class="number">366</span>
-        } <span class="kw">else</span> {
-            <span class="number">365</span>
-        }
+        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">days_in_year</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">days_in_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">u8</span> {
-        <span class="ident"><span class="self">Self</span>::days_in_month</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>, <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">month</span>)
+        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">days_in_month</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">day_of_week</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">types::IsoWeekday</span> {
@@ -416,7 +466,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">offset_date</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::DateInner</span>, <span class="ident">offset</span>: <span class="ident">DateDuration</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) {
-        <span class="ident"><span class="self">Self</span>::offset_date</span>(<span class="ident">date</span>, <span class="ident">offset</span>);
+        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">offset_date</span>(<span class="ident">offset</span>);
     }
 
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::field_reassign_with_default</span>)]</span>
@@ -424,45 +474,45 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">date1</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>,
         <span class="ident">date2</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>,
+        <span class="ident">_calendar2</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>,
         <span class="ident">_largest_unit</span>: <span class="ident">DateDurationUnit</span>,
         <span class="ident">_smallest_unit</span>: <span class="ident">DateDurationUnit</span>,
     ) -&gt; <span class="ident">DateDuration</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">DateDuration::new</span>(
-            <span class="ident">date1</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">date2</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span>,
-            <span class="ident">date1</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">date2</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span>,
-            <span class="number">0</span>,
-            <span class="ident">u8::from</span>(<span class="ident">date1</span>.<span class="number">0</span>.<span class="ident">day</span>) <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="ident">u8::from</span>(<span class="ident">date2</span>.<span class="number">0</span>.<span class="ident">day</span>) <span class="kw">as</span> <span class="ident">i32</span>,
-        )
+        <span class="ident">date1</span>.<span class="number">0</span>.<span class="ident">until</span>(<span class="ident">date2</span>.<span class="number">0</span>, <span class="ident">_largest_unit</span>, <span class="ident">_smallest_unit</span>)
     }
 
     <span class="doccomment">/// The calendar-specific year represented by `date`</span>
+    <span class="doccomment">/// Julian has the same era scheme as Georgian</span>
     <span class="kw">fn</span> <span class="ident">year</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">types::Year</span> {
-        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="ident">into</span>()
+        <span class="ident"><span class="kw">crate</span>::gregorian::year_as_gregorian</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>)
     }
 
     <span class="doccomment">/// The calendar-specific month represented by `date`</span>
     <span class="kw">fn</span> <span class="ident">month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">types::Month</span> {
-        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">month</span>.<span class="ident">into</span>()
+        <span class="ident">types::Month</span> {
+            <span class="ident">number</span>: <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">month</span>.<span class="ident">into</span>(),
+            <span class="ident">code</span>: <span class="ident">types::MonthCode</span>(<span class="macro">tinystr!</span>(<span class="number">8</span>, <span class="string">&quot;TODO&quot;</span>)),
+        }
     }
 
     <span class="doccomment">/// The calendar-specific day-of-month represented by `date`</span>
     <span class="kw">fn</span> <span class="ident">day_of_month</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">types::DayOfMonth</span> {
-        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day</span>.<span class="ident">into</span>()
+        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day_of_month</span>()
     }
 
     <span class="kw">fn</span> <span class="ident">day_of_year_info</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">date</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::DateInner</span>) -&gt; <span class="ident">types::DayOfYearInfo</span> {
-        <span class="kw">let</span> <span class="ident">prev_year</span> <span class="op">=</span> <span class="ident">IsoYear</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span> <span class="op">-</span> <span class="number">1</span>);
-        <span class="kw">let</span> <span class="ident">next_year</span> <span class="op">=</span> <span class="ident">IsoYear</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">prev_year</span> <span class="op">=</span> <span class="ident">IsoYear</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span> <span class="op">-</span> <span class="number">1</span>);
+        <span class="kw">let</span> <span class="ident">next_year</span> <span class="op">=</span> <span class="ident">IsoYear</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span> <span class="op">+</span> <span class="number">1</span>);
         <span class="ident">types::DayOfYearInfo</span> {
-            <span class="ident">day_of_year</span>: <span class="ident">Julian::day_of_year</span>(<span class="ident">date</span>.<span class="number">0</span>),
-            <span class="ident">days_in_year</span>: <span class="ident">Julian::days_in_year</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>),
+            <span class="ident">day_of_year</span>: <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day_of_year</span>(),
+            <span class="ident">days_in_year</span>: <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">days_in_year</span>(),
             <span class="ident">prev_year</span>: <span class="ident">prev_year</span>.<span class="ident">into</span>(),
-            <span class="ident">days_in_prev_year</span>: <span class="ident">Julian::days_in_year</span>(<span class="ident">prev_year</span>),
+            <span class="ident">days_in_prev_year</span>: <span class="ident">Julian::days_in_year_direct</span>(<span class="ident">prev_year</span>.<span class="number">0</span>),
             <span class="ident">next_year</span>: <span class="ident">next_year</span>.<span class="ident">into</span>(),
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">debug_name</span>() -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">debug_name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="string">&quot;Julian&quot;</span>
     }
 }
@@ -473,50 +523,20 @@
         <span class="self">Self</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">is_leap_year</span>(<span class="ident">year</span>: <span class="ident">IsoYear</span>) -&gt; <span class="ident">bool</span> {
-        <span class="ident">year</span>.<span class="number">0</span> <span class="op">%</span> <span class="number">4</span> <span class="op">==</span> <span class="number">0</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">days_in_year</span>(<span class="ident">year</span>: <span class="ident">IsoYear</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_leap_year</span>(<span class="ident">year</span>) {
-            <span class="number">366</span>
-        } <span class="kw">else</span> {
-            <span class="number">365</span>
-        }
-    }
-
-    <span class="kw">fn</span> <span class="ident">day_of_year</span>(<span class="ident">date</span>: <span class="ident">IsoDateInner</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">let</span> <span class="ident">month_offset</span> <span class="op">=</span> [<span class="number">0</span>, <span class="number">1</span>, <span class="op">-</span><span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">4</span>];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">month_offset</span>[<span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="ident">month</span>) <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="number">1</span>];
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_leap_year</span>(<span class="ident">date</span>.<span class="ident">year</span>) <span class="op">&amp;&amp;</span> <span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="ident">month</span>) <span class="op">&gt;</span> <span class="number">2</span> {
-            <span class="ident">offset</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-        }
-        <span class="kw">let</span> <span class="ident">prev_month_days</span> <span class="op">=</span> (<span class="number">30</span> <span class="op">*</span> (<span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="ident">month</span>) <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">+</span> <span class="ident">offset</span>) <span class="kw">as</span> <span class="ident">u32</span>;
-        <span class="ident">prev_month_days</span> <span class="op">+</span> <span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="ident">day</span>) <span class="kw">as</span> <span class="ident">u32</span>
-    }
-
-    <span class="kw">fn</span> <span class="ident">days_in_month</span>(<span class="ident">year</span>: <span class="ident">IsoYear</span>, <span class="ident">month</span>: <span class="ident">IsoMonth</span>) -&gt; <span class="ident">u8</span> {
-        <span class="kw">match</span> <span class="ident">u8::from</span>(<span class="ident">month</span>) {
-            <span class="number">4</span> <span class="op">|</span> <span class="number">6</span> <span class="op">|</span> <span class="number">9</span> <span class="op">|</span> <span class="number">11</span> =&gt; <span class="number">30</span>,
-            <span class="number">2</span> <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_leap_year</span>(<span class="ident">year</span>) =&gt; <span class="number">29</span>,
-            <span class="number">2</span> =&gt; <span class="number">28</span>,
-            <span class="kw">_</span> =&gt; <span class="number">31</span>,
-        }
-    }
-
-    <span class="comment">// Fixed is day count representation of calendars starting from Jan 1st of year 1 of Georgian Calendar.</span>
-    <span class="comment">// The fixed calculations algorithms are from the Calendrical Calculations book</span>
+    <span class="comment">// &quot;Fixed&quot; is a day count representation of calendars staring from Jan 1st of year 1 of the Georgian Calendar.</span>
+    <span class="comment">// The fixed date algorithms are from</span>
+    <span class="comment">// Dershowitz, Nachum, and Edward M. Reingold. _Calendrical calculations_. Cambridge University Press, 2008.</span>
     <span class="comment">//</span>
     <span class="comment">// Lisp code reference: https://github.com/EdReingold/calendar-code2/blob/1ee51ecfaae6f856b0d7de3e36e9042100b4f424/calendar.l#L1689-L1709</span>
-    <span class="kw">fn</span> <span class="ident">fixed_from_julian</span>(<span class="ident">date</span>: <span class="ident">IsoDateInner</span>) -&gt; <span class="ident">i32</span> {
-        <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">date</span>.<span class="ident">year</span>.<span class="number">0</span> <span class="op">&lt;</span> <span class="number">0</span> {
-            <span class="ident">date</span>.<span class="ident">year</span>.<span class="number">0</span> <span class="op">+</span> <span class="number">1</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fixed_from_julian</span>(<span class="ident">date</span>: <span class="ident">ArithmeticDate</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span>) -&gt; <span class="ident">i32</span> {
+        <span class="kw">let</span> <span class="ident">year</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">date</span>.<span class="ident">year</span> <span class="op">&lt;</span> <span class="number">0</span> {
+            <span class="ident">date</span>.<span class="ident">year</span> <span class="op">+</span> <span class="number">1</span>
         } <span class="kw">else</span> {
-            <span class="ident">date</span>.<span class="ident">year</span>.<span class="number">0</span>
+            <span class="ident">date</span>.<span class="ident">year</span>
         };
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">fixed</span>: <span class="ident">i32</span> <span class="op">=</span> <span class="ident">JULIAN_EPOCH</span> <span class="op">-</span> <span class="number">1</span> <span class="op">+</span> <span class="number">365</span> <span class="op">*</span> (<span class="ident">year</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">+</span> (<span class="ident">year</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="number">4</span>;
-        <span class="ident">fixed</span> <span class="op">+</span><span class="op">=</span> (<span class="number">367</span> <span class="op">*</span> (<span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="ident">month</span>) <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">-</span> <span class="number">362</span>) <span class="op">/</span> <span class="number">12</span>;
-        <span class="ident">fixed</span> <span class="op">+</span><span class="op">=</span> <span class="kw">if</span> <span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="ident">month</span>) <span class="op">&lt;</span><span class="op">=</span> <span class="number">2</span> {
+        <span class="ident">fixed</span> <span class="op">+</span><span class="op">=</span> (<span class="number">367</span> <span class="op">*</span> (<span class="ident">date</span>.<span class="ident">month</span> <span class="kw">as</span> <span class="ident">i32</span>) <span class="op">-</span> <span class="number">362</span>) <span class="op">/</span> <span class="number">12</span>;
+        <span class="ident">fixed</span> <span class="op">+</span><span class="op">=</span> <span class="kw">if</span> <span class="ident">date</span>.<span class="ident">month</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">2</span> {
             <span class="number">0</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_leap_year</span>(<span class="ident">date</span>.<span class="ident">year</span>) {
             <span class="op">-</span><span class="number">1</span>
@@ -524,15 +544,27 @@
             <span class="op">-</span><span class="number">2</span>
         };
 
-        <span class="ident">fixed</span> <span class="op">+</span> <span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="ident">day</span>) <span class="kw">as</span> <span class="ident">i32</span>
+        <span class="ident">fixed</span> <span class="op">+</span> (<span class="ident">date</span>.<span class="ident">day</span> <span class="kw">as</span> <span class="ident">i32</span>)
     }
 
-    <span class="kw">fn</span> <span class="ident">fixed_from_julian_integers</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">i32</span>, <span class="ident">day</span>: <span class="ident">i32</span>) -&gt; <span class="ident">i32</span> {
-        <span class="ident"><span class="self">Self</span>::fixed_from_julian</span>(
-            <span class="kw-2">*</span><span class="ident">Date::new_iso_date_from_integers</span>(<span class="ident">year</span>, <span class="ident">month</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">day</span> <span class="kw">as</span> <span class="ident">u8</span>)
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">inner</span>(),
-        )
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fixed_from_julian_integers</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">i32</span>, <span class="ident">day</span>: <span class="ident">i32</span>) -&gt; <span class="ident">i32</span> {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="ident"><span class="self">Self</span>::fixed_from_julian</span>(<span class="ident">ArithmeticDate</span> {
+            <span class="ident">year</span>,
+            <span class="ident">month</span>: <span class="ident">month</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">day</span>: <span class="ident">day</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>(),
+            <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
+        })
+    }
+
+    <span class="doccomment">/// Convenience function so we can call days_in_year without</span>
+    <span class="doccomment">/// needing to construct a full ArithmeticDate</span>
+    <span class="kw">fn</span> <span class="ident">days_in_year_direct</span>(<span class="ident">year</span>: <span class="ident">i32</span>) -&gt; <span class="ident">u32</span> {
+        <span class="kw">if</span> <span class="ident">Julian::is_leap_year</span>(<span class="ident">year</span>) {
+            <span class="number">366</span>
+        } <span class="kw">else</span> {
+            <span class="number">365</span>
+        }
     }
 
     <span class="comment">// Lisp code reference: https://github.com/EdReingold/calendar-code2/blob/1ee51ecfaae6f856b0d7de3e36e9042100b4f424/calendar.l#L1711-L1738</span>
@@ -542,7 +574,7 @@
         <span class="kw">let</span> <span class="ident">prior_days</span> <span class="op">=</span> <span class="ident">date</span> <span class="op">-</span> <span class="ident"><span class="self">Self</span>::fixed_from_julian_integers</span>(<span class="ident">year</span>, <span class="number">1</span>, <span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">correction</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">date</span> <span class="op">&lt;</span> <span class="ident"><span class="self">Self</span>::fixed_from_julian_integers</span>(<span class="ident">year</span>, <span class="number">3</span>, <span class="number">1</span>) {
             <span class="number">0</span>
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_leap_year</span>(<span class="ident">IsoYear::from</span>(<span class="ident">year</span>)) {
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">Julian::is_leap_year</span>(<span class="ident">year</span>) {
             <span class="number">1</span>
         } <span class="kw">else</span> {
             <span class="number">2</span>
@@ -550,91 +582,63 @@
         <span class="kw">let</span> <span class="ident">month</span> <span class="op">=</span> (<span class="number">12</span> <span class="op">*</span> (<span class="ident">prior_days</span> <span class="op">+</span> <span class="ident">correction</span>) <span class="op">+</span> <span class="number">373</span>) <span class="op">/</span> <span class="number">367</span>;
         <span class="kw">let</span> <span class="ident">day</span> <span class="op">=</span> <span class="ident">date</span> <span class="op">-</span> <span class="ident"><span class="self">Self</span>::fixed_from_julian_integers</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span>;
 
-        <span class="kw-2">*</span><span class="ident">Date::new_julian_date_from_integers</span>(<span class="ident">year</span>, <span class="ident">month</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">day</span> <span class="kw">as</span> <span class="ident">u8</span>)
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="kw-2">*</span><span class="ident">Date::new_julian_date</span>(<span class="ident">year</span>, <span class="ident">month</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">day</span> <span class="kw">as</span> <span class="ident">u8</span>)
             .<span class="ident">unwrap</span>()
             .<span class="ident">inner</span>()
-    }
-
-    <span class="kw">fn</span> <span class="ident">offset_date</span>(<span class="ident">date</span>: <span class="kw-2">&amp;mut</span> <span class="ident">JulianDateInner</span>, <span class="kw-2">mut</span> <span class="ident">offset</span>: <span class="ident">DateDuration</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">JulianDateInner</span> {
-        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span> <span class="op">+</span><span class="op">=</span> <span class="ident">offset</span>.<span class="ident">years</span>;
-        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">add_months</span>(<span class="ident">offset</span>.<span class="ident">months</span>);
-        <span class="ident">offset</span>.<span class="ident">months</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">+</span><span class="op">=</span> <span class="ident">offset</span>.<span class="ident">weeks</span> <span class="op">*</span> <span class="number">7</span>;
-        <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">+</span><span class="op">=</span> <span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day</span>) <span class="kw">as</span> <span class="ident">i32</span> <span class="op">-</span> <span class="number">1</span>;
-        <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day</span> <span class="op">=</span> <span class="number">1</span>.<span class="ident">try_into</span>().<span class="ident">unwrap</span>();
-
-        <span class="kw">while</span> <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">if</span> <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">add_months</span>(<span class="op">-</span><span class="number">1</span>);
-                <span class="kw">let</span> <span class="ident">month_days</span> <span class="op">=</span> <span class="ident">Julian::days_in_month</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>, <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">month</span>);
-                <span class="kw">if</span> (<span class="op">-</span><span class="ident">offset</span>.<span class="ident">days</span>) <span class="op">&gt;</span> <span class="ident">month_days</span> <span class="kw">as</span> <span class="ident">i32</span> {
-                    <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">+</span><span class="op">=</span> <span class="ident">month_days</span> <span class="kw">as</span> <span class="ident">i32</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day</span> <span class="op">=</span> (<span class="number">1</span> <span class="op">+</span> (<span class="ident">month_days</span> <span class="kw">as</span> <span class="ident">i8</span> <span class="op">+</span> <span class="ident">offset</span>.<span class="ident">days</span> <span class="kw">as</span> <span class="ident">i8</span>) <span class="kw">as</span> <span class="ident">u8</span>)
-                        .<span class="ident">try_into</span>()
-                        .<span class="ident">unwrap</span>();
-                    <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">=</span> <span class="number">0</span>;
-                }
-            } <span class="kw">else</span> {
-                <span class="kw">let</span> <span class="ident">month_days</span> <span class="op">=</span> <span class="ident">Julian::days_in_month</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">year</span>, <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">month</span>);
-                <span class="kw">if</span> <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">month_days</span> <span class="kw">as</span> <span class="ident">i32</span> {
-                    <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">add_months</span>(<span class="number">1</span>);
-                    <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">-</span><span class="op">=</span> <span class="ident">month_days</span> <span class="kw">as</span> <span class="ident">i32</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day</span> <span class="op">=</span> (<span class="ident">u8::from</span>(<span class="ident">date</span>.<span class="number">0</span>.<span class="ident">day</span>) <span class="op">+</span> <span class="ident">offset</span>.<span class="ident">days</span> <span class="kw">as</span> <span class="ident">u8</span>)
-                        .<span class="ident">try_into</span>()
-                        .<span class="ident">unwrap</span>();
-                    <span class="ident">offset</span>.<span class="ident">days</span> <span class="op">=</span> <span class="number">0</span>;
-                }
-            }
-        }
-
-        <span class="kw-2">*</span><span class="ident">date</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Construct new Julian Date</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_julian_date</span>(
-        <span class="ident">year</span>: <span class="ident">IsoYear</span>,
-        <span class="ident">month</span>: <span class="ident">IsoMonth</span>,
-        <span class="ident">day</span>: <span class="ident">IsoDay</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span>, <span class="ident">DateTimeError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">day_int</span> <span class="op">=</span> <span class="ident">u8::from</span>(<span class="ident">day</span>);
-        <span class="kw">let</span> <span class="ident">month_int</span> <span class="op">=</span> <span class="ident">u8::from</span>(<span class="ident">month</span>);
+    <span class="doccomment">/// Construct new Julian Date.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use icu::calendar::Date;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let date_julian = Date::new_julian_date(1969, 12, 20).unwrap();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(date_julian.year().number, 1969);</span>
+    <span class="doccomment">/// assert_eq!(date_julian.month().number, 12);</span>
+    <span class="doccomment">/// assert_eq!(date_julian.day_of_month().0, 20);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_julian_date</span>(<span class="ident">year</span>: <span class="ident">i32</span>, <span class="ident">month</span>: <span class="ident">u8</span>, <span class="ident">day</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span>, <span class="ident">DateTimeError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">ArithmeticDate</span> {
+            <span class="ident">year</span>,
+            <span class="ident">month</span>,
+            <span class="ident">day</span>,
+            <span class="ident">marker</span>: <span class="ident">PhantomData</span>,
+        };
 
-        <span class="kw">if</span> <span class="ident">day_int</span> <span class="op">&gt;</span> <span class="number">28</span> {
-            <span class="kw">let</span> <span class="ident">bound</span> <span class="op">=</span> <span class="ident">Julian::days_in_month</span>(<span class="ident">year</span>, <span class="ident">month</span>);
-            <span class="kw">if</span> <span class="ident">day_int</span> <span class="op">&gt;</span> <span class="ident">bound</span> {
+        <span class="kw">if</span> <span class="ident">day</span> <span class="op">&gt;</span> <span class="number">28</span> {
+            <span class="kw">let</span> <span class="ident">bound</span> <span class="op">=</span> <span class="ident">inner</span>.<span class="ident">days_in_month</span>();
+            <span class="kw">if</span> <span class="ident">day</span> <span class="op">&gt;</span> <span class="ident">bound</span> {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeError::OutOfRange</span>);
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Date::from_raw</span>(
-            <span class="ident">JulianDateInner</span> {
-                <span class="number">0</span>: <span class="ident">IsoDateInner</span> {
-                    <span class="ident">day</span>: <span class="ident">day_int</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>,
-                    <span class="ident">month</span>: <span class="ident">month_int</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>,
-                    <span class="ident">year</span>,
-                },
-            },
-            <span class="ident">Julian</span>,
-        ))
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_julian_date_from_integers</span>(
-        <span class="ident">year</span>: <span class="ident">i32</span>,
-        <span class="ident">month</span>: <span class="ident">u8</span>,
-        <span class="ident">day</span>: <span class="ident">u8</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span>, <span class="ident">DateTimeError</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::new_julian_date</span>(<span class="ident">year</span>.<span class="ident">into</span>(), <span class="ident">month</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>, <span class="ident">day</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">Date::from_raw</span>(<span class="ident">JulianDateInner</span>(<span class="ident">inner</span>), <span class="ident">Julian</span>))
     }
 }
 
 <span class="kw">impl</span> <span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span> {
-    <span class="doccomment">/// Constrict a new Julian datetime form integers</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_julian_datetime_from_integers</span>(
+    <span class="doccomment">/// Construct a new Julian datetime from integers.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use icu::calendar::{DateTime,</span>
+    <span class="doccomment">///                     types::IsoHour,</span>
+    <span class="doccomment">///                     types::IsoMinute,</span>
+    <span class="doccomment">///                     types::IsoSecond};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let datetime_julian = DateTime::new_julian_datetime(1969, 12, 20, 13, 1, 0).unwrap();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(datetime_julian.date.year().number, 1969);</span>
+    <span class="doccomment">/// assert_eq!(datetime_julian.date.month().number, 12);</span>
+    <span class="doccomment">/// assert_eq!(datetime_julian.date.day_of_month().0, 20);</span>
+    <span class="doccomment">/// assert_eq!(datetime_julian.time.hour, IsoHour::new_unchecked(13));</span>
+    <span class="doccomment">/// assert_eq!(datetime_julian.time.minute, IsoMinute::new_unchecked(1));</span>
+    <span class="doccomment">/// assert_eq!(datetime_julian.time.second, IsoSecond::new_unchecked(0));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new_julian_datetime</span>(
         <span class="ident">year</span>: <span class="ident">i32</span>,
         <span class="ident">month</span>: <span class="ident">u8</span>,
         <span class="ident">day</span>: <span class="ident">u8</span>,
@@ -643,8 +647,8 @@
         <span class="ident">second</span>: <span class="ident">u8</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DateTime</span><span class="op">&lt;</span><span class="ident">Julian</span><span class="op">&gt;</span>, <span class="ident">DateTimeError</span><span class="op">&gt;</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">DateTime</span> {
-            <span class="ident">date</span>: <span class="ident">Date::new_julian_date</span>(<span class="ident">year</span>.<span class="ident">into</span>(), <span class="ident">month</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>, <span class="ident">day</span>.<span class="ident">try_into</span>()<span class="question-mark">?</span>)<span class="question-mark">?</span>,
-            <span class="ident">time</span>: <span class="ident">types::Time::try_new</span>(<span class="ident">hour</span>, <span class="ident">minute</span>, <span class="ident">second</span>)<span class="question-mark">?</span>,
+            <span class="ident">date</span>: <span class="ident">Date::new_julian_date</span>(<span class="ident">year</span>, <span class="ident">month</span>, <span class="ident">day</span>)<span class="question-mark">?</span>,
+            <span class="ident">time</span>: <span class="ident">types::Time::try_new</span>(<span class="ident">hour</span>, <span class="ident">minute</span>, <span class="ident">second</span>, <span class="number">0</span>)<span class="question-mark">?</span>,
         })
     }
 }
@@ -658,60 +662,60 @@
         <span class="comment">// March 1st 200 is same on both calendars</span>
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">200</span>, <span class="number">3</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_from_iso</span>(<span class="ident">iso_date</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span>, <span class="number">200</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>), <span class="number">3</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>), <span class="number">1</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>, <span class="number">200</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>, <span class="number">3</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>, <span class="number">1</span>);
 
         <span class="comment">// Feb 28th, 200 (iso) = Feb 29th, 200 (julian)</span>
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">200</span>, <span class="number">2</span>, <span class="number">28</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_from_iso</span>(<span class="ident">iso_date</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span>, <span class="number">200</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>), <span class="number">2</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>), <span class="number">29</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>, <span class="number">200</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>, <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>, <span class="number">29</span>);
 
         <span class="comment">// March 1st 400 (iso) = Feb 29th, 400 (julian)</span>
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">400</span>, <span class="number">3</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_from_iso</span>(<span class="ident">iso_date</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span>, <span class="number">400</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>), <span class="number">2</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>), <span class="number">29</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>, <span class="number">400</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>, <span class="number">2</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>, <span class="number">29</span>);
 
         <span class="comment">// Jan 1st, 2022 (iso) = Dec 19, 2021 (julian)</span>
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">2022</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_from_iso</span>(<span class="ident">iso_date</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>.<span class="number">0</span>, <span class="number">2021</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>), <span class="number">12</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">u8::from</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>), <span class="number">19</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">year</span>, <span class="number">2021</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">month</span>, <span class="number">12</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">julian_date</span>.<span class="number">0</span>.<span class="ident">day</span>, <span class="number">19</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_day_julian_to_iso</span>() {
         <span class="comment">// March 1st 200 is same on both calendars</span>
-        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date_from_integers</span>(<span class="number">200</span>, <span class="number">3</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date</span>(<span class="number">200</span>, <span class="number">3</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_to_iso</span>(<span class="ident">julian_date</span>.<span class="ident">inner</span>());
         <span class="kw">let</span> <span class="ident">iso_expected_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">200</span>, <span class="number">3</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">iso_date</span>, <span class="ident">iso_expected_date</span>);
 
         <span class="comment">// Feb 28th, 200 (iso) = Feb 29th, 200 (julian)</span>
-        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date_from_integers</span>(<span class="number">200</span>, <span class="number">2</span>, <span class="number">29</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date</span>(<span class="number">200</span>, <span class="number">2</span>, <span class="number">29</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_to_iso</span>(<span class="ident">julian_date</span>.<span class="ident">inner</span>());
         <span class="kw">let</span> <span class="ident">iso_expected_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">200</span>, <span class="number">2</span>, <span class="number">28</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">iso_date</span>, <span class="ident">iso_expected_date</span>);
 
         <span class="comment">// March 1st 400 (iso) = Feb 29th, 400 (julian)</span>
-        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date_from_integers</span>(<span class="number">400</span>, <span class="number">2</span>, <span class="number">29</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date</span>(<span class="number">400</span>, <span class="number">2</span>, <span class="number">29</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_to_iso</span>(<span class="ident">julian_date</span>.<span class="ident">inner</span>());
         <span class="kw">let</span> <span class="ident">iso_expected_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">400</span>, <span class="number">3</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">iso_date</span>, <span class="ident">iso_expected_date</span>);
 
         <span class="comment">// Jan 1st, 2022 (iso) = Dec 19, 2021 (julian)</span>
-        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date_from_integers</span>(<span class="number">2021</span>, <span class="number">12</span>, <span class="number">19</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date</span>(<span class="number">2021</span>, <span class="number">12</span>, <span class="number">19</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_to_iso</span>(<span class="ident">julian_date</span>.<span class="ident">inner</span>());
         <span class="kw">let</span> <span class="ident">iso_expected_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">2022</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">iso_date</span>, <span class="ident">iso_expected_date</span>);
 
         <span class="comment">// March 1st, 2022 (iso) = Feb 16, 2022 (julian)</span>
-        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date_from_integers</span>(<span class="number">2022</span>, <span class="number">2</span>, <span class="number">16</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">julian_date</span> <span class="op">=</span> <span class="ident">Date::new_julian_date</span>(<span class="number">2022</span>, <span class="number">2</span>, <span class="number">16</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">iso_date</span> <span class="op">=</span> <span class="ident">Julian</span>.<span class="ident">date_to_iso</span>(<span class="ident">julian_date</span>.<span class="ident">inner</span>());
         <span class="kw">let</span> <span class="ident">iso_expected_date</span> <span class="op">=</span> <span class="ident">Date::new_iso_date_from_integers</span>(<span class="number">2022</span>, <span class="number">3</span>, <span class="number">1</span>).<span class="ident">unwrap</span>();
         <span class="macro">assert_eq!</span>(<span class="ident">iso_date</span>, <span class="ident">iso_expected_date</span>);

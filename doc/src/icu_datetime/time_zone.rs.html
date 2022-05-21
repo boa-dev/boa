@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/time_zone.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time_zone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/time_zone.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time_zone.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -913,52 +913,406 @@
 <span id="908">908</span>
 <span id="909">909</span>
 <span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
+<span id="1005">1005</span>
+<span id="1006">1006</span>
+<span id="1007">1007</span>
+<span id="1008">1008</span>
+<span id="1009">1009</span>
+<span id="1010">1010</span>
+<span id="1011">1011</span>
+<span id="1012">1012</span>
+<span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
+<span id="1081">1081</span>
+<span id="1082">1082</span>
+<span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
+<span id="1092">1092</span>
+<span id="1093">1093</span>
+<span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
+<span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
+<span id="1120">1120</span>
+<span id="1121">1121</span>
+<span id="1122">1122</span>
+<span id="1123">1123</span>
+<span id="1124">1124</span>
+<span id="1125">1125</span>
+<span id="1126">1126</span>
+<span id="1127">1127</span>
+<span id="1128">1128</span>
+<span id="1129">1129</span>
+<span id="1130">1130</span>
+<span id="1131">1131</span>
+<span id="1132">1132</span>
+<span id="1133">1133</span>
+<span id="1134">1134</span>
+<span id="1135">1135</span>
+<span id="1136">1136</span>
+<span id="1137">1137</span>
+<span id="1138">1138</span>
+<span id="1139">1139</span>
+<span id="1140">1140</span>
+<span id="1141">1141</span>
+<span id="1142">1142</span>
+<span id="1143">1143</span>
+<span id="1144">1144</span>
+<span id="1145">1145</span>
+<span id="1146">1146</span>
+<span id="1147">1147</span>
+<span id="1148">1148</span>
+<span id="1149">1149</span>
+<span id="1150">1150</span>
+<span id="1151">1151</span>
+<span id="1152">1152</span>
+<span id="1153">1153</span>
+<span id="1154">1154</span>
+<span id="1155">1155</span>
+<span id="1156">1156</span>
+<span id="1157">1157</span>
+<span id="1158">1158</span>
+<span id="1159">1159</span>
+<span id="1160">1160</span>
+<span id="1161">1161</span>
+<span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
+<span id="1165">1165</span>
+<span id="1166">1166</span>
+<span id="1167">1167</span>
+<span id="1168">1168</span>
+<span id="1169">1169</span>
+<span id="1170">1170</span>
+<span id="1171">1171</span>
+<span id="1172">1172</span>
+<span id="1173">1173</span>
+<span id="1174">1174</span>
+<span id="1175">1175</span>
+<span id="1176">1176</span>
+<span id="1177">1177</span>
+<span id="1178">1178</span>
+<span id="1179">1179</span>
+<span id="1180">1180</span>
+<span id="1181">1181</span>
+<span id="1182">1182</span>
+<span id="1183">1183</span>
+<span id="1184">1184</span>
+<span id="1185">1185</span>
+<span id="1186">1186</span>
+<span id="1187">1187</span>
+<span id="1188">1188</span>
+<span id="1189">1189</span>
+<span id="1190">1190</span>
+<span id="1191">1191</span>
+<span id="1192">1192</span>
+<span id="1193">1193</span>
+<span id="1194">1194</span>
+<span id="1195">1195</span>
+<span id="1196">1196</span>
+<span id="1197">1197</span>
+<span id="1198">1198</span>
+<span id="1199">1199</span>
+<span id="1200">1200</span>
+<span id="1201">1201</span>
+<span id="1202">1202</span>
+<span id="1203">1203</span>
+<span id="1204">1204</span>
+<span id="1205">1205</span>
+<span id="1206">1206</span>
+<span id="1207">1207</span>
+<span id="1208">1208</span>
+<span id="1209">1209</span>
+<span id="1210">1210</span>
+<span id="1211">1211</span>
+<span id="1212">1212</span>
+<span id="1213">1213</span>
+<span id="1214">1214</span>
+<span id="1215">1215</span>
+<span id="1216">1216</span>
+<span id="1217">1217</span>
+<span id="1218">1218</span>
+<span id="1219">1219</span>
+<span id="1220">1220</span>
+<span id="1221">1221</span>
+<span id="1222">1222</span>
+<span id="1223">1223</span>
+<span id="1224">1224</span>
+<span id="1225">1225</span>
+<span id="1226">1226</span>
+<span id="1227">1227</span>
+<span id="1228">1228</span>
+<span id="1229">1229</span>
+<span id="1230">1230</span>
+<span id="1231">1231</span>
+<span id="1232">1232</span>
+<span id="1233">1233</span>
+<span id="1234">1234</span>
+<span id="1235">1235</span>
+<span id="1236">1236</span>
+<span id="1237">1237</span>
+<span id="1238">1238</span>
+<span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider::time_zones::TimeZoneBcp47Id</span>;
 <span class="kw">use</span> <span class="ident">alloc::borrow::Cow</span>;
 <span class="kw">use</span> <span class="ident">alloc::format</span>;
 <span class="kw">use</span> <span class="ident">alloc::string::String</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
+<span class="kw">use</span> <span class="ident">smallvec::SmallVec</span>;
+<span class="kw">use</span> <span class="ident">tinystr::tinystr</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">date::TimeZoneInput</span>,
     <span class="ident">error::DateTimeFormatError</span>,
     <span class="ident">fields</span>::{<span class="ident">FieldSymbol</span>, <span class="ident">TimeZone</span>},
-    <span class="ident">format::time_zone</span>::{<span class="self">self</span>, <span class="ident">FormattedTimeZone</span>},
+    <span class="ident">format::time_zone::FormattedTimeZone</span>,
     <span class="ident">pattern</span>::{<span class="ident">PatternError</span>, <span class="ident">PatternItem</span>},
-    <span class="ident">provider</span>::{
-        <span class="self">self</span>, <span class="ident">calendar::patterns::PatternPluralsFromPatternsV1Marker</span>,
-        <span class="ident">time_zones::TimeZoneFormatsV1Marker</span>,
-    },
+    <span class="ident">provider</span>::{<span class="self">self</span>, <span class="ident">calendar::patterns::PatternPluralsFromPatternsV1Marker</span>},
 };
 <span class="kw">use</span> <span class="ident">icu_locid</span>::{<span class="ident">LanguageIdentifier</span>, <span class="ident">Locale</span>};
 <span class="kw">use</span> <span class="ident">icu_provider::prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">writeable::Writeable</span>;
 
 <span class="doccomment">/// Loads a resource into its destination if the destination has not already been filled.</span>
 <span class="kw">fn</span> <span class="ident">load_resource</span><span class="op">&lt;</span><span class="ident">D</span>, <span class="ident">L</span>, <span class="ident">P</span><span class="op">&gt;</span>(
     <span class="ident">locale</span>: <span class="kw-2">&amp;</span><span class="ident">L</span>,
-    <span class="ident">resource_key</span>: <span class="ident">ResourceKey</span>,
     <span class="ident">destination</span>: <span class="kw-2">&amp;mut</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">provider</span>: <span class="kw-2">&amp;</span><span class="ident">P</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">D</span>: <span class="ident">DataMarker</span>,
+    <span class="ident">D</span>: <span class="ident">ResourceMarker</span>,
     <span class="ident">L</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">LanguageIdentifier</span><span class="op">&gt;</span>,
-    <span class="ident">P</span>: <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    <span class="ident">P</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">D</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
+    <span class="kw">let</span> <span class="ident">langid</span>: <span class="ident">LanguageIdentifier</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
     <span class="kw">if</span> <span class="ident">destination</span>.<span class="ident">is_none</span>() {
         <span class="kw-2">*</span><span class="ident">destination</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
             <span class="ident">provider</span>
-                .<span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
-                    <span class="ident">resource_path</span>: <span class="ident">ResourcePath</span> {
-                        <span class="ident">key</span>: <span class="ident">resource_key</span>,
-                        <span class="ident">options</span>: <span class="ident">ResourceOptions</span> {
-                            <span class="ident">variant</span>: <span class="prelude-val">None</span>,
-                            <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="ident">locale</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
-                        },
-                    },
+                .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
+                    <span class="ident">options</span>: <span class="ident">langid</span>.<span class="ident">into</span>(),
+                    <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
                 })<span class="question-mark">?</span>
                 .<span class="ident">take_payload</span>()<span class="question-mark">?</span>,
         );
@@ -966,7 +1320,7 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="doccomment">/// [`TimeZoneFormat`] uses data from the [`DataProvider`], the selected [`Locale`], and the provided</span>
+<span class="doccomment">/// [`TimeZoneFormat`] uses data from the [data provider], the selected [`Locale`], and the provided</span>
 <span class="doccomment">/// [`TimeZoneFormatConfig`] to collect all data necessary to format time zones into that locale.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The various time-zone configs specified in UTS-35 require different sets of data for</span>
@@ -980,17 +1334,15 @@
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use icu_locid::Locale;</span>
-<span class="doccomment">/// use icu::locid::macros::langid;</span>
-<span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig};</span>
+<span class="doccomment">/// use icu_locid::locale;</span>
+<span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig, TimeZoneFormatOptions};</span>
 <span class="doccomment">/// use icu_datetime::date::GmtOffset;</span>
 <span class="doccomment">/// use icu_datetime::mock::time_zone::MockTimeZone;</span>
 <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
 <span class="doccomment">/// let provider = InvariantDataProvider;</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale, TimeZoneFormatConfig::GenericNonLocationLong, &amp;provider)</span>
+<span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale!(&quot;en&quot;), TimeZoneFormatConfig::GenericNonLocationLong, &amp;provider, &amp;TimeZoneFormatOptions::default())</span>
 <span class="doccomment">///     .expect(&quot;Failed to create TimeZoneFormat&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let time_zone = MockTimeZone::new(</span>
@@ -1002,9 +1354,17 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// let value = tzf.format_to_string(&amp;time_zone);</span>
 <span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [data provider]: icu_provider</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimeZoneFormat</span> {
-    <span class="comment">// The kind of time zone format.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">kind</span>: <span class="ident">TimeZoneFormatKind</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">locale</span>: <span class="ident">Locale</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">data_payloads</span>: <span class="ident">TimeZoneDataPayloads</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">format_units</span>: <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="ident">TimeZoneFormatUnit</span>; <span class="number">3</span>]<span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">fallback_unit</span>: <span class="ident">TimeZoneFormatUnit</span>,
+}
+
+<span class="doccomment">/// A container contains all data payloads for TimeZone.</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimeZoneDataPayloads</span> {
     <span class="doccomment">/// The data that contains meta information about how to display content.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">zone_formats</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::TimeZoneFormatsV1Marker</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The exemplar cities for time zones.</span>
@@ -1030,37 +1390,39 @@
         <span class="ident">locale</span>: <span class="ident">L</span>,
         <span class="ident">patterns</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">PatternPluralsFromPatternsV1Marker</span><span class="op">&gt;</span>,
         <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+        <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneFormatOptions</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>,
-        <span class="ident">ZP</span>: <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::TimeZoneFormatsV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesLongV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesShortV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesLongV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesShortV1Marker</span><span class="op">&gt;</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::TimeZoneFormatsV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesLongV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesShortV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesLongV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesShortV1Marker</span><span class="op">&gt;</span>
             <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
     {
         <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">into</span>();
-
-        <span class="kw">let</span> <span class="ident">zone_formats</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">TimeZoneFormatsV1Marker</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">zone_provider</span>
-            .<span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
-                <span class="ident">resource_path</span>: <span class="ident">ResourcePath</span> {
-                    <span class="ident">key</span>: <span class="ident">provider::key::TIMEZONE_FORMATS_V1</span>,
-                    <span class="ident">options</span>: <span class="ident">ResourceOptions</span> {
-                        <span class="ident">variant</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="ident">locale</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
-                    },
-                },
-            })<span class="question-mark">?</span>
-            .<span class="ident">take_payload</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">format_units</span> <span class="op">=</span> <span class="ident">SmallVec</span>::<span class="op">&lt;</span>[<span class="ident">TimeZoneFormatUnit</span>; <span class="number">3</span>]<span class="op">&gt;</span><span class="ident">::new</span>();
+        <span class="kw">let</span> <span class="ident">data_payloads</span> <span class="op">=</span> <span class="ident">TimeZoneDataPayloads</span> {
+            <span class="ident">zone_formats</span>: <span class="ident">zone_provider</span>
+                .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
+                    <span class="ident">options</span>: <span class="ident">ResourceOptions::from</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>),
+                    <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
+                })<span class="question-mark">?</span>
+                .<span class="ident">take_payload</span>()<span class="question-mark">?</span>,
+            <span class="ident">exemplar_cities</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_generic_long</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_generic_short</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_specific_long</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_specific_short</span>: <span class="prelude-val">None</span>,
+        };
 
         <span class="kw">let</span> <span class="ident">zone_symbols</span> <span class="op">=</span> <span class="ident">patterns</span>
             .<span class="ident">get</span>()
             .<span class="number">0</span>
             .<span class="ident">patterns_iter</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">pattern</span><span class="op">|</span> <span class="ident">pattern</span>.<span class="ident">items</span>.<span class="ident">iter</span>())
-            .<span class="ident">flatten</span>()
+            .<span class="ident">flat_map</span>(<span class="op">|</span><span class="ident">pattern</span><span class="op">|</span> <span class="ident">pattern</span>.<span class="ident">items</span>.<span class="ident">iter</span>())
             .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">item</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">item</span> {
                 <span class="ident">PatternItem::Field</span>(<span class="ident">field</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">field</span>),
                 <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
@@ -1070,36 +1432,33 @@
                 <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
             });
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exemplar_cities</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_generic_long</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesLongV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_generic_short</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesShortV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_specific_long</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesLongV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_specific_short</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesShortV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tz_format</span>: <span class="ident">TimeZoneFormat</span> <span class="op">=</span> <span class="self">Self</span> {
+            <span class="ident">data_payloads</span>,
+            <span class="ident">locale</span>,
+            <span class="ident">format_units</span>,
+            <span class="ident">fallback_unit</span>: <span class="ident">TimeZoneFormat::get_fallback_unit</span>(<span class="ident">options</span>.<span class="ident">fallback_format</span>),
+        };
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_length</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_symbol</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">for</span> (<span class="ident">length</span>, <span class="ident">symbol</span>) <span class="kw">in</span> <span class="ident">zone_symbols</span> {
+            <span class="kw">if</span> <span class="ident">prev_length</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">prev_symbol</span>.<span class="ident">is_none</span>() {
+                <span class="ident">prev_length</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">length</span>);
+                <span class="ident">prev_symbol</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>);
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">prev_length</span> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">length</span>) <span class="op">&amp;&amp;</span> <span class="ident">prev_symbol</span> <span class="op">!</span><span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">symbol</span>) {
+                <span class="comment">// We don&#39;t support the pattern that has multiple different timezone fields of different types.</span>
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
+                    <span class="ident">PatternError::UnsupportedPluralPivot</span>,
+                ));
+            }
+
             <span class="kw">match</span> <span class="ident">symbol</span> {
                 <span class="ident">TimeZone::LowerZ</span> =&gt; <span class="kw">match</span> <span class="ident">length</span> {
-                    <span class="number">1</span>..<span class="op">=</span><span class="number">3</span> =&gt; <span class="ident">load_resource</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                        <span class="ident">provider::key::TIMEZONE_SPECIFIC_NAMES_SHORT_V1</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">mz_specific_short</span>,
-                        <span class="ident">zone_provider</span>,
-                    )<span class="question-mark">?</span>,
-                    <span class="number">4</span> =&gt; <span class="ident">load_resource</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                        <span class="ident">provider::key::TIMEZONE_SPECIFIC_NAMES_LONG_V1</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">mz_specific_long</span>,
-                        <span class="ident">zone_provider</span>,
-                    )<span class="question-mark">?</span>,
+                    <span class="number">1</span>..<span class="op">=</span><span class="number">3</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_specific_non_location_short</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
+                    }
+                    <span class="number">4</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_specific_non_location_long</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
+                    }
                     <span class="kw">_</span> =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
                             <span class="ident">PatternError::FieldLengthInvalid</span>(<span class="ident">FieldSymbol::TimeZone</span>(<span class="ident">symbol</span>)),
@@ -1108,32 +1467,10 @@
                 },
                 <span class="ident">TimeZone::LowerV</span> =&gt; <span class="kw">match</span> <span class="ident">length</span> {
                     <span class="number">1</span> =&gt; {
-                        <span class="ident">load_resource</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                            <span class="ident">provider::key::TIMEZONE_GENERIC_NAMES_SHORT_V1</span>,
-                            <span class="kw-2">&amp;mut</span> <span class="ident">mz_generic_short</span>,
-                            <span class="ident">zone_provider</span>,
-                        )<span class="question-mark">?</span>;
-                        <span class="ident">load_resource</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                            <span class="ident">provider::key::TIMEZONE_EXEMPLAR_CITIES_V1</span>,
-                            <span class="kw-2">&amp;mut</span> <span class="ident">exemplar_cities</span>,
-                            <span class="ident">zone_provider</span>,
-                        )<span class="question-mark">?</span>;
+                        <span class="ident">tz_format</span>.<span class="ident">load_generic_non_location_short</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
                     }
                     <span class="number">4</span> =&gt; {
-                        <span class="ident">load_resource</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                            <span class="ident">provider::key::TIMEZONE_GENERIC_NAMES_LONG_V1</span>,
-                            <span class="kw-2">&amp;mut</span> <span class="ident">mz_generic_long</span>,
-                            <span class="ident">zone_provider</span>,
-                        )<span class="question-mark">?</span>;
-                        <span class="ident">load_resource</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                            <span class="ident">provider::key::TIMEZONE_EXEMPLAR_CITIES_V1</span>,
-                            <span class="kw-2">&amp;mut</span> <span class="ident">exemplar_cities</span>,
-                            <span class="ident">zone_provider</span>,
-                        )<span class="question-mark">?</span>;
+                        <span class="ident">tz_format</span>.<span class="ident">load_generic_non_location_long</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
                     }
                     <span class="kw">_</span> =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
@@ -1144,32 +1481,139 @@
                 <span class="ident">TimeZone::UpperV</span> =&gt; <span class="kw">match</span> <span class="ident">length</span> {
                     <span class="number">1</span> =&gt; (), <span class="comment">// BCP-47 identifier, no CLDR-data necessary.</span>
                     <span class="number">2</span> =&gt; (), <span class="comment">// IANA time-zone ID, no CLDR data necessary.</span>
-                    <span class="number">3</span> <span class="op">|</span> <span class="number">4</span> =&gt; <span class="ident">load_resource</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                        <span class="ident">provider::key::TIMEZONE_EXEMPLAR_CITIES_V1</span>,
-                        <span class="kw-2">&amp;mut</span> <span class="ident">exemplar_cities</span>,
-                        <span class="ident">zone_provider</span>,
-                    )<span class="question-mark">?</span>,
+                    <span class="number">3</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_exemplar_city_format</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
+                    }
+                    <span class="number">4</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_generic_location_format</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
+                    }
                     <span class="kw">_</span> =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
                             <span class="ident">PatternError::FieldLengthInvalid</span>(<span class="ident">FieldSymbol::TimeZone</span>(<span class="ident">symbol</span>)),
                         ))
                     }
                 },
-                <span class="comment">// ISO-8601 or localized GMT formats. CLDR data is either unneeded or required by default.</span>
-                <span class="ident">TimeZone::LowerX</span> <span class="op">|</span> <span class="ident">TimeZone::UpperX</span> <span class="op">|</span> <span class="ident">TimeZone::UpperZ</span> <span class="op">|</span> <span class="ident">TimeZone::UpperO</span> =&gt; (),
+                <span class="ident">TimeZone::UpperZ</span> =&gt; <span class="kw">match</span> <span class="ident">length</span> {
+                    <span class="number">1</span>..<span class="op">=</span><span class="number">3</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::Basic</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Optional</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">4</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_localized_gmt_format</span>()<span class="question-mark">?</span>;
+                    }
+                    <span class="number">5</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::UtcExtended</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Optional</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
+                            <span class="ident">PatternError::FieldLengthInvalid</span>(<span class="ident">FieldSymbol::TimeZone</span>(<span class="ident">symbol</span>)),
+                        ))
+                    }
+                },
+                <span class="ident">TimeZone::LowerX</span> =&gt; <span class="kw">match</span> <span class="ident">length</span> {
+                    <span class="number">1</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::UtcBasic</span>,
+                            <span class="ident">IsoMinutes::Optional</span>,
+                            <span class="ident">IsoSeconds::Never</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">2</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::UtcBasic</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Never</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">3</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::UtcExtended</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Never</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">4</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::UtcBasic</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Optional</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">5</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::UtcExtended</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Optional</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
+                            <span class="ident">PatternError::FieldLengthInvalid</span>(<span class="ident">FieldSymbol::TimeZone</span>(<span class="ident">symbol</span>)),
+                        ))
+                    }
+                },
+                <span class="ident">TimeZone::UpperX</span> =&gt; <span class="kw">match</span> <span class="ident">length</span> {
+                    <span class="number">1</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::Basic</span>,
+                            <span class="ident">IsoMinutes::Optional</span>,
+                            <span class="ident">IsoSeconds::Never</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">2</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::Basic</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Never</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">3</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::Extended</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Never</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">4</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::Basic</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Optional</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="number">5</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(
+                            <span class="ident">IsoFormat::Extended</span>,
+                            <span class="ident">IsoMinutes::Required</span>,
+                            <span class="ident">IsoSeconds::Optional</span>,
+                        )<span class="question-mark">?</span>;
+                    }
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
+                            <span class="ident">PatternError::FieldLengthInvalid</span>(<span class="ident">FieldSymbol::TimeZone</span>(<span class="ident">symbol</span>)),
+                        ))
+                    }
+                },
+                <span class="ident">TimeZone::UpperO</span> =&gt; <span class="kw">match</span> <span class="ident">length</span> {
+                    <span class="number">1</span>..<span class="op">=</span><span class="number">4</span> =&gt; {
+                        <span class="ident">tz_format</span>.<span class="ident">load_localized_gmt_format</span>()<span class="question-mark">?</span>;
+                    }
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::Pattern</span>(
+                            <span class="ident">PatternError::FieldLengthInvalid</span>(<span class="ident">FieldSymbol::TimeZone</span>(<span class="ident">symbol</span>)),
+                        ))
+                    }
+                },
             }
         }
-
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">kind</span>: <span class="ident">TimeZoneFormatKind::Pattern</span>(<span class="ident">patterns</span>),
-            <span class="ident">zone_formats</span>,
-            <span class="ident">exemplar_cities</span>,
-            <span class="ident">mz_generic_long</span>,
-            <span class="ident">mz_generic_short</span>,
-            <span class="ident">mz_specific_long</span>,
-            <span class="ident">mz_specific_short</span>,
-        })
+        <span class="prelude-val">Ok</span>(<span class="ident">tz_format</span>)
     }
 
     <span class="doccomment">/// Constructor that selectively loads data based on what is required to</span>
@@ -1178,16 +1622,14 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu_locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
-    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig};</span>
+    <span class="doccomment">/// use icu_locid::locale;</span>
+    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig, TimeZoneFormatOptions};</span>
     <span class="doccomment">/// use icu_datetime::mock::time_zone::MockTimeZone;</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
     <span class="doccomment">/// let provider = InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale, TimeZoneFormatConfig::LocalizedGMT, &amp;provider);</span>
+    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale!(&quot;en&quot;), TimeZoneFormatConfig::LocalizedGMT, &amp;provider, &amp;TimeZoneFormatOptions::default());</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert!(tzf.is_ok());</span>
     <span class="doccomment">/// ```</span>
@@ -1195,111 +1637,234 @@
         <span class="ident">locale</span>: <span class="ident">L</span>,
         <span class="ident">config</span>: <span class="ident">TimeZoneFormatConfig</span>,
         <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+        <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneFormatOptions</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">L</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span>,
-        <span class="ident">ZP</span>: <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::TimeZoneFormatsV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesLongV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesShortV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesLongV1Marker</span><span class="op">&gt;</span>
-            <span class="op">+</span> <span class="ident">DataProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesShortV1Marker</span><span class="op">&gt;</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::TimeZoneFormatsV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesLongV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesShortV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesLongV1Marker</span><span class="op">&gt;</span>
+            <span class="op">+</span> <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesShortV1Marker</span><span class="op">&gt;</span>
             <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
     {
         <span class="kw">let</span> <span class="ident">locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">into</span>();
+        <span class="kw">let</span> <span class="ident">format_units</span> <span class="op">=</span> <span class="ident">SmallVec</span>::<span class="op">&lt;</span>[<span class="ident">TimeZoneFormatUnit</span>; <span class="number">3</span>]<span class="op">&gt;</span><span class="ident">::new</span>();
+        <span class="kw">let</span> <span class="ident">data_payloads</span> <span class="op">=</span> <span class="ident">TimeZoneDataPayloads</span> {
+            <span class="ident">zone_formats</span>: <span class="ident">zone_provider</span>
+                .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
+                    <span class="ident">options</span>: <span class="ident">ResourceOptions::from</span>(<span class="kw-2">&amp;</span><span class="ident">locale</span>),
+                    <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
+                })<span class="question-mark">?</span>
+                .<span class="ident">take_payload</span>()<span class="question-mark">?</span>,
+            <span class="ident">exemplar_cities</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_generic_long</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_generic_short</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_specific_long</span>: <span class="prelude-val">None</span>,
+            <span class="ident">mz_specific_short</span>: <span class="prelude-val">None</span>,
+        };
 
-        <span class="kw">let</span> <span class="ident">zone_formats</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">TimeZoneFormatsV1Marker</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">zone_provider</span>
-            .<span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
-                <span class="ident">resource_path</span>: <span class="ident">ResourcePath</span> {
-                    <span class="ident">key</span>: <span class="ident">provider::key::TIMEZONE_FORMATS_V1</span>,
-                    <span class="ident">options</span>: <span class="ident">ResourceOptions</span> {
-                        <span class="ident">variant</span>: <span class="prelude-val">None</span>,
-                        <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="ident">locale</span>.<span class="ident">clone</span>().<span class="ident">into</span>()),
-                    },
-                },
-            })<span class="question-mark">?</span>
-            .<span class="ident">take_payload</span>()<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">exemplar_cities</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span>
-            <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_generic_long</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesLongV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_generic_short</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesShortV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_specific_long</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesLongV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mz_specific_short</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span>
-            <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesShortV1Marker</span><span class="op">&gt;</span>,
-        <span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tz_format</span>: <span class="ident">TimeZoneFormat</span> <span class="op">=</span> <span class="self">Self</span> {
+            <span class="ident">data_payloads</span>,
+            <span class="ident">locale</span>,
+            <span class="ident">format_units</span>,
+            <span class="ident">fallback_unit</span>: <span class="ident">TimeZoneFormat::get_fallback_unit</span>(<span class="ident">options</span>.<span class="ident">fallback_format</span>),
+        };
 
         <span class="kw">match</span> <span class="ident">config</span> {
             <span class="ident">TimeZoneFormatConfig::GenericNonLocationLong</span> =&gt; {
-                <span class="ident">load_resource</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                    <span class="ident">provider::key::TIMEZONE_GENERIC_NAMES_LONG_V1</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">mz_generic_long</span>,
-                    <span class="ident">zone_provider</span>,
-                )<span class="question-mark">?</span>;
-                <span class="ident">load_resource</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                    <span class="ident">provider::key::TIMEZONE_EXEMPLAR_CITIES_V1</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">exemplar_cities</span>,
-                    <span class="ident">zone_provider</span>,
-                )<span class="question-mark">?</span>;
+                <span class="ident">tz_format</span>.<span class="ident">load_generic_non_location_long</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">TimeZoneFormatConfig::GenericNonLocationShort</span> =&gt; {
-                <span class="ident">load_resource</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                    <span class="ident">provider::key::TIMEZONE_GENERIC_NAMES_SHORT_V1</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">mz_generic_short</span>,
-                    <span class="ident">zone_provider</span>,
-                )<span class="question-mark">?</span>;
-                <span class="ident">load_resource</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                    <span class="ident">provider::key::TIMEZONE_EXEMPLAR_CITIES_V1</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">exemplar_cities</span>,
-                    <span class="ident">zone_provider</span>,
-                )<span class="question-mark">?</span>;
+                <span class="ident">tz_format</span>.<span class="ident">load_generic_non_location_short</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">TimeZoneFormatConfig::GenericLocation</span> =&gt; {
-                <span class="ident">load_resource</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                    <span class="ident">provider::key::TIMEZONE_EXEMPLAR_CITIES_V1</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">exemplar_cities</span>,
-                    <span class="ident">zone_provider</span>,
-                )<span class="question-mark">?</span>;
+                <span class="ident">tz_format</span>.<span class="ident">load_generic_location_format</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">TimeZoneFormatConfig::SpecificNonLocationLong</span> =&gt; {
-                <span class="ident">load_resource</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                    <span class="ident">provider::key::TIMEZONE_SPECIFIC_NAMES_LONG_V1</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">mz_specific_long</span>,
-                    <span class="ident">zone_provider</span>,
-                )<span class="question-mark">?</span>;
+                <span class="ident">tz_format</span>.<span class="ident">load_specific_non_location_long</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">TimeZoneFormatConfig::SpecificNonLocationShort</span> =&gt; {
-                <span class="ident">load_resource</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">locale</span>,
-                    <span class="ident">provider::key::TIMEZONE_SPECIFIC_NAMES_SHORT_V1</span>,
-                    <span class="kw-2">&amp;mut</span> <span class="ident">mz_specific_short</span>,
-                    <span class="ident">zone_provider</span>,
-                )<span class="question-mark">?</span>;
+                <span class="ident">tz_format</span>.<span class="ident">load_specific_non_location_short</span>(<span class="ident">zone_provider</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">TimeZoneFormatConfig::LocalizedGMT</span> <span class="op">|</span> <span class="ident">TimeZoneFormatConfig::Iso8601</span>(..) =&gt; (),
+            <span class="ident">TimeZoneFormatConfig::LocalizedGMT</span> =&gt; {
+                <span class="ident">tz_format</span>.<span class="ident">load_localized_gmt_format</span>()<span class="question-mark">?</span>;
+            }
+            <span class="ident">TimeZoneFormatConfig::Iso8601</span>(<span class="ident">format</span>, <span class="ident">minutes</span>, <span class="ident">seconds</span>) =&gt; {
+                <span class="ident">tz_format</span>.<span class="ident">load_iso_8601_format</span>(<span class="ident">format</span>, <span class="ident">minutes</span>, <span class="ident">seconds</span>)<span class="question-mark">?</span>;
+            }
         }
+        <span class="prelude-val">Ok</span>(<span class="ident">tz_format</span>)
+    }
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span> {
-            <span class="ident">kind</span>: <span class="ident">TimeZoneFormatKind::Config</span>(<span class="ident">config</span>),
-            <span class="ident">zone_formats</span>,
-            <span class="ident">exemplar_cities</span>,
-            <span class="ident">mz_generic_long</span>,
-            <span class="ident">mz_generic_short</span>,
-            <span class="ident">mz_specific_long</span>,
-            <span class="ident">mz_specific_short</span>,
-        })
+    <span class="doccomment">/// Load generic non location long format for timezone. For example, Pacific Time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_generic_non_location_long</span><span class="op">&lt;</span><span class="ident">ZP</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesLongV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_generic_long</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+            <span class="ident">load_resource</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">locale</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_generic_long</span>,
+                <span class="ident">zone_provider</span>,
+            )<span class="question-mark">?</span>;
+        }
+        <span class="self">self</span>.<span class="ident">format_units</span>
+            .<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::GenericNonLocationLong</span>(
+                <span class="ident">GenericNonLocationLongFormat</span> {},
+            ));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load generic non location short format for timezone. For example, PT.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_generic_non_location_short</span><span class="op">&lt;</span><span class="ident">ZP</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneGenericNamesShortV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_generic_short</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+            <span class="ident">load_resource</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">locale</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_generic_short</span>,
+                <span class="ident">zone_provider</span>,
+            )<span class="question-mark">?</span>;
+        }
+        <span class="self">self</span>.<span class="ident">format_units</span>
+            .<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::GenericNonLocationShort</span>(
+                <span class="ident">GenericNonLocationShortFormat</span> {},
+            ));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load specific non location long format for timezone. For example, Pacific Standard Time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_specific_non_location_long</span><span class="op">&lt;</span><span class="ident">ZP</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesLongV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_specific_long</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+            <span class="ident">load_resource</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">locale</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_specific_long</span>,
+                <span class="ident">zone_provider</span>,
+            )<span class="question-mark">?</span>;
+        }
+        <span class="self">self</span>.<span class="ident">format_units</span>
+            .<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::SpecificNonLocationLong</span>(
+                <span class="ident">SpecificNonLocationLongFormat</span> {},
+            ));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load specific non location short format for timezone. For example, PDT.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_specific_non_location_short</span><span class="op">&lt;</span><span class="ident">ZP</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::MetaZoneSpecificNamesShortV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_specific_short</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+            <span class="ident">load_resource</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">locale</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">mz_specific_short</span>,
+                <span class="ident">zone_provider</span>,
+            )<span class="question-mark">?</span>;
+        }
+        <span class="self">self</span>.<span class="ident">format_units</span>
+            .<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::SpecificNonLocationShort</span>(
+                <span class="ident">SpecificNonLocationShortFormat</span> {},
+            ));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load generic location format for timezone. For example, Los Angeles Time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_generic_location_format</span><span class="op">&lt;</span><span class="ident">ZP</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">exemplar_cities</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+            <span class="ident">load_resource</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">locale</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">exemplar_cities</span>,
+                <span class="ident">zone_provider</span>,
+            )<span class="question-mark">?</span>;
+        }
+        <span class="self">self</span>.<span class="ident">format_units</span>.<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::GenericLocation</span>(
+            <span class="ident">GenericLocationFormat</span> {},
+        ));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load exemplar city format for timezone. For example, Los Angeles.</span>
+    <span class="kw">fn</span> <span class="ident">load_exemplar_city_format</span><span class="op">&lt;</span><span class="ident">ZP</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">zone_provider</span>: <span class="kw-2">&amp;</span><span class="ident">ZP</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">ZP</span>: <span class="ident">ResourceProvider</span><span class="op">&lt;</span><span class="ident">provider::time_zones::ExemplarCitiesV1Marker</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
+    {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">exemplar_cities</span> <span class="op">==</span> <span class="prelude-val">None</span> {
+            <span class="ident">load_resource</span>(
+                <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">locale</span>,
+                <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">data_payloads</span>.<span class="ident">exemplar_cities</span>,
+                <span class="ident">zone_provider</span>,
+            )<span class="question-mark">?</span>;
+        }
+        <span class="self">self</span>.<span class="ident">format_units</span>
+            .<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::ExemplarCity</span>(<span class="ident">ExemplarCityFormat</span> {}));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load localized GMT format for timezone. For example, GMT-07:00.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_localized_gmt_format</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">format_units</span>
+            .<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::LocalizedGmt</span>(<span class="ident">LocalizedGmtFormat</span> {}));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load Iso8601 format for timezone. For example, -07:00.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_iso_8601_format</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">format</span>: <span class="ident">IsoFormat</span>,
+        <span class="ident">minutes</span>: <span class="ident">IsoMinutes</span>,
+        <span class="ident">seconds</span>: <span class="ident">IsoSeconds</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">TimeZoneFormat</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">format_units</span>
+            .<span class="ident">push</span>(<span class="ident">TimeZoneFormatUnit::Iso8601</span>(<span class="ident">Iso8601Format</span> {
+                <span class="ident">format</span>,
+                <span class="ident">minutes</span>,
+                <span class="ident">seconds</span>,
+            }));
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Load a fallback format for timezone. The fallback format will be executed if there are no</span>
+    <span class="doccomment">/// matching format results.</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_fallback_unit</span>(<span class="ident">fallback_format</span>: <span class="ident">FallbackFormat</span>) -&gt; <span class="ident">TimeZoneFormatUnit</span> {
+        <span class="kw">match</span> <span class="ident">fallback_format</span> {
+            <span class="ident">FallbackFormat::LocalizedGmt</span> =&gt; <span class="ident">TimeZoneFormatUnit::LocalizedGmt</span>(<span class="ident">LocalizedGmtFormat</span> {}),
+            <span class="ident">FallbackFormat::Iso8601</span>(<span class="ident">format</span>, <span class="ident">minutes</span>, <span class="ident">seconds</span>) =&gt; {
+                <span class="ident">TimeZoneFormatUnit::Iso8601</span>(<span class="ident">Iso8601Format</span> {
+                    <span class="ident">format</span>,
+                    <span class="ident">minutes</span>,
+                    <span class="ident">seconds</span>,
+                })
+            }
+        }
     }
 
     <span class="doccomment">/// Takes a [`TimeZoneInput`] implementer and returns an instance of a [`FormattedTimeZone`]</span>
@@ -1308,17 +1873,15 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu_locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
-    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig};</span>
+    <span class="doccomment">/// use icu_locid::locale;</span>
+    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig, TimeZoneFormatOptions};</span>
     <span class="doccomment">/// use icu_datetime::date::GmtOffset;</span>
     <span class="doccomment">/// use icu_datetime::mock::time_zone::MockTimeZone;</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
     <span class="doccomment">/// let provider = InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale, TimeZoneFormatConfig::LocalizedGMT, &amp;provider)</span>
+    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale!(&quot;en&quot;), TimeZoneFormatConfig::LocalizedGMT, &amp;provider, &amp;TimeZoneFormatOptions::default())</span>
     <span class="doccomment">///     .expect(&quot;Failed to create TimeZoneFormat&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let time_zone = MockTimeZone::new(</span>
@@ -1346,17 +1909,15 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu_locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
-    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig};</span>
+    <span class="doccomment">/// use icu_locid::locale;</span>
+    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig, TimeZoneFormatOptions};</span>
     <span class="doccomment">/// use icu_datetime::date::GmtOffset;</span>
     <span class="doccomment">/// use icu_datetime::mock::time_zone::MockTimeZone;</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
     <span class="doccomment">/// let provider = InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale, TimeZoneFormatConfig::LocalizedGMT, &amp;provider)</span>
+    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale!(&quot;en&quot;), TimeZoneFormatConfig::LocalizedGMT, &amp;provider, &amp;TimeZoneFormatOptions::default())</span>
     <span class="doccomment">///     .expect(&quot;Failed to create TimeZoneFormat&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let time_zone = MockTimeZone::new(</span>
@@ -1377,7 +1938,7 @@
         <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="kw">impl</span> <span class="ident">core::fmt::Write</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
     ) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">time_zone::write_zone</span>(<span class="self">self</span>, <span class="ident">value</span>, <span class="ident">w</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">core::fmt::Error</span>)
+        <span class="self">self</span>.<span class="ident">format</span>(<span class="ident">value</span>).<span class="ident">write_to</span>(<span class="ident">w</span>)
     }
 
     <span class="doccomment">/// Takes a [`TimeZoneInput`] implementer and returns a string with the formatted value.</span>
@@ -1385,17 +1946,15 @@
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use icu_locid::Locale;</span>
-    <span class="doccomment">/// use icu::locid::macros::langid;</span>
-    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig};</span>
+    <span class="doccomment">/// use icu_locid::locale;</span>
+    <span class="doccomment">/// use icu_datetime::{TimeZoneFormat, TimeZoneFormatConfig, TimeZoneFormatOptions};</span>
     <span class="doccomment">/// use icu_datetime::date::GmtOffset;</span>
     <span class="doccomment">/// use icu_datetime::mock::time_zone::MockTimeZone;</span>
     <span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
     <span class="doccomment">/// let provider = InvariantDataProvider;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale, TimeZoneFormatConfig::LocalizedGMT, &amp;provider)</span>
+    <span class="doccomment">/// let tzf = TimeZoneFormat::try_from_config(locale!(&quot;en&quot;), TimeZoneFormatConfig::LocalizedGMT, &amp;provider, &amp;TimeZoneFormatOptions::default())</span>
     <span class="doccomment">///     .expect(&quot;Failed to create TimeZoneFormat&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let time_zone = MockTimeZone::new(</span>
@@ -1409,251 +1968,10 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">format_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="self">self</span>.<span class="ident">format_to_write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="ident">value</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;Failed to write to a String.&quot;</span>);
         <span class="ident">s</span>
-    }
-
-    <span class="doccomment">/// Writes the time zone in generic location format as defined by the UTS-35 spec.</span>
-    <span class="doccomment">/// e.g. France Time</span>
-    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">generic_location_format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="comment">// TODO(blocked on #277) Use formatter utility instead of replacing &quot;{0}&quot;.</span>
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(
-            <span class="kw-2">&amp;</span><span class="self">self</span>
-                .<span class="ident">exemplar_cities</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cities</span><span class="op">|</span> <span class="ident">time_zone</span>.<span class="ident">time_zone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">cities</span>.<span class="ident">get</span>(<span class="ident">id</span>)))
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">location</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">zone_formats</span>
-                        .<span class="ident">get</span>()
-                        .<span class="ident">region_format</span>
-                        .<span class="ident">replace</span>(<span class="string">&quot;{0}&quot;</span>, <span class="ident">location</span>)
-                })
-                .<span class="ident">ok_or</span>(<span class="ident">fmt::Error</span>)<span class="question-mark">?</span>,
-        )
-        .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-    }
-
-    <span class="doccomment">/// Writes the time zone in short generic non-location format as defined by the UTS-35 spec.</span>
-    <span class="doccomment">/// e.g. PT</span>
-    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">short_generic_non_location_format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(
-            <span class="self">self</span>.<span class="ident">mz_generic_short</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                    <span class="ident">time_zone</span>
-                        .<span class="ident">time_zone_id</span>()
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get_override</span>(<span class="ident">tz</span>))
-                })
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">mz_generic_short</span>
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>.<span class="ident">metazone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get</span>(<span class="ident">mz</span>))
-                        })
-                })
-                .<span class="ident">ok_or</span>(<span class="ident">fmt::Error</span>)<span class="question-mark">?</span>,
-        )
-        .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-    }
-
-    <span class="doccomment">/// Writes the time zone in long generic non-location format as defined by the UTS-35 spec.</span>
-    <span class="doccomment">/// e.g. Pacific Time</span>
-    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">long_generic_non_location_format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(
-            <span class="self">self</span>.<span class="ident">mz_generic_long</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                    <span class="ident">time_zone</span>
-                        .<span class="ident">time_zone_id</span>()
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get_override</span>(<span class="ident">tz</span>))
-                })
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">mz_generic_long</span>
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>.<span class="ident">metazone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get</span>(<span class="ident">mz</span>))
-                        })
-                })
-                .<span class="ident">ok_or</span>(<span class="ident">fmt::Error</span>)<span class="question-mark">?</span>,
-        )
-        .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-    }
-
-    <span class="doccomment">/// Writes the time zone in short specific non-location format as defined by the UTS-35 spec.</span>
-    <span class="doccomment">/// e.g. PDT</span>
-    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">short_specific_non_location_format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(
-            <span class="self">self</span>.<span class="ident">mz_specific_short</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                    <span class="ident">time_zone</span>
-                        .<span class="ident">time_zone_id</span>()
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get_override</span>(<span class="ident">tz</span>))
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">specific_names</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>
-                                .<span class="ident">time_variant</span>()
-                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">specific_names</span>.<span class="ident">get</span>(<span class="ident">variant</span>))
-                        })
-                })
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">mz_specific_short</span>
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>.<span class="ident">metazone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get</span>(<span class="ident">mz</span>))
-                        })
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">specific_names</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>
-                                .<span class="ident">time_variant</span>()
-                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">specific_names</span>.<span class="ident">get</span>(<span class="ident">variant</span>))
-                        })
-                })
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">DateTimeFormatError::from</span>(<span class="ident">fmt::Error</span>))<span class="question-mark">?</span>,
-        )
-        .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-    }
-
-    <span class="doccomment">/// Writes the time zone in long specific non-location format as defined by the UTS-35 spec.</span>
-    <span class="doccomment">/// e.g. Pacific Daylight Time</span>
-    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">long_specific_non_location_format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(
-            <span class="self">self</span>.<span class="ident">mz_specific_long</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                    <span class="ident">time_zone</span>
-                        .<span class="ident">time_zone_id</span>()
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get_override</span>(<span class="ident">tz</span>))
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">specific_names</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>
-                                .<span class="ident">time_variant</span>()
-                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">specific_names</span>.<span class="ident">get</span>(<span class="ident">variant</span>))
-                        })
-                })
-                .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="self">self</span>.<span class="ident">mz_specific_long</span>
-                        .<span class="ident">as_ref</span>()
-                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>.<span class="ident">metazone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">get</span>(<span class="ident">mz</span>))
-                        })
-                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">specific_names</span><span class="op">|</span> {
-                            <span class="ident">time_zone</span>
-                                .<span class="ident">time_variant</span>()
-                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">specific_names</span>.<span class="ident">get</span>(<span class="ident">variant</span>))
-                        })
-                })
-                .<span class="ident">ok_or</span>(<span class="ident">fmt::Error</span>)<span class="question-mark">?</span>,
-        )
-        .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-    }
-
-    <span class="doccomment">/// Writes the time zone in localized GMT format according to the CLDR localized hour format.</span>
-    <span class="doccomment">/// This goes explicitly against the UTS-35 spec, which specifies long or short localized</span>
-    <span class="doccomment">/// GMT formats regardless of locale.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// You can see more information about our decision to resolve this conflict here:</span>
-    <span class="doccomment">/// https://docs.google.com/document/d/16GAqaDRS6hzL8jNYjus5MglSevGBflISM-BrIS7bd4A/edit?usp=sharing</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">localized_gmt_format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">gmt_offset</span> <span class="op">=</span> <span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>();
-        <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_zero</span>() {
-            <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">zone_formats</span>.<span class="ident">get</span>().<span class="ident">gmt_zero_format</span>.<span class="ident">clone</span>())
-                .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// TODO(blocked on #277) Use formatter utility instead of replacing &quot;{0}&quot;.</span>
-            <span class="ident">sink</span>.<span class="ident">write_str</span>(
-                <span class="kw-2">&amp;</span><span class="self">self</span>
-                    .<span class="ident">zone_formats</span>
-                    .<span class="ident">get</span>()
-                    .<span class="ident">gmt_format</span>
-                    .<span class="ident">replace</span>(
-                        <span class="string">&quot;{0}&quot;</span>,
-                        <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_positive</span>() {
-                            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">zone_formats</span>.<span class="ident">get</span>().<span class="ident">hour_format</span>.<span class="number">0</span>
-                        } <span class="kw">else</span> {
-                            <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">zone_formats</span>.<span class="ident">get</span>().<span class="ident">hour_format</span>.<span class="number">1</span>
-                        },
-                    )
-                    <span class="comment">// support all combos of &quot;(HH|H):mm&quot; by replacing longest patterns first.</span>
-                    .<span class="ident">replace</span>(<span class="string">&quot;HH&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format_offset_hours</span>(<span class="ident">time_zone</span>, <span class="ident">ZeroPadding::On</span>))
-                    .<span class="ident">replace</span>(<span class="string">&quot;mm&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format_offset_minutes</span>(<span class="ident">time_zone</span>))
-                    .<span class="ident">replace</span>(<span class="string">&quot;H&quot;</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format_offset_hours</span>(<span class="ident">time_zone</span>, <span class="ident">ZeroPadding::Off</span>)),
-            )
-            .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-        }
-    }
-
-    <span class="doccomment">/// Writes the exemplar city associated with this time zone.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">exemplar_city</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(
-            <span class="self">self</span>.<span class="ident">exemplar_cities</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cities</span><span class="op">|</span> <span class="ident">time_zone</span>.<span class="ident">time_zone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">cities</span>.<span class="ident">get</span>(<span class="ident">id</span>)))
-                .<span class="ident">ok_or</span>(<span class="ident">fmt::Error</span>)<span class="question-mark">?</span>,
-        )
-        .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
-    }
-
-    <span class="doccomment">/// Writes the unknown city &quot;Etc/Unknown&quot; for the current locale.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// If there is no localized form of &quot;Etc/Unknown&quot; for the current locale,</span>
-    <span class="doccomment">/// returns the &quot;Etc/Uknown&quot; value of the `und` locale as a hard-coded string.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This can be used as a fallback if [`exemplar_city()`](TimeZoneFormat::exemplar_city())</span>
-    <span class="doccomment">/// is unable to produce a localized form of the time zone&#39;s exemplar city in the current locale.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">unknown_city</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(
-            <span class="self">self</span>.<span class="ident">exemplar_cities</span>
-                .<span class="ident">as_ref</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
-                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cities</span><span class="op">|</span> <span class="ident">cities</span>.<span class="ident">get</span>(<span class="string">&quot;Etc/Unknown&quot;</span>))
-                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Cow::Borrowed</span>(<span class="string">&quot;Unknown&quot;</span>)),
-        )
-        .<span class="ident">map_err</span>(<span class="ident">DateTimeFormatError::from</span>)
     }
 
     <span class="doccomment">/// Formats a time segment with optional zero-padding.</span>
@@ -1666,100 +1984,36 @@
     }
 
     <span class="doccomment">/// Formats the hours as a [`String`] with optional zero-padding.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">format_offset_hours</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-        <span class="ident">padding</span>: <span class="ident">ZeroPadding</span>,
-    ) -&gt; <span class="ident">String</span> {
-        <span class="ident"><span class="self">Self</span>::format_time_segment</span>(
+    <span class="kw">fn</span> <span class="ident">format_offset_hours</span>(<span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>, <span class="ident">padding</span>: <span class="ident">ZeroPadding</span>) -&gt; <span class="ident">String</span> {
+        <span class="ident">TimeZoneFormat::format_time_segment</span>(
             (<span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>().<span class="ident">raw_offset_seconds</span>() <span class="op">/</span> <span class="number">3600</span>).<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">u8</span>,
             <span class="ident">padding</span>,
         )
     }
 
     <span class="doccomment">/// Formats the minutes as a [`String`] with zero-padding.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">format_offset_minutes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident"><span class="self">Self</span>::format_time_segment</span>(
+    <span class="kw">fn</span> <span class="ident">format_offset_minutes</span>(<span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>) -&gt; <span class="ident">String</span> {
+        <span class="ident">TimeZoneFormat::format_time_segment</span>(
             (<span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>().<span class="ident">raw_offset_seconds</span>() <span class="op">%</span> <span class="number">3600</span> <span class="op">/</span> <span class="number">60</span>).<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">u8</span>,
             <span class="ident">ZeroPadding::On</span>,
         )
     }
 
     <span class="doccomment">/// Formats the seconds as a [`String`] with zero-padding.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">format_offset_seconds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>) -&gt; <span class="ident">String</span> {
-        <span class="ident"><span class="self">Self</span>::format_time_segment</span>(
-            (<span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>().<span class="ident">raw_offset_seconds</span>() <span class="op">%</span> <span class="number">3600</span> <span class="op">%</span> <span class="number">60</span>).<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">u8</span>,
-            <span class="ident">ZeroPadding::On</span>,
-        )
-    }
-
-    <span class="doccomment">/// Writes a [`GmtOffset`](crate::date::GmtOffset) in ISO-8601 format according to the</span>
-    <span class="doccomment">/// given formatting options.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`IsoFormat`] determines whether the format should be Basic or Extended,</span>
-    <span class="doccomment">/// and whether a zero-offset should be formatted numerically or with</span>
-    <span class="doccomment">/// The UTC indicator: &quot;Z&quot;</span>
-    <span class="doccomment">/// - Basic    e.g. +0800</span>
-    <span class="doccomment">/// - Extended e.g. +08:00</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [`IsoMinutes`] can be required or optional.</span>
-    <span class="doccomment">/// [`IsoSeconds`] can be optional or never.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">iso8601_format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
+    <span class="kw">fn</span> <span class="ident">format_offset_seconds</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
         <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
         <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
-        <span class="ident">format</span>: <span class="ident">IsoFormat</span>,
-        <span class="ident">minutes</span>: <span class="ident">IsoMinutes</span>,
-        <span class="ident">seconds</span>: <span class="ident">IsoSeconds</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">gmt_offset</span> <span class="op">=</span> <span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>();
-        <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_zero</span>() <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="ident">format</span>, <span class="ident">IsoFormat::UtcBasic</span> <span class="op">|</span> <span class="ident">IsoFormat::UtcExtended</span>) {
-            <span class="kw">return</span> <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;Z&#39;</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">err</span>.<span class="ident">into</span>());
-        }
-
-        <span class="kw">let</span> <span class="ident">extended_format</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="ident">format</span>, <span class="ident">IsoFormat::Extended</span> <span class="op">|</span> <span class="ident">IsoFormat::UtcExtended</span>);
-        <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_positive</span>() { <span class="string">&#39;+&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> })<span class="question-mark">?</span>;
-        <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format_offset_hours</span>(<span class="ident">time_zone</span>, <span class="ident">ZeroPadding::On</span>))<span class="question-mark">?</span>;
-
-        <span class="kw">match</span> <span class="ident">minutes</span> {
-            <span class="ident">IsoMinutes::Required</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">extended_format</span> {
-                    <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;:&#39;</span>)<span class="question-mark">?</span>;
-                }
-                <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format_offset_minutes</span>(<span class="ident">time_zone</span>))<span class="question-mark">?</span>;
-            }
-            <span class="ident">IsoMinutes::Optional</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">has_minutes</span>() {
-                    <span class="kw">if</span> <span class="ident">extended_format</span> {
-                        <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;:&#39;</span>)<span class="question-mark">?</span>;
-                    }
-                    <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format_offset_minutes</span>(<span class="ident">time_zone</span>))<span class="question-mark">?</span>;
-                }
-            }
-        }
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IsoSeconds::Optional</span> <span class="op">=</span> <span class="ident">seconds</span> {
-            <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">has_seconds</span>() {
-                <span class="kw">if</span> <span class="ident">extended_format</span> {
-                    <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;:&#39;</span>)<span class="question-mark">?</span>;
-                }
-                <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">format_offset_seconds</span>(<span class="ident">time_zone</span>))<span class="question-mark">?</span>;
-            }
-        }
-
-        <span class="prelude-val">Ok</span>(())
+    ) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">TimeZoneFormat::format_time_segment</span>(
+            (<span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>().<span class="ident">raw_offset_seconds</span>() <span class="op">%</span> <span class="number">3600</span> <span class="op">%</span> <span class="number">60</span>).<span class="ident">abs</span>() <span class="kw">as</span> <span class="ident">u8</span>,
+            <span class="ident">ZeroPadding::On</span>,
+        ))
     }
-}
-
-<span class="doccomment">/// Determines which type of formats time zone uses. It can be either config or pattern.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::large_enum_variant</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">TimeZoneFormatKind</span> {
-    <span class="ident">Config</span>(<span class="ident">TimeZoneFormatConfig</span>),
-    <span class="ident">Pattern</span>(<span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">PatternPluralsFromPatternsV1Marker</span><span class="op">&gt;</span>),
 }
 
 <span class="doccomment">/// Determines which ISO-8601 format should be used to format a [`GmtOffset`](crate::date::GmtOffset).</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IsoFormat</span> {
     <span class="doccomment">/// ISO-8601 Basic Format.</span>
     <span class="doccomment">/// Formats zero-offset numerically.</span>
@@ -1784,6 +2038,7 @@
 
 <span class="doccomment">/// Whether the minutes field should be optional or required in ISO-8601 format.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IsoMinutes</span> {
     <span class="doccomment">/// Minutes are always displayed.</span>
     <span class="ident">Required</span>,
@@ -1794,6 +2049,7 @@
 
 <span class="doccomment">/// Whether the seconds field should be optional or excluded in ISO-8601 format.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IsoSeconds</span> {
     <span class="doccomment">/// Seconds are displayed only if they are non-zero.</span>
     <span class="ident">Optional</span>,
@@ -1804,6 +2060,7 @@
 
 <span class="doccomment">/// Whether a field should be zero-padded in ISO-8601 format.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ZeroPadding</span> {
     <span class="doccomment">/// Add zero-padding.</span>
     <span class="ident">On</span>,
@@ -1814,6 +2071,7 @@
 
 <span class="doccomment">/// A config enum for initializing TimeZoneFormat.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TimeZoneFormatConfig</span> {
     <span class="ident">GenericNonLocationLong</span>,                     <span class="comment">// Pacific Time</span>
     <span class="ident">GenericNonLocationShort</span>,                    <span class="comment">// PT</span>
@@ -1822,6 +2080,464 @@
     <span class="ident">SpecificNonLocationShort</span>,                   <span class="comment">// PDT</span>
     <span class="ident">LocalizedGMT</span>,                               <span class="comment">// GMT-07:00</span>
     <span class="ident">Iso8601</span>(<span class="ident">IsoFormat</span>, <span class="ident">IsoMinutes</span>, <span class="ident">IsoSeconds</span>), <span class="comment">// -07:00</span>
+}
+
+<span class="doccomment">/// An enum for fallback formats.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">FallbackFormat</span> {
+    <span class="ident">Iso8601</span>(<span class="ident">IsoFormat</span>, <span class="ident">IsoMinutes</span>, <span class="ident">IsoSeconds</span>),
+    <span class="ident">LocalizedGmt</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">FallbackFormat</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident">FallbackFormat::LocalizedGmt</span>
+    }
+}
+
+<span class="doccomment">/// A bag of options to define how time zone will be formatted.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// this type is stable</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimeZoneFormatOptions</span> {
+    <span class="kw">pub</span> <span class="ident">fallback_format</span>: <span class="ident">FallbackFormat</span>,
+}
+
+<span class="comment">// Pacific Time</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">GenericNonLocationLongFormat</span> {}
+
+<span class="comment">// PT</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">GenericNonLocationShortFormat</span> {}
+
+<span class="comment">// Pacific Standard Time</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">SpecificNonLocationLongFormat</span> {}
+
+<span class="comment">// PDT</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">SpecificNonLocationShortFormat</span> {}
+
+<span class="comment">// Los Angeles Time</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">GenericLocationFormat</span> {}
+
+<span class="comment">// GMT-07:00</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">LocalizedGmtFormat</span> {}
+
+<span class="comment">// -07:00</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Iso8601Format</span> {
+    <span class="ident">format</span>: <span class="ident">IsoFormat</span>,
+    <span class="ident">minutes</span>: <span class="ident">IsoMinutes</span>,
+    <span class="ident">seconds</span>: <span class="ident">IsoSeconds</span>,
+}
+
+<span class="comment">// It is only used for pattern in special case and not public to users.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">ExemplarCityFormat</span> {}
+
+<span class="comment">// An enum for time zone format unit.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">TimeZoneFormatUnit</span> {
+    <span class="ident">GenericNonLocationLong</span>(<span class="ident">GenericNonLocationLongFormat</span>),
+    <span class="ident">GenericNonLocationShort</span>(<span class="ident">GenericNonLocationShortFormat</span>),
+    <span class="ident">SpecificNonLocationLong</span>(<span class="ident">SpecificNonLocationLongFormat</span>),
+    <span class="ident">SpecificNonLocationShort</span>(<span class="ident">SpecificNonLocationShortFormat</span>),
+    <span class="ident">GenericLocation</span>(<span class="ident">GenericLocationFormat</span>),
+    <span class="ident">LocalizedGmt</span>(<span class="ident">LocalizedGmtFormat</span>),
+    <span class="ident">Iso8601</span>(<span class="ident">Iso8601Format</span>),
+    <span class="ident">ExemplarCity</span>(<span class="ident">ExemplarCityFormat</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">TimeZoneFormatUnit</span> {
+    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident">TimeZoneFormatUnit::LocalizedGmt</span>(<span class="ident">LocalizedGmtFormat</span> {})
+    }
+}
+
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">trait</span> <span class="ident">FormatTimeZone</span> {
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span>;
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">TimeZoneFormatUnit</span> {
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::GenericNonLocationLong</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+            <span class="ident"><span class="self">Self</span>::GenericNonLocationShort</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+            <span class="ident"><span class="self">Self</span>::SpecificNonLocationLong</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+            <span class="ident"><span class="self">Self</span>::SpecificNonLocationShort</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+            <span class="ident"><span class="self">Self</span>::GenericLocation</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+            <span class="ident"><span class="self">Self</span>::LocalizedGmt</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+            <span class="ident"><span class="self">Self</span>::Iso8601</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+            <span class="ident"><span class="self">Self</span>::ExemplarCity</span>(<span class="ident">unit</span>) =&gt; <span class="ident">unit</span>.<span class="ident">format</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>, <span class="ident">data_payloads</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">GenericNonLocationLongFormat</span> {
+    <span class="doccomment">/// Writes the time zone in long generic non-location format as defined by the UTS-35 spec.</span>
+    <span class="doccomment">/// e.g. Pacific Time</span>
+    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">formatted_time_zone</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data_payloads</span>
+            .<span class="ident">mz_generic_long</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                <span class="ident">time_zone</span>
+                    .<span class="ident">time_zone_id</span>()
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">overrides</span>.<span class="ident">get</span>(<span class="ident">tz</span>))
+            })
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">data_payloads</span>
+                    .<span class="ident">mz_generic_long</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                        <span class="ident">time_zone</span>
+                            .<span class="ident">metazone_id</span>()
+                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">defaults</span>.<span class="ident">get</span>(<span class="ident">mz</span>))
+                    })
+            });
+
+        <span class="kw">match</span> <span class="ident">formatted_time_zone</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ftz</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="ident">ftz</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::UnsupportedOptions</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">GenericNonLocationShortFormat</span> {
+    <span class="doccomment">/// Writes the time zone in short generic non-location format as defined by the UTS-35 spec.</span>
+    <span class="doccomment">/// e.g. PT</span>
+    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">formatted_time_zone</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data_payloads</span>
+            .<span class="ident">mz_generic_short</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                <span class="ident">time_zone</span>
+                    .<span class="ident">time_zone_id</span>()
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">overrides</span>.<span class="ident">get</span>(<span class="ident">tz</span>))
+            })
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">data_payloads</span>
+                    .<span class="ident">mz_generic_short</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                        <span class="ident">time_zone</span>
+                            .<span class="ident">metazone_id</span>()
+                            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">defaults</span>.<span class="ident">get</span>(<span class="ident">mz</span>))
+                    })
+            });
+
+        <span class="kw">match</span> <span class="ident">formatted_time_zone</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ftz</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="ident">ftz</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::UnsupportedOptions</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">SpecificNonLocationShortFormat</span> {
+    <span class="doccomment">/// Writes the time zone in short specific non-location format as defined by the UTS-35 spec.</span>
+    <span class="doccomment">/// e.g. PDT</span>
+    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">formatted_time_zone</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data_payloads</span>
+            .<span class="ident">mz_specific_short</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                <span class="ident">time_zone</span>.<span class="ident">time_zone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> {
+                    <span class="ident">time_zone</span>
+                        .<span class="ident">time_variant</span>()
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">overrides</span>.<span class="ident">get</span>(<span class="ident">tz</span>, <span class="ident">variant</span>).<span class="ident">ok</span>())
+                })
+            })
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">data_payloads</span>
+                    .<span class="ident">mz_specific_short</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                        <span class="ident">time_zone</span>.<span class="ident">metazone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> {
+                            <span class="ident">time_zone</span>
+                                .<span class="ident">time_variant</span>()
+                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">defaults</span>.<span class="ident">get</span>(<span class="ident">mz</span>, <span class="ident">variant</span>).<span class="ident">ok</span>())
+                        })
+                    })
+            });
+
+        <span class="kw">match</span> <span class="ident">formatted_time_zone</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ftz</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="ident">ftz</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::UnsupportedOptions</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">SpecificNonLocationLongFormat</span> {
+    <span class="doccomment">/// Writes the time zone in long specific non-location format as defined by the UTS-35 spec.</span>
+    <span class="doccomment">/// e.g. Pacific Daylight Time</span>
+    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">formatted_time_zone</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data_payloads</span>
+            .<span class="ident">mz_specific_long</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                <span class="ident">time_zone</span>.<span class="ident">time_zone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tz</span><span class="op">|</span> {
+                    <span class="ident">time_zone</span>
+                        .<span class="ident">time_variant</span>()
+                        .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">overrides</span>.<span class="ident">get</span>(<span class="ident">tz</span>, <span class="ident">variant</span>).<span class="ident">ok</span>())
+                })
+            })
+            .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">data_payloads</span>
+                    .<span class="ident">mz_specific_long</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">metazones</span><span class="op">|</span> {
+                        <span class="ident">time_zone</span>.<span class="ident">metazone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">mz</span><span class="op">|</span> {
+                            <span class="ident">time_zone</span>
+                                .<span class="ident">time_variant</span>()
+                                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> <span class="ident">metazones</span>.<span class="ident">defaults</span>.<span class="ident">get</span>(<span class="ident">mz</span>, <span class="ident">variant</span>).<span class="ident">ok</span>())
+                        })
+                    })
+            });
+
+        <span class="kw">match</span> <span class="ident">formatted_time_zone</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ftz</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="ident">ftz</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::UnsupportedOptions</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">LocalizedGmtFormat</span> {
+    <span class="doccomment">/// Writes the time zone in localized GMT format according to the CLDR localized hour format.</span>
+    <span class="doccomment">/// This goes explicitly against the UTS-35 spec, which specifies long or short localized</span>
+    <span class="doccomment">/// GMT formats regardless of locale.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// You can see more information about our decision to resolve this conflict here:</span>
+    <span class="doccomment">/// https://docs.google.com/document/d/16GAqaDRS6hzL8jNYjus5MglSevGBflISM-BrIS7bd4A/edit?usp=sharing</span>
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">gmt_offset</span> <span class="op">=</span> <span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>();
+        <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_zero</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">data_payloads</span>.<span class="ident">zone_formats</span>.<span class="ident">get</span>().<span class="ident">gmt_zero_format</span>.<span class="ident">clone</span>()))
+        } <span class="kw">else</span> {
+            <span class="comment">// TODO(blocked on #277) Use formatter utility instead of replacing &quot;{0}&quot;.</span>
+            <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(
+                <span class="kw-2">&amp;</span><span class="ident">data_payloads</span>
+                    .<span class="ident">zone_formats</span>
+                    .<span class="ident">get</span>()
+                    .<span class="ident">gmt_format</span>
+                    .<span class="ident">replace</span>(
+                        <span class="string">&quot;{0}&quot;</span>,
+                        <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_positive</span>() {
+                            <span class="kw-2">&amp;</span><span class="ident">data_payloads</span>.<span class="ident">zone_formats</span>.<span class="ident">get</span>().<span class="ident">hour_format</span>.<span class="number">0</span>
+                        } <span class="kw">else</span> {
+                            <span class="kw-2">&amp;</span><span class="ident">data_payloads</span>.<span class="ident">zone_formats</span>.<span class="ident">get</span>().<span class="ident">hour_format</span>.<span class="number">1</span>
+                        },
+                    )
+                    <span class="comment">// support all combos of &quot;(HH|H):mm&quot; by replacing longest patterns first.</span>
+                    .<span class="ident">replace</span>(
+                        <span class="string">&quot;HH&quot;</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">TimeZoneFormat::format_offset_hours</span>(<span class="ident">time_zone</span>, <span class="ident">ZeroPadding::On</span>),
+                    )
+                    .<span class="ident">replace</span>(<span class="string">&quot;mm&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">TimeZoneFormat::format_offset_minutes</span>(<span class="ident">time_zone</span>))
+                    .<span class="ident">replace</span>(
+                        <span class="string">&#39;H&#39;</span>,
+                        <span class="kw-2">&amp;</span><span class="ident">TimeZoneFormat::format_offset_hours</span>(<span class="ident">time_zone</span>, <span class="ident">ZeroPadding::Off</span>),
+                    ),
+            ))
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">GenericLocationFormat</span> {
+    <span class="doccomment">/// Writes the time zone in generic location format as defined by the UTS-35 spec.</span>
+    <span class="doccomment">/// e.g. France Time</span>
+    <span class="doccomment">/// https://unicode.org/reports/tr35/tr35-dates.html#Time_Zone_Format_Terminology</span>
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="comment">// TODO(blocked on #277) Use formatter utility instead of replacing &quot;{0}&quot;.</span>
+        <span class="kw">let</span> <span class="ident">formatted_time_zone</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">alloc::string::String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">data_payloads</span>
+            .<span class="ident">exemplar_cities</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cities</span><span class="op">|</span> <span class="ident">time_zone</span>.<span class="ident">time_zone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">cities</span>.<span class="number">0</span>.<span class="ident">get</span>(<span class="ident">id</span>)))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">location</span><span class="op">|</span> {
+                <span class="ident">data_payloads</span>
+                    .<span class="ident">zone_formats</span>
+                    .<span class="ident">get</span>()
+                    .<span class="ident">region_format</span>
+                    .<span class="ident">replace</span>(<span class="string">&quot;{0}&quot;</span>, <span class="ident">location</span>)
+            });
+        <span class="kw">match</span> <span class="ident">formatted_time_zone</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ftz</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">ftz</span>)),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">DateTimeFormatError::UnsupportedOptions</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">Iso8601Format</span> {
+    <span class="doccomment">/// Writes a [`GmtOffset`](crate::date::GmtOffset) in ISO-8601 format according to the</span>
+    <span class="doccomment">/// given formatting options.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`IsoFormat`] determines whether the format should be Basic or Extended,</span>
+    <span class="doccomment">/// and whether a zero-offset should be formatted numerically or with</span>
+    <span class="doccomment">/// The UTC indicator: &quot;Z&quot;</span>
+    <span class="doccomment">/// - Basic    e.g. +0800</span>
+    <span class="doccomment">/// - Extended e.g. +08:00</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`IsoMinutes`] can be required or optional.</span>
+    <span class="doccomment">/// [`IsoSeconds`] can be optional or never.</span>
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">_data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">gmt_offset</span> <span class="op">=</span> <span class="ident">time_zone</span>.<span class="ident">gmt_offset</span>();
+        <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_zero</span>()
+            <span class="op">&amp;&amp;</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">format</span>, <span class="ident">IsoFormat::UtcBasic</span> <span class="op">|</span> <span class="ident">IsoFormat::UtcExtended</span>)
+        {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;Z&#39;</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+            }
+        }
+
+        <span class="kw">let</span> <span class="ident">extended_format</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">format</span>, <span class="ident">IsoFormat::Extended</span> <span class="op">|</span> <span class="ident">IsoFormat::UtcExtended</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">is_positive</span>() { <span class="string">&#39;+&#39;</span> } <span class="kw">else</span> { <span class="string">&#39;-&#39;</span> }) {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+        }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">TimeZoneFormat::format_offset_hours</span>(
+            <span class="ident">time_zone</span>,
+            <span class="ident">ZeroPadding::On</span>,
+        )) {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+        }
+
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">minutes</span> {
+            <span class="ident">IsoMinutes::Required</span> =&gt; {
+                <span class="kw">if</span> <span class="ident">extended_format</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;:&#39;</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+                    }
+                }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">TimeZoneFormat::format_offset_minutes</span>(<span class="ident">time_zone</span>)) {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+                }
+            }
+            <span class="ident">IsoMinutes::Optional</span> =&gt; {
+                <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">has_minutes</span>() {
+                    <span class="kw">if</span> <span class="ident">extended_format</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;:&#39;</span>) {
+                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+                        }
+                    }
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span>
+                        <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">TimeZoneFormat::format_offset_minutes</span>(<span class="ident">time_zone</span>))
+                    {
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+                    }
+                }
+            }
+        }
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IsoSeconds::Optional</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">seconds</span> {
+            <span class="kw">if</span> <span class="ident">gmt_offset</span>.<span class="ident">has_seconds</span>() {
+                <span class="kw">if</span> <span class="ident">extended_format</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;:&#39;</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+                    }
+                }
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">TimeZoneFormat::format_offset_seconds</span>(<span class="ident">sink</span>, <span class="ident">time_zone</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Err</span>(<span class="ident">e</span>));
+                }
+            }
+        }
+        <span class="prelude-val">Ok</span>(<span class="prelude-val">Ok</span>(()))
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">FormatTimeZone</span> <span class="kw">for</span> <span class="ident">ExemplarCityFormat</span> {
+    <span class="kw">fn</span> <span class="ident">format</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
+        <span class="ident">time_zone</span>: <span class="kw-2">&amp;</span><span class="kw">impl</span> <span class="ident">TimeZoneInput</span>,
+        <span class="ident">data_payloads</span>: <span class="kw-2">&amp;</span><span class="ident">TimeZoneDataPayloads</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">fmt::Result</span>, <span class="ident">DateTimeFormatError</span><span class="op">&gt;</span> {
+        <span class="comment">// Writes the exemplar city associated with this time zone.</span>
+        <span class="kw">let</span> <span class="ident">formatted_exemplar_city</span> <span class="op">=</span> <span class="ident">data_payloads</span>
+            .<span class="ident">exemplar_cities</span>
+            .<span class="ident">as_ref</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cities</span><span class="op">|</span> <span class="ident">time_zone</span>.<span class="ident">time_zone_id</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">id</span><span class="op">|</span> <span class="ident">cities</span>.<span class="number">0</span>.<span class="ident">get</span>(<span class="ident">id</span>)));
+
+        <span class="kw">match</span> <span class="ident">formatted_exemplar_city</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">ftz</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="ident">ftz</span>)),
+            <span class="prelude-val">None</span> =&gt; {
+                <span class="comment">// Writes the unknown city &quot;Etc/Unknown&quot; for the current locale.</span>
+                <span class="comment">//</span>
+                <span class="comment">// If there is no localized form of &quot;Etc/Unknown&quot; for the current locale,</span>
+                <span class="comment">// returns the &quot;Etc/Uknown&quot; value of the `und` locale as a hard-coded string.</span>
+                <span class="comment">//</span>
+                <span class="comment">// This can be used as a fallback if [`exemplar_city()`](TimeZoneFormat::exemplar_city())</span>
+                <span class="comment">// is unable to produce a localized form of the time zone&#39;s exemplar city in the current locale.</span>
+                <span class="kw">let</span> <span class="ident">formatted_unknown_city</span> <span class="op">=</span> <span class="ident">data_payloads</span>
+                    .<span class="ident">exemplar_cities</span>
+                    .<span class="ident">as_ref</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="ident">p</span>.<span class="ident">get</span>())
+                    .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cities</span><span class="op">|</span> <span class="ident">cities</span>.<span class="number">0</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">TimeZoneBcp47Id</span>(<span class="macro">tinystr!</span>(<span class="number">8</span>, <span class="string">&quot;unk&quot;</span>))))
+                    .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">Cow::Borrowed</span>(<span class="string">&quot;Unknown&quot;</span>));
+                <span class="prelude-val">Ok</span>(<span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="ident">formatted_unknown_city</span>))
+            }
+        }
+    }
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="icu_datetime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>

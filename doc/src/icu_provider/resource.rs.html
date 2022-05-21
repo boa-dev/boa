@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.5.0/src/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.6.0/src/resource.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>resource.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_provider/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -528,6 +528,125 @@
 <span id="523">523</span>
 <span id="524">524</span>
 <span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
+<span id="624">624</span>
+<span id="625">625</span>
+<span id="626">626</span>
+<span id="627">627</span>
+<span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
+<span id="633">633</span>
+<span id="634">634</span>
+<span id="635">635</span>
+<span id="636">636</span>
+<span id="637">637</span>
+<span id="638">638</span>
+<span id="639">639</span>
+<span id="640">640</span>
+<span id="641">641</span>
+<span id="642">642</span>
+<span id="643">643</span>
+<span id="644">644</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -538,53 +657,15 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">DataError</span>, <span class="ident">DataErrorKind</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::helpers</span>;
+<span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">core::default::Default</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="kw">use</span> <span class="ident">core::fmt::Write</span>;
-<span class="kw">use</span> <span class="ident">icu_locid::LanguageIdentifier</span>;
+<span class="kw">use</span> <span class="ident">icu_locid::extensions::unicode</span> <span class="kw">as</span> <span class="ident">unicode_ext</span>;
+<span class="kw">use</span> <span class="ident">icu_locid::subtags</span>::{<span class="ident">Language</span>, <span class="ident">Region</span>, <span class="ident">Script</span>};
+<span class="kw">use</span> <span class="ident">icu_locid</span>::{<span class="ident">LanguageIdentifier</span>, <span class="ident">Locale</span>};
 <span class="kw">use</span> <span class="ident">writeable</span>::{<span class="ident">LengthHint</span>, <span class="ident">Writeable</span>};
-
-<span class="doccomment">/// A compact hash of a [`ResourceKey`]. Useful for keys in maps.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>)]</span>
-<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceKeyHash</span>([<span class="ident">u8</span>; <span class="number">4</span>]);
-
-<span class="kw">impl</span> <span class="ident">ResourceKeyHash</span> {
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">compute_from_str</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">helpers::fxhash_32</span>(<span class="ident">path</span>.<span class="ident">as_bytes</span>()).<span class="ident">to_le_bytes</span>())
-    }
-}
-
-<span class="doccomment">/// Used for loading data from an ICU4X data provider.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A resource key is tightly coupled with the code that uses it to load data at runtime.</span>
-<span class="doccomment">/// Executables can be searched for `ResourceKey` instances to produce optimized data files.</span>
-<span class="doccomment">/// Therefore, users should not generally create ResourceKey instances; they should instead use</span>
-<span class="doccomment">/// the ones exported by a component.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `ResourceKey`s are created with the [`resource_key!`] macro:</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// # use icu_provider::prelude::ResourceKey;</span>
-<span class="doccomment">/// const K: ResourceKey = icu_provider::resource_key!(&quot;foo/bar@1&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The human-readable path string ends with `@` followed by one or more digits (the version</span>
-<span class="doccomment">/// number). Paths do not contain characters other than ASCII letters and digits, `_`, `/`, `=`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// Invalid paths are compile-time errors (as [`resource_key!`] uses `const`).</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```compile_fail,E0080</span>
-<span class="doccomment">/// # use icu_provider::prelude::ResourceKey;</span>
-<span class="doccomment">/// const K: ResourceKey = icu_provider::resource_key!(&quot;foo/../bar@1&quot;);</span>
-<span class="doccomment">/// ```</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceKey</span> {
-    <span class="comment">// This string literal is wrapped in leading_tag!() and trailing_tag!() to make it detectable</span>
-    <span class="comment">// in a compiled binary.</span>
-    <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="ident">hash</span>: <span class="ident">ResourceKeyHash</span>,
-}
+<span class="kw">use</span> <span class="ident">zerovec::ule</span>::<span class="kw-2">*</span>;
 
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="attribute">#[<span class="ident">macro_export</span>]</span>
@@ -614,15 +695,85 @@
     };
 }
 
-<span class="kw">impl</span> <span class="macro-nonterminal">ResourceKey</span> {
+<span class="doccomment">/// A compact hash of a [`ResourceKey`]. Useful for keys in maps.</span>
+<span class="attribute">#[<span class="macro-nonterminal">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">ULE</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceKeyHash</span>([<span class="ident">u8</span>; <span class="number">4</span>]);
+
+<span class="kw">impl</span> <span class="ident">ResourceKeyHash</span> {
+    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">compute_from_str</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(
+            <span class="ident">helpers::fxhash_32</span>(<span class="ident">path</span>.<span class="ident">as_bytes</span>(), <span class="macro">leading_tag!</span>().<span class="ident">len</span>(), <span class="macro">trailing_tag!</span>().<span class="ident">len</span>())
+                .<span class="ident">to_le_bytes</span>(),
+        )
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">zerovec::maps::ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ResourceKeyHash</span> {
+    <span class="kw">type</span> <span class="ident">Container</span> <span class="op">=</span> <span class="ident">zerovec::ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">ResourceKeyHash</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">GetType</span> <span class="op">=</span> <span class="op">&lt;</span><span class="ident">ResourceKeyHash</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span>;
+    <span class="kw">type</span> <span class="ident">OwnedType</span> <span class="op">=</span> <span class="ident">ResourceKeyHash</span>;
+}
+
+<span class="kw">impl</span> <span class="ident">AsULE</span> <span class="kw">for</span> <span class="ident">ResourceKeyHash</span> {
+    <span class="kw">type</span> <span class="ident">ULE</span> <span class="op">=</span> <span class="self">Self</span>;
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">to_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span> {
+        <span class="self">self</span>
+    }
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from_unaligned</span>(<span class="ident">unaligned</span>: <span class="ident"><span class="self">Self</span>::ULE</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">unaligned</span>
+    }
+}
+
+<span class="comment">// Safe since the ULE type is `self`.</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">EqULE</span> <span class="kw">for</span> <span class="ident">ResourceKeyHash</span> {}
+
+<span class="doccomment">/// Used for loading data from an ICU4X data provider.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A resource key is tightly coupled with the code that uses it to load data at runtime.</span>
+<span class="doccomment">/// Executables can be searched for `ResourceKey` instances to produce optimized data files.</span>
+<span class="doccomment">/// Therefore, users should not generally create ResourceKey instances; they should instead use</span>
+<span class="doccomment">/// the ones exported by a component.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `ResourceKey`s are created with the [`resource_key!`] macro:</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// # use icu_provider::prelude::ResourceKey;</span>
+<span class="doccomment">/// const K: ResourceKey = icu_provider::resource_key!(&quot;foo/bar@1&quot;);</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The human-readable path string ends with `@` followed by one or more digits (the version</span>
+<span class="doccomment">/// number). Paths do not contain characters other than ASCII letters and digits, `_`, `/`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Invalid paths are compile-time errors (as [`resource_key!`] uses `const`).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```compile_fail,E0080</span>
+<span class="doccomment">/// # use icu_provider::prelude::ResourceKey;</span>
+<span class="doccomment">/// const K: ResourceKey = icu_provider::resource_key!(&quot;foo/../bar@1&quot;);</span>
+<span class="doccomment">/// ```</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceKey</span> {
+    <span class="comment">// This string literal is wrapped in leading_tag!() and trailing_tag!() to make it detectable</span>
+    <span class="comment">// in a compiled binary.</span>
+    <span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+    <span class="ident">hash</span>: <span class="ident">ResourceKeyHash</span>,
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="macro">static_assertions::const_assert_eq!</span>(<span class="number">24</span>, <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">ResourceKey</span><span class="op">&gt;</span>());
+
+<span class="kw">impl</span> <span class="ident">ResourceKey</span> {
     <span class="doccomment">/// Gets a human-readable representation of a [`ResourceKey`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The human-readable path string ends with `@` followed by one or more digits (the version</span>
-    <span class="doccomment">/// number). Paths do not contain characters other than ASCII letters and digits, `_`, `/`, `=`.</span>
+    <span class="doccomment">/// number). Paths do not contain characters other than ASCII letters and digits, `_`, `/`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Useful for reading and writing data to a file system.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_path</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="comment">// This becomes const with `const_ptr_offset` and `const_slice_from_raw_parts`.</span>
         <span class="kw">unsafe</span> {
             <span class="comment">// Safe due to invariant that self.path is tagged correctly</span>
@@ -645,6 +796,8 @@
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="comment">// Error is a str of the expected character class and the index where it wasn&#39;t encountered</span>
+    <span class="comment">// The indexing operations in this function have been reviewed in detail and won&#39;t panic.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">construct_internal</span>(<span class="ident">path</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="ident">usize</span>)<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">path</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="macro">leading_tag!</span>().<span class="ident">len</span>() <span class="op">+</span> <span class="macro">trailing_tag!</span>().<span class="ident">len</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="string">&quot;tag&quot;</span>, <span class="number">0</span>));
@@ -669,7 +822,7 @@
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
 
-        <span class="comment">// Regex: [a-zA-Z0-9=_][a-zA-Z0-9=_/]*@[0-9]+</span>
+        <span class="comment">// Regex: [a-zA-Z0-9_][a-zA-Z0-9_/]*@[0-9]+</span>
         <span class="kw">enum</span> <span class="ident">State</span> {
             <span class="ident">Empty</span>,
             <span class="ident">Body</span>,
@@ -686,7 +839,7 @@
                 <span class="prelude-val">None</span>
             };
             <span class="ident">state</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">state</span>, <span class="ident">byte</span>) {
-                (<span class="ident">Empty</span> <span class="op">|</span> <span class="ident">Body</span>, <span class="prelude-val">Some</span>(<span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;z&#39;</span> <span class="op">|</span> <span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;Z&#39;</span> <span class="op">|</span> <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> <span class="op">|</span> <span class="string">b&#39;_&#39;</span> <span class="op">|</span> <span class="string">b&#39;=&#39;</span>)) =&gt; <span class="ident">Body</span>,
+                (<span class="ident">Empty</span> <span class="op">|</span> <span class="ident">Body</span>, <span class="prelude-val">Some</span>(<span class="string">b&#39;a&#39;</span>..<span class="op">=</span><span class="string">b&#39;z&#39;</span> <span class="op">|</span> <span class="string">b&#39;A&#39;</span>..<span class="op">=</span><span class="string">b&#39;Z&#39;</span> <span class="op">|</span> <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> <span class="op">|</span> <span class="string">b&#39;_&#39;</span>)) =&gt; <span class="ident">Body</span>,
                 (<span class="ident">Body</span>, <span class="prelude-val">Some</span>(<span class="string">b&#39;/&#39;</span>)) =&gt; <span class="ident">Body</span>,
                 (<span class="ident">Body</span>, <span class="prelude-val">Some</span>(<span class="string">b&#39;@&#39;</span>)) =&gt; <span class="ident">At</span>,
                 (<span class="ident">At</span> <span class="op">|</span> <span class="ident">Version</span>, <span class="prelude-val">Some</span>(<span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span>)) =&gt; <span class="ident">Version</span>,
@@ -698,8 +851,8 @@
                     })
                 }
 
-                (<span class="ident">Empty</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-Z0-9=_]&quot;</span>, <span class="ident">i</span>)),
-                (<span class="ident">Body</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-z0-9=_/@]&quot;</span>, <span class="ident">i</span>)),
+                (<span class="ident">Empty</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-Z0-9_]&quot;</span>, <span class="ident">i</span>)),
+                (<span class="ident">Body</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-z0-9_/@]&quot;</span>, <span class="ident">i</span>)),
                 (<span class="ident">At</span> <span class="op">|</span> <span class="ident">Version</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>((<span class="string">&quot;[0-9]&quot;</span>, <span class="ident">i</span>)),
             };
             <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -760,7 +913,7 @@
     <span class="comment">// No version:</span>
     <span class="macro">assert_eq!</span>(
         <span class="ident">ResourceKey::construct_internal</span>(<span class="macro">tagged!</span>(<span class="string">&quot;hello/world&quot;</span>)),
-        <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-z0-9=_/@]&quot;</span>, <span class="number">25</span>))
+        <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-z0-9_/@]&quot;</span>, <span class="number">25</span>))
     );
 
     <span class="macro">assert_eq!</span>(
@@ -779,7 +932,7 @@
     <span class="comment">// Invalid characters:</span>
     <span class="macro">assert_eq!</span>(
         <span class="ident">ResourceKey::construct_internal</span>(<span class="macro">tagged!</span>(<span class="string">&quot;你好/世界@1&quot;</span>)),
-        <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-Z0-9=_]&quot;</span>, <span class="number">14</span>))
+        <span class="prelude-val">Err</span>((<span class="string">&quot;[a-zA-Z0-9_]&quot;</span>, <span class="number">14</span>))
     );
 
     <span class="comment">// Invalid tag:</span>
@@ -805,6 +958,8 @@
         <span class="kw">const</span> <span class="ident">RESOURCE_KEY_MACRO_CONST</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::ResourceKey</span> <span class="op">=</span> {
             <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::ResourceKey::construct_internal</span>(<span class="macro-nonterminal">$</span><span class="macro">crate::tagged!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>)) {
                 <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::panic</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="macro">concat!</span>(<span class="string">&quot;Invalid resource key: &quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">path</span>)),
                 <span class="comment">// TODO Once formatting is const:</span>
                 <span class="comment">// Err((expected, index)) =&gt; panic!(</span>
@@ -843,20 +998,18 @@
         <span class="self">self</span>.<span class="ident">get_path</span>().<span class="ident">write_len</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">writeable_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">write_to_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
         <span class="ident">Cow::Borrowed</span>(<span class="self">self</span>.<span class="ident">get_path</span>())
     }
 }
 
-<span class="doccomment">/// A variant and language identifier, used for requesting data from a</span>
-<span class="doccomment">/// [`DataProvider`](crate::DataProvider).</span>
+<span class="doccomment">/// A variant and language identifier, used for requesting data from a data provider.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The fields in a [`ResourceOptions`] are not generally known until runtime.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>, <span class="ident">PartialOrd</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourceOptions</span> {
-    <span class="comment">// TODO: Consider making multiple variant fields.</span>
-    <span class="kw">pub</span> <span class="ident">variant</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">langid</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">LanguageIdentifier</span><span class="op">&gt;</span>,
+    <span class="ident">langid</span>: <span class="ident">LanguageIdentifier</span>,
+    <span class="ident">keywords</span>: <span class="ident">unicode_ext::Keywords</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ResourceOptions</span> {
@@ -873,88 +1026,203 @@
 
 <span class="kw">impl</span> <span class="ident">Writeable</span> <span class="kw">for</span> <span class="ident">ResourceOptions</span> {
     <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">core::fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">core::fmt::Result</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">variant</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variant</span> {
-            <span class="ident">variant</span>.<span class="ident">write_to</span>(<span class="ident">sink</span>)<span class="question-mark">?</span>;
-            <span class="ident">initial</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">langid</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">langid</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">initial</span> {
-                <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;/&#39;</span>)<span class="question-mark">?</span>;
-            }
-            <span class="ident">langid</span>.<span class="ident">write_to</span>(<span class="ident">sink</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">langid</span>.<span class="ident">write_to</span>(<span class="ident">sink</span>)<span class="question-mark">?</span>;
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">keywords</span>.<span class="ident">is_empty</span>() {
+            <span class="ident">sink</span>.<span class="ident">write_str</span>(<span class="string">&quot;-u-&quot;</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">keywords</span>.<span class="ident">write_to</span>(<span class="ident">sink</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">fn</span> <span class="ident">write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LengthHint</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length_hint</span> <span class="op">=</span> <span class="ident">LengthHint::exact</span>(<span class="number">0</span>);
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">initial</span> <span class="op">=</span> <span class="bool-val">true</span>;
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">variant</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variant</span> {
-            <span class="ident">length_hint</span> <span class="op">+</span><span class="op">=</span> <span class="ident">variant</span>.<span class="ident">write_len</span>();
-            <span class="ident">initial</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        }
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">langid</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">langid</span> {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">initial</span> {
-                <span class="ident">length_hint</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">langid</span>.<span class="ident">write_len</span>()
+            <span class="op">+</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">keywords</span>.<span class="ident">is_empty</span>() {
+                <span class="self">self</span>.<span class="ident">keywords</span>.<span class="ident">write_len</span>() <span class="op">+</span> <span class="number">3</span>
+            } <span class="kw">else</span> {
+                <span class="ident">LengthHint::exact</span>(<span class="number">0</span>)
             }
-            <span class="ident">length_hint</span> <span class="op">+</span><span class="op">=</span> <span class="ident">langid</span>.<span class="ident">write_len</span>();
-        }
-        <span class="ident">length_hint</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LanguageIdentifier</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ResourceOptions</span> {
-    <span class="doccomment">/// Create a ResourceOptions with the given language identifier and an empty variant field.</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">langid</span>: <span class="ident">LanguageIdentifier</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="ident">langid</span>),
-            <span class="ident">variant</span>: <span class="prelude-val">None</span>,
+            <span class="ident">langid</span>,
+            <span class="ident">keywords</span>: <span class="ident">unicode_ext::Keywords::new</span>(),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Locale</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ResourceOptions</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">locale</span>: <span class="ident">Locale</span>) -&gt; <span class="self">Self</span> {
+        <span class="comment">// TODO(#1109): Implement proper vertical fallback</span>
+        <span class="self">Self</span> {
+            <span class="ident">langid</span>: <span class="ident">locale</span>.<span class="ident">id</span>,
+            <span class="ident">keywords</span>: <span class="ident">locale</span>.<span class="ident">extensions</span>.<span class="ident">unicode</span>.<span class="ident">keywords</span>,
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Locale</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ResourceOptions</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">locale</span>: <span class="kw-2">&amp;</span><span class="ident">Locale</span>) -&gt; <span class="self">Self</span> {
+        <span class="comment">// TODO(#1109): Implement proper vertical fallback</span>
+        <span class="self">Self</span> {
+            <span class="ident">langid</span>: <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">clone</span>(),
+            <span class="ident">keywords</span>: <span class="ident">locale</span>.<span class="ident">extensions</span>.<span class="ident">unicode</span>.<span class="ident">keywords</span>.<span class="ident">clone</span>(),
         }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ResourceOptions</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cmp_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="ident">Ordering</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">keywords</span>.<span class="ident">is_empty</span>() {
+            <span class="self">self</span>.<span class="ident">langid</span>.<span class="ident">cmp_bytes</span>(<span class="ident">other</span>)
+        } <span class="kw">else</span> {
+            <span class="comment">// TODO: Avoid the allocation</span>
+            <span class="self">self</span>.<span class="ident">write_to_string</span>().<span class="ident">as_bytes</span>().<span class="ident">cmp</span>(<span class="ident">other</span>)
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">ResourceOptions</span> {
+    <span class="doccomment">/// TODO(#1109): Delete this function and use vertical fallback instead</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">temp_for_region</span>(<span class="ident">region</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">langid</span>: <span class="ident">LanguageIdentifier::from</span>(<span class="ident">region</span>),
+            <span class="ident">keywords</span>: <span class="ident">unicode_ext::Keywords::new</span>(),
+        }
+    }
+
     <span class="doccomment">/// Returns whether this [`ResourceOptions`] has all empty fields (no components).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::default</span>()
     }
-}
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ResourcePath</span> {
-    <span class="kw">pub</span> <span class="ident">key</span>: <span class="ident">ResourceKey</span>,
-    <span class="kw">pub</span> <span class="ident">options</span>: <span class="ident">ResourceOptions</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ResourcePath</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;ResourcePath{{{}}}&quot;</span>, <span class="self">self</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">ResourcePath</span> {
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">writeable::Writeable::write_to</span>(<span class="self">self</span>, <span class="ident">f</span>)
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">writeable::Writeable</span> <span class="kw">for</span> <span class="ident">ResourcePath</span> {
-    <span class="kw">fn</span> <span class="ident">write_to</span><span class="op">&lt;</span><span class="ident">W</span>: <span class="ident">core::fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">sink</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>) -&gt; <span class="ident">core::fmt::Result</span> {
-        <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">key</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">options</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">sink</span>.<span class="ident">write_char</span>(<span class="string">&#39;/&#39;</span>)<span class="question-mark">?</span>;
-            <span class="ident">writeable::Writeable::write_to</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">options</span>, <span class="ident">sink</span>)<span class="question-mark">?</span>;
-        }
-        <span class="prelude-val">Ok</span>(())
+    <span class="doccomment">/// Returns whether the [`LanguageIdentifier`] associated with this request is `und`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Note that this only checks the language identifier; extension keywords may also be set.</span>
+    <span class="doccomment">/// To check the entire `ResourceOptions`, use [`ResourceOptions::is_empty()`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_langid_und</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">langid</span> <span class="op">==</span> <span class="ident">LanguageIdentifier::UND</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">writeable::LengthHint</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">writeable::Writeable::write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">key</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">options</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">result</span> <span class="op">+</span><span class="op">=</span> <span class="ident">writeable::Writeable::write_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">options</span>) <span class="op">+</span> <span class="number">1</span>;
-        }
-        <span class="ident">result</span>
+    <span class="doccomment">/// Gets the [`LanguageIdentifier`] for this [`ResourceOptions`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This may allocate memory if there are variant subtags. If you need only the language,</span>
+    <span class="doccomment">/// script, and/or region subtag, use the specific getters for those subtags:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - [`ResourceOptions::language()`]</span>
+    <span class="doccomment">/// - [`ResourceOptions::script()`]</span>
+    <span class="doccomment">/// - [`ResourceOptions::region()`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If you have ownership over the `ResourceOptions`, use [`ResourceOptions::into_locale()`]</span>
+    <span class="doccomment">/// and then access the `id` field.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu_provider::prelude::*;</span>
+    <span class="doccomment">/// use icu_locid::langid;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// const FOO_BAR: ResourceKey = icu_provider::resource_key!(&quot;foo/bar@1&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let req_no_langid = DataRequest {</span>
+    <span class="doccomment">///     options: ResourceOptions::default(),</span>
+    <span class="doccomment">///     metadata: Default::default(),</span>
+    <span class="doccomment">/// };</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let req_with_langid = DataRequest {</span>
+    <span class="doccomment">///     options: langid!(&quot;ar-EG&quot;).into(),</span>
+    <span class="doccomment">///     metadata: Default::default(),</span>
+    <span class="doccomment">/// };</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(req_no_langid.options.get_langid(), langid!(&quot;und&quot;));</span>
+    <span class="doccomment">/// assert_eq!(req_with_langid.options.get_langid(), langid!(&quot;ar-EG&quot;));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_langid</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">LanguageIdentifier</span> {
+        <span class="self">self</span>.<span class="ident">langid</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="doccomment">/// Converts this [`ResourceOptions`] into a [`Locale`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See also [`ResourceOptions::get_langid()`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu_provider::prelude::*;</span>
+    <span class="doccomment">/// use icu_locid::{langid, language, region, Locale};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let locale: Locale = &quot;it-IT-u-ca-coptic&quot;.parse()</span>
+    <span class="doccomment">///     .expect(&quot;Valid BCP-47&quot;);</span>
+    <span class="doccomment">/// let options: ResourceOptions = locale.into();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(options.to_string(), &quot;it-IT-u-ca-coptic&quot;);</span>
+    <span class="doccomment">/// assert_eq!(options.get_langid(), langid!(&quot;it-IT&quot;));</span>
+    <span class="doccomment">/// assert_eq!(options.language(), language!(&quot;it&quot;));</span>
+    <span class="doccomment">/// assert_eq!(options.script(), None);</span>
+    <span class="doccomment">/// assert_eq!(options.region(), Some(region!(&quot;IT&quot;)));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let locale = options.into_locale();</span>
+    <span class="doccomment">/// assert_eq!(locale.to_string(), &quot;it-IT-u-ca-coptic&quot;);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_locale</span>(<span class="self">self</span>) -&gt; <span class="ident">Locale</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">loc</span> <span class="op">=</span> <span class="ident">Locale</span> {
+            <span class="ident">id</span>: <span class="self">self</span>.<span class="ident">langid</span>,
+            ..<span class="ident">Default::default</span>()
+        };
+        <span class="ident">loc</span>.<span class="ident">extensions</span>.<span class="ident">unicode</span>.<span class="ident">keywords</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keywords</span>;
+        <span class="ident">loc</span>
+    }
+
+    <span class="doccomment">/// Returns the [`Language`] for this [`ResourceOptions`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">language</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Language</span> {
+        <span class="self">self</span>.<span class="ident">langid</span>.<span class="ident">language</span>
+    }
+
+    <span class="doccomment">/// Returns the [`Script`] for this [`ResourceOptions`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">script</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Script</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">langid</span>.<span class="ident">script</span>
+    }
+
+    <span class="doccomment">/// Returns the [`Region`] for this [`ResourceOptions`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">region</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Region</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">langid</span>.<span class="ident">region</span>
+    }
+
+    <span class="doccomment">/// Gets the value of the specified Unicode extension keyword for this [`ResourceOptions`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_unicode_ext</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">unicode_ext::Key</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">unicode_ext::Value</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">keywords</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">cloned</span>()
+    }
+
+    <span class="doccomment">/// Returns whether this [`ResourceOptions`] contains a Unicode extension keyword</span>
+    <span class="doccomment">/// with the specified key and value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu_provider::prelude::*;</span>
+    <span class="doccomment">/// use icu_locid::{Locale, unicode_ext_key, unicode_ext_value};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let locale: Locale = &quot;it-IT-u-ca-coptic&quot;.parse()</span>
+    <span class="doccomment">///     .expect(&quot;Valid BCP-47&quot;);</span>
+    <span class="doccomment">/// let options: ResourceOptions = locale.into();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     options.get_unicode_ext(&amp;unicode_ext_key!(&quot;hc&quot;)),</span>
+    <span class="doccomment">///     None</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     options.get_unicode_ext(&amp;unicode_ext_key!(&quot;ca&quot;)),</span>
+    <span class="doccomment">///     Some(unicode_ext_value!(&quot;coptic&quot;))</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// assert!(options.matches_unicode_ext(</span>
+    <span class="doccomment">///     &amp;unicode_ext_key!(&quot;ca&quot;),</span>
+    <span class="doccomment">///     &amp;unicode_ext_value!(&quot;coptic&quot;),</span>
+    <span class="doccomment">/// ));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">matches_unicode_ext</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">unicode_ext::Key</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">unicode_ext::Value</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">keywords</span>.<span class="ident">get</span>(<span class="ident">key</span>) <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>)
     }
 }
 
@@ -963,22 +1231,22 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="kw">struct</span> <span class="ident">KeyTestCase</span> {
-        <span class="kw">pub</span> <span class="ident">resc_key</span>: <span class="ident">ResourceKey</span>,
+        <span class="kw">pub</span> <span class="ident">key</span>: <span class="ident">ResourceKey</span>,
         <span class="kw">pub</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     }
 
     <span class="kw">fn</span> <span class="ident">get_key_test_cases</span>() -&gt; [<span class="ident">KeyTestCase</span>; <span class="number">3</span>] {
         [
             <span class="ident">KeyTestCase</span> {
-                <span class="ident">resc_key</span>: <span class="macro">resource_key!</span>(<span class="string">&quot;core/cardinal@1&quot;</span>),
+                <span class="ident">key</span>: <span class="macro">resource_key!</span>(<span class="string">&quot;core/cardinal@1&quot;</span>),
                 <span class="ident">expected</span>: <span class="string">&quot;core/cardinal@1&quot;</span>,
             },
             <span class="ident">KeyTestCase</span> {
-                <span class="ident">resc_key</span>: <span class="macro">resource_key!</span>(<span class="string">&quot;core/maxlengthsubcatg@1&quot;</span>),
+                <span class="ident">key</span>: <span class="macro">resource_key!</span>(<span class="string">&quot;core/maxlengthsubcatg@1&quot;</span>),
                 <span class="ident">expected</span>: <span class="string">&quot;core/maxlengthsubcatg@1&quot;</span>,
             },
             <span class="ident">KeyTestCase</span> {
-                <span class="ident">resc_key</span>: <span class="macro">resource_key!</span>(<span class="string">&quot;core/cardinal@65535&quot;</span>),
+                <span class="ident">key</span>: <span class="macro">resource_key!</span>(<span class="string">&quot;core/cardinal@65535&quot;</span>),
                 <span class="ident">expected</span>: <span class="string">&quot;core/cardinal@65535&quot;</span>,
             },
         ]
@@ -987,39 +1255,30 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_options_to_string</span>() {
         <span class="kw">for</span> <span class="ident">cas</span> <span class="kw">in</span> <span class="ident">get_key_test_cases</span>().<span class="ident">iter</span>() {
-            <span class="macro">assert_eq!</span>(<span class="ident">cas</span>.<span class="ident">expected</span>, <span class="ident">cas</span>.<span class="ident">resc_key</span>.<span class="ident">to_string</span>());
-            <span class="macro">writeable::assert_writeable_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">cas</span>.<span class="ident">resc_key</span>, <span class="ident">cas</span>.<span class="ident">expected</span>);
+            <span class="macro">assert_eq!</span>(<span class="ident">cas</span>.<span class="ident">expected</span>, <span class="ident">cas</span>.<span class="ident">key</span>.<span class="ident">to_string</span>());
+            <span class="macro">writeable::assert_writeable_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">cas</span>.<span class="ident">key</span>, <span class="ident">cas</span>.<span class="ident">expected</span>);
         }
     }
 
     <span class="kw">struct</span> <span class="ident">OptionsTestCase</span> {
-        <span class="kw">pub</span> <span class="ident">resc_options</span>: <span class="ident">ResourceOptions</span>,
+        <span class="kw">pub</span> <span class="ident">options</span>: <span class="ident">ResourceOptions</span>,
         <span class="kw">pub</span> <span class="ident">expected</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
     }
 
     <span class="kw">fn</span> <span class="ident">get_options_test_cases</span>() -&gt; [<span class="ident">OptionsTestCase</span>; <span class="number">3</span>] {
-        <span class="kw">use</span> <span class="ident">icu_locid_macros::langid</span>;
+        <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
         [
             <span class="ident">OptionsTestCase</span> {
-                <span class="ident">resc_options</span>: <span class="ident">ResourceOptions</span> {
-                    <span class="ident">variant</span>: <span class="prelude-val">None</span>,
-                    <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="ident">LanguageIdentifier::und</span>()),
-                },
+                <span class="ident">options</span>: <span class="ident">Locale::UND</span>.<span class="ident">into</span>(),
                 <span class="ident">expected</span>: <span class="string">&quot;und&quot;</span>,
             },
             <span class="ident">OptionsTestCase</span> {
-                <span class="ident">resc_options</span>: <span class="ident">ResourceOptions</span> {
-                    <span class="ident">variant</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Borrowed</span>(<span class="string">&quot;GBP&quot;</span>)),
-                    <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="ident">LanguageIdentifier::und</span>()),
-                },
-                <span class="ident">expected</span>: <span class="string">&quot;GBP/und&quot;</span>,
+                <span class="ident">options</span>: <span class="ident">Locale::from_str</span>(<span class="string">&quot;und-u-cu-gbp&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>(),
+                <span class="ident">expected</span>: <span class="string">&quot;und-u-cu-gbp&quot;</span>,
             },
             <span class="ident">OptionsTestCase</span> {
-                <span class="ident">resc_options</span>: <span class="ident">ResourceOptions</span> {
-                    <span class="ident">variant</span>: <span class="prelude-val">Some</span>(<span class="ident">Cow::Borrowed</span>(<span class="string">&quot;GBP&quot;</span>)),
-                    <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="macro">langid!</span>(<span class="string">&quot;en-ZA&quot;</span>)),
-                },
-                <span class="ident">expected</span>: <span class="string">&quot;GBP/en-ZA&quot;</span>,
+                <span class="ident">options</span>: <span class="ident">Locale::from_str</span>(<span class="string">&quot;en-ZA-u-cu-gbp&quot;</span>).<span class="ident">unwrap</span>().<span class="ident">into</span>(),
+                <span class="ident">expected</span>: <span class="string">&quot;en-ZA-u-cu-gbp&quot;</span>,
             },
         ]
     }
@@ -1027,29 +1286,8 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_key_to_string</span>() {
         <span class="kw">for</span> <span class="ident">cas</span> <span class="kw">in</span> <span class="ident">get_options_test_cases</span>().<span class="ident">iter</span>() {
-            <span class="macro">assert_eq!</span>(<span class="ident">cas</span>.<span class="ident">expected</span>, <span class="ident">cas</span>.<span class="ident">resc_options</span>.<span class="ident">to_string</span>());
-            <span class="macro">writeable::assert_writeable_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">cas</span>.<span class="ident">resc_options</span>, <span class="ident">cas</span>.<span class="ident">expected</span>);
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="kw">fn</span> <span class="ident">test_resource_path_to_string</span>() {
-        <span class="kw">for</span> <span class="ident">key_cas</span> <span class="kw">in</span> <span class="ident">get_key_test_cases</span>().<span class="ident">iter</span>() {
-            <span class="kw">for</span> <span class="ident">options_cas</span> <span class="kw">in</span> <span class="ident">get_options_test_cases</span>().<span class="ident">iter</span>() {
-                <span class="kw">let</span> <span class="ident">expected</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">options_cas</span>.<span class="ident">resc_options</span>.<span class="ident">is_empty</span>() {
-                    <span class="ident">key_cas</span>.<span class="ident">expected</span>.<span class="ident">to_string</span>()
-                } <span class="kw">else</span> {
-                    <span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, <span class="ident">key_cas</span>.<span class="ident">expected</span>, <span class="ident">options_cas</span>.<span class="ident">expected</span>)
-                };
-                <span class="kw">let</span> <span class="ident">resource_path</span> <span class="op">=</span> <span class="ident">ResourcePath</span> {
-                    <span class="ident">key</span>: <span class="ident">key_cas</span>.<span class="ident">resc_key</span>,
-                    <span class="comment">// Note: once https://github.com/rust-lang/rust/pull/80470 is accepted,</span>
-                    <span class="comment">// we won&#39;t have to clone here.</span>
-                    <span class="ident">options</span>: <span class="ident">options_cas</span>.<span class="ident">resc_options</span>.<span class="ident">clone</span>(),
-                };
-                <span class="macro">assert_eq!</span>(<span class="ident">expected</span>, <span class="ident">resource_path</span>.<span class="ident">to_string</span>());
-                <span class="macro">writeable::assert_writeable_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">resource_path</span>, <span class="ident">expected</span>);
-            }
+            <span class="macro">assert_eq!</span>(<span class="ident">cas</span>.<span class="ident">expected</span>, <span class="ident">cas</span>.<span class="ident">options</span>.<span class="ident">to_string</span>());
+            <span class="macro">writeable::assert_writeable_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">cas</span>.<span class="ident">options</span>, <span class="ident">cas</span>.<span class="ident">expected</span>);
         }
     }
 }

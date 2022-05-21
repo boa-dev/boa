@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.6.0/src/varzerovec/components.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>components.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.7.0/src/varzerovec/components.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>components.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -410,15 +410,68 @@
 <span id="405">405</span>
 <span id="406">406</span>
 <span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
-<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ule</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">alloc::boxed::Box</span>;
 <span class="kw">use</span> <span class="ident">alloc::format</span>;
 <span class="kw">use</span> <span class="ident">alloc::string::String</span>;
 <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
+<span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">core::convert::TryFrom</span>;
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
@@ -585,7 +638,18 @@
     <span class="doccomment">/// Safety:</span>
     <span class="doccomment">/// - `idx` must be in bounds (`idx &lt; self.len()`)</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_unchecked</span>(<span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_unchecked</span>(<span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span> {
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_things_range</span>(<span class="ident">idx</span>);
+        <span class="kw">let</span> <span class="ident">things_slice</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">things</span>.<span class="ident">get_unchecked</span>(<span class="ident">range</span>);
+        <span class="ident">T::from_byte_slice_unchecked</span>(<span class="ident">things_slice</span>)
+    }
+
+    <span class="doccomment">/// Get the range in `things` for the element at `idx`. Does not bounds check.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Safety:</span>
+    <span class="doccomment">/// - `idx` must be in bounds (`idx &lt; self.len()`)</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_things_range</span>(<span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">usizeify</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">indices</span>.<span class="ident">get_unchecked</span>(<span class="ident">idx</span>));
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="self">self</span>.<span class="ident">len</span>() {
             <span class="self">self</span>.<span class="ident">things</span>.<span class="ident">len</span>()
@@ -593,8 +657,20 @@
             <span class="ident">usizeify</span>(<span class="kw-2">*</span><span class="self">self</span>.<span class="ident">indices</span>.<span class="ident">get_unchecked</span>(<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>))
         };
         <span class="macro">debug_assert!</span>(<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">end</span>);
-        <span class="kw">let</span> <span class="ident">things_slice</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">things</span>.<span class="ident">get_unchecked</span>(<span class="ident">start</span>..<span class="ident">end</span>);
-        <span class="ident">T::from_byte_slice_unchecked</span>(<span class="ident">things_slice</span>)
+        <span class="ident">start</span>..<span class="ident">end</span>
+    }
+
+    <span class="doccomment">/// Get the range in `entire_slice` for the element at `idx`. Does not bounds check.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Safety:</span>
+    <span class="doccomment">/// - `idx` must be in bounds (`idx &lt; self.len()`)</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_range</span>(<span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_things_range</span>(<span class="ident">idx</span>);
+        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">things</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>)
+            .<span class="ident">offset_from</span>(<span class="self">self</span>.<span class="ident">entire_slice</span> <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u8</span>] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>)
+            <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="ident">range</span>.<span class="ident">start</span> <span class="op">+</span> <span class="ident">offset</span>..<span class="ident">range</span>.<span class="ident">end</span> <span class="op">+</span> <span class="ident">offset</span>
     }
 
     <span class="doccomment">/// Create an iterator over the Ts contained in VarZeroVecComponents, checking internal invariants:</span>
@@ -611,6 +687,8 @@
     <span class="kw">fn</span> <span class="ident">iter_checked</span>(<span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span>, <span class="ident">ZeroVecError</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">iter::from_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() {
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">usizeify</span>(<span class="self">self</span>.<span class="ident">indices</span>[<span class="self">self</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>]);
                 <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">things</span>.<span class="ident">len</span>();
                 <span class="prelude-val">Some</span>(
@@ -626,7 +704,11 @@
         <span class="self">self</span>.<span class="ident">indices</span>
             .<span class="ident">windows</span>(<span class="number">2</span>)
             .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">win</span><span class="op">|</span> {
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">usizeify</span>(<span class="ident">win</span>[<span class="number">0</span>]);
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">usizeify</span>(<span class="ident">win</span>[<span class="number">1</span>]);
                 <span class="comment">// the .get() here automatically verifies that end&gt;=start</span>
                 <span class="self">self</span>.<span class="ident">things</span>
@@ -642,6 +724,8 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="ident">iter::from_fn</span>(<span class="kw">move</span> <span class="op">|</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() {
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">usizeify</span>(<span class="self">self</span>.<span class="ident">indices</span>[<span class="self">self</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>]);
                 <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">things</span>.<span class="ident">len</span>();
                 <span class="prelude-val">Some</span>(<span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">things</span>.<span class="ident">get_unchecked</span>(<span class="ident">start</span>..<span class="ident">end</span>) })
@@ -653,7 +737,11 @@
         <span class="self">self</span>.<span class="ident">indices</span>
             .<span class="ident">windows</span>(<span class="number">2</span>)
             .<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">win</span><span class="op">|</span> {
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">usizeify</span>(<span class="ident">win</span>[<span class="number">0</span>]);
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">usizeify</span>(<span class="ident">win</span>[<span class="number">1</span>]);
                 <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">things</span>.<span class="ident">get_unchecked</span>(<span class="ident">start</span>..<span class="ident">end</span>) }
             })
@@ -687,7 +775,7 @@
     <span class="doccomment">/// Binary searches a sorted `VarZeroVecComponents&lt;T&gt;` for the given element. For more information, see</span>
     <span class="doccomment">/// the primitive function [`binary_search`](slice::binary_search).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">binary_search_impl</span>(<span class="ident">needle</span>, <span class="self">self</span>.<span class="ident">indices</span>)
+        <span class="self">self</span>.<span class="ident">binary_search_impl</span>(<span class="op">|</span><span class="ident">probe</span><span class="op">|</span> <span class="ident">probe</span>.<span class="ident">cmp</span>(<span class="ident">needle</span>), <span class="self">self</span>.<span class="ident">indices</span>)
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binary_search_in_range</span>(
@@ -696,14 +784,26 @@
         <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">indices_slice</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">indices</span>.<span class="ident">get</span>(<span class="ident">range</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">binary_search_impl</span>(<span class="ident">needle</span>, <span class="ident">indices_slice</span>))
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">binary_search_impl</span>(<span class="op">|</span><span class="ident">probe</span><span class="op">|</span> <span class="ident">probe</span>.<span class="ident">cmp</span>(<span class="ident">needle</span>), <span class="ident">indices_slice</span>))
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">VarZeroVecComponents</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">VarULE</span>,
+    <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+{
+    <span class="doccomment">/// Binary searches a sorted `VarZeroVecComponents&lt;T&gt;` for the given predicate. For more information, see</span>
+    <span class="doccomment">/// the primitive function [`binary_search_by`](slice::binary_search_by).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binary_search_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">binary_search_impl</span>(<span class="ident">predicate</span>, <span class="self">self</span>.<span class="ident">indices</span>)
     }
 
-    <span class="doccomment">/// Binary searches a sorted `VarZeroVecComponents&lt;T&gt;` for the given element. For more information, see</span>
+    <span class="doccomment">/// Binary searches a sorted `VarZeroVecComponents&lt;T&gt;` with the given predicate. For more information, see</span>
     <span class="doccomment">/// the primitive function [`binary_search`](slice::binary_search).</span>
     <span class="kw">fn</span> <span class="ident">binary_search_impl</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">needle</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
+        <span class="kw-2">mut</span> <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
         <span class="ident">indices_slice</span>: <span class="kw-2">&amp;</span>[<span class="ident">RawBytesULE</span><span class="op">&lt;</span><span class="number">4</span><span class="op">&gt;</span>],
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
         <span class="comment">// This code is an absolute atrocity. This code is not a place of honor. This</span>
@@ -737,7 +837,7 @@
             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> (<span class="ident">probe</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">zero_index</span>) <span class="op">/</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
             <span class="comment">// safety: we know this is in bounds</span>
             <span class="kw">let</span> <span class="ident">actual_probe</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">get_unchecked</span>(<span class="ident">index</span>) };
-            <span class="ident">actual_probe</span>.<span class="ident">cmp</span>(<span class="ident">needle</span>)
+            <span class="ident">predicate</span>(<span class="ident">actual_probe</span>)
         })
     }
 }
@@ -746,7 +846,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_serializable_bytes</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">elements</span>: <span class="kw-2">&amp;</span>[<span class="ident">A</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">VarULE</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">A</span>: <span class="ident">custom::EncodeAsVarULE</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">A</span>: <span class="ident">EncodeAsVarULE</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 {
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">compute_serializable_len</span>(<span class="ident">elements</span>)<span class="question-mark">?</span>;
     <span class="macro">debug_assert!</span>(<span class="ident">len</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">4</span>);
@@ -765,10 +865,12 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">write_serializable_bytes</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">elements</span>: <span class="kw-2">&amp;</span>[<span class="ident">A</span>], <span class="ident">output</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>])
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">VarULE</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">A</span>: <span class="ident">custom::EncodeAsVarULE</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">A</span>: <span class="ident">EncodeAsVarULE</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 {
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
     <span class="kw">let</span> <span class="ident">num_elements</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">elements</span>.<span class="ident">len</span>()).<span class="ident">ok</span>().<span class="ident">unwrap</span>();
-    <span class="ident">output</span>[<span class="number">0</span>..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">num_elements</span>.<span class="ident">as_unaligned</span>().<span class="number">0</span>);
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+    <span class="ident">output</span>[<span class="number">0</span>..<span class="number">4</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">num_elements</span>.<span class="ident">to_unaligned</span>().<span class="number">0</span>);
 
     <span class="comment">// idx_offset = offset from the start of the buffer for the next index</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">idx_offset</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
@@ -781,12 +883,14 @@
         <span class="kw">let</span> <span class="ident">element_len</span> <span class="op">=</span> <span class="ident">element</span>.<span class="ident">encode_var_ule_len</span>();
 
         <span class="kw">let</span> <span class="ident">idx_limit</span> <span class="op">=</span> <span class="ident">idx_offset</span> <span class="op">+</span> <span class="number">4</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">let</span> <span class="ident">idx_slice</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">output</span>[<span class="ident">idx_offset</span>..<span class="ident">idx_limit</span>];
         <span class="comment">// VZV expects data offsets to be stored relative to the first data block</span>
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> (<span class="ident">dat_offset</span> <span class="op">-</span> <span class="ident">first_dat_offset</span>) <span class="kw">as</span> <span class="ident">u32</span>;
-        <span class="ident">idx_slice</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">offset</span>.<span class="ident">as_unaligned</span>().<span class="number">0</span>);
+        <span class="ident">idx_slice</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">offset</span>.<span class="ident">to_unaligned</span>().<span class="number">0</span>);
 
         <span class="kw">let</span> <span class="ident">dat_limit</span> <span class="op">=</span> <span class="ident">dat_offset</span> <span class="op">+</span> <span class="ident">element_len</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">let</span> <span class="ident">dat_slice</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">output</span>[<span class="ident">dat_offset</span>..<span class="ident">dat_limit</span>];
         <span class="ident">element</span>.<span class="ident">encode_var_ule_write</span>(<span class="ident">dat_slice</span>);
         <span class="macro">debug_assert_eq!</span>(<span class="ident">T::validate_byte_slice</span>(<span class="ident">dat_slice</span>), <span class="prelude-val">Ok</span>(()));
@@ -802,7 +906,7 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compute_serializable_len</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">elements</span>: <span class="kw-2">&amp;</span>[<span class="ident">A</span>]) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">VarULE</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">A</span>: <span class="ident">custom::EncodeAsVarULE</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
+    <span class="ident">A</span>: <span class="ident">EncodeAsVarULE</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>,
 {
     <span class="comment">// 4 for length + 4 for each offset + the body</span>
     <span class="kw">let</span> <span class="ident">idx_len</span>: <span class="ident">u32</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">elements</span>.<span class="ident">len</span>())

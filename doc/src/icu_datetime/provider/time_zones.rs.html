@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/provider/time_zones.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time_zones.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/provider/time_zones.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>time_zones.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -176,239 +176,179 @@
 <span id="171">171</span>
 <span id="172">172</span>
 <span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
-<span id="183">183</span>
-<span id="184">184</span>
-<span id="185">185</span>
-<span id="186">186</span>
-<span id="187">187</span>
-<span id="188">188</span>
-<span id="189">189</span>
-<span id="190">190</span>
-<span id="191">191</span>
-<span id="192">192</span>
-<span id="193">193</span>
-<span id="194">194</span>
-<span id="195">195</span>
-<span id="196">196</span>
-<span id="197">197</span>
-<span id="198">198</span>
-<span id="199">199</span>
-<span id="200">200</span>
-<span id="201">201</span>
-<span id="202">202</span>
-<span id="203">203</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="kw">use</span> <span class="ident">alloc::borrow::Cow</span>;
-<span class="kw">use</span> <span class="ident">icu_provider::yoke</span>::{<span class="self">self</span>, <span class="kw-2">*</span>};
-<span class="kw">use</span> <span class="ident">litemap::LiteMap</span>;
-<span class="kw">use</span> <span class="ident">tinystr::TinyStr8</span>;
-
-<span class="doccomment">/// Provides a few common map accessor methods to new-type structs that wrap a map type with single</span>
-<span class="doccomment">/// field. The methods are all pass-through calls to the internal methods of the same name.</span>
-<span class="macro">macro_rules!</span> <span class="ident">map_access</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>: <span class="ident">ty</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span>: <span class="ident">ty</span>] =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>: <span class="ident">ty</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>: <span class="ident">lifetime</span>) =&gt; {
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span> {
-            <span class="doccomment">/// Get the data from the key.</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">Q</span>: <span class="ident">Ord</span>,
-                <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span><span class="op">&gt;</span>: <span class="ident">core::borrow::Borrow</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
-            {
-                <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get</span>(<span class="ident">key</span>)
-            }
-
-            <span class="doccomment">/// Check if the underlying data is empty.</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-                <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_empty</span>()
-            }
-        }
-
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>, <span class="ident">Q</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">core::ops::Index</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Q</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>
-        <span class="kw">where</span>
-            <span class="ident">Q</span>: <span class="ident">Ord</span>,
-            <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span><span class="op">&gt;</span>: <span class="ident">core::borrow::Borrow</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
-        {
-            <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>;
-            <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-                <span class="self">self</span>.<span class="number">0</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>()
-            }
-        }
-    };
-}
-
-<span class="doccomment">/// Provides a few common map accessor methods to new-type structs that wrap a map type with</span>
-<span class="doccomment">/// overrides field. The methods are all pass-through calls to the internal methods of the same name.</span>
-<span class="macro">macro_rules!</span> <span class="ident">map_access_with_overrides</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>: <span class="ident">ty</span>[<span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span>: <span class="ident">ty</span>] =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>: <span class="ident">ty</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>: <span class="ident">lifetime</span>) =&gt; {
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span><span class="op">&gt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span> {
-            <span class="doccomment">/// Get the default data from the key.</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">Q</span>: <span class="ident">Ord</span>,
-                <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span><span class="op">&gt;</span>: <span class="ident">core::borrow::Borrow</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
-            {
-                <span class="self">self</span>.<span class="ident">defaults</span>.<span class="ident">get</span>(<span class="ident">key</span>)
-            }
-
-            <span class="doccomment">/// Get the override data from the key.</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_override</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span><span class="op">&gt;</span>
-            <span class="kw">where</span>
-                <span class="ident">Q</span>: <span class="ident">Ord</span>,
-                <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span><span class="op">&gt;</span>: <span class="ident">core::borrow::Borrow</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
-            {
-                <span class="self">self</span>.<span class="ident">overrides</span>.<span class="ident">get</span>(<span class="ident">key</span>)
-            }
-
-            <span class="doccomment">/// Check if the underlying data is empty.</span>
-            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-                <span class="self">self</span>.<span class="ident">defaults</span>.<span class="ident">is_empty</span>()
-            }
-        }
-
-        <span class="kw">impl</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">lt</span>, <span class="ident">Q</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">core::ops::Index</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Q</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">outer</span>
-        <span class="kw">where</span>
-            <span class="ident">Q</span>: <span class="ident">Ord</span>,
-            <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">key</span><span class="op">&gt;</span>: <span class="ident">core::borrow::Borrow</span><span class="op">&lt;</span><span class="ident">Q</span><span class="op">&gt;</span>,
-        {
-            <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">inner</span>;
-            <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
-                <span class="self">self</span>.<span class="ident">defaults</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">unwrap</span>()
-            }
-        }
-    };
-}
+<span class="kw">use</span> <span class="ident">icu_provider</span>::{<span class="ident">yoke</span>, <span class="ident">zerofrom</span>};
+<span class="kw">use</span> <span class="ident">tinystr</span>::{<span class="ident">TinyAsciiStr</span>, <span class="ident">TinyStr8</span>};
+<span class="kw">use</span> <span class="ident">zerovec::ule</span>::{<span class="ident">AsULE</span>, <span class="ident">ULE</span>};
+<span class="kw">use</span> <span class="ident">zerovec</span>::{<span class="ident">ZeroMap</span>, <span class="ident">ZeroMap2d</span>, <span class="ident">ZeroVec</span>};
 
 <span class="doccomment">/// An ICU4X mapping to the CLDR timeZoneNames format strings.</span>
 <span class="doccomment">/// See CLDR-JSON timeZoneNames.json for more context.</span>
-<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>]</span>
+<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>(<span class="ident">TimeZoneFormatsV1Marker</span> <span class="op">=</span> <span class="string">&quot;time_zone/formats@1&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">cloning_zcf</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">prove_covariance_manually</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimeZoneFormatsV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The hour format for displaying GMT offsets.</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>,
+        <span class="ident">serde</span>(<span class="ident">deserialize_with</span> <span class="op">=</span> <span class="string">&quot;icu_provider::serde::borrow_de_utils::tuple_of_cow&quot;</span>)
+    )]</span>
     <span class="kw">pub</span> <span class="ident">hour_format</span>: (<span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>),
     <span class="doccomment">/// The localized GMT-offset format.</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
     <span class="kw">pub</span> <span class="ident">gmt_format</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The localized GMT format with no offset.</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
     <span class="kw">pub</span> <span class="ident">gmt_zero_format</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The format string for a region.</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
     <span class="kw">pub</span> <span class="ident">region_format</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The format strings for region format variants</span>
     <span class="doccomment">/// e.g. daylight, standard.</span>
-    <span class="kw">pub</span> <span class="ident">region_format_variants</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TinyStr8</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">region_format_variants</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TinyStr8</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The format string to fall back to if data is unavailable.</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
     <span class="kw">pub</span> <span class="ident">fallback_format</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>,
+}
+
+<span class="doccomment">/// TimeZone ID in BCP47 format</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">yoke::Yokeable</span>, <span class="ident">ULE</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TimeZoneBcp47Id</span>(<span class="kw">pub</span> <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">8</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">AsULE</span> <span class="kw">for</span> <span class="ident">TimeZoneBcp47Id</span> {
+    <span class="kw">type</span> <span class="ident">ULE</span> <span class="op">=</span> <span class="self">Self</span>;
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">to_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span> {
+        <span class="self">self</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from_unaligned</span>(<span class="ident">unaligned</span>: <span class="ident"><span class="self">Self</span>::ULE</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">unaligned</span>
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">zerovec::maps::ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TimeZoneBcp47Id</span> {
+    <span class="kw">type</span> <span class="ident">Container</span> <span class="op">=</span> <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">TimeZoneBcp47Id</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">GetType</span> <span class="op">=</span> <span class="ident">TimeZoneBcp47Id</span>;
+    <span class="kw">type</span> <span class="ident">OwnedType</span> <span class="op">=</span> <span class="ident">TimeZoneBcp47Id</span>;
+}
+
+<span class="doccomment">/// MetaZone ID in a compact format</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">PartialEq</span>, <span class="ident">PartialOrd</span>, <span class="ident">yoke::Yokeable</span>, <span class="ident">ULE</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaZoneId</span>(<span class="kw">pub</span> <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">4</span><span class="op">&gt;</span>);
+
+<span class="kw">impl</span> <span class="ident">AsULE</span> <span class="kw">for</span> <span class="ident">MetaZoneId</span> {
+    <span class="kw">type</span> <span class="ident">ULE</span> <span class="op">=</span> <span class="self">Self</span>;
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">to_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span> {
+        <span class="self">self</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from_unaligned</span>(<span class="ident">unaligned</span>: <span class="ident"><span class="self">Self</span>::ULE</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">unaligned</span>
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">zerovec::maps::ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">MetaZoneId</span> {
+    <span class="kw">type</span> <span class="ident">Container</span> <span class="op">=</span> <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">MetaZoneId</span><span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">GetType</span> <span class="op">=</span> <span class="ident">MetaZoneId</span>;
+    <span class="kw">type</span> <span class="ident">OwnedType</span> <span class="op">=</span> <span class="ident">MetaZoneId</span>;
 }
 
 <span class="doccomment">/// An ICU4X mapping to the CLDR timeZoneNames exemplar cities.</span>
 <span class="doccomment">/// See CLDR-JSON timeZoneNames.json for more context.</span>
-<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>]</span>
+<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>(<span class="ident">ExemplarCitiesV1Marker</span> <span class="op">=</span> <span class="string">&quot;time_zone/exemplar_cities@1&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">cloning_zcf</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExemplarCitiesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-<span class="macro">map_access!</span>(<span class="ident">ExemplarCitiesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>[<span class="ident">str</span>] =&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>: <span class="lifetime">&#39;data</span>);
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">prove_covariance_manually</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ExemplarCitiesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span> <span class="kw">pub</span> <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TimeZoneBcp47Id</span>, <span class="ident">str</span><span class="op">&gt;</span>,
+);
 
 <span class="doccomment">/// An ICU4X mapping to the long-form generic metazone names.</span>
 <span class="doccomment">/// See CLDR-JSON timeZoneNames.json for more context.</span>
-<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>]</span>
+<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>(<span class="ident">MetaZoneGenericNamesLongV1Marker</span> <span class="op">=</span> <span class="string">&quot;time_zone/generic_long@1&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">cloning_zcf</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">prove_covariance_manually</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaZoneGenericNamesLongV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The default mapping between metazone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">MetaZoneId</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The override mapping between timezone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TimeZoneBcp47Id</span>, <span class="ident">str</span><span class="op">&gt;</span>,
 }
-<span class="macro">map_access_with_overrides!</span>(<span class="ident">MetaZoneGenericNamesLongV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>[<span class="ident">str</span>] =&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>: <span class="lifetime">&#39;data</span>);
 
 <span class="doccomment">/// An ICU4X mapping to the short-form generic metazone names.</span>
 <span class="doccomment">/// See CLDR-JSON timeZoneNames.json for more context.</span>
-<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>]</span>
+<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>(<span class="ident">MetaZoneGenericNamesShortV1Marker</span> <span class="op">=</span> <span class="string">&quot;time_zone/generic_short@1&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">cloning_zcf</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">prove_covariance_manually</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaZoneGenericNamesShortV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The default mapping between metazone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">MetaZoneId</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The override mapping between timezone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">ZeroMap</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TimeZoneBcp47Id</span>, <span class="ident">str</span><span class="op">&gt;</span>,
 }
-<span class="macro">map_access_with_overrides!</span>(<span class="ident">MetaZoneGenericNamesShortV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>[<span class="ident">str</span>] =&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>: <span class="lifetime">&#39;data</span>);
 
 <span class="doccomment">/// An ICU4X mapping to the long-form specific metazone names.</span>
 <span class="doccomment">/// Specific names include time variants such as &quot;daylight.&quot;</span>
 <span class="doccomment">/// See CLDR-JSON timeZoneNames.json for more context.</span>
-<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>]</span>
+<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>(<span class="ident">MetaZoneSpecificNamesLongV1Marker</span> <span class="op">=</span> <span class="string">&quot;time_zone/specific_long@1&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">cloning_zcf</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">prove_covariance_manually</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaZoneSpecificNamesLongV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The default mapping between metazone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">MetaZoneId</span>, <span class="ident">TinyStr8</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The override mapping between timezone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TimeZoneBcp47Id</span>, <span class="ident">TinyStr8</span>, <span class="ident">str</span><span class="op">&gt;</span>,
 }
-<span class="macro">map_access_with_overrides!</span>(<span class="ident">MetaZoneSpecificNamesLongV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>[<span class="ident">str</span>] =&gt; <span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>: <span class="lifetime">&#39;data</span>);
 
 <span class="doccomment">/// An ICU4X mapping to the short-form specific metazone names.</span>
 <span class="doccomment">/// Specific names include time variants such as &quot;daylight.&quot;</span>
 <span class="doccomment">/// See CLDR-JSON timeZoneNames.json for more context.</span>
-<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>]</span>
+<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>(<span class="ident">MetaZoneSpecificNamesShortV1Marker</span> <span class="op">=</span> <span class="string">&quot;time_zone/specific_short@1&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">cloning_zcf</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;datagen&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">prove_covariance_manually</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaZoneSpecificNamesShortV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
     <span class="doccomment">/// The default mapping between metazone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">defaults</span>: <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">MetaZoneId</span>, <span class="ident">TinyStr8</span>, <span class="ident">str</span><span class="op">&gt;</span>,
     <span class="doccomment">/// The override mapping between timezone id and localized metazone name.</span>
-    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">borrow</span>))]</span>
+    <span class="kw">pub</span> <span class="ident">overrides</span>: <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TimeZoneBcp47Id</span>, <span class="ident">TinyStr8</span>, <span class="ident">str</span><span class="op">&gt;</span>,
 }
-<span class="macro">map_access_with_overrides!</span>(<span class="ident">MetaZoneSpecificNamesShortV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>[<span class="ident">str</span>] =&gt; <span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>: <span class="lifetime">&#39;data</span>);
-
-<span class="doccomment">/// A general struct to hold metazone specific name variants.</span>
-<span class="doccomment">/// Specific names include time variants such as &quot;daylight.&quot;</span>
-<span class="doccomment">/// See CLDR-JSON timeZoneNames.json for more context.</span>
-<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Default</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>,
-    <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)
-)]</span>
-<span class="attribute">#[<span class="ident">yoke</span>(<span class="ident">cloning_zcf</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>(<span class="kw">pub</span> <span class="ident">LiteMap</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">TinyStr8</span><span class="op">&gt;</span>, <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>);
-<span class="macro">map_access!</span>(<span class="ident">MetaZoneSpecificNamesV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span>[<span class="ident">TinyStr8</span>] =&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>: <span class="lifetime">&#39;data</span>);
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="icu_datetime" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
 </body></html>

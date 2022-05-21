@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.6.0/src/varzerovec/slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.7.0/src/varzerovec/slice.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>slice.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -349,14 +349,124 @@
 <span id="344">344</span>
 <span id="345">345</span>
 <span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::components::VarZeroVecComponents</span>;
 <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ule</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">alloc::boxed::Box</span>;
+<span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
+<span class="kw">use</span> <span class="ident">core::cmp</span>::{<span class="ident">Ord</span>, <span class="ident">Ordering</span>, <span class="ident">PartialOrd</span>};
+<span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="kw">use</span> <span class="ident">core::marker::PhantomData</span>;
 <span class="kw">use</span> <span class="ident">core::mem</span>;
+
 <span class="kw">use</span> <span class="ident">core::ops::Index</span>;
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 
@@ -367,20 +477,22 @@
 <span class="doccomment">/// owned data and as such is ideal for deserialization since most human readable</span>
 <span class="doccomment">/// serialization formats cannot unconditionally deserialize zero-copy.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This type can be nested within [`VarZeroVec&lt;T&gt;`] to allow for multi-level nested `Vec`s, for</span>
+<span class="doccomment">/// This type can be used inside [`VarZeroVec&lt;T&gt;`](crate::VarZeroVec) and [`ZeroMap`](crate::ZeroMap):</span>
+<span class="doccomment">/// This essentially allows for the construction of zero-copy types isomorphic to `Vec&lt;Vec&lt;T&gt;&gt;` by instead</span>
+<span class="doccomment">/// using `VarZeroVec&lt;ZeroSlice&lt;T&gt;&gt;`.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This type can be nested within itself to allow for multi-level nested `Vec`s, for</span>
 <span class="doccomment">/// example the following code constructs the conceptual zero-copy equivalent of `Vec&lt;Vec&lt;Vec&lt;str&gt;&gt;&gt;`</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use zerovec::VarZeroVec;</span>
-<span class="doccomment">/// use zerovec::ZeroVec;</span>
-<span class="doccomment">/// use zerovec::varzerovec::VarZeroSlice;</span>
+<span class="doccomment">/// use zerovec::{ZeroVec, VarZeroSlice, VarZeroVec};</span>
 <span class="doccomment">/// use zerovec::ule::*;</span>
 <span class="doccomment">/// let strings_1: Vec&lt;&amp;str&gt; = vec![&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;];</span>
 <span class="doccomment">/// let strings_2: Vec&lt;&amp;str&gt; = vec![&quot;twelve&quot;, &quot;seventeen&quot;, &quot;forty two&quot;];</span>
 <span class="doccomment">/// let strings_3: Vec&lt;&amp;str&gt; = vec![&quot;我&quot;, &quot;喜歡&quot;, &quot;烏龍茶&quot;];</span>
 <span class="doccomment">/// let strings_4: Vec&lt;&amp;str&gt; = vec![&quot;w&quot;, &quot;ω&quot;, &quot;文&quot;, &quot;𑄃&quot;];</span>
-<span class="doccomment">/// let strings_12 = vec![strings_1.clone(), strings_2.clone()];</span>
-<span class="doccomment">/// let strings_34 = vec![strings_3.clone(), strings_4.clone()];</span>
+<span class="doccomment">/// let strings_12 = vec![&amp;*strings_1, &amp;*strings_2];</span>
+<span class="doccomment">/// let strings_34 = vec![&amp;*strings_3, &amp;*strings_4];</span>
 <span class="doccomment">/// let all_strings = vec![strings_12, strings_34];</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let vzv_1: VarZeroVec&lt;str&gt; = VarZeroVec::from(&amp;strings_1);</span>
@@ -512,6 +624,35 @@
         <span class="self">self</span>.<span class="ident">as_components</span>().<span class="ident">get</span>(<span class="ident">idx</span>)
     }
 
+    <span class="doccomment">/// Get one of this slice&#39;s elements</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// `index` must be in range</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # use std::str::Utf8Error;</span>
+    <span class="doccomment">/// # use zerovec::ule::ZeroVecError;</span>
+    <span class="doccomment">/// # use zerovec::VarZeroVec;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let strings = vec![&quot;foo&quot;, &quot;bar&quot;, &quot;baz&quot;, &quot;quux&quot;];</span>
+    <span class="doccomment">/// let vec = VarZeroVec::&lt;str&gt;::from(&amp;strings);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut iter_results: Vec&lt;&amp;str&gt; = vec.iter().collect();</span>
+    <span class="doccomment">/// unsafe {</span>
+    <span class="doccomment">///     assert_eq!(vec.get_unchecked(0), &quot;foo&quot;);</span>
+    <span class="doccomment">///     assert_eq!(vec.get_unchecked(1), &quot;bar&quot;);</span>
+    <span class="doccomment">///     assert_eq!(vec.get_unchecked(2), &quot;baz&quot;);</span>
+    <span class="doccomment">///     assert_eq!(vec.get_unchecked(3), &quot;quux&quot;);</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// # Ok::&lt;(), ZeroVecError&gt;(())</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_unchecked</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
+        <span class="self">self</span>.<span class="ident">as_components</span>().<span class="ident">get_unchecked</span>(<span class="ident">idx</span>)
+    }
+
     <span class="doccomment">/// Obtain an owned `Vec&lt;Box&lt;T&gt;&gt;` out of this</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_vec</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">as_components</span>().<span class="ident">to_vec</span>()
@@ -555,6 +696,21 @@
     <span class="doccomment">/// Slices of the right format can be obtained via [`VarZeroSlice::as_bytes()`]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse_byte_slice</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">slice</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">Self</span>, <span class="ident">ZeroVecError</span><span class="op">&gt;</span> {
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">VarULE</span><span class="op">&gt;</span><span class="ident">::parse_byte_slice</span>(<span class="ident">slice</span>)
+    }
+
+    <span class="doccomment">/// Convert a `bytes` array known to represent a `VarZeroSlice` to a mutable reference to a `VarZeroSlice`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">/// - `bytes` must be a valid sequence of bytes for this VarZeroVec</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_byte_slice_unchecked_mut</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
+        <span class="comment">// self is really just a wrapper around a byte slice</span>
+        <span class="ident">mem::transmute</span>(<span class="ident">bytes</span>)
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">get_bytes_at_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">idx</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>] {
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_components</span>().<span class="ident">get_range</span>(<span class="ident">idx</span>);
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// get_range() is known to return in-bounds ranges</span>
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">entire_slice</span>[<span class="ident">range</span>]
     }
 }
 
@@ -634,6 +790,35 @@
     }
 }
 
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">VarZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">VarULE</span>,
+    <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+{
+    <span class="doccomment">/// Binary searches a sorted `VarZeroVec&lt;T&gt;` for the given predicate. For more information, see</span>
+    <span class="doccomment">/// the standard library function [`binary_search_by`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// # use std::str::Utf8Error;</span>
+    <span class="doccomment">/// # use zerovec::ule::ZeroVecError;</span>
+    <span class="doccomment">/// # use zerovec::VarZeroVec;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let strings = vec![&quot;a&quot;, &quot;b&quot;, &quot;f&quot;, &quot;g&quot;];</span>
+    <span class="doccomment">/// let vec = VarZeroVec::&lt;str&gt;::from(&amp;strings);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(vec.binary_search_by(|probe| probe.cmp(&quot;f&quot;)), Ok(2));</span>
+    <span class="doccomment">/// assert_eq!(vec.binary_search_by(|probe| probe.cmp(&quot;e&quot;)), Err(2));</span>
+    <span class="doccomment">/// # Ok::&lt;(), ZeroVecError&gt;(())</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`binary_search_by`]: https://doc.rust-lang.org/std/primitive.slice.html#method.binary_search_by</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">binary_search_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_components</span>().<span class="ident">binary_search_by</span>(<span class="ident">predicate</span>)
+    }
+}
 <span class="comment">// Safety (based on the safety checklist on the VarULE trait):</span>
 <span class="comment">//  1. VarZeroSlice does not include any uninitialized or padding bytes (achieved by `#[repr(transparent)]` on a</span>
 <span class="comment">//     `[u8]` slice which satisfies this invariant)</span>
@@ -663,6 +848,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">VarULE</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> <span class="ident">Index</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VarZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">T</span>;
     <span class="kw">fn</span> <span class="ident">index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Output</span> {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">expect</span>(<span class="string">&quot;Indexing VarZeroVec out of bounds&quot;</span>)
     }
 }
@@ -678,6 +864,28 @@
         <span class="comment">// VarULE has an API guarantee that this is equivalent</span>
         <span class="comment">// to `T::VarULE::eq()`</span>
         <span class="self">self</span>.<span class="ident">entire_slice</span>.<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="ident">other</span>.<span class="ident">entire_slice</span>)
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Eq</span> <span class="kw">for</span> <span class="ident">VarZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="ident">VarULE</span>,
+    <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+    <span class="ident">T</span>: <span class="ident">Eq</span>,
+{
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">VarULE</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">PartialOrd</span><span class="op">&gt;</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">VarZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">partial_cmp</span>(<span class="ident">other</span>.<span class="ident">iter</span>())
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">VarULE</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Ord</span><span class="op">&gt;</span> <span class="ident">Ord</span> <span class="kw">for</span> <span class="ident">VarZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="ident">Ordering</span> {
+        <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">cmp</span>(<span class="ident">other</span>.<span class="ident">iter</span>())
     }
 }
 

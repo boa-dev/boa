@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Generate a corresponding `ULE` type and the relevant `AsULE` implementations for this type"><meta name="keywords" content="rust, rustlang, rust-lang, make_ule"><title>make_ule in zerovec - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc attr"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><div class="sidebar-elems"><h2 class="location"><a href="index.html">In zerovec</a></h2><div id="sidebar-vars" data-name="make_ule" data-ty="attr" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../zerovec/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Attribute Macro <a href="index.html">zerovec</a>::<wbr><a class="attr" href="#">make_ule</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/zerovec_derive/lib.rs.html#33">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><div class="docblock item-decl"><pre class="rust attr"><code>#[make_ule]</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Generate a corresponding <a href="ule/trait.ULE.html"><code>ULE</code></a> type and the relevant <a href="ule/trait.AsULE.html"><code>AsULE</code></a> implementations for this type</p>
+<p>This can be attached to structs containing only <a href="ule/trait.AsULE.html"><code>AsULE</code></a> types, or C-like enums that have <code>#[repr(u8)]</code>
+and all explicit discriminants.</p>
+<p>The type must be <a href="https://doc.rust-lang.org/1.61.0/core/marker/trait.Copy.html" title="Copy"><code>Copy</code></a>, <a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.PartialEq.html" title="PartialEq"><code>PartialEq</code></a>, and <a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.Eq.html" title="Eq"><code>Eq</code></a>.</p>
+<p><code>#[make_ule]</code> will automatically derive the following traits on the <a href="ule/trait.ULE.html"><code>ULE</code></a> type:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.Ord.html" title="Ord"><code>Ord</code></a> and <a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.PartialOrd.html" title="PartialOrd"><code>PartialOrd</code></a></li>
+<li><a href="maps/trait.ZeroMapKV.html"><code>ZeroMapKV</code></a></li>
+</ul>
+<p>To disable one of the automatic derives, use <code>#[zerovec::skip_derive(...)]</code> like so: <code>#[zerovec::skip_derive(ZeroMapKV)]</code>.
+<code>Ord</code> and <code>PartialOrd</code> are implemented as a unit and can only be disabled as a group with <code>#[zerovec::skip_derive(Ord)]</code>.</p>
+<p>The following traits are available to derive, but not automatic:</p>
+<ul>
+<li><a href="https://doc.rust-lang.org/1.61.0/core/fmt/macros/derive.Debug.html" title="Debug"><code>Debug</code></a></li>
+</ul>
+<p>To enable one of these additional derives, use <code>#[zerovec::derive(...)]</code> like so: <code>#[zerovec::derive(Debug)]</code>.</p>
+<p>In most cases these derives will defer to the impl of the same trait on the current type, so such impls must exist.</p>
+<p>For enums, this attribute will generate a crate-public <code>fn new_from_u8(value: u8) -&gt; Option&lt;Self&gt;</code>
+method on the main type that allows one to construct the value from a u8. If this method is desired
+to be more public, it should be wrapped.</p>
+<h2 id="example"><a href="#example">Example</a></h2>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">zerovec::ZeroVec</span>;
+
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">DateULE</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>, <span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Date</span> {
+    <span class="ident">y</span>: <span class="ident">u64</span>,
+    <span class="ident">m</span>: <span class="ident">u8</span>,
+    <span class="ident">d</span>: <span class="ident">u8</span>
+}
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Dates</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">borrow</span>)]</span>
+    <span class="ident">dates</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Date</span><span class="op">&gt;</span>   
+}
+
+<span class="kw">let</span> <span class="ident">dates</span> <span class="op">=</span> <span class="ident">Dates</span> { <span class="ident">dates</span>: <span class="ident">ZeroVec::alloc_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">Date</span> {<span class="ident">y</span>: <span class="number">1985</span>, <span class="ident">m</span>: <span class="number">9</span>, <span class="ident">d</span>: <span class="number">3</span>}, <span class="ident">Date</span> {<span class="ident">y</span>: <span class="number">1970</span>, <span class="ident">m</span>: <span class="number">2</span>, <span class="ident">d</span>: <span class="number">20</span>}, <span class="ident">Date</span> {<span class="ident">y</span>: <span class="number">1990</span>, <span class="ident">m</span>: <span class="number">6</span>, <span class="ident">d</span>: <span class="number">13</span>}]) };
+
+<span class="kw">let</span> <span class="ident">bincode_bytes</span> <span class="op">=</span> <span class="ident">bincode::serialize</span>(<span class="kw-2">&amp;</span><span class="ident">dates</span>)
+    .<span class="ident">expect</span>(<span class="string">&quot;Serialization should be successful&quot;</span>);
+
+<span class="comment">// Will deserialize without allocations</span>
+<span class="kw">let</span> <span class="ident">deserialized</span>: <span class="ident">Dates</span> <span class="op">=</span> <span class="ident">bincode::deserialize</span>(<span class="kw-2">&amp;</span><span class="ident">bincode_bytes</span>)
+    .<span class="ident">expect</span>(<span class="string">&quot;Deserialization should be successful&quot;</span>);
+
+<span class="macro">assert_eq!</span>(<span class="ident">deserialized</span>.<span class="ident">dates</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">unwrap</span>().<span class="ident">y</span>, <span class="number">1970</span>);
+<span class="macro">assert_eq!</span>(<span class="ident">deserialized</span>.<span class="ident">dates</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">unwrap</span>().<span class="ident">d</span>, <span class="number">13</span>);
+</code></pre></div>
+<p>Full docs for this proc macro can be found on the <a href="docs.rs/zerovec"><code>zerovec</code></a> crate.</p>
+</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="zerovec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</body></html>

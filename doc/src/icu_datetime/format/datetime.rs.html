@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/format/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/format/datetime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>datetime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -406,13 +406,80 @@
 <span id="401">401</span>
 <span id="402">402</span>
 <span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::date</span>::{<span class="ident">DateTimeInput</span>, <span class="ident">DateTimeInputWithLocale</span>, <span class="ident">LocalizedDateTimeInput</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::DateTimeFormatError</span> <span class="kw">as</span> <span class="ident">Error</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fields</span>::{<span class="self">self</span>, <span class="ident">Field</span>, <span class="ident">FieldLength</span>, <span class="ident">FieldSymbol</span>, <span class="ident">Week</span>, <span class="ident">Year</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fields</span>::{<span class="self">self</span>, <span class="ident">Field</span>, <span class="ident">FieldLength</span>, <span class="ident">FieldSymbol</span>, <span class="ident">Second</span>, <span class="ident">Week</span>, <span class="ident">Year</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::pattern</span>::{
     <span class="ident">runtime</span>::{<span class="ident">Pattern</span>, <span class="ident">PatternPlurals</span>},
     <span class="ident">PatternItem</span>,
@@ -420,6 +487,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider::calendar::patterns::PatternPluralsFromPatternsV1Marker</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider::date_time::DateTimeSymbols</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider::week_data::WeekDataV1</span>;
 
 <span class="kw">use</span> <span class="ident">alloc::string::ToString</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
@@ -438,18 +506,15 @@
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use icu::locid::Locale;</span>
-<span class="doccomment">/// use icu::locid::macros::langid;</span>
-<span class="doccomment">/// use icu::datetime::{DateTimeFormat, DateTimeFormatOptions};</span>
+<span class="doccomment">/// use icu::locid::locale;</span>
+<span class="doccomment">/// use icu::datetime::DateTimeFormat;</span>
 <span class="doccomment">/// use icu::calendar::{DateTime, Gregorian};</span>
-<span class="doccomment">/// use icu_provider::inv::InvariantDataProvider;</span>
-<span class="doccomment">/// let locale: Locale = langid!(&quot;en&quot;).into();</span>
-<span class="doccomment">/// # let provider = InvariantDataProvider;</span>
-<span class="doccomment">/// # let options = DateTimeFormatOptions::default();</span>
-<span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale, &amp;provider, &amp;options)</span>
+<span class="doccomment">/// # let provider = icu_provider::inv::InvariantDataProvider;</span>
+<span class="doccomment">/// # let options = icu::datetime::DateTimeFormatOptions::default();</span>
+<span class="doccomment">/// let dtf = DateTimeFormat::&lt;Gregorian&gt;::try_new(locale!(&quot;en&quot;), &amp;provider, &amp;options)</span>
 <span class="doccomment">///     .expect(&quot;Failed to create DateTimeFormat instance.&quot;);</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28)</span>
+<span class="doccomment">/// let datetime = DateTime::new_gregorian_datetime_from_integers(2020, 9, 1, 12, 34, 28, 0)</span>
 <span class="doccomment">///     .expect(&quot;Failed to construct DateTime.&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let formatted_date = dtf.format(&amp;datetime);</span>
@@ -463,6 +528,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">PatternPluralsFromPatternsV1Marker</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">symbols</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="ident">provider::calendar::DateSymbolsV1</span><span class="op">&lt;</span><span class="lifetime">&#39;l</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">datetime</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="ident">T</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">week_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="ident">WeekDataV1</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">locale</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="ident">Locale</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">ordinal_rules</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="ident">PluralRules</span><span class="op">&gt;</span>,
 }
@@ -476,6 +542,7 @@
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">patterns</span>.<span class="ident">get</span>().<span class="number">0</span>,
             <span class="self">self</span>.<span class="ident">symbols</span>,
             <span class="self">self</span>.<span class="ident">datetime</span>,
+            <span class="self">self</span>.<span class="ident">week_data</span>,
             <span class="self">self</span>.<span class="ident">ordinal_rules</span>,
             <span class="self">self</span>.<span class="ident">locale</span>,
             <span class="ident">sink</span>,
@@ -508,10 +575,26 @@
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">num</span>.<span class="ident">to_string</span>();
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>();
+                <span class="comment">// Safe because we&#39;ve handled the case where len &lt; 2 above</span>
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
                 <span class="ident">result</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>[<span class="ident">len</span> <span class="op">-</span> <span class="number">2</span>..])
             }
         }
-        <span class="ident">length</span> =&gt; <span class="macro">write!</span>(<span class="ident">result</span>, <span class="string">&quot;{:0&gt;width$}&quot;</span>, <span class="ident">num</span>, <span class="ident">width</span> <span class="op">=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>),
+        <span class="ident">FieldLength::Abbreviated</span> =&gt; <span class="macro">write!</span>(<span class="ident">result</span>, <span class="string">&quot;{:0&gt;width$}&quot;</span>, <span class="ident">num</span>, <span class="ident">width</span> <span class="op">=</span> <span class="number">3</span>),
+        <span class="ident">FieldLength::Wide</span> =&gt; <span class="macro">write!</span>(<span class="ident">result</span>, <span class="string">&quot;{:0&gt;width$}&quot;</span>, <span class="ident">num</span>, <span class="ident">width</span> <span class="op">=</span> <span class="number">4</span>),
+        <span class="ident">FieldLength::Narrow</span> =&gt; <span class="macro">write!</span>(<span class="ident">result</span>, <span class="string">&quot;{:0&gt;width$}&quot;</span>, <span class="ident">num</span>, <span class="ident">width</span> <span class="op">=</span> <span class="number">5</span>),
+        <span class="ident">FieldLength::Six</span> =&gt; <span class="macro">write!</span>(<span class="ident">result</span>, <span class="string">&quot;{:0&gt;width$}&quot;</span>, <span class="ident">num</span>, <span class="ident">width</span> <span class="op">=</span> <span class="number">6</span>),
+        <span class="ident">FieldLength::Fixed</span>(<span class="ident">p</span>) =&gt; {
+            <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">num</span>.<span class="ident">to_string</span>();
+            <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">len</span>();
+            <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span> <span class="ident">p</span>.<span class="ident">into</span>() {
+                <span class="macro">write!</span>(<span class="ident">result</span>, <span class="string">&quot;{:0&lt;width$}&quot;</span>, <span class="ident">num</span>, <span class="ident">width</span> <span class="op">=</span> <span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>)
+            } <span class="kw">else</span> {
+                <span class="comment">// Safe because we&#39;ve handled the case where len &lt; p above</span>
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="ident">result</span>.<span class="ident">write_str</span>(<span class="kw-2">&amp;</span><span class="ident">buffer</span>[<span class="number">0</span>..<span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>])
+            }
+        }
     }
 }
 
@@ -538,6 +621,7 @@
     <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">PatternPlurals</span>,
     <span class="ident">symbols</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">provider::calendar::DateSymbolsV1</span><span class="op">&gt;</span>,
     <span class="ident">datetime</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
+    <span class="ident">week_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">WeekDataV1</span><span class="op">&gt;</span>,
     <span class="ident">ordinal_rules</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">PluralRules</span><span class="op">&gt;</span>,
     <span class="ident">locale</span>: <span class="kw-2">&amp;</span><span class="ident">Locale</span>,
     <span class="ident">w</span>: <span class="kw-2">&amp;mut</span> <span class="ident">W</span>,
@@ -546,7 +630,7 @@
     <span class="ident">T</span>: <span class="ident">DateTimeInput</span>,
     <span class="ident">W</span>: <span class="ident">fmt::Write</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
-    <span class="kw">let</span> <span class="ident">loc_datetime</span> <span class="op">=</span> <span class="ident">DateTimeInputWithLocale::new</span>(<span class="ident">datetime</span>, <span class="ident">locale</span>);
+    <span class="kw">let</span> <span class="ident">loc_datetime</span> <span class="op">=</span> <span class="ident">DateTimeInputWithLocale::new</span>(<span class="ident">datetime</span>, <span class="ident">week_data</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">d</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">d</span>.<span class="number">0</span>), <span class="ident">locale</span>);
     <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">patterns</span>.<span class="ident">select</span>(<span class="kw-2">&amp;</span><span class="ident">loc_datetime</span>, <span class="ident">ordinal_rules</span>)<span class="question-mark">?</span>;
     <span class="ident">write_pattern</span>(<span class="ident">pattern</span>, <span class="ident">symbols</span>, <span class="kw-2">&amp;</span><span class="ident">loc_datetime</span>, <span class="ident">w</span>)
 }
@@ -569,16 +653,16 @@
 {
     <span class="kw">match</span> <span class="ident">field</span>.<span class="ident">symbol</span> {
         <span class="ident">FieldSymbol::Era</span> =&gt; {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
             <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">symbols</span>
                 .<span class="ident">expect</span>(<span class="string">&quot;Expect symbols to be present&quot;</span>)
                 .<span class="ident">get_symbol_for_era</span>(
                     <span class="ident">field</span>.<span class="ident">length</span>,
-                    <span class="kw-2">&amp;</span><span class="ident">datetime</span>
+                    <span class="ident">datetime</span>
                         .<span class="ident">datetime</span>()
                         .<span class="ident">year</span>()
                         .<span class="ident">ok_or</span>(<span class="ident">Error::MissingInputField</span>)<span class="question-mark">?</span>
-                        .<span class="ident">era</span>
-                        .<span class="number">0</span>,
+                        .<span class="ident">era</span>,
                 )<span class="question-mark">?</span>;
             <span class="ident">w</span>.<span class="ident">write_str</span>(<span class="ident">symbol</span>)<span class="question-mark">?</span>
         }
@@ -605,6 +689,7 @@
                 <span class="ident">field</span>.<span class="ident">length</span>,
             )<span class="question-mark">?</span>,
             <span class="ident">length</span> =&gt; {
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
                 <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">symbols</span>
                     .<span class="ident">expect</span>(<span class="string">&quot;Expect symbols to be present&quot;</span>)
                     .<span class="ident">get_symbol_for_month</span>(
@@ -620,27 +705,38 @@
                 <span class="ident">w</span>.<span class="ident">write_str</span>(<span class="ident">symbol</span>)<span class="question-mark">?</span>
             }
         },
-        <span class="ident">FieldSymbol::Week</span>(<span class="ident">Week::WeekOfYear</span>) =&gt; {
-            <span class="ident">format_number</span>(<span class="ident">w</span>, <span class="ident">datetime</span>.<span class="ident">week_of_year</span>()<span class="question-mark">?</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">isize</span>, <span class="ident">field</span>.<span class="ident">length</span>)<span class="question-mark">?</span>
-        }
-        <span class="ident">field</span> @ <span class="ident">FieldSymbol::Week</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::UnsupportedField</span>(<span class="ident">field</span>)),
+        <span class="ident">FieldSymbol::Week</span>(<span class="ident">week</span>) =&gt; <span class="kw">match</span> <span class="ident">week</span> {
+            <span class="ident">Week::WeekOfYear</span> =&gt; {
+                <span class="ident">format_number</span>(<span class="ident">w</span>, <span class="ident">datetime</span>.<span class="ident">week_of_year</span>()<span class="question-mark">?</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">isize</span>, <span class="ident">field</span>.<span class="ident">length</span>)<span class="question-mark">?</span>
+            }
+            <span class="ident">Week::WeekOfMonth</span> =&gt; {
+                <span class="ident">format_number</span>(<span class="ident">w</span>, <span class="ident">datetime</span>.<span class="ident">week_of_month</span>()<span class="question-mark">?</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">isize</span>, <span class="ident">field</span>.<span class="ident">length</span>)<span class="question-mark">?</span>
+            }
+        },
         <span class="ident">FieldSymbol::Weekday</span>(<span class="ident">weekday</span>) =&gt; {
             <span class="kw">let</span> <span class="ident">dow</span> <span class="op">=</span> <span class="ident">datetime</span>
                 .<span class="ident">datetime</span>()
                 .<span class="ident">iso_weekday</span>()
                 .<span class="ident">ok_or</span>(<span class="ident">Error::MissingInputField</span>)<span class="question-mark">?</span>;
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
             <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">symbols</span>
                 .<span class="ident">expect</span>(<span class="string">&quot;Expect symbols to be present&quot;</span>)
                 .<span class="ident">get_symbol_for_weekday</span>(<span class="ident">weekday</span>, <span class="ident">field</span>.<span class="ident">length</span>, <span class="ident">dow</span>)<span class="question-mark">?</span>;
             <span class="ident">w</span>.<span class="ident">write_str</span>(<span class="ident">symbol</span>)<span class="question-mark">?</span>
         }
-        <span class="ident">FieldSymbol::Day</span>(..) =&gt; <span class="ident">format_number</span>(
+        <span class="ident">symbol</span> @ <span class="ident">FieldSymbol::Day</span>(<span class="ident">day</span>) =&gt; <span class="ident">format_number</span>(
             <span class="ident">w</span>,
-            <span class="ident">datetime</span>
-                .<span class="ident">datetime</span>()
-                .<span class="ident">day_of_month</span>()
-                .<span class="ident">ok_or</span>(<span class="ident">Error::MissingInputField</span>)<span class="question-mark">?</span>
-                .<span class="number">0</span> <span class="kw">as</span> <span class="ident">isize</span>,
+            <span class="kw">match</span> <span class="ident">day</span> {
+                <span class="ident">fields::Day::DayOfMonth</span> =&gt; {
+                    <span class="ident">datetime</span>
+                        .<span class="ident">datetime</span>()
+                        .<span class="ident">day_of_month</span>()
+                        .<span class="ident">ok_or</span>(<span class="ident">Error::MissingInputField</span>)<span class="question-mark">?</span>
+                        .<span class="number">0</span> <span class="kw">as</span> <span class="ident">isize</span>
+                }
+                <span class="ident">fields::Day::DayOfWeekInMonth</span> =&gt; <span class="ident">datetime</span>.<span class="ident">day_of_week_in_month</span>()<span class="question-mark">?</span>.<span class="number">0</span> <span class="kw">as</span> <span class="ident">isize</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::UnsupportedField</span>(<span class="ident">symbol</span>)),
+            },
             <span class="ident">field</span>.<span class="ident">length</span>,
         )<span class="question-mark">?</span>,
         <span class="ident">FieldSymbol::Hour</span>(<span class="ident">hour</span>) =&gt; {
@@ -677,7 +773,7 @@
             ) <span class="kw">as</span> <span class="ident">isize</span>,
             <span class="ident">field</span>.<span class="ident">length</span>,
         )<span class="question-mark">?</span>,
-        <span class="ident">FieldSymbol::Second</span>(..) =&gt; <span class="ident">format_number</span>(
+        <span class="ident">FieldSymbol::Second</span>(<span class="ident">Second::Second</span>) =&gt; <span class="ident">format_number</span>(
             <span class="ident">w</span>,
             <span class="ident">usize::from</span>(
                 <span class="ident">datetime</span>
@@ -687,7 +783,21 @@
             ) <span class="kw">as</span> <span class="ident">isize</span>,
             <span class="ident">field</span>.<span class="ident">length</span>,
         )<span class="question-mark">?</span>,
+        <span class="ident">FieldSymbol::Second</span>(<span class="ident">Second::FractionalSecond</span>) =&gt; <span class="ident">format_number</span>(
+            <span class="ident">w</span>,
+            <span class="ident">usize::from</span>(
+                <span class="ident">datetime</span>
+                    .<span class="ident">datetime</span>()
+                    .<span class="ident">nanosecond</span>()
+                    .<span class="ident">ok_or</span>(<span class="ident">Error::MissingInputField</span>)<span class="question-mark">?</span>,
+            ) <span class="kw">as</span> <span class="ident">isize</span>,
+            <span class="ident">field</span>.<span class="ident">length</span>,
+        )<span class="question-mark">?</span>,
+        <span class="ident">field</span> @ <span class="ident">FieldSymbol::Second</span>(<span class="ident">Second::Millisecond</span>) =&gt; {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::UnsupportedField</span>(<span class="ident">field</span>))
+        }
         <span class="ident">FieldSymbol::DayPeriod</span>(<span class="ident">period</span>) =&gt; {
+            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
             <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">symbols</span>
                 .<span class="ident">expect</span>(<span class="string">&quot;Expect symbols to be present&quot;</span>)
                 .<span class="ident">get_symbol_for_day_period</span>(
@@ -697,6 +807,7 @@
                     <span class="ident">pattern</span>.<span class="ident">time_granularity</span>.<span class="ident">is_top_of_hour</span>(
                         <span class="ident">datetime</span>.<span class="ident">datetime</span>().<span class="ident">minute</span>().<span class="ident">map</span>(<span class="ident">u8::from</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>),
                         <span class="ident">datetime</span>.<span class="ident">datetime</span>().<span class="ident">second</span>().<span class="ident">map</span>(<span class="ident">u8::from</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>),
+                        <span class="ident">datetime</span>.<span class="ident">datetime</span>().<span class="ident">nanosecond</span>().<span class="ident">map</span>(<span class="ident">u32::from</span>).<span class="ident">unwrap_or</span>(<span class="number">0</span>),
                     ),
                 )<span class="question-mark">?</span>;
             <span class="ident">w</span>.<span class="ident">write_str</span>(<span class="ident">symbol</span>)<span class="question-mark">?</span>
@@ -706,52 +817,79 @@
     <span class="prelude-val">Ok</span>(())
 }
 
-<span class="comment">// This function determins whether the struct will load symbols data.</span>
-<span class="comment">// Keep it in sync with the `write_field` use of symbols.</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">analyze_pattern</span>(<span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">Pattern</span>, <span class="ident">supports_time_zones</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">Field</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">pattern</span>.<span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">p</span> {
-        <span class="ident">PatternItem::Field</span>(<span class="ident">field</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">field</span>),
-        <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-    });
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">requires_symbols</span> <span class="op">=</span> <span class="bool-val">false</span>;
-
-    <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">requires_symbols</span> {
-            <span class="ident">requires_symbols</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">field</span>.<span class="ident">symbol</span> {
-                <span class="ident">FieldSymbol::Era</span> =&gt; <span class="bool-val">true</span>,
-                <span class="ident">FieldSymbol::Month</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">field</span>.<span class="ident">length</span>, <span class="ident">FieldLength::One</span> <span class="op">|</span> <span class="ident">FieldLength::TwoDigit</span>)
-                }
-                <span class="ident">FieldSymbol::Weekday</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">FieldSymbol::DayPeriod</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-                <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
-            }
-        }
-
-        <span class="kw">if</span> <span class="ident">supports_time_zones</span> {
-            <span class="kw">if</span> <span class="ident">requires_symbols</span> {
-                <span class="comment">// If we require time zones, and symbols, we know all</span>
-                <span class="comment">// we need to return already.</span>
-                <span class="kw">break</span>;
-            }
-        } <span class="kw">else</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">field</span>.<span class="ident">symbol</span>, <span class="ident">FieldSymbol::TimeZone</span>(<span class="kw">_</span>)) {
-            <span class="comment">// If we don&#39;t support time zones, and encountered a time zone</span>
-            <span class="comment">// field, error out.</span>
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">field</span>);
-        }
-    }
-
-    <span class="prelude-val">Ok</span>(<span class="ident">requires_symbols</span>)
+<span class="doccomment">/// What data is required to format a given pattern.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RequiredData</span> {
+    <span class="comment">// DateSymbolsV1 is required.</span>
+    <span class="kw">pub</span> <span class="ident">symbols_data</span>: <span class="ident">bool</span>,
+    <span class="comment">// WeekDataV1 is required.</span>
+    <span class="kw">pub</span> <span class="ident">week_data</span>: <span class="ident">bool</span>,
 }
 
-<span class="comment">// This function determines whether any patterns will load symbols data.</span>
+<span class="kw">impl</span> <span class="ident">RequiredData</span> {
+    <span class="comment">// Checks if formatting `pattern` would require us to load data &amp; if so adds</span>
+    <span class="comment">// them to this struct. Returns true if requirements are saturated and would</span>
+    <span class="comment">// not change by any further calls.</span>
+    <span class="comment">// Keep it in sync with the `write_field` use of symbols.</span>
+    <span class="kw">fn</span> <span class="ident">add_requirements_from_pattern</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">Pattern</span>,
+        <span class="ident">supports_time_zones</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">Field</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">fields</span> <span class="op">=</span> <span class="ident">pattern</span>.<span class="ident">items</span>.<span class="ident">iter</span>().<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">p</span> {
+            <span class="ident">PatternItem::Field</span>(<span class="ident">field</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">field</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        });
+
+        <span class="kw">for</span> <span class="ident">field</span> <span class="kw">in</span> <span class="ident">fields</span> {
+            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">symbols_data</span> {
+                <span class="self">self</span>.<span class="ident">symbols_data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">field</span>.<span class="ident">symbol</span> {
+                    <span class="ident">FieldSymbol::Era</span> =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">FieldSymbol::Month</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">field</span>.<span class="ident">length</span>, <span class="ident">FieldLength::One</span> <span class="op">|</span> <span class="ident">FieldLength::TwoDigit</span>)
+                    }
+                    <span class="ident">FieldSymbol::Weekday</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">FieldSymbol::DayPeriod</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                    <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                }
+            }
+            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">week_data</span> {
+                <span class="self">self</span>.<span class="ident">week_data</span> <span class="op">=</span> <span class="macro">matches!</span>(
+                    <span class="ident">field</span>.<span class="ident">symbol</span>,
+                    <span class="ident">FieldSymbol::Year</span>(<span class="ident">Year::WeekOf</span>) <span class="op">|</span> <span class="ident">FieldSymbol::Week</span>(<span class="kw">_</span>)
+                )
+            }
+
+            <span class="kw">if</span> <span class="ident">supports_time_zones</span> {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">symbols_data</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">week_data</span> {
+                    <span class="comment">// If we support time zones, and require everything else, we</span>
+                    <span class="comment">// know all we need to return already.</span>
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="bool-val">true</span>);
+                }
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="macro">matches!</span>(<span class="ident">field</span>.<span class="ident">symbol</span>, <span class="ident">FieldSymbol::TimeZone</span>(<span class="kw">_</span>)) {
+                <span class="comment">// If we don&#39;t support time zones, and encountered a time zone</span>
+                <span class="comment">// field, error out.</span>
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">field</span>);
+            }
+        }
+
+        <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>)
+    }
+}
+
+<span class="comment">// Determines what optional data needs to be loaded to format `patterns`.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">analyze_patterns</span>(
     <span class="ident">patterns</span>: <span class="kw-2">&amp;</span><span class="ident">PatternPlurals</span>,
     <span class="ident">supports_time_zones</span>: <span class="ident">bool</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">Field</span><span class="op">&gt;</span> {
-    <span class="ident">patterns</span>.<span class="ident">patterns_iter</span>().<span class="ident">try_fold</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">a</span>, <span class="ident">pattern</span><span class="op">|</span> {
-        <span class="ident">analyze_pattern</span>(<span class="ident">pattern</span>, <span class="ident">supports_time_zones</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">a</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b</span>)
-    })
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">RequiredData</span>, <span class="ident">Field</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">required</span> <span class="op">=</span> <span class="ident">RequiredData::default</span>();
+    <span class="kw">for</span> <span class="ident">pattern</span> <span class="kw">in</span> <span class="ident">patterns</span>.<span class="ident">patterns_iter</span>() {
+        <span class="kw">if</span> <span class="ident">required</span>.<span class="ident">add_requirements_from_pattern</span>(<span class="ident">pattern</span>, <span class="ident">supports_time_zones</span>)<span class="question-mark">?</span> {
+            <span class="comment">// We can bail early if everything is required &amp; we don&#39;t need to</span>
+            <span class="comment">// validate the absence of TimeZones.</span>
+            <span class="kw">break</span>;
+        }
+    }
+    <span class="prelude-val">Ok</span>(<span class="ident">required</span>)
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -759,31 +897,27 @@
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;provider_serde&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_basic</span>() {
         <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provider::calendar::DateSymbolsV1Marker</span>;
         <span class="kw">use</span> <span class="ident">icu_calendar::DateTime</span>;
         <span class="kw">use</span> <span class="ident">icu_provider::prelude</span>::<span class="kw-2">*</span>;
 
         <span class="kw">let</span> <span class="ident">provider</span> <span class="op">=</span> <span class="ident">icu_testdata::get_provider</span>();
+        <span class="kw">let</span> <span class="ident">locale</span>: <span class="ident">Locale</span> <span class="op">=</span> <span class="string">&quot;en-u-ca-gregory&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">data</span>: <span class="ident">DataPayload</span><span class="op">&lt;</span><span class="ident">DateSymbolsV1Marker</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">provider</span>
-            .<span class="ident">load_payload</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
-                <span class="ident">resource_path</span>: <span class="ident">ResourcePath</span> {
-                    <span class="ident">key</span>: <span class="ident">provider::key::DATE_SYMBOLS_V1</span>,
-                    <span class="ident">options</span>: <span class="ident">ResourceOptions</span> {
-                        <span class="ident">variant</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;gregory&quot;</span>.<span class="ident">into</span>()),
-                        <span class="ident">langid</span>: <span class="prelude-val">Some</span>(<span class="string">&quot;en&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>()),
-                    },
-                },
+            .<span class="ident">load_resource</span>(<span class="kw-2">&amp;</span><span class="ident">DataRequest</span> {
+                <span class="ident">options</span>: <span class="ident">locale</span>.<span class="ident">into</span>(),
+                <span class="ident">metadata</span>: <span class="ident">Default::default</span>(),
             })
             .<span class="ident">unwrap</span>()
             .<span class="ident">take_payload</span>()
             .<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="string">&quot;MMM&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="ident">datetime</span> <span class="op">=</span>
-            <span class="ident">DateTime::new_gregorian_datetime_from_integers</span>(<span class="number">2020</span>, <span class="number">8</span>, <span class="number">1</span>, <span class="number">12</span>, <span class="number">34</span>, <span class="number">28</span>).<span class="ident">unwrap</span>();
+            <span class="ident">DateTime::new_gregorian_datetime_from_integers</span>(<span class="number">2020</span>, <span class="number">8</span>, <span class="number">1</span>, <span class="number">12</span>, <span class="number">34</span>, <span class="number">28</span>, <span class="number">0</span>).<span class="ident">unwrap</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">sink</span> <span class="op">=</span> <span class="ident">String::new</span>();
-        <span class="kw">let</span> <span class="ident">loc_datetime</span> <span class="op">=</span> <span class="ident">DateTimeInputWithLocale::new</span>(<span class="kw-2">&amp;</span><span class="ident">datetime</span>, <span class="kw-2">&amp;</span><span class="string">&quot;und&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>());
+        <span class="kw">let</span> <span class="ident">loc_datetime</span> <span class="op">=</span> <span class="ident">DateTimeInputWithLocale::new</span>(<span class="kw-2">&amp;</span><span class="ident">datetime</span>, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span><span class="string">&quot;und&quot;</span>.<span class="ident">parse</span>().<span class="ident">unwrap</span>());
         <span class="ident">write_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">pattern</span>, <span class="prelude-val">Some</span>(<span class="ident">data</span>.<span class="ident">get</span>()), <span class="kw-2">&amp;</span><span class="ident">loc_datetime</span>, <span class="kw-2">&amp;mut</span> <span class="ident">sink</span>).<span class="ident">unwrap</span>();
         <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">sink</span>);
     }

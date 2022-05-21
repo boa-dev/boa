@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locid-0.5.0/src/subtags/variant.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>variant.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_locid-0.6.0/src/subtags/variant.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>variant.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_locid/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -164,14 +164,64 @@
 <span id="159">159</span>
 <span id="160">160</span>
 <span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::parser::errors::ParserError</span>;
+<span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">core::ops::RangeInclusive</span>;
 <span class="kw">use</span> <span class="ident">core::str::FromStr</span>;
-<span class="kw">use</span> <span class="ident">tinystr::TinyStr8</span>;
+<span class="kw">use</span> <span class="ident">tinystr::TinyAsciiStr</span>;
 
 <span class="doccomment">/// A variant subtag (examples: `&quot;macos&quot;`, `&quot;posix&quot;`, `&quot;1996&quot;` etc.)</span>
 <span class="doccomment">///</span>
@@ -189,7 +239,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`unicode_variant_id`]: https://unicode.org/reports/tr35/#unicode_variant_id</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Hash</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Variant</span>(<span class="ident">TinyStr8</span>);
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>))]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Variant</span>(<span class="ident">TinyAsciiStr</span><span class="op">&lt;</span>{ <span class="kw-2">*</span><span class="ident">VARIANT_LENGTH</span>.<span class="ident">end</span>() }<span class="op">&gt;</span>);
 
 <span class="kw">const</span> <span class="ident">VARIANT_LENGTH</span>: <span class="ident">RangeInclusive</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="number">4</span>..<span class="op">=</span><span class="number">8</span>;
 <span class="kw">const</span> <span class="ident">VARIANT_NUM_ALPHA_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">4</span>;
@@ -208,24 +260,65 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(variant, &quot;posix&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParserError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">slen</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">len</span>();
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bytes</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParserError</span><span class="op">&gt;</span> {
+        <span class="ident"><span class="self">Self</span>::from_bytes_manual_slice</span>(<span class="ident">v</span>, <span class="number">0</span>, <span class="ident">v</span>.<span class="ident">len</span>())
+    }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">VARIANT_LENGTH</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">slen</span>) {
+    <span class="doccomment">/// Equivalent to [`from_bytes(bytes[start..end])`](Self::from_bytes),</span>
+    <span class="doccomment">/// but callable in a `const` context (which range indexing is not).</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_bytes_manual_slice</span>(
+        <span class="ident">v</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>],
+        <span class="ident">start</span>: <span class="ident">usize</span>,
+        <span class="ident">end</span>: <span class="ident">usize</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParserError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">slen</span> <span class="op">=</span> <span class="ident">end</span> <span class="op">-</span> <span class="ident">start</span>;
+
+        <span class="kw">if</span> <span class="ident">slen</span> <span class="op">&lt;</span> <span class="kw-2">*</span><span class="ident">VARIANT_LENGTH</span>.<span class="ident">start</span>() <span class="op">|</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">VARIANT_LENGTH</span>.<span class="ident">end</span>() <span class="op">&lt;</span> <span class="ident">slen</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParserError::InvalidSubtag</span>);
         }
 
-        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">TinyStr8::from_bytes</span>(<span class="ident">v</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ParserError::InvalidSubtag</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">s</span>.<span class="ident">is_ascii_alphanumeric</span>() {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="kw">if</span> <span class="ident">slen</span> <span class="op">==</span> <span class="ident">VARIANT_NUM_ALPHA_LENGTH</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">v</span>[<span class="ident">start</span>].<span class="ident">is_ascii_digit</span>() {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParserError::InvalidSubtag</span>);
         }
 
-        <span class="kw">if</span> <span class="ident">slen</span> <span class="op">==</span> <span class="ident">VARIANT_NUM_ALPHA_LENGTH</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">v</span>[<span class="number">0</span>].<span class="ident">is_ascii_digit</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParserError::InvalidSubtag</span>);
+        <span class="kw">match</span> <span class="ident">TinyAsciiStr::from_bytes_manual_slice</span>(<span class="ident">v</span>, <span class="ident">start</span>, <span class="ident">end</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">s</span>) <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_ascii_alphanumeric</span>() =&gt; <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<span class="ident">s</span>.<span class="ident">to_ascii_lowercase</span>())),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParserError::InvalidSubtag</span>),
         }
+    }
 
-        <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<span class="ident">s</span>.<span class="ident">to_ascii_lowercase</span>()))
+    <span class="doccomment">/// Safely creates a [`Variant`] from a reference to its raw format</span>
+    <span class="doccomment">/// as returned by [`Variant::into_raw()`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use icu::locid::subtags::Variant;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(matches!(Variant::try_from_raw(*b&quot;fonipa\0\0&quot;), Ok(_)));</span>
+    <span class="doccomment">/// assert!(matches!(Variant::try_from_raw(*b&quot;1992\0\0\0\0&quot;), Ok(_)));</span>
+    <span class="doccomment">/// assert!(matches!(Variant::try_from_raw(*b&quot;foo\0\0\0\0\0&quot;), Err(_)));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // Unlike the other constructors, this one is case-sensitive:</span>
+    <span class="doccomment">/// assert!(matches!(Variant::try_from_raw(*b&quot;POSIX\0\0\0&quot;), Err(_)));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_from_raw</span>(<span class="ident">v</span>: [<span class="ident">u8</span>; <span class="number">8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">ParserError</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">TinyAsciiStr</span>::<span class="op">&lt;</span>{ <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>() }<span class="op">&gt;</span><span class="ident">::try_from_raw</span>(<span class="ident">v</span>)
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ParserError::InvalidSubtag</span>)<span class="question-mark">?</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="kw">let</span> <span class="ident">is_valid</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">is_ascii_alphanumeric</span>()
+            <span class="op">&amp;&amp;</span> <span class="ident">s</span>.<span class="ident">is_ascii_lowercase</span>()
+            <span class="op">&amp;&amp;</span> <span class="kw">match</span> <span class="ident">s</span>.<span class="ident">len</span>() {
+                <span class="ident">VARIANT_NUM_ALPHA_LENGTH</span> =&gt; <span class="ident">s</span>.<span class="ident">as_bytes</span>()[<span class="number">0</span>].<span class="ident">is_ascii_digit</span>(),
+                <span class="number">4</span>..<span class="op">=</span><span class="number">8</span> =&gt; <span class="bool-val">true</span>, <span class="comment">// VARIANT_LENGTH</span>
+                <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+            };
+        <span class="kw">if</span> <span class="ident">is_valid</span> {
+            <span class="prelude-val">Ok</span>(<span class="self">Self</span>(<span class="ident">s</span>))
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Err</span>(<span class="ident">ParserError::InvalidSubtag</span>)
+        }
     }
 
     <span class="doccomment">/// Deconstructs the [`Variant`] into raw format to be consumed</span>
@@ -243,8 +336,8 @@
     <span class="doccomment">/// let variant = unsafe { Variant::from_raw_unchecked(raw) };</span>
     <span class="doccomment">/// assert_eq!(variant, &quot;posix&quot;);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">u64</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">into</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_raw</span>(<span class="self">self</span>) -&gt; [<span class="ident">u8</span>; <span class="number">8</span>] {
+        <span class="kw-2">*</span><span class="self">self</span>.<span class="number">0</span>.<span class="ident">all_bytes</span>()
     }
 
     <span class="doccomment">/// Constructor which takes a raw value returned by</span>
@@ -265,10 +358,10 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Safety</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This function accepts a [`u64`] that is expected to be a valid [`TinyStr8`]</span>
+    <span class="doccomment">/// This function accepts a [u8; 8] that is expected to be a valid [`TinyAsciiStr&lt;8&gt;`]</span>
     <span class="doccomment">/// representing a [`Variant`] subtag in canonical syntax.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_unchecked</span>(<span class="ident">v</span>: <span class="ident">u64</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span>(<span class="ident">TinyStr8::new_unchecked</span>(<span class="ident">v</span>))
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_raw_unchecked</span>(<span class="ident">v</span>: [<span class="ident">u8</span>; <span class="number">8</span>]) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span>(<span class="ident">TinyAsciiStr::from_bytes_unchecked</span>(<span class="ident">v</span>))
     }
 
     <span class="doccomment">/// A helper function for displaying</span>
@@ -307,6 +400,11 @@
         <span class="self">self</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="kw-2">*</span><span class="ident">other</span>
     }
 }
+<span class="kw">impl</span> <span class="ident">PartialOrd</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Variant</span> {
+    <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Ordering</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">as_str</span>().<span class="ident">cmp</span>(<span class="kw-2">*</span><span class="ident">other</span>))
+    }
+}
 
 <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Variant</span> {
     <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
@@ -320,7 +418,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyStr8</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Variant</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">TinyAsciiStr</span><span class="op">&lt;</span><span class="number">8</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">input</span>: <span class="ident">Variant</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">input</span>.<span class="number">0</span>
     }

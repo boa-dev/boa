@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/fields/ule.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ule.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/fields/ule.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ule.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -169,6 +169,9 @@
 <span id="164">164</span>
 <span id="165">165</span>
 <span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -218,14 +221,16 @@
     <span class="kw">type</span> <span class="ident">ULE</span> <span class="op">=</span> <span class="ident">FieldULE</span>;
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">as_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span> {
+    <span class="kw">fn</span> <span class="ident">to_unaligned</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::ULE</span> {
         <span class="ident">FieldULE</span>([<span class="self">self</span>.<span class="ident">symbol</span>.<span class="ident">idx</span>(), <span class="self">self</span>.<span class="ident">length</span>.<span class="ident">idx</span>()])
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_unaligned</span>(<span class="ident">unaligned</span>: <span class="ident"><span class="self">Self</span>::ULE</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">unaligned</span>.<span class="number">0</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident">fields::FieldSymbol::from_idx</span>(<span class="ident">value</span>[<span class="number">0</span>]).<span class="ident">unwrap</span>();
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">fields::FieldLength::from_idx</span>(<span class="ident">value</span>[<span class="number">1</span>]).<span class="ident">unwrap</span>();
         <span class="ident">fields::Field</span> { <span class="ident">symbol</span>, <span class="ident">length</span> }
     }
@@ -244,6 +249,7 @@
     <span class="kw">fn</span> <span class="ident">validate_byte_slice</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ZeroVecError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chunks</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">chunks_exact</span>(<span class="number">2</span>);
 
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">chunks</span>.<span class="ident">all</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">fields::Field::bytes_in_range</span>(<span class="kw-2">&amp;</span><span class="ident">c</span>[<span class="number">0</span>], <span class="kw-2">&amp;</span><span class="ident">c</span>[<span class="number">1</span>])) {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>());
         }
@@ -292,7 +298,7 @@
         ];
 
         <span class="kw">for</span> (<span class="ident">ref_field</span>, <span class="ident">ref_bytes</span>) <span class="kw">in</span> <span class="ident">samples</span> {
-            <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">ref_field</span>.<span class="ident">as_unaligned</span>();
+            <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">ref_field</span>.<span class="ident">to_unaligned</span>();
             <span class="macro">assert_eq!</span>(<span class="ident">ULE::as_byte_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">ule</span>]), <span class="kw-2">*</span><span class="ident">ref_bytes</span>);
             <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="ident">Field::from_unaligned</span>(<span class="ident">ule</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">field</span>, <span class="kw-2">*</span><span class="ident">ref_field</span>);
@@ -321,7 +327,7 @@
         <span class="kw">for</span> (<span class="ident">ref_field</span>, <span class="ident">ref_bytes</span>) <span class="kw">in</span> <span class="ident">samples</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
             <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="ident">ref_field</span>.<span class="ident">iter</span>() {
-                <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">as_unaligned</span>();
+                <span class="kw">let</span> <span class="ident">ule</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">to_unaligned</span>();
                 <span class="ident">bytes</span>.<span class="ident">extend</span>(<span class="ident">ULE::as_byte_slice</span>(<span class="kw-2">&amp;</span>[<span class="ident">ule</span>]));
             }
 

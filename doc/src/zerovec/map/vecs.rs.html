@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.6.0/src/map/vecs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>vecs.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.7.0/src/map/vecs.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>vecs.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -511,6 +511,39 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -545,7 +578,9 @@
     <span class="doccomment">/// Search for a key in a sorted vector, returns `Ok(index)` if found,</span>
     <span class="doccomment">/// returns `Err(insert_index)` if not found, where `insert_index` is the</span>
     <span class="doccomment">/// index where it should be inserted to maintain sort order.</span>
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>;
     <span class="doccomment">/// Search for a key within a certain range in a sorted vector. Returns `None` if the</span>
     <span class="doccomment">/// range is out of bounds, and `Ok` or `Err` in the same way as `zvl_binary_search`.</span>
     <span class="doccomment">/// Indices are returned relative to the start of the range.</span>
@@ -553,13 +588,22 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
         <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>;
+
+    <span class="doccomment">/// Search for a key in a sorted vector by a predicate, returns `Ok(index)` if found,</span>
+    <span class="doccomment">/// returns `Err(insert_index)` if not found, where `insert_index` is the</span>
+    <span class="doccomment">/// index where it should be inserted to maintain sort order.</span>
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>;
     <span class="doccomment">/// Get element at `index`</span>
     <span class="kw">fn</span> <span class="ident">zvl_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span><span class="op">&gt;</span>;
     <span class="doccomment">/// The length of this vector</span>
     <span class="kw">fn</span> <span class="ident">zvl_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span>;
     <span class="doccomment">/// Check if this vector is in ascending order according to `T`s `Ord` impl</span>
-    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>;
+    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>;
     <span class="doccomment">/// Check if this vector is empty</span>
     <span class="kw">fn</span> <span class="ident">zvl_is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">zvl_len</span>() <span class="op">==</span> <span class="number">0</span>
@@ -591,17 +635,29 @@
 
     <span class="doccomment">/// Compare this type with a `Self::GetType`. This must produce the same result as</span>
     <span class="doccomment">/// if `g` were converted to `Self`</span>
-    <span class="kw">fn</span> <span class="ident">t_cmp_get</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span>;
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">t_cmp_get</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
+        <span class="ident"><span class="self">Self</span>::zvl_get_as_t</span>(<span class="ident">g</span>, <span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">cmp</span>(<span class="ident">g</span>))
+    }
 
     <span class="doccomment">/// Compare two values of `Self::GetType`. This must produce the same result as</span>
     <span class="doccomment">/// if both `a` and `b` were converted to `Self`</span>
-    <span class="kw">fn</span> <span class="ident">get_cmp_get</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span>;
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">get_cmp_get</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
+        <span class="ident"><span class="self">Self</span>::zvl_get_as_t</span>(<span class="ident">a</span>, <span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::zvl_get_as_t</span>(<span class="ident">b</span>, <span class="op">|</span><span class="ident">b</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">cmp</span>(<span class="ident">b</span>)))
+    }
 
-    <span class="doccomment">/// Obtain a version of T suitable for serialization</span>
+    <span class="doccomment">/// Obtain a reference to T, passed to a closure</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This uses a callback because it&#39;s not possible to return owned-or-borrowed</span>
     <span class="doccomment">/// types without GATs</span>
-    <span class="kw">fn</span> <span class="ident">t_with_ser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span>;
+    <span class="kw">fn</span> <span class="ident">zvl_get_as_t</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span>;
 }
 
 <span class="doccomment">/// Trait abstracting over [`ZeroVec`] and [`VarZeroVec`], for use in [`ZeroMap`](super::ZeroMap). **You</span>
@@ -648,7 +704,7 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span>,
+    <span class="ident">T</span>: <span class="lifetime">&#39;a</span> <span class="op">+</span> <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Copy</span>,
 {
     <span class="kw">type</span> <span class="ident">GetType</span> <span class="op">=</span> <span class="ident">T::ULE</span>;
     <span class="kw">type</span> <span class="ident">BorrowedVariant</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
@@ -656,16 +712,24 @@
     <span class="kw">fn</span> <span class="ident">zvl_new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>()
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="ident">ZeroSlice::binary_search</span>(<span class="self">self</span>, <span class="ident">k</span>)
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-        <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="kw">let</span> <span class="ident">zs</span>: <span class="kw-2">&amp;</span><span class="ident">ZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="self">self</span>;
         <span class="ident">zs</span>.<span class="ident">zvl_binary_search_in_range</span>(<span class="ident">k</span>, <span class="ident">range</span>)
+    }
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_by</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="kw-2">mut</span> <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="ident">ZeroSlice::binary_search_by</span>(<span class="self">self</span>, <span class="op">|</span><span class="ident">probe</span><span class="op">|</span> <span class="ident">predicate</span>(<span class="kw-2">&amp;</span><span class="ident">probe</span>))
     }
     <span class="kw">fn</span> <span class="ident">zvl_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T::ULE</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_ule_ref</span>(<span class="ident">index</span>)
@@ -673,7 +737,11 @@
     <span class="kw">fn</span> <span class="ident">zvl_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">ZeroSlice::len</span>(<span class="self">self</span>)
     }
-    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="self">self</span>.<span class="ident">as_ule_slice</span>()
             .<span class="ident">windows</span>(<span class="number">2</span>)
             .<span class="ident">all</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">T::from_unaligned</span>(<span class="ident">w</span>[<span class="number">1</span>]).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="ident">w</span>[<span class="number">0</span>])) <span class="op">==</span> <span class="ident">Ordering::Greater</span>)
@@ -689,26 +757,20 @@
             <span class="prelude-val">None</span>
         }
     }
+
     <span class="kw">fn</span> <span class="ident">zvl_from_borrowed</span>(<span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">b</span>.<span class="ident">as_zerovec</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">t_cmp_get</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">t</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">g</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_cmp_get</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">a</span>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">b</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">t_with_ser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">zvl_get_as_t</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
         <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">g</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span>,
+    <span class="ident">T</span>: <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Copy</span>,
 {
     <span class="kw">type</span> <span class="ident">GetType</span> <span class="op">=</span> <span class="ident">T::ULE</span>;
     <span class="kw">type</span> <span class="ident">BorrowedVariant</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
@@ -716,16 +778,24 @@
     <span class="kw">fn</span> <span class="ident">zvl_new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">ZeroSlice::from_ule_slice</span>(<span class="kw-2">&amp;</span>[])
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="ident">ZeroSlice::binary_search</span>(<span class="kw-2">*</span><span class="self">self</span>, <span class="ident">k</span>)
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-        <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="kw">let</span> <span class="ident">subslice</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_subslice</span>(<span class="ident">range</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Some</span>(<span class="ident">ZeroSlice::binary_search</span>(<span class="ident">subslice</span>, <span class="ident">k</span>))
+    }
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_by</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="kw-2">mut</span> <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="ident">ZeroSlice::binary_search_by</span>(<span class="self">self</span>, <span class="op">|</span><span class="ident">probe</span><span class="op">|</span> <span class="ident">predicate</span>(<span class="kw-2">&amp;</span><span class="ident">probe</span>))
     }
     <span class="kw">fn</span> <span class="ident">zvl_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T::ULE</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get_ule_ref</span>(<span class="ident">index</span>)
@@ -733,7 +803,11 @@
     <span class="kw">fn</span> <span class="ident">zvl_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="ident">ZeroSlice::len</span>(<span class="kw-2">*</span><span class="self">self</span>)
     }
-    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="self">self</span>.<span class="ident">as_ule_slice</span>()
             .<span class="ident">windows</span>(<span class="number">2</span>)
             .<span class="ident">all</span>(<span class="op">|</span><span class="ident">w</span><span class="op">|</span> <span class="ident">T::from_unaligned</span>(<span class="ident">w</span>[<span class="number">1</span>]).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="ident">w</span>[<span class="number">0</span>])) <span class="op">==</span> <span class="ident">Ordering::Greater</span>)
@@ -749,22 +823,15 @@
         <span class="ident">b</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">t_cmp_get</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">t</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">g</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_cmp_get</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">a</span>).<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">b</span>))
-    }
-
-    <span class="kw">fn</span> <span class="ident">t_with_ser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">zvl_get_as_t</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
         <span class="ident">f</span>(<span class="kw-2">&amp;</span><span class="ident">T::from_unaligned</span>(<span class="kw-2">*</span><span class="ident">g</span>))
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">BorrowedZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span>,
+    <span class="ident">T</span>: <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Copy</span>,
 {
     <span class="kw">fn</span> <span class="ident">zvl_get_borrowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T::ULE</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">as_ule_slice</span>().<span class="ident">get</span>(<span class="ident">index</span>)
@@ -773,21 +840,22 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">MutableZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Ord</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">T</span>: <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Copy</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
 {
     <span class="kw">type</span> <span class="ident">OwnedType</span> <span class="op">=</span> <span class="ident">T</span>;
     <span class="kw">fn</span> <span class="ident">zvl_insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) {
-        <span class="self">self</span>.<span class="ident">to_mut</span>().<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">value</span>.<span class="ident">as_unaligned</span>())
+        <span class="self">self</span>.<span class="ident">to_mut</span>().<span class="ident">insert</span>(<span class="ident">index</span>, <span class="ident">value</span>.<span class="ident">to_unaligned</span>())
     }
     <span class="kw">fn</span> <span class="ident">zvl_remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">T</span> {
         <span class="ident">T::from_unaligned</span>(<span class="self">self</span>.<span class="ident">to_mut</span>().<span class="ident">remove</span>(<span class="ident">index</span>))
     }
     <span class="kw">fn</span> <span class="ident">zvl_replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">T</span> {
         <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_mut</span>();
-        <span class="ident">T::from_unaligned</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">vec</span>[<span class="ident">index</span>], <span class="ident">value</span>.<span class="ident">as_unaligned</span>()))
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="ident">T::from_unaligned</span>(<span class="ident">mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="ident">vec</span>[<span class="ident">index</span>], <span class="ident">value</span>.<span class="ident">to_unaligned</span>()))
     }
     <span class="kw">fn</span> <span class="ident">zvl_push</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) {
-        <span class="self">self</span>.<span class="ident">to_mut</span>().<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">as_unaligned</span>())
+        <span class="self">self</span>.<span class="ident">to_mut</span>().<span class="ident">push</span>(<span class="ident">value</span>.<span class="ident">to_unaligned</span>())
     }
     <span class="kw">fn</span> <span class="ident">zvl_with_capacity</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ZeroVec::Owned</span>(<span class="ident">Vec::with_capacity</span>(<span class="ident">cap</span>))
@@ -807,7 +875,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VarZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">VarULE</span>,
-    <span class="ident">T</span>: <span class="ident">Ord</span>,
     <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">type</span> <span class="ident">GetType</span> <span class="op">=</span> <span class="ident">T</span>;
@@ -816,15 +883,20 @@
     <span class="kw">fn</span> <span class="ident">zvl_new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>()
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="self">self</span>.<span class="ident">binary_search</span>(<span class="ident">k</span>)
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-        <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="self">self</span>.<span class="ident">binary_search_in_range</span>(<span class="ident">k</span>, <span class="ident">range</span>)
+    }
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">binary_search_by</span>(<span class="ident">predicate</span>)
     }
     <span class="kw">fn</span> <span class="ident">zvl_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">index</span>)
@@ -832,9 +904,12 @@
     <span class="kw">fn</span> <span class="ident">zvl_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">len</span>()
     }
-    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
+    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">first</span>;
             <span class="kw">for</span> <span class="ident">element</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>) {
                 <span class="kw">if</span> <span class="ident">element</span>.<span class="ident">cmp</span>(<span class="ident">prev</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">Ordering::Greater</span> {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -859,16 +934,8 @@
         <span class="ident">b</span>.<span class="ident">as_varzerovec</span>()
     }
 
-    <span class="kw">fn</span> <span class="ident">t_cmp_get</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">t</span>.<span class="ident">cmp</span>(<span class="ident">g</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_cmp_get</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">a</span>.<span class="ident">cmp</span>(<span class="ident">b</span>)
-    }
-
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">t_with_ser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_get_as_t</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
         <span class="ident">f</span>(<span class="ident">g</span>)
     }
 }
@@ -876,7 +943,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">VarZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">VarULE</span>,
-    <span class="ident">T</span>: <span class="ident">Ord</span>,
     <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">type</span> <span class="ident">GetType</span> <span class="op">=</span> <span class="ident">T</span>;
@@ -885,15 +951,20 @@
     <span class="kw">fn</span> <span class="ident">zvl_new</span>() -&gt; <span class="self">Self</span> {
         <span class="ident">VarZeroSlice::new_empty</span>()
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="self">self</span>.<span class="ident">binary_search</span>(<span class="ident">k</span>)
     }
-    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(
-        <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>,
-        <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_in_range</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">k</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">range</span>: <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
         <span class="self">self</span>.<span class="ident">binary_search_in_range</span>(<span class="ident">k</span>, <span class="ident">range</span>)
+    }
+    <span class="kw">fn</span> <span class="ident">zvl_binary_search_by</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">binary_search_by</span>(<span class="ident">predicate</span>)
     }
     <span class="kw">fn</span> <span class="ident">zvl_get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">index</span>)
@@ -901,9 +972,12 @@
     <span class="kw">fn</span> <span class="ident">zvl_len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="self">self</span>.<span class="ident">len</span>()
     }
-    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap</span>();
+    <span class="kw">fn</span> <span class="ident">zvl_is_ascending</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Ord</span>,
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="number">0</span>) {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev</span> <span class="op">=</span> <span class="ident">first</span>;
             <span class="kw">for</span> <span class="ident">element</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">iter</span>().<span class="ident">skip</span>(<span class="number">1</span>) {
                 <span class="kw">if</span> <span class="ident">element</span>.<span class="ident">cmp</span>(<span class="ident">prev</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">Ordering::Greater</span> {
                     <span class="kw">return</span> <span class="bool-val">false</span>;
@@ -924,16 +998,8 @@
         <span class="ident">b</span>
     }
 
-    <span class="kw">fn</span> <span class="ident">t_cmp_get</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">t</span>.<span class="ident">cmp</span>(<span class="ident">g</span>)
-    }
-
-    <span class="kw">fn</span> <span class="ident">get_cmp_get</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>) -&gt; <span class="ident">Ordering</span> {
-        <span class="ident">a</span>.<span class="ident">cmp</span>(<span class="ident">b</span>)
-    }
-
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">t_with_ser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
+    <span class="kw">fn</span> <span class="ident">zvl_get_as_t</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(<span class="ident">g</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::GetType</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">R</span>) -&gt; <span class="ident">R</span> {
         <span class="ident">f</span>(<span class="ident">g</span>)
     }
 }
@@ -941,7 +1007,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">BorrowedZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">VarZeroSlice</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">VarULE</span>,
-    <span class="ident">T</span>: <span class="ident">Ord</span>,
     <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">fn</span> <span class="ident">zvl_get_borrowed</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">T</span><span class="op">&gt;</span> {
@@ -952,7 +1017,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">MutableZeroVecLike</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">VarZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">VarULE</span>,
-    <span class="ident">T</span>: <span class="ident">Ord</span>,
     <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="kw">type</span> <span class="ident">OwnedType</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
@@ -961,12 +1025,14 @@
     }
     <span class="kw">fn</span> <span class="ident">zvl_remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_mut</span>();
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid index&quot;</span>).<span class="ident">to_boxed</span>();
         <span class="ident">vec</span>.<span class="ident">remove</span>(<span class="ident">index</span>);
         <span class="ident">old</span>
     }
     <span class="kw">fn</span> <span class="ident">zvl_replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">vec</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">make_mut</span>();
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
         <span class="kw">let</span> <span class="ident">old</span> <span class="op">=</span> <span class="ident">vec</span>.<span class="ident">get</span>(<span class="ident">index</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid index&quot;</span>).<span class="ident">to_boxed</span>();
         <span class="ident">vec</span>.<span class="ident">replace</span>(<span class="ident">index</span>, <span class="ident">value</span>);
         <span class="ident">old</span>
@@ -996,7 +1062,7 @@
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_zerovec_binary_search_in_range</span>() {
-        <span class="kw">let</span> <span class="ident">zv</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ZeroVec::from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">11</span>, <span class="number">22</span>, <span class="number">33</span>, <span class="number">44</span>, <span class="number">55</span>, <span class="number">66</span>, <span class="number">77</span>]);
+        <span class="kw">let</span> <span class="ident">zv</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">ZeroVec::from_slice_or_alloc</span>(<span class="kw-2">&amp;</span>[<span class="number">11</span>, <span class="number">22</span>, <span class="number">33</span>, <span class="number">44</span>, <span class="number">55</span>, <span class="number">66</span>, <span class="number">77</span>]);
 
         <span class="comment">// Full range search</span>
         <span class="macro">assert_eq!</span>(<span class="ident">zv</span>.<span class="ident">zvl_binary_search_in_range</span>(<span class="kw-2">&amp;</span><span class="number">11</span>, <span class="number">0</span>..<span class="number">7</span>), <span class="prelude-val">Some</span>(<span class="prelude-val">Ok</span>(<span class="number">0</span>)));

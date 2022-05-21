@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.5.0/src/options/components.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>components.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_datetime-0.6.0/src/options/components.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>components.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../icu_datetime/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -728,6 +728,42 @@
 <span id="723">723</span>
 <span id="724">724</span>
 <span id="725">725</span>
+<span id="726">726</span>
+<span id="727">727</span>
+<span id="728">728</span>
+<span id="729">729</span>
+<span id="730">730</span>
+<span id="731">731</span>
+<span id="732">732</span>
+<span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -774,18 +810,13 @@
 <span class="doccomment">//! use icu::datetime::DateTimeFormatOptions;</span>
 <span class="doccomment">//! use icu::datetime::options::components;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let bag = components::Bag {</span>
-<span class="doccomment">//!     year: Some(components::Year::Numeric),</span>
-<span class="doccomment">//!     month: Some(components::Month::Long),</span>
-<span class="doccomment">//!     day: Some(components::Numeric::Numeric),</span>
+<span class="doccomment">//! let mut bag = components::Bag::default();</span>
+<span class="doccomment">//! bag.year = Some(components::Year::Numeric);</span>
+<span class="doccomment">//! bag.month = Some(components::Month::Long);</span>
+<span class="doccomment">//! bag.day = Some(components::Day::NumericDayOfMonth);</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!     hour: Some(components::Numeric::TwoDigit),</span>
-<span class="doccomment">//!     minute: Some(components::Numeric::TwoDigit),</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     preferences: None,</span>
-<span class="doccomment">//!</span>
-<span class="doccomment">//!     ..Default::default()</span>
-<span class="doccomment">//! };</span>
+<span class="doccomment">//! bag.hour = Some(components::Numeric::TwoDigit);</span>
+<span class="doccomment">//! bag.minute = Some(components::Numeric::TwoDigit);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // The options can be created manually.</span>
 <span class="doccomment">//! let options = DateTimeFormatOptions::Components(bag);</span>
@@ -816,6 +847,7 @@
 <span class="doccomment">/// See the [module-level](./index.html) docs for more information.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Default</span>, <span class="ident">Copy</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bag</span> {
     <span class="doccomment">/// Include the era, such as &quot;AD&quot; or &quot;CE&quot;.</span>
     <span class="kw">pub</span> <span class="ident">era</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Text</span><span class="op">&gt;</span>,
@@ -823,12 +855,10 @@
     <span class="kw">pub</span> <span class="ident">year</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Year</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Include the month, such as &quot;April&quot; or &quot;Apr&quot;.</span>
     <span class="kw">pub</span> <span class="ident">month</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Month</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Include the week, such as &quot;1st&quot; or &quot;1&quot;.</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="comment">// TODO(#488): make visible once fully supported.</span>
+    <span class="doccomment">/// Include the week number, such as &quot;51st&quot; or &quot;51&quot; for week 51.</span>
     <span class="kw">pub</span> <span class="ident">week</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Week</span><span class="op">&gt;</span>,
-    <span class="doccomment">/// Include the day, such as &quot;07&quot; or &quot;7&quot;.</span>
-    <span class="kw">pub</span> <span class="ident">day</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Numeric</span><span class="op">&gt;</span>,
+    <span class="doccomment">/// Include the day of the month/year, such as &quot;07&quot; or &quot;7&quot;.</span>
+    <span class="kw">pub</span> <span class="ident">day</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Day</span><span class="op">&gt;</span>,
     <span class="doccomment">/// Include the weekday, such as &quot;Wednesday&quot; or &quot;Wed&quot;.</span>
     <span class="kw">pub</span> <span class="ident">weekday</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Text</span><span class="op">&gt;</span>,
 
@@ -847,6 +877,13 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Bag</span> {
+    <span class="doccomment">/// Creates an empty components bag</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Has the same behavior as the [`Default`] implementation on this type.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">empty</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::default</span>()
+    }
+
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="doccomment">/// Converts the components::Bag into a Vec&lt;Field&gt;. The fields will be ordered in from most</span>
     <span class="doccomment">/// significant field to least significant. This is the order the fields are listed in</span>
@@ -930,18 +967,20 @@
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">day</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">day</span> {
-            <span class="comment">// TODO(#591,#592) Unimplemented day fields:</span>
+            <span class="comment">// TODO(#591) Unimplemented day fields:</span>
             <span class="comment">// D - Day of year</span>
-            <span class="comment">// F - Day of week in month</span>
             <span class="comment">// g - Modified Julian day.</span>
             <span class="ident">fields</span>.<span class="ident">push</span>(<span class="ident">Field</span> {
-                <span class="ident">symbol</span>: <span class="ident">FieldSymbol::Day</span>(<span class="ident">fields::Day::DayOfMonth</span>),
+                <span class="ident">symbol</span>: <span class="ident">FieldSymbol::Day</span>(<span class="kw">match</span> <span class="ident">day</span> {
+                    <span class="ident">Day::NumericDayOfMonth</span> <span class="op">|</span> <span class="ident">Day::TwoDigitDayOfMonth</span> =&gt; <span class="ident">fields::Day::DayOfMonth</span>,
+                    <span class="ident">Day::DayOfWeekInMonth</span> =&gt; <span class="ident">fields::Day::DayOfWeekInMonth</span>,
+                }),
                 <span class="ident">length</span>: <span class="kw">match</span> <span class="ident">day</span> {
-                    <span class="comment">// Day of month (numeric).</span>
-                    <span class="comment">// d    1 	  Numeric: minimum digits</span>
-                    <span class="comment">// dd   01 	  Numeric: 2 digits, zero pad if needed</span>
-                    <span class="ident">Numeric::Numeric</span> =&gt; <span class="ident">FieldLength::One</span>,
-                    <span class="ident">Numeric::TwoDigit</span> =&gt; <span class="ident">FieldLength::TwoDigit</span>,
+                    <span class="comment">// d    1 	  Numeric day of month: minimum digits</span>
+                    <span class="comment">// dd   01 	  Numeric day of month: 2 digits, zero pad if needed</span>
+                    <span class="comment">// F    1  	  Numeric day of week in month: minimum digits</span>
+                    <span class="ident">Day::NumericDayOfMonth</span> <span class="op">|</span> <span class="ident">Day::DayOfWeekInMonth</span> =&gt; <span class="ident">FieldLength::One</span>,
+                    <span class="ident">Day::TwoDigitDayOfMonth</span> =&gt; <span class="ident">FieldLength::TwoDigit</span>,
                 },
             });
         }
@@ -1049,7 +1088,13 @@
         }
 
         <span class="macro">debug_assert!</span>(
-            <span class="ident">fields</span>.<span class="ident">windows</span>(<span class="number">2</span>).<span class="ident">all</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>[<span class="number">0</span>] <span class="op">&lt;</span> <span class="ident">f</span>[<span class="number">1</span>]),
+            <span class="ident">fields</span>.<span class="ident">windows</span>(<span class="number">2</span>).<span class="ident">all</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> {
+                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span>
+                <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+                <span class="comment">// Change to code redired as clippy on statements arex experimental</span>
+                <span class="kw">let</span> <span class="ident">comp</span> <span class="op">=</span> <span class="ident">f</span>[<span class="number">0</span>] <span class="op">&lt;</span> <span class="ident">f</span>[<span class="number">1</span>];
+                <span class="ident">comp</span>
+            }),
             <span class="string">&quot;The fields are sorted and unique.&quot;</span>
         );
 
@@ -1065,6 +1110,7 @@
     <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
     <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)
 )]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Numeric</span> {
     <span class="doccomment">/// Display the numeric value. For instance in a year this would be &quot;1970&quot;.</span>
     <span class="ident">Numeric</span>,
@@ -1079,6 +1125,7 @@
     <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
     <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)
 )]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Text</span> {
     <span class="doccomment">/// Display the long form of the text, such as &quot;Wednesday&quot; for the weekday.</span>
     <span class="ident">Long</span>,
@@ -1095,6 +1142,7 @@
     <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
     <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)
 )]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Year</span> {
     <span class="doccomment">/// The numeric value of the year, such as &quot;2018&quot; for 2018-12-31.</span>
     <span class="ident">Numeric</span>,
@@ -1115,12 +1163,13 @@
     <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
     <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)
 )]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Month</span> {
     <span class="doccomment">/// The numeric value of the month, such as &quot;4&quot;.</span>
     <span class="ident">Numeric</span>,
     <span class="doccomment">/// The two-digit value of the month, such as &quot;04&quot;.</span>
     <span class="ident">TwoDigit</span>,
-    <span class="doccomment">/// The two-digit value of the month, such as &quot;April&quot;.</span>
+    <span class="doccomment">/// The long value of the month, such as &quot;April&quot;.</span>
     <span class="ident">Long</span>,
     <span class="doccomment">/// The short value of the month, such as &quot;Apr&quot;.</span>
     <span class="ident">Short</span>,
@@ -1130,23 +1179,41 @@
 
 <span class="comment">// Each enum variant is documented with the UTS 35 field information from:</span>
 <span class="comment">// https://unicode.org/reports/tr35/tr35-dates.html#Date_Field_Symbol_Table</span>
-<span class="comment">//</span>
-<span class="doccomment">/// Options for displaying the current week for the `components::`[`Bag`].</span>
-<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="comment">// TODO(#488): make visible once fully supported.</span>
+
+<span class="doccomment">/// Options for displaying the current week number for the `components::`[`Bag`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Week numbers are relative to either a month or year, e.g. &#39;week 3 of January&#39; or &#39;week 40 of 2000&#39;.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(
     <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>,
     <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
     <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)
 )]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Week</span> {
-    <span class="doccomment">/// The week of the month, such as &quot;3&quot;.</span>
+    <span class="doccomment">/// The week of the month, such as the &quot;3&quot; in &quot;week 3 of January&quot;.</span>
     <span class="ident">WeekOfMonth</span>,
-    <span class="doccomment">/// The numeric value of the week of the year, such as &quot;8&quot;.</span>
+    <span class="doccomment">/// The numeric value of the week of the year, such as the &quot;8&quot; in &quot;week 8 of 2000&quot;.</span>
     <span class="ident">NumericWeekOfYear</span>,
-    <span class="doccomment">/// The two-digit value of the week of the year, such as &quot;08&quot;.</span>
+    <span class="doccomment">/// The two-digit value of the week of the year, such as the &quot;08&quot; in &quot;2000-W08&quot;.</span>
     <span class="ident">TwoDigitWeekOfYear</span>,
+}
+
+<span class="doccomment">/// Options for displaying the current day of the month or year.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>,
+    <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
+    <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)
+)]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Day</span> {
+    <span class="doccomment">/// The numeric value of the day of month, such as the &quot;2&quot; in July 2 1984.</span>
+    <span class="ident">NumericDayOfMonth</span>,
+    <span class="doccomment">/// The two digit value of the day of month, such as the &quot;02&quot; in 1984-07-02.</span>
+    <span class="ident">TwoDigitDayOfMonth</span>,
+    <span class="doccomment">/// The day of week in this month, such as the &quot;2&quot; in 2nd Wednesday of July.</span>
+    <span class="ident">DayOfWeekInMonth</span>,
 }
 
 <span class="doccomment">/// Options for displaying a time zone for the `components::`[`Bag`].</span>
@@ -1159,6 +1226,7 @@
     <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>),
     <span class="ident">serde</span>(<span class="ident">rename_all</span> <span class="op">=</span> <span class="string">&quot;kebab-case&quot;</span>)
 )]</span>
+<span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TimeZoneName</span> {
     <span class="comment">// UTS-35 fields: z..zzz</span>
     <span class="comment">//</span>
@@ -1247,7 +1315,9 @@
                             <span class="ident">Text::Short</span>
                         }
                         <span class="ident">FieldLength::Wide</span> =&gt; <span class="ident">Text::Long</span>,
-                        <span class="ident">FieldLength::Narrow</span> <span class="op">|</span> <span class="ident">FieldLength::Six</span> =&gt; <span class="ident">Text::Narrow</span>,
+                        <span class="ident">FieldLength::Narrow</span> <span class="op">|</span> <span class="ident">FieldLength::Six</span> <span class="op">|</span> <span class="ident">FieldLength::Fixed</span>(<span class="kw">_</span>) =&gt; {
+                            <span class="ident">Text::Narrow</span>
+                        }
                     });
                 }
                 <span class="ident">FieldSymbol::Year</span>(<span class="ident">year</span>) =&gt; {
@@ -1270,7 +1340,9 @@
                         <span class="ident">FieldLength::TwoDigit</span> =&gt; <span class="ident">Month::TwoDigit</span>,
                         <span class="ident">FieldLength::Abbreviated</span> =&gt; <span class="ident">Month::Short</span>,
                         <span class="ident">FieldLength::Wide</span> =&gt; <span class="ident">Month::Long</span>,
-                        <span class="ident">FieldLength::Narrow</span> <span class="op">|</span> <span class="ident">FieldLength::Six</span> =&gt; <span class="ident">Month::Narrow</span>,
+                        <span class="ident">FieldLength::Narrow</span> <span class="op">|</span> <span class="ident">FieldLength::Six</span> <span class="op">|</span> <span class="ident">FieldLength::Fixed</span>(<span class="kw">_</span>) =&gt; {
+                            <span class="ident">Month::Narrow</span>
+                        }
                     });
                 }
                 <span class="ident">FieldSymbol::Week</span>(<span class="ident">week</span>) =&gt; {
@@ -1285,13 +1357,11 @@
                 <span class="ident">FieldSymbol::Day</span>(<span class="ident">day</span>) =&gt; {
                     <span class="ident">bag</span>.<span class="ident">day</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="kw">match</span> <span class="ident">day</span> {
                         <span class="ident">fields::Day::DayOfMonth</span> =&gt; <span class="kw">match</span> <span class="ident">field</span>.<span class="ident">length</span> {
-                            <span class="ident">FieldLength::TwoDigit</span> =&gt; <span class="ident">Numeric::TwoDigit</span>,
-                            <span class="kw">_</span> =&gt; <span class="ident">Numeric::Numeric</span>,
+                            <span class="ident">FieldLength::TwoDigit</span> =&gt; <span class="ident">Day::TwoDigitDayOfMonth</span>,
+                            <span class="kw">_</span> =&gt; <span class="ident">Day::NumericDayOfMonth</span>,
                         },
                         <span class="ident">fields::Day::DayOfYear</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;fields::Day::DayOfYear #591&quot;</span>),
-                        <span class="ident">fields::Day::DayOfWeekInMonth</span> =&gt; {
-                            <span class="macro">unimplemented!</span>(<span class="string">&quot;fields::Day::DayOfWeekInMonth #592&quot;</span>)
-                        }
+                        <span class="ident">fields::Day::DayOfWeekInMonth</span> =&gt; <span class="ident">Day::DayOfWeekInMonth</span>,
                         <span class="ident">fields::Day::ModifiedJulianDay</span> =&gt; {
                             <span class="macro">unimplemented!</span>(<span class="string">&quot;fields::Day::ModifiedJulianDay&quot;</span>)
                         }
@@ -1333,7 +1403,9 @@
                             }
                             <span class="ident">FieldLength::Abbreviated</span> =&gt; <span class="ident">Text::Short</span>,
                             <span class="ident">FieldLength::Wide</span> =&gt; <span class="ident">Text::Long</span>,
-                            <span class="ident">FieldLength::Narrow</span> <span class="op">|</span> <span class="ident">FieldLength::Six</span> =&gt; <span class="ident">Text::Narrow</span>,
+                            <span class="ident">FieldLength::Narrow</span> <span class="op">|</span> <span class="ident">FieldLength::Six</span> <span class="op">|</span> <span class="ident">FieldLength::Fixed</span>(<span class="kw">_</span>) =&gt; {
+                                <span class="ident">Text::Narrow</span>
+                            }
                         },
                         <span class="ident">fields::Weekday::Local</span> =&gt; <span class="macro">unimplemented!</span>(<span class="string">&quot;fields::Weekday::Local&quot;</span>),
                     });
@@ -1413,7 +1485,7 @@
             <span class="ident">year</span>: <span class="prelude-val">Some</span>(<span class="ident">Year::Numeric</span>),
             <span class="ident">month</span>: <span class="prelude-val">Some</span>(<span class="ident">Month::Long</span>),
             <span class="ident">week</span>: <span class="prelude-val">Some</span>(<span class="ident">Week::WeekOfMonth</span>),
-            <span class="ident">day</span>: <span class="prelude-val">Some</span>(<span class="ident">Numeric::Numeric</span>),
+            <span class="ident">day</span>: <span class="prelude-val">Some</span>(<span class="ident">Day::NumericDayOfMonth</span>),
 
             <span class="ident">hour</span>: <span class="prelude-val">Some</span>(<span class="ident">Numeric::Numeric</span>),
             <span class="ident">minute</span>: <span class="prelude-val">Some</span>(<span class="ident">Numeric::Numeric</span>),
@@ -1440,7 +1512,7 @@
         <span class="kw">let</span> <span class="ident">bag</span> <span class="op">=</span> <span class="ident">Bag</span> {
             <span class="ident">year</span>: <span class="prelude-val">Some</span>(<span class="ident">Year::Numeric</span>),
             <span class="ident">month</span>: <span class="prelude-val">Some</span>(<span class="ident">Month::TwoDigit</span>),
-            <span class="ident">day</span>: <span class="prelude-val">Some</span>(<span class="ident">Numeric::Numeric</span>),
+            <span class="ident">day</span>: <span class="prelude-val">Some</span>(<span class="ident">Day::NumericDayOfMonth</span>),
             ..<span class="ident">Default::default</span>()
         };
         <span class="macro">assert_eq!</span>(

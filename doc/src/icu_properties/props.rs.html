@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_properties-0.5.0/src/props.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>props.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_properties-0.6.0/src/props.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>props.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_properties/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -765,13 +765,71 @@
 <span id="760">760</span>
 <span id="761">761</span>
 <span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
 
 <span class="doccomment">//! A collection of enums for enumerated properties.</span>
 
-<span class="kw">use</span> <span class="ident">num_enum</span>::{<span class="ident">TryFromPrimitive</span>, <span class="ident">UnsafeFromPrimitive</span>};
+<span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::indexing_slicing</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -782,6 +840,8 @@
 <span class="attribute">#[<span class="ident">non_exhaustive</span>]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">i32</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">EnumeratedProperty</span> {
+    <span class="comment">// Enumerated property Bidi_Class.</span>
+    <span class="ident">BidiClass</span> <span class="op">=</span> <span class="number">0x1000</span>,
     <span class="doccomment">/// the Canonical_Combining_Class property.</span>
     <span class="ident">CanonicalCombiningClass</span> <span class="op">=</span> <span class="number">0x1002</span>,
     <span class="doccomment">/// The East_Asian_Width property. See [`EastAsianWidth`].</span>
@@ -806,6 +866,45 @@
     <span class="ident">InvalidCode</span> <span class="op">=</span> <span class="op">-</span><span class="number">1</span>, <span class="comment">// TODO(#1160) - taken from ICU4C UProperty::UCHAR_INVALID_CODE</span>
 }
 
+<span class="doccomment">/// Enumerated property Bidi_Class</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// These are the categories required by the Unicode Bidirectional Algorithm.</span>
+<span class="doccomment">/// For the property values, see [Bidirectional Class Values](https://unicode.org/reports/tr44/#Bidi_Class_Values).</span>
+<span class="doccomment">/// For more information, see [Unicode Standard Annex #9](https://unicode.org/reports/tr41/tr41-28.html#UAX9).</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
+<span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">BidiClassULE</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BidiClass</span>(<span class="kw">pub</span> <span class="ident">u8</span>);
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">non_upper_case_globals</span>)]</span>
+<span class="kw">impl</span> <span class="ident">BidiClass</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeftToRight</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">0</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RightToLeft</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">1</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EuropeanNumber</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">2</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EuropeanSeparator</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">3</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EuropeanTerminator</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">4</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ArabicNumber</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">5</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CommonSeparator</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">6</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ParagraphSeparator</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">7</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SegmentSeparator</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">8</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">WhiteSpace</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">9</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OtherNeutral</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">10</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeftToRightEmbedding</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">11</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeftToRightOverride</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">12</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ArabicLetter</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">13</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RightToLeftEmbedding</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">14</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RightToLeftOverride</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">15</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PopDirectionalFormat</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">16</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NonspacingMark</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">17</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BoundaryNeutral</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">18</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FirstStrongIsolate</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">19</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LeftToRightIsolate</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">20</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RightToLeftIsolate</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">21</span>);
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PopDirectionalIsolate</span>: <span class="ident">BidiClass</span> <span class="op">=</span> <span class="ident">BidiClass</span>(<span class="number">22</span>);
+}
+
 <span class="doccomment">/// Enumerated property General_Category.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// General_Category specifies the most general classification of a code point, usually</span>
@@ -814,8 +913,10 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// GeneralCategory only supports specific subcategories (eg `UppercaseLetter`).</span>
 <span class="doccomment">/// It does not support grouped categories (eg `Letter`). For grouped categories, use [`GeneralCategoryGroup`].</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">TryFromPrimitive</span>, <span class="ident">UnsafeFromPrimitive</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Debug</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_enums</span>)]</span> <span class="comment">// this type is stable</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">GeneralCategoryULE</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GeneralCategory</span> {
     <span class="doccomment">/// (`Cn`) A reserved unassigned code point or a noncharacter</span>
@@ -903,6 +1004,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// See `UCharCategory` and `U_GET_GC_MASK` in ICU4C.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GeneralCategoryGroup</span>(<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">u32</span>);
 
@@ -1089,9 +1191,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// For more information, see UAX #24: &lt;http://www.unicode.org/reports/tr24/&gt;.</span>
 <span class="doccomment">/// See `UScriptCode` in ICU4C.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">ScriptULE</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Script</span>(<span class="kw">pub</span> <span class="ident">u16</span>);
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// These constants don&#39;t need individual documentation.</span>
@@ -1267,9 +1371,11 @@
 <span class="doccomment">/// &lt;https://www.unicode.org/reports/tr11/#Definitions&gt;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The numeric value is compatible with `UEastAsianWidth` in ICU4C.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">EastAsianWidthULE</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EastAsianWidth</span>(<span class="kw">pub</span> <span class="ident">u8</span>);
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// These constants don&#39;t need individual documentation.</span>
@@ -1289,9 +1395,11 @@
 <span class="doccomment">/// value: &lt;https://www.unicode.org/reports/tr14/#Properties&gt;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The numeric value is compatible with `ULineBreak` in ICU4C.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">LineBreakULE</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">LineBreak</span>(<span class="kw">pub</span> <span class="ident">u8</span>);
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// These constants don&#39;t need individual documentation.</span>
@@ -1349,9 +1457,11 @@
 <span class="doccomment">/// &lt;https://www.unicode.org/reports/tr29/#Default_Grapheme_Cluster_Table&gt;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The numeric value is compatible with `UGraphemeClusterBreak` in ICU4C.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// this type is stable</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">GraphemeClusterBreakULE</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">GraphemeClusterBreak</span>(<span class="kw">pub</span> <span class="ident">u8</span>);
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// These constants don&#39;t need individual documentation.</span>
@@ -1388,9 +1498,11 @@
 <span class="doccomment">/// &lt;https://www.unicode.org/reports/tr29/#Default_Word_Boundaries&gt;.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The numeric value is compatible with `UWordBreakValues` in ICU4C.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">WordBreakULE</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">WordBreak</span>(<span class="kw">pub</span> <span class="ident">u8</span>);
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// These constants don&#39;t need individual documentation.</span>
@@ -1431,9 +1543,11 @@
 <span class="doccomment">/// &lt;https://www.unicode.org/reports/tr29/#Default_Word_Boundaries&gt;.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The numeric value is compatible with `USentenceBreak` in ICU4C.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">SentenceBreakULE</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SentenceBreak</span>(<span class="kw">pub</span> <span class="ident">u8</span>);
 
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_docs</span>)]</span> <span class="comment">// These constants don&#39;t need individual documentation.</span>
@@ -1461,7 +1575,9 @@
 <span class="doccomment">/// &lt;https://www.unicode.org/reports/tr15/&gt;.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>, <span class="ident">Ord</span>, <span class="ident">PartialOrd</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// newtype</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">transparent</span>)]</span>
+<span class="attribute">#[<span class="ident">zerovec::make_ule</span>(<span class="ident">CanonicalCombiningClassULE</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CanonicalCombiningClass</span>(<span class="kw">pub</span> <span class="ident">u8</span>);
 
 <span class="comment">// These constant names come from PropertyValueAliases.txt</span>

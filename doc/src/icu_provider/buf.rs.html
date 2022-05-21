@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.5.0/src/buf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/icu_provider-0.6.0/src/buf.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>buf.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../icu_provider/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -81,6 +81,7 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::prelude</span>::<span class="kw-2">*</span>;
 
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::exhaustive_structs</span>)]</span> <span class="comment">// marker type</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">BufferMarker</span>;
 
 <span class="kw">impl</span> <span class="ident">DataMarker</span> <span class="kw">for</span> <span class="ident">BufferMarker</span> {
@@ -90,10 +91,10 @@
 <span class="doccomment">/// A data provider that returns opaque bytes.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Generally, these bytes are expected to be deserializable with Serde. To get an object</span>
-<span class="doccomment">/// implementing [`DataProvider`] via Serde, use [`as_deserializing()`], which requires</span>
+<span class="doccomment">/// implementing [`ResourceProvider`] via Serde, use [`as_deserializing()`], which requires</span>
 <span class="doccomment">/// enabling at least one of the Serde features.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Along with [`DataProvider`], this is one of the two foundational traits in this crate.</span>
+<span class="doccomment">/// Along with [`ResourceProvider`], this is one of the two foundational traits in this crate.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -101,7 +102,7 @@
 <span class="doccomment">/// # #[cfg(feature = &quot;deserialize_json&quot;)] {</span>
 <span class="doccomment">/// use icu_provider::prelude::*;</span>
 <span class="doccomment">/// use icu_provider::hello_world::*;</span>
-<span class="doccomment">/// use icu_locid_macros::langid;</span>
+<span class="doccomment">/// use icu_locid::locale;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let buffer_provider = HelloWorldProvider::new_with_placeholder_data()</span>
 <span class="doccomment">///     .into_json_provider();</span>
@@ -109,14 +110,9 @@
 <span class="doccomment">/// let data_provider = buffer_provider.as_deserializing();</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let german_hello_world: DataPayload&lt;HelloWorldV1Marker&gt; = data_provider</span>
-<span class="doccomment">///     .load_payload(&amp;DataRequest {</span>
-<span class="doccomment">///         resource_path: ResourcePath {</span>
-<span class="doccomment">///             key: key::HELLO_WORLD_V1,</span>
-<span class="doccomment">///             options: ResourceOptions {</span>
-<span class="doccomment">///                 variant: None,</span>
-<span class="doccomment">///                 langid: Some(langid!(&quot;de&quot;)),</span>
-<span class="doccomment">///             }</span>
-<span class="doccomment">///         }</span>
+<span class="doccomment">///     .load_resource(&amp;DataRequest {</span>
+<span class="doccomment">///         options: locale!(&quot;de&quot;).into(),</span>
+<span class="doccomment">///         metadata: Default::default(),</span>
 <span class="doccomment">///     })</span>
 <span class="doccomment">///     .expect(&quot;Loading should succeed&quot;)</span>
 <span class="doccomment">///     .take_payload()</span>
@@ -128,7 +124,11 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`as_deserializing()`]: AsDeserializingBufferProvider::as_deserializing</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">BufferProvider</span> {
-    <span class="kw">fn</span> <span class="ident">load_buffer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">DataRequest</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataResponse</span><span class="op">&lt;</span><span class="ident">BufferMarker</span><span class="op">&gt;</span>, <span class="ident">DataError</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">load_buffer</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">key</span>: <span class="ident">ResourceKey</span>,
+        <span class="ident">req</span>: <span class="kw-2">&amp;</span><span class="ident">DataRequest</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">DataResponse</span><span class="op">&lt;</span><span class="ident">BufferMarker</span><span class="op">&gt;</span>, <span class="ident">DataError</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// An enum expressing all Serde formats known to ICU4X.</span>

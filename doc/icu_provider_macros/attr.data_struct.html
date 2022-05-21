@@ -4,13 +4,33 @@
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../icu_provider_macros/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
         </a><div class="sidebar-elems"><h2 class="location"><a href="index.html">In icu_provider_macros</a></h2><div id="sidebar-vars" data-name="data_struct" data-ty="attr" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../icu_provider_macros/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
-    <h1 class="fqn"><span class="in-band">Attribute Macro <a href="index.html">icu_provider_macros</a>::<wbr><a class="attr" href="#">data_struct</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/icu_provider_macros/lib.rs.html#21-25">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><div class="docblock item-decl"><pre class="rust attr"><code>#[data_struct]</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The <code>#[data_struct]</code> attribute should be applied to all types intended
+    <h1 class="fqn"><span class="in-band">Attribute Macro <a href="index.html">icu_provider_macros</a>::<wbr><a class="attr" href="#">data_struct</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/icu_provider_macros/lib.rs.html#62-67">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><div class="docblock item-decl"><pre class="rust attr"><code>#[data_struct]</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>The <code>#[data_struct]</code> attribute should be applied to all types intended
 for use in a <code>DataStruct</code>. It does the following things:</p>
 <ul>
-<li><code>Apply #[derive(Yokeable, ZeroCopyFrom)]</code>. The <code>ZeroCopyFrom</code> derive can
-be customized with <code>#[yoke(cloning_zcf)]</code> as needed</li>
-<li>Create a <code>FooMarker</code> struct for the type</li>
-<li>Implement <code>icu_provider::DataMarker</code> for <code>FooMarker</code></li>
+<li><code>Apply #[derive(Yokeable, ZeroFrom)]</code>. The <code>ZeroFrom</code> derive can
+be customized with <code>#[zerofrom(clone)]</code> on non-ZeroFrom fields.</li>
 </ul>
+<p>In addition, the attribute can be used to implement <code>DataMarker</code> and/or <code>ResourceMarker</code>
+by adding symbols with optional key strings:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">icu_provider::prelude</span>::<span class="kw-2">*</span>;
+<span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+
+<span class="attribute">#[<span class="ident">icu_provider::data_struct</span>(
+    <span class="ident">FooV1Marker</span>,
+    <span class="ident">BarV1Marker</span> <span class="op">=</span> <span class="string">&quot;demo/bar@1&quot;</span>,
+    <span class="ident">BazV1Marker</span> <span class="op">=</span> <span class="string">&quot;demo/baz@1&quot;</span>
+)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FooV1</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span><span class="op">&gt;</span> {
+    <span class="ident">message</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;data</span>, <span class="ident">str</span><span class="op">&gt;</span>,
+};
+
+<span class="comment">// Note: FooV1Marker implements `DataMarker` but not `ResourceMarker`.</span>
+<span class="comment">// The other two implement `ResourceMarker`.</span>
+
+<span class="macro">assert_eq!</span>(<span class="ident">BarV1Marker::KEY</span>.<span class="ident">get_path</span>(), <span class="string">&quot;demo/bar@1&quot;</span>);
+<span class="macro">assert_eq!</span>(<span class="ident">BazV1Marker::KEY</span>.<span class="ident">get_path</span>(), <span class="string">&quot;demo/baz@1&quot;</span>);</code></pre></div>
+<p>If the <code>#[crabbake(path = ...)]</code> attribute is present on the data struct, this will also
+implement it on the markers.</p>
 </div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="icu_provider_macros" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
 </body></html>
