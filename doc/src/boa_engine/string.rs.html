@@ -1860,7 +1860,7 @@
 <span class="doccomment">/// The `JsString` length and data is stored on the heap. and just an non-null</span>
 <span class="doccomment">/// pointer is kept, so its size is the size of a pointer.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// We define some commonly used string constants in [`CONSTANTS_ARRAY`]. For these</span>
+<span class="doccomment">/// We define some commonly used string constants in an interner. For these</span>
 <span class="doccomment">/// strings, we no longer allocate memory on the heap to reduce the overhead of</span>
 <span class="doccomment">/// memory allocation and reference counting.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>

@@ -104,7 +104,6 @@
 <span id="97">97</span>
 <span id="98">98</span>
 <span id="99">99</span>
-<span id="100">100</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>};
@@ -118,7 +117,6 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">static</span> <span class="ident">BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS</span>: <span class="ident">InternalObjectMethods</span> <span class="op">=</span>
     <span class="ident">InternalObjectMethods</span> {
         <span class="ident">__call__</span>: <span class="prelude-val">Some</span>(<span class="ident">bound_function_exotic_call</span>),
-        <span class="ident">__construct__</span>: <span class="prelude-val">None</span>,
         ..<span class="ident">ORDINARY_INTERNAL_METHODS</span>
     };
 
