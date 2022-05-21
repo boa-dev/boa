@@ -313,7 +313,10 @@ fn unicode_extension_components(extension: &JsString) -> UniExtRecord {
     let size = extension.len();
 
     // 5. Let k be 3.
-    let mut k = 3;
+    //
+    // Actually, it has to be 3 when the extension begins with dash (-u-ca-gregory).
+    // When the extension begins with u (u-ca-gregory), start with 2.
+    let mut k = if extension.starts_with("u-") { 2 } else { 3 };
 
     // 6. Repeat, while k < size,
     while k < size {

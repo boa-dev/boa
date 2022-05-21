@@ -30,7 +30,7 @@ use icu_provider::DataError;
 
 #[doc(inline)]
 #[cfg(all(feature = "intl", doc))]
-pub use icu::BoaProvider;
+pub use self::icu::BoaProvider;
 
 /// Javascript context. It is the primary way to interact with the runtime.
 ///

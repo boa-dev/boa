@@ -1155,6 +1155,7 @@ impl Object {
         }
     }
 
+    #[cfg(feature = "intl")]
     #[inline]
     pub fn as_date_time_format_mut(&mut self) -> Option<&mut DateTimeFormat> {
         match self.data {

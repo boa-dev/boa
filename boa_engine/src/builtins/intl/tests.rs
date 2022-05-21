@@ -163,6 +163,13 @@ fn uni_ext_comp() {
     assert_eq!(components.keywords.len(), 1);
     assert_eq!(components.keywords[0].key, "ca");
     assert_eq!(components.keywords[0].value, "islamic-civil");
+
+    let ext = JsString::new("u-ca-islamic-civil");
+    let components = unicode_extension_components(&ext);
+    assert!(components.attributes.is_empty());
+    assert_eq!(components.keywords.len(), 1);
+    assert_eq!(components.keywords[0].key, "ca");
+    assert_eq!(components.keywords[0].value, "islamic-civil");
 }
 
 #[test]
