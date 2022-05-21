@@ -796,6 +796,114 @@
 <span id="789">789</span>
 <span id="790">790</span>
 <span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Declaration nodes</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
@@ -1073,6 +1181,114 @@
             <span class="ident">DeclarationPattern::Object</span>(<span class="ident">pattern</span>) =&gt; <span class="ident">pattern</span>.<span class="ident">init</span>(),
             <span class="ident">DeclarationPattern::Array</span>(<span class="ident">pattern</span>) =&gt; <span class="ident">pattern</span>.<span class="ident">init</span>(),
         }
+    }
+
+    <span class="doccomment">/// Returns true if the node contains a identifier reference named &#39;arguments&#39;.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">DeclarationPattern::Object</span>(<span class="ident">pattern</span>) =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">pattern</span>.<span class="ident">init</span>() {
+                    <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
+                        <span class="kw">return</span> <span class="bool-val">true</span>;
+                    }
+                }
+                <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">bindings</span>() {
+                    <span class="kw">match</span> <span class="ident">binding</span> {
+                        <span class="ident">BindingPatternTypeObject::SingleName</span> {
+                            <span class="ident">property_name</span>,
+                            <span class="ident">default_init</span>,
+                            ..
+                        } =&gt; {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">property_name</span> {
+                                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains_arguments</span>() {
+                                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                                }
+                            }
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
+                                <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
+                                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                                }
+                            }
+                        }
+                        <span class="ident">BindingPatternTypeObject::RestGetConstField</span> {
+                            <span class="ident">get_const_field</span>, ..
+                        } =&gt; {
+                            <span class="kw">if</span> <span class="ident">get_const_field</span>.<span class="ident">obj</span>().<span class="ident">contains_arguments</span>() {
+                                <span class="kw">return</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="ident">BindingPatternTypeObject::BindingPattern</span> {
+                            <span class="ident">ident</span>,
+                            <span class="ident">pattern</span>,
+                            <span class="ident">default_init</span>,
+                        } =&gt; {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">ident</span> {
+                                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains_arguments</span>() {
+                                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                                }
+                            }
+                            <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>() {
+                                <span class="kw">return</span> <span class="bool-val">true</span>;
+                            }
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
+                                <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
+                                    <span class="kw">return</span> <span class="bool-val">true</span>;
+                                }
+                            }
+                        }
+                        <span class="kw">_</span> =&gt; {}
+                    }
+                }
+            }
+            <span class="ident">DeclarationPattern::Array</span>(<span class="ident">pattern</span>) =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">pattern</span>.<span class="ident">init</span>() {
+                    <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
+                        <span class="kw">return</span> <span class="bool-val">true</span>;
+                    }
+                }
+                <span class="kw">for</span> <span class="ident">binding</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">bindings</span>() {
+                    <span class="kw">match</span> <span class="ident">binding</span> {
+                        <span class="ident">BindingPatternTypeArray::SingleName</span> {
+                            <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">init</span>),
+                            ..
+                        } =&gt; {
+                            <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
+                                <span class="kw">return</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="ident">BindingPatternTypeArray::GetField</span> { <span class="ident">get_field</span> }
+                        <span class="op">|</span> <span class="ident">BindingPatternTypeArray::GetFieldRest</span> { <span class="ident">get_field</span> } =&gt; {
+                            <span class="kw">if</span> <span class="ident">get_field</span>.<span class="ident">obj</span>().<span class="ident">contains_arguments</span>() {
+                                <span class="kw">return</span> <span class="bool-val">true</span>;
+                            }
+                            <span class="kw">if</span> <span class="ident">get_field</span>.<span class="ident">field</span>().<span class="ident">contains_arguments</span>() {
+                                <span class="kw">return</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="ident">BindingPatternTypeArray::GetConstField</span> { <span class="ident">get_const_field</span> }
+                        <span class="op">|</span> <span class="ident">BindingPatternTypeArray::GetConstFieldRest</span> { <span class="ident">get_const_field</span> } =&gt; {
+                            <span class="kw">if</span> <span class="ident">get_const_field</span>.<span class="ident">obj</span>().<span class="ident">contains_arguments</span>() {
+                                <span class="kw">return</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="ident">BindingPatternTypeArray::BindingPattern</span> { <span class="ident">pattern</span> }
+                        <span class="op">|</span> <span class="ident">BindingPatternTypeArray::BindingPatternRest</span> { <span class="ident">pattern</span> } =&gt; {
+                            <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>() {
+                                <span class="kw">return</span> <span class="bool-val">true</span>;
+                            }
+                        }
+                        <span class="kw">_</span> =&gt; {}
+                    }
+                }
+            }
+        }
+        <span class="bool-val">false</span>
     }
 }
 

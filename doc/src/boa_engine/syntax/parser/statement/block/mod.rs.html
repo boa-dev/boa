@@ -137,7 +137,6 @@
 <span id="130">130</span>
 <span id="131">131</span>
 <span id="132">132</span>
-<span id="133">133</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Block statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -231,7 +230,6 @@
             <span class="self">self</span>.<span class="ident">allow_yield</span>,
             <span class="self">self</span>.<span class="ident">allow_await</span>,
             <span class="self">self</span>.<span class="ident">allow_return</span>,
-            <span class="bool-val">true</span>,
             <span class="kw-2">&amp;</span><span class="ident">BLOCK_BREAK_TOKENS</span>,
         )
         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)

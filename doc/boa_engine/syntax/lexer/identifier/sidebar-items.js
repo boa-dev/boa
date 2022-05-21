@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["STRICT_FORBIDDEN_IDENTIFIERS",""]],"struct":[["Identifier","Identifier lexing."]]});
+initSidebarItems({"struct":[["Identifier","Identifier lexing."]]});

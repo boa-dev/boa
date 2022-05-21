@@ -703,6 +703,7 @@
 <span id="696">696</span>
 <span id="697">697</span>
 <span id="698">698</span>
+<span id="699">699</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -741,6 +742,7 @@
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assignment::AssignmentExpression</span>, <span class="ident">primary::Initializer</span>};
+<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">use</span> <span class="ident">identifiers::RESERVED_IDENTIFIERS_STRICT</span>;
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> {
     <span class="ident">identifiers</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">LabelIdentifier</span>},
     <span class="ident">left_hand_side::LeftHandSideExpression</span>,

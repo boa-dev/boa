@@ -738,10 +738,6 @@
 <span id="731">731</span>
 <span id="732">732</span>
 <span id="733">733</span>
-<span id="734">734</span>
-<span id="735">735</span>
-<span id="736">736</span>
-<span id="737">737</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
@@ -826,9 +822,6 @@
     <span class="doccomment">/// Intrinsic objects</span>
     <span class="ident">intrinsics</span>: <span class="ident">Intrinsics</span>,
 
-    <span class="doccomment">/// Whether or not global strict mode is active.</span>
-    <span class="ident">strict</span>: <span class="ident">bool</span>,
-
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">vm</span>: <span class="ident">Vm</span>,
 }
 
@@ -840,7 +833,6 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
             <span class="ident">console</span>: <span class="ident">Console::default</span>(),
             <span class="ident">intrinsics</span>: <span class="ident">Intrinsics::default</span>(),
-            <span class="ident">strict</span>: <span class="bool-val">false</span>,
             <span class="ident">vm</span>: <span class="ident">Vm</span> {
                 <span class="ident">frame</span>: <span class="prelude-val">None</span>,
                 <span class="ident">stack</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">1024</span>),
@@ -893,18 +885,6 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">console</span>
     }
 
-    <span class="doccomment">/// Returns if strict mode is currently active.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strict</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">strict</span>
-    }
-
-    <span class="doccomment">/// Set the global strict mode of the context.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_strict_mode</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">strict</span>: <span class="ident">bool</span>) {
-        <span class="self">self</span>.<span class="ident">strict</span> <span class="op">=</span> <span class="ident">strict</span>;
-    }
-
     <span class="doccomment">/// Sets up the default global objects within Global</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">create_intrinsics</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
@@ -922,11 +902,23 @@
         )
     }
 
+    <span class="doccomment">/// Parse the given source text.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parse</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
     {
-        <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>(), <span class="self">self</span>.<span class="ident">strict</span>).<span class="ident">parse_all</span>(<span class="self">self</span>)
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>());
+        <span class="ident">parser</span>.<span class="ident">parse_all</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Parse the given source text in strict mode.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_strict</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>());
+        <span class="ident">parser</span>.<span class="ident">set_strict</span>();
+        <span class="ident">parser</span>.<span class="ident">parse_all</span>(<span class="self">self</span>)
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-call&gt;</span>
@@ -1385,7 +1377,7 @@
     {
         <span class="kw">let</span> <span class="ident">main_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Evaluation&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">parsing_result</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>(), <span class="bool-val">false</span>)
+        <span class="kw">let</span> <span class="ident">parsing_result</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>())
             .<span class="ident">parse_all</span>(<span class="self">self</span>)
             .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_string</span>());
 

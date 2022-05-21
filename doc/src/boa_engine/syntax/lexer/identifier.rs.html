@@ -157,36 +157,6 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
-<span id="158">158</span>
-<span id="159">159</span>
-<span id="160">160</span>
-<span id="161">161</span>
-<span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
-<span id="172">172</span>
-<span id="173">173</span>
-<span id="174">174</span>
-<span id="175">175</span>
-<span id="176">176</span>
-<span id="177">177</span>
-<span id="178">178</span>
-<span id="179">179</span>
-<span id="180">180</span>
-<span id="181">181</span>
-<span id="182">182</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for identifiers (foo, myvar, etc.) used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
@@ -197,19 +167,7 @@
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">boa_unicode::UnicodeProperties</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">io::Read</span>, <span class="ident">str</span>};
-
-<span class="kw">const</span> <span class="ident">STRICT_FORBIDDEN_IDENTIFIERS</span>: [<span class="kw-2">&amp;</span><span class="ident">str</span>; <span class="number">9</span>] <span class="op">=</span> [
-    <span class="string">&quot;implements&quot;</span>,
-    <span class="string">&quot;interface&quot;</span>,
-    <span class="string">&quot;let&quot;</span>,
-    <span class="string">&quot;package&quot;</span>,
-    <span class="string">&quot;private&quot;</span>,
-    <span class="string">&quot;protected&quot;</span>,
-    <span class="string">&quot;public&quot;</span>,
-    <span class="string">&quot;static&quot;</span>,
-    <span class="string">&quot;yield&quot;</span>,
-];
+<span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="doccomment">/// Identifier lexing.</span>
 <span class="doccomment">///</span>
@@ -279,13 +237,6 @@
             <span class="ident"><span class="self">Self</span>::take_identifier_name</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="self">self</span>.<span class="ident">init</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">token_kind</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">keyword</span>) <span class="op">=</span> <span class="ident">identifier_name</span>.<span class="ident">parse</span>() {
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> <span class="ident">keyword</span> <span class="op">==</span> <span class="ident">Keyword::With</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
-                    <span class="string">&quot;using &#39;with&#39; statement not allowed in strict mode&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">start_pos</span>,
-                ));
-            }
-
             <span class="kw">match</span> <span class="ident">keyword</span> {
                 <span class="ident">Keyword::True</span> =&gt; <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>),
                 <span class="ident">Keyword::False</span> =&gt; <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>),
@@ -293,17 +244,6 @@
                 <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Keyword</span>((<span class="ident">keyword</span>, <span class="ident">contains_escaped_chars</span>)),
             }
         } <span class="kw">else</span> {
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>()
-                <span class="op">&amp;&amp;</span> <span class="ident">STRICT_FORBIDDEN_IDENTIFIERS</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">identifier_name</span>.<span class="ident">as_str</span>())
-            {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::Syntax</span>(
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;using future reserved keyword &#39;{identifier_name}&#39; not allowed in strict mode&quot;</span>,
-                    )
-                    .<span class="ident">into</span>(),
-                    <span class="ident">start_pos</span>,
-                ));
-            }
             <span class="ident">TokenKind::identifier</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">identifier_name</span>))
         };
 

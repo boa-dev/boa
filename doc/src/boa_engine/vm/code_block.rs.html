@@ -1048,6 +1048,7 @@
 <span id="1041">1041</span>
 <span id="1042">1042</span>
 <span id="1043">1043</span>
+<span id="1044">1044</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1684,10 +1685,14 @@
                     } <span class="kw">else</span> {
                         <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>()
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> (<span class="op">!</span><span class="ident">code</span>.<span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">strict</span>()) <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">strict</span> {
+                    <span class="ident">this</span>.<span class="ident">clone</span>()
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
                     <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>()
                 } <span class="kw">else</span> {
-                    <span class="ident">this</span>.<span class="ident">clone</span>()
+                    <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)
+                        .<span class="ident">expect</span>(<span class="string">&quot;conversion cannot fail&quot;</span>)
+                        .<span class="ident">into</span>()
                 };
 
                 <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>() {
@@ -1705,19 +1710,18 @@
                 }
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="ident">code</span>.<span class="ident">arguments_binding</span> {
-                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span>
-                        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">strict</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">code</span>.<span class="ident">strict</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">is_simple</span>() {
-                            <span class="ident">Arguments::create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)
-                        } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">current</span>();
-                            <span class="ident">Arguments::create_mapped_arguments_object</span>(
-                                <span class="kw-2">&amp;</span><span class="ident">this_function_object</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">params</span>,
-                                <span class="ident">args</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">env</span>,
-                                <span class="ident">context</span>,
-                            )
-                        };
+                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">strict</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">is_simple</span>() {
+                        <span class="ident">Arguments::create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)
+                    } <span class="kw">else</span> {
+                        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">current</span>();
+                        <span class="ident">Arguments::create_mapped_arguments_object</span>(
+                            <span class="kw-2">&amp;</span><span class="ident">this_function_object</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">params</span>,
+                            <span class="ident">args</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">env</span>,
+                            <span class="ident">context</span>,
+                        )
+                    };
                     <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">put_value</span>(
                         <span class="ident">binding</span>.<span class="ident">environment_index</span>(),
                         <span class="ident">binding</span>.<span class="ident">binding_index</span>(),
@@ -1792,7 +1796,7 @@
                     } <span class="kw">else</span> {
                         <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>()
                     }
-                } <span class="kw">else</span> <span class="kw">if</span> (<span class="op">!</span><span class="ident">code</span>.<span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">context</span>.<span class="ident">strict</span>()) <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
                     <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>()
                 } <span class="kw">else</span> {
                     <span class="ident">this</span>.<span class="ident">clone</span>()
@@ -1813,19 +1817,18 @@
                 }
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="ident">code</span>.<span class="ident">arguments_binding</span> {
-                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span>
-                        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">strict</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">code</span>.<span class="ident">strict</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">is_simple</span>() {
-                            <span class="ident">Arguments::create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)
-                        } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">current</span>();
-                            <span class="ident">Arguments::create_mapped_arguments_object</span>(
-                                <span class="kw-2">&amp;</span><span class="ident">this_function_object</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">params</span>,
-                                <span class="ident">args</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">env</span>,
-                                <span class="ident">context</span>,
-                            )
-                        };
+                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">strict</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">is_simple</span>() {
+                        <span class="ident">Arguments::create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)
+                    } <span class="kw">else</span> {
+                        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">current</span>();
+                        <span class="ident">Arguments::create_mapped_arguments_object</span>(
+                            <span class="kw-2">&amp;</span><span class="ident">this_function_object</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">params</span>,
+                            <span class="ident">args</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">env</span>,
+                            <span class="ident">context</span>,
+                        )
+                    };
                     <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">put_value</span>(
                         <span class="ident">binding</span>.<span class="ident">environment_index</span>(),
                         <span class="ident">binding</span>.<span class="ident">binding_index</span>(),
@@ -2007,19 +2010,18 @@
                 }
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="ident">code</span>.<span class="ident">arguments_binding</span> {
-                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span>
-                        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">strict</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">code</span>.<span class="ident">strict</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">is_simple</span>() {
-                            <span class="ident">Arguments::create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)
-                        } <span class="kw">else</span> {
-                            <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">current</span>();
-                            <span class="ident">Arguments::create_mapped_arguments_object</span>(
-                                <span class="kw-2">&amp;</span><span class="ident">this_function_object</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">params</span>,
-                                <span class="ident">args</span>,
-                                <span class="kw-2">&amp;</span><span class="ident">env</span>,
-                                <span class="ident">context</span>,
-                            )
-                        };
+                    <span class="kw">let</span> <span class="ident">arguments_obj</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">strict</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">is_simple</span>() {
+                        <span class="ident">Arguments::create_unmapped_arguments_object</span>(<span class="ident">args</span>, <span class="ident">context</span>)
+                    } <span class="kw">else</span> {
+                        <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">current</span>();
+                        <span class="ident">Arguments::create_mapped_arguments_object</span>(
+                            <span class="kw-2">&amp;</span><span class="ident">this_function_object</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">params</span>,
+                            <span class="ident">args</span>,
+                            <span class="kw-2">&amp;</span><span class="ident">env</span>,
+                            <span class="ident">context</span>,
+                        )
+                    };
                     <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">put_value</span>(
                         <span class="ident">binding</span>.<span class="ident">environment_index</span>(),
                         <span class="ident">binding</span>.<span class="ident">binding_index</span>(),
