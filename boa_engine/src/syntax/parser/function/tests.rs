@@ -70,7 +70,7 @@ fn check_duplicates_strict_on() {
     let js = "'use strict'; function foo(a, a) {}";
     let mut context = Context::default();
 
-    let res = Parser::new(js.as_bytes(), false).parse_all(&mut context);
+    let res = Parser::new(js.as_bytes()).parse_all(&mut context);
     dbg!(&res);
     assert!(res.is_err());
 }

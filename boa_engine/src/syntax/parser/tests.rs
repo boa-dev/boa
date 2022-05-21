@@ -25,7 +25,7 @@ where
 {
     let mut context = Context::new(interner);
     assert_eq!(
-        Parser::new(js.as_bytes(), false)
+        Parser::new(js.as_bytes())
             .parse_all(&mut context)
             .expect("failed to parse"),
         StatementList::from(expr)
@@ -36,9 +36,7 @@ where
 #[track_caller]
 pub(super) fn check_invalid(js: &str) {
     let mut context = Context::default();
-    assert!(Parser::new(js.as_bytes(), false)
-        .parse_all(&mut context)
-        .is_err());
+    assert!(Parser::new(js.as_bytes()).parse_all(&mut context).is_err());
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`

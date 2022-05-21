@@ -515,6 +515,7 @@ where
         };
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let position = token.span().start();
         let element = match token.kind() {
             TokenKind::Identifier(Sym::CONSTRUCTOR) if !r#static => {
                 cursor.next(interner).expect("token disappeared");
@@ -561,7 +562,7 @@ where
                         .span()
                         .start();
                     let statement_list =
-                        StatementList::new(false, true, false, true, &FUNCTION_BREAK_TOKENS)
+                        StatementList::new(false, true, false, &FUNCTION_BREAK_TOKENS)
                             .parse(cursor, interner)?;
 
                     let lexically_declared_names = statement_list.lexically_declared_names();
@@ -1242,6 +1243,35 @@ where
                 ))
             }
         };
+
+        match &element {
+            // FieldDefinition : ClassElementName Initializer [opt]
+            // It is a Syntax Error if Initializer is present and ContainsArguments of Initializer is true.
+            ClassElementNode::FieldDefinition(_, Some(node))
+            | ClassElementNode::StaticFieldDefinition(_, Some(node))
+            | ClassElementNode::PrivateFieldDefinition(_, Some(node))
+            | ClassElementNode::PrivateStaticFieldDefinition(_, Some(node)) => {
+                if node.contains_arguments() {
+                    return Err(ParseError::general(
+                        "'arguments' not allowed in class field definition",
+                        position,
+                    ));
+                }
+            }
+            // ClassStaticBlockBody : ClassStaticBlockStatementList
+            // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
+            ClassElementNode::StaticBlock(block) => {
+                for node in block.items() {
+                    if node.contains_arguments() {
+                        return Err(ParseError::general(
+                            "'arguments' not allowed in class static block",
+                            position,
+                        ));
+                    }
+                }
+            }
+            _ => {}
+        }
 
         Ok((None, Some(element)))
     }

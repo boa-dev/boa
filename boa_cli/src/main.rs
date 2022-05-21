@@ -141,7 +141,7 @@ where
     use boa_engine::syntax::parser::Parser;
 
     let src_bytes = src.as_ref();
-    Parser::new(src_bytes, false)
+    Parser::new(src_bytes)
         .parse_all(context)
         .map_err(|e| format!("ParsingError: {e}"))
 }

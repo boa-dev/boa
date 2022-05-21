@@ -25,6 +25,13 @@ pub struct AwaitExpr {
     expr: Box<Node>,
 }
 
+impl AwaitExpr {
+    /// Return the expression that should be awaited.
+    pub(crate) fn expr(&self) -> &Node {
+        &self.expr
+    }
+}
+
 impl<T> From<T> for AwaitExpr
 where
     T: Into<Box<Node>>,

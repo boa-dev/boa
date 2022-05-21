@@ -66,40 +66,69 @@ where
         let _timer = Profiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
         let mut has_trailing_comma_spread = false;
+        let mut next_comma = false;
+        let mut last_spread = false;
+
         loop {
-            // TODO: Support all features.
-            while cursor.next_if(Punctuator::Comma, interner)?.is_some() {
-                elements.push(Node::Empty);
-            }
+            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            match token.kind() {
+                TokenKind::Punctuator(Punctuator::CloseBracket) => {
+                    cursor.next(interner).expect("token disappeared");
+                    break;
+                }
+                TokenKind::Punctuator(Punctuator::Comma) if next_comma => {
+                    cursor.next(interner).expect("token disappeared");
 
-            if cursor
-                .next_if(Punctuator::CloseBracket, interner)?
-                .is_some()
-            {
-                break;
-            }
-
-            let _next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd); // Check that there are more tokens to read.
-
-            if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
-                let node =
-                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
-                elements.push(Spread::new(node).into());
-                // If the last element in the array is followed by a comma, push an elision.
-                if cursor.next_if(Punctuator::Comma, interner)?.is_some() {
-                    if let Some(t) = cursor.peek(0, interner)? {
-                        if *t.kind() == TokenKind::Punctuator(Punctuator::CloseBracket) {
+                    if last_spread {
+                        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                        if token.kind() == &TokenKind::Punctuator(Punctuator::CloseBracket) {
                             has_trailing_comma_spread = true;
                         }
                     }
+
+                    next_comma = false;
                 }
-            } else {
-                elements.push(
-                    AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?,
-                );
-                cursor.next_if(Punctuator::Comma, interner)?;
+                TokenKind::Punctuator(Punctuator::Comma) => {
+                    cursor.next(interner).expect("token disappeared");
+                    elements.push(Node::Empty);
+                }
+                TokenKind::Punctuator(Punctuator::Spread) if next_comma => {
+                    return Err(ParseError::unexpected(
+                        token.to_string(interner),
+                        token.span(),
+                        "expected comma or end of array",
+                    ));
+                }
+                TokenKind::Punctuator(Punctuator::Spread) => {
+                    cursor.next(interner).expect("token disappeared");
+                    let node =
+                        AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    elements.push(Spread::new(node).into());
+                    next_comma = true;
+                    last_spread = true;
+                }
+                _ if next_comma => {
+                    return Err(ParseError::unexpected(
+                        token.to_string(interner),
+                        token.span(),
+                        "expected comma or end of array",
+                    ));
+                }
+                _ => {
+                    let node =
+                        AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    elements.push(node);
+                    next_comma = true;
+                    last_spread = false;
+                }
+            }
+        }
+
+        if last_spread {
+            if let Some(Node::Empty) = elements.last() {
+                has_trailing_comma_spread = true;
             }
         }
 

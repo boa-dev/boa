@@ -91,7 +91,6 @@ where
             self.allow_yield,
             self.allow_await,
             self.allow_return,
-            true,
             &BLOCK_BREAK_TOKENS,
         )
         .parse(cursor, interner)

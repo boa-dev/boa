@@ -1608,24 +1608,6 @@ fn test_strict_mode_reserved_name() {
 }
 
 #[test]
-fn test_strict_mode_func_decl_in_block() {
-    // Checks that a function declaration in a block is an error in
-    // strict mode code as per https://tc39.es/ecma262/#early-error.
-
-    let scenario = r#"
-    'use strict';
-    let a = 4;
-    let b = 5;
-    if (a < b) { function f() {} }
-    "#;
-
-    check_output(&[TestAction::TestStartsWith(
-        scenario,
-        "Uncaught \"SyntaxError\": ",
-    )]);
-}
-
-#[test]
 fn test_strict_mode_dup_func_parameters() {
     // Checks that a function cannot contain duplicate parameter
     // names in strict mode code as per https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors.

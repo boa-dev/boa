@@ -150,7 +150,6 @@ where
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,
-                        false,
                         &CASE_BREAK_TOKENS,
                     )
                     .parse(cursor, interner)?;
@@ -173,7 +172,6 @@ where
                         self.allow_yield,
                         self.allow_await,
                         self.allow_return,
-                        false,
                         &CASE_BREAK_TOKENS,
                     )
                     .parse(cursor, interner)?;

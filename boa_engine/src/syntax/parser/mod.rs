@@ -24,6 +24,7 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
 pub use self::error::{ParseError, ParseResult};
+pub(in crate::syntax) use expression::RESERVED_IDENTIFIERS_STRICT;
 
 /// Trait implemented by parsers.
 ///
@@ -103,14 +104,21 @@ pub struct Parser<R> {
 
 impl<R> Parser<R> {
     /// Create a new `Parser` with a reader as the input to parse.
-    pub fn new(reader: R, strict_mode: bool) -> Self
+    pub fn new(reader: R) -> Self
     where
         R: Read,
     {
-        let mut cursor = Cursor::new(reader);
-        cursor.set_strict_mode(strict_mode);
+        Self {
+            cursor: Cursor::new(reader),
+        }
+    }
 
-        Self { cursor }
+    /// Set the parser strict mode to true.
+    pub(crate) fn set_strict(&mut self)
+    where
+        R: Read,
+    {
+        self.cursor.set_strict_mode(true);
     }
 
     /// Parse the full input as a [ECMAScript Script][spec] into the boa AST representation.
@@ -204,9 +212,9 @@ where
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
+        let mut strict = cursor.strict_mode();
         match cursor.peek(0, interner)? {
             Some(tok) => {
-                let mut strict = false;
                 match tok.kind() {
                     // Set the strict mode
                     TokenKind::StringLiteral(string)
@@ -246,6 +254,6 @@ where
         cursor: &mut Cursor<R>,
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
-        self::statement::StatementList::new(false, false, false, false, &[]).parse(cursor, interner)
+        self::statement::StatementList::new(false, false, false, &[]).parse(cursor, interner)
     }
 }

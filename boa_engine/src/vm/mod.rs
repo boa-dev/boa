@@ -9,7 +9,7 @@ use crate::{
     value::Numeric,
     vm::{
         call_frame::CatchAddresses,
-        code_block::{create_function_object, create_generator_function_object, Readable},
+        code_block::{create_generator_function_object, Readable},
     },
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
@@ -25,6 +25,7 @@ pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
     call_frame::{FinallyReturn, GeneratorResumeKind, TryStackEntry},
+    code_block::create_function_object,
     opcode::BindingOpcode,
 };
 
@@ -553,7 +554,7 @@ impl Context {
                             .into();
                         let exists = self.global_bindings_mut().contains_key(&key);
 
-                        if !exists && (self.strict() || self.vm.frame().code.strict) {
+                        if !exists && self.vm.frame().code.strict {
                             return self.throw_reference_error(format!(
                                 "assignment to undeclared variable {key}"
                             ));
@@ -566,7 +567,7 @@ impl Context {
                                 self,
                             )?;
 
-                        if !success && (self.strict() || self.vm.frame().code.strict) {
+                        if !success && self.vm.frame().code.strict {
                             return self.throw_type_error(format!(
                                 "cannot set non-writable property: {key}",
                             ));
@@ -674,12 +675,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name: PropertyKey = self.interner().resolve_expect(name).into();
 
-                object.set(
-                    name,
-                    value,
-                    self.strict() || self.vm.frame().code.strict,
-                    self,
-                )?;
+                object.set(name, value, self.vm.frame().code.strict, self)?;
             }
             Opcode::DefineOwnPropertyByName => {
                 let index = self.vm.read::<u32>();
@@ -736,12 +732,7 @@ impl Context {
                 };
 
                 let key = key.to_property_key(self)?;
-                object.set(
-                    key,
-                    value,
-                    self.strict() || self.vm.frame().code.strict,
-                    self,
-                )?;
+                object.set(key, value, self.vm.frame().code.strict, self)?;
             }
             Opcode::DefineOwnPropertyByValue => {
                 let value = self.vm.pop();
@@ -1068,7 +1059,7 @@ impl Context {
                 let key = self.interner().resolve_expect(key).into();
                 let object = self.vm.pop();
                 let result = object.to_object(self)?.__delete__(&key, self)?;
-                if !result && self.strict() || self.vm.frame().code.strict {
+                if !result && self.vm.frame().code.strict {
                     return Err(self.construct_type_error("Cannot delete property"));
                 }
                 self.vm.push(result);
@@ -1079,7 +1070,7 @@ impl Context {
                 let result = object
                     .to_object(self)?
                     .__delete__(&key.to_property_key(self)?, self)?;
-                if !result && self.strict() || self.vm.frame().code.strict {
+                if !result && self.vm.frame().code.strict {
                     return Err(self.construct_type_error("Cannot delete property"));
                 }
                 self.vm.push(result);
@@ -1256,7 +1247,7 @@ impl Context {
                 // A native function with the name "eval" implies, that is this the built-in eval function.
                 let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
 
-                let strict = self.strict() || self.vm.frame().code.strict;
+                let strict = self.vm.frame().code.strict;
 
                 if eval {
                     if let Some(x) = arguments.get(0) {
@@ -1304,7 +1295,7 @@ impl Context {
                 // A native function with the name "eval" implies, that is this the built-in eval function.
                 let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
 
-                let strict = self.strict() || self.vm.frame().code.strict;
+                let strict = self.vm.frame().code.strict;
 
                 if eval {
                     if let Some(x) = arguments.get(0) {

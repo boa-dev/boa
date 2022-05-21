@@ -111,7 +111,7 @@ where
                 }
             }
             TokenKind::Keyword((Keyword::Class, false)) => {
-                ClassDeclaration::new(false, false, self.is_default)
+                ClassDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
                     .map(Node::from)
             }

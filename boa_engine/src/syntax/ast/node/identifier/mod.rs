@@ -1,6 +1,9 @@
 //! Local identifier node.
 
-use crate::syntax::ast::node::Node;
+use crate::syntax::{
+    ast::{node::Node, Position},
+    parser::ParseError,
+};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -38,6 +41,24 @@ impl Identifier {
     /// Retrieves the identifier's string symbol in the interner.
     pub fn sym(self) -> Sym {
         self.ident
+    }
+
+    /// Returns an error if `arguments` or `eval` are used as identifier in strict mode.
+    pub(crate) fn check_strict_arguments_or_eval(
+        self,
+        position: Position,
+    ) -> Result<(), ParseError> {
+        match self.ident {
+            Sym::ARGUMENTS => Err(ParseError::general(
+                "unexpected identifier 'arguments' in strict mode",
+                position,
+            )),
+            Sym::EVAL => Err(ParseError::general(
+                "unexpected identifier 'eval' in strict mode",
+                position,
+            )),
+            _ => Ok(()),
+        }
     }
 }
 

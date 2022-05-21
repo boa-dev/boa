@@ -276,6 +276,114 @@ impl DeclarationPattern {
             DeclarationPattern::Array(pattern) => pattern.init(),
         }
     }
+
+    /// Returns true if the node contains a identifier reference named 'arguments'.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            DeclarationPattern::Object(pattern) => {
+                if let Some(init) = pattern.init() {
+                    if init.contains_arguments() {
+                        return true;
+                    }
+                }
+                for binding in pattern.bindings() {
+                    match binding {
+                        BindingPatternTypeObject::SingleName {
+                            property_name,
+                            default_init,
+                            ..
+                        } => {
+                            if let PropertyName::Computed(node) = property_name {
+                                if node.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                            if let Some(init) = default_init {
+                                if init.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                        }
+                        BindingPatternTypeObject::RestGetConstField {
+                            get_const_field, ..
+                        } => {
+                            if get_const_field.obj().contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeObject::BindingPattern {
+                            ident,
+                            pattern,
+                            default_init,
+                        } => {
+                            if let PropertyName::Computed(node) = ident {
+                                if node.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                            if let Some(init) = default_init {
+                                if init.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            DeclarationPattern::Array(pattern) => {
+                if let Some(init) = pattern.init() {
+                    if init.contains_arguments() {
+                        return true;
+                    }
+                }
+                for binding in pattern.bindings() {
+                    match binding {
+                        BindingPatternTypeArray::SingleName {
+                            default_init: Some(init),
+                            ..
+                        } => {
+                            if init.contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::GetField { get_field }
+                        | BindingPatternTypeArray::GetFieldRest { get_field } => {
+                            if get_field.obj().contains_arguments() {
+                                return true;
+                            }
+                            if get_field.field().contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::GetConstField { get_const_field }
+                        | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+                            if get_const_field.obj().contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::BindingPattern { pattern }
+                        | BindingPatternTypeArray::BindingPatternRest { pattern } => {
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        false
+    }
 }
 
 /// `DeclarationPatternObject` represents an object binding pattern.

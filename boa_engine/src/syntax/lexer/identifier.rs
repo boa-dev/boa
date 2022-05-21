@@ -8,19 +8,7 @@ use crate::syntax::{
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use boa_unicode::UnicodeProperties;
-use std::{io::Read, str};
-
-const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 9] = [
-    "implements",
-    "interface",
-    "let",
-    "package",
-    "private",
-    "protected",
-    "public",
-    "static",
-    "yield",
-];
+use std::io::Read;
 
 /// Identifier lexing.
 ///
@@ -90,13 +78,6 @@ impl<R> Tokenizer<R> for Identifier {
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
         let token_kind = if let Ok(keyword) = identifier_name.parse() {
-            if cursor.strict_mode() && keyword == Keyword::With {
-                return Err(Error::Syntax(
-                    "using 'with' statement not allowed in strict mode".into(),
-                    start_pos,
-                ));
-            }
-
             match keyword {
                 Keyword::True => TokenKind::BooleanLiteral(true),
                 Keyword::False => TokenKind::BooleanLiteral(false),
@@ -104,17 +85,6 @@ impl<R> Tokenizer<R> for Identifier {
                 _ => TokenKind::Keyword((keyword, contains_escaped_chars)),
             }
         } else {
-            if cursor.strict_mode()
-                && STRICT_FORBIDDEN_IDENTIFIERS.contains(&identifier_name.as_str())
-            {
-                return Err(Error::Syntax(
-                    format!(
-                        "using future reserved keyword '{identifier_name}' not allowed in strict mode",
-                    )
-                    .into(),
-                    start_pos,
-                ));
-            }
             TokenKind::identifier(interner.get_or_intern(identifier_name))
         };
 

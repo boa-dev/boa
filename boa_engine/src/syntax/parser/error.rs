@@ -98,7 +98,7 @@ impl ParseError {
     }
 
     /// Creates a "general" parsing error.
-    pub(super) fn general(message: &'static str, position: Position) -> Self {
+    pub(crate) fn general(message: &'static str, position: Position) -> Self {
         Self::General { message, position }
     }
 
