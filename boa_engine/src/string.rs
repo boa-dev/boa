@@ -626,7 +626,7 @@ impl Inner {
 /// The `JsString` length and data is stored on the heap. and just an non-null
 /// pointer is kept, so its size is the size of a pointer.
 ///
-/// We define some commonly used string constants in [`CONSTANTS_ARRAY`]. For these
+/// We define some commonly used string constants in an interner. For these
 /// strings, we no longer allocate memory on the heap to reduce the overhead of
 /// memory allocation and reference counting.
 #[derive(Finalize)]

@@ -44,6 +44,14 @@ mod tests;
 ///
 /// Native functions need to have this signature in order to
 /// be callable from Javascript.
+///
+/// # Arguments
+///
+/// - The first argument represents the `this` variable of every Javascript function.
+///
+/// - The second argument represents a list of all arguments passed to the function.
+///
+/// - The last argument is the [`Context`] of the engine.
 pub type NativeFunctionSignature = fn(&JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>;
 
 // Allows restricting closures to only `Copy` ones.

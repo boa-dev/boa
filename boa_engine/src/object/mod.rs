@@ -61,12 +61,14 @@ pub(crate) mod internal_methods;
 mod jsarray;
 mod jsfunction;
 mod jsobject;
+mod jsproxy;
 mod jstypedarray;
 mod operations;
 mod property_map;
 
 pub use jsarray::*;
 pub use jsfunction::*;
+pub use jsproxy::*;
 pub use jstypedarray::*;
 
 pub(crate) trait JsObjectType:
