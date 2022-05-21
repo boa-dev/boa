@@ -91,68 +91,72 @@ impl BuiltIn for Date {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        ConstructorBuilder::new(context, Self::constructor)
-            .name(Self::NAME)
-            .length(Self::LENGTH)
-            .method(getter_method!(get_date), "getDate", 0)
-            .method(getter_method!(get_day), "getDay", 0)
-            .method(getter_method!(get_full_year), "getFullYear", 0)
-            .method(getter_method!(get_hours), "getHours", 0)
-            .method(getter_method!(get_milliseconds), "getMilliseconds", 0)
-            .method(getter_method!(get_minutes), "getMinutes", 0)
-            .method(getter_method!(get_month), "getMonth", 0)
-            .method(getter_method!(get_seconds), "getSeconds", 0)
-            .method(getter_method!(get_time), "getTime", 0)
-            .method(getter_method!(get_year), "getYear", 0)
-            .method(Self::get_timezone_offset, "getTimezoneOffset", 0)
-            .method(getter_method!(get_utc_date), "getUTCDate", 0)
-            .method(getter_method!(get_utc_day), "getUTCDay", 0)
-            .method(getter_method!(get_utc_full_year), "getUTCFullYear", 0)
-            .method(getter_method!(get_utc_hours), "getUTCHours", 0)
-            .method(
-                getter_method!(get_utc_milliseconds),
-                "getUTCMilliseconds",
-                0,
-            )
-            .method(getter_method!(get_utc_minutes), "getUTCMinutes", 0)
-            .method(getter_method!(get_utc_month), "getUTCMonth", 0)
-            .method(getter_method!(get_utc_seconds), "getUTCSeconds", 0)
-            .method(Self::set_date, "setDate", 1)
-            .method(Self::set_full_year, "setFullYear", 3)
-            .method(Self::set_hours, "setHours", 4)
-            .method(Self::set_milliseconds, "setMilliseconds", 1)
-            .method(Self::set_minutes, "setMinutes", 3)
-            .method(Self::set_month, "setMonth", 2)
-            .method(Self::set_seconds, "setSeconds", 2)
-            .method(Self::set_year, "setYear", 1)
-            .method(Self::set_time, "setTime", 1)
-            .method(Self::set_utc_date, "setUTCDate", 1)
-            .method(Self::set_utc_full_year, "setUTCFullYear", 3)
-            .method(Self::set_utc_hours, "setUTCHours", 4)
-            .method(Self::set_utc_milliseconds, "setUTCMilliseconds", 1)
-            .method(Self::set_utc_minutes, "setUTCMinutes", 3)
-            .method(Self::set_utc_month, "setUTCMonth", 2)
-            .method(Self::set_utc_seconds, "setUTCSeconds", 2)
-            .method(Self::to_date_string, "toDateString", 0)
-            .method(getter_method!(to_gmt_string), "toGMTString", 0)
-            .method(Self::to_iso_string, "toISOString", 0)
-            .method(Self::to_json, "toJSON", 1)
-            // Locale strings
-            .method(Self::to_string, "toString", 0)
-            .method(Self::to_time_string, "toTimeString", 0)
-            .method(getter_method!(to_utc_string), "toUTCString", 0)
-            .method(getter_method!(value_of), "valueOf", 0)
-            .method(
-                Self::to_primitive,
-                (WellKnownSymbols::to_primitive(), "[Symbol.toPrimitive]"),
-                1,
-            )
-            .static_method(Self::now, "now", 0)
-            .static_method(Self::parse, "parse", 1)
-            .static_method(Self::utc, "UTC", 7)
-            .build()
-            .conv::<JsValue>()
-            .pipe(Some)
+        ConstructorBuilder::with_standard_constructor(
+            context,
+            Self::constructor,
+            context.intrinsics().constructors().date().clone(),
+        )
+        .name(Self::NAME)
+        .length(Self::LENGTH)
+        .method(getter_method!(get_date), "getDate", 0)
+        .method(getter_method!(get_day), "getDay", 0)
+        .method(getter_method!(get_full_year), "getFullYear", 0)
+        .method(getter_method!(get_hours), "getHours", 0)
+        .method(getter_method!(get_milliseconds), "getMilliseconds", 0)
+        .method(getter_method!(get_minutes), "getMinutes", 0)
+        .method(getter_method!(get_month), "getMonth", 0)
+        .method(getter_method!(get_seconds), "getSeconds", 0)
+        .method(getter_method!(get_time), "getTime", 0)
+        .method(getter_method!(get_year), "getYear", 0)
+        .method(Self::get_timezone_offset, "getTimezoneOffset", 0)
+        .method(getter_method!(get_utc_date), "getUTCDate", 0)
+        .method(getter_method!(get_utc_day), "getUTCDay", 0)
+        .method(getter_method!(get_utc_full_year), "getUTCFullYear", 0)
+        .method(getter_method!(get_utc_hours), "getUTCHours", 0)
+        .method(
+            getter_method!(get_utc_milliseconds),
+            "getUTCMilliseconds",
+            0,
+        )
+        .method(getter_method!(get_utc_minutes), "getUTCMinutes", 0)
+        .method(getter_method!(get_utc_month), "getUTCMonth", 0)
+        .method(getter_method!(get_utc_seconds), "getUTCSeconds", 0)
+        .method(Self::set_date, "setDate", 1)
+        .method(Self::set_full_year, "setFullYear", 3)
+        .method(Self::set_hours, "setHours", 4)
+        .method(Self::set_milliseconds, "setMilliseconds", 1)
+        .method(Self::set_minutes, "setMinutes", 3)
+        .method(Self::set_month, "setMonth", 2)
+        .method(Self::set_seconds, "setSeconds", 2)
+        .method(Self::set_year, "setYear", 1)
+        .method(Self::set_time, "setTime", 1)
+        .method(Self::set_utc_date, "setUTCDate", 1)
+        .method(Self::set_utc_full_year, "setUTCFullYear", 3)
+        .method(Self::set_utc_hours, "setUTCHours", 4)
+        .method(Self::set_utc_milliseconds, "setUTCMilliseconds", 1)
+        .method(Self::set_utc_minutes, "setUTCMinutes", 3)
+        .method(Self::set_utc_month, "setUTCMonth", 2)
+        .method(Self::set_utc_seconds, "setUTCSeconds", 2)
+        .method(Self::to_date_string, "toDateString", 0)
+        .method(getter_method!(to_gmt_string), "toGMTString", 0)
+        .method(Self::to_iso_string, "toISOString", 0)
+        .method(Self::to_json, "toJSON", 1)
+        // Locale strings
+        .method(Self::to_string, "toString", 0)
+        .method(Self::to_time_string, "toTimeString", 0)
+        .method(getter_method!(to_utc_string), "toUTCString", 0)
+        .method(getter_method!(value_of), "valueOf", 0)
+        .method(
+            Self::to_primitive,
+            (WellKnownSymbols::to_primitive(), "[Symbol.toPrimitive]"),
+            1,
+        )
+        .static_method(Self::now, "now", 0)
+        .static_method(Self::parse, "parse", 1)
+        .static_method(Self::utc, "UTC", 7)
+        .build()
+        .conv::<JsValue>()
+        .pipe(Some)
     }
 }
 
@@ -337,7 +341,7 @@ impl Date {
             Ok(Self::make_date_string())
         } else {
             let prototype =
-                get_prototype_from_constructor(new_target, StandardConstructors::object, context)?;
+                get_prototype_from_constructor(new_target, StandardConstructors::date, context)?;
             Ok(if args.is_empty() {
                 Self::make_date_now(prototype)
             } else if args.len() == 1 {
