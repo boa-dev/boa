@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.25/src/hir/literal/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.26/src/hir/literal/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1688,6 +1688,11 @@
 <span id="1683">1683</span>
 <span id="1684">1684</span>
 <span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
 </pre><pre class="rust"><code><span class="doccomment">/*!
 Provides routines for extracting literal prefixes and suffixes from an `Hir`.
 */</span>
@@ -2425,18 +2430,18 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="ident">lits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>,
     <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>,
 ) {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">lits2</span>, <span class="kw-2">mut</span> <span class="ident">lits3</span>) <span class="op">=</span> (<span class="ident">lits</span>.<span class="ident">clone</span>(), <span class="ident">lits</span>.<span class="ident">to_empty</span>());
-    <span class="ident">lits3</span>.<span class="ident">set_limit_size</span>(<span class="ident">lits</span>.<span class="ident">limit_size</span>() <span class="op">/</span> <span class="number">2</span>);
-    <span class="ident">f</span>(<span class="ident">e</span>, <span class="kw-2">&amp;mut</span> <span class="ident">lits3</span>);
-
-    <span class="kw">if</span> <span class="ident">lits3</span>.<span class="ident">is_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">lits2</span>.<span class="ident">cross_product</span>(<span class="kw-2">&amp;</span><span class="ident">lits3</span>) {
-        <span class="ident">lits</span>.<span class="ident">cut</span>();
-        <span class="kw">return</span>;
-    }
-    <span class="ident">lits2</span>.<span class="ident">add</span>(<span class="ident">Literal::empty</span>());
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">lits</span>.<span class="ident">union</span>(<span class="ident">lits2</span>) {
-        <span class="ident">lits</span>.<span class="ident">cut</span>();
-    }
+    <span class="ident">f</span>(
+        <span class="kw-2">&amp;</span><span class="ident">Hir::repetition</span>(<span class="ident">hir::Repetition</span> {
+            <span class="ident">kind</span>: <span class="ident">hir::RepetitionKind::ZeroOrMore</span>,
+            <span class="comment">// FIXME: Our literal extraction doesn&#39;t care about greediness.</span>
+            <span class="comment">// Which is partially why we&#39;re treating &#39;e?&#39; as &#39;e*&#39;. Namely,</span>
+            <span class="comment">// &#39;ab??&#39; yields [Complete(ab), Complete(a)], but it should yield</span>
+            <span class="comment">// [Complete(a), Complete(ab)] because of the non-greediness.</span>
+            <span class="ident">greedy</span>: <span class="bool-val">true</span>,
+            <span class="ident">hir</span>: <span class="ident">Box::new</span>(<span class="ident">e</span>.<span class="ident">clone</span>()),
+        }),
+        <span class="ident">lits</span>,
+    );
 }
 
 <span class="kw">fn</span> <span class="ident">repeat_zero_or_more_literals</span><span class="op">&lt;</span><span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">Hir</span>, <span class="kw-2">&amp;mut</span> <span class="ident">Literals</span>)<span class="op">&gt;</span>(
@@ -2831,6 +2836,11 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
     <span class="macro">test_lit!</span>(<span class="ident">pfx_group1</span>, <span class="ident">prefixes</span>, <span class="string">&quot;(a)&quot;</span>, <span class="ident">M</span>(<span class="string">&quot;a&quot;</span>));
     <span class="macro">test_lit!</span>(<span class="ident">pfx_rep_zero_or_one1</span>, <span class="ident">prefixes</span>, <span class="string">&quot;a?&quot;</span>);
     <span class="macro">test_lit!</span>(<span class="ident">pfx_rep_zero_or_one2</span>, <span class="ident">prefixes</span>, <span class="string">&quot;(?:abc)?&quot;</span>);
+    <span class="macro">test_lit!</span>(<span class="ident">pfx_rep_zero_or_one_cat1</span>, <span class="ident">prefixes</span>, <span class="string">&quot;ab?&quot;</span>, <span class="ident">C</span>(<span class="string">&quot;ab&quot;</span>), <span class="ident">M</span>(<span class="string">&quot;a&quot;</span>));
+    <span class="comment">// FIXME: This should return [M(&quot;a&quot;), M(&quot;ab&quot;)] because of the non-greedy</span>
+    <span class="comment">// repetition. As a work-around, we rewrite ab?? as ab*?, and thus we get</span>
+    <span class="comment">// a cut literal.</span>
+    <span class="macro">test_lit!</span>(<span class="ident">pfx_rep_zero_or_one_cat2</span>, <span class="ident">prefixes</span>, <span class="string">&quot;ab??&quot;</span>, <span class="ident">C</span>(<span class="string">&quot;ab&quot;</span>), <span class="ident">M</span>(<span class="string">&quot;a&quot;</span>));
     <span class="macro">test_lit!</span>(<span class="ident">pfx_rep_zero_or_more1</span>, <span class="ident">prefixes</span>, <span class="string">&quot;a*&quot;</span>);
     <span class="macro">test_lit!</span>(<span class="ident">pfx_rep_zero_or_more2</span>, <span class="ident">prefixes</span>, <span class="string">&quot;(?:abc)*&quot;</span>);
     <span class="macro">test_lit!</span>(<span class="ident">pfx_rep_one_or_more1</span>, <span class="ident">prefixes</span>, <span class="string">&quot;a+&quot;</span>, <span class="ident">C</span>(<span class="string">&quot;a&quot;</span>));
@@ -2939,8 +2949,8 @@ Provides routines for extracting literal prefixes and suffixes from an `Hir`.
         <span class="ident">pfx_crazy1</span>,
         <span class="ident">prefixes</span>,
         <span class="string">r&quot;M[ou]&#39;?am+[ae]r .*([AEae]l[- ])?[GKQ]h?[aeu]+([dtz][dhz]?)+af[iy]&quot;</span>,
-        <span class="ident">C</span>(<span class="string">&quot;Mo\\&#39;am&quot;</span>),
-        <span class="ident">C</span>(<span class="string">&quot;Mu\\&#39;am&quot;</span>),
+        <span class="ident">C</span>(<span class="string">&quot;Mo\\&#39;&quot;</span>),
+        <span class="ident">C</span>(<span class="string">&quot;Mu\\&#39;&quot;</span>),
         <span class="ident">C</span>(<span class="string">&quot;Moam&quot;</span>),
         <span class="ident">C</span>(<span class="string">&quot;Muam&quot;</span>)
     );

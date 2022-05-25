@@ -26,7 +26,7 @@ if callers want to put a limit on the amount of heap space used, then
 they should impose a limit on the length, in bytes, of the concrete
 pattern string. In particular, this is viable since this parser
 implementation will limit itself to heap space proportional to the
-lenth of the pattern string.</p>
+length of the pattern string.</p>
 <p>Note that a nest limit of <code>0</code> will return a nest limit error for most
 patterns but not all. For example, a nest limit of <code>0</code> permits <code>a</code> but
 not <code>ab</code>, since <code>ab</code> requires a concatenation, which results in a nest

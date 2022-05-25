@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.25/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.26/src/hir/translate.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>translate.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -3172,6 +3172,48 @@
 <span id="3167">3167</span>
 <span id="3168">3168</span>
 <span id="3169">3169</span>
+<span id="3170">3170</span>
+<span id="3171">3171</span>
+<span id="3172">3172</span>
+<span id="3173">3173</span>
+<span id="3174">3174</span>
+<span id="3175">3175</span>
+<span id="3176">3176</span>
+<span id="3177">3177</span>
+<span id="3178">3178</span>
+<span id="3179">3179</span>
+<span id="3180">3180</span>
+<span id="3181">3181</span>
+<span id="3182">3182</span>
+<span id="3183">3183</span>
+<span id="3184">3184</span>
+<span id="3185">3185</span>
+<span id="3186">3186</span>
+<span id="3187">3187</span>
+<span id="3188">3188</span>
+<span id="3189">3189</span>
+<span id="3190">3190</span>
+<span id="3191">3191</span>
+<span id="3192">3192</span>
+<span id="3193">3193</span>
+<span id="3194">3194</span>
+<span id="3195">3195</span>
+<span id="3196">3196</span>
+<span id="3197">3197</span>
+<span id="3198">3198</span>
+<span id="3199">3199</span>
+<span id="3200">3200</span>
+<span id="3201">3201</span>
+<span id="3202">3202</span>
+<span id="3203">3203</span>
+<span id="3204">3204</span>
+<span id="3205">3205</span>
+<span id="3206">3206</span>
+<span id="3207">3207</span>
+<span id="3208">3208</span>
+<span id="3209">3209</span>
+<span id="3210">3210</span>
+<span id="3211">3211</span>
 </pre><pre class="rust"><code><span class="doccomment">/*!
 Defines a translator that converts an `Ast` to an `Hir`.
 */</span>
@@ -3608,20 +3650,14 @@ Defines a translator that converts an `Ast` to an `Hir`.
             }
             <span class="ident">ast::ClassSetItem::Ascii</span>(<span class="kw-2">ref</span> <span class="ident">x</span>) =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">unicode</span>() {
+                    <span class="kw">let</span> <span class="ident">xcls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hir_ascii_unicode_class</span>(<span class="ident">x</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_unicode</span>();
-                    <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">kind</span>) {
-                        <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">hir::ClassUnicodeRange::new</span>(<span class="ident">s</span>, <span class="ident">e</span>));
-                    }
-                    <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">span</span>, <span class="ident">x</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>,
-                    )<span class="question-mark">?</span>;
+                    <span class="ident">cls</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">xcls</span>);
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame::ClassUnicode</span>(<span class="ident">cls</span>));
                 } <span class="kw">else</span> {
+                    <span class="kw">let</span> <span class="ident">xcls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">hir_ascii_byte_class</span>(<span class="ident">x</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">pop</span>().<span class="ident">unwrap</span>().<span class="ident">unwrap_class_bytes</span>();
-                    <span class="kw">for</span> <span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>) <span class="kw">in</span> <span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">kind</span>) {
-                        <span class="ident">cls</span>.<span class="ident">push</span>(<span class="ident">hir::ClassBytesRange::new</span>(<span class="ident">s</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">e</span> <span class="kw">as</span> <span class="ident">u8</span>));
-                    }
-                    <span class="self">self</span>.<span class="ident">bytes_fold_and_negate</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>.<span class="ident">span</span>, <span class="ident">x</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>)<span class="question-mark">?</span>;
+                    <span class="ident">cls</span>.<span class="ident">union</span>(<span class="kw-2">&amp;</span><span class="ident">xcls</span>);
                     <span class="self">self</span>.<span class="ident">push</span>(<span class="ident">HirFrame::ClassBytes</span>(<span class="ident">cls</span>));
                 }
             }
@@ -4027,6 +4063,32 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">result</span>
     }
 
+    <span class="kw">fn</span> <span class="ident">hir_ascii_unicode_class</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassAscii</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir::ClassUnicode</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir::ClassUnicode::new</span>(
+            <span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">kind</span>)
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassUnicodeRange::new</span>(<span class="ident">s</span>, <span class="ident">e</span>)),
+        );
+        <span class="self">self</span>.<span class="ident">unicode_fold_and_negate</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>, <span class="ident">ast</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">cls</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">hir_ascii_byte_class</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">ast</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassAscii</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">hir::ClassBytes</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cls</span> <span class="op">=</span> <span class="ident">hir::ClassBytes::new</span>(
+            <span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">kind</span>)
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">s</span>, <span class="ident">e</span>)<span class="op">|</span> <span class="ident">hir::ClassBytesRange::new</span>(<span class="ident">s</span> <span class="kw">as</span> <span class="ident">u8</span>, <span class="ident">e</span> <span class="kw">as</span> <span class="ident">u8</span>)),
+        );
+        <span class="self">self</span>.<span class="ident">bytes_fold_and_negate</span>(<span class="kw-2">&amp;</span><span class="ident">ast</span>.<span class="ident">span</span>, <span class="ident">ast</span>.<span class="ident">negated</span>, <span class="kw-2">&amp;mut</span> <span class="ident">cls</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="ident">cls</span>)
+    }
+
     <span class="kw">fn</span> <span class="ident">hir_perl_unicode_class</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">ast_class</span>: <span class="kw-2">&amp;</span><span class="ident">ast::ClassPerl</span>,
@@ -4122,7 +4184,7 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <span class="ident">hir::ClassBytes</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// Note that we must apply case folding before negation!</span>
-        <span class="comment">// Consider `(?i)[^x]`. If we applied negation field, then</span>
+        <span class="comment">// Consider `(?i)[^x]`. If we applied negation first, then</span>
         <span class="comment">// the result would be the character class that matched any</span>
         <span class="comment">// Unicode scalar value.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">flags</span>().<span class="ident">case_insensitive</span>() {
@@ -5114,6 +5176,25 @@ Defines a translator that converts an `Ast` to an `Hir`.
                     <span class="ident">Position::new</span>(<span class="number">17</span>, <span class="number">1</span>, <span class="number">18</span>)
                 ),
             }
+        );
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">class_ascii_multiple</span>() {
+        <span class="comment">// See: https://github.com/rust-lang/regex/issues/680</span>
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">t</span>(<span class="string">&quot;[[:alnum:][:^ascii:]]&quot;</span>),
+            <span class="ident">hir_union</span>(
+                <span class="ident">hir_uclass</span>(<span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassAsciiKind::Alnum</span>)),
+                <span class="ident">hir_uclass</span>(<span class="kw-2">&amp;</span>[(<span class="string">&#39;\u{80}&#39;</span>, <span class="string">&#39;\u{10FFFF}&#39;</span>)]),
+            ),
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="ident">t_bytes</span>(<span class="string">&quot;(?-u)[[:alnum:][:^ascii:]]&quot;</span>),
+            <span class="ident">hir_union</span>(
+                <span class="ident">hir_bclass_from_char</span>(<span class="ident">ascii_class</span>(<span class="kw-2">&amp;</span><span class="ident">ast::ClassAsciiKind::Alnum</span>)),
+                <span class="ident">hir_bclass</span>(<span class="kw-2">&amp;</span>[(<span class="number">0x80</span>, <span class="number">0xFF</span>)]),
+            ),
         );
     }
 
@@ -6274,6 +6355,9 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;\pL*&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;a*|b&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;b|a*&quot;</span>).<span class="ident">is_match_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;a|&quot;</span>).<span class="ident">is_match_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;|a&quot;</span>).<span class="ident">is_match_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;a||b&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;a*a?(abcd)*&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;^&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;$&quot;</span>).<span class="ident">is_match_empty</span>());
@@ -6283,6 +6367,8 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;\z&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;\B&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="ident">t_bytes</span>(<span class="string">r&quot;(?-u)\B&quot;</span>).<span class="ident">is_match_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;\b&quot;</span>).<span class="ident">is_match_empty</span>());
+        <span class="macro">assert!</span>(<span class="ident">t</span>(<span class="string">r&quot;(?-u)\b&quot;</span>).<span class="ident">is_match_empty</span>());
 
         <span class="comment">// Negative examples.</span>
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">t</span>(<span class="string">r&quot;a+&quot;</span>).<span class="ident">is_match_empty</span>());
@@ -6292,8 +6378,6 @@ Defines a translator that converts an `Ast` to an `Hir`.
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">t</span>(<span class="string">r&quot;a{1,10}&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">t</span>(<span class="string">r&quot;b|a&quot;</span>).<span class="ident">is_match_empty</span>());
         <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">t</span>(<span class="string">r&quot;a*a+(abcd)*&quot;</span>).<span class="ident">is_match_empty</span>());
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">t</span>(<span class="string">r&quot;\b&quot;</span>).<span class="ident">is_match_empty</span>());
-        <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">t</span>(<span class="string">r&quot;(?-u)\b&quot;</span>).<span class="ident">is_match_empty</span>());
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
