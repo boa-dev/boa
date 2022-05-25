@@ -11,7 +11,7 @@ use crate::{
             object::{MethodDefinition, PropertyDefinition, PropertyName},
             operator::assign::AssignTarget,
             template::TemplateElement,
-            Class, Declaration, GetConstField, GetField,
+            Class, Declaration, FormalParameterList, GetConstField, GetField, StatementList,
         },
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
@@ -1866,54 +1866,17 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub(crate) fn function(&mut self, function: &Node, use_expr: bool) -> JsResult<()> {
-        #[derive(Debug, Clone, Copy, PartialEq)]
-        enum FunctionKind {
-            Declaration,
-            Expression,
-            Arrow,
-        }
-
-        let (kind, name, parameters, body, generator) = match function {
-            Node::FunctionDecl(function) => (
-                FunctionKind::Declaration,
-                Some(function.name()),
-                function.parameters(),
-                function.body(),
-                false,
-            ),
-            Node::GeneratorDecl(generator) => (
-                FunctionKind::Declaration,
-                Some(generator.name()),
-                generator.parameters(),
-                generator.body(),
-                true,
-            ),
-            Node::FunctionExpr(function) => (
-                FunctionKind::Expression,
-                function.name(),
-                function.parameters(),
-                function.body(),
-                false,
-            ),
-            Node::GeneratorExpr(generator) => (
-                FunctionKind::Expression,
-                generator.name(),
-                generator.parameters(),
-                generator.body(),
-                true,
-            ),
-            Node::ArrowFunctionDecl(function) => (
-                FunctionKind::Arrow,
-                function.name(),
-                function.params(),
-                function.body(),
-                false,
-            ),
-            _ => unreachable!(),
-        };
-
-        let strict = body.strict() || self.code_block.strict;
+    /// Compile a function statement list and it's parameters into bytecode.
+    pub(crate) fn compile_function_code(
+        kind: FunctionKind,
+        name: Option<Sym>,
+        parameters: &FormalParameterList,
+        body: &StatementList,
+        generator: bool,
+        strict: bool,
+        context: &mut Context,
+    ) -> JsResult<Gc<CodeBlock>> {
+        let strict = strict || body.strict();
         let length = parameters.length();
         let mut code = CodeBlock::new(name.unwrap_or(Sym::EMPTY_STRING), length, strict, true);
 
@@ -1932,7 +1895,7 @@ impl<'b> ByteCompiler<'b> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
-            context: self.context,
+            context,
         };
 
         compiler.context.push_compile_time_environment(true);
@@ -2023,7 +1986,59 @@ impl<'b> ByteCompiler<'b> {
         compiler.emit(Opcode::PushUndefined, &[]);
         compiler.emit(Opcode::Return, &[]);
 
-        let code = Gc::new(compiler.finish());
+        Ok(Gc::new(compiler.finish()))
+    }
+
+    /// Compile a function AST Node into bytecode.
+    pub(crate) fn function(&mut self, function: &Node, use_expr: bool) -> JsResult<()> {
+        let (kind, name, parameters, body, generator) = match function {
+            Node::FunctionDecl(function) => (
+                FunctionKind::Declaration,
+                Some(function.name()),
+                function.parameters(),
+                function.body(),
+                false,
+            ),
+            Node::GeneratorDecl(generator) => (
+                FunctionKind::Declaration,
+                Some(generator.name()),
+                generator.parameters(),
+                generator.body(),
+                true,
+            ),
+            Node::FunctionExpr(function) => (
+                FunctionKind::Expression,
+                function.name(),
+                function.parameters(),
+                function.body(),
+                false,
+            ),
+            Node::GeneratorExpr(generator) => (
+                FunctionKind::Expression,
+                generator.name(),
+                generator.parameters(),
+                generator.body(),
+                true,
+            ),
+            Node::ArrowFunctionDecl(function) => (
+                FunctionKind::Arrow,
+                function.name(),
+                function.params(),
+                function.body(),
+                false,
+            ),
+            _ => unreachable!(),
+        };
+
+        let code = Self::compile_function_code(
+            kind,
+            name,
+            parameters,
+            body,
+            generator,
+            self.code_block.strict,
+            self.context,
+        )?;
 
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
@@ -2905,4 +2920,11 @@ impl<'b> ByteCompiler<'b> {
         }
         Ok(())
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) enum FunctionKind {
+    Declaration,
+    Expression,
+    Arrow,
 }

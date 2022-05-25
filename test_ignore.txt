@@ -8,8 +8,9 @@ feature:SharedArrayBuffer
 feature:resizable-arraybuffer
 feature:Temporal
 feature:tail-call-optimization
-//feature:async-iteration
-//feature:class
+
+// Non-standard
+feature:caller
 
 // These generate a stack overflow
 tco-call

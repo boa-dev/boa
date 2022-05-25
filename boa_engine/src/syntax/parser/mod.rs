@@ -13,9 +13,15 @@ mod tests;
 
 use crate::{
     syntax::{
-        ast::{node::StatementList, Position},
+        ast::{
+            node::{FormalParameterList, StatementList},
+            Position,
+        },
         lexer::TokenKind,
-        parser::cursor::Cursor,
+        parser::{
+            cursor::Cursor,
+            function::{FormalParameters, FunctionStatementList},
+        },
     },
     Context,
 };
@@ -189,6 +195,36 @@ impl<R> Parser<R> {
         }
 
         Ok(statement_list)
+    }
+
+    /// Parse the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-FunctionBody
+    pub(crate) fn parse_function_body(
+        &mut self,
+        interner: &mut Interner,
+        allow_yield: bool,
+        allow_await: bool,
+    ) -> Result<StatementList, ParseError>
+    where
+        R: Read,
+    {
+        FunctionStatementList::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
+    }
+
+    /// Parse the full input as an [ECMAScript `FormalParameterList`][spec] into the boa AST representation.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
+    pub(crate) fn parse_formal_parameters(
+        &mut self,
+        interner: &mut Interner,
+        allow_yield: bool,
+        allow_await: bool,
+    ) -> Result<FormalParameterList, ParseError>
+    where
+        R: Read,
+    {
+        FormalParameters::new(allow_yield, allow_await).parse(&mut self.cursor, interner)
     }
 }
 

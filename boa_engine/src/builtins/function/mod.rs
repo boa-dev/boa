@@ -22,10 +22,12 @@ use crate::{
     object::{ConstructorBuilder, FunctionBuilder, Ref, RefMut},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
+    syntax::{ast::node::FormalParameterList, Parser},
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, Trace};
+use boa_interner::Sym;
 use boa_profiler::Profiler;
 use dyn_clone::DynClone;
 use std::{
@@ -275,23 +277,152 @@ pub struct BuiltInFunctionObject;
 impl BuiltInFunctionObject {
     pub const LENGTH: usize = 1;
 
+    /// `Function ( p1, p2, … , pn, body )`
+    ///
+    /// The apply() method invokes self with the first argument as the `this` value
+    /// and the rest of the arguments provided as an array (or an array-like object).
+    ///
+    /// More information:
+    ///  - [MDN documentation][mdn]
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-function-p1-p2-pn-body
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/Function
     fn constructor(
         new_target: &JsValue,
-        _: &[JsValue],
+        args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        Self::create_dynamic_function(new_target, args, context).map(Into::into)
+    }
+
+    /// `CreateDynamicFunction ( constructor, newTarget, kind, args )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-createdynamicfunction
+    fn create_dynamic_function(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::function, context)?;
+        if let Some((body_arg, args)) = args.split_last() {
+            let parameters =
+                if args.is_empty() {
+                    FormalParameterList::empty()
+                } else {
+                    let mut parameters = Vec::with_capacity(args.len());
+                    for arg in args {
+                        parameters.push(arg.to_string(context)?);
+                    }
+                    let mut parameters = parameters.join(",");
+                    parameters.push(')');
 
-        let this = JsObject::from_proto_and_data(
-            prototype,
-            ObjectData::function(Function::Native {
-                function: |_, _, _| Ok(JsValue::undefined()),
-                constructor: true,
-            }),
-        );
+                    let parameters = match Parser::new(parameters.as_bytes())
+                        .parse_formal_parameters(context.interner_mut(), false, false)
+                    {
+                        Ok(parameters) => parameters,
+                        Err(e) => {
+                            return context.throw_syntax_error(format!(
+                                "failed to parse function parameters: {e}"
+                            ))
+                        }
+                    };
+                    parameters
+                };
 
-        Ok(this.into())
+            let body_arg = body_arg.to_string(context)?;
+
+            let body = match Parser::new(body_arg.as_bytes()).parse_function_body(
+                context.interner_mut(),
+                false,
+                false,
+            ) {
+                Ok(statement_list) => statement_list,
+                Err(e) => {
+                    return context
+                        .throw_syntax_error(format!("failed to parse function body: {e}"))
+                }
+            };
+
+            // Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
+            // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
+            if body.strict() {
+                for parameter in parameters.parameters.iter() {
+                    for name in parameter.names() {
+                        if [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
+                            return context.throw_syntax_error(
+                                " Unexpected 'eval' or 'arguments' in strict mode",
+                            );
+                        }
+                    }
+                }
+            }
+
+            // Early Error: If the source code matching FormalParameters is strict mode code,
+            // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
+            if (body.strict()) && parameters.has_duplicates() {
+                return context
+                    .throw_syntax_error("Duplicate parameter name not allowed in this context");
+            }
+
+            // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
+            // and IsSimpleParameterList of FormalParameters is false.
+            if body.strict() && !parameters.is_simple() {
+                return context.throw_syntax_error(
+                    "Illegal 'use strict' directive in function with non-simple parameter list",
+                );
+            }
+
+            // It is a Syntax Error if any element of the BoundNames of FormalParameters
+            // also occurs in the LexicallyDeclaredNames of FunctionBody.
+            // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
+            {
+                let lexically_declared_names = body.lexically_declared_names();
+                for param in parameters.parameters.as_ref() {
+                    for param_name in param.names() {
+                        if lexically_declared_names
+                            .iter()
+                            .any(|(name, _)| *name == param_name)
+                        {
+                            return context.throw_syntax_error(format!(
+                                "Redeclaration of formal parameter `{}`",
+                                context.interner().resolve_expect(param_name)
+                            ));
+                        }
+                    }
+                }
+            }
+
+            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
+                crate::bytecompiler::FunctionKind::Expression,
+                Some(Sym::EMPTY_STRING),
+                &parameters,
+                &body,
+                false,
+                false,
+                context,
+            )?;
+
+            let environments = context.realm.environments.pop_to_global();
+            let function_object = crate::vm::create_function_object(code, context);
+            context.realm.environments.extend(environments);
+
+            Ok(function_object)
+        } else {
+            let this = JsObject::from_proto_and_data(
+                prototype,
+                ObjectData::function(Function::Native {
+                    function: |_, _, _| Ok(JsValue::undefined()),
+                    constructor: true,
+                }),
+            );
+
+            Ok(this)
+        }
     }
 
     /// `Function.prototype.apply ( thisArg, argArray )`
@@ -523,6 +654,8 @@ impl BuiltIn for BuiltInFunctionObject {
             .constructor(false)
             .build();
 
+        let throw_type_error = context.intrinsics().objects().throw_type_error();
+
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
@@ -530,11 +663,27 @@ impl BuiltIn for BuiltInFunctionObject {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
-        .method(Self::apply, "apply", 1)
+        .method(Self::apply, "apply", 2)
         .method(Self::bind, "bind", 1)
         .method(Self::call, "call", 1)
         .method(Self::to_string, "toString", 0)
         .property(symbol_has_instance, has_instance, Attribute::default())
+        .property_descriptor(
+            "caller",
+            PropertyDescriptor::builder()
+                .get(throw_type_error.clone())
+                .set(throw_type_error.clone())
+                .enumerable(false)
+                .configurable(true),
+        )
+        .property_descriptor(
+            "arguments",
+            PropertyDescriptor::builder()
+                .get(throw_type_error.clone())
+                .set(throw_type_error)
+                .enumerable(false)
+                .configurable(true),
+        )
         .build()
         .conv::<JsValue>()
         .pipe(Some)
