@@ -35,7 +35,7 @@ jobs:
           if [ -d target/doc_upload ]; then rm -rf target/doc_upload; fi
           mkdir target/doc_upload && mv target/doc target/doc_upload/doc
       - name: Upload documentation
-        uses: crazy-max/ghaction-github-pages@v2.6.0
+        uses: crazy-max/ghaction-github-pages@v3.0.0
         with:
           target_branch: gh-pages
           keep_history: true
