@@ -736,9 +736,10 @@ impl Context {
 /// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
 /// the only way to create a new [`Context`], since now it requires a
 /// valid data provider for the `Intl` functionality.
+///
 #[cfg_attr(
     feature = "intl",
-    doc = "The required data for a valid data provider is specified in [`BoaProvider`]"
+    doc = "The required data in a valid provider is specified in [`BoaProvider`]"
 )]
 #[derive(Debug, Default)]
 pub struct ContextBuilder {
