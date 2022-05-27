@@ -762,9 +762,9 @@ impl ContextBuilder {
     ///
     /// This function is only available if the `intl` feature is enabled.
     #[cfg(any(feature = "intl", docs))]
-    pub fn icu_provider<P: icu::BoaProvider + 'static>(
+    pub fn icu_provider(
         mut self,
-        provider: P,
+        provider: std::rc::Rc<dyn icu::BoaProvider>,
     ) -> Result<Self, DataError> {
         self.icu = Some(icu::Icu::new(provider)?);
         Ok(self)
@@ -794,8 +794,8 @@ impl ContextBuilder {
             #[cfg(feature = "intl")]
             icu: self.icu.unwrap_or_else(|| {
                 // TODO: Replace with a more fitting default
-                let provider = icu_testdata::get_provider();
-                icu::Icu::new(provider).expect("Failed to initialize default icu data.")
+                icu::Icu::new(std::rc::Rc::new(icu_testdata::get_provider()))
+                    .expect("Failed to initialize default icu data.")
             }),
         };
 

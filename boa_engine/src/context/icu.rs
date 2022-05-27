@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use icu_datetime::provider::{
     calendar::{DatePatternsV1Marker, DateSkeletonPatternsV1Marker, DateSymbolsV1Marker},
     week_data::WeekDataV1Marker,
@@ -38,7 +40,7 @@ impl<T> BoaProvider for T where
 /// for the functionality of `Intl`.
 #[allow(unused)]
 pub(crate) struct Icu {
-    provider: Box<dyn BoaProvider>,
+    provider: Rc<dyn BoaProvider>,
     locale_canonicalizer: LocaleCanonicalizer,
 }
 
@@ -59,10 +61,10 @@ impl Icu {
     ///
     /// This method will return an error if any of the tools
     /// required cannot be constructed.
-    pub(crate) fn new<P: 'static + BoaProvider>(provider: P) -> Result<Self, DataError> {
+    pub(crate) fn new(provider: Rc<dyn BoaProvider>) -> Result<Self, DataError> {
         Ok(Self {
-            locale_canonicalizer: LocaleCanonicalizer::new(&provider)?,
-            provider: Box::new(provider),
+            locale_canonicalizer: LocaleCanonicalizer::new(&*provider)?,
+            provider,
         })
     }
 
