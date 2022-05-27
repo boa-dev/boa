@@ -12,7 +12,7 @@ license = "Unlicense/MIT"
 publish = false
 
 [dependencies]
-boa_engine = { path = "../boa_engine", version = "0.14.0" }
+boa_engine = { path = "../boa_engine", features = ["intl"], version = "0.14.0" }
 boa_interner = { path = "../boa_interner", version = "0.14.0" }
 structopt = "0.3.26"
 serde = { version = "1.0.137", features = ["derive"] }
