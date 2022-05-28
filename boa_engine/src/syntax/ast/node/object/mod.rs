@@ -338,6 +338,7 @@ pub enum PropertyName {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName
     Literal(Sym),
+
     /// A `Computed` property name is an expression that gets evaluated and converted into a property name.
     ///
     /// More information:
@@ -387,5 +388,22 @@ impl From<Node> for PropertyName {
 }
 
 unsafe impl Trace for PropertyName {
+    unsafe_empty_trace!();
+}
+
+/// `ClassElementName` can be either a property name or a private identifier.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ClassElementName
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Finalize)]
+pub(crate) enum ClassElementName {
+    PropertyName(PropertyName),
+    PrivateIdentifier(Sym),
+}
+
+unsafe impl Trace for ClassElementName {
     unsafe_empty_trace!();
 }

@@ -617,22 +617,38 @@ where
                 }
                 let strict = cursor.strict_mode();
                 cursor.set_strict_mode(true);
-                let (property_name, method) =
+                let (class_element_name, method) =
                     GeneratorMethod::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                 cursor.set_strict_mode(strict);
-                if r#static {
-                    if let Some(name) = property_name.prop_name() {
-                        if name == Sym::PROTOTYPE {
+
+                match class_element_name {
+                    node::object::ClassElementName::PropertyName(property_name) if r#static => {
+                        if let Some(Sym::PROTOTYPE) = property_name.prop_name() {
                             return Err(ParseError::general(
                                 "class may not have static method definitions named 'prototype'",
                                 name_position,
                             ));
                         }
+                        ClassElementNode::StaticMethodDefinition(property_name, method)
                     }
-                    ClassElementNode::StaticMethodDefinition(property_name, method)
-                } else {
-                    ClassElementNode::MethodDefinition(property_name, method)
+                    node::object::ClassElementName::PropertyName(property_name) => {
+                        ClassElementNode::MethodDefinition(property_name, method)
+                    }
+                    node::object::ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) => {
+                        return Err(ParseError::general(
+                            "class constructor may not be a private method",
+                            name_position,
+                        ))
+                    }
+                    node::object::ClassElementName::PrivateIdentifier(private_ident)
+                        if r#static =>
+                    {
+                        ClassElementNode::PrivateStaticMethodDefinition(private_ident, method)
+                    }
+                    node::object::ClassElementName::PrivateIdentifier(private_ident) => {
+                        ClassElementNode::PrivateMethodDefinition(private_ident, method)
+                    }
                 }
             }
             TokenKind::Keyword((Keyword::Async, true)) => {
