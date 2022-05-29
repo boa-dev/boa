@@ -2922,6 +2922,7 @@ impl<'b> ByteCompiler<'b> {
     }
 }
 
+/// `FunctionKind` describes how a function has been defined in the source code.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum FunctionKind {
     Declaration,

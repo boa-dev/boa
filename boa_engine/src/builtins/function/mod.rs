@@ -353,7 +353,7 @@ impl BuiltInFunctionObject {
             if body.strict() {
                 for parameter in parameters.parameters.iter() {
                     for name in parameter.names() {
-                        if [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
+                        if name == Sym::ARGUMENTS || name == Sym::EVAL {
                             return context.throw_syntax_error(
                                 " Unexpected 'eval' or 'arguments' in strict mode",
                             );
