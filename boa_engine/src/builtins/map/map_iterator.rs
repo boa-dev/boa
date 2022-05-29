@@ -33,7 +33,7 @@ impl MapIterator {
     /// More information:
     ///  - [ECMA reference][spec]
     ///
-    /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createmapiterator
+    /// [spec]: https://tc39.es/ecma262/#sec-createmapiterator
     pub(crate) fn create_map_iterator(
         map: &JsValue,
         kind: PropertyNameKind,

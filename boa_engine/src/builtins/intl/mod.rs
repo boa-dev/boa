@@ -58,6 +58,8 @@ impl BuiltIn for Intl {
 }
 
 impl Intl {
+    /// `Intl.getCanonicalLocales ( locales )`
+    ///
     /// Returns an array containing the canonical locale names.
     ///
     /// More information:
@@ -91,9 +93,10 @@ struct MatcherRecord {
     extension: JsString,
 }
 
-/// The `DefaultLocale` abstract operation returns a String value representing the structurally
-/// valid and canonicalized Unicode BCP 47 locale identifier for the host environment's current
-/// locale.
+/// Abstract operation `DefaultLocale ( )`
+///
+/// Returns a String value representing the structurally valid and canonicalized
+/// Unicode BCP 47 locale identifier for the host environment's current locale.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -106,11 +109,13 @@ fn default_locale(canonicalizer: &LocaleCanonicalizer) -> Locale {
         .unwrap_or(locale!("en-US"))
 }
 
-/// The `BestAvailableLocale` abstract operation compares the provided argument `locale`,
-/// which must be a String value with a structurally valid and canonicalized Unicode BCP 47
-/// locale identifier, against the locales in `availableLocales` and returns either the longest
-/// non-empty prefix of `locale` that is an element of `availableLocales`, or undefined if
-/// there is no such element.
+/// Abstract operation `BestAvailableLocale ( availableLocales, locale )`
+///
+/// Compares the provided argument `locale`, which must be a String value with a
+/// structurally valid and canonicalized Unicode BCP 47 locale identifier, against
+/// the locales in `availableLocales` and returns either the longest non-empty prefix
+/// of `locale` that is an element of `availableLocales`, or undefined if there is no
+/// such element.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -146,9 +151,11 @@ fn best_available_locale(available_locales: &[JsString], locale: &JsString) -> O
     }
 }
 
-/// The `LookupMatcher` abstract operation compares `requestedLocales`, which must be a `List`
-/// as returned by `CanonicalizeLocaleList`, against the locales in `availableLocales` and
-/// determines the best available language to meet the request.
+/// Abstract operation `LookupMatcher ( availableLocales, requestedLocales )`
+///
+/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
+/// against the locales in `availableLocales` and determines the best available language to
+/// meet the request.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -202,11 +209,13 @@ fn lookup_matcher(
     }
 }
 
-/// The `BestFitMatcher` abstract operation compares `requestedLocales`, which must be a `List`
-/// as returned by `CanonicalizeLocaleList`, against the locales in `availableLocales` and
-/// determines the best available language to meet the request. The algorithm is implementation
-/// dependent, but should produce results that a typical user of the requested locales would
-/// perceive as at least as good as those produced by the `LookupMatcher` abstract operation.
+/// Abstract operation `BestFitMatcher ( availableLocales, requestedLocales )`
+///
+/// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
+/// against the locales in `availableLocales` and determines the best available language to
+/// meet the request. The algorithm is implementation dependent, but should produce results
+/// that a typical user of the requested locales would perceive as at least as good as those
+/// produced by the `LookupMatcher` abstract operation.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -241,9 +250,10 @@ struct UniExtRecord {
     keywords: Vec<Keyword>,
 }
 
-/// The `UnicodeExtensionComponents` abstract operation returns the attributes and keywords from
-/// `extension`, which must be a String value whose contents are a `Unicode locale extension`
-/// sequence.
+/// Abstract operation `UnicodeExtensionComponents ( extension )`
+///
+/// Returns the attributes and keywords from `extension`, which must be a String
+/// value whose contents are a `Unicode locale extension` sequence.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -345,9 +355,11 @@ fn unicode_extension_components(extension: &JsString) -> UniExtRecord {
     }
 }
 
-/// The `InsertUnicodeExtensionAndCanonicalize` abstract operation inserts `extension`, which must
-/// be a Unicode locale extension sequence, into `locale`, which must be a String value with a
-/// structurally valid and canonicalized Unicode BCP 47 locale identifier.
+/// Abstract operation `InsertUnicodeExtensionAndCanonicalize ( locale, extension )`
+///
+/// Inserts `extension`, which must be a Unicode locale extension sequence, into
+/// `locale`, which must be a String value with a structurally valid and canonicalized
+/// Unicode BCP 47 locale identifier.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -395,8 +407,22 @@ fn insert_unicode_extension_and_canonicalize(
     new_locale.to_string().into()
 }
 
+/// Abstract operation `CanonicalizeLocaleList ( locales )`
+///
+/// Converts an array of [`JsValue`]s containing structurally valid
+/// [Unicode BCP 47 locale identifiers][bcp-47] into their [canonical form][canon].
+///
+/// For efficiency, this returns a [`Vec`] of [`Locale`]s instead of a [`Vec`] of
+/// [`String`]s, since [`Locale`] allows us to modify individual parts of the locale
+/// without scanning the whole string again.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma402/#sec-canonicalizelocalelist
+/// [bcp-47]: https://unicode.org/reports/tr35/#Unicode_locale_identifier
+/// [canon]: https://unicode.org/reports/tr35/#LocaleId_Canonicalization
 fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult<Vec<Locale>> {
-    // https://tc39.es/ecma402/#sec-canonicalizelocalelist
     // 1. If locales is undefined, then
     let locales = args.get_or_undefined(0);
     if locales.is_undefined() {
@@ -484,10 +510,12 @@ struct ResolveLocaleRecord {
     pub(crate) data_locale: JsString,
 }
 
-/// The `ResolveLocale` abstract operation compares a BCP 47 language priority list
-/// `requestedLocales` against the locales in `availableLocales` and determines the best
-/// available language to meet the request. `availableLocales`, `requestedLocales`, and
-/// `relevantExtensionKeys` must be provided as `List` values, options and `localeData` as Records.
+/// Abstract operation `ResolveLocale ( availableLocales, requestedLocales, options, relevantExtensionKeys, localeData )`
+///
+/// Compares a BCP 47 language priority list `requestedLocales` against the locales
+/// in `availableLocales` and determines the best available language to meet the request.
+/// `availableLocales`, `requestedLocales`, and `relevantExtensionKeys` must be provided as
+/// `List` values, options and `localeData` as Records.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -682,9 +710,11 @@ pub(crate) enum GetOptionType {
     Boolean,
 }
 
-/// The abstract operation `GetOption` extracts the value of the property named `property` from the
-/// provided `options` object, converts it to the required `type`, checks whether it is one of a
-/// `List` of allowed `values`, and fills in a `fallback` value if necessary. If `values` is
+/// Abstract operation `GetOption ( options, property, type, values, fallback )`
+///
+/// Extracts the value of the property named `property` from the provided `options` object,
+/// converts it to the required `type`, checks whether it is one of a `List` of allowed
+/// `values`, and fills in a `fallback` value if necessary. If `values` is
 /// undefined, there is no fixed set of values and any is permitted.
 ///
 /// More information:
@@ -731,9 +761,11 @@ pub(crate) fn get_option(
     Ok(value)
 }
 
-/// The abstract operation `GetNumberOption` extracts the value of the property named `property`
-/// from the provided `options` object, converts it to a `Number value`, checks whether it is in
-/// the allowed range, and fills in a `fallback` value if necessary.
+/// Abstract operation `GetNumberOption ( options, property, minimum, maximum, fallback )`
+///
+/// Extracts the value of the property named `property` from the provided `options`
+/// object, converts it to a `Number value`, checks whether it is in the allowed range,
+/// and fills in a `fallback` value if necessary.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -756,8 +788,10 @@ pub(crate) fn get_number_option(
     default_number_option(&value, minimum, maximum, fallback, context)
 }
 
-/// The abstract operation `DefaultNumberOption` converts `value` to a `Number value`, checks
-/// whether it is in the allowed range, and fills in a `fallback` value if necessary.
+/// Abstract operation `DefaultNumberOption ( value, minimum, maximum, fallback )`
+///
+/// Converts `value` to a `Number value`, checks whether it is in the allowed range,
+/// and fills in a `fallback` value if necessary.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -796,7 +830,7 @@ pub(crate) fn default_number_option(
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
-/// [spec]: https://402.ecma-international.org/8.0/#sec-canonicalizeunicodelocaleid
+/// [spec]: https://tc39.es/ecma402/#sec-canonicalizeunicodelocaleid
 fn canonicalize_unicode_locale_id(locale: &mut Locale, canonicalizer: &LocaleCanonicalizer) {
     canonicalizer.canonicalize(locale);
 }

@@ -40,7 +40,7 @@ impl SetIterator {
     /// More information:
     ///  - [ECMA reference][spec]
     ///
-    /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-createsetiterator
+    /// [spec]: https://tc39.es/ecma262/#sec-createsetiterator
     pub(crate) fn create_set_iterator(
         set: JsValue,
         kind: PropertyNameKind,

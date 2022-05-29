@@ -23,7 +23,7 @@ use std::{
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://www.ecma-international.org/ecma-262/#sec-literals-regular-expression-literals
+/// [spec]: https://tc39.es/ecma262/#sec-literals-regular-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
 #[derive(Debug, Clone, Copy)]
 pub(super) struct RegexLiteral;

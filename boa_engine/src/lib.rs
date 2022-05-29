@@ -8,7 +8,7 @@
 //!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
 //!
 //! [whatwg]: https://console.spec.whatwg.org
-//! [ecma-402]: https://402.ecma-international.org
+//! [ecma-402]: https://tc39.es/ecma402
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
