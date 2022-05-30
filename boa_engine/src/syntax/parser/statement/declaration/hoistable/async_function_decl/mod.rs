@@ -18,7 +18,7 @@ use std::io::Read;
 ///  - [ECMAScript specification][spec]
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
-/// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#prod-AsyncFunctionDeclaration
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionDeclaration
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncFunctionDeclaration {
     allow_yield: AllowYield,

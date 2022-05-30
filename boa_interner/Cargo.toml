@@ -2,7 +2,7 @@
 name = "boa_interner"
 version = "0.14.0"
 edition = "2021"
-rust-version = "1.58"
+rust-version = "1.60"
 authors = ["boa-dev"]
 description = "String interner used in Boa."
 repository = "https://github.com/boa-dev/boa"

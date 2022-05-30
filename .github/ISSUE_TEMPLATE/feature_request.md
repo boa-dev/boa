@@ -16,7 +16,7 @@ Explain the ECMAScript feature that you'd like to see implemented.
 <!-- E.g.:
 I would like to see `switch` statement parsing and execution implemented. [ECMAScript specification][spec].
 
-[spec]: https://www.ecma-international.org/ecma-262/10.0/index.html#sec-switch-statement
+[spec]: https://tc39.es/ecma262/#sec-switch-statement
 -->
 
 **Example code**

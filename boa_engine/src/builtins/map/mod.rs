@@ -170,7 +170,7 @@ impl Map {
     ///  - [ECMAScript reference][spec]
     ///  - [MDN documentation][mdn]
     ///
-    /// [spec]: https://www.ecma-international.org/ecma-262/11.0/index.html#sec-map.prototype.entries
+    /// [spec]: https://tc39.es/ecma262/#sec-map.prototype.entries
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/entries
     pub(crate) fn entries(
         this: &JsValue,

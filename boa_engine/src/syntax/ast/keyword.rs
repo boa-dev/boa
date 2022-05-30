@@ -4,7 +4,7 @@
 //!  - [ECMAScript reference][spec]
 //!  - [MDN documentation][mdn]
 //!
-//! [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
+//! [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
 use crate::syntax::ast::op::{BinOp, CompOp};
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
+/// [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq, Debug)]

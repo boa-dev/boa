@@ -3,8 +3,12 @@
 //!
 //! # Crate Features
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
-//!  - **console** - Enables `boa`s WHATWG `console` object implementation.
+//!  - **console** - Enables `boa`'s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
+//!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
+//!
+//! [whatwg]: https://console.spec.whatwg.org
+//! [ecma-402]: https://tc39.es/ecma402
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
