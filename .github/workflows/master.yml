@@ -45,7 +45,7 @@ jobs:
       - name: Run benchmark
         run: cargo bench -p boa_engine -- --output-format bencher | tee output.txt
       - name: Store benchmark result
-        uses: benchmark-action/github-action-benchmark@v1.13.0
+        uses: benchmark-action/github-action-benchmark@v1.14.0
         with:
           name: Boa Benchmarks
           tool: "cargo"
