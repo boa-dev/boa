@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.122/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/libc-0.2.126/src/unix/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../libc/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1527,6 +1527,19 @@
 <span id="1522">1522</span>
 <span id="1523">1523</span>
 <span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Definitions found commonly among almost all Unix derivatives</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More functions and definitions can be found in the more specific modules</span>
@@ -2044,6 +2057,7 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strcpy</span>(<span class="ident">dst</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">src</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strncpy</span>(<span class="ident">dst</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">src</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">n</span>: <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stpcpy</span>(<span class="ident">dst</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">src</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strcat</span>(<span class="ident">s</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">ct</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strncat</span>(<span class="ident">s</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">ct</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">n</span>: <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strcmp</span>(<span class="ident">cs</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">ct</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="ident">c_int</span>;
@@ -2067,6 +2081,7 @@
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strerror</span>(<span class="ident">n</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtok</span>(<span class="ident">s</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">t</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strtok_r</span>(<span class="ident">s</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">t</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">p</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strxfrm</span>(<span class="ident">s</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">ct</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">n</span>: <span class="ident">size_t</span>) -&gt; <span class="ident">size_t</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">strsignal</span>(<span class="ident">sig</span>: <span class="ident">c_int</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wcslen</span>(<span class="ident">buf</span>: <span class="kw-2">*const</span> <span class="ident">wchar_t</span>) -&gt; <span class="ident">size_t</span>;
@@ -2918,6 +2933,17 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">getline</span>(<span class="ident">lineptr</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">n</span>: <span class="kw-2">*mut</span> <span class="ident">size_t</span>, <span class="ident">stream</span>: <span class="kw-2">*mut</span> <span class="ident">FILE</span>) -&gt; <span class="ident">ssize_t</span>;
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">lockf</span>(<span class="ident">fd</span>: <span class="ident">::c_int</span>, <span class="ident">cmd</span>: <span class="ident">::c_int</span>, <span class="ident">len</span>: <span class="ident">::off_t</span>) -&gt; <span class="ident">::c_int</span>;
+
+}
+<span class="macro">cfg_if!</span> {
+    <span class="kw">if</span> <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>,
+                     <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;haiku&quot;</span>)))]</span> {
+        <span class="kw">extern</span> <span class="string">&quot;C&quot;</span> {
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">adjtime</span>(<span class="ident">delta</span>: <span class="kw-2">*const</span> <span class="ident">timeval</span>, <span class="ident">olddelta</span>: <span class="kw-2">*mut</span> <span class="ident">timeval</span>) -&gt; <span class="ident">::c_int</span>;
+            <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">stpncpy</span>(<span class="ident">dst</span>: <span class="kw-2">*mut</span> <span class="ident">c_char</span>, <span class="ident">src</span>: <span class="kw-2">*const</span> <span class="ident">c_char</span>, <span class="ident">n</span>: <span class="ident">size_t</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">c_char</span>;
+        }
+    }
 }
 
 <span class="macro">cfg_if!</span> {

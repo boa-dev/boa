@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-xid-0.2.2/src/tables.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tables.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-xid-0.2.3/src/tables.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tables.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_xid/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1424,6 +1424,58 @@
 <span id="1417">1417</span>
 <span id="1418">1418</span>
 <span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
@@ -1440,7 +1492,7 @@
 
 <span class="doccomment">/// The version of [Unicode](http://www.unicode.org/)</span>
 <span class="doccomment">/// that this version of unicode-xid is based on.</span>
-<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNICODE_VERSION</span>: (<span class="ident">u64</span>, <span class="ident">u64</span>, <span class="ident">u64</span>) <span class="op">=</span> (<span class="number">13</span>, <span class="number">0</span>, <span class="number">0</span>);
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">UNICODE_VERSION</span>: (<span class="ident">u64</span>, <span class="ident">u64</span>, <span class="ident">u64</span>) <span class="op">=</span> (<span class="number">14</span>, <span class="number">0</span>, <span class="number">0</span>);
 
 <span class="kw">fn</span> <span class="ident">bsearch_range_table</span>(<span class="ident">c</span>: <span class="ident">char</span>, <span class="ident">r</span>: <span class="kw-2">&amp;</span>[(<span class="ident">char</span>, <span class="ident">char</span>)]) -&gt; <span class="ident">bool</span> {
     <span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>::{<span class="ident">Equal</span>, <span class="ident">Greater</span>, <span class="ident">Less</span>};
@@ -1515,9 +1567,9 @@
         (<span class="string">&#39;\u{800}&#39;</span>, <span class="string">&#39;\u{82d}&#39;</span>),
         (<span class="string">&#39;\u{840}&#39;</span>, <span class="string">&#39;\u{85b}&#39;</span>),
         (<span class="string">&#39;\u{860}&#39;</span>, <span class="string">&#39;\u{86a}&#39;</span>),
-        (<span class="string">&#39;\u{8a0}&#39;</span>, <span class="string">&#39;\u{8b4}&#39;</span>),
-        (<span class="string">&#39;\u{8b6}&#39;</span>, <span class="string">&#39;\u{8c7}&#39;</span>),
-        (<span class="string">&#39;\u{8d3}&#39;</span>, <span class="string">&#39;\u{8e1}&#39;</span>),
+        (<span class="string">&#39;\u{870}&#39;</span>, <span class="string">&#39;\u{887}&#39;</span>),
+        (<span class="string">&#39;\u{889}&#39;</span>, <span class="string">&#39;\u{88e}&#39;</span>),
+        (<span class="string">&#39;\u{898}&#39;</span>, <span class="string">&#39;\u{8e1}&#39;</span>),
         (<span class="string">&#39;\u{8e3}&#39;</span>, <span class="string">&#39;\u{963}&#39;</span>),
         (<span class="string">&#39;\u{966}&#39;</span>, <span class="string">&#39;\u{96f}&#39;</span>),
         (<span class="string">&#39;\u{971}&#39;</span>, <span class="string">&#39;\u{983}&#39;</span>),
@@ -1601,11 +1653,12 @@
         (<span class="string">&#39;\u{c0e}&#39;</span>, <span class="string">&#39;\u{c10}&#39;</span>),
         (<span class="string">&#39;\u{c12}&#39;</span>, <span class="string">&#39;\u{c28}&#39;</span>),
         (<span class="string">&#39;\u{c2a}&#39;</span>, <span class="string">&#39;\u{c39}&#39;</span>),
-        (<span class="string">&#39;\u{c3d}&#39;</span>, <span class="string">&#39;\u{c44}&#39;</span>),
+        (<span class="string">&#39;\u{c3c}&#39;</span>, <span class="string">&#39;\u{c44}&#39;</span>),
         (<span class="string">&#39;\u{c46}&#39;</span>, <span class="string">&#39;\u{c48}&#39;</span>),
         (<span class="string">&#39;\u{c4a}&#39;</span>, <span class="string">&#39;\u{c4d}&#39;</span>),
         (<span class="string">&#39;\u{c55}&#39;</span>, <span class="string">&#39;\u{c56}&#39;</span>),
         (<span class="string">&#39;\u{c58}&#39;</span>, <span class="string">&#39;\u{c5a}&#39;</span>),
+        (<span class="string">&#39;\u{c5d}&#39;</span>, <span class="string">&#39;\u{c5d}&#39;</span>),
         (<span class="string">&#39;\u{c60}&#39;</span>, <span class="string">&#39;\u{c63}&#39;</span>),
         (<span class="string">&#39;\u{c66}&#39;</span>, <span class="string">&#39;\u{c6f}&#39;</span>),
         (<span class="string">&#39;\u{c80}&#39;</span>, <span class="string">&#39;\u{c83}&#39;</span>),
@@ -1618,7 +1671,7 @@
         (<span class="string">&#39;\u{cc6}&#39;</span>, <span class="string">&#39;\u{cc8}&#39;</span>),
         (<span class="string">&#39;\u{cca}&#39;</span>, <span class="string">&#39;\u{ccd}&#39;</span>),
         (<span class="string">&#39;\u{cd5}&#39;</span>, <span class="string">&#39;\u{cd6}&#39;</span>),
-        (<span class="string">&#39;\u{cde}&#39;</span>, <span class="string">&#39;\u{cde}&#39;</span>),
+        (<span class="string">&#39;\u{cdd}&#39;</span>, <span class="string">&#39;\u{cde}&#39;</span>),
         (<span class="string">&#39;\u{ce0}&#39;</span>, <span class="string">&#39;\u{ce3}&#39;</span>),
         (<span class="string">&#39;\u{ce6}&#39;</span>, <span class="string">&#39;\u{cef}&#39;</span>),
         (<span class="string">&#39;\u{cf1}&#39;</span>, <span class="string">&#39;\u{cf2}&#39;</span>),
@@ -1701,9 +1754,8 @@
         (<span class="string">&#39;\u{1681}&#39;</span>, <span class="string">&#39;\u{169a}&#39;</span>),
         (<span class="string">&#39;\u{16a0}&#39;</span>, <span class="string">&#39;\u{16ea}&#39;</span>),
         (<span class="string">&#39;\u{16ee}&#39;</span>, <span class="string">&#39;\u{16f8}&#39;</span>),
-        (<span class="string">&#39;\u{1700}&#39;</span>, <span class="string">&#39;\u{170c}&#39;</span>),
-        (<span class="string">&#39;\u{170e}&#39;</span>, <span class="string">&#39;\u{1714}&#39;</span>),
-        (<span class="string">&#39;\u{1720}&#39;</span>, <span class="string">&#39;\u{1734}&#39;</span>),
+        (<span class="string">&#39;\u{1700}&#39;</span>, <span class="string">&#39;\u{1715}&#39;</span>),
+        (<span class="string">&#39;\u{171f}&#39;</span>, <span class="string">&#39;\u{1734}&#39;</span>),
         (<span class="string">&#39;\u{1740}&#39;</span>, <span class="string">&#39;\u{1753}&#39;</span>),
         (<span class="string">&#39;\u{1760}&#39;</span>, <span class="string">&#39;\u{176c}&#39;</span>),
         (<span class="string">&#39;\u{176e}&#39;</span>, <span class="string">&#39;\u{1770}&#39;</span>),
@@ -1713,7 +1765,7 @@
         (<span class="string">&#39;\u{17dc}&#39;</span>, <span class="string">&#39;\u{17dd}&#39;</span>),
         (<span class="string">&#39;\u{17e0}&#39;</span>, <span class="string">&#39;\u{17e9}&#39;</span>),
         (<span class="string">&#39;\u{180b}&#39;</span>, <span class="string">&#39;\u{180d}&#39;</span>),
-        (<span class="string">&#39;\u{1810}&#39;</span>, <span class="string">&#39;\u{1819}&#39;</span>),
+        (<span class="string">&#39;\u{180f}&#39;</span>, <span class="string">&#39;\u{1819}&#39;</span>),
         (<span class="string">&#39;\u{1820}&#39;</span>, <span class="string">&#39;\u{1878}&#39;</span>),
         (<span class="string">&#39;\u{1880}&#39;</span>, <span class="string">&#39;\u{18aa}&#39;</span>),
         (<span class="string">&#39;\u{18b0}&#39;</span>, <span class="string">&#39;\u{18f5}&#39;</span>),
@@ -1732,8 +1784,8 @@
         (<span class="string">&#39;\u{1a90}&#39;</span>, <span class="string">&#39;\u{1a99}&#39;</span>),
         (<span class="string">&#39;\u{1aa7}&#39;</span>, <span class="string">&#39;\u{1aa7}&#39;</span>),
         (<span class="string">&#39;\u{1ab0}&#39;</span>, <span class="string">&#39;\u{1abd}&#39;</span>),
-        (<span class="string">&#39;\u{1abf}&#39;</span>, <span class="string">&#39;\u{1ac0}&#39;</span>),
-        (<span class="string">&#39;\u{1b00}&#39;</span>, <span class="string">&#39;\u{1b4b}&#39;</span>),
+        (<span class="string">&#39;\u{1abf}&#39;</span>, <span class="string">&#39;\u{1ace}&#39;</span>),
+        (<span class="string">&#39;\u{1b00}&#39;</span>, <span class="string">&#39;\u{1b4c}&#39;</span>),
         (<span class="string">&#39;\u{1b50}&#39;</span>, <span class="string">&#39;\u{1b59}&#39;</span>),
         (<span class="string">&#39;\u{1b6b}&#39;</span>, <span class="string">&#39;\u{1b73}&#39;</span>),
         (<span class="string">&#39;\u{1b80}&#39;</span>, <span class="string">&#39;\u{1bf3}&#39;</span>),
@@ -1745,8 +1797,7 @@
         (<span class="string">&#39;\u{1cbd}&#39;</span>, <span class="string">&#39;\u{1cbf}&#39;</span>),
         (<span class="string">&#39;\u{1cd0}&#39;</span>, <span class="string">&#39;\u{1cd2}&#39;</span>),
         (<span class="string">&#39;\u{1cd4}&#39;</span>, <span class="string">&#39;\u{1cfa}&#39;</span>),
-        (<span class="string">&#39;\u{1d00}&#39;</span>, <span class="string">&#39;\u{1df9}&#39;</span>),
-        (<span class="string">&#39;\u{1dfb}&#39;</span>, <span class="string">&#39;\u{1f15}&#39;</span>),
+        (<span class="string">&#39;\u{1d00}&#39;</span>, <span class="string">&#39;\u{1f15}&#39;</span>),
         (<span class="string">&#39;\u{1f18}&#39;</span>, <span class="string">&#39;\u{1f1d}&#39;</span>),
         (<span class="string">&#39;\u{1f20}&#39;</span>, <span class="string">&#39;\u{1f45}&#39;</span>),
         (<span class="string">&#39;\u{1f48}&#39;</span>, <span class="string">&#39;\u{1f4d}&#39;</span>),
@@ -1786,9 +1837,7 @@
         (<span class="string">&#39;\u{2145}&#39;</span>, <span class="string">&#39;\u{2149}&#39;</span>),
         (<span class="string">&#39;\u{214e}&#39;</span>, <span class="string">&#39;\u{214e}&#39;</span>),
         (<span class="string">&#39;\u{2160}&#39;</span>, <span class="string">&#39;\u{2188}&#39;</span>),
-        (<span class="string">&#39;\u{2c00}&#39;</span>, <span class="string">&#39;\u{2c2e}&#39;</span>),
-        (<span class="string">&#39;\u{2c30}&#39;</span>, <span class="string">&#39;\u{2c5e}&#39;</span>),
-        (<span class="string">&#39;\u{2c60}&#39;</span>, <span class="string">&#39;\u{2ce4}&#39;</span>),
+        (<span class="string">&#39;\u{2c00}&#39;</span>, <span class="string">&#39;\u{2ce4}&#39;</span>),
         (<span class="string">&#39;\u{2ceb}&#39;</span>, <span class="string">&#39;\u{2cf3}&#39;</span>),
         (<span class="string">&#39;\u{2d00}&#39;</span>, <span class="string">&#39;\u{2d25}&#39;</span>),
         (<span class="string">&#39;\u{2d27}&#39;</span>, <span class="string">&#39;\u{2d27}&#39;</span>),
@@ -1819,8 +1868,7 @@
         (<span class="string">&#39;\u{31a0}&#39;</span>, <span class="string">&#39;\u{31bf}&#39;</span>),
         (<span class="string">&#39;\u{31f0}&#39;</span>, <span class="string">&#39;\u{31ff}&#39;</span>),
         (<span class="string">&#39;\u{3400}&#39;</span>, <span class="string">&#39;\u{4dbf}&#39;</span>),
-        (<span class="string">&#39;\u{4e00}&#39;</span>, <span class="string">&#39;\u{9ffc}&#39;</span>),
-        (<span class="string">&#39;\u{a000}&#39;</span>, <span class="string">&#39;\u{a48c}&#39;</span>),
+        (<span class="string">&#39;\u{4e00}&#39;</span>, <span class="string">&#39;\u{a48c}&#39;</span>),
         (<span class="string">&#39;\u{a4d0}&#39;</span>, <span class="string">&#39;\u{a4fd}&#39;</span>),
         (<span class="string">&#39;\u{a500}&#39;</span>, <span class="string">&#39;\u{a60c}&#39;</span>),
         (<span class="string">&#39;\u{a610}&#39;</span>, <span class="string">&#39;\u{a62b}&#39;</span>),
@@ -1829,9 +1877,11 @@
         (<span class="string">&#39;\u{a67f}&#39;</span>, <span class="string">&#39;\u{a6f1}&#39;</span>),
         (<span class="string">&#39;\u{a717}&#39;</span>, <span class="string">&#39;\u{a71f}&#39;</span>),
         (<span class="string">&#39;\u{a722}&#39;</span>, <span class="string">&#39;\u{a788}&#39;</span>),
-        (<span class="string">&#39;\u{a78b}&#39;</span>, <span class="string">&#39;\u{a7bf}&#39;</span>),
-        (<span class="string">&#39;\u{a7c2}&#39;</span>, <span class="string">&#39;\u{a7ca}&#39;</span>),
-        (<span class="string">&#39;\u{a7f5}&#39;</span>, <span class="string">&#39;\u{a827}&#39;</span>),
+        (<span class="string">&#39;\u{a78b}&#39;</span>, <span class="string">&#39;\u{a7ca}&#39;</span>),
+        (<span class="string">&#39;\u{a7d0}&#39;</span>, <span class="string">&#39;\u{a7d1}&#39;</span>),
+        (<span class="string">&#39;\u{a7d3}&#39;</span>, <span class="string">&#39;\u{a7d3}&#39;</span>),
+        (<span class="string">&#39;\u{a7d5}&#39;</span>, <span class="string">&#39;\u{a7d9}&#39;</span>),
+        (<span class="string">&#39;\u{a7f2}&#39;</span>, <span class="string">&#39;\u{a827}&#39;</span>),
         (<span class="string">&#39;\u{a82c}&#39;</span>, <span class="string">&#39;\u{a82c}&#39;</span>),
         (<span class="string">&#39;\u{a840}&#39;</span>, <span class="string">&#39;\u{a873}&#39;</span>),
         (<span class="string">&#39;\u{a880}&#39;</span>, <span class="string">&#39;\u{a8c5}&#39;</span>),
@@ -1926,9 +1976,20 @@
         (<span class="string">&#39;\u{104d8}&#39;</span>, <span class="string">&#39;\u{104fb}&#39;</span>),
         (<span class="string">&#39;\u{10500}&#39;</span>, <span class="string">&#39;\u{10527}&#39;</span>),
         (<span class="string">&#39;\u{10530}&#39;</span>, <span class="string">&#39;\u{10563}&#39;</span>),
+        (<span class="string">&#39;\u{10570}&#39;</span>, <span class="string">&#39;\u{1057a}&#39;</span>),
+        (<span class="string">&#39;\u{1057c}&#39;</span>, <span class="string">&#39;\u{1058a}&#39;</span>),
+        (<span class="string">&#39;\u{1058c}&#39;</span>, <span class="string">&#39;\u{10592}&#39;</span>),
+        (<span class="string">&#39;\u{10594}&#39;</span>, <span class="string">&#39;\u{10595}&#39;</span>),
+        (<span class="string">&#39;\u{10597}&#39;</span>, <span class="string">&#39;\u{105a1}&#39;</span>),
+        (<span class="string">&#39;\u{105a3}&#39;</span>, <span class="string">&#39;\u{105b1}&#39;</span>),
+        (<span class="string">&#39;\u{105b3}&#39;</span>, <span class="string">&#39;\u{105b9}&#39;</span>),
+        (<span class="string">&#39;\u{105bb}&#39;</span>, <span class="string">&#39;\u{105bc}&#39;</span>),
         (<span class="string">&#39;\u{10600}&#39;</span>, <span class="string">&#39;\u{10736}&#39;</span>),
         (<span class="string">&#39;\u{10740}&#39;</span>, <span class="string">&#39;\u{10755}&#39;</span>),
         (<span class="string">&#39;\u{10760}&#39;</span>, <span class="string">&#39;\u{10767}&#39;</span>),
+        (<span class="string">&#39;\u{10780}&#39;</span>, <span class="string">&#39;\u{10785}&#39;</span>),
+        (<span class="string">&#39;\u{10787}&#39;</span>, <span class="string">&#39;\u{107b0}&#39;</span>),
+        (<span class="string">&#39;\u{107b2}&#39;</span>, <span class="string">&#39;\u{107ba}&#39;</span>),
         (<span class="string">&#39;\u{10800}&#39;</span>, <span class="string">&#39;\u{10805}&#39;</span>),
         (<span class="string">&#39;\u{10808}&#39;</span>, <span class="string">&#39;\u{10808}&#39;</span>),
         (<span class="string">&#39;\u{1080a}&#39;</span>, <span class="string">&#39;\u{10835}&#39;</span>),
@@ -1969,11 +2030,13 @@
         (<span class="string">&#39;\u{10f00}&#39;</span>, <span class="string">&#39;\u{10f1c}&#39;</span>),
         (<span class="string">&#39;\u{10f27}&#39;</span>, <span class="string">&#39;\u{10f27}&#39;</span>),
         (<span class="string">&#39;\u{10f30}&#39;</span>, <span class="string">&#39;\u{10f50}&#39;</span>),
+        (<span class="string">&#39;\u{10f70}&#39;</span>, <span class="string">&#39;\u{10f85}&#39;</span>),
         (<span class="string">&#39;\u{10fb0}&#39;</span>, <span class="string">&#39;\u{10fc4}&#39;</span>),
         (<span class="string">&#39;\u{10fe0}&#39;</span>, <span class="string">&#39;\u{10ff6}&#39;</span>),
         (<span class="string">&#39;\u{11000}&#39;</span>, <span class="string">&#39;\u{11046}&#39;</span>),
-        (<span class="string">&#39;\u{11066}&#39;</span>, <span class="string">&#39;\u{1106f}&#39;</span>),
+        (<span class="string">&#39;\u{11066}&#39;</span>, <span class="string">&#39;\u{11075}&#39;</span>),
         (<span class="string">&#39;\u{1107f}&#39;</span>, <span class="string">&#39;\u{110ba}&#39;</span>),
+        (<span class="string">&#39;\u{110c2}&#39;</span>, <span class="string">&#39;\u{110c2}&#39;</span>),
         (<span class="string">&#39;\u{110d0}&#39;</span>, <span class="string">&#39;\u{110e8}&#39;</span>),
         (<span class="string">&#39;\u{110f0}&#39;</span>, <span class="string">&#39;\u{110f9}&#39;</span>),
         (<span class="string">&#39;\u{11100}&#39;</span>, <span class="string">&#39;\u{11134}&#39;</span>),
@@ -2027,6 +2090,7 @@
         (<span class="string">&#39;\u{11700}&#39;</span>, <span class="string">&#39;\u{1171a}&#39;</span>),
         (<span class="string">&#39;\u{1171d}&#39;</span>, <span class="string">&#39;\u{1172b}&#39;</span>),
         (<span class="string">&#39;\u{11730}&#39;</span>, <span class="string">&#39;\u{11739}&#39;</span>),
+        (<span class="string">&#39;\u{11740}&#39;</span>, <span class="string">&#39;\u{11746}&#39;</span>),
         (<span class="string">&#39;\u{11800}&#39;</span>, <span class="string">&#39;\u{1183a}&#39;</span>),
         (<span class="string">&#39;\u{118a0}&#39;</span>, <span class="string">&#39;\u{118e9}&#39;</span>),
         (<span class="string">&#39;\u{118ff}&#39;</span>, <span class="string">&#39;\u{11906}&#39;</span>),
@@ -2045,7 +2109,7 @@
         (<span class="string">&#39;\u{11a47}&#39;</span>, <span class="string">&#39;\u{11a47}&#39;</span>),
         (<span class="string">&#39;\u{11a50}&#39;</span>, <span class="string">&#39;\u{11a99}&#39;</span>),
         (<span class="string">&#39;\u{11a9d}&#39;</span>, <span class="string">&#39;\u{11a9d}&#39;</span>),
-        (<span class="string">&#39;\u{11ac0}&#39;</span>, <span class="string">&#39;\u{11af8}&#39;</span>),
+        (<span class="string">&#39;\u{11ab0}&#39;</span>, <span class="string">&#39;\u{11af8}&#39;</span>),
         (<span class="string">&#39;\u{11c00}&#39;</span>, <span class="string">&#39;\u{11c08}&#39;</span>),
         (<span class="string">&#39;\u{11c0a}&#39;</span>, <span class="string">&#39;\u{11c36}&#39;</span>),
         (<span class="string">&#39;\u{11c38}&#39;</span>, <span class="string">&#39;\u{11c40}&#39;</span>),
@@ -2071,11 +2135,14 @@
         (<span class="string">&#39;\u{12000}&#39;</span>, <span class="string">&#39;\u{12399}&#39;</span>),
         (<span class="string">&#39;\u{12400}&#39;</span>, <span class="string">&#39;\u{1246e}&#39;</span>),
         (<span class="string">&#39;\u{12480}&#39;</span>, <span class="string">&#39;\u{12543}&#39;</span>),
+        (<span class="string">&#39;\u{12f90}&#39;</span>, <span class="string">&#39;\u{12ff0}&#39;</span>),
         (<span class="string">&#39;\u{13000}&#39;</span>, <span class="string">&#39;\u{1342e}&#39;</span>),
         (<span class="string">&#39;\u{14400}&#39;</span>, <span class="string">&#39;\u{14646}&#39;</span>),
         (<span class="string">&#39;\u{16800}&#39;</span>, <span class="string">&#39;\u{16a38}&#39;</span>),
         (<span class="string">&#39;\u{16a40}&#39;</span>, <span class="string">&#39;\u{16a5e}&#39;</span>),
         (<span class="string">&#39;\u{16a60}&#39;</span>, <span class="string">&#39;\u{16a69}&#39;</span>),
+        (<span class="string">&#39;\u{16a70}&#39;</span>, <span class="string">&#39;\u{16abe}&#39;</span>),
+        (<span class="string">&#39;\u{16ac0}&#39;</span>, <span class="string">&#39;\u{16ac9}&#39;</span>),
         (<span class="string">&#39;\u{16ad0}&#39;</span>, <span class="string">&#39;\u{16aed}&#39;</span>),
         (<span class="string">&#39;\u{16af0}&#39;</span>, <span class="string">&#39;\u{16af4}&#39;</span>),
         (<span class="string">&#39;\u{16b00}&#39;</span>, <span class="string">&#39;\u{16b36}&#39;</span>),
@@ -2093,7 +2160,10 @@
         (<span class="string">&#39;\u{17000}&#39;</span>, <span class="string">&#39;\u{187f7}&#39;</span>),
         (<span class="string">&#39;\u{18800}&#39;</span>, <span class="string">&#39;\u{18cd5}&#39;</span>),
         (<span class="string">&#39;\u{18d00}&#39;</span>, <span class="string">&#39;\u{18d08}&#39;</span>),
-        (<span class="string">&#39;\u{1b000}&#39;</span>, <span class="string">&#39;\u{1b11e}&#39;</span>),
+        (<span class="string">&#39;\u{1aff0}&#39;</span>, <span class="string">&#39;\u{1aff3}&#39;</span>),
+        (<span class="string">&#39;\u{1aff5}&#39;</span>, <span class="string">&#39;\u{1affb}&#39;</span>),
+        (<span class="string">&#39;\u{1affd}&#39;</span>, <span class="string">&#39;\u{1affe}&#39;</span>),
+        (<span class="string">&#39;\u{1b000}&#39;</span>, <span class="string">&#39;\u{1b122}&#39;</span>),
         (<span class="string">&#39;\u{1b150}&#39;</span>, <span class="string">&#39;\u{1b152}&#39;</span>),
         (<span class="string">&#39;\u{1b164}&#39;</span>, <span class="string">&#39;\u{1b167}&#39;</span>),
         (<span class="string">&#39;\u{1b170}&#39;</span>, <span class="string">&#39;\u{1b2fb}&#39;</span>),
@@ -2102,6 +2172,8 @@
         (<span class="string">&#39;\u{1bc80}&#39;</span>, <span class="string">&#39;\u{1bc88}&#39;</span>),
         (<span class="string">&#39;\u{1bc90}&#39;</span>, <span class="string">&#39;\u{1bc99}&#39;</span>),
         (<span class="string">&#39;\u{1bc9d}&#39;</span>, <span class="string">&#39;\u{1bc9e}&#39;</span>),
+        (<span class="string">&#39;\u{1cf00}&#39;</span>, <span class="string">&#39;\u{1cf2d}&#39;</span>),
+        (<span class="string">&#39;\u{1cf30}&#39;</span>, <span class="string">&#39;\u{1cf46}&#39;</span>),
         (<span class="string">&#39;\u{1d165}&#39;</span>, <span class="string">&#39;\u{1d169}&#39;</span>),
         (<span class="string">&#39;\u{1d16d}&#39;</span>, <span class="string">&#39;\u{1d172}&#39;</span>),
         (<span class="string">&#39;\u{1d17b}&#39;</span>, <span class="string">&#39;\u{1d182}&#39;</span>),
@@ -2145,6 +2217,7 @@
         (<span class="string">&#39;\u{1da84}&#39;</span>, <span class="string">&#39;\u{1da84}&#39;</span>),
         (<span class="string">&#39;\u{1da9b}&#39;</span>, <span class="string">&#39;\u{1da9f}&#39;</span>),
         (<span class="string">&#39;\u{1daa1}&#39;</span>, <span class="string">&#39;\u{1daaf}&#39;</span>),
+        (<span class="string">&#39;\u{1df00}&#39;</span>, <span class="string">&#39;\u{1df1e}&#39;</span>),
         (<span class="string">&#39;\u{1e000}&#39;</span>, <span class="string">&#39;\u{1e006}&#39;</span>),
         (<span class="string">&#39;\u{1e008}&#39;</span>, <span class="string">&#39;\u{1e018}&#39;</span>),
         (<span class="string">&#39;\u{1e01b}&#39;</span>, <span class="string">&#39;\u{1e021}&#39;</span>),
@@ -2154,7 +2227,12 @@
         (<span class="string">&#39;\u{1e130}&#39;</span>, <span class="string">&#39;\u{1e13d}&#39;</span>),
         (<span class="string">&#39;\u{1e140}&#39;</span>, <span class="string">&#39;\u{1e149}&#39;</span>),
         (<span class="string">&#39;\u{1e14e}&#39;</span>, <span class="string">&#39;\u{1e14e}&#39;</span>),
+        (<span class="string">&#39;\u{1e290}&#39;</span>, <span class="string">&#39;\u{1e2ae}&#39;</span>),
         (<span class="string">&#39;\u{1e2c0}&#39;</span>, <span class="string">&#39;\u{1e2f9}&#39;</span>),
+        (<span class="string">&#39;\u{1e7e0}&#39;</span>, <span class="string">&#39;\u{1e7e6}&#39;</span>),
+        (<span class="string">&#39;\u{1e7e8}&#39;</span>, <span class="string">&#39;\u{1e7eb}&#39;</span>),
+        (<span class="string">&#39;\u{1e7ed}&#39;</span>, <span class="string">&#39;\u{1e7ee}&#39;</span>),
+        (<span class="string">&#39;\u{1e7f0}&#39;</span>, <span class="string">&#39;\u{1e7fe}&#39;</span>),
         (<span class="string">&#39;\u{1e800}&#39;</span>, <span class="string">&#39;\u{1e8c4}&#39;</span>),
         (<span class="string">&#39;\u{1e8d0}&#39;</span>, <span class="string">&#39;\u{1e8d6}&#39;</span>),
         (<span class="string">&#39;\u{1e900}&#39;</span>, <span class="string">&#39;\u{1e94b}&#39;</span>),
@@ -2193,8 +2271,8 @@
         (<span class="string">&#39;\u{1eea5}&#39;</span>, <span class="string">&#39;\u{1eea9}&#39;</span>),
         (<span class="string">&#39;\u{1eeab}&#39;</span>, <span class="string">&#39;\u{1eebb}&#39;</span>),
         (<span class="string">&#39;\u{1fbf0}&#39;</span>, <span class="string">&#39;\u{1fbf9}&#39;</span>),
-        (<span class="string">&#39;\u{20000}&#39;</span>, <span class="string">&#39;\u{2a6dd}&#39;</span>),
-        (<span class="string">&#39;\u{2a700}&#39;</span>, <span class="string">&#39;\u{2b734}&#39;</span>),
+        (<span class="string">&#39;\u{20000}&#39;</span>, <span class="string">&#39;\u{2a6df}&#39;</span>),
+        (<span class="string">&#39;\u{2a700}&#39;</span>, <span class="string">&#39;\u{2b738}&#39;</span>),
         (<span class="string">&#39;\u{2b740}&#39;</span>, <span class="string">&#39;\u{2b81d}&#39;</span>),
         (<span class="string">&#39;\u{2b820}&#39;</span>, <span class="string">&#39;\u{2cea1}&#39;</span>),
         (<span class="string">&#39;\u{2ceb0}&#39;</span>, <span class="string">&#39;\u{2ebe0}&#39;</span>),
@@ -2257,8 +2335,9 @@
         (<span class="string">&#39;\u{828}&#39;</span>, <span class="string">&#39;\u{828}&#39;</span>),
         (<span class="string">&#39;\u{840}&#39;</span>, <span class="string">&#39;\u{858}&#39;</span>),
         (<span class="string">&#39;\u{860}&#39;</span>, <span class="string">&#39;\u{86a}&#39;</span>),
-        (<span class="string">&#39;\u{8a0}&#39;</span>, <span class="string">&#39;\u{8b4}&#39;</span>),
-        (<span class="string">&#39;\u{8b6}&#39;</span>, <span class="string">&#39;\u{8c7}&#39;</span>),
+        (<span class="string">&#39;\u{870}&#39;</span>, <span class="string">&#39;\u{887}&#39;</span>),
+        (<span class="string">&#39;\u{889}&#39;</span>, <span class="string">&#39;\u{88e}&#39;</span>),
+        (<span class="string">&#39;\u{8a0}&#39;</span>, <span class="string">&#39;\u{8c9}&#39;</span>),
         (<span class="string">&#39;\u{904}&#39;</span>, <span class="string">&#39;\u{939}&#39;</span>),
         (<span class="string">&#39;\u{93d}&#39;</span>, <span class="string">&#39;\u{93d}&#39;</span>),
         (<span class="string">&#39;\u{950}&#39;</span>, <span class="string">&#39;\u{950}&#39;</span>),
@@ -2323,6 +2402,7 @@
         (<span class="string">&#39;\u{c2a}&#39;</span>, <span class="string">&#39;\u{c39}&#39;</span>),
         (<span class="string">&#39;\u{c3d}&#39;</span>, <span class="string">&#39;\u{c3d}&#39;</span>),
         (<span class="string">&#39;\u{c58}&#39;</span>, <span class="string">&#39;\u{c5a}&#39;</span>),
+        (<span class="string">&#39;\u{c5d}&#39;</span>, <span class="string">&#39;\u{c5d}&#39;</span>),
         (<span class="string">&#39;\u{c60}&#39;</span>, <span class="string">&#39;\u{c61}&#39;</span>),
         (<span class="string">&#39;\u{c80}&#39;</span>, <span class="string">&#39;\u{c80}&#39;</span>),
         (<span class="string">&#39;\u{c85}&#39;</span>, <span class="string">&#39;\u{c8c}&#39;</span>),
@@ -2331,7 +2411,7 @@
         (<span class="string">&#39;\u{caa}&#39;</span>, <span class="string">&#39;\u{cb3}&#39;</span>),
         (<span class="string">&#39;\u{cb5}&#39;</span>, <span class="string">&#39;\u{cb9}&#39;</span>),
         (<span class="string">&#39;\u{cbd}&#39;</span>, <span class="string">&#39;\u{cbd}&#39;</span>),
-        (<span class="string">&#39;\u{cde}&#39;</span>, <span class="string">&#39;\u{cde}&#39;</span>),
+        (<span class="string">&#39;\u{cdd}&#39;</span>, <span class="string">&#39;\u{cde}&#39;</span>),
         (<span class="string">&#39;\u{ce0}&#39;</span>, <span class="string">&#39;\u{ce1}&#39;</span>),
         (<span class="string">&#39;\u{cf1}&#39;</span>, <span class="string">&#39;\u{cf2}&#39;</span>),
         (<span class="string">&#39;\u{d04}&#39;</span>, <span class="string">&#39;\u{d0c}&#39;</span>),
@@ -2402,9 +2482,8 @@
         (<span class="string">&#39;\u{1681}&#39;</span>, <span class="string">&#39;\u{169a}&#39;</span>),
         (<span class="string">&#39;\u{16a0}&#39;</span>, <span class="string">&#39;\u{16ea}&#39;</span>),
         (<span class="string">&#39;\u{16ee}&#39;</span>, <span class="string">&#39;\u{16f8}&#39;</span>),
-        (<span class="string">&#39;\u{1700}&#39;</span>, <span class="string">&#39;\u{170c}&#39;</span>),
-        (<span class="string">&#39;\u{170e}&#39;</span>, <span class="string">&#39;\u{1711}&#39;</span>),
-        (<span class="string">&#39;\u{1720}&#39;</span>, <span class="string">&#39;\u{1731}&#39;</span>),
+        (<span class="string">&#39;\u{1700}&#39;</span>, <span class="string">&#39;\u{1711}&#39;</span>),
+        (<span class="string">&#39;\u{171f}&#39;</span>, <span class="string">&#39;\u{1731}&#39;</span>),
         (<span class="string">&#39;\u{1740}&#39;</span>, <span class="string">&#39;\u{1751}&#39;</span>),
         (<span class="string">&#39;\u{1760}&#39;</span>, <span class="string">&#39;\u{176c}&#39;</span>),
         (<span class="string">&#39;\u{176e}&#39;</span>, <span class="string">&#39;\u{1770}&#39;</span>),
@@ -2424,7 +2503,7 @@
         (<span class="string">&#39;\u{1a20}&#39;</span>, <span class="string">&#39;\u{1a54}&#39;</span>),
         (<span class="string">&#39;\u{1aa7}&#39;</span>, <span class="string">&#39;\u{1aa7}&#39;</span>),
         (<span class="string">&#39;\u{1b05}&#39;</span>, <span class="string">&#39;\u{1b33}&#39;</span>),
-        (<span class="string">&#39;\u{1b45}&#39;</span>, <span class="string">&#39;\u{1b4b}&#39;</span>),
+        (<span class="string">&#39;\u{1b45}&#39;</span>, <span class="string">&#39;\u{1b4c}&#39;</span>),
         (<span class="string">&#39;\u{1b83}&#39;</span>, <span class="string">&#39;\u{1ba0}&#39;</span>),
         (<span class="string">&#39;\u{1bae}&#39;</span>, <span class="string">&#39;\u{1baf}&#39;</span>),
         (<span class="string">&#39;\u{1bba}&#39;</span>, <span class="string">&#39;\u{1be5}&#39;</span>),
@@ -2474,9 +2553,7 @@
         (<span class="string">&#39;\u{2145}&#39;</span>, <span class="string">&#39;\u{2149}&#39;</span>),
         (<span class="string">&#39;\u{214e}&#39;</span>, <span class="string">&#39;\u{214e}&#39;</span>),
         (<span class="string">&#39;\u{2160}&#39;</span>, <span class="string">&#39;\u{2188}&#39;</span>),
-        (<span class="string">&#39;\u{2c00}&#39;</span>, <span class="string">&#39;\u{2c2e}&#39;</span>),
-        (<span class="string">&#39;\u{2c30}&#39;</span>, <span class="string">&#39;\u{2c5e}&#39;</span>),
-        (<span class="string">&#39;\u{2c60}&#39;</span>, <span class="string">&#39;\u{2ce4}&#39;</span>),
+        (<span class="string">&#39;\u{2c00}&#39;</span>, <span class="string">&#39;\u{2ce4}&#39;</span>),
         (<span class="string">&#39;\u{2ceb}&#39;</span>, <span class="string">&#39;\u{2cee}&#39;</span>),
         (<span class="string">&#39;\u{2cf2}&#39;</span>, <span class="string">&#39;\u{2cf3}&#39;</span>),
         (<span class="string">&#39;\u{2d00}&#39;</span>, <span class="string">&#39;\u{2d25}&#39;</span>),
@@ -2506,8 +2583,7 @@
         (<span class="string">&#39;\u{31a0}&#39;</span>, <span class="string">&#39;\u{31bf}&#39;</span>),
         (<span class="string">&#39;\u{31f0}&#39;</span>, <span class="string">&#39;\u{31ff}&#39;</span>),
         (<span class="string">&#39;\u{3400}&#39;</span>, <span class="string">&#39;\u{4dbf}&#39;</span>),
-        (<span class="string">&#39;\u{4e00}&#39;</span>, <span class="string">&#39;\u{9ffc}&#39;</span>),
-        (<span class="string">&#39;\u{a000}&#39;</span>, <span class="string">&#39;\u{a48c}&#39;</span>),
+        (<span class="string">&#39;\u{4e00}&#39;</span>, <span class="string">&#39;\u{a48c}&#39;</span>),
         (<span class="string">&#39;\u{a4d0}&#39;</span>, <span class="string">&#39;\u{a4fd}&#39;</span>),
         (<span class="string">&#39;\u{a500}&#39;</span>, <span class="string">&#39;\u{a60c}&#39;</span>),
         (<span class="string">&#39;\u{a610}&#39;</span>, <span class="string">&#39;\u{a61f}&#39;</span>),
@@ -2517,9 +2593,11 @@
         (<span class="string">&#39;\u{a6a0}&#39;</span>, <span class="string">&#39;\u{a6ef}&#39;</span>),
         (<span class="string">&#39;\u{a717}&#39;</span>, <span class="string">&#39;\u{a71f}&#39;</span>),
         (<span class="string">&#39;\u{a722}&#39;</span>, <span class="string">&#39;\u{a788}&#39;</span>),
-        (<span class="string">&#39;\u{a78b}&#39;</span>, <span class="string">&#39;\u{a7bf}&#39;</span>),
-        (<span class="string">&#39;\u{a7c2}&#39;</span>, <span class="string">&#39;\u{a7ca}&#39;</span>),
-        (<span class="string">&#39;\u{a7f5}&#39;</span>, <span class="string">&#39;\u{a801}&#39;</span>),
+        (<span class="string">&#39;\u{a78b}&#39;</span>, <span class="string">&#39;\u{a7ca}&#39;</span>),
+        (<span class="string">&#39;\u{a7d0}&#39;</span>, <span class="string">&#39;\u{a7d1}&#39;</span>),
+        (<span class="string">&#39;\u{a7d3}&#39;</span>, <span class="string">&#39;\u{a7d3}&#39;</span>),
+        (<span class="string">&#39;\u{a7d5}&#39;</span>, <span class="string">&#39;\u{a7d9}&#39;</span>),
+        (<span class="string">&#39;\u{a7f2}&#39;</span>, <span class="string">&#39;\u{a801}&#39;</span>),
         (<span class="string">&#39;\u{a803}&#39;</span>, <span class="string">&#39;\u{a805}&#39;</span>),
         (<span class="string">&#39;\u{a807}&#39;</span>, <span class="string">&#39;\u{a80a}&#39;</span>),
         (<span class="string">&#39;\u{a80c}&#39;</span>, <span class="string">&#39;\u{a822}&#39;</span>),
@@ -2615,9 +2693,20 @@
         (<span class="string">&#39;\u{104d8}&#39;</span>, <span class="string">&#39;\u{104fb}&#39;</span>),
         (<span class="string">&#39;\u{10500}&#39;</span>, <span class="string">&#39;\u{10527}&#39;</span>),
         (<span class="string">&#39;\u{10530}&#39;</span>, <span class="string">&#39;\u{10563}&#39;</span>),
+        (<span class="string">&#39;\u{10570}&#39;</span>, <span class="string">&#39;\u{1057a}&#39;</span>),
+        (<span class="string">&#39;\u{1057c}&#39;</span>, <span class="string">&#39;\u{1058a}&#39;</span>),
+        (<span class="string">&#39;\u{1058c}&#39;</span>, <span class="string">&#39;\u{10592}&#39;</span>),
+        (<span class="string">&#39;\u{10594}&#39;</span>, <span class="string">&#39;\u{10595}&#39;</span>),
+        (<span class="string">&#39;\u{10597}&#39;</span>, <span class="string">&#39;\u{105a1}&#39;</span>),
+        (<span class="string">&#39;\u{105a3}&#39;</span>, <span class="string">&#39;\u{105b1}&#39;</span>),
+        (<span class="string">&#39;\u{105b3}&#39;</span>, <span class="string">&#39;\u{105b9}&#39;</span>),
+        (<span class="string">&#39;\u{105bb}&#39;</span>, <span class="string">&#39;\u{105bc}&#39;</span>),
         (<span class="string">&#39;\u{10600}&#39;</span>, <span class="string">&#39;\u{10736}&#39;</span>),
         (<span class="string">&#39;\u{10740}&#39;</span>, <span class="string">&#39;\u{10755}&#39;</span>),
         (<span class="string">&#39;\u{10760}&#39;</span>, <span class="string">&#39;\u{10767}&#39;</span>),
+        (<span class="string">&#39;\u{10780}&#39;</span>, <span class="string">&#39;\u{10785}&#39;</span>),
+        (<span class="string">&#39;\u{10787}&#39;</span>, <span class="string">&#39;\u{107b0}&#39;</span>),
+        (<span class="string">&#39;\u{107b2}&#39;</span>, <span class="string">&#39;\u{107ba}&#39;</span>),
         (<span class="string">&#39;\u{10800}&#39;</span>, <span class="string">&#39;\u{10805}&#39;</span>),
         (<span class="string">&#39;\u{10808}&#39;</span>, <span class="string">&#39;\u{10808}&#39;</span>),
         (<span class="string">&#39;\u{1080a}&#39;</span>, <span class="string">&#39;\u{10835}&#39;</span>),
@@ -2653,9 +2742,12 @@
         (<span class="string">&#39;\u{10f00}&#39;</span>, <span class="string">&#39;\u{10f1c}&#39;</span>),
         (<span class="string">&#39;\u{10f27}&#39;</span>, <span class="string">&#39;\u{10f27}&#39;</span>),
         (<span class="string">&#39;\u{10f30}&#39;</span>, <span class="string">&#39;\u{10f45}&#39;</span>),
+        (<span class="string">&#39;\u{10f70}&#39;</span>, <span class="string">&#39;\u{10f81}&#39;</span>),
         (<span class="string">&#39;\u{10fb0}&#39;</span>, <span class="string">&#39;\u{10fc4}&#39;</span>),
         (<span class="string">&#39;\u{10fe0}&#39;</span>, <span class="string">&#39;\u{10ff6}&#39;</span>),
         (<span class="string">&#39;\u{11003}&#39;</span>, <span class="string">&#39;\u{11037}&#39;</span>),
+        (<span class="string">&#39;\u{11071}&#39;</span>, <span class="string">&#39;\u{11072}&#39;</span>),
+        (<span class="string">&#39;\u{11075}&#39;</span>, <span class="string">&#39;\u{11075}&#39;</span>),
         (<span class="string">&#39;\u{11083}&#39;</span>, <span class="string">&#39;\u{110af}&#39;</span>),
         (<span class="string">&#39;\u{110d0}&#39;</span>, <span class="string">&#39;\u{110e8}&#39;</span>),
         (<span class="string">&#39;\u{11103}&#39;</span>, <span class="string">&#39;\u{11126}&#39;</span>),
@@ -2697,6 +2789,7 @@
         (<span class="string">&#39;\u{11680}&#39;</span>, <span class="string">&#39;\u{116aa}&#39;</span>),
         (<span class="string">&#39;\u{116b8}&#39;</span>, <span class="string">&#39;\u{116b8}&#39;</span>),
         (<span class="string">&#39;\u{11700}&#39;</span>, <span class="string">&#39;\u{1171a}&#39;</span>),
+        (<span class="string">&#39;\u{11740}&#39;</span>, <span class="string">&#39;\u{11746}&#39;</span>),
         (<span class="string">&#39;\u{11800}&#39;</span>, <span class="string">&#39;\u{1182b}&#39;</span>),
         (<span class="string">&#39;\u{118a0}&#39;</span>, <span class="string">&#39;\u{118df}&#39;</span>),
         (<span class="string">&#39;\u{118ff}&#39;</span>, <span class="string">&#39;\u{11906}&#39;</span>),
@@ -2716,7 +2809,7 @@
         (<span class="string">&#39;\u{11a50}&#39;</span>, <span class="string">&#39;\u{11a50}&#39;</span>),
         (<span class="string">&#39;\u{11a5c}&#39;</span>, <span class="string">&#39;\u{11a89}&#39;</span>),
         (<span class="string">&#39;\u{11a9d}&#39;</span>, <span class="string">&#39;\u{11a9d}&#39;</span>),
-        (<span class="string">&#39;\u{11ac0}&#39;</span>, <span class="string">&#39;\u{11af8}&#39;</span>),
+        (<span class="string">&#39;\u{11ab0}&#39;</span>, <span class="string">&#39;\u{11af8}&#39;</span>),
         (<span class="string">&#39;\u{11c00}&#39;</span>, <span class="string">&#39;\u{11c08}&#39;</span>),
         (<span class="string">&#39;\u{11c0a}&#39;</span>, <span class="string">&#39;\u{11c2e}&#39;</span>),
         (<span class="string">&#39;\u{11c40}&#39;</span>, <span class="string">&#39;\u{11c40}&#39;</span>),
@@ -2734,10 +2827,12 @@
         (<span class="string">&#39;\u{12000}&#39;</span>, <span class="string">&#39;\u{12399}&#39;</span>),
         (<span class="string">&#39;\u{12400}&#39;</span>, <span class="string">&#39;\u{1246e}&#39;</span>),
         (<span class="string">&#39;\u{12480}&#39;</span>, <span class="string">&#39;\u{12543}&#39;</span>),
+        (<span class="string">&#39;\u{12f90}&#39;</span>, <span class="string">&#39;\u{12ff0}&#39;</span>),
         (<span class="string">&#39;\u{13000}&#39;</span>, <span class="string">&#39;\u{1342e}&#39;</span>),
         (<span class="string">&#39;\u{14400}&#39;</span>, <span class="string">&#39;\u{14646}&#39;</span>),
         (<span class="string">&#39;\u{16800}&#39;</span>, <span class="string">&#39;\u{16a38}&#39;</span>),
         (<span class="string">&#39;\u{16a40}&#39;</span>, <span class="string">&#39;\u{16a5e}&#39;</span>),
+        (<span class="string">&#39;\u{16a70}&#39;</span>, <span class="string">&#39;\u{16abe}&#39;</span>),
         (<span class="string">&#39;\u{16ad0}&#39;</span>, <span class="string">&#39;\u{16aed}&#39;</span>),
         (<span class="string">&#39;\u{16b00}&#39;</span>, <span class="string">&#39;\u{16b2f}&#39;</span>),
         (<span class="string">&#39;\u{16b40}&#39;</span>, <span class="string">&#39;\u{16b43}&#39;</span>),
@@ -2752,7 +2847,10 @@
         (<span class="string">&#39;\u{17000}&#39;</span>, <span class="string">&#39;\u{187f7}&#39;</span>),
         (<span class="string">&#39;\u{18800}&#39;</span>, <span class="string">&#39;\u{18cd5}&#39;</span>),
         (<span class="string">&#39;\u{18d00}&#39;</span>, <span class="string">&#39;\u{18d08}&#39;</span>),
-        (<span class="string">&#39;\u{1b000}&#39;</span>, <span class="string">&#39;\u{1b11e}&#39;</span>),
+        (<span class="string">&#39;\u{1aff0}&#39;</span>, <span class="string">&#39;\u{1aff3}&#39;</span>),
+        (<span class="string">&#39;\u{1aff5}&#39;</span>, <span class="string">&#39;\u{1affb}&#39;</span>),
+        (<span class="string">&#39;\u{1affd}&#39;</span>, <span class="string">&#39;\u{1affe}&#39;</span>),
+        (<span class="string">&#39;\u{1b000}&#39;</span>, <span class="string">&#39;\u{1b122}&#39;</span>),
         (<span class="string">&#39;\u{1b150}&#39;</span>, <span class="string">&#39;\u{1b152}&#39;</span>),
         (<span class="string">&#39;\u{1b164}&#39;</span>, <span class="string">&#39;\u{1b167}&#39;</span>),
         (<span class="string">&#39;\u{1b170}&#39;</span>, <span class="string">&#39;\u{1b2fb}&#39;</span>),
@@ -2790,10 +2888,16 @@
         (<span class="string">&#39;\u{1d78a}&#39;</span>, <span class="string">&#39;\u{1d7a8}&#39;</span>),
         (<span class="string">&#39;\u{1d7aa}&#39;</span>, <span class="string">&#39;\u{1d7c2}&#39;</span>),
         (<span class="string">&#39;\u{1d7c4}&#39;</span>, <span class="string">&#39;\u{1d7cb}&#39;</span>),
+        (<span class="string">&#39;\u{1df00}&#39;</span>, <span class="string">&#39;\u{1df1e}&#39;</span>),
         (<span class="string">&#39;\u{1e100}&#39;</span>, <span class="string">&#39;\u{1e12c}&#39;</span>),
         (<span class="string">&#39;\u{1e137}&#39;</span>, <span class="string">&#39;\u{1e13d}&#39;</span>),
         (<span class="string">&#39;\u{1e14e}&#39;</span>, <span class="string">&#39;\u{1e14e}&#39;</span>),
+        (<span class="string">&#39;\u{1e290}&#39;</span>, <span class="string">&#39;\u{1e2ad}&#39;</span>),
         (<span class="string">&#39;\u{1e2c0}&#39;</span>, <span class="string">&#39;\u{1e2eb}&#39;</span>),
+        (<span class="string">&#39;\u{1e7e0}&#39;</span>, <span class="string">&#39;\u{1e7e6}&#39;</span>),
+        (<span class="string">&#39;\u{1e7e8}&#39;</span>, <span class="string">&#39;\u{1e7eb}&#39;</span>),
+        (<span class="string">&#39;\u{1e7ed}&#39;</span>, <span class="string">&#39;\u{1e7ee}&#39;</span>),
+        (<span class="string">&#39;\u{1e7f0}&#39;</span>, <span class="string">&#39;\u{1e7fe}&#39;</span>),
         (<span class="string">&#39;\u{1e800}&#39;</span>, <span class="string">&#39;\u{1e8c4}&#39;</span>),
         (<span class="string">&#39;\u{1e900}&#39;</span>, <span class="string">&#39;\u{1e943}&#39;</span>),
         (<span class="string">&#39;\u{1e94b}&#39;</span>, <span class="string">&#39;\u{1e94b}&#39;</span>),
@@ -2830,8 +2934,8 @@
         (<span class="string">&#39;\u{1eea1}&#39;</span>, <span class="string">&#39;\u{1eea3}&#39;</span>),
         (<span class="string">&#39;\u{1eea5}&#39;</span>, <span class="string">&#39;\u{1eea9}&#39;</span>),
         (<span class="string">&#39;\u{1eeab}&#39;</span>, <span class="string">&#39;\u{1eebb}&#39;</span>),
-        (<span class="string">&#39;\u{20000}&#39;</span>, <span class="string">&#39;\u{2a6dd}&#39;</span>),
-        (<span class="string">&#39;\u{2a700}&#39;</span>, <span class="string">&#39;\u{2b734}&#39;</span>),
+        (<span class="string">&#39;\u{20000}&#39;</span>, <span class="string">&#39;\u{2a6df}&#39;</span>),
+        (<span class="string">&#39;\u{2a700}&#39;</span>, <span class="string">&#39;\u{2b738}&#39;</span>),
         (<span class="string">&#39;\u{2b740}&#39;</span>, <span class="string">&#39;\u{2b81d}&#39;</span>),
         (<span class="string">&#39;\u{2b820}&#39;</span>, <span class="string">&#39;\u{2cea1}&#39;</span>),
         (<span class="string">&#39;\u{2ceb0}&#39;</span>, <span class="string">&#39;\u{2ebe0}&#39;</span>),

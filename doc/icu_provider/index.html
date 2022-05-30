@@ -44,7 +44,7 @@ structured Rust objects.</li>
 </ul>
 <h4 id="type-2-providers"><a href="#type-2-providers">Type 2 Providers</a></h4>
 <p>Type 2 providers generally implement <a href="buf/trait.BufferProvider.html" title="BufferProvider"><code>BufferProvider</code></a>, which returns unstructured data
-typically represented as [<code>serde</code>]-serialized buffers. Users can call <a href="AsDeserializingBufferProvider::as_deserializing"><code>as_deserializing()</code></a>
+typically represented as <a href="serde/index.html" title="serde"><code>serde</code></a>-serialized buffers. Users can call <a href="serde/trait.AsDeserializingBufferProvider.html#tymethod.as_deserializing"><code>as_deserializing()</code></a>
 to get an object implementing <a href="prelude/trait.ResourceProvider.html" title="ResourceProvider"><code>ResourceProvider</code></a> by invoking Serde Deserialize.</p>
 <p>Examples of Type 2 providers:</p>
 <ul>
@@ -85,8 +85,11 @@ iteration over all <a href="prelude/struct.ResourceOptions.html"><code>ResourceO
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="inv/index.html" title="icu_provider::inv mod">inv</a></div><div class="item-right docblock-short"><p>Locale-invariant data provider that requires no I/O.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="marker/index.html" title="icu_provider::marker mod">marker</a></div><div class="item-right docblock-short"><p>Marker types and traits for DataProvider.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="prelude/index.html" title="icu_provider::prelude mod">prelude</a></div><div class="item-right docblock-short"><p>Core selection of APIs and structures for the ICU4X data provider.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="serde/index.html" title="icu_provider::serde mod">serde</a></div><div class="item-right docblock-short"><p>Collection of traits for providers that support serializing or deserializing data.</p>
 </div></div></div><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2>
-<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.impl_dyn_provider.html" title="icu_provider::impl_dyn_provider macro">impl_dyn_provider</a></div><div class="item-right docblock-short"><p>Implements <a href="prelude/trait.DynProvider.html"><code>DynProvider</code></a> for a marker type <code>S</code> on a type that already implements
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.impl_auto_deserializing.html" title="icu_provider::impl_auto_deserializing macro">impl_auto_deserializing</a></div><div class="item-right docblock-short"><p>Implements <a href="prelude/trait.ResourceProvider.html" title="ResourceProvider">ResourceProvider</a> and <a href="prelude/trait.DynProvider.html" title="DynProvider">DynProvider</a> if <a href="buf/trait.BufferProvider.html" title="BufferProvider">BufferProvider</a> is implemented.
+This allows dropping the call to <code>.as_deserializing()</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.impl_dyn_provider.html" title="icu_provider::impl_dyn_provider macro">impl_dyn_provider</a></div><div class="item-right docblock-short"><p>Implements <a href="prelude/trait.DynProvider.html"><code>DynProvider</code></a> for a marker type <code>S</code> on a type that already implements
 <a href="prelude/trait.DynProvider.html"><code>DynProvider</code></a> or <a href="prelude/trait.ResourceProvider.html"><code>ResourceProvider</code></a> for one or more <code>M</code>, where <code>M</code> is a concrete type
 that is convertible to <code>S</code> via <a href="dynutil/trait.UpcastDataPayload.html" title="UpcastDataPayload"><code>UpcastDataPayload</code></a>.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.resource_key.html" title="icu_provider::resource_key macro">resource_key</a></div><div class="item-right docblock-short"><p>See <a href="prelude/struct.ResourceKey.html" title="ResourceKey"><code>ResourceKey</code></a>.</p>

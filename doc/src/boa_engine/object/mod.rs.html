@@ -2038,6 +2038,11 @@
 <span id="2031">2031</span>
 <span id="2032">2032</span>
 <span id="2033">2033</span>
+<span id="2034">2034</span>
+<span id="2035">2035</span>
+<span id="2036">2036</span>
+<span id="2037">2037</span>
+<span id="2038">2038</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2060,6 +2065,8 @@
     <span class="ident">string::STRING_EXOTIC_INTERNAL_METHODS</span>,
     <span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>,
 };
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builtins::intl::date_time_format::DateTimeFormat</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">array::array_iterator::ArrayIterator</span>,
@@ -2069,7 +2076,6 @@
             <span class="ident">arguments::ParameterMap</span>, <span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>,
         },
         <span class="ident">generator::Generator</span>,
-        <span class="ident">intl::date_time_format::DateTimeFormat</span>,
         <span class="ident">map::map_iterator::MapIterator</span>,
         <span class="ident">map::ordered_map::OrderedMap</span>,
         <span class="ident">object::for_in_iterator::ForInIterator</span>,
@@ -2085,6 +2091,7 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
+
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
@@ -2208,6 +2215,7 @@
     <span class="ident">Arguments</span>(<span class="ident">Arguments</span>),
     <span class="ident">NativeObject</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">NativeObject</span><span class="op">&gt;</span>),
     <span class="ident">IntegerIndexed</span>(<span class="ident">IntegerIndexed</span>),
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
     <span class="ident">DateTimeFormat</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">DateTimeFormat</span><span class="op">&gt;</span>),
 }
 
@@ -2467,6 +2475,7 @@
     }
 
     <span class="doccomment">/// Create the `DateTimeFormat` object data</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">date_time_format</span>(<span class="ident">date_time_fmt</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">DateTimeFormat</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">kind</span>: <span class="ident">ObjectKind::DateTimeFormat</span>(<span class="ident">date_time_fmt</span>),
@@ -2507,6 +2516,7 @@
             <span class="ident"><span class="self">Self</span>::NativeObject</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;NativeObject&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IntegerIndexed</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;TypedArray&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DataView</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;DataView&quot;</span>,
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
             <span class="ident"><span class="self">Self</span>::DateTimeFormat</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;DateTimeFormat&quot;</span>,
         })
     }

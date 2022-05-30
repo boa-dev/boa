@@ -738,12 +738,91 @@
 <span id="731">731</span>
 <span id="732">732</span>
 <span id="733">733</span>
+<span id="734">734</span>
+<span id="735">735</span>
+<span id="736">736</span>
+<span id="737">737</span>
+<span id="738">738</span>
+<span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+<span class="kw">mod</span> <span class="ident">icu</span>;
+
 <span class="kw">use</span> <span class="ident">intrinsics</span>::{<span class="ident">IntrinsicObjects</span>, <span class="ident">Intrinsics</span>};
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builtins::console::Console</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="self">self</span>, <span class="ident">function::NativeFunctionSignature</span>},
     <span class="ident">bytecompiler::ByteCompiler</span>,
@@ -755,12 +834,17 @@
     <span class="ident">vm</span>::{<span class="ident">CallFrame</span>, <span class="ident">CodeBlock</span>, <span class="ident">FinallyReturn</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">Vm</span>},
     <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
+
 <span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builtins::console::Console</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+<span class="kw">use</span> <span class="ident">icu_provider::DataError</span>;
+
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">inline</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>, <span class="ident">doc</span>))]</span>
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">icu::BoaProvider</span>;
 
 <span class="doccomment">/// Javascript context. It is the primary way to interact with the runtime.</span>
 <span class="doccomment">///</span>
@@ -822,44 +906,25 @@
     <span class="doccomment">/// Intrinsic objects</span>
     <span class="ident">intrinsics</span>: <span class="ident">Intrinsics</span>,
 
+    <span class="doccomment">/// ICU related utilities</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+    <span class="ident">icu</span>: <span class="ident">icu::Icu</span>,
+
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">vm</span>: <span class="ident">Vm</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Context</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="self">Self</span> {
-            <span class="ident">realm</span>: <span class="ident">Realm::create</span>(),
-            <span class="ident">interner</span>: <span class="ident">Interner::default</span>(),
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-            <span class="ident">console</span>: <span class="ident">Console::default</span>(),
-            <span class="ident">intrinsics</span>: <span class="ident">Intrinsics::default</span>(),
-            <span class="ident">vm</span>: <span class="ident">Vm</span> {
-                <span class="ident">frame</span>: <span class="prelude-val">None</span>,
-                <span class="ident">stack</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">1024</span>),
-                <span class="ident">trace</span>: <span class="bool-val">false</span>,
-                <span class="ident">stack_size_limit</span>: <span class="number">1024</span>,
-            },
-        };
-
-        <span class="comment">// Add new builtIns to Context Realm</span>
-        <span class="comment">// At a later date this can be removed from here and called explicitly,</span>
-        <span class="comment">// but for now we almost always want these default builtins</span>
-        <span class="ident">context</span>.<span class="ident">intrinsics</span>.<span class="ident">objects</span> <span class="op">=</span> <span class="ident">IntrinsicObjects::init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>);
-        <span class="ident">context</span>.<span class="ident">create_intrinsics</span>();
-        <span class="ident">context</span>
+        <span class="ident">ContextBuilder::default</span>().<span class="ident">build</span>()
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Context</span> {
-    <span class="doccomment">/// Create a new `Context`.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">interner</span>: <span class="ident">Interner</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">interner</span>,
-            ..<span class="ident"><span class="self">Self</span>::default</span>()
-        }
+    <span class="doccomment">/// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or</span>
+    <span class="doccomment">/// the icu data provider.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">builder</span>() -&gt; <span class="ident">ContextBuilder</span> {
+        <span class="ident">ContextBuilder::default</span>()
     }
-
     <span class="doccomment">/// Gets the string interner.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interner</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Interner</span> {
@@ -1469,6 +1534,89 @@
     <span class="doccomment">/// Set the value of trace on the context</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_trace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">trace</span>: <span class="ident">bool</span>) {
         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">trace</span> <span class="op">=</span> <span class="ident">trace</span>;
+    }
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="doccomment">/// Get the ICU related utilities</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">icu</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">icu::Icu</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">icu</span>
+    }
+}
+<span class="doccomment">/// Builder for the [`Context`] type.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This builder allows custom initialization of the [`Interner`] within</span>
+<span class="doccomment">/// the context.</span>
+<span class="doccomment">/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes</span>
+<span class="doccomment">/// the only way to create a new [`Context`], since now it requires a</span>
+<span class="doccomment">/// valid data provider for the `Intl` functionality.</span>
+<span class="doccomment">///</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(
+    <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>,
+    <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot;The required data in a valid provider is specified in [`BoaProvider`]&quot;</span>
+)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ContextBuilder</span> {
+    <span class="ident">interner</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Interner</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+    <span class="ident">icu</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">icu::Icu</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">ContextBuilder</span> {
+    <span class="doccomment">/// Initializes the context [`Interner`] to the provided interner.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is useful when you want to initialize an [`Interner`] with</span>
+    <span class="doccomment">/// a collection of words before parsing.</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">interner</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">interner</span>: <span class="ident">Interner</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">interner</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">interner</span>);
+        <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// Provides an icu data provider to the [`Context`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This function is only available if the `intl` feature is enabled.</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>, <span class="ident">docs</span>))]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">icu_provider</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">provider</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">icu::BoaProvider</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">DataError</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">icu</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">icu::Icu::new</span>(<span class="ident">provider</span>)<span class="question-mark">?</span>);
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>)
+    }
+
+    <span class="doccomment">/// Creates a new [`ContextBuilder`] with a default empty [`Interner`]</span>
+    <span class="doccomment">/// and a default [`BoaProvider`] if the `intl` feature is enabled.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::default</span>()
+    }
+
+    <span class="doccomment">/// Builds a new [`Context`] with the provided parameters, and defaults</span>
+    <span class="doccomment">/// all missing parameters to their default values.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">Context</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span> {
+            <span class="ident">realm</span>: <span class="ident">Realm::create</span>(),
+            <span class="ident">interner</span>: <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">unwrap_or_default</span>(),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
+            <span class="ident">console</span>: <span class="ident">Console::default</span>(),
+            <span class="ident">intrinsics</span>: <span class="ident">Intrinsics::default</span>(),
+            <span class="ident">vm</span>: <span class="ident">Vm</span> {
+                <span class="ident">frame</span>: <span class="prelude-val">None</span>,
+                <span class="ident">stack</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">1024</span>),
+                <span class="ident">trace</span>: <span class="bool-val">false</span>,
+                <span class="ident">stack_size_limit</span>: <span class="number">1024</span>,
+            },
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+            <span class="ident">icu</span>: <span class="self">self</span>.<span class="ident">icu</span>.<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="comment">// TODO: Replace with a more fitting default</span>
+                <span class="ident">icu::Icu::new</span>(<span class="ident">Box::new</span>(<span class="ident">icu_testdata::get_provider</span>()))
+                    .<span class="ident">expect</span>(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
+            }),
+        };
+
+        <span class="comment">// Add new builtIns to Context Realm</span>
+        <span class="comment">// At a later date this can be removed from here and called explicitly,</span>
+        <span class="comment">// but for now we almost always want these default builtins</span>
+        <span class="ident">context</span>.<span class="ident">intrinsics</span>.<span class="ident">objects</span> <span class="op">=</span> <span class="ident">IntrinsicObjects::init</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>);
+        <span class="ident">context</span>.<span class="ident">create_intrinsics</span>();
+        <span class="ident">context</span>
     }
 }
 </code></pre></div>

@@ -1,0 +1,78 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="A string table implementation with a tree-like encoding."><meta name="keywords" content="rust, rustlang, rust-lang, stringtable"><title>measureme::stringtable - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../measureme/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../measureme/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Module stringtable</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#constants">Constants</a></li><li><a href="#traits">Traits</a></li></ul></div></section><div id="sidebar-vars" data-name="stringtable" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../measureme/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">measureme</a>::<wbr><a class="mod" href="#">stringtable</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/measureme/stringtable.rs.html#1-328">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>A string table implementation with a tree-like encoding.</p>
+<p>Each entry in the table represents a string and is encoded as a list of
+components where each component can either be</p>
+<ol>
+<li>a string <em>value</em> that contains actual UTF-8 string content,</li>
+<li>a string <em>ID</em> that contains a reference to another entry, or</li>
+<li>a terminator tag which marks the end of a component list.</li>
+</ol>
+<p>The string <em>content</em> of an entry is defined as the concatenation of the
+content of its components. The content of a string value is its actual
+UTF-8 bytes. The content of a string ID is the contents of the entry
+it references.</p>
+<p>The byte-level encoding of component lists uses the structure of UTF-8 in
+order to save space:</p>
+<ul>
+<li>
+<p>A valid UTF-8 codepoint never starts with the byte <code>0xFE</code>. We make use
+of this fact by letting all string ID components start with this <code>0xFE</code>
+prefix. Thus when we parse the contents of a value we know to stop if
+we encounter this byte.</p>
+</li>
+<li>
+<p>A valid UTF-8 string cannot contain the <code>0xFF</code> byte. Thus we can safely
+use <code>0xFF</code> as our component list terminator.</p>
+</li>
+</ul>
+<p>The sample composite string [“abc”, ID(42), “def”, TERMINATOR] would thus be
+encoded as:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code>    [<span class="string">&#39;a&#39;</span>, <span class="string">&#39;b&#39;</span> , <span class="string">&#39;c&#39;</span>, <span class="number">254</span>, <span class="number">42</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="string">&#39;d&#39;</span>, <span class="string">&#39;e&#39;</span>, <span class="string">&#39;f&#39;</span>, <span class="number">255</span>]
+                     <span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span><span class="op">^</span>                 <span class="op">^</span><span class="op">^</span><span class="op">^</span>
+                <span class="ident">string</span> <span class="ident">ID</span> <span class="ident">with</span> <span class="number">0xFE</span> <span class="ident">prefix</span>      <span class="ident">terminator</span> (<span class="number">0xFF</span>)</code></pre></div>
+<p>As you can see string IDs are encoded in little endian format.</p>
+<hr />
+<p>Each string in the table is referred to via a <code>StringId</code>. <code>StringId</code>s may
+be generated in two ways:</p>
+<ol>
+<li>Calling <code>StringTableBuilder::alloc()</code> which returns the <code>StringId</code> for
+the allocated string.</li>
+<li>Calling <code>StringId::new_virtual()</code> to create a “virtual” <code>StringId</code> that
+later can be mapped to an actual string via
+<code>StringTableBuilder::map_virtual_to_concrete_string()</code>.</li>
+</ol>
+<p>String IDs allow you to deduplicate strings by allocating a string
+once and then referring to it by id over and over. This is a useful trick
+for strings which are recorded many times and it can significantly reduce
+the size of profile trace files.</p>
+<p><code>StringId</code>s are partitioned according to type:</p>
+<blockquote>
+<p>[0 .. MAX_VIRTUAL_STRING_ID, METADATA_STRING_ID, .. ]</p>
+</blockquote>
+<p>From <code>0</code> to <code>MAX_VIRTUAL_STRING_ID</code> are the allowed values for virtual strings.
+After <code>MAX_VIRTUAL_STRING_ID</code>, there is one string id (<code>METADATA_STRING_ID</code>)
+which is used internally by <code>measureme</code> to record additional metadata about
+the profiling session. After <code>METADATA_STRING_ID</code> are all other <code>StringId</code>
+values.</p>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.StringId.html" title="measureme::stringtable::StringId struct">StringId</a></div><div class="item-right docblock-short"><p>A <code>StringId</code> is used to identify a string in the <code>StringTable</code>. It is
+either a regular <code>StringId</code>, meaning that it contains the absolute address
+of a string within the string table data. Or it is “virtual”, which means
+that the address it points to is resolved via the string table index data,
+that maps virtual <code>StringId</code>s to addresses.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.StringTableBuilder.html" title="measureme::stringtable::StringTableBuilder struct">StringTableBuilder</a></div><div class="item-right docblock-short"><p>Write-only version of the string table</p>
+</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.StringComponent.html" title="measureme::stringtable::StringComponent enum">StringComponent</a></div><div class="item-right docblock-short"><p>A single component of a string. Used for building composite table entries.</p>
+</div></div></div><h2 id="constants" class="small-section-header"><a href="#constants">Constants</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.FIRST_REGULAR_STRING_ID.html" title="measureme::stringtable::FIRST_REGULAR_STRING_ID constant">FIRST_REGULAR_STRING_ID</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.METADATA_STRING_ID.html" title="measureme::stringtable::METADATA_STRING_ID constant">METADATA_STRING_ID</a></div><div class="item-right docblock-short"><p>The id of the profile metadata string entry.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.STRING_REF_ENCODED_SIZE.html" title="measureme::stringtable::STRING_REF_ENCODED_SIZE constant">STRING_REF_ENCODED_SIZE</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.STRING_REF_TAG.html" title="measureme::stringtable::STRING_REF_TAG constant">STRING_REF_TAG</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="constant" href="constant.TERMINATOR.html" title="measureme::stringtable::TERMINATOR constant">TERMINATOR</a></div><div class="item-right docblock-short"></div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.SerializableString.html" title="measureme::stringtable::SerializableString trait">SerializableString</a></div><div class="item-right docblock-short"><p>Anything that implements <code>SerializableString</code> can be written to a
+<code>StringTable</code>.</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="measureme" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</body></html>

@@ -482,6 +482,7 @@
 <span id="475">475</span>
 <span id="476">476</span>
 <span id="477">477</span>
+<span id="478">478</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -549,6 +550,7 @@
 <span class="doccomment">/// accessible from [`JsProxy::builder`]; with the [`JsProxyBuilder::build_revocable`]</span>
 <span class="doccomment">/// method.</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// [proxy]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy</span>
 <span class="doccomment">/// [revocable]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy/revocable</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsRevocableProxy</span> {

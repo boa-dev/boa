@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["intrinsics",""]],"struct":[["Context","Javascript context. It is the primary way to interact with the runtime."]]});
+initSidebarItems({"mod":[["icu",""],["intrinsics",""]],"struct":[["Context","Javascript context. It is the primary way to interact with the runtime."],["ContextBuilder","Builder for the [`Context`] type."]],"trait":[["BoaProvider","Trait encompassing all the required implementations that define a valid icu data provider."]]});

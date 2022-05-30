@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Profiler",""]]});
+initSidebarItems({"static":[["INSTANCE","This static instance must never be public, and its only access must be done through the `global()` and `drop()` methods. This is because `get_or_init` manages synchronization and the case of an empty value."]],"struct":[["Profiler",""]]});

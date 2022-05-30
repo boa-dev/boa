@@ -23,8 +23,8 @@ for more details).</p>
 <p>The following traits are available to derive, but not automatic:</p>
 <ul>
 <li><a href="https://doc.rust-lang.org/1.61.0/core/fmt/macros/derive.Debug.html" title="Debug"><code>Debug</code></a></li>
-<li><a href="serde::Serialize"><code>Serialize</code></a></li>
-<li><a href="serde::Deserialize"><code>Deserialize</code></a></li>
+<li><a href="../serde/ser/trait.Serialize.html"><code>Serialize</code></a></li>
+<li><a href="../serde/de/trait.Deserialize.html"><code>Deserialize</code></a></li>
 </ul>
 <p>To enable one of these additional derives, use <code>#[zerovec::derive(...)]</code> like so: <code>#[zerovec::derive(Debug)]</code>.</p>
 <p>In most cases these derives will defer to the impl of the same trait on the current type, so such impls must exist.</p>

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Icu","Collection of tools initialized from a [`BoaProvider`] that are used for the functionality of `Intl`."]],"trait":[["BoaProvider","Trait encompassing all the required implementations that define a valid icu data provider."]]});

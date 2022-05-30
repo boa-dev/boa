@@ -216,14 +216,16 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array_buffer</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">boolean</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">console</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">dataview</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">date</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">error</span>;
@@ -233,7 +235,6 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">generator_function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">global_this</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">infinity</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intl</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">iterable</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">json</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">map</span>;
@@ -250,6 +251,12 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">typed_array</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">undefined</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">console</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intl</span>;
+
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">array</span>::{<span class="ident">array_iterator::ArrayIterator</span>, <span class="ident">Array</span>},
     <span class="ident">bigint::BigInt</span>,
@@ -264,7 +271,6 @@
     <span class="ident">function::BuiltInFunctionObject</span>,
     <span class="ident">global_this::GlobalThis</span>,
     <span class="ident">infinity::Infinity</span>,
-    <span class="ident">intl::Intl</span>,
     <span class="ident">json::Json</span>,
     <span class="ident">map::map_iterator::MapIterator</span>,
     <span class="ident">map::Map</span>,
@@ -361,7 +367,6 @@
         <span class="ident">BuiltInFunctionObject</span>,
         <span class="ident">BuiltInObjectObject</span>,
         <span class="ident">Math</span>,
-        <span class="ident">Intl</span>,
         <span class="ident">Json</span>,
         <span class="ident">Array</span>,
         <span class="ident">Proxy</span>,
@@ -401,6 +406,9 @@
         <span class="ident">Generator</span>,
         <span class="ident">GeneratorFunction</span>
     };
+
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+    <span class="ident">init_builtin</span>::<span class="op">&lt;</span><span class="ident">intl::Intl</span><span class="op">&gt;</span>(<span class="ident">context</span>);
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
     <span class="ident">init_builtin</span>::<span class="op">&lt;</span><span class="ident">console::Console</span><span class="op">&gt;</span>(<span class="ident">context</span>);

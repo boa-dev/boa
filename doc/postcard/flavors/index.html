@@ -1,0 +1,75 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Flavors - Plugins for `postcard`"><meta name="keywords" content="rust, rustlang, rust-lang, flavors"><title>postcard::flavors - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../postcard/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../postcard/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Module flavors</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></div></section><div id="sidebar-vars" data-name="flavors" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../postcard/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">postcard</a>::<wbr><a class="mod" href="#">flavors</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/postcard/ser/flavors.rs.html#1-411">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="flavors---plugins-for-postcard"><a href="#flavors---plugins-for-postcard">Flavors - Plugins for <code>postcard</code></a></h2>
+<p>“Flavors” in <code>postcard</code> are used as modifiers to the serialization
+process. Flavors typically modify one or both of the following:</p>
+<ol>
+<li>The output medium of the serialization, e.g. whether the data is serialized to a <code>[u8]</code> slice, or a <code>heapless::Vec</code>.</li>
+<li>The format of the serialization, such as encoding the serialized output in a COBS format, performing CRC32 checksumming while serializing, etc.</li>
+</ol>
+<p>Flavors are implemented using the <code>SerFlavor</code> trait, which acts as a “middleware” for receiving the bytes as serialized by <code>serde</code>.
+Multiple flavors may be combined to obtain a desired combination of behavior and storage.
+When flavors are combined, it is expected that the storage flavor (such as <code>Slice</code> or <code>HVec</code>) is the innermost flavor.</p>
+<p>Custom flavors may be defined by users of the <code>postcard</code> crate, however some commonly useful flavors have been provided in
+this module. If you think your custom flavor would be useful to others, PRs adding flavors are very welcome!</p>
+<h3 id="usability"><a href="#usability">Usability</a></h3>
+<p>Flavors may not always be convenient to use directly, as they may expose some implementation details of how the
+inner workings of the flavor behaves. It is typical to provide a convenience method for using a flavor, to prevent
+the user from having to specify generic parameters, setting correct initialization values, or handling the output of
+the flavor correctly. See <code>postcard::to_vec()</code> for an example of this.</p>
+<p>It is recommended to use the <a href="../fn.serialize_with_flavor.html"><code>serialize_with_flavor()</code></a> method for serialization. See it’s documentation for information
+regarding usage and generic type parameters.</p>
+<h3 id="examples"><a href="#examples">Examples</a></h3><h4 id="using-a-single-flavor"><a href="#using-a-single-flavor">Using a single flavor</a></h4>
+<p>In the first example, we use the <code>Slice</code> flavor, to store the serialized output into a mutable <code>[u8]</code> slice.
+No other modification is made to the serialization process.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">postcard</span>::{
+    <span class="ident">serialize_with_flavor</span>,
+    <span class="ident">flavors::Slice</span>,
+};
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+
+<span class="kw">let</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x20</span>, <span class="number">0x30</span>];
+<span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">serialize_with_flavor</span>::<span class="op">&lt;</span>[<span class="ident">u8</span>], <span class="ident">Slice</span>, <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>(
+    <span class="ident">data</span>,
+    <span class="ident">Slice::new</span>(<span class="ident">buffer</span>)
+).<span class="ident">unwrap</span>();
+
+<span class="macro">assert_eq!</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span>[<span class="number">0x04</span>, <span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x20</span>, <span class="number">0x30</span>]);</code></pre></div>
+<h4 id="using-combined-flavors"><a href="#using-combined-flavors">Using combined flavors</a></h4>
+<p>In the second example, we mix <code>Slice</code> with <code>Cobs</code>, to cobs encode the output while
+the data is serialized. Notice how <code>Slice</code> (the storage flavor) is the innermost flavor used.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">postcard</span>::{
+    <span class="ident">serialize_with_flavor</span>,
+    <span class="ident">flavors</span>::{<span class="ident">Cobs</span>, <span class="ident">Slice</span>},
+};
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+
+<span class="kw">let</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x20</span>, <span class="number">0x30</span>];
+<span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">serialize_with_flavor</span>::<span class="op">&lt;</span>[<span class="ident">u8</span>], <span class="ident">Cobs</span><span class="op">&lt;</span><span class="ident">Slice</span><span class="op">&gt;</span>, <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>(
+    <span class="ident">data</span>,
+    <span class="ident">Cobs::try_new</span>(<span class="ident">Slice::new</span>(<span class="ident">buffer</span>)).<span class="ident">unwrap</span>(),
+).<span class="ident">unwrap</span>();
+
+<span class="macro">assert_eq!</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span>[<span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x01</span>, <span class="number">0x03</span>, <span class="number">0x20</span>, <span class="number">0x30</span>, <span class="number">0x00</span>]);</code></pre></div>
+</div></details><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Cobs.html" title="postcard::flavors::Cobs struct">Cobs</a></div><div class="item-right docblock-short"><p>The <code>Cobs</code> flavor implements <a href="https://en.wikipedia.org/wiki/Consistent_Overhead_Byte_Stuffing">Consistent Overhead Byte Stuffing</a> on
+the serialized data. The output of this flavor includes the termination/sentinel
+byte of <code>0x00</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Slice.html" title="postcard::flavors::Slice struct">Slice</a></div><div class="item-right docblock-short"><p>The <code>Slice</code> flavor is a storage flavor, storing the serialized (or otherwise modified) bytes into a plain
+<code>[u8]</code> slice. The <code>Slice</code> flavor resolves into a sub-slice of the original slice buffer.</p>
+</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.SerFlavor.html" title="postcard::flavors::SerFlavor trait">SerFlavor</a></div><div class="item-right docblock-short"><p>The SerFlavor trait acts as a combinator/middleware interface that can be used to pass bytes
+through storage or modification flavors. See the module level documentation for more information
+and examples.</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="postcard" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</body></html>

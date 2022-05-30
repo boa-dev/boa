@@ -1,0 +1,170 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Postcard"><meta name="keywords" content="rust, rustlang, rust-lang, postcard"><title>postcard - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../postcard/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../postcard/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate postcard</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.7.3</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#structs">Structs</a></li><li><a href="#enums">Enums</a></li><li><a href="#functions">Functions</a></li><li><a href="#types">Type Definitions</a></li></ul></div></section><div id="sidebar-vars" data-name="postcard" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../postcard/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">postcard</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/postcard/lib.rs.html#1-196">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><h2 id="postcard"><a href="#postcard">Postcard</a></h2>
+<p>Postcard is a <code>#![no_std]</code> focused serializer and deserializer for Serde.</p>
+<p>Postcard aims to be convenient for developers in constrained environments, while
+allowing for flexibility to customize behavior as needed.</p>
+<h3 id="design-goals"><a href="#design-goals">Design Goals</a></h3>
+<ol>
+<li>Design primarily for <code>#![no_std]</code> usage, in embedded or other constrained contexts</li>
+<li>Support a maximal set of <code>serde</code> features, so <code>postcard</code> can be used as a drop in replacement</li>
+<li>Avoid special differences in code between communication code written for a microcontroller or a desktop/server PC</li>
+<li>Be resource efficient - memory usage, code size, developer time, and CPU time; in that order</li>
+<li>Allow library users to customize the serialization and deserialization  behavior to fit their bespoke needs</li>
+</ol>
+<h3 id="variable-length-data"><a href="#variable-length-data">Variable Length Data</a></h3>
+<p>Variable length data (such as slices) are prefixed by their length.</p>
+<p>Length is encoded as a <a href="https://developers.google.com/protocol-buffers/docs/encoding">Varint</a>. This is done for two reasons: to minimize wasted bytes
+on the wire when sending slices with items less than 127 items (typical for embedded),
+and to reduce compatibility issues between 32-bit and 64-bit targets due to differing sizes
+of <code>usize</code>.</p>
+<p>Similarly, <code>enum</code> descriminants are encoded as varints, meaning that any enum with less than
+127 variants will encode its discriminant as a single byte (rather than a <code>u32</code>).</p>
+<p>Varints in <code>postcard</code> have a maximum value of the usize for that platform. In practice, this
+means that 64-bit targets should not send messages with slices containing <code>(1 &lt;&lt; 32) - 1</code> items
+to 32-bit targets, which is uncommon in practice. Enum discriminants already have a fixed
+maximum value of <code>(1 &lt;&lt; 32) - 1</code> as currently defined in Rust. Varints larger than the current platform’s
+<code>usize</code> will cause the deserialization process to return an <code>Err</code>.</p>
+<h3 id="example---serializationdeserialization"><a href="#example---serializationdeserialization">Example - Serialization/Deserialization</a></h3>
+<p>Postcard can serialize and deserialize messages similar to other <code>serde</code> formats.</p>
+<p>Using the default <code>heapless</code> feature to serialize to a <code>heapless::Vec&lt;u8&gt;</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">core::ops::Deref</span>;
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>};
+<span class="kw">use</span> <span class="ident">postcard</span>::{<span class="ident">from_bytes</span>, <span class="ident">to_vec</span>};
+<span class="kw">use</span> <span class="ident">heapless::Vec</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">struct</span> <span class="ident">RefStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
+    <span class="ident">str_s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+}
+<span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">&quot;hElLo&quot;</span>;
+<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x10</span>, <span class="number">0x02</span>, <span class="number">0x20</span>];
+<span class="kw">let</span> <span class="ident">output</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span>, <span class="number">11</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">to_vec</span>(<span class="kw-2">&amp;</span><span class="ident">RefStruct</span> {
+    <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">bytes</span>,
+    <span class="ident">str_s</span>: <span class="ident">message</span>,
+}).<span class="ident">unwrap</span>();
+
+<span class="macro">assert_eq!</span>(
+    <span class="kw-2">&amp;</span>[<span class="number">0x04</span>, <span class="number">0x01</span>, <span class="number">0x10</span>, <span class="number">0x02</span>, <span class="number">0x20</span>, <span class="number">0x05</span>, <span class="string">b&#39;h&#39;</span>, <span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;L&#39;</span>, <span class="string">b&#39;o&#39;</span>,],
+    <span class="ident">output</span>.<span class="ident">deref</span>()
+);
+
+<span class="kw">let</span> <span class="ident">out</span>: <span class="ident">RefStruct</span> <span class="op">=</span> <span class="ident">from_bytes</span>(<span class="ident">output</span>.<span class="ident">deref</span>()).<span class="ident">unwrap</span>();
+<span class="macro">assert_eq!</span>(
+    <span class="ident">out</span>,
+    <span class="ident">RefStruct</span> {
+        <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">bytes</span>,
+        <span class="ident">str_s</span>: <span class="ident">message</span>,
+    }
+);</code></pre></div>
+<p>Or the optional <code>alloc</code> feature to serialize to an <code>alloc::vec::Vec&lt;u8&gt;</code>:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">core::ops::Deref</span>;
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>};
+<span class="kw">use</span> <span class="ident">postcard</span>::{<span class="ident">from_bytes</span>, <span class="ident">to_allocvec</span>};
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
+<span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">struct</span> <span class="ident">RefStruct</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+    <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> [<span class="ident">u8</span>],
+    <span class="ident">str_s</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>,
+}
+<span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="string">&quot;hElLo&quot;</span>;
+<span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> [<span class="number">0x01</span>, <span class="number">0x10</span>, <span class="number">0x02</span>, <span class="number">0x20</span>];
+<span class="kw">let</span> <span class="ident">output</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">to_allocvec</span>(<span class="kw-2">&amp;</span><span class="ident">RefStruct</span> {
+    <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">bytes</span>,
+    <span class="ident">str_s</span>: <span class="ident">message</span>,
+}).<span class="ident">unwrap</span>();
+
+<span class="macro">assert_eq!</span>(
+    <span class="kw-2">&amp;</span>[<span class="number">0x04</span>, <span class="number">0x01</span>, <span class="number">0x10</span>, <span class="number">0x02</span>, <span class="number">0x20</span>, <span class="number">0x05</span>, <span class="string">b&#39;h&#39;</span>, <span class="string">b&#39;E&#39;</span>, <span class="string">b&#39;l&#39;</span>, <span class="string">b&#39;L&#39;</span>, <span class="string">b&#39;o&#39;</span>,],
+    <span class="ident">output</span>.<span class="ident">deref</span>()
+);
+
+<span class="kw">let</span> <span class="ident">out</span>: <span class="ident">RefStruct</span> <span class="op">=</span> <span class="ident">from_bytes</span>(<span class="ident">output</span>.<span class="ident">deref</span>()).<span class="ident">unwrap</span>();
+<span class="macro">assert_eq!</span>(
+    <span class="ident">out</span>,
+    <span class="ident">RefStruct</span> {
+        <span class="ident">bytes</span>: <span class="kw-2">&amp;</span><span class="ident">bytes</span>,
+        <span class="ident">str_s</span>: <span class="ident">message</span>,
+    }
+);</code></pre></div>
+<h3 id="example---flavors"><a href="#example---flavors">Example - Flavors</a></h3>
+<p><code>postcard</code> supports a system called <code>Flavors</code>, which are used to modify the way
+postcard serializes or processes serialized data. These flavors act as “plugins” or “middlewares”
+during the serialization process, and can be combined to obtain complex protocol formats.</p>
+<p>Here, we serialize the given data, while simultaneously encoding it using COBS (a “modification flavor”),
+and placing the output in a byte slice (a “storage flavor”).</p>
+<p>Users of <code>postcard</code> can define their own Flavors that can be combined with existing Flavors.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">postcard</span>::{
+    <span class="ident">serialize_with_flavor</span>,
+    <span class="ident">flavors</span>::{<span class="ident">Cobs</span>, <span class="ident">Slice</span>},
+};
+
+<span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+
+<span class="kw">let</span> <span class="ident">data</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] <span class="op">=</span> <span class="kw-2">&amp;</span>[<span class="number">0x01</span>, <span class="number">0x00</span>, <span class="number">0x20</span>, <span class="number">0x30</span>];
+<span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> [<span class="number">0u8</span>; <span class="number">32</span>];
+<span class="kw">let</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">serialize_with_flavor</span>::<span class="op">&lt;</span>[<span class="ident">u8</span>], <span class="ident">Cobs</span><span class="op">&lt;</span><span class="ident">Slice</span><span class="op">&gt;</span>, <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>(
+    <span class="ident">data</span>,
+    <span class="ident">Cobs::try_new</span>(<span class="ident">Slice::new</span>(<span class="ident">buffer</span>)).<span class="ident">unwrap</span>(),
+).<span class="ident">unwrap</span>();
+
+<span class="macro">assert_eq!</span>(<span class="ident">res</span>, <span class="kw-2">&amp;</span>[<span class="number">0x03</span>, <span class="number">0x04</span>, <span class="number">0x01</span>, <span class="number">0x03</span>, <span class="number">0x20</span>, <span class="number">0x30</span>, <span class="number">0x00</span>]);</code></pre></div>
+<h3 id="setup---cargotoml"><a href="#setup---cargotoml">Setup - <code>Cargo.toml</code></a></h3>
+<p>Don’t forget to add <a href="https://serde.rs/no-std.html">the <code>no-std</code> subset</a> of <code>serde</code> along with <code>postcard</code> to the <code>[dependencies]</code> section of your <code>Cargo.toml</code>!</p>
+<div class="example-wrap"><pre class="language-toml"><code>
+[dependencies]
+postcard = &quot;0.7.2&quot;
+
+serde = { version = &quot;1.0.*&quot;, default-features = false }</code></pre></div><h3 id="license"><a href="#license">License</a></h3>
+<p>Licensed under either of</p>
+<ul>
+<li>Apache License, Version 2.0 (<a href="LICENSE-APACHE">LICENSE-APACHE</a> or
+http://www.apache.org/licenses/LICENSE-2.0)</li>
+<li>MIT license (<a href="LICENSE-MIT">LICENSE-MIT</a> or http://opensource.org/licenses/MIT)</li>
+</ul>
+<p>at your option.</p>
+<h4 id="contribution"><a href="#contribution">Contribution</a></h4>
+<p>Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as above, without any additional terms or conditions.</p>
+</div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="flavors/index.html" title="postcard::flavors mod">flavors</a></div><div class="item-right docblock-short"><p>Flavors - Plugins for <code>postcard</code></p>
+</div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.CobsAccumulator.html" title="postcard::CobsAccumulator struct">CobsAccumulator</a></div><div class="item-right docblock-short"><p>An accumulator used to collect chunked COBS data and deserialize it.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Deserializer.html" title="postcard::Deserializer struct">Deserializer</a></div><div class="item-right docblock-short"><p>A structure for deserializing a postcard message. For now, Deserializer does not
+implement the same Flavor interface as the serializer does, as messages are typically
+easier to deserialize in place. This may change in the future for consistency, or
+to support items that cannot be deserialized in-place, such as compressed message types</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Serializer.html" title="postcard::Serializer struct">Serializer</a></div><div class="item-right docblock-short"><p>A <code>serde</code> compatible serializer, generic over “Flavors” of serializing plugins.</p>
+</div></div></div><h2 id="enums" class="small-section-header"><a href="#enums">Enums</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.Error.html" title="postcard::Error enum">Error</a></div><div class="item-right docblock-short"><p>This is the error type used by Postcard</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="enum" href="enum.FeedResult.html" title="postcard::FeedResult enum">FeedResult</a></div><div class="item-right docblock-short"><p>The result of feeding the accumulator.</p>
+</div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_bytes.html" title="postcard::from_bytes fn">from_bytes</a></div><div class="item-right docblock-short"><p>Deserialize a message of type <code>T</code> from a byte slice. The unused portion (if any)
+of the byte slice is not returned.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.from_bytes_cobs.html" title="postcard::from_bytes_cobs fn">from_bytes_cobs</a></div><div class="item-right docblock-short"><p>Deserialize a message of type <code>T</code> from a cobs-encoded byte slice. The
+unused portion (if any) of the byte slice is not returned.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.serialize_with_flavor.html" title="postcard::serialize_with_flavor fn">serialize_with_flavor</a></div><div class="item-right docblock-short"><p><code>serialize_with_flavor()</code> has three generic parameters, <code>T, F, O</code>.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.take_from_bytes.html" title="postcard::take_from_bytes fn">take_from_bytes</a></div><div class="item-right docblock-short"><p>Deserialize a message of type <code>T</code> from a byte slice. The unused portion (if any)
+of the byte slice is returned for further usage</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.take_from_bytes_cobs.html" title="postcard::take_from_bytes_cobs fn">take_from_bytes_cobs</a></div><div class="item-right docblock-short"><p>Deserialize a message of type <code>T</code> from a cobs-encoded byte slice. The
+unused portion (if any) of the byte slice is returned for further usage</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.to_slice.html" title="postcard::to_slice fn">to_slice</a></div><div class="item-right docblock-short"><p>Serialize a <code>T</code> to the given slice, with the resulting slice containing
+data in a serialized format.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.to_slice_cobs.html" title="postcard::to_slice_cobs fn">to_slice_cobs</a></div><div class="item-right docblock-short"><p>Serialize a <code>T</code> to the given slice, with the resulting slice containing
+data in a serialized then COBS encoded format. The terminating sentinel <code>0x00</code> byte is included
+in the output buffer.</p>
+</div></div></div><h2 id="types" class="small-section-header"><a href="#types">Type Definitions</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="type" href="type.Result.html" title="postcard::Result type">Result</a></div><div class="item-right docblock-short"><p>This is the Result type used by Postcard.</p>
+</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="postcard" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</body></html>

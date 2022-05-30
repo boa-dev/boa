@@ -197,13 +197,21 @@
 <span id="190">190</span>
 <span id="191">191</span>
 <span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it</span>
 <span class="doccomment">//! has support for some of the language.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Crate Features</span>
 <span class="doccomment">//!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).</span>
-<span class="doccomment">//!  - **console** - Enables `boa`s WHATWG `console` object implementation.</span>
+<span class="doccomment">//!  - **console** - Enables `boa`&#39;s [WHATWG `console`][whatwg] object implementation.</span>
 <span class="doccomment">//!  - **profiler** - Enables profiling with measureme (this is mostly internal).</span>
+<span class="doccomment">//!  - **intl** - Enables `boa`&#39;s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [whatwg]: https://console.spec.whatwg.org</span>
+<span class="doccomment">//! [ecma-402]: https://tc39.es/ecma402</span>
 
 <span class="attribute">#![<span class="ident">doc</span>(
     <span class="ident">html_logo_url</span> <span class="op">=</span> <span class="string">&quot;https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg&quot;</span>,

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.5.1/src/arrayvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arrayvec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/tinyvec-1.6.0/src/arrayvec.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arrayvec.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../tinyvec/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1815,6 +1815,67 @@
 <span id="1810">1810</span>
 <span id="1811">1811</span>
 <span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
+<span id="1823">1823</span>
+<span id="1824">1824</span>
+<span id="1825">1825</span>
+<span id="1826">1826</span>
+<span id="1827">1827</span>
+<span id="1828">1828</span>
+<span id="1829">1829</span>
+<span id="1830">1830</span>
+<span id="1831">1831</span>
+<span id="1832">1832</span>
+<span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
+<span id="1846">1846</span>
+<span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident">core::convert</span>::{<span class="ident">TryFrom</span>, <span class="ident">TryInto</span>};
 
@@ -3088,7 +3149,7 @@
       .<span class="ident">as_slice</span>()
       .<span class="ident">len</span>()
       .<span class="ident">try_into</span>()
-      .<span class="ident">expect</span>(<span class="string">&quot;ArrayVec::from&gt; lenght must be in range 0..=u16::MAX&quot;</span>);
+      .<span class="ident">expect</span>(<span class="string">&quot;ArrayVec::from&gt; length must be in range 0..=u16::MAX&quot;</span>);
     <span class="self">Self</span> { <span class="ident">len</span>, <span class="ident">data</span> }
   }
 }
@@ -3097,6 +3158,15 @@
 <span class="doccomment">/// fails.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TryFromSliceError</span>(());
+
+<span class="kw">impl</span> <span class="ident">core::fmt::Display</span> <span class="kw">for</span> <span class="ident">TryFromSliceError</span> {
+  <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">core::fmt::Result</span> {
+    <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;could not convert slice to ArrayVec&quot;</span>)
+  }
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>)]</span>
+<span class="kw">impl</span> <span class="ident">std::error::Error</span> <span class="kw">for</span> <span class="ident">TryFromSliceError</span> {}
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">A</span><span class="op">&gt;</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> [<span class="ident">T</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span>
 <span class="kw">where</span>
@@ -3561,6 +3631,9 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">alloc::vec::Vec</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc_1_57&quot;</span>))]</span>
+<span class="kw">use</span> <span class="ident">alloc::collections::TryReserveError</span>;
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">A</span>: <span class="ident">Array</span><span class="op">&gt;</span> <span class="ident">ArrayVec</span><span class="op">&lt;</span><span class="ident">A</span><span class="op">&gt;</span> {
   <span class="doccomment">/// Drains all elements to a Vec, but reserves additional space</span>
@@ -3580,6 +3653,34 @@
     <span class="kw">return</span> <span class="ident">v</span>;
   }
 
+  <span class="doccomment">/// Tries to drain all elements to a Vec, but reserves additional space.</span>
+  <span class="doccomment">///</span>
+  <span class="doccomment">/// # Errors</span>
+  <span class="doccomment">///</span>
+  <span class="doccomment">/// If the allocator reports a failure, then an error is returned.</span>
+  <span class="doccomment">///</span>
+  <span class="doccomment">/// ```</span>
+  <span class="doccomment">/// # use tinyvec::*;</span>
+  <span class="doccomment">/// let mut av = array_vec!([i32; 7] =&gt; 1, 2, 3);</span>
+  <span class="doccomment">/// let v = av.try_drain_to_vec_and_reserve(10);</span>
+  <span class="doccomment">/// assert!(matches!(v, Ok(_)));</span>
+  <span class="doccomment">/// let v = v.unwrap();</span>
+  <span class="doccomment">/// assert_eq!(v, &amp;[1, 2, 3]);</span>
+  <span class="doccomment">/// assert_eq!(v.capacity(), 13);</span>
+  <span class="doccomment">/// ```</span>
+  <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc_1_57&quot;</span>)]</span>
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_drain_to_vec_and_reserve</span>(
+    <span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">usize</span>,
+  ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>, <span class="ident">TryReserveError</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">cap</span> <span class="op">=</span> <span class="ident">n</span> <span class="op">+</span> <span class="self">self</span>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="ident">v</span>.<span class="ident">try_reserve</span>(<span class="ident">cap</span>)<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter_mut</span>().<span class="ident">map</span>(<span class="ident">take</span>);
+    <span class="ident">v</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
+    <span class="self">self</span>.<span class="ident">set_len</span>(<span class="number">0</span>);
+    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>);
+  }
+
   <span class="doccomment">/// Drains all elements to a Vec</span>
   <span class="doccomment">/// ```</span>
   <span class="doccomment">/// # use tinyvec::*;</span>
@@ -3590,6 +3691,27 @@
   <span class="doccomment">/// ```</span>
   <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">drain_to_vec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span> {
     <span class="self">self</span>.<span class="ident">drain_to_vec_and_reserve</span>(<span class="number">0</span>)
+  }
+
+  <span class="doccomment">/// Tries to drain all elements to a Vec.</span>
+  <span class="doccomment">///</span>
+  <span class="doccomment">/// # Errors</span>
+  <span class="doccomment">///</span>
+  <span class="doccomment">/// If the allocator reports a failure, then an error is returned.</span>
+  <span class="doccomment">///</span>
+  <span class="doccomment">/// ```</span>
+  <span class="doccomment">/// # use tinyvec::*;</span>
+  <span class="doccomment">/// let mut av = array_vec!([i32; 7] =&gt; 1, 2, 3);</span>
+  <span class="doccomment">/// let v = av.try_drain_to_vec();</span>
+  <span class="doccomment">/// assert!(matches!(v, Ok(_)));</span>
+  <span class="doccomment">/// let v = v.unwrap();</span>
+  <span class="doccomment">/// assert_eq!(v, &amp;[1, 2, 3]);</span>
+  <span class="doccomment">/// // Vec may reserve more than necessary in order to prevent more future allocations.</span>
+  <span class="doccomment">/// assert!(v.capacity() &gt;= 3);</span>
+  <span class="doccomment">/// ```</span>
+  <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rustc_1_57&quot;</span>)]</span>
+  <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_drain_to_vec</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">A::Item</span><span class="op">&gt;</span>, <span class="ident">TryReserveError</span><span class="op">&gt;</span> {
+    <span class="self">self</span>.<span class="ident">try_drain_to_vec_and_reserve</span>(<span class="number">0</span>)
   }
 }
 
