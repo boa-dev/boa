@@ -590,9 +590,9 @@ fn is_valid_tz() {
         false
     );
 
-    println!(
-        "DEBUG: {}",
-        canonicalize_time_zone_name(&JsString::new("Brazil/West")).to_string()
+    assert_eq!(
+        canonicalize_time_zone_name(&JsString::new("Brazil/West")).to_string(),
+        "Brazil/West"
     );
 }
 
@@ -803,8 +803,8 @@ fn build_fmts() {
         calendar: JsString::new("gregory"),
     };
 
-    let date_style = JsValue::String(JsString::from("full"));
-    let time_style = JsValue::String(JsString::from("full"));
+    let date_style = JsValue::String(JsString::from("none"));
+    let time_style = JsValue::String(JsString::from("none"));
     assert_eq!(
         date_time_style_format(&date_style, &time_style, &styles, &mut context).is_none(),
         false
