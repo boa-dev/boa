@@ -8,7 +8,7 @@ use crate::{
     builtins::intl::{
         best_available_locale, best_fit_matcher, default_locale, default_number_option,
         get_number_option, get_option, insert_unicode_extension_and_canonicalize, lookup_matcher,
-        resolve_locale, unicode_extension_components, DateTimeFormatRecord, GetOptionType,
+        resolve_locale, DateTimeFormatRecord, GetOptionType,
     },
     context::ContextBuilder,
     object::JsObject,
@@ -66,38 +66,32 @@ fn lookup_match() {
     let requested_locales = Vec::<JsString>::new();
 
     let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
-    assert_eq!(
-        matcher.locale,
-        default_locale(&canonicalizer).to_string().as_str()
-    );
-    assert_eq!(matcher.extension, "");
+    assert_eq!(matcher, default_locale(&canonicalizer));
+    assert_eq!(matcher.extensions.is_empty(), true);
 
     // available: [de-DE], requested: []
     let available_locales = vec![JsString::new("de-DE")];
     let requested_locales = Vec::<JsString>::new();
 
     let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
-    assert_eq!(
-        matcher.locale,
-        default_locale(&canonicalizer).to_string().as_str()
-    );
-    assert_eq!(matcher.extension, "");
+    assert_eq!(matcher, default_locale(&canonicalizer));
+    assert_eq!(matcher.extensions.is_empty(), true);
 
     // available: [fr-FR], requested: [fr-FR-u-hc-h12]
     let available_locales = vec![JsString::new("fr-FR")];
     let requested_locales = vec![JsString::new("fr-FR-u-hc-h12")];
 
     let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
-    assert_eq!(matcher.locale, "fr-FR");
-    assert_eq!(matcher.extension, "u-hc-h12");
+    assert_eq!(matcher.id.to_string(), "fr-FR");
+    assert_eq!(matcher.extensions.unicode.to_string(), "-u-hc-h12");
 
     // available: [es-ES], requested: [es-ES]
     let available_locales = vec![JsString::new("es-ES")];
     let requested_locales = vec![JsString::new("es-ES")];
 
     let matcher = best_fit_matcher(&available_locales, &requested_locales, &canonicalizer);
-    assert_eq!(matcher.locale, "es-ES");
-    assert_eq!(matcher.extension, "");
+    assert_eq!(matcher.id.to_string(), "es-ES");
+    assert_eq!(matcher.extensions.is_empty(), true);
 }
 
 #[test]
@@ -125,52 +119,6 @@ fn insert_unicode_ext() {
         insert_unicode_extension_and_canonicalize(&locale, &ext, &canonicalizer),
         JsString::new("hu-HU-u-hc-h12-x-private")
     );
-}
-
-#[test]
-fn uni_ext_comp() {
-    let ext = JsString::new("-u-ca-japanese-hc-h12");
-    let components = unicode_extension_components(&ext);
-    assert!(components.attributes.is_empty());
-    assert_eq!(components.keywords.len(), 2);
-    assert_eq!(components.keywords[0].key, "ca");
-    assert_eq!(components.keywords[0].value, "japanese");
-    assert_eq!(components.keywords[1].key, "hc");
-    assert_eq!(components.keywords[1].value, "h12");
-
-    let ext = JsString::new("-u-alias-co-phonebk-ka-shifted");
-    let components = unicode_extension_components(&ext);
-    assert_eq!(components.attributes, vec![JsString::new("alias")]);
-    assert_eq!(components.keywords.len(), 2);
-    assert_eq!(components.keywords[0].key, "co");
-    assert_eq!(components.keywords[0].value, "phonebk");
-    assert_eq!(components.keywords[1].key, "ka");
-    assert_eq!(components.keywords[1].value, "shifted");
-
-    let ext = JsString::new("-u-ca-buddhist-kk-nu-thai");
-    let components = unicode_extension_components(&ext);
-    assert!(components.attributes.is_empty());
-    assert_eq!(components.keywords.len(), 3);
-    assert_eq!(components.keywords[0].key, "ca");
-    assert_eq!(components.keywords[0].value, "buddhist");
-    assert_eq!(components.keywords[1].key, "kk");
-    assert_eq!(components.keywords[1].value, "");
-    assert_eq!(components.keywords[2].key, "nu");
-    assert_eq!(components.keywords[2].value, "thai");
-
-    let ext = JsString::new("-u-ca-islamic-civil");
-    let components = unicode_extension_components(&ext);
-    assert!(components.attributes.is_empty());
-    assert_eq!(components.keywords.len(), 1);
-    assert_eq!(components.keywords[0].key, "ca");
-    assert_eq!(components.keywords[0].value, "islamic-civil");
-
-    let ext = JsString::new("u-ca-islamic-civil");
-    let components = unicode_extension_components(&ext);
-    assert!(components.attributes.is_empty());
-    assert_eq!(components.keywords.len(), 1);
-    assert_eq!(components.keywords[0].key, "ca");
-    assert_eq!(components.keywords[0].value, "islamic-civil");
 }
 
 #[test]

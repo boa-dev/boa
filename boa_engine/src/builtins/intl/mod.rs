@@ -21,6 +21,7 @@ pub mod date_time_format;
 mod tests;
 
 use boa_profiler::Profiler;
+use icu::locid::extensions::unicode::Key;
 use icu_locale_canonicalizer::LocaleCanonicalizer;
 use icu_locid::{locale, Locale};
 use indexmap::IndexSet;
@@ -84,15 +85,6 @@ impl Intl {
     }
 }
 
-/// `MatcherRecord` type aggregates unicode `locale` string and unicode locale `extension`.
-///
-/// This is a return value for `lookup_matcher` and `best_fit_matcher` subroutines.
-#[derive(Debug)]
-struct MatcherRecord {
-    locale: JsString,
-    extension: JsString,
-}
-
 /// Abstract operation `DefaultLocale ( )`
 ///
 /// Returns a String value representing the structurally valid and canonicalized
@@ -151,41 +143,6 @@ fn best_available_locale(available_locales: &[JsString], locale: &JsString) -> O
     }
 }
 
-/// Returns the position of the first found unicode locale extension in a given string.
-///
-/// If no extensions found, return the length of requested locale
-fn get_leftmost_unicode_extension_pos(requested_locale: &str) -> usize {
-    let ext_sep = "-u-";
-    let src_locale = requested_locale.to_lowercase();
-    let pos = src_locale.find(ext_sep);
-    match pos {
-        Some(idx) => idx,
-        None => src_locale.len(),
-    }
-}
-
-/// Trims unciode locale extensions from a given string if any.
-///
-/// For example:
-///
-/// - `ja-Jpan-JP-u-ca-japanese-hc-h12` becomes `ja-Jpan-JP`
-/// - `fr-FR` becomes `fr-FR`
-fn trim_unicode_extensions(requested_locale: &str) -> JsString {
-    let trim_pos = get_leftmost_unicode_extension_pos(requested_locale);
-    JsString::new(&requested_locale[..trim_pos])
-}
-
-/// Extracts unciode locale extensions from a given string if any.
-///
-/// For example:
-///
-/// - `ja-Jpan-JP-u-ca-japanese-hc-h12` becomes `-u-ca-japanese-hc-h12`
-/// - `en-US` becomes an empty string
-fn extract_unicode_extensions(requested_locale: &str) -> JsString {
-    let trim_pos = get_leftmost_unicode_extension_pos(requested_locale);
-    JsString::new(&requested_locale[trim_pos..])
-}
-
 /// Abstract operation `LookupMatcher ( availableLocales, requestedLocales )`
 ///
 /// Compares `requestedLocales`, which must be a `List` as returned by `CanonicalizeLocaleList`,
@@ -200,53 +157,36 @@ fn lookup_matcher(
     available_locales: &[JsString],
     requested_locales: &[JsString],
     canonicalizer: &LocaleCanonicalizer,
-) -> MatcherRecord {
+) -> Locale {
     // 1. Let result be a new Record.
     // 2. For each element locale of requestedLocales, do
     for locale_str in requested_locales {
         // a. Let noExtensionsLocale be the String value that is locale with any Unicode locale
         //    extension sequences removed.
-        let maybe_locale = Locale::from_bytes(locale_str.as_bytes());
-        let no_extensions_locale = match &maybe_locale {
-            Ok(parsed_locale) => JsString::new(parsed_locale.id.to_string()),
-            Err(_) => trim_unicode_extensions(locale_str),
-        };
+        let parsed_locale =
+            Locale::from_bytes(locale_str.as_bytes()).expect("Failed to parse locale");
+        let no_extensions_locale = JsString::new(parsed_locale.id.to_string());
 
         // b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).
         let available_locale = best_available_locale(available_locales, &no_extensions_locale);
 
         // c. If availableLocale is not undefined, then
-        if let Some(available_locale) = available_locale {
+        if available_locale.is_some() {
             // i. Set result.[[locale]] to availableLocale.
             // Assignment deferred. See return statement below.
             // ii. If locale and noExtensionsLocale are not the same String value, then
-            let maybe_ext = if locale_str.eq(&no_extensions_locale) {
-                JsString::empty()
-            } else {
-                // 1. Let extension be the String value consisting of the substring of the Unicode
-                //    locale extension sequence within locale.
-                // 2. Set result.[[extension]] to extension.
-                match maybe_locale {
-                    Ok(parsed_locale) => JsString::new(parsed_locale.extensions.to_string()),
-                    Err(_) => extract_unicode_extensions(locale_str),
-                }
-            };
-
+            // 1. Let extension be the String value consisting of the substring of the Unicode
+            //    locale extension sequence within locale.
+            // 2. Set result.[[extension]] to extension.
             // iii. Return result.
-            return MatcherRecord {
-                locale: available_locale,
-                extension: maybe_ext,
-            };
+            return parsed_locale;
         }
     }
 
     // 3. Let defLocale be ! DefaultLocale().
     // 4. Set result.[[locale]] to defLocale.
     // 5. Return result.
-    MatcherRecord {
-        locale: default_locale(canonicalizer).to_string().into(),
-        extension: JsString::empty(),
-    }
+    default_locale(canonicalizer)
 }
 
 /// Abstract operation `BestFitMatcher ( availableLocales, requestedLocales )`
@@ -265,137 +205,8 @@ fn best_fit_matcher(
     available_locales: &[JsString],
     requested_locales: &[JsString],
     canonicalizer: &LocaleCanonicalizer,
-) -> MatcherRecord {
+) -> Locale {
     lookup_matcher(available_locales, requested_locales, canonicalizer)
-}
-
-/// `Keyword` structure is a pair of keyword key and keyword value.
-#[derive(Debug)]
-struct Keyword {
-    key: JsString,
-    value: JsString,
-}
-
-/// `UniExtRecord` structure represents unicode extension records.
-///
-/// It contains the list of unicode `extension` attributes and the list of `keywords`.
-///
-/// For example:
-///
-/// - `-u-nu-thai` has no attributes and the list of keywords contains `(nu:thai)` pair.
-#[allow(dead_code)]
-#[derive(Debug)]
-struct UniExtRecord {
-    attributes: Vec<JsString>, // never read at this point
-    keywords: Vec<Keyword>,
-}
-
-/// Abstract operation `UnicodeExtensionComponents ( extension )`
-///
-/// Returns the attributes and keywords from `extension`, which must be a String
-/// value whose contents are a `Unicode locale extension` sequence.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma402/#sec-unicode-extension-components
-fn unicode_extension_components(extension: &JsString) -> UniExtRecord {
-    // 1. Let attributes be a new empty List.
-    let mut attributes = Vec::<JsString>::new();
-
-    // 2. Let keywords be a new empty List.
-    let mut keywords = Vec::<Keyword>::new();
-
-    // 3. Let keyword be undefined.
-    let mut keyword: Option<Keyword> = None;
-
-    // 4. Let size be the length of extension.
-    let size = extension.len();
-
-    // 5. Let k be 3.
-    //
-    // Actually, it has to be 3 when the extension begins with dash (-u-ca-gregory).
-    // When the extension begins with u (u-ca-gregory), start with 2.
-    let mut k = if extension.starts_with("u-") { 2 } else { 3 };
-
-    // 6. Repeat, while k < size,
-    while k < size {
-        // a. Let e be ! StringIndexOf(extension, "-", k).
-        let e = extension.index_of(&JsString::new("-"), k);
-
-        // b. If e = -1, let len be size - k; else let len be e - k.
-        let len = match e {
-            Some(pos) => pos - k,
-            None => size - k,
-        };
-
-        // c. Let subtag be the String value equal to the substring of extension consisting of the
-        // code units at indices k (inclusive) through k + len (exclusive).
-        let subtag = JsString::new(&extension[k..k + len]);
-
-        // d. If keyword is undefined and len ≠ 2, then
-        if keyword.is_none() && len != 2 {
-            // i. If subtag is not an element of attributes, then
-            if !attributes.contains(&subtag) {
-                // 1. Append subtag to attributes.
-                attributes.push(subtag);
-            }
-        // e. Else if len = 2, then
-        } else if len == 2 {
-            // i. If keyword is not undefined and keywords does not contain an element
-            // whose [[Key]] is the same as keyword.[[Key]], then
-            //     1. Append keyword to keywords.
-            if let Some(keyword_val) = keyword {
-                let has_key = keywords.iter().any(|elem| elem.key == keyword_val.key);
-                if !has_key {
-                    keywords.push(keyword_val);
-                }
-            };
-
-            // ii. Set keyword to the Record { [[Key]]: subtag, [[Value]]: "" }.
-            keyword = Some(Keyword {
-                key: subtag,
-                value: JsString::empty(),
-            });
-        // f. Else,
-        } else {
-            // i. If keyword.[[Value]] is the empty String, then
-            //      1. Set keyword.[[Value]] to subtag.
-            // ii. Else,
-            //      1. Set keyword.[[Value]] to the string-concatenation of keyword.[[Value]], "-", and subtag.
-            if let Some(keyword_val) = keyword {
-                let new_keyword_val = if keyword_val.value.is_empty() {
-                    subtag
-                } else {
-                    JsString::new(format!("{}-{subtag}", keyword_val.value))
-                };
-
-                keyword = Some(Keyword {
-                    key: keyword_val.key,
-                    value: new_keyword_val,
-                });
-            };
-        }
-
-        // g. Let k be k + len + 1.
-        k = k + len + 1;
-    }
-
-    // 7. If keyword is not undefined and keywords does not contain an element whose [[Key]] is
-    // the same as keyword.[[Key]], then
-    //      a. Append keyword to keywords.
-    if let Some(keyword_val) = keyword {
-        let has_key = keywords.iter().any(|elem| elem.key == keyword_val.key);
-        if !has_key {
-            keywords.push(keyword_val);
-        }
-    };
-
-    // 8. Return the Record { [[Attributes]]: attributes, [[Keywords]]: keywords }.
-    UniExtRecord {
-        attributes,
-        keywords,
-    }
 }
 
 /// Abstract operation `InsertUnicodeExtensionAndCanonicalize ( locale, extension )`
@@ -596,7 +407,7 @@ fn resolve_locale(
     };
 
     // 4. Let foundLocale be r.[[locale]].
-    let mut found_locale = r.locale;
+    let mut found_locale = JsString::new(r.id.to_string());
 
     // 5. Let result be a new Record.
     let mut result = ResolveLocaleRecord {
@@ -609,14 +420,9 @@ fn resolve_locale(
     result.data_locale = found_locale.clone();
 
     // 7. If r has an [[extension]] field, then
-    let keywords = if r.extension.is_empty() {
-        Vec::<Keyword>::new()
-    } else {
-        // a. Let components be ! UnicodeExtensionComponents(r.[[extension]]).
-        let components = unicode_extension_components(&r.extension);
-        // b. Let keywords be components.[[Keywords]].
-        components.keywords
-    };
+    // a. Let components be ! UnicodeExtensionComponents(r.[[extension]]).
+    // b. Let keywords be components.[[Keywords]].
+    let keywords = r.extensions.unicode.keywords;
 
     // 8. Let supportedExtension be "-u".
     let mut supported_extension = JsString::new("-u");
@@ -648,24 +454,26 @@ fn resolve_locale(
         let mut supported_extension_addition = JsString::empty();
 
         // h. If r has an [[extension]] field, then
-        if !r.extension.is_empty() {
+        if !keywords.is_empty() {
             // i. If keywords contains an element whose [[Key]] is the same as key, then
             //      1. Let entry be the element of keywords whose [[Key]] is the same as key.
-            let maybe_entry = keywords.iter().find(|elem| key.eq(&elem.key));
+            let parsed_key: Key = key.parse().expect("Failed to parse key");
+
+            let maybe_entry = keywords.get(&parsed_key);
             if let Some(entry) = maybe_entry {
                 // 2. Let requestedValue be entry.[[Value]].
-                let requested_value = &entry.value;
+                let requested_value = JsString::new(entry.to_string());
 
                 // 3. If requestedValue is not the empty String, then
                 if !requested_value.is_empty() {
                     // a. If keyLocaleData contains requestedValue, then
-                    if key_locale_data.contains(requested_value) {
+                    if key_locale_data.contains(&requested_value) {
                         // i. Let value be requestedValue.
-                        value = JsValue::String(JsString::new(requested_value));
                         // ii. Let supportedExtensionAddition be the string-concatenation
                         // of "-", key, "-", and value.
                         supported_extension_addition =
-                            JsString::concat_array(&["-", key, "-", requested_value]);
+                            JsString::concat_array(&["-", key, "-", &requested_value]);
+                        value = JsValue::String(requested_value);
                     }
                 // 4. Else if keyLocaleData contains "true", then
                 } else if key_locale_data.contains(&JsString::new("true")) {
