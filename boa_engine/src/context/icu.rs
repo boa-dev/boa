@@ -1,3 +1,7 @@
+use icu_datagen::transform::cldr::{
+    AliasesProvider, CommonDateProvider, LikelySubtagsProvider, PluralsProvider, WeekDataProvider,
+};
+use icu_datagen::SourceData;
 use icu_datetime::provider::{
     calendar::{DatePatternsV1Marker, DateSkeletonPatternsV1Marker, DateSymbolsV1Marker},
     week_data::WeekDataV1Marker,
@@ -7,6 +11,7 @@ use icu_locale_canonicalizer::{
     LocaleCanonicalizer,
 };
 use icu_plurals::provider::OrdinalV1Marker;
+use icu_provider::inv::InvariantDataProvider;
 use icu_provider::prelude::*;
 
 /// Trait encompassing all the required implementations that define
@@ -32,6 +37,100 @@ impl<T> BoaProvider for T where
         + ResourceProvider<WeekDataV1Marker>
         + ?Sized
 {
+}
+
+impl ResourceProvider<AliasesV1Marker> for &dyn BoaProvider {
+    fn load_resource(&self, req: &DataRequest) -> Result<DataResponse<AliasesV1Marker>, DataError> {
+        let provider = AliasesProvider::from(&SourceData::default());
+        let response = provider.load_resource(req);
+        if response.is_ok() {
+            response
+        } else {
+            InvariantDataProvider.load_resource(req)
+        }
+    }
+}
+
+impl ResourceProvider<LikelySubtagsV1Marker> for &dyn BoaProvider {
+    fn load_resource(
+        &self,
+        req: &DataRequest,
+    ) -> Result<DataResponse<LikelySubtagsV1Marker>, DataError> {
+        let provider = LikelySubtagsProvider::from(&SourceData::default());
+        provider.load_resource(req)
+    }
+}
+
+impl ResourceProvider<DateSymbolsV1Marker> for &dyn BoaProvider {
+    fn load_resource(
+        &self,
+        req: &DataRequest,
+    ) -> Result<DataResponse<DateSymbolsV1Marker>, DataError> {
+        let provider = CommonDateProvider::from(&SourceData::default());
+        let response = provider.load_resource(req);
+        if response.is_ok() {
+            response
+        } else {
+            InvariantDataProvider.load_resource(req)
+        }
+    }
+}
+
+impl ResourceProvider<DatePatternsV1Marker> for &dyn BoaProvider {
+    fn load_resource(
+        &self,
+        req: &DataRequest,
+    ) -> Result<DataResponse<DatePatternsV1Marker>, DataError> {
+        let provider = CommonDateProvider::from(&SourceData::default());
+        let response = provider.load_resource(req);
+        if response.is_ok() {
+            response
+        } else {
+            InvariantDataProvider.load_resource(req)
+        }
+    }
+}
+
+impl ResourceProvider<DateSkeletonPatternsV1Marker> for &dyn BoaProvider {
+    fn load_resource(
+        &self,
+        req: &DataRequest,
+    ) -> Result<DataResponse<DateSkeletonPatternsV1Marker>, DataError> {
+        let provider = CommonDateProvider::from(&SourceData::default());
+        let response = provider.load_resource(req);
+        if response.is_ok() {
+            response
+        } else {
+            InvariantDataProvider.load_resource(req)
+        }
+    }
+}
+
+impl ResourceProvider<OrdinalV1Marker> for &dyn BoaProvider {
+    fn load_resource(&self, req: &DataRequest) -> Result<DataResponse<OrdinalV1Marker>, DataError> {
+        let provider = PluralsProvider::from(&SourceData::default());
+        let response = provider.load_resource(req);
+        if response.is_ok() {
+            response
+        } else {
+            InvariantDataProvider.load_resource(req)
+        }
+    }
+}
+
+impl ResourceProvider<WeekDataV1Marker> for &dyn BoaProvider {
+    fn load_resource(
+        &self,
+        req: &DataRequest,
+    ) -> Result<DataResponse<WeekDataV1Marker>, DataError> {
+        let provider = WeekDataProvider::from(&SourceData::default());
+        let response = provider.load_resource(req);
+        if response.is_ok() {
+            response
+        } else {
+            InvariantDataProvider.load_resource(req)
+        }
+    }
 }
 
 /// Collection of tools initialized from a [`BoaProvider`] that are used

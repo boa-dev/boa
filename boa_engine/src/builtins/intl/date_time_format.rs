@@ -13,7 +13,7 @@ use crate::{
         DateTimeFormatRecord, GetOptionType, LocaleDataRecord,
     },
     builtins::JsArgs,
-    context::intrinsics::StandardConstructors,
+    context::{icu::BoaProvider, intrinsics::StandardConstructors},
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsFunction, JsObject,
         ObjectData,
@@ -33,7 +33,6 @@ use icu::{
     },
     locid::Locale,
 };
-use icu_provider::inv::InvariantDataProvider;
 use rustc_hash::FxHashMap;
 use std::cmp::{max, min};
 
@@ -684,10 +683,13 @@ fn build_dtf_options(
 
 /// Builds a list of `components::Bag` for all possible combinations of dateStyle and timeStyle
 /// ("full", "medium", "short", "long", undefined) for specified `locale` and `calendar`
-pub(crate) fn build_formats(locale: &JsString, calendar: &JsString) -> Vec<components::Bag> {
+pub(crate) fn build_formats(
+    locale: &JsString,
+    calendar: &JsString,
+    provider: &dyn BoaProvider,
+) -> Vec<components::Bag> {
     let locale_str = locale.to_string();
     let locale = Locale::from_bytes(locale_str.as_bytes()).expect("Locale parsing failed");
-    let provider = InvariantDataProvider;
     let mut formats_vec = Vec::<components::Bag>::new();
     for date_style in [
         Some(length::Date::Full),
@@ -778,7 +780,7 @@ pub(crate) fn date_time_style_format(
 
     let locale_str = styles.locale.to_string();
     let locale = Locale::from_bytes(locale_str.as_bytes()).expect("Locale parsing failed");
-    let provider = InvariantDataProvider;
+    let provider = context.icu().provider();
 
     if styles.calendar.eq(&JsString::from("buddhist")) {
         let maybe_dtf = datetime::DateTimeFormat::<Buddhist>::try_new(locale, &provider, &options);
@@ -1433,6 +1435,7 @@ fn initialize_date_time_format(
             &resolved_calendar
                 .to_string(context)
                 .unwrap_or_else(|_| JsString::empty()),
+            context.icu().provider(),
         );
 
         // b. If matcher is "basic", then

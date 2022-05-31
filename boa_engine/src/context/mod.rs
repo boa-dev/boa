@@ -3,7 +3,7 @@
 pub mod intrinsics;
 
 #[cfg(feature = "intl")]
-mod icu;
+pub mod icu;
 
 use intrinsics::{IntrinsicObjects, Intrinsics};
 

@@ -10,6 +10,7 @@ use crate::{
         get_number_option, get_option, insert_unicode_extension_and_canonicalize, lookup_matcher,
         resolve_locale, unicode_extension_components, DateTimeFormatRecord, GetOptionType,
     },
+    context::ContextBuilder,
     object::JsObject,
     Context, JsString, JsValue,
 };
@@ -799,21 +800,45 @@ fn js_to_dtf() {
 
 #[test]
 fn build_fmts() {
-    let mut context = Context::default();
+    let provider = icu_testdata::get_provider();
+    let context_builder = ContextBuilder::default()
+        .icu_provider(Box::new(provider))
+        .expect("Failed to set a provider to ContextBuilder");
+    let mut context = context_builder.build();
 
-    let formats = build_formats(&JsString::new("fr"), &JsString::new("gregory"));
+    let formats = build_formats(
+        &JsString::new("fr"),
+        &JsString::new("gregory"),
+        context.icu().provider(),
+    );
     assert_eq!(formats.is_empty(), false);
 
-    let formats = build_formats(&JsString::new("de-DE"), &JsString::new("buddhist"));
+    let formats = build_formats(
+        &JsString::new("de-DE"),
+        &JsString::new("buddhist"),
+        context.icu().provider(),
+    );
     assert_eq!(formats.is_empty(), false);
 
-    let formats = build_formats(&JsString::new("ja-Kana-JP"), &JsString::new("japanese"));
+    let formats = build_formats(
+        &JsString::new("ja-Kana-JP"),
+        &JsString::new("japanese"),
+        context.icu().provider(),
+    );
     assert_eq!(formats.is_empty(), false);
 
-    let formats = build_formats(&JsString::new("it"), &JsString::new("julian"));
+    let formats = build_formats(
+        &JsString::new("it"),
+        &JsString::new("julian"),
+        context.icu().provider(),
+    );
     assert_eq!(formats.is_empty(), true);
 
-    let formats = build_formats(&JsString::new("en-US"), &JsString::new("gregory"));
+    let formats = build_formats(
+        &JsString::new("en-US"),
+        &JsString::new("gregory"),
+        context.icu().provider(),
+    );
     assert_eq!(formats.is_empty(), false);
 
     let format_options = FormatOptionsRecord {
