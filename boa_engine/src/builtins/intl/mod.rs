@@ -21,9 +21,8 @@ pub mod date_time_format;
 mod tests;
 
 use boa_profiler::Profiler;
-use icu::locid::extensions::unicode::Key;
 use icu_locale_canonicalizer::LocaleCanonicalizer;
-use icu_locid::{locale, Locale};
+use icu_locid::{extensions::unicode::Key, locale, Locale};
 use indexmap::IndexSet;
 use rustc_hash::FxHashMap;
 use tap::{Conv, Pipe, TapOptional};

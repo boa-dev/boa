@@ -1,9 +1,9 @@
 use crate::{
     builtins::intl::date_time_format::{
-        basic_format_matcher, build_formats, canonicalize_time_zone_name, date_time_style_format,
-        is_valid_time_zone_name, month_to_value, numeric_to_value, string_to_hour_cycle,
-        text_to_value, time_zone_to_value, to_date_time_options, value_to_date_style,
-        value_to_time_style, year_to_value, DateTimeReqs, FormatOptionsRecord, StylesRecord,
+        basic_format_matcher, build_formats, date_time_style_format, month_to_value,
+        numeric_to_value, parse_time_zone_name, string_to_hour_cycle, text_to_value,
+        time_zone_to_value, to_date_time_options, value_to_date_style, value_to_time_style,
+        year_to_value, DateTimeReqs, FormatOptionsRecord, StylesRecord,
     },
     builtins::intl::{
         best_available_locale, best_fit_matcher, default_locale, default_number_option,
@@ -15,21 +15,20 @@ use crate::{
     Context, JsString, JsValue,
 };
 
-use icu::datetime::{
+use icu_datetime::{
     options::{components, length, preferences},
     DateTimeFormatOptions,
 };
 use icu_locale_canonicalizer::LocaleCanonicalizer;
 use rustc_hash::FxHashMap;
 
+use chrono_tz::Tz;
+
 #[test]
 fn best_avail_loc() {
     let no_extensions_locale = JsString::new("en-US");
     let available_locales = Vec::<JsString>::new();
-    assert_eq!(
-        best_available_locale(&available_locales, &no_extensions_locale,),
-        None
-    );
+    assert!(best_available_locale(&available_locales, &no_extensions_locale,).is_none());
 
     let no_extensions_locale = JsString::new("de-DE");
     let available_locales = vec![no_extensions_locale.clone()];
@@ -67,7 +66,7 @@ fn lookup_match() {
 
     let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
     assert_eq!(matcher, default_locale(&canonicalizer));
-    assert_eq!(matcher.extensions.is_empty(), true);
+    assert!(matcher.extensions.is_empty());
 
     // available: [de-DE], requested: []
     let available_locales = vec![JsString::new("de-DE")];
@@ -75,7 +74,7 @@ fn lookup_match() {
 
     let matcher = lookup_matcher(&available_locales, &requested_locales, &canonicalizer);
     assert_eq!(matcher, default_locale(&canonicalizer));
-    assert_eq!(matcher.extensions.is_empty(), true);
+    assert!(matcher.extensions.is_empty());
 
     // available: [fr-FR], requested: [fr-FR-u-hc-h12]
     let available_locales = vec![JsString::new("fr-FR")];
@@ -91,7 +90,7 @@ fn lookup_match() {
 
     let matcher = best_fit_matcher(&available_locales, &requested_locales, &canonicalizer);
     assert_eq!(matcher.id.to_string(), "es-ES");
-    assert_eq!(matcher.extensions.is_empty(), true);
+    assert!(matcher.extensions.is_empty());
 }
 
 #[test]
@@ -529,10 +528,9 @@ fn nonterminals() {
     ];
 
     for calendar_opt in nonterminal_calendar_options {
-        assert_eq!(
-            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt),
-            true
-        );
+        assert!(crate::builtins::intl::date_time_format::is_terminal(
+            &calendar_opt
+        ));
     }
 
     let terminal_calendar_options = vec![
@@ -557,10 +555,9 @@ fn nonterminals() {
     ];
 
     for calendar_opt in terminal_calendar_options {
-        assert_eq!(
-            crate::builtins::intl::date_time_format::is_terminal(&calendar_opt),
-            false
-        );
+        assert!(!crate::builtins::intl::date_time_format::is_terminal(
+            &calendar_opt
+        ),);
     }
 }
 
@@ -573,26 +570,32 @@ fn build_date_time_fmt() {
         &Vec::<JsValue>::new(),
         &mut context,
     );
-    assert_eq!(date_time_fmt_obj.is_err(), false);
+    assert!(!date_time_fmt_obj.is_err());
 }
 
 #[test]
-fn is_valid_tz() {
-    assert_eq!(is_valid_time_zone_name(&JsString::new("UTC")), true);
-    assert_eq!(is_valid_time_zone_name(&JsString::new("Israel")), true);
+fn parse_tz() {
+    let context = &mut Context::default();
     assert_eq!(
-        is_valid_time_zone_name(&JsString::new("Atlantic/Reykjavik")),
-        true
+        parse_time_zone_name(&JsString::new("UTC"), context),
+        Ok(Tz::UTC)
     );
-    assert_eq!(is_valid_time_zone_name(&JsString::new("Etc/Zulu")), true);
     assert_eq!(
-        is_valid_time_zone_name(&JsString::new("Etc/Jamaica")),
-        false
+        parse_time_zone_name(&JsString::new("Israel"), context),
+        Ok(Tz::Israel)
     );
-
     assert_eq!(
-        canonicalize_time_zone_name(&JsString::new("Brazil/West")).to_string(),
-        "Brazil/West"
+        parse_time_zone_name(&JsString::new("Atlantic/Reykjavik"), context),
+        Ok(Tz::Atlantic__Reykjavik)
+    );
+    assert_eq!(
+        parse_time_zone_name(&JsString::new("Etc/Zulu"), context),
+        Ok(Tz::Etc__Zulu)
+    );
+    assert!(parse_time_zone_name(&JsString::new("Etc/Jamaica"), context).is_err());
+    assert_eq!(
+        parse_time_zone_name(&JsString::new("Brazil/West"), context),
+        Ok(Tz::Brazil__West)
     );
 }
 
@@ -633,10 +636,7 @@ fn js_to_dtf() {
         value_to_date_style(&JsValue::String(JsString::new("short")), &mut context),
         Some(length::Date::Short)
     );
-    assert_eq!(
-        value_to_date_style(&JsValue::String(JsString::new("narrow")), &mut context),
-        None
-    );
+    assert!(value_to_date_style(&JsValue::String(JsString::new("narrow")), &mut context).is_none());
 
     assert_eq!(
         value_to_time_style(&JsValue::String(JsString::new("full")), &mut context),
@@ -759,44 +759,41 @@ fn build_fmts() {
         &JsString::new("gregory"),
         context.icu().provider(),
     );
-    assert_eq!(formats.is_empty(), false);
+    assert!(!formats.is_empty());
 
     let formats = build_formats(
         &JsString::new("de-DE"),
         &JsString::new("buddhist"),
         context.icu().provider(),
     );
-    assert_eq!(formats.is_empty(), false);
+    assert!(!formats.is_empty());
 
     let formats = build_formats(
         &JsString::new("ja-Kana-JP"),
         &JsString::new("japanese"),
         context.icu().provider(),
     );
-    assert_eq!(formats.is_empty(), false);
+    assert!(!formats.is_empty());
 
     let formats = build_formats(
         &JsString::new("it"),
         &JsString::new("julian"),
         context.icu().provider(),
     );
-    assert_eq!(formats.is_empty(), true);
+    assert!(formats.is_empty());
 
     let formats = build_formats(
         &JsString::new("en-US"),
         &JsString::new("gregory"),
         context.icu().provider(),
     );
-    assert_eq!(formats.is_empty(), false);
+    assert!(!formats.is_empty());
 
     let format_options = FormatOptionsRecord {
         date_time_format_opts: DateTimeFormatOptions::default(),
         components: FxHashMap::default(),
     };
-    assert_eq!(
-        basic_format_matcher(&format_options, &formats).is_none(),
-        false
-    );
+    assert!(basic_format_matcher(&format_options, &formats).is_some());
 
     let styles = StylesRecord {
         locale: JsString::new("en-US"),
@@ -805,8 +802,5 @@ fn build_fmts() {
 
     let date_style = JsValue::String(JsString::from("none"));
     let time_style = JsValue::String(JsString::from("none"));
-    assert_eq!(
-        date_time_style_format(&date_style, &time_style, &styles, &mut context).is_none(),
-        false
-    );
+    assert!(date_time_style_format(&date_style, &time_style, &styles, &mut context).is_some());
 }

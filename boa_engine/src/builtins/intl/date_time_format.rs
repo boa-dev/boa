@@ -24,15 +24,12 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use chrono_tz::Tz;
-use icu::{
-    calendar::{buddhist::Buddhist, japanese::Japanese, Gregorian},
-    datetime,
-    datetime::{
-        options::{components, length, preferences},
-        DateTimeFormatOptions,
-    },
-    locid::Locale,
+use icu_calendar::{buddhist::Buddhist, japanese::Japanese, Gregorian};
+use icu_datetime::{
+    options::{components, length, preferences},
+    DateTimeFormatOptions,
 };
+use icu_locid::Locale;
 use rustc_hash::FxHashMap;
 use std::cmp::{max, min};
 
@@ -385,38 +382,32 @@ fn build_available_locales(context: &Context) -> Vec<JsString> {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma402/#sec-defaulttimezone
-fn default_time_zone() -> JsString {
-    // FIXME fetch default time zone from the environment
-    JsString::new("UTC")
+fn default_time_zone() -> Tz {
+    iana_time_zone::get_timezone()
+        .ok()
+        .and_then(|tz| tz.parse().ok())
+        .unwrap_or(Tz::UTC)
 }
 
-/// The abstract operation `IsValidTimeZoneName` takes argument `timeZone`, a String value, and
-/// verifies that it represents a valid Zone or Link name of the IANA Time Zone Database.
+/// Combination of abstract operations `IsValidTimeZoneName ( timeZone )` and
+/// `CanonicalizeTimeZoneName ( timeZone )`
+///
+/// This function takes the argument `timeZone` (a String value), then parses it,
+/// throwing an error if the provided string is not a valid IANA timezone.
 ///
 /// More information:
-///  - [ECMAScript reference][spec]
+///  - [ECMAScript reference (`IsValidTimeZoneName`)][valid spec]
+///  - [ECMAScript reference (`CanonicalizeTimeZoneName`)][canon spec]
 ///
-/// [spec]: https://tc39.es/ecma402/#sec-isvalidtimezonename
-pub(crate) fn is_valid_time_zone_name(time_zone: &JsString) -> bool {
-    let time_zone_str = time_zone.to_string();
-    let maybe_time_zone: Result<Tz, _> = time_zone_str.parse();
-    maybe_time_zone.is_ok()
-}
-
-/// The abstract operation `CanonicalizeTimeZoneName` takes argument `timeZone` (a String value
-/// that is a valid time zone name as verified by `IsValidTimeZoneName`). It returns the canonical
-/// and case-regularized form of timeZone.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma402/#sec-canonicalizetimezonename
-pub(crate) fn canonicalize_time_zone_name(time_zone: &JsString) -> JsString {
-    let time_zone_str = time_zone.to_string();
-    let canonical_tz: Tz = time_zone_str
+/// [valid spec]: https://tc39.es/ecma402/#sec-isvalidtimezonename
+/// [canon spec]: https://tc39.es/ecma402/#sec-canonicalizetimezonename
+pub(crate) fn parse_time_zone_name(time_zone: &JsString, context: &mut Context) -> JsResult<Tz> {
+    //     b. If the result of ! IsValidTimeZoneName(timeZone) is false, then
+    //         i. Throw a RangeError exception.
+    //     c. Set timeZone to ! CanonicalizeTimeZoneName(timeZone).
+    time_zone
         .parse()
-        .expect("CanonicalizeTimeZoneName: time zone name is not supported");
-    JsString::from(canonical_tz.name())
+        .map_err(|err| context.construct_range_error(format!("Invalid time zone name: {err}")))
 }
 
 /// Converts `hour_cycle_str` to `preferences::HourCycle`
@@ -708,7 +699,7 @@ pub(crate) fn build_formats(
             let options = build_dtf_options(date_style, time_style);
 
             if calendar.eq(&JsString::from("buddhist")) {
-                let maybe_dtf = datetime::DateTimeFormat::<Buddhist>::try_new(
+                let maybe_dtf = icu_datetime::DateTimeFormat::<Buddhist>::try_new(
                     locale.clone(),
                     &provider,
                     &options,
@@ -718,7 +709,7 @@ pub(crate) fn build_formats(
                     Err(_) => continue,
                 };
             } else if calendar.eq(&JsString::from("gregory")) {
-                let maybe_dtf = datetime::DateTimeFormat::<Gregorian>::try_new(
+                let maybe_dtf = icu_datetime::DateTimeFormat::<Gregorian>::try_new(
                     locale.clone(),
                     &provider,
                     &options,
@@ -728,7 +719,7 @@ pub(crate) fn build_formats(
                     Err(_) => continue,
                 };
             } else if calendar.eq(&JsString::from("japanese")) {
-                let maybe_dtf = datetime::DateTimeFormat::<Japanese>::try_new(
+                let maybe_dtf = icu_datetime::DateTimeFormat::<Japanese>::try_new(
                     locale.clone(),
                     &provider,
                     &options,
@@ -783,19 +774,22 @@ pub(crate) fn date_time_style_format(
     let provider = context.icu().provider();
 
     if styles.calendar.eq(&JsString::from("buddhist")) {
-        let maybe_dtf = datetime::DateTimeFormat::<Buddhist>::try_new(locale, &provider, &options);
+        let maybe_dtf =
+            icu_datetime::DateTimeFormat::<Buddhist>::try_new(locale, &provider, &options);
         match maybe_dtf {
             Ok(dtf) => Some(dtf.resolve_components()),
             Err(_) => None,
         }
     } else if styles.calendar.eq(&JsString::from("gregory")) {
-        let maybe_dtf = datetime::DateTimeFormat::<Gregorian>::try_new(locale, &provider, &options);
+        let maybe_dtf =
+            icu_datetime::DateTimeFormat::<Gregorian>::try_new(locale, &provider, &options);
         match maybe_dtf {
             Ok(dtf) => Some(dtf.resolve_components()),
             Err(_) => None,
         }
     } else if styles.calendar.eq(&JsString::from("japanese")) {
-        let maybe_dtf = datetime::DateTimeFormat::<Japanese>::try_new(locale, &provider, &options);
+        let maybe_dtf =
+            icu_datetime::DateTimeFormat::<Japanese>::try_new(locale, &provider, &options);
         match maybe_dtf {
             Ok(dtf) => Some(dtf.resolve_components()),
             Err(_) => None,
@@ -1283,19 +1277,15 @@ fn initialize_date_time_format(
     //     b. If the result of ! IsValidTimeZoneName(timeZone) is false, then
     //         i. Throw a RangeError exception.
     //     c. Set timeZone to ! CanonicalizeTimeZoneName(timeZone).
-    let time_zone_str = if time_zone.is_undefined() {
+    let time_zone = if time_zone.is_undefined() {
         default_time_zone()
     } else {
         let time_zone = time_zone.to_string(context)?;
-        if !is_valid_time_zone_name(&time_zone) {
-            return context.throw_range_error("Invalid time zone name");
-        }
-
-        canonicalize_time_zone_name(&time_zone)
+        parse_time_zone_name(&time_zone, context)?
     };
 
     // 32. Set dateTimeFormat.[[TimeZone]] to timeZone.
-    date_time_fmt.time_zone = time_zone_str;
+    date_time_fmt.time_zone = time_zone.name().into();
 
     // 33. Let formatOptions be a new Record.
     let mut format_options = FormatOptionsRecord {
