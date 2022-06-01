@@ -264,6 +264,42 @@
 <span id="257">257</span>
 <span id="258">258</span>
 <span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
 
 <span class="kw">mod</span> <span class="ident">cursor</span>;
@@ -279,9 +315,15 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">syntax</span>::{
-        <span class="ident">ast</span>::{<span class="ident">node::StatementList</span>, <span class="ident">Position</span>},
+        <span class="ident">ast</span>::{
+            <span class="ident">node</span>::{<span class="ident">FormalParameterList</span>, <span class="ident">StatementList</span>},
+            <span class="ident">Position</span>,
+        },
         <span class="ident">lexer::TokenKind</span>,
-        <span class="ident">parser::cursor::Cursor</span>,
+        <span class="ident">parser</span>::{
+            <span class="ident">cursor::Cursor</span>,
+            <span class="ident">function</span>::{<span class="ident">FormalParameters</span>, <span class="ident">FunctionStatementList</span>},
+        },
     },
     <span class="ident">Context</span>,
 };
@@ -455,6 +497,36 @@
         }
 
         <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>)
+    }
+
+    <span class="doccomment">/// Parse the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FunctionBody</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_function_body</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+        <span class="ident">allow_yield</span>: <span class="ident">bool</span>,
+        <span class="ident">allow_await</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">R</span>: <span class="ident">Read</span>,
+    {
+        <span class="ident">FunctionStatementList::new</span>(<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">interner</span>)
+    }
+
+    <span class="doccomment">/// Parse the full input as an [ECMAScript `FormalParameterList`][spec] into the boa AST representation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_formal_parameters</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+        <span class="ident">allow_yield</span>: <span class="ident">bool</span>,
+        <span class="ident">allow_await</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FormalParameterList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">R</span>: <span class="ident">Read</span>,
+    {
+        <span class="ident">FormalParameters::new</span>(<span class="ident">allow_yield</span>, <span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">interner</span>)
     }
 }
 
