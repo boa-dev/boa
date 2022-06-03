@@ -396,6 +396,24 @@
 <span id="389">389</span>
 <span id="390">390</span>
 <span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object node.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
@@ -736,6 +754,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName</span>
     <span class="ident">Literal</span>(<span class="ident">Sym</span>),
+
     <span class="doccomment">/// A `Computed` property name is an expression that gets evaluated and converted into a property name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -785,6 +804,23 @@
 }
 
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">PropertyName</span> {
+    <span class="macro">unsafe_empty_trace!</span>();
+}
+
+<span class="doccomment">/// `ClassElementName` can be either a property name or a private identifier.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ClassElementName</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ClassElementName</span> {
+    <span class="ident">PropertyName</span>(<span class="ident">PropertyName</span>),
+    <span class="ident">PrivateIdentifier</span>(<span class="ident">Sym</span>),
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ClassElementName</span> {
     <span class="macro">unsafe_empty_trace!</span>();
 }
 </code></pre></div>
