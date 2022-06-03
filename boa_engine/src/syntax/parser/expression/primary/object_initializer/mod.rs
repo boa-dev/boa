@@ -198,12 +198,28 @@ where
             .kind()
             == &TokenKind::Punctuator(Punctuator::Mul)
         {
-            let (property_name, method) =
+            let position = cursor
+                .peek(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .span()
+                .start();
+            let (class_element_name, method) =
                 GeneratorMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            return Ok(object::PropertyDefinition::method_definition(
-                method,
-                property_name,
-            ));
+
+            match class_element_name {
+                object::ClassElementName::PropertyName(property_name) => {
+                    return Ok(object::PropertyDefinition::method_definition(
+                        method,
+                        property_name,
+                    ))
+                }
+                object::ClassElementName::PrivateIdentifier(_) => {
+                    return Err(ParseError::general(
+                        "private identifier not allowed in object literal",
+                        position,
+                    ))
+                }
+            }
         }
 
         let mut property_name =
@@ -455,6 +471,62 @@ where
     }
 }
 
+/// `ClassElementName` can be either a property name or a private identifier.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ClassElementName
+#[derive(Debug, Clone)]
+pub(in crate::syntax::parser) struct ClassElementName {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl ClassElementName {
+    /// Creates a new `ClassElementName` parser.
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for ClassElementName
+where
+    R: Read,
+{
+    type Output = object::ClassElementName;
+
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        let _timer = Profiler::global().start_event("ClassElementName", "Parsing");
+
+        match cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
+            TokenKind::PrivateIdentifier(ident) => {
+                let ident = *ident;
+                cursor.next(interner).expect("token disappeared");
+                Ok(object::ClassElementName::PrivateIdentifier(ident))
+            }
+            _ => Ok(object::ClassElementName::PropertyName(
+                PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
+            )),
+        }
+    }
+}
+
 /// Initializer parsing.
 ///
 /// More information:
@@ -537,7 +609,7 @@ impl<R> TokenParser<R> for GeneratorMethod
 where
     R: Read,
 {
-    type Output = (object::PropertyName, MethodDefinition);
+    type Output = (object::ClassElementName, MethodDefinition);
 
     fn parse(
         self,
@@ -547,8 +619,8 @@ where
         let _timer = Profiler::global().start_event("GeneratorMethod", "Parsing");
         cursor.expect(Punctuator::Mul, "generator method definition", interner)?;
 
-        let property_name =
-            PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let class_element_name =
+            ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         let params = UniqueFormalParameters::new(true, false).parse(cursor, interner)?;
 
@@ -584,7 +656,7 @@ where
         )?;
 
         Ok((
-            property_name,
+            class_element_name,
             MethodDefinition::Generator(GeneratorExpr::new(None, params, body)),
         ))
     }
