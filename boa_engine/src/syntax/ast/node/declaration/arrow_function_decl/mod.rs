@@ -1,5 +1,4 @@
 use crate::syntax::ast::node::{join_nodes, FormalParameterList, Node, StatementList};
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -19,7 +18,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ArrowFunctionDecl {
     name: Option<Sym>,
     params: FormalParameterList,

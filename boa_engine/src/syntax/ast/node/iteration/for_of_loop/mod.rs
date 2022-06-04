@@ -1,12 +1,11 @@
 use crate::syntax::ast::node::{iteration::IterableLoopInitializer, Node};
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct ForOfLoop {
     init: Box<IterableLoopInitializer>,
     iterable: Box<Node>,

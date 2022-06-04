@@ -69,6 +69,7 @@ pub struct CodeBlock {
     pub(crate) this_mode: ThisMode,
 
     /// Parameters passed to this function.
+    #[unsafe_ignore_trace]
     pub(crate) params: FormalParameterList,
 
     /// Bytecode

@@ -1,5 +1,4 @@
 use crate::syntax::ast::node::Node;
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -28,7 +27,7 @@ use serde::{Deserialize, Serialize};
 /// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct GetField {
     obj: Box<Node>,
     field: Box<Node>,

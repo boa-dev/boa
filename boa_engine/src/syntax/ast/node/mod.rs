@@ -45,7 +45,7 @@ pub use self::{
     r#yield::Yield,
     return_smt::Return,
     spread::Spread,
-    statement_list::{RcStatementList, StatementList},
+    statement_list::StatementList,
     switch::{Case, Switch},
     template::{TaggedTemplate, TemplateLit},
     throw::Throw,
@@ -60,7 +60,6 @@ use self::{
 pub(crate) use self::parameters::FormalParameterListFlags;
 
 use super::Const;
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use rustc_hash::FxHashSet;
 use std::cmp::Ordering;
@@ -70,7 +69,7 @@ use serde::{Deserialize, Serialize};
 
 // TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Node {
     /// Array declaration node. [More information](./array/struct.ArrayDecl.html).
     ArrayDecl(ArrayDecl),

@@ -1,5 +1,4 @@
 use crate::syntax::ast::node::Node;
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -17,7 +16,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-grammar-notation-WhileStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/while
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct WhileLoop {
     cond: Box<Node>,
     body: Box<Node>,

@@ -10,7 +10,6 @@ use crate::syntax::{
     },
     parser::RESERVED_IDENTIFIERS_STRICT,
 };
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -28,7 +27,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Assign {
     lhs: Box<AssignTarget>,
     rhs: Box<Node>,
@@ -81,7 +80,7 @@ impl From<Assign> for Node {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum AssignTarget {
     Identifier(Identifier),
     GetPrivateField(GetPrivateField),

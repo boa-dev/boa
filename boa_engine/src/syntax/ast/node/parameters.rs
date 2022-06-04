@@ -2,7 +2,6 @@ use crate::syntax::{ast::Position, parser::ParseError};
 
 use super::{Declaration, DeclarationPattern, Node};
 use bitflags::bitflags;
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -15,10 +14,9 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Default, PartialEq, Trace, Finalize)]
+#[derive(Clone, Debug, Default, PartialEq)]
 pub struct FormalParameterList {
     pub(crate) parameters: Box<[FormalParameter]>,
-    #[unsafe_ignore_trace]
     pub(crate) flags: FormalParameterListFlags,
     pub(crate) length: u32,
 }
@@ -163,7 +161,7 @@ impl Default for FormalParameterListFlags {
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameter
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FormalParameter {
     declaration: Declaration,
     is_rest_param: bool,

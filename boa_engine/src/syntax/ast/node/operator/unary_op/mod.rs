@@ -1,5 +1,4 @@
 use crate::syntax::ast::{node::Node, op};
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -14,7 +13,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary_operators
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct UnaryOp {
     op: op::UnaryOp,
     target: Box<Node>,

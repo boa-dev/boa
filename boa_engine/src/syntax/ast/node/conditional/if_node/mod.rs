@@ -1,5 +1,4 @@
 use crate::syntax::ast::node::Node;
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -22,7 +21,7 @@ use serde::{Deserialize, Serialize};
 /// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
 /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct If {
     cond: Box<Node>,
     body: Box<Node>,
