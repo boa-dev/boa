@@ -58,7 +58,7 @@
 
 - docs: update README by structuring the topics by @ftonato in [#1958](https://github.com/boa-dev/boa/pull/1958)
 - Migrate to NPM and cleanup Playground by @jedel1043 in [#1951](https://github.com/boa-dev/boa/pull/1951)
-- [perf][vm] by @pdogr in [#1973](https://github.com/boa-dev/boa/pull/1973)
+- Fix performance bottleneck in VM by @pdogr in [#1973](https://github.com/boa-dev/boa/pull/1973)
 - Remove `git2` and `hex` dependencies by @raskad in [#1992](https://github.com/boa-dev/boa/pull/1992)
 - Fix rust 1.60 clippy lints by @raskad in [#2014](https://github.com/boa-dev/boa/pull/2014)
 - Refactor `RegExp` constructor methods by @raskad in [#2049](https://github.com/boa-dev/boa/pull/2049)
