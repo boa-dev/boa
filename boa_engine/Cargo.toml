@@ -15,12 +15,15 @@ rust-version.workspace = true
 profiler = ["boa_profiler/profiler"]
 deser = ["boa_interner/serde", "boa_ast/serde"]
 intl = [
-    "dep:icu_locale_canonicalizer",
+    "dep:icu_locid_transform",
     "dep:icu_locid",
     "dep:icu_datetime",
     "dep:icu_plurals",
     "dep:icu_provider",
+    "dep:icu_provider_adapters",
     "dep:icu_testdata",
+    "dep:icu_calendar",
+    "dep:icu_collator",
     "dep:sys-locale"
 ]
 
@@ -59,12 +62,17 @@ tap = "1.0.1"
 sptr = "0.3.2"
 static_assertions = "1.1.0"
 thiserror = "1.0.38"
-icu_locale_canonicalizer = { version = "0.6.0", features = ["serde"], optional = true }
-icu_locid = { version = "0.6.0", features = ["serde"], optional = true }
-icu_datetime = { version = "0.6.0", features = ["serde"], optional = true }
-icu_plurals = { version = "0.6.0", features = ["serde"], optional = true }
-icu_provider = { version = "0.6.0", optional = true }
-icu_testdata = { version = "0.6.0", optional = true }
+
+# intl deps
+icu_locid_transform = { version = "1.0.0", features = ["serde"], optional = true }
+icu_locid = { version = "1.0.0", features = ["serde"], optional = true }
+icu_datetime = { version = "1.0.0", features = ["serde", "experimental"], optional = true }
+icu_calendar = { version  = "1.0.0", optional = true }
+icu_collator = { version = "1.0.0", optional = true }
+icu_plurals = { version = "1.0.0", features = ["serde"], optional = true }
+icu_provider = { version = "1.0.1", optional = true }
+icu_provider_adapters = { version = "1.0.0", features = ["serde"], optional = true }
+icu_testdata = { version = "1.0.0", optional = true }
 sys-locale = { version = "0.2.3", optional = true }
 
 [dev-dependencies]

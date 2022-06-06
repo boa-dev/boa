@@ -1,79 +1,99 @@
-use icu_datetime::provider::{
-    calendar::{DatePatternsV1Marker, DateSkeletonPatternsV1Marker, DateSymbolsV1Marker},
-    week_data::WeekDataV1Marker,
-};
-use icu_locale_canonicalizer::{
-    provider::{AliasesV1Marker, LikelySubtagsV1Marker},
-    LocaleCanonicalizer,
-};
-use icu_plurals::provider::OrdinalV1Marker;
-use icu_provider::prelude::*;
+use std::fmt::Debug;
 
-/// Trait encompassing all the required implementations that define
-/// a valid icu data provider.
-pub trait BoaProvider:
-    ResourceProvider<AliasesV1Marker>
-    + ResourceProvider<LikelySubtagsV1Marker>
-    + ResourceProvider<DateSymbolsV1Marker>
-    + ResourceProvider<DatePatternsV1Marker>
-    + ResourceProvider<DateSkeletonPatternsV1Marker>
-    + ResourceProvider<OrdinalV1Marker>
-    + ResourceProvider<WeekDataV1Marker>
-{
+use icu_locid_transform::{LocaleCanonicalizer, LocaleTransformError};
+use icu_provider::{
+    yoke::{trait_hack::YokeTraitHack, Yokeable},
+    zerofrom::ZeroFrom,
+    AnyProvider, AsDeserializingBufferProvider, AsDowncastingAnyProvider, BufferProvider,
+    DataError, DataProvider, DataRequest, DataResponse, KeyedDataMarker, MaybeSendSync,
+};
+use serde::Deserialize;
+
+pub enum BoaProvider {
+    Buffer(Box<dyn BufferProvider>),
+    Any(Box<dyn AnyProvider>),
 }
 
-impl<T> BoaProvider for T where
-    T: ResourceProvider<AliasesV1Marker>
-        + ResourceProvider<LikelySubtagsV1Marker>
-        + ResourceProvider<DateSymbolsV1Marker>
-        + ResourceProvider<DatePatternsV1Marker>
-        + ResourceProvider<DateSkeletonPatternsV1Marker>
-        + ResourceProvider<OrdinalV1Marker>
-        + ResourceProvider<WeekDataV1Marker>
-        + ?Sized
-{
+impl Debug for BoaProvider {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Buffer(_) => f.debug_tuple("Buffer").field(&"_").finish(),
+            Self::Any(_) => f.debug_tuple("Any").field(&"_").finish(),
+        }
+    }
 }
 
-/// Collection of tools initialized from a [`BoaProvider`] that are used
+impl<M> DataProvider<M> for BoaProvider
+where
+    M: KeyedDataMarker + 'static,
+    for<'de> YokeTraitHack<<M::Yokeable as Yokeable<'de>>::Output>: Deserialize<'de>,
+    for<'a> YokeTraitHack<<M::Yokeable as Yokeable<'a>>::Output>: Clone,
+    M::Yokeable: ZeroFrom<'static, M::Yokeable>,
+    M::Yokeable: MaybeSendSync,
+{
+    fn load(&self, req: DataRequest<'_>) -> Result<DataResponse<M>, DataError> {
+        match self {
+            BoaProvider::Buffer(provider) => provider.as_deserializing().load(req),
+            BoaProvider::Any(provider) => provider.as_downcasting().load(req),
+        }
+    }
+}
+
+impl BoaProvider {
+    /// Creates a new [`LocaleCanonicalizer`] from the provided [`DataProvider`].
+    pub(crate) fn try_new_locale_canonicalizer(
+        &self,
+    ) -> Result<LocaleCanonicalizer, LocaleTransformError> {
+        match self {
+            BoaProvider::Buffer(buffer) => {
+                LocaleCanonicalizer::try_new_with_buffer_provider(buffer)
+            }
+            BoaProvider::Any(any) => LocaleCanonicalizer::try_new_with_any_provider(any),
+        }
+    }
+}
+
+/// Collection of tools initialized from a [`DataProvider`] that are used
 /// for the functionality of `Intl`.
-#[allow(unused)]
-pub(crate) struct Icu {
-    provider: Box<dyn BoaProvider>,
+pub(crate) struct Icu<P> {
+    provider: P,
     locale_canonicalizer: LocaleCanonicalizer,
 }
 
-impl std::fmt::Debug for Icu {
+impl<P: Debug> Debug for Icu<P> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        #[derive(Debug)]
-        struct Canonicalizer;
         f.debug_struct("Icu")
-            .field("locale_canonicalizer", &Canonicalizer)
+            .field("provider", &self.provider)
+            .field("locale_canonicalizer", &"LocaleCanonicalizer")
             .finish()
     }
 }
 
-impl Icu {
-    /// Create a new [`Icu`] from a valid [`BoaProvider`]
+impl<P> Icu<P> {
+    /// Gets the [`LocaleCanonicalizer`] tool.
+    pub(crate) fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
+        &self.locale_canonicalizer
+    }
+
+    /// Gets the inner icu data provider
+    #[allow(unused)]
+    pub(crate) fn provider(&self) -> &P {
+        &self.provider
+    }
+}
+
+impl Icu<BoaProvider> {
+    /// Creates a new [`Icu`] from a valid [`BoaProvider`]
     ///
     /// # Errors
     ///
     /// This method will return an error if any of the tools
     /// required cannot be constructed.
-    pub(crate) fn new(provider: Box<dyn BoaProvider>) -> Result<Self, DataError> {
+    pub(crate) fn new(provider: BoaProvider) -> Result<Self, LocaleTransformError> {
+        let locale_canonicalizer = provider.try_new_locale_canonicalizer()?;
         Ok(Self {
-            locale_canonicalizer: LocaleCanonicalizer::new(&*provider)?,
             provider,
+            locale_canonicalizer,
         })
-    }
-
-    /// Get the [`LocaleCanonicalizer`] tool.
-    pub(crate) const fn locale_canonicalizer(&self) -> &LocaleCanonicalizer {
-        &self.locale_canonicalizer
-    }
-
-    /// Get the inner icu data provider
-    #[allow(unused)]
-    pub(crate) fn provider(&self) -> &dyn BoaProvider {
-        self.provider.as_ref()
     }
 }
