@@ -11,9 +11,9 @@ use crate::{
         generator::{Generator, GeneratorContext, GeneratorState},
     },
     context::intrinsics::StandardConstructors,
-    environments::{BindingLocator, DeclarativeEnvironmentStack},
+    environments::{BindingLocator, CompileTimeEnvironment, DeclarativeEnvironmentStack},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyKey},
     syntax::ast::node::FormalParameterList,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
@@ -78,7 +78,7 @@ pub struct CodeBlock {
     pub(crate) literals: Vec<JsValue>,
 
     /// Property field names.
-    pub(crate) variables: Vec<Sym>,
+    pub(crate) names: Vec<Sym>,
 
     /// Locators for all bindings in the codeblock.
     #[unsafe_ignore_trace]
@@ -96,6 +96,13 @@ pub struct CodeBlock {
     /// The `arguments` binding location of the function, if set.
     #[unsafe_ignore_trace]
     pub(crate) arguments_binding: Option<BindingLocator>,
+
+    /// Similar to the `[[ClassFieldInitializerName]]` slot in the spec.
+    /// Holds class field names that are computed at class declaration time.
+    pub(crate) computed_field_names: Option<Cell<Vec<PropertyKey>>>,
+
+    /// Compile time environments in this function.
+    pub(crate) compile_environments: Vec<Gc<Cell<CompileTimeEnvironment>>>,
 }
 
 impl CodeBlock {
@@ -104,7 +111,7 @@ impl CodeBlock {
         Self {
             code: Vec::new(),
             literals: Vec::new(),
-            variables: Vec::new(),
+            names: Vec::new(),
             bindings: Vec::new(),
             num_bindings: 0,
             functions: Vec::new(),
@@ -116,6 +123,8 @@ impl CodeBlock {
             params: FormalParameterList::default(),
             lexical_name_argument: false,
             arguments_binding: None,
+            computed_field_names: None,
+            compile_environments: Vec::new(),
         }
     }
 
@@ -185,6 +194,8 @@ impl CodeBlock {
             | Opcode::LogicalAnd
             | Opcode::LogicalOr
             | Opcode::Coalesce
+            | Opcode::CallEval
+            | Opcode::CallEvalWithRest
             | Opcode::Call
             | Opcode::CallWithRest
             | Opcode::New
@@ -193,13 +204,14 @@ impl CodeBlock {
             | Opcode::ForInLoopNext
             | Opcode::ConcatToString
             | Opcode::CopyDataProperties
-            | Opcode::GeneratorNextDelegate
-            | Opcode::PushDeclarativeEnvironment => {
+            | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
             }
-            Opcode::TryStart => {
+            Opcode::TryStart
+            | Opcode::PushDeclarativeEnvironment
+            | Opcode::PushFunctionEnvironment => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -235,14 +247,21 @@ impl CodeBlock {
             Opcode::GetPropertyByName
             | Opcode::SetPropertyByName
             | Opcode::DefineOwnPropertyByName
+            | Opcode::DefineClassMethodByName
             | Opcode::SetPropertyGetterByName
+            | Opcode::DefineClassGetterByName
             | Opcode::SetPropertySetterByName
+            | Opcode::DefineClassSetterByName
+            | Opcode::SetPrivateValue
+            | Opcode::SetPrivateSetter
+            | Opcode::SetPrivateGetter
+            | Opcode::GetPrivateField
             | Opcode::DeletePropertyByName => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}'",
-                    interner.resolve_expect(self.variables[operand as usize]),
+                    interner.resolve_expect(self.names[operand as usize]),
                 )
             }
             Opcode::Pop
@@ -258,6 +277,7 @@ impl CodeBlock {
             | Opcode::PushFalse
             | Opcode::PushUndefined
             | Opcode::PushEmptyObject
+            | Opcode::PushClassPrototype
             | Opcode::Add
             | Opcode::Sub
             | Opcode::Div
@@ -293,9 +313,13 @@ impl CodeBlock {
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
             | Opcode::DefineOwnPropertyByValue
+            | Opcode::DefineClassMethodByValue
             | Opcode::SetPropertyGetterByValue
+            | Opcode::DefineClassGetterByValue
             | Opcode::SetPropertySetterByValue
+            | Opcode::DefineClassSetterByValue
             | Opcode::DeletePropertyByValue
+            | Opcode::ToPropertyKey
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::TryEnd
@@ -305,7 +329,6 @@ impl CodeBlock {
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Return
-            | Opcode::PushFunctionEnvironment
             | Opcode::PopEnvironment
             | Opcode::LoopStart
             | Opcode::LoopContinue
@@ -327,6 +350,7 @@ impl CodeBlock {
             | Opcode::PopOnReturnSub
             | Opcode::Yield
             | Opcode::GeneratorNext
+            | Opcode::PushClassComputedFieldName
             | Opcode::Nop => String::new(),
         }
     }
@@ -342,7 +366,7 @@ impl ToInternedString for CodeBlock {
         };
 
         f.push_str(&format!(
-            "{:-^70}\n    Location  Count   Opcode                     Operands\n\n",
+            "{:-^70}\nLocation  Count   Opcode                     Operands\n\n",
             format!("Compiled Output: '{name}'"),
         ));
 
@@ -350,10 +374,11 @@ impl ToInternedString for CodeBlock {
         let mut count = 0;
         while pc < self.code.len() {
             let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
+            let opcode = opcode.as_str();
+            let previous_pc = pc;
             let operands = self.instruction_operands(&mut pc, interner);
             f.push_str(&format!(
-                "    {pc:06}    {count:04}    {:<27}\n{operands}",
-                opcode.as_str(),
+                "{previous_pc:06}    {count:04}    {opcode:<27}{operands}\n",
             ));
             count += 1;
         }
@@ -361,7 +386,7 @@ impl ToInternedString for CodeBlock {
         f.push_str("\nLiterals:\n");
 
         if self.literals.is_empty() {
-            f.push_str("    <empty>");
+            f.push_str("    <empty>\n");
         } else {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
@@ -372,21 +397,21 @@ impl ToInternedString for CodeBlock {
             }
         }
 
-        f.push_str("\nNames:\n");
-        if self.variables.is_empty() {
-            f.push_str("    <empty>");
+        f.push_str("\nBindings:\n");
+        if self.bindings.is_empty() {
+            f.push_str("    <empty>\n");
         } else {
-            for (i, value) in self.variables.iter().enumerate() {
+            for (i, binding_locator) in self.bindings.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: {}\n",
-                    interner.resolve_expect(*value)
+                    interner.resolve_expect(binding_locator.name())
                 ));
             }
         }
 
         f.push_str("\nFunctions:\n");
         if self.functions.is_empty() {
-            f.push_str("    <empty>");
+            f.push_str("    <empty>\n");
         } else {
             for (i, code) in self.functions.iter().enumerate() {
                 f.push_str(&format!(
@@ -609,31 +634,43 @@ impl JsObject {
                     } else {
                         context.global_object().clone().into()
                     }
-                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                } else if code.strict {
+                    this.clone()
+                } else if this.is_null_or_undefined() {
                     context.global_object().clone().into()
                 } else {
-                    this.clone()
+                    this.to_object(context)
+                        .expect("conversion cannot fail")
+                        .into()
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone(),
+                    );
+                }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -708,31 +745,39 @@ impl JsObject {
                     } else {
                         context.global_object().clone().into()
                     }
-                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                } else if !code.strict && this.is_null_or_undefined() {
                     context.global_object().clone().into()
                 } else {
                     this.clone()
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone(),
+                    );
+                }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -863,7 +908,7 @@ impl JsObject {
             } => {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
-                let this: JsValue = {
+                let this = {
                     // If the prototype of the constructor is not an object, then use the default object
                     // prototype as prototype for the new object
                     // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
@@ -873,13 +918,31 @@ impl JsObject {
                         StandardConstructors::object,
                         context,
                     )?;
-                    Self::from_proto_and_data(prototype, ObjectData::ordinary()).into()
+                    let this = Self::from_proto_and_data(prototype, ObjectData::ordinary());
+
+                    // Set computed class field names if they exist.
+                    if let Some(fields) = &code.computed_field_names {
+                        for key in fields.borrow().iter().rev() {
+                            context.vm.push(key);
+                        }
+                    }
+
+                    this
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone().into(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone().into(),
+                    );
+                }
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
@@ -896,19 +959,18 @@ impl JsObject {
                 }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -936,16 +998,10 @@ impl JsObject {
 
                 let param_count = code.params.parameters.len();
 
-                let this = if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
-                    context.global_object().clone().into()
-                } else {
-                    this
-                };
-
                 context.vm.push_frame(CallFrame {
                     prev: None,
                     code,
-                    this,
+                    this: this.into(),
                     pc: 0,
                     catch: Vec::new(),
                     finally_return: FinallyReturn::None,

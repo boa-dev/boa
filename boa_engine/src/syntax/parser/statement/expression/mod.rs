@@ -47,22 +47,40 @@ where
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         match next_token.kind() {
-            TokenKind::Keyword(Keyword::Function | Keyword::Class) => {
+            TokenKind::Keyword((
+                Keyword::Function | Keyword::Class | Keyword::Async | Keyword::Let,
+                true,
+            )) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    next_token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::Function | Keyword::Class, false)) => {
                 return Err(ParseError::general(
                     "expected statement",
                     next_token.span().start(),
                 ));
             }
-            TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword((Keyword::Async, false)) => {
                 let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
-                if next_token.kind() == &TokenKind::Keyword(Keyword::Function) {
-                    return Err(ParseError::general(
-                        "expected statement",
-                        next_token.span().start(),
-                    ));
+                match next_token.kind() {
+                    TokenKind::Keyword((Keyword::Function, true)) => {
+                        return Err(ParseError::general(
+                            "Keyword must not contain escaped characters",
+                            next_token.span().start(),
+                        ));
+                    }
+                    TokenKind::Keyword((Keyword::Function, false)) => {
+                        return Err(ParseError::general(
+                            "expected statement",
+                            next_token.span().start(),
+                        ));
+                    }
+                    _ => {}
                 }
             }
-            TokenKind::Keyword(Keyword::Let) => {
+            TokenKind::Keyword((Keyword::Let, false)) => {
                 let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::OpenBracket) {
                     return Err(ParseError::general(

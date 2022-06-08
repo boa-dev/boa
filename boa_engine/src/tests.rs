@@ -382,6 +382,21 @@ fn do_while_post_inc() {
 }
 
 #[test]
+fn do_while_in_block() {
+    let in_block = r#"
+        {
+            var i = 0;
+            do {
+                i += 1;
+            }
+            while(false);
+            i;
+        }
+    "#;
+    assert_eq!(&exec(in_block), "1");
+}
+
+#[test]
 fn for_loop() {
     let simple = r#"
         const a = ['h', 'e', 'l', 'l', 'o'];
@@ -1590,24 +1605,6 @@ fn test_strict_mode_reserved_name() {
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
     }
-}
-
-#[test]
-fn test_strict_mode_func_decl_in_block() {
-    // Checks that a function declaration in a block is an error in
-    // strict mode code as per https://tc39.es/ecma262/#early-error.
-
-    let scenario = r#"
-    'use strict';
-    let a = 4;
-    let b = 5;
-    if (a < b) { function f() {} }
-    "#;
-
-    check_output(&[TestAction::TestStartsWith(
-        scenario,
-        "Uncaught \"SyntaxError\": ",
-    )]);
 }
 
 #[test]

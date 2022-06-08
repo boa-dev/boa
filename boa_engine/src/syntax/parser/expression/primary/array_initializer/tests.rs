@@ -9,25 +9,26 @@ use boa_interner::{Interner, Sym};
 /// Checks an empty array.
 #[test]
 fn check_empty() {
-    let mut interner = Interner::default();
-    check_parser("[]", vec![ArrayDecl::from(vec![]).into()], &mut interner);
+    check_parser(
+        "[]",
+        vec![ArrayDecl::from(vec![]).into()],
+        Interner::default(),
+    );
 }
 
 /// Checks an array with empty slot.
 #[test]
 fn check_empty_slot() {
-    let mut interner = Interner::default();
     check_parser(
         "[,]",
         vec![ArrayDecl::from(vec![Node::Empty]).into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 /// Checks a numeric array.
 #[test]
 fn check_numeric_array() {
-    let mut interner = Interner::default();
     check_parser(
         "[1, 2, 3]",
         vec![ArrayDecl::from(vec![
@@ -36,14 +37,13 @@ fn check_numeric_array() {
             Const::from(3).into(),
         ])
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 // Checks a numeric array with trailing comma
 #[test]
 fn check_numeric_array_trailing() {
-    let mut interner = Interner::default();
     check_parser(
         "[1, 2, 3,]",
         vec![ArrayDecl::from(vec![
@@ -52,14 +52,13 @@ fn check_numeric_array_trailing() {
             Const::from(3).into(),
         ])
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 /// Checks a numeric array with an elision.
 #[test]
 fn check_numeric_array_elision() {
-    let mut interner = Interner::default();
     check_parser(
         "[1, 2, , 3]",
         vec![ArrayDecl::from(vec![
@@ -69,14 +68,13 @@ fn check_numeric_array_elision() {
             Const::from(3).into(),
         ])
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 /// Checks a numeric array with repeated elisions.
 #[test]
 fn check_numeric_array_repeated_elision() {
-    let mut interner = Interner::default();
     check_parser(
         "[1, 2, ,, 3]",
         vec![ArrayDecl::from(vec![
@@ -87,7 +85,7 @@ fn check_numeric_array_repeated_elision() {
             Const::from(3).into(),
         ])
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
@@ -103,14 +101,13 @@ fn check_combined() {
             Const::from(2).into(),
         ])
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
 /// Checks a combined array with an empty string
 #[test]
 fn check_combined_empty_str() {
-    let mut interner = Interner::default();
     check_parser(
         "[1, \"\", 2]",
         vec![ArrayDecl::from(vec![
@@ -119,6 +116,6 @@ fn check_combined_empty_str() {
             Const::from(2).into(),
         ])
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }

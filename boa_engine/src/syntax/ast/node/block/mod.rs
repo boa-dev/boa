@@ -4,7 +4,6 @@ use super::{Node, StatementList};
 use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
-use rustc_hash::FxHashSet;
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
@@ -40,12 +39,9 @@ impl Block {
         self.statements.items()
     }
 
-    pub(crate) fn lexically_declared_names(&self, interner: &Interner) -> FxHashSet<Sym> {
-        self.statements.lexically_declared_names(interner)
-    }
-
-    pub(crate) fn var_declared_named(&self) -> FxHashSet<Sym> {
-        self.statements.var_declared_names()
+    /// Get the lexically declared names of the block.
+    pub(crate) fn lexically_declared_names(&self) -> Vec<(Sym, bool)> {
+        self.statements.lexically_declared_names()
     }
 
     /// Implements the display formatting with indentation.

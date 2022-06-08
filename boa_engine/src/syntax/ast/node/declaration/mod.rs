@@ -2,6 +2,7 @@
 use crate::syntax::ast::node::{
     field::{GetConstField, GetField},
     join_nodes,
+    object::PropertyName,
     statement_list::StatementList,
     Identifier, Node,
 };
@@ -16,6 +17,7 @@ pub mod async_function_decl;
 pub mod async_function_expr;
 pub mod async_generator_decl;
 pub mod async_generator_expr;
+pub mod class_decl;
 pub mod function_decl;
 pub mod function_expr;
 pub mod generator_decl;
@@ -274,6 +276,114 @@ impl DeclarationPattern {
             DeclarationPattern::Array(pattern) => pattern.init(),
         }
     }
+
+    /// Returns true if the node contains a identifier reference named 'arguments'.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            DeclarationPattern::Object(pattern) => {
+                if let Some(init) = pattern.init() {
+                    if init.contains_arguments() {
+                        return true;
+                    }
+                }
+                for binding in pattern.bindings() {
+                    match binding {
+                        BindingPatternTypeObject::SingleName {
+                            property_name,
+                            default_init,
+                            ..
+                        } => {
+                            if let PropertyName::Computed(node) = property_name {
+                                if node.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                            if let Some(init) = default_init {
+                                if init.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                        }
+                        BindingPatternTypeObject::RestGetConstField {
+                            get_const_field, ..
+                        } => {
+                            if get_const_field.obj().contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeObject::BindingPattern {
+                            ident,
+                            pattern,
+                            default_init,
+                        } => {
+                            if let PropertyName::Computed(node) = ident {
+                                if node.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                            if let Some(init) = default_init {
+                                if init.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            DeclarationPattern::Array(pattern) => {
+                if let Some(init) = pattern.init() {
+                    if init.contains_arguments() {
+                        return true;
+                    }
+                }
+                for binding in pattern.bindings() {
+                    match binding {
+                        BindingPatternTypeArray::SingleName {
+                            default_init: Some(init),
+                            ..
+                        } => {
+                            if init.contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::GetField { get_field }
+                        | BindingPatternTypeArray::GetFieldRest { get_field } => {
+                            if get_field.obj().contains_arguments() {
+                                return true;
+                            }
+                            if get_field.field().contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::GetConstField { get_const_field }
+                        | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+                            if get_const_field.obj().contains_arguments() {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::BindingPattern { pattern }
+                        | BindingPatternTypeArray::BindingPatternRest { pattern } => {
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        false
+    }
 }
 
 /// `DeclarationPatternObject` represents an object binding pattern.
@@ -496,7 +606,7 @@ pub enum BindingPatternTypeObject {
     /// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty
     SingleName {
         ident: Sym,
-        property_name: Sym,
+        property_name: PropertyName,
         default_init: Option<Node>,
     },
 
@@ -535,7 +645,7 @@ pub enum BindingPatternTypeObject {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
     BindingPattern {
-        ident: Sym,
+        ident: PropertyName,
         pattern: DeclarationPattern,
         default_init: Option<Node>,
     },
@@ -544,47 +654,68 @@ pub enum BindingPatternTypeObject {
 impl ToInternedString for BindingPatternTypeObject {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            BindingPatternTypeObject::Empty => String::new(),
-            BindingPatternTypeObject::SingleName {
+            Self::Empty => String::new(),
+            Self::SingleName {
                 ident,
                 property_name,
                 default_init,
             } => {
-                let mut buf = if ident == property_name {
-                    format!(" {}", interner.resolve_expect(*ident))
-                } else {
-                    format!(
-                        " {} : {}",
-                        interner.resolve_expect(*property_name),
-                        interner.resolve_expect(*ident)
-                    )
+                let mut buf = match property_name {
+                    PropertyName::Literal(name) if *name == *ident => {
+                        format!(" {}", interner.resolve_expect(*ident))
+                    }
+                    PropertyName::Literal(name) => {
+                        format!(
+                            " {} : {}",
+                            interner.resolve_expect(*name),
+                            interner.resolve_expect(*ident)
+                        )
+                    }
+                    PropertyName::Computed(node) => {
+                        format!(
+                            " [{}] : {}",
+                            node.to_interned_string(interner),
+                            interner.resolve_expect(*ident)
+                        )
+                    }
                 };
                 if let Some(ref init) = default_init {
                     buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
                 }
                 buf
             }
-            BindingPatternTypeObject::RestProperty {
+            Self::RestProperty {
                 ident: property_name,
                 excluded_keys: _,
             } => {
                 format!(" ... {}", interner.resolve_expect(*property_name))
             }
-            BindingPatternTypeObject::RestGetConstField {
+            Self::RestGetConstField {
                 get_const_field, ..
             } => {
                 format!(" ... {}", get_const_field.to_interned_string(interner))
             }
-            BindingPatternTypeObject::BindingPattern {
+            Self::BindingPattern {
                 ident: property_name,
                 pattern,
                 default_init,
             } => {
-                let mut buf = format!(
-                    " {} : {}",
-                    interner.resolve_expect(*property_name),
-                    pattern.to_interned_string(interner)
-                );
+                let mut buf = match property_name {
+                    PropertyName::Literal(name) => {
+                        format!(
+                            " {} : {}",
+                            interner.resolve_expect(*name),
+                            pattern.to_interned_string(interner),
+                        )
+                    }
+                    PropertyName::Computed(node) => {
+                        format!(
+                            " [{}] : {}",
+                            node.to_interned_string(interner),
+                            pattern.to_interned_string(interner),
+                        )
+                    }
+                };
                 if let Some(ref init) = default_init {
                     buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
                 }
@@ -710,9 +841,9 @@ pub enum BindingPatternTypeArray {
 impl ToInternedString for BindingPatternTypeArray {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            BindingPatternTypeArray::Empty => String::new(),
-            BindingPatternTypeArray::Elision => " ".to_owned(),
-            BindingPatternTypeArray::SingleName {
+            Self::Empty => String::new(),
+            Self::Elision => " ".to_owned(),
+            Self::SingleName {
                 ident,
                 default_init,
             } => {
@@ -722,25 +853,25 @@ impl ToInternedString for BindingPatternTypeArray {
                 }
                 buf
             }
-            BindingPatternTypeArray::GetField { get_field } => {
+            Self::GetField { get_field } => {
                 format!(" {}", get_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::GetConstField { get_const_field } => {
+            Self::GetConstField { get_const_field } => {
                 format!(" {}", get_const_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::BindingPattern { pattern } => {
+            Self::BindingPattern { pattern } => {
                 format!(" {}", pattern.to_interned_string(interner))
             }
-            BindingPatternTypeArray::SingleNameRest { ident } => {
+            Self::SingleNameRest { ident } => {
                 format!(" ... {}", interner.resolve_expect(*ident))
             }
-            BindingPatternTypeArray::GetFieldRest { get_field } => {
+            Self::GetFieldRest { get_field } => {
                 format!(" ... {}", get_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+            Self::GetConstFieldRest { get_const_field } => {
                 format!(" ... {}", get_const_field.to_interned_string(interner))
             }
-            BindingPatternTypeArray::BindingPatternRest { pattern } => {
+            Self::BindingPatternRest { pattern } => {
                 format!(" ... {}", pattern.to_interned_string(interner))
             }
         }

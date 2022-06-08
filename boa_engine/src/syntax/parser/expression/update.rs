@@ -57,34 +57,46 @@ where
         let _timer = Profiler::global().start_event("UpdateExpression", "Parsing");
 
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let position = tok.span().start();
         match tok.kind() {
             TokenKind::Punctuator(Punctuator::Inc) => {
                 cursor
                     .next(interner)?
                     .expect("Punctuator::Inc token disappeared");
-                return Ok(node::UnaryOp::new(
-                    UnaryOp::IncrementPre,
-                    UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?,
-                )
-                .into());
+
+                let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+
+                if cursor.strict_mode() {
+                    if let Node::Identifier(ident) = target {
+                        ident.check_strict_arguments_or_eval(position)?;
+                    }
+                }
+
+                return Ok(node::UnaryOp::new(UnaryOp::IncrementPre, target).into());
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
                 cursor
                     .next(interner)?
                     .expect("Punctuator::Dec token disappeared");
-                return Ok(node::UnaryOp::new(
-                    UnaryOp::DecrementPre,
-                    UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?,
-                )
-                .into());
+
+                let target = UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+
+                if cursor.strict_mode() {
+                    if let Node::Identifier(ident) = target {
+                        ident.check_strict_arguments_or_eval(position)?;
+                    }
+                }
+
+                return Ok(node::UnaryOp::new(UnaryOp::DecrementPre, target).into());
             }
             _ => {}
         }
 
         let lhs = LeftHandSideExpression::new(self.name, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
+
         let strict = cursor.strict_mode();
         if let Some(tok) = cursor.peek(0, interner)? {
             let token_start = tok.span().start();

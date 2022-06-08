@@ -14,7 +14,7 @@ use crate::syntax::{
         Keyword, Punctuator,
     },
     lexer::TokenKind,
-    parser::{cursor::SemicolonResult, AllowAwait, AllowIn, Cursor, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowIn, Cursor, ParseError, ParseResult, TokenParser},
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -58,39 +58,63 @@ where
         let _timer = Profiler::global().start_event("YieldExpression", "Parsing");
 
         cursor.expect(
-            TokenKind::Keyword(Keyword::Yield),
+            TokenKind::Keyword((Keyword::Yield, false)),
             "yield expression",
             interner,
         )?;
 
-        let mut expr = None;
-        let mut delegate = false;
-
-        if let SemicolonResult::Found(_) = cursor.peek_semicolon(interner)? {
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::Semicolon),
-                "token disappeared",
-                interner,
-            )?;
-        } else if let Ok(next_token) =
-            cursor.peek_expect_no_lineterminator(0, "yield expression", interner)
-        {
-            if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::Mul),
-                    "token disappeared",
-                    interner,
-                )?;
-                delegate = true;
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        match token.kind() {
+            TokenKind::Punctuator(Punctuator::Mul) => {
+                cursor.next(interner)?.expect("token disappeared");
+                let expr = AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
+                    .parse(cursor, interner)?;
+                Ok(Node::Yield(Yield::new::<Node, Option<Node>>(
+                    Some(expr),
+                    true,
+                )))
             }
-            expr = Some(
-                AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
-                    .parse(cursor, interner)?,
-            );
+            TokenKind::Identifier(_)
+            | TokenKind::Punctuator(
+                Punctuator::OpenParen
+                | Punctuator::Add
+                | Punctuator::Sub
+                | Punctuator::Not
+                | Punctuator::Neg
+                | Punctuator::Inc
+                | Punctuator::Dec
+                | Punctuator::OpenBracket
+                | Punctuator::OpenBlock
+                | Punctuator::Div,
+            )
+            | TokenKind::Keyword((
+                Keyword::Yield
+                | Keyword::Await
+                | Keyword::Delete
+                | Keyword::Void
+                | Keyword::TypeOf
+                | Keyword::New
+                | Keyword::This
+                | Keyword::Function
+                | Keyword::Class
+                | Keyword::Async,
+                _,
+            ))
+            | TokenKind::BooleanLiteral(_)
+            | TokenKind::NullLiteral
+            | TokenKind::StringLiteral(_)
+            | TokenKind::TemplateNoSubstitution(_)
+            | TokenKind::NumericLiteral(_)
+            | TokenKind::RegularExpressionLiteral(_, _)
+            | TokenKind::TemplateMiddle(_) => {
+                let expr = AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
+                    .parse(cursor, interner)?;
+                Ok(Node::Yield(Yield::new::<Node, Option<Node>>(
+                    Some(expr),
+                    false,
+                )))
+            }
+            _ => Ok(Node::Yield(Yield::new::<Node, Option<Node>>(None, false))),
         }
-
-        Ok(Node::Yield(Yield::new::<Node, Option<Node>>(
-            expr, delegate,
-        )))
     }
 }

@@ -2,7 +2,7 @@
 
 <p align="center">
     <img
-      alt="logo"
+      alt="Boa Logo"
       src="./assets/logo.svg"
       width="30%"
     />
@@ -13,8 +13,8 @@ Currently, it has support for some of the language.
 
 [![Build Status][build_badge]][build_link]
 [![codecov](https://codecov.io/gh/boa-dev/boa/branch/main/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
-[![](https://img.shields.io/crates/v/Boa.svg)](https://crates.io/crates/Boa)
-[![](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
+[![Crates.io](https://img.shields.io/crates/v/Boa.svg)](https://crates.io/crates/Boa)
+[![Docs.rs](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
 [![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)](https://discord.gg/tUFFk9Y)
 
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
@@ -22,7 +22,7 @@ Currently, it has support for some of the language.
 
 ## Live Demo (WASM)
 
-<https://boa-dev.github.io/boa/>
+<https://boa-dev.github.io/boa/playground/>
 
 You can get more verbose errors when running from the command line.
 
@@ -32,11 +32,7 @@ You can check the internal development docs at <https://boa-dev.github.io/boa/do
 
 ## Conformance
 
-To know how much of the ECMAScript specification does Boa cover, you can check out results running the ECMASCript Test262 test suite [here](https://boa-dev.github.io/boa/test262/).
-
-## Benchmarks
-
-See [Benchmarks](https://boa-dev.github.io/boa/dev/bench/).
+To know how much of the _ECMAScript_ specification does Boa cover, you can check out results running the _ECMASCript Test262_ test suite [here](https://boa-dev.github.io/boa/test262/).
 
 ## Contributing
 
@@ -50,38 +46,35 @@ Check [debugging.md](./docs/debugging.md) for more info on debugging.
 
 ### Web Assembly
 
-This interpreter can be exposed to javascript!
+This interpreter can be exposed to JavaScript!
 You can build the example locally with:
 
-```
-$ yarn install
-$ yarn serve
+```shell
+npm run build
 ```
 
 In the console you can use `window.evaluate` to pass JavaScript in.
-To develop on the web assembly side you can run `yarn serve` then go to `http://localhost:8080`.
+To develop on the web assembly side you can run:
 
-## Roadmap
+```shell
+npm run serve
+```
 
-See [Milestones](https://github.com/boa-dev/boa/milestones).
-
-## Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md).
+then go to `http://localhost:8080`.
 
 ## Usage
 
 - Clone this repo.
-- Run with `cargo run -- test.js` where `test.js` is an existing JS file.
-- If any JS doesn't work then it's a bug. Please raise an issue!
+- Run with `cargo run -- test.js` where `test.js` is an existing JS file with any JS valid code.
+- If any JS doesn't work then it's a bug. Please raise an [issue](https://github.com/boa-dev/boa/issues/)!
 
-## Profiling
+### Example
 
-See [Profiling](./docs/profiling.md)
+![Example](docs/img/latestDemo.gif)
 
 ## Command-line Options
 
-```
+```shell
 USAGE:
     boa [OPTIONS] [FILE]...
 
@@ -97,13 +90,25 @@ ARGS:
     <FILE>...    The JavaScript file(s) to be evaluated
 ```
 
+## Roadmap
+
+See [Milestones](https://github.com/boa-dev/boa/milestones).
+
+## Benchmarks
+
+See [Benchmarks](https://boa-dev.github.io/boa/dev/bench/).
+
+## Profiling
+
+See [Profiling](./docs/profiling.md).
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md).
+
 ## Communication
 
 Feel free to contact us on [Discord](https://discord.gg/tUFFk9Y).
-
-## Example
-
-![Example](docs/img/latestDemo.gif)
 
 ## License
 

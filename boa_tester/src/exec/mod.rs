@@ -7,7 +7,6 @@ use super::{
     TestSuite, IGNORED,
 };
 use boa_engine::{syntax::Parser, Context, JsResult, JsValue};
-use boa_interner::Interner;
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;
@@ -43,6 +42,13 @@ impl TestSuite {
                 .collect()
         };
 
+        let mut features = Vec::new();
+        for test_iter in self.tests.iter() {
+            for feature_iter in test_iter.features.iter() {
+                features.push(feature_iter.to_string());
+            }
+        }
+
         if verbose != 0 {
             println!();
         }
@@ -67,6 +73,7 @@ impl TestSuite {
             passed += suite.passed;
             ignored += suite.ignored;
             panic += suite.panic;
+            features.append(&mut suite.features.clone());
         }
 
         if verbose != 0 {
@@ -95,6 +102,7 @@ impl TestSuite {
             panic,
             suites,
             tests,
+            features,
         }
     }
 }
@@ -103,7 +111,7 @@ impl Test {
     /// Runs the test.
     pub(crate) fn run(&self, harness: &Harness, verbose: u8) -> Vec<TestResult> {
         let mut results = Vec::new();
-        if self.flags.contains(TestFlags::STRICT) {
+        if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
             results.push(self.run_once(harness, true, verbose));
         }
 
@@ -123,6 +131,12 @@ impl Test {
                 if strict { " (strict mode)" } else { "" }
             );
         }
+
+        let test_content = if strict {
+            format!("\"use strict\";\n{}", self.content)
+        } else {
+            self.content.to_string()
+        };
 
         let (result, result_text) = if !IGNORED.contains_any_flag(self.flags)
             && !IGNORED.contains_test(&self.name)
@@ -152,11 +166,11 @@ impl Test {
             let res = panic::catch_unwind(|| match self.expected_outcome {
                 Outcome::Positive => {
                     // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
+                    let mut context = Context::default();
 
-                    match self.set_up_env(harness, strict) {
-                        Ok(mut context) => {
-                            context.set_strict_mode(strict);
-                            let res = context.eval(&self.content.as_ref());
+                    match self.set_up_env(harness, &mut context) {
+                        Ok(_) => {
+                            let res = context.eval(&test_content);
 
                             let passed = res.is_ok();
                             let text = match res {
@@ -181,8 +195,7 @@ impl Test {
                     );
 
                     let mut context = Context::default();
-                    context.set_strict_mode(strict);
-                    match context.parse(self.content.as_bytes()) {
+                    match context.parse(&test_content) {
                         Ok(statement_list) => match context.compile(&statement_list) {
                             Ok(_) => (false, "StatementList compilation should fail".to_owned()),
                             Err(e) => (true, format!("Uncaught {e:?}")),
@@ -198,28 +211,23 @@ impl Test {
                     phase: Phase::Runtime,
                     ref error_type,
                 } => {
-                    let mut interner = Interner::default();
-                    if let Err(e) =
-                        Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner)
-                    {
+                    let mut context = Context::default();
+                    if let Err(e) = Parser::new(test_content.as_bytes()).parse_all(&mut context) {
                         (false, format!("Uncaught {e}"))
                     } else {
-                        match self.set_up_env(harness, strict) {
-                            Ok(mut context) => {
-                                context.set_strict_mode(strict);
-                                match context.eval(&self.content.as_ref()) {
-                                    Ok(res) => (false, res.display().to_string()),
-                                    Err(e) => {
-                                        let passed = e
-                                            .display()
-                                            .internals(true)
-                                            .to_string()
-                                            .contains(error_type.as_ref());
+                        match self.set_up_env(harness, &mut context) {
+                            Ok(_) => match context.eval(&test_content) {
+                                Ok(res) => (false, res.display().to_string()),
+                                Err(e) => {
+                                    let passed = e
+                                        .display()
+                                        .internals(true)
+                                        .to_string()
+                                        .contains(error_type.as_ref());
 
-                                        (passed, format!("Uncaught {}", e.display()))
-                                    }
+                                    (passed, format!("Uncaught {}", e.display()))
                                 }
-                            }
+                            },
                             Err(e) => (false, e),
                         }
                     }
@@ -298,20 +306,15 @@ impl Test {
     }
 
     /// Sets the environment up to run the test.
-    fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
-        // Create new Realm
-        let mut context = Context::default();
-
+    fn set_up_env(&self, harness: &Harness, context: &mut Context) -> Result<(), String> {
         // Register the print() function.
         context.register_global_function("print", 1, test262_print);
 
         // add the $262 object.
-        let _js262 = js262::init(&mut context);
+        let _js262 = js262::init(context);
 
-        if strict {
-            context
-                .eval(r#""use strict";"#)
-                .map_err(|e| format!("could not set strict mode:\n{}", e.display()))?;
+        if self.flags.contains(TestFlags::RAW) {
+            return Ok(());
         }
 
         context
@@ -338,7 +341,7 @@ impl Test {
                 })?;
         }
 
-        Ok(context)
+        Ok(())
     }
 }
 

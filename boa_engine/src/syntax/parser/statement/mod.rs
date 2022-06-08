@@ -36,7 +36,10 @@ use self::{
     try_stm::TryStatement,
     variable::VariableStatement,
 };
-use super::{AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError, TokenParser};
+use super::{
+    expression::PropertyName, AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError,
+    TokenParser,
+};
 use crate::syntax::{
     ast::{
         node::{
@@ -46,14 +49,17 @@ use crate::syntax::{
                 DeclarationPatternArray, DeclarationPatternObject,
             },
         },
-        Keyword, Node, Position, Punctuator,
+        Keyword, Node, Punctuator,
     },
-    lexer::{Error as LexError, InputElement, TokenKind},
-    parser::expression::{await_expr::AwaitExpression, Initializer},
+    lexer::{Error as LexError, InputElement, Token, TokenKind},
+    parser::expression::{await_expr::AwaitExpression, BindingIdentifier, Initializer},
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::{collections::HashSet, io::Read, vec};
+use std::{io::Read, vec};
+
+pub(in crate::syntax::parser) use declaration::ClassTail;
+pub(in crate::syntax) use declaration::PrivateElement;
 
 /// Statement parsing.
 ///
@@ -120,35 +126,35 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Await) => AwaitExpression::new(self.allow_yield)
+            TokenKind::Keyword((Keyword::Await, _)) => AwaitExpression::new(self.allow_yield)
                 .parse(cursor, interner)
                 .map(Node::from),
-            TokenKind::Keyword(Keyword::If) => {
+            TokenKind::Keyword((Keyword::If, _)) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Var) => {
+            TokenKind::Keyword((Keyword::Var, _)) => {
                 VariableStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::While) => {
+            TokenKind::Keyword((Keyword::While, _)) => {
                 WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Do) => {
+            TokenKind::Keyword((Keyword::Do, _)) => {
                 DoWhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::For) => {
+            TokenKind::Keyword((Keyword::For, _)) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Return) => {
+            TokenKind::Keyword((Keyword::Return, _)) => {
                 if self.allow_return.0 {
                     ReturnStatement::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
@@ -161,27 +167,27 @@ where
                     ))
                 }
             }
-            TokenKind::Keyword(Keyword::Break) => {
+            TokenKind::Keyword((Keyword::Break, _)) => {
                 BreakStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Continue) => {
+            TokenKind::Keyword((Keyword::Continue, _)) => {
                 ContinueStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Try) => {
+            TokenKind::Keyword((Keyword::Try, _)) => {
                 TryStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Throw) => {
+            TokenKind::Keyword((Keyword::Throw, _)) => {
                 ThrowStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Switch) => {
+            TokenKind::Keyword((Keyword::Switch, _)) => {
                 SwitchStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
                     .map(Node::from)
@@ -234,7 +240,6 @@ pub(super) struct StatementList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    in_block: bool,
     break_nodes: &'static [TokenKind],
 }
 
@@ -244,7 +249,6 @@ impl StatementList {
         allow_yield: Y,
         allow_await: A,
         allow_return: R,
-        in_block: bool,
         break_nodes: &'static [TokenKind],
     ) -> Self
     where
@@ -256,7 +260,6 @@ impl StatementList {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
-            in_block,
             break_nodes,
         }
     }
@@ -293,119 +296,13 @@ where
                 _ => {}
             }
 
-            let item = StatementListItem::new(
-                self.allow_yield,
-                self.allow_await,
-                self.allow_return,
-                self.in_block,
-            )
-            .parse(cursor, interner)?;
+            let item =
+                StatementListItem::new(self.allow_yield, self.allow_await, self.allow_return)
+                    .parse(cursor, interner)?;
             items.push(item);
 
             // move the cursor forward for any consecutive semicolon.
             while cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {}
-        }
-
-        // Handle any redeclarations
-        // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
-        {
-            let mut lexically_declared_names: HashSet<Sym> = HashSet::new();
-            let mut var_declared_names: HashSet<Sym> = HashSet::new();
-
-            // TODO: Use more helpful positions in errors when spans are added to Nodes
-            for item in &items {
-                match item {
-                    Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => {
-                        for decl in decl_list.as_ref() {
-                            // if name in VarDeclaredNames or can't be added to
-                            // LexicallyDeclaredNames, raise an error
-                            match decl {
-                                node::Declaration::Identifier { ident, .. } => {
-                                    if var_declared_names.contains(&ident.sym())
-                                        || !lexically_declared_names.insert(ident.sym())
-                                    {
-                                        return Err(ParseError::lex(LexError::Syntax(
-                                            format!(
-                                                "Redeclaration of variable `{}`",
-                                                interner.resolve_expect(ident.sym())
-                                            )
-                                            .into(),
-                                            match cursor.peek(0, interner)? {
-                                                Some(token) => token.span().end(),
-                                                None => Position::new(1, 1),
-                                            },
-                                        )));
-                                    }
-                                }
-                                node::Declaration::Pattern(p) => {
-                                    for ident in p.idents() {
-                                        if var_declared_names.contains(&ident)
-                                            || !lexically_declared_names.insert(ident)
-                                        {
-                                            return Err(ParseError::lex(LexError::Syntax(
-                                                format!(
-                                                    "Redeclaration of variable `{}`",
-                                                    interner.resolve_expect(ident)
-                                                )
-                                                .into(),
-                                                match cursor.peek(0, interner)? {
-                                                    Some(token) => token.span().end(),
-                                                    None => Position::new(1, 1),
-                                                },
-                                            )));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    Node::VarDeclList(decl_list) => {
-                        for decl in decl_list.as_ref() {
-                            match decl {
-                                node::Declaration::Identifier { ident, .. } => {
-                                    // if name in LexicallyDeclaredNames, raise an error
-                                    if lexically_declared_names.contains(&ident.sym()) {
-                                        return Err(ParseError::lex(LexError::Syntax(
-                                            format!(
-                                                "Redeclaration of variable `{}`",
-                                                interner.resolve_expect(ident.sym())
-                                            )
-                                            .into(),
-                                            match cursor.peek(0, interner)? {
-                                                Some(token) => token.span().end(),
-                                                None => Position::new(1, 1),
-                                            },
-                                        )));
-                                    }
-                                    // otherwise, add to VarDeclaredNames
-                                    var_declared_names.insert(ident.sym());
-                                }
-                                node::Declaration::Pattern(p) => {
-                                    for ident in p.idents() {
-                                        // if name in LexicallyDeclaredNames, raise an error
-                                        if lexically_declared_names.contains(&ident) {
-                                            return Err(ParseError::lex(LexError::Syntax(
-                                                format!(
-                                                    "Redeclaration of variable `{}`",
-                                                    interner.resolve_expect(ident)
-                                                )
-                                                .into(),
-                                                match cursor.peek(0, interner)? {
-                                                    Some(token) => token.span().end(),
-                                                    None => Position::new(1, 1),
-                                                },
-                                            )));
-                                        }
-                                        // otherwise, add to VarDeclaredNames
-                                        var_declared_names.insert(ident);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    _ => (),
-                }
-            }
         }
 
         items.sort_by(Node::hoistable_order);
@@ -429,12 +326,11 @@ struct StatementListItem {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     allow_return: AllowReturn,
-    in_block: bool,
 }
 
 impl StatementListItem {
     /// Creates a new `StatementListItem` parser.
-    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R, in_block: bool) -> Self
+    fn new<Y, A, R>(allow_yield: Y, allow_await: A, allow_return: R) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -444,7 +340,6 @@ impl StatementListItem {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             allow_return: allow_return.into(),
-            in_block,
         }
     }
 }
@@ -461,122 +356,17 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
-        let strict_mode = cursor.strict_mode();
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match *tok.kind() {
-            TokenKind::Keyword(Keyword::Function | Keyword::Async) => {
-                if strict_mode && self.in_block {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "Function declaration in blocks not allowed in strict mode".into(),
-                        tok.span().start(),
-                    )));
-                }
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
-            }
-            TokenKind::Keyword(Keyword::Const | Keyword::Let) => {
+            TokenKind::Keyword((
+                Keyword::Function | Keyword::Async | Keyword::Class | Keyword::Const | Keyword::Let,
+                _,
+            )) => {
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                 .parse(cursor, interner),
-        }
-    }
-}
-
-/// Label identifier parsing.
-///
-/// This seems to be the same as a `BindingIdentifier`.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-LabelIdentifier
-pub(super) type LabelIdentifier = BindingIdentifier;
-
-/// Binding identifier parsing.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-BindingIdentifier
-#[derive(Debug, Clone, Copy)]
-pub(super) struct BindingIdentifier {
-    allow_yield: AllowYield,
-    allow_await: AllowAwait,
-}
-
-impl BindingIdentifier {
-    /// Creates a new `BindingIdentifier` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
-    where
-        Y: Into<AllowYield>,
-        A: Into<AllowAwait>,
-    {
-        Self {
-            allow_yield: allow_yield.into(),
-            allow_await: allow_await.into(),
-        }
-    }
-}
-
-impl<R> TokenParser<R> for BindingIdentifier
-where
-    R: Read,
-{
-    type Output = Sym;
-
-    /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
-        let _timer = Profiler::global().start_event("BindingIdentifier", "Parsing");
-
-        let next_token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
-
-        match next_token.kind() {
-            TokenKind::Identifier(ref s) => Ok(*s),
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
-                // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
-                Err(ParseError::general(
-                    "Unexpected identifier",
-                    next_token.span().start(),
-                ))
-            }
-            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
-                if cursor.strict_mode() {
-                    Err(ParseError::general(
-                        "yield keyword in binding identifier not allowed in strict mode",
-                        next_token.span().start(),
-                    ))
-                } else {
-                    Ok(Sym::YIELD)
-                }
-            }
-            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
-                // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
-                Err(ParseError::general(
-                    "Unexpected identifier",
-                    next_token.span().start(),
-                ))
-            }
-            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
-                if cursor.strict_mode() {
-                    Err(ParseError::general(
-                        "await keyword in binding identifier not allowed in strict mode",
-                        next_token.span().start(),
-                    ))
-                } else {
-                    Ok(Sym::AWAIT)
-                }
-            }
-            _ => Err(ParseError::expected(
-                ["identifier".to_owned()],
-                next_token.to_string(interner),
-                next_token.span(),
-                "binding identifier",
-            )),
         }
     }
 }
@@ -634,11 +424,13 @@ where
         let mut rest_property_name = None;
 
         loop {
-            let property_name = match cursor
-                .peek(0, interner)?
+            let next_token_is_colon = *cursor
+                .peek(1, interner)?
                 .ok_or(ParseError::AbruptEnd)?
                 .kind()
-            {
+                == TokenKind::Punctuator(Punctuator::Colon);
+            let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+            match token.kind() {
                 TokenKind::Punctuator(Punctuator::CloseBlock) => {
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
@@ -664,35 +456,27 @@ where
                     )?;
                     break;
                 }
-                _ => BindingIdentifier::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?,
-            };
+                _ => {
+                    let is_property_name = match token.kind() {
+                        TokenKind::Punctuator(Punctuator::OpenBracket)
+                        | TokenKind::StringLiteral(_)
+                        | TokenKind::NumericLiteral(_) => true,
+                        TokenKind::Identifier(_) if next_token_is_colon => true,
+                        TokenKind::Keyword(_) if next_token_is_colon => true,
+                        _ => false,
+                    };
 
-            property_names.push(property_name);
-
-            if let Some(peek_token) = cursor.peek(0, interner)? {
-                match peek_token.kind() {
-                    TokenKind::Punctuator(Punctuator::Assign) => {
-                        let init = Initializer::new(
-                            None,
-                            self.allow_in,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?;
-                        patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name,
-                            property_name,
-                            default_init: Some(init),
-                        });
-                    }
-                    TokenKind::Punctuator(Punctuator::Colon) => {
+                    if is_property_name {
+                        let property_name = PropertyName::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        if let Some(name) = property_name.prop_name() {
+                            property_names.push(name);
+                        }
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::Colon),
                             "object binding pattern",
                             interner,
                         )?;
-
                         if let Some(peek_token) = cursor.peek(0, interner)? {
                             match peek_token.kind() {
                                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
@@ -826,13 +610,33 @@ where
                                 }
                             }
                         }
-                    }
-                    _ => {
-                        patterns.push(BindingPatternTypeObject::SingleName {
-                            ident: property_name,
-                            property_name,
-                            default_init: None,
-                        });
+                    } else {
+                        let name = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        property_names.push(name);
+                        match cursor.peek(0, interner)?.map(Token::kind) {
+                            Some(TokenKind::Punctuator(Punctuator::Assign)) => {
+                                let init = Initializer::new(
+                                    Some(name),
+                                    self.allow_in,
+                                    self.allow_yield,
+                                    self.allow_await,
+                                )
+                                .parse(cursor, interner)?;
+                                patterns.push(BindingPatternTypeObject::SingleName {
+                                    ident: name,
+                                    property_name: name.into(),
+                                    default_init: Some(init),
+                                });
+                            }
+                            _ => {
+                                patterns.push(BindingPatternTypeObject::SingleName {
+                                    ident: name,
+                                    property_name: name.into(),
+                                    default_init: None,
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -1085,7 +889,7 @@ where
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init = Initializer::new(
-                                None,
+                                Some(ident),
                                 self.allow_in,
                                 self.allow_yield,
                                 self.allow_await,

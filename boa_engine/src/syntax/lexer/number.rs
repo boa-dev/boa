@@ -261,7 +261,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         legacy_octal = true;
                         let ch = char::from(byte);
                         if ch.is_digit(8) {
-                            // LegacyOctalIntegerLiteral
+                            // LegacyOctalIntegerLiteral, or a number with leading 0s.
                             if cursor.strict_mode() {
                                 // LegacyOctalIntegerLiteral is forbidden with strict mode true.
                                 return Err(Error::syntax(
@@ -275,7 +275,12 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                             buf.push(cursor.next_byte()?.expect("'0' character vanished"));
 
-                            kind = NumericKind::Integer(8);
+                            take_integer(&mut buf, cursor, NumericKind::Integer(8), false)?;
+
+                            if !cursor.next_is_ascii_pred(&|c| c.is_digit(10) || c == '_')? {
+                                // LegacyOctalIntegerLiteral
+                                kind = NumericKind::Integer(8);
+                            }
                         } else if ch.is_digit(10) {
                             // Indicates a numerical digit comes after then 0 but it isn't an octal digit
                             // so therefore this must be a number with an unneeded leading 0. This is

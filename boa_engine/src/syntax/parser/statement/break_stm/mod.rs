@@ -10,12 +10,12 @@
 #[cfg(test)]
 mod tests;
 
-use super::LabelIdentifier;
 use crate::syntax::{
     ast::{node::Break, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::{Cursor, SemicolonResult},
+        expression::LabelIdentifier,
         AllowAwait, AllowYield, ParseError, TokenParser,
     },
 };
@@ -63,7 +63,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("BreakStatement", "Parsing");
-        cursor.expect(Keyword::Break, "break statement", interner)?;
+        cursor.expect((Keyword::Break, false), "break statement", interner)?;
 
         let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
             match tok {

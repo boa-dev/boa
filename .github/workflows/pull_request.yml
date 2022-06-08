@@ -14,14 +14,14 @@ jobs:
           override: true
           profile: minimal
       - name: Cache cargo
-        uses: actions/cache@v2.1.7
+        uses: actions/cache@v3
         with:
           path: |
             target
             ~/.cargo/git
             ~/.cargo/registry
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - uses: boa-dev/criterion-compare-action@v3.2.0
+      - uses: boa-dev/criterion-compare-action@v3.2.2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           branchName: ${{ github.base_ref }}

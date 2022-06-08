@@ -5,36 +5,46 @@ on:
 
 jobs:
   publish:
+    name: publish
     runs-on: ubuntu-latest
     steps:
-      - name: Git Checkout
+      - name: Checkout repository
         uses: actions/checkout@v3
-      - run: cd boa_engine
-      - name: Publish to crates.io
-        uses: actions-rs/cargo@v1
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          command: publish
-          args: --token ${CARGO_REGISTRY_TOKEN}
+          toolchain: stable
+          profile: minimal
+          override: true
+
+      - name: Install cargo-workspaces
+        uses: actions-rs/install@v0.1
+        with:
+          crate: cargo-workspaces
+
+      - name: Release
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          PATCH: ${{ github.run_number }}
+        shell: bash
+        run: |
+          git config --global user.email "runner@gha.local"
+          git config --global user.name "Github Action"
+          cargo workspaces publish --yes minor
   doc-publish:
-    needs: publish
+    # needs: publish
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: main
-      - uses: actions/checkout@v3
-        with:
-          ref: gh-pages
-          path: dist
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
-      - uses: Borales/actions-yarn@v2.3.0
+      - uses: actions/setup-node@v3
         with:
-          cmd: install
-      - name: Cache yarn build
-        uses: actions/cache@v2.1.7
+          node-version: "16"
+      - run: npm ci
+      - name: Cache npm build
+        uses: actions/cache@v3
         with:
           path: |
             node_modules
@@ -42,14 +52,11 @@ jobs:
             boa_wasm/pkg
             ~/.cargo/git
             ~/.cargo/registry
-          key: ${{ runner.os }}-yarn-build-target-${{ hashFiles('**/yarn.lock') }}
-      - uses: Borales/actions-yarn@v2.3.0
+          key: ${{ runner.os }}-npm-build-target-${{ hashFiles('**/package-lock.json') }}
+      - run: npm run build:prod
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          cmd: build:prod
-      - run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add .
-          git commit -m "Deploy to GitHub pages"
-          git push
-          git push --prefix dist origin gh-pages
+          publish_dir: ./dist
+          destination_dir: playground
+          github_token: ${{ secrets.GITHUB_TOKEN }}

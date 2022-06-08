@@ -24,7 +24,7 @@ tool to use. It will install Rust and allow you to switch between _nightly_,
 _stable_ and _beta_. You can also install additional components. In Linux, you
 can run:
 
-```
+```shell
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
@@ -75,13 +75,13 @@ Boa provides its own test suite, and can also run the official ECMAScript test s
 suite, you can just run the normal `cargo test`, and to run the full ECMAScript test suite, you can run it
 with this command:
 
-```
+```shell
 cargo run --release --bin boa_tester -- run -v 2> error.log
 ```
 
 Note that this requires the `test262` submodule to be checked out, so you will need to run the following first:
 
-```
+```shell
 git submodule init && git submodule update
 ```
 
@@ -100,14 +100,14 @@ type tests, use `-s test/language/types/number`.
 Finally, if you're using the verbose flag and running a sub suite with a small number of tests, then the output will
 be more readable if you disable parallelism with the `-d` flag. All together it might look something like:
 
-```
+```shell
 cargo run --release --bin boa_tester -- run -vv -d -s test/language/types/number 2> error.log
 ```
 
 ## Communication
 
 We have a Discord server, feel free to ask questions here:
-https://discord.gg/tUFFk9Y
+<https://discord.gg/tUFFk9Y>
 
 [issues]: https://github.com/boa-dev/boa/issues
 [rustup]: https://rustup.rs/

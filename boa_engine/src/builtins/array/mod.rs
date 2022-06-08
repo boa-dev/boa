@@ -19,12 +19,13 @@ use tap::{Conv, Pipe};
 use super::JsArgs;
 use crate::{
     builtins::array::array_iterator::ArrayIterator,
+    builtins::iterable::{if_abrupt_close_iterator, IteratorHint},
     builtins::BuiltIn,
     builtins::Number,
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -44,6 +45,7 @@ impl BuiltIn for Array {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
         let symbol_iterator = WellKnownSymbols::iterator();
+        let symbol_unscopables = WellKnownSymbols::unscopables();
 
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
@@ -51,6 +53,7 @@ impl BuiltIn for Array {
             .build();
 
         let values_function = Self::values_intrinsic(context);
+        let unscopables_object = Self::unscopables_intrinsic(context);
 
         ConstructorBuilder::with_standard_constructor(
             context,
@@ -80,6 +83,11 @@ impl BuiltIn for Array {
             values_function,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
+        .property(
+            symbol_unscopables,
+            unscopables_object,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .method(Self::at, "at", 1)
         .method(Self::concat, "concat", 1)
         .method(Self::push, "push", 1)
@@ -104,15 +112,16 @@ impl BuiltIn for Array {
         .method(Self::flat, "flat", 0)
         .method(Self::flat_map, "flatMap", 1)
         .method(Self::slice, "slice", 2)
-        .method(Self::some, "some", 2)
+        .method(Self::some, "some", 1)
         .method(Self::sort, "sort", 1)
-        .method(Self::splice, "splice", 3)
-        .method(Self::reduce, "reduce", 2)
-        .method(Self::reduce_right, "reduceRight", 2)
+        .method(Self::splice, "splice", 2)
+        .method(Self::reduce, "reduce", 1)
+        .method(Self::reduce_right, "reduceRight", 1)
         .method(Self::keys, "keys", 0)
         .method(Self::entries, "entries", 0)
-        .method(Self::copy_within, "copyWithin", 3)
+        .method(Self::copy_within, "copyWithin", 2)
         // Static Methods
+        .static_method(Self::from, "from", 1)
         .static_method(Self::is_array, "isArray", 1)
         .static_method(Self::of, "of", 0)
         .build()
@@ -365,6 +374,168 @@ impl Array {
             )
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
+        }
+    }
+
+    /// `Array.from(arrayLike)`
+    ///
+    /// The Array.from() static method creates a new,
+    /// shallow-copied Array instance from an array-like or iterable object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.from
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/from
+    pub(crate) fn from(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let items = args.get_or_undefined(0);
+        let mapfn = args.get_or_undefined(1);
+        let this_arg = args.get_or_undefined(2);
+
+        // 2. If mapfn is undefined, let mapping be false
+        // 3. Else,
+        //     a. If IsCallable(mapfn) is false, throw a TypeError exception.
+        //     b. Let mapping be true.
+        let mapping = match mapfn {
+            JsValue::Undefined => None,
+            JsValue::Object(o) if o.is_callable() => Some(o),
+            _ => return context.throw_type_error(format!("{} is not a function", mapfn.type_of())),
+        };
+
+        // 4. Let usingIterator be ? GetMethod(items, @@iterator).
+        let using_iterator = items
+            .get_method(WellKnownSymbols::iterator(), context)?
+            .map(JsValue::from);
+
+        if let Some(using_iterator) = using_iterator {
+            // 5. If usingIterator is not undefined, then
+
+            // a. If IsConstructor(C) is true, then
+            //     i. Let A be ? Construct(C).
+            // b. Else,
+            //     i. Let A be ? ArrayCreate(0en).
+            let a = match this.as_constructor() {
+                Some(constructor) => constructor
+                    .construct(&[], this, context)?
+                    .as_object()
+                    .cloned()
+                    .ok_or_else(|| {
+                        context.construct_type_error("Object constructor didn't return an object")
+                    })?,
+                _ => Self::array_create(0, None, context)?,
+            };
+
+            // c. Let iteratorRecord be ? GetIterator(items, sync, usingIterator).
+            let iterator_record =
+                items.get_iterator(context, Some(IteratorHint::Sync), Some(using_iterator))?;
+
+            // d. Let k be 0.
+            // e. Repeat,
+            //     i. If k ≥ 2^53 - 1 (MAX_SAFE_INTEGER), then
+            //     ...
+            //     x. Set k to k + 1.
+            for k in 0..9_007_199_254_740_991_u64 {
+                // iii. Let next be ? IteratorStep(iteratorRecord).
+                let next = iterator_record.step(context)?;
+
+                // iv. If next is false, then
+                let next = if let Some(next) = next {
+                    next
+                } else {
+                    // 1. Perform ? Set(A, "length", 𝔽(k), true).
+                    a.set("length", k, true, context)?;
+
+                    // 2. Return A.
+                    return Ok(a.into());
+                };
+
+                // v. Let nextValue be ? IteratorValue(next).
+                let next_value = next.value(context)?;
+
+                // vi. If mapping is true, then
+                let mapped_value = if let Some(mapfn) = mapping {
+                    // 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
+                    let mapped_value = mapfn.call(this_arg, &[next_value, k.into()], context);
+
+                    // 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
+                    if_abrupt_close_iterator!(mapped_value, iterator_record, context)
+                } else {
+                    // vii. Else, let mappedValue be nextValue.
+                    next_value
+                };
+
+                // viii. Let defineStatus be CreateDataPropertyOrThrow(A, Pk, mappedValue).
+                let define_status = a.create_data_property_or_throw(k, mapped_value, context);
+
+                // ix. IfAbruptCloseIterator(defineStatus, iteratorRecord).
+                if_abrupt_close_iterator!(define_status, iterator_record, context);
+            }
+
+            // NOTE: The loop above has to return before it reaches iteration limit,
+            // which is why it's safe to have this as the fallback return
+            //
+            // 1. Let error be ThrowCompletion(a newly created TypeError object).
+            let error = context.throw_type_error("Invalid array length");
+
+            // 2. Return ? IteratorClose(iteratorRecord, error).
+            iterator_record.close(error, context)
+        } else {
+            // 6. NOTE: items is not an Iterable so assume it is an array-like object.
+            // 7. Let arrayLike be ! ToObject(items).
+            let array_like = items
+                .to_object(context)
+                .expect("should not fail according to spec");
+
+            // 8. Let len be ? LengthOfArrayLike(arrayLike).
+            let len = array_like.length_of_array_like(context)?;
+
+            // 9. If IsConstructor(C) is true, then
+            //     a. Let A be ? Construct(C, « 𝔽(len) »).
+            // 10. Else,
+            //     a. Let A be ? ArrayCreate(len).
+            let a = match this.as_constructor() {
+                Some(constructor) => constructor
+                    .construct(&[len.into()], this, context)?
+                    .as_object()
+                    .cloned()
+                    .ok_or_else(|| {
+                        context.construct_type_error("Object constructor didn't return an object")
+                    })?,
+                _ => Self::array_create(len, None, context)?,
+            };
+
+            // 11. Let k be 0.
+            // 12. Repeat, while k < len,
+            //     ...
+            //     f. Set k to k + 1.
+            for k in 0..len {
+                // a. Let Pk be ! ToString(𝔽(k)).
+                // b. Let kValue be ? Get(arrayLike, Pk).
+                let k_value = array_like.get(k, context)?;
+
+                let mapped_value = if let Some(mapfn) = mapping {
+                    // c. If mapping is true, then
+                    //     i. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
+                    mapfn.call(this_arg, &[k_value, k.into()], context)?
+                } else {
+                    // d. Else, let mappedValue be kValue.
+                    k_value
+                };
+
+                // e. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
+                a.create_data_property_or_throw(k, mapped_value, context)?;
+            }
+
+            // 13. Perform ? Set(A, "length", 𝔽(len), true).
+            a.set("length", len, true, context)?;
+
+            // 14. Return A.
+            Ok(a.into())
         }
     }
 
@@ -1900,7 +2071,9 @@ impl Array {
             // c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
             let max = len - actual_start;
             match dc {
-                IntegerOrInfinity::Integer(i) => (i as usize).clamp(0, max),
+                IntegerOrInfinity::Integer(i) => {
+                    usize::try_from(i).unwrap_or_default().clamp(0, max)
+                }
                 IntegerOrInfinity::PositiveInfinity => max,
                 IntegerOrInfinity::NegativeInfinity => 0,
             }
@@ -2684,11 +2857,76 @@ impl Array {
         }
     }
 
-    pub(crate) fn values_intrinsic(context: &mut Context) -> JsObject {
+    pub(crate) fn values_intrinsic(context: &mut Context) -> JsFunction {
         FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)
             .constructor(false)
             .build()
+    }
+
+    /// `Array.prototype [ @@unscopables ]`
+    ///
+    /// The initial value of the 'unscopables' data property is an ordinary object
+    /// with the following boolean properties set to true:
+    /// 'at', 'copyWithin', 'entries', 'fill', 'find', 'findIndex', 'flat',
+    /// 'flatMap', 'includes', 'keys', 'values'
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-array.prototype-@@unscopables
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/@@unscopables
+    pub(crate) fn unscopables_intrinsic(context: &mut Context) -> JsObject {
+        // 1. Let unscopableList be OrdinaryObjectCreate(null).
+        let unscopable_list = JsObject::empty();
+        // 2. Perform ! CreateDataPropertyOrThrow(unscopableList, "at", true).
+        unscopable_list
+            .create_data_property_or_throw("at", true, context)
+            .expect("CreateDataPropertyOrThrow for 'at' must not fail");
+        // 3. Perform ! CreateDataPropertyOrThrow(unscopableList, "copyWithin", true).
+        unscopable_list
+            .create_data_property_or_throw("copyWithin", true, context)
+            .expect("CreateDataPropertyOrThrow for 'copyWithin' must not fail");
+        // 4. Perform ! CreateDataPropertyOrThrow(unscopableList, "entries", true).
+        unscopable_list
+            .create_data_property_or_throw("entries", true, context)
+            .expect("CreateDataPropertyOrThrow for 'entries' must not fail");
+        // 5. Perform ! CreateDataPropertyOrThrow(unscopableList, "fill", true).
+        unscopable_list
+            .create_data_property_or_throw("fill", true, context)
+            .expect("CreateDataPropertyOrThrow for 'fill' must not fail");
+        // 6. Perform ! CreateDataPropertyOrThrow(unscopableList, "find", true).
+        unscopable_list
+            .create_data_property_or_throw("find", true, context)
+            .expect("CreateDataPropertyOrThrow for 'find' must not fail");
+        // 7. Perform ! CreateDataPropertyOrThrow(unscopableList, "findIndex", true).
+        unscopable_list
+            .create_data_property_or_throw("findIndex", true, context)
+            .expect("CreateDataPropertyOrThrow for 'findIndex' must not fail");
+        // 8. Perform ! CreateDataPropertyOrThrow(unscopableList, "flat", true).
+        unscopable_list
+            .create_data_property_or_throw("flat", true, context)
+            .expect("CreateDataPropertyOrThrow for 'flat' must not fail");
+        // 9. Perform ! CreateDataPropertyOrThrow(unscopableList, "flatMap", true).
+        unscopable_list
+            .create_data_property_or_throw("flatMap", true, context)
+            .expect("CreateDataPropertyOrThrow for 'flatMap' must not fail");
+        // 10. Perform ! CreateDataPropertyOrThrow(unscopableList, "includes", true).
+        unscopable_list
+            .create_data_property_or_throw("includes", true, context)
+            .expect("CreateDataPropertyOrThrow for 'includes' must not fail");
+        // 11. Perform ! CreateDataPropertyOrThrow(unscopableList, "keys", true).
+        unscopable_list
+            .create_data_property_or_throw("keys", true, context)
+            .expect("CreateDataPropertyOrThrow for 'keys' must not fail");
+        // 12. Perform ! CreateDataPropertyOrThrow(unscopableList, "values", true).
+        unscopable_list
+            .create_data_property_or_throw("values", true, context)
+            .expect("CreateDataPropertyOrThrow for 'values' must not fail");
+
+        // 13. Return unscopableList.
+        unscopable_list
     }
 }

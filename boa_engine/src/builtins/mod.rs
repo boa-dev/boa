@@ -4,17 +4,15 @@ pub mod array;
 pub mod array_buffer;
 pub mod bigint;
 pub mod boolean;
-#[cfg(feature = "console")]
-pub mod console;
 pub mod dataview;
 pub mod date;
 pub mod error;
+pub mod eval;
 pub mod function;
 pub mod generator;
 pub mod generator_function;
 pub mod global_this;
 pub mod infinity;
-pub mod intl;
 pub mod iterable;
 pub mod json;
 pub mod map;
@@ -32,6 +30,12 @@ pub mod symbol;
 pub mod typed_array;
 pub mod undefined;
 
+#[cfg(feature = "console")]
+pub mod console;
+
+#[cfg(feature = "intl")]
+pub mod intl;
+
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
     bigint::BigInt,
@@ -42,10 +46,10 @@ pub(crate) use self::{
         AggregateError, Error, EvalError, RangeError, ReferenceError, SyntaxError, TypeError,
         UriError,
     },
+    eval::Eval,
     function::BuiltInFunctionObject,
     global_this::GlobalThis,
     infinity::Infinity,
-    intl::Intl,
     json::Json,
     map::map_iterator::MapIterator,
     map::Map,
@@ -143,7 +147,6 @@ pub fn init(context: &mut Context) {
         BuiltInFunctionObject,
         BuiltInObjectObject,
         Math,
-        Intl,
         Json,
         Array,
         Proxy,
@@ -154,6 +157,7 @@ pub fn init(context: &mut Context) {
         DataView,
         Map,
         Number,
+        Eval,
         Set,
         String,
         RegExp,
@@ -183,6 +187,9 @@ pub fn init(context: &mut Context) {
         GeneratorFunction,
         Promise
     };
+
+    #[cfg(feature = "intl")]
+    init_builtin::<intl::Intl>(context);
 
     #[cfg(feature = "console")]
     init_builtin::<console::Console>(context);

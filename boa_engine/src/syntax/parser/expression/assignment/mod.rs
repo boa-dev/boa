@@ -87,7 +87,7 @@ where
 {
     type Output = Node;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::Div);
 
@@ -97,12 +97,12 @@ where
             .kind()
         {
             // [+Yield]YieldExpression[?In, ?Await]
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
+            TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 return YieldExpression::new(self.allow_in, self.allow_await)
                     .parse(cursor, interner)
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
-            TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
+            TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 if let Ok(tok) =
                     cursor.peek_expect_no_lineterminator(1, "assignment expression", interner)
                 {
@@ -194,6 +194,11 @@ where
 
         cursor.set_goal(InputElement::Div);
 
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         let mut lhs = ConditionalExpression::new(
             self.name,
             self.allow_in,
@@ -207,8 +212,17 @@ where
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
+                    if cursor.strict_mode() {
+                        if let Node::Identifier(ident) = lhs {
+                            ident.check_strict_arguments_or_eval(position)?;
+                        }
+                    }
+
                     cursor.next(interner)?.expect("= token vanished");
-                    if let Some(target) = AssignTarget::from_node(&lhs) {
+                    if let Some(target) = AssignTarget::from_node(&lhs, cursor.strict_mode()) {
+                        if let AssignTarget::Identifier(ident) = target {
+                            self.name = Some(ident.sym());
+                        }
                         let expr = self.parse(cursor, interner)?;
                         lhs = Assign::new(target, expr).into();
                     } else {
@@ -219,6 +233,12 @@ where
                     }
                 }
                 TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
+                    if cursor.strict_mode() {
+                        if let Node::Identifier(ident) = lhs {
+                            ident.check_strict_arguments_or_eval(position)?;
+                        }
+                    }
+
                     cursor.next(interner)?.expect("token vanished");
                     if is_assignable(&lhs) {
                         let binop = p.as_binop().expect("binop disappeared");

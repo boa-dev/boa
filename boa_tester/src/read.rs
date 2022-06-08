@@ -1,6 +1,7 @@
 //! Module to read the list of test suites from disk.
 
 use super::{Harness, Locale, Phase, Test, TestSuite, IGNORED};
+use anyhow::Context;
 use fxhash::FxHashMap;
 use serde::Deserialize;
 use std::{fs, io, path::Path, str::FromStr};
@@ -73,10 +74,12 @@ impl FromStr for TestFlag {
 }
 
 /// Reads the Test262 defined bindings.
-pub(super) fn read_harness(test262_path: &Path) -> io::Result<Harness> {
+pub(super) fn read_harness(test262_path: &Path) -> anyhow::Result<Harness> {
     let mut includes = FxHashMap::default();
 
-    for entry in fs::read_dir(test262_path.join("harness"))? {
+    for entry in
+        fs::read_dir(test262_path.join("harness")).context("error reading the harness directory")?
+    {
         let entry = entry?;
         let file_name = entry.file_name();
         let file_name = file_name.to_string_lossy();
@@ -85,15 +88,20 @@ pub(super) fn read_harness(test262_path: &Path) -> io::Result<Harness> {
             continue;
         }
 
-        let content = fs::read_to_string(entry.path())?;
+        let content = fs::read_to_string(entry.path())
+            .with_context(|| format!("error reading the harnes/{file_name}"))?;
 
         includes.insert(
             file_name.into_owned().into_boxed_str(),
             content.into_boxed_str(),
         );
     }
-    let assert = fs::read_to_string(test262_path.join("harness/assert.js"))?.into_boxed_str();
-    let sta = fs::read_to_string(test262_path.join("harness/sta.js"))?.into_boxed_str();
+    let assert = fs::read_to_string(test262_path.join("harness/assert.js"))
+        .context("error reading harnes/assert.js")?
+        .into_boxed_str();
+    let sta = fs::read_to_string(test262_path.join("harness/sta.js"))
+        .context("error reading harnes/sta.js")?
+        .into_boxed_str();
 
     Ok(Harness {
         assert,
@@ -103,32 +111,26 @@ pub(super) fn read_harness(test262_path: &Path) -> io::Result<Harness> {
 }
 
 /// Reads a test suite in the given path.
-pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
+pub(super) fn read_suite(path: &Path) -> anyhow::Result<TestSuite> {
     let name = path
         .file_name()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("test suite with no name found: {}", path.display()),
-            )
-        })?
+        .with_context(|| format!("test suite with no name found: {}", path.display()))?
         .to_str()
-        .ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                format!("non-UTF-8 suite name found: {}", path.display()),
-            )
-        })?;
+        .with_context(|| format!("non-UTF-8 suite name found: {}", path.display()))?;
 
     let mut suites = Vec::new();
     let mut tests = Vec::new();
 
     // TODO: iterate in parallel
-    for entry in path.read_dir()? {
+    for entry in path.read_dir().context("retrieving entry")? {
         let entry = entry?;
 
-        if entry.file_type()?.is_dir() {
-            suites.push(read_suite(entry.path().as_path())?);
+        if entry.file_type().context("retrieving file type")?.is_dir() {
+            suites.push(read_suite(entry.path().as_path()).with_context(|| {
+                let path = entry.path();
+                let suite = path.display();
+                format!("error reading sub-suite {suite}")
+            })?);
         } else if entry.file_name().to_string_lossy().contains("_FIXTURE") {
             continue;
         } else if IGNORED.contains_file(&entry.file_name().to_string_lossy()) {
@@ -136,7 +138,11 @@ pub(super) fn read_suite(path: &Path) -> io::Result<TestSuite> {
             test.set_name(entry.file_name().to_string_lossy());
             tests.push(test);
         } else {
-            tests.push(read_test(entry.path().as_path())?);
+            tests.push(read_test(entry.path().as_path()).with_context(|| {
+                let path = entry.path();
+                let suite = path.display();
+                format!("error reading test {suite}")
+            })?);
         }
     }
 

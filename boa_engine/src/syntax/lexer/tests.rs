@@ -36,7 +36,7 @@ fn check_single_line_comment() {
     let mut interner = Interner::default();
 
     let expected = [
-        TokenKind::Keyword(Keyword::Var),
+        TokenKind::Keyword((Keyword::Var, false)),
         TokenKind::LineTerminator,
         TokenKind::LineTerminator,
         TokenKind::BooleanLiteral(true),
@@ -52,7 +52,7 @@ fn check_single_line_comment_with_crlf_ending() {
     let mut interner = Interner::default();
 
     let expected = [
-        TokenKind::Keyword(Keyword::Var),
+        TokenKind::Keyword((Keyword::Var, false)),
         TokenKind::LineTerminator,
         TokenKind::LineTerminator,
         TokenKind::BooleanLiteral(true),
@@ -69,7 +69,7 @@ fn check_multi_line_comment() {
 
     let sym = interner.get_or_intern_static("x");
     let expected = [
-        TokenKind::Keyword(Keyword::Var),
+        TokenKind::Keyword((Keyword::Var, false)),
         TokenKind::LineTerminator,
         TokenKind::identifier(sym),
     ];
@@ -251,40 +251,40 @@ fn check_keywords() {
     let mut interner = Interner::default();
 
     let expected = [
-        TokenKind::Keyword(Keyword::Await),
-        TokenKind::Keyword(Keyword::Break),
-        TokenKind::Keyword(Keyword::Case),
-        TokenKind::Keyword(Keyword::Catch),
-        TokenKind::Keyword(Keyword::Class),
-        TokenKind::Keyword(Keyword::Const),
-        TokenKind::Keyword(Keyword::Continue),
-        TokenKind::Keyword(Keyword::Debugger),
-        TokenKind::Keyword(Keyword::Default),
-        TokenKind::Keyword(Keyword::Delete),
-        TokenKind::Keyword(Keyword::Do),
-        TokenKind::Keyword(Keyword::Else),
-        TokenKind::Keyword(Keyword::Export),
-        TokenKind::Keyword(Keyword::Extends),
-        TokenKind::Keyword(Keyword::Finally),
-        TokenKind::Keyword(Keyword::For),
-        TokenKind::Keyword(Keyword::Function),
-        TokenKind::Keyword(Keyword::If),
-        TokenKind::Keyword(Keyword::Import),
-        TokenKind::Keyword(Keyword::In),
-        TokenKind::Keyword(Keyword::InstanceOf),
-        TokenKind::Keyword(Keyword::New),
-        TokenKind::Keyword(Keyword::Return),
-        TokenKind::Keyword(Keyword::Super),
-        TokenKind::Keyword(Keyword::Switch),
-        TokenKind::Keyword(Keyword::This),
-        TokenKind::Keyword(Keyword::Throw),
-        TokenKind::Keyword(Keyword::Try),
-        TokenKind::Keyword(Keyword::TypeOf),
-        TokenKind::Keyword(Keyword::Var),
-        TokenKind::Keyword(Keyword::Void),
-        TokenKind::Keyword(Keyword::While),
-        TokenKind::Keyword(Keyword::With),
-        TokenKind::Keyword(Keyword::Yield),
+        TokenKind::Keyword((Keyword::Await, false)),
+        TokenKind::Keyword((Keyword::Break, false)),
+        TokenKind::Keyword((Keyword::Case, false)),
+        TokenKind::Keyword((Keyword::Catch, false)),
+        TokenKind::Keyword((Keyword::Class, false)),
+        TokenKind::Keyword((Keyword::Const, false)),
+        TokenKind::Keyword((Keyword::Continue, false)),
+        TokenKind::Keyword((Keyword::Debugger, false)),
+        TokenKind::Keyword((Keyword::Default, false)),
+        TokenKind::Keyword((Keyword::Delete, false)),
+        TokenKind::Keyword((Keyword::Do, false)),
+        TokenKind::Keyword((Keyword::Else, false)),
+        TokenKind::Keyword((Keyword::Export, false)),
+        TokenKind::Keyword((Keyword::Extends, false)),
+        TokenKind::Keyword((Keyword::Finally, false)),
+        TokenKind::Keyword((Keyword::For, false)),
+        TokenKind::Keyword((Keyword::Function, false)),
+        TokenKind::Keyword((Keyword::If, false)),
+        TokenKind::Keyword((Keyword::Import, false)),
+        TokenKind::Keyword((Keyword::In, false)),
+        TokenKind::Keyword((Keyword::InstanceOf, false)),
+        TokenKind::Keyword((Keyword::New, false)),
+        TokenKind::Keyword((Keyword::Return, false)),
+        TokenKind::Keyword((Keyword::Super, false)),
+        TokenKind::Keyword((Keyword::Switch, false)),
+        TokenKind::Keyword((Keyword::This, false)),
+        TokenKind::Keyword((Keyword::Throw, false)),
+        TokenKind::Keyword((Keyword::Try, false)),
+        TokenKind::Keyword((Keyword::TypeOf, false)),
+        TokenKind::Keyword((Keyword::Var, false)),
+        TokenKind::Keyword((Keyword::Void, false)),
+        TokenKind::Keyword((Keyword::While, false)),
+        TokenKind::Keyword((Keyword::With, false)),
+        TokenKind::Keyword((Keyword::Yield, false)),
     ];
 
     expect_tokens(&mut lexer, &expected, &mut interner);
@@ -299,7 +299,7 @@ fn check_variable_definition_tokens() {
     let a_sym = interner.get_or_intern_static("a");
     let hello_sym = interner.get_or_intern_static("hello");
     let expected = [
-        TokenKind::Keyword(Keyword::Let),
+        TokenKind::Keyword((Keyword::Let, false)),
         TokenKind::identifier(a_sym),
         TokenKind::Punctuator(Punctuator::Assign),
         TokenKind::string_literal(hello_sym),

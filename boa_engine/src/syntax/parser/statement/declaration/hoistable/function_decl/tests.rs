@@ -16,7 +16,7 @@ fn function_declaration() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -32,7 +32,7 @@ fn function_declaration_keywords() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -44,6 +44,6 @@ fn function_declaration_keywords() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

@@ -117,8 +117,7 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                         .borrow()
                         .properties()
                         .get(&PropertyKey::from("length"))
-                        // TODO: do this in a better way `unwrap`
-                        .unwrap()
+                        .expect("array object must have 'length' property")
                         // FIXME: handle accessor descriptors
                         .expect_value()
                         .as_number()

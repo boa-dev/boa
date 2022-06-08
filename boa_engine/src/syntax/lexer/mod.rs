@@ -20,6 +20,7 @@ pub mod error;
 mod identifier;
 mod number;
 mod operator;
+mod private_identifier;
 pub mod regex;
 mod spread;
 mod string;
@@ -35,6 +36,7 @@ use self::{
     identifier::Identifier,
     number::NumberLiteral,
     operator::Operator,
+    private_identifier::PrivateIdentifier,
     regex::RegexLiteral,
     spread::SpreadLiteral,
     string::StringLiteral,
@@ -100,11 +102,13 @@ impl<R> Lexer<R> {
     }
 
     #[inline]
+    /// Returns if strict mode is currently active.
     pub(super) fn strict_mode(&self) -> bool {
         self.cursor.strict_mode()
     }
 
     #[inline]
+    /// Sets the current strict mode.
     pub(super) fn set_strict_mode(&mut self, strict_mode: bool) {
         self.cursor.set_strict_mode(strict_mode);
     }
@@ -265,6 +269,7 @@ impl<R> Lexer<R> {
                     Punctuator::CloseBracket.into(),
                     Span::new(start, self.cursor.pos()),
                 )),
+                '#' => PrivateIdentifier::new().lex(&mut self.cursor, start, interner),
                 '/' => self.lex_slash_token(start, interner),
                 '=' | '*' | '+' | '-' | '%' | '|' | '&' | '^' | '<' | '>' | '!' | '~' | '?' => {
                     Operator::new(next_ch as u8).lex(&mut self.cursor, start, interner)

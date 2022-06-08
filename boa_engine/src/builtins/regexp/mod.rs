@@ -20,7 +20,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
     },
-    property::Attribute,
+    property::{Attribute, PropertyDescriptorBuilder},
     symbol::WellKnownSymbols,
     syntax::lexer::regex::RegExpFlags,
     value::{IntegerOrInfinity, JsValue},
@@ -63,6 +63,10 @@ impl BuiltIn for RegExp {
 
         let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
 
+        let get_has_indices = FunctionBuilder::native(context, Self::get_has_indices)
+            .name("get hasIndices")
+            .constructor(false)
+            .build();
         let get_global = FunctionBuilder::native(context, Self::get_global)
             .name("get global")
             .constructor(false)
@@ -137,6 +141,7 @@ impl BuiltIn for RegExp {
             (WellKnownSymbols::split(), "[Symbol.split]"),
             2,
         )
+        .accessor("hasIndices", Some(get_has_indices), None, flag_attributes)
         .accessor("global", Some(get_global), None, flag_attributes)
         .accessor("ignoreCase", Some(get_ignore_case), None, flag_attributes)
         .accessor("multiline", Some(get_multiline), None, flag_attributes)
@@ -145,7 +150,6 @@ impl BuiltIn for RegExp {
         .accessor("sticky", Some(get_sticky), None, flag_attributes)
         .accessor("flags", Some(get_flags), None, flag_attributes)
         .accessor("source", Some(get_source), None, flag_attributes)
-        // TODO: add them RegExp accessor properties
         .build()
         .conv::<JsValue>()
         .pipe(Some)
@@ -219,10 +223,10 @@ impl RegExp {
         };
 
         // 7. Let O be ? RegExpAlloc(newTarget).
-        let o = Self::alloc(new_target, &[], context)?;
+        let o = Self::alloc(new_target, context)?;
 
         // 8.Return ? RegExpInitialize(O, P, F).
-        Self::initialize(&o, &[p, f], context)
+        Self::initialize(o, &p, &f, context)
     }
 
     /// `22.2.3.2.1 RegExpAlloc ( newTarget )`
@@ -231,10 +235,26 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
-    fn alloc(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let proto = get_prototype_from_constructor(this, StandardConstructors::regexp, context)?;
+    fn alloc(new_target: &JsValue, context: &mut Context) -> JsResult<JsObject> {
+        // 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, "%RegExp.prototype%", « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).
+        let proto =
+            get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)?;
+        let obj = JsObject::from_proto_and_data(proto, ObjectData::ordinary());
 
-        Ok(JsObject::from_proto_and_data(proto, ObjectData::ordinary()).into())
+        // 2. Perform ! DefinePropertyOrThrow(obj, "lastIndex", PropertyDescriptor { [[Writable]]: true, [[Enumerable]]: false, [[Configurable]]: false }).
+        obj.define_property_or_throw(
+            "lastIndex",
+            PropertyDescriptorBuilder::new()
+                .writable(true)
+                .enumerable(false)
+                .configurable(false)
+                .build(),
+            context,
+        )
+        .expect("this cannot fail per spec");
+
+        // 3. Return obj.
+        Ok(obj)
     }
 
     /// `22.2.3.2.2 RegExpInitialize ( obj, pattern, flags )`
@@ -243,10 +263,12 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
-    fn initialize(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        let pattern = args.get_or_undefined(0);
-        let flags = args.get_or_undefined(1);
-
+    fn initialize(
+        obj: JsObject,
+        pattern: &JsValue,
+        flags: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. If pattern is undefined, let P be the empty String.
         // 2. Else, let P be ? ToString(pattern).
         let p = if pattern.is_undefined() {
@@ -270,9 +292,15 @@ impl RegExp {
             Ok(result) => result,
         };
 
+        // TODO: Correct UTF-16 handling in 6. - 8.
+
+        // 9. Let parseResult be ParsePattern(patternText, u).
+        // 10. If parseResult is a non-empty List of SyntaxError objects, throw a SyntaxError exception.
+        // 11. Assert: parseResult is a Pattern Parse Node.
         // 12. Set obj.[[OriginalSource]] to P.
         // 13. Set obj.[[OriginalFlags]] to F.
-        // 14. Set obj.[[RegExpMatcher]] to the Abstract Closure that evaluates parseResult by applying the semantics provided in 22.2.2 using patternCharacters as the pattern's List of SourceCharacter values and F as the flag parameters.
+        // 14. NOTE: The definitions of DotAll, IgnoreCase, Multiline, and Unicode in 22.2.2.1 refer to this value of obj.[[OriginalFlags]].
+        // 15. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult.
         let matcher = match Regex::with_flags(&p, f.as_ref()) {
             Err(error) => {
                 return context
@@ -280,18 +308,19 @@ impl RegExp {
             }
             Ok(val) => val,
         };
-
         let regexp = Self {
             matcher,
             flags,
             original_source: p,
             original_flags: f,
         };
+        obj.borrow_mut().data = ObjectData::reg_exp(Box::new(regexp));
 
-        this.set_data(ObjectData::reg_exp(Box::new(regexp)));
+        // 16. Perform ? Set(obj, "lastIndex", +0𝔽, true).
+        obj.set("lastIndex", 0, true, context)?;
 
         // 16. Return obj.
-        Ok(this.clone())
+        Ok(obj.into())
     }
 
     /// `22.2.3.2.4 RegExpCreate ( P, F )`
@@ -300,16 +329,15 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpcreate
-    pub(crate) fn create(p: JsValue, f: JsValue, context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn create(p: &JsValue, f: &JsValue, context: &mut Context) -> JsResult<JsValue> {
         // 1. Let obj be ? RegExpAlloc(%RegExp%).
         let obj = Self::alloc(
             &context.global_object().clone().get(Self::NAME, context)?,
-            &[],
             context,
         )?;
 
         // 2. Return ? RegExpInitialize(obj, P, F).
-        Self::initialize(&obj, &[p, f], context)
+        Self::initialize(obj, p, f, context)
     }
 
     /// `get RegExp [ @@species ]`
@@ -333,6 +361,7 @@ impl RegExp {
         if let Some(object) = this.as_object() {
             if let Some(regexp) = object.borrow().as_regexp() {
                 return Ok(JsValue::new(match flag {
+                    b'd' => regexp.flags.contains(RegExpFlags::HAS_INDICES),
                     b'g' => regexp.flags.contains(RegExpFlags::GLOBAL),
                     b'm' => regexp.flags.contains(RegExpFlags::MULTILINE),
                     b's' => regexp.flags.contains(RegExpFlags::DOT_ALL),
@@ -352,6 +381,7 @@ impl RegExp {
         }
 
         let name = match flag {
+            b'd' => "hasIndices",
             b'g' => "global",
             b'm' => "multiline",
             b's' => "dotAll",
@@ -364,6 +394,22 @@ impl RegExp {
         context.throw_type_error(format!(
             "RegExp.prototype.{name} getter called on non-RegExp object",
         ))
+    }
+
+    /// `get RegExp.prototype.hasIndices`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-regexp.prototype.hasindices
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/global
+    pub(crate) fn get_has_indices(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Self::regexp_has_flag(this, b'd', context)
     }
 
     /// `get RegExp.prototype.global`
@@ -497,41 +543,48 @@ impl RegExp {
         if let Some(object) = this.as_object() {
             // 3. Let result be the empty String.
             let mut result = String::new();
-            // 4. Let global be ! ToBoolean(? Get(R, "global")).
-            // 5. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
+
+            // 4. Let hasIndices be ToBoolean(? Get(R, "hasIndices")).
+            // 5. If hasIndices is true, append the code unit 0x0064 (LATIN SMALL LETTER D) as the last code unit of result.
+            if object.get("hasIndices", context)?.to_boolean() {
+                result.push('d');
+            }
+
+            // 6. Let global be ! ToBoolean(? Get(R, "global")).
+            // 7. If global is true, append the code unit 0x0067 (LATIN SMALL LETTER G) as the last code unit of result.
             if object.get("global", context)?.to_boolean() {
                 result.push('g');
             }
-            // 6. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
-            // 7. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
+            // 8. Let ignoreCase be ! ToBoolean(? Get(R, "ignoreCase")).
+            // 9. If ignoreCase is true, append the code unit 0x0069 (LATIN SMALL LETTER I) as the last code unit of result.
             if object.get("ignoreCase", context)?.to_boolean() {
                 result.push('i');
             }
 
-            // 8. Let multiline be ! ToBoolean(? Get(R, "multiline")).
-            // 9. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
+            // 10. Let multiline be ! ToBoolean(? Get(R, "multiline")).
+            // 11. If multiline is true, append the code unit 0x006D (LATIN SMALL LETTER M) as the last code unit of result.
             if object.get("multiline", context)?.to_boolean() {
                 result.push('m');
             }
 
-            // 10. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
-            // 11. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
+            // 12. Let dotAll be ! ToBoolean(? Get(R, "dotAll")).
+            // 13. If dotAll is true, append the code unit 0x0073 (LATIN SMALL LETTER S) as the last code unit of result.
             if object.get("dotAll", context)?.to_boolean() {
                 result.push('s');
             }
-            // 12. Let unicode be ! ToBoolean(? Get(R, "unicode")).
-            // 13. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
+            // 14. Let unicode be ! ToBoolean(? Get(R, "unicode")).
+            // 15. If unicode is true, append the code unit 0x0075 (LATIN SMALL LETTER U) as the last code unit of result.
             if object.get("unicode", context)?.to_boolean() {
                 result.push('u');
             }
 
-            // 14. Let sticky be ! ToBoolean(? Get(R, "sticky")).
-            // 15. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
+            // 16. Let sticky be ! ToBoolean(? Get(R, "sticky")).
+            // 17. If sticky is true, append the code unit 0x0079 (LATIN SMALL LETTER Y) as the last code unit of result.
             if object.get("sticky", context)?.to_boolean() {
                 result.push('y');
             }
 
-            // 16. Return result.
+            // 18. Return result.
             return Ok(result.into());
         }
 
@@ -1386,7 +1439,9 @@ impl RegExp {
                 //     the substring of S from nextSourcePosition to position, and replacement.
                 accumulated_result = format!(
                     "{accumulated_result}{}{replacement}",
-                    arg_str.get(next_source_position..position).unwrap(),
+                    arg_str
+                        .get(next_source_position..position)
+                        .expect("index of a regexp match cannot be greater than the input string"),
                 )
                 .into();
 
@@ -1404,7 +1459,9 @@ impl RegExp {
         Ok(format!(
             "{}{}",
             accumulated_result,
-            arg_str.get(next_source_position..).unwrap()
+            arg_str
+                .get(next_source_position..)
+                .expect("next_source_position cannot be greater than the input string")
         )
         .into())
     }

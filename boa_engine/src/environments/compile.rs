@@ -1,7 +1,7 @@
 use crate::{
-    environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsResult,
-    JsString, JsValue,
+    environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
+use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
 
@@ -12,60 +12,195 @@ use rustc_hash::FxHashMap;
 struct CompileTimeBinding {
     index: usize,
     mutable: bool,
+    lex: bool,
 }
 
 /// A compile time environment maps bound identifiers to their binding positions.
 ///
 /// A compile time environment also indicates, if it is a function environment.
-#[derive(Debug)]
+#[derive(Debug, Finalize, Trace)]
 pub(crate) struct CompileTimeEnvironment {
+    outer: Option<Gc<Cell<Self>>>,
+    environment_index: usize,
+    #[unsafe_ignore_trace]
     bindings: FxHashMap<Sym, CompileTimeBinding>,
     function_scope: bool,
 }
 
 impl CompileTimeEnvironment {
+    /// Crate a new global compile time environment.
+    #[inline]
+    pub(crate) fn new_global() -> Self {
+        Self {
+            outer: None,
+            environment_index: 0,
+            bindings: FxHashMap::default(),
+            function_scope: true,
+        }
+    }
+
+    /// Check if environment has a lexical binding with the given name.
+    #[inline]
+    pub(crate) fn has_lex_binding(&self, name: Sym) -> bool {
+        self.bindings
+            .get(&name)
+            .map_or(false, |binding| binding.lex)
+    }
+
     /// Returns the number of bindings in this environment.
     #[inline]
     pub(crate) fn num_bindings(&self) -> usize {
         self.bindings.len()
     }
-}
 
-/// The compile time environment stack contains a stack of all environments at bytecode compile time.
-///
-/// The first environment on the stack represents the global environment.
-/// This is never being deleted and is tied to the existence of the realm.
-/// All other environments are being dropped once they are not needed anymore.
-#[derive(Debug)]
-pub(crate) struct CompileTimeEnvironmentStack {
-    stack: Vec<CompileTimeEnvironment>,
-}
-
-impl CompileTimeEnvironmentStack {
-    /// Creates a new compile time environment stack.
-    ///
-    /// This function should only be used once, on realm creation.
+    /// Check if the environment is a function environment.
     #[inline]
-    pub(crate) fn new() -> Self {
-        Self {
-            stack: vec![CompileTimeEnvironment {
-                bindings: FxHashMap::default(),
-                function_scope: true,
-            }],
+    pub(crate) fn is_function(&self) -> bool {
+        self.function_scope
+    }
+
+    /// Get the locator for a binding name.
+    #[inline]
+    pub(crate) fn get_binding(&self, name: Sym) -> Option<BindingLocator> {
+        self.bindings
+            .get(&name)
+            .map(|binding| BindingLocator::declarative(name, self.environment_index, binding.index))
+    }
+
+    /// Get the locator for a binding name in this and all outer environments.
+    #[inline]
+    pub(crate) fn get_binding_recursive(&self, name: Sym) -> BindingLocator {
+        if let Some(binding) = self.bindings.get(&name) {
+            BindingLocator::declarative(name, self.environment_index, binding.index)
+        } else if let Some(outer) = &self.outer {
+            outer.borrow().get_binding_recursive(name)
+        } else {
+            BindingLocator::global(name)
         }
     }
 
-    /// Get the number of bindings for the current last environment.
+    /// Check if a binding name exists in this and all outer environments.
+    #[inline]
+    pub(crate) fn has_binding_recursive(&self, name: Sym) -> bool {
+        if self.bindings.contains_key(&name) {
+            true
+        } else if let Some(outer) = &self.outer {
+            outer.borrow().has_binding_recursive(name)
+        } else {
+            false
+        }
+    }
+
+    /// Create a mutable binding.
+    ///
+    /// If the binding is a function scope binding and this is a declarative environment, try the outer environment.
+    #[inline]
+    pub(crate) fn create_mutable_binding(&mut self, name: Sym, function_scope: bool) -> bool {
+        if let Some(outer) = &self.outer {
+            if !function_scope || self.function_scope {
+                if !self.bindings.contains_key(&name) {
+                    let binding_index = self.bindings.len();
+                    self.bindings.insert(
+                        name,
+                        CompileTimeBinding {
+                            index: binding_index,
+                            mutable: true,
+                            lex: !function_scope,
+                        },
+                    );
+                }
+                true
+            } else {
+                return outer
+                    .borrow_mut()
+                    .create_mutable_binding(name, function_scope);
+            }
+        } else if function_scope {
+            false
+        } else {
+            if !self.bindings.contains_key(&name) {
+                let binding_index = self.bindings.len();
+                self.bindings.insert(
+                    name,
+                    CompileTimeBinding {
+                        index: binding_index,
+                        mutable: true,
+                        lex: !function_scope,
+                    },
+                );
+            }
+            true
+        }
+    }
+
+    /// Crate an immutable binding.
+    #[inline]
+    pub(crate) fn create_immutable_binding(&mut self, name: Sym) {
+        let binding_index = self.bindings.len();
+        self.bindings.insert(
+            name,
+            CompileTimeBinding {
+                index: binding_index,
+                mutable: false,
+                lex: true,
+            },
+        );
+    }
+
+    /// Return the binding locator for a mutable binding with the given binding name and scope.
+    #[inline]
+    pub(crate) fn initialize_mutable_binding(
+        &self,
+        name: Sym,
+        function_scope: bool,
+    ) -> BindingLocator {
+        if let Some(outer) = &self.outer {
+            if function_scope && !self.function_scope {
+                return outer
+                    .borrow()
+                    .initialize_mutable_binding(name, function_scope);
+            }
+            if let Some(binding) = self.bindings.get(&name) {
+                BindingLocator::declarative(name, self.environment_index, binding.index)
+            } else {
+                outer
+                    .borrow()
+                    .initialize_mutable_binding(name, function_scope)
+            }
+        } else if let Some(binding) = self.bindings.get(&name) {
+            BindingLocator::declarative(name, self.environment_index, binding.index)
+        } else {
+            BindingLocator::global(name)
+        }
+    }
+
+    /// Return the binding locator for an immutable binding.
     ///
     /// # Panics
     ///
-    /// Panics if there are no environments on the stack.
+    /// Panics if the binding is not in the current environment.
     #[inline]
-    pub(crate) fn get_binding_number(&self) -> usize {
-        self.stack
-            .last()
-            .expect("global environment must always exist")
-            .num_bindings()
+    pub(crate) fn initialize_immutable_binding(&self, name: Sym) -> BindingLocator {
+        let binding = self.bindings.get(&name).expect("binding must exist");
+        BindingLocator::declarative(name, self.environment_index, binding.index)
+    }
+
+    /// Return the binding locator for a mutable binding.
+    #[inline]
+    pub(crate) fn set_mutable_binding_recursive(&self, name: Sym) -> BindingLocator {
+        match self.bindings.get(&name) {
+            Some(binding) if binding.mutable => {
+                BindingLocator::declarative(name, self.environment_index, binding.index)
+            }
+            Some(_) => BindingLocator::mutate_immutable(name),
+            None => {
+                if let Some(outer) = &self.outer {
+                    outer.borrow().set_mutable_binding_recursive(name)
+                } else {
+                    BindingLocator::global(name)
+                }
+            }
+        }
     }
 }
 
@@ -75,10 +210,15 @@ impl Context {
     /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn push_compile_time_environment(&mut self, function_scope: bool) {
-        self.realm.compile_env.stack.push(CompileTimeEnvironment {
+        let environment_index = self.realm.compile_env.borrow().environment_index + 1;
+        let outer = self.realm.compile_env.clone();
+
+        self.realm.compile_env = Gc::new(Cell::new(CompileTimeEnvironment {
+            outer: Some(outer),
+            environment_index,
             bindings: FxHashMap::default(),
             function_scope,
-        });
+        }));
     }
 
     /// Pop the last compile time environment from the stack.
@@ -89,16 +229,20 @@ impl Context {
     ///
     /// Panics if there are no more environments that can be pop'ed.
     #[inline]
-    pub(crate) fn pop_compile_time_environment(&mut self) -> CompileTimeEnvironment {
-        assert!(
-            self.realm.compile_env.stack.len() > 1,
-            "cannot pop global environment"
-        );
-        self.realm
-            .compile_env
-            .stack
-            .pop()
-            .expect("len > 1 already checked")
+    pub(crate) fn pop_compile_time_environment(
+        &mut self,
+    ) -> (usize, Gc<Cell<CompileTimeEnvironment>>) {
+        let current_env_borrow = self.realm.compile_env.borrow();
+        if let Some(outer) = &current_env_borrow.outer {
+            let outer_clone = outer.clone();
+            let num_bindings = current_env_borrow.num_bindings();
+            drop(current_env_borrow);
+            let current = self.realm.compile_env.clone();
+            self.realm.compile_env = outer_clone;
+            (num_bindings, current)
+        } else {
+            panic!("cannot pop global environment")
+        }
     }
 
     /// Get the number of bindings for the current compile time environment.
@@ -110,12 +254,7 @@ impl Context {
     /// Panics if there are no environments on the compile time environment stack.
     #[inline]
     pub(crate) fn get_binding_number(&self) -> usize {
-        self.realm
-            .compile_env
-            .stack
-            .last()
-            .expect("global environment must always exist")
-            .num_bindings()
+        self.realm.compile_env.borrow().num_bindings()
     }
 
     /// Get the binding locator of the binding at bytecode compile time.
@@ -123,12 +262,7 @@ impl Context {
     /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn get_binding_value(&self, name: Sym) -> BindingLocator {
-        for (i, env) in self.realm.compile_env.stack.iter().enumerate().rev() {
-            if let Some(binding) = env.bindings.get(&name) {
-                return BindingLocator::declarative(name, i, binding.index);
-            }
-        }
-        BindingLocator::global(name)
+        self.realm.compile_env.borrow().get_binding_recursive(name)
     }
 
     /// Return if a declarative binding exists at bytecode compile time.
@@ -137,12 +271,7 @@ impl Context {
     /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn has_binding(&self, name: Sym) -> bool {
-        for env in self.realm.compile_env.stack.iter().rev() {
-            if env.bindings.contains_key(&name) {
-                return true;
-            }
-        }
-        false
+        self.realm.compile_env.borrow().has_binding_recursive(name)
     }
 
     /// Create a mutable binding at bytecode compile time.
@@ -154,69 +283,31 @@ impl Context {
     ///
     /// Panics if the global environment is not function scoped.
     #[inline]
-    pub(crate) fn create_mutable_binding(
-        &mut self,
-        name: Sym,
-        function_scope: bool,
-        allow_name_reuse: bool,
-    ) -> JsResult<()> {
-        let name_str = JsString::from(self.interner().resolve_expect(name));
-
-        for (i, env) in self.realm.compile_env.stack.iter_mut().enumerate().rev() {
-            if !function_scope || env.function_scope {
-                if env.bindings.contains_key(&name) {
-                    if allow_name_reuse {
-                        return Ok(());
-                    }
-                    return self
-                        .throw_syntax_error(format!("Redeclaration of variable {}", name_str));
-                }
-
-                if i == 0 {
-                    let desc = self
-                        .realm
-                        .global_property_map
-                        .string_property_map()
-                        .get(&name_str);
-                    let non_configurable_binding_exists = match desc {
-                        Some(desc) => !matches!(desc.configurable(), Some(true)),
-                        None => false,
-                    };
-                    if function_scope && desc.is_none() {
-                        self.global_bindings_mut().insert(
-                            name_str,
-                            PropertyDescriptor::builder()
-                                .value(JsValue::Undefined)
-                                .writable(true)
-                                .enumerable(true)
-                                .configurable(true)
-                                .build(),
-                        );
-                        return Ok(());
-                    } else if function_scope {
-                        return Ok(());
-                    } else if !function_scope
-                        && !allow_name_reuse
-                        && non_configurable_binding_exists
-                    {
-                        return self
-                            .throw_syntax_error(format!("Redeclaration of variable {}", name_str));
-                    }
-                }
-
-                let binding_index = env.bindings.len();
-                env.bindings.insert(
-                    name,
-                    CompileTimeBinding {
-                        index: binding_index,
-                        mutable: true,
-                    },
+    pub(crate) fn create_mutable_binding(&mut self, name: Sym, function_scope: bool) {
+        if !self
+            .realm
+            .compile_env
+            .borrow_mut()
+            .create_mutable_binding(name, function_scope)
+        {
+            let name_str = JsString::from(self.interner().resolve_expect(name));
+            let desc = self
+                .realm
+                .global_property_map
+                .string_property_map()
+                .get(&name_str);
+            if desc.is_none() {
+                self.global_bindings_mut().insert(
+                    name_str,
+                    PropertyDescriptor::builder()
+                        .value(JsValue::Undefined)
+                        .writable(true)
+                        .enumerable(true)
+                        .configurable(true)
+                        .build(),
                 );
-                return Ok(());
             }
-            continue;
         }
-        panic!("global environment must be function scoped")
     }
 
     /// Initialize a mutable binding at bytecode compile time and return it's binding locator.
@@ -228,16 +319,10 @@ impl Context {
         name: Sym,
         function_scope: bool,
     ) -> BindingLocator {
-        for (i, env) in self.realm.compile_env.stack.iter().enumerate().rev() {
-            if function_scope && !env.function_scope {
-                continue;
-            }
-            if let Some(binding) = env.bindings.get(&name) {
-                return BindingLocator::declarative(name, i, binding.index);
-            }
-            return BindingLocator::global(name);
-        }
-        BindingLocator::global(name)
+        self.realm
+            .compile_env
+            .borrow()
+            .initialize_mutable_binding(name, function_scope)
     }
 
     /// Create an immutable binding at bytecode compile time.
@@ -249,31 +334,11 @@ impl Context {
     ///
     /// Panics if the global environment does not exist.
     #[inline]
-    pub(crate) fn create_immutable_binding(&mut self, name: Sym) -> JsResult<()> {
-        let name_str = JsString::from(self.interner().resolve_expect(name));
-        let exists_global = self.realm.compile_env.stack.len() == 1
-            && self.global_bindings().contains_key(&name_str);
-
-        let env = self
-            .realm
+    pub(crate) fn create_immutable_binding(&mut self, name: Sym) {
+        self.realm
             .compile_env
-            .stack
-            .last_mut()
-            .expect("global environment must always exist");
-
-        if env.bindings.contains_key(&name) || exists_global {
-            self.throw_syntax_error(format!("Redeclaration of variable {}", name_str))
-        } else {
-            let binding_index = env.bindings.len();
-            env.bindings.insert(
-                name,
-                CompileTimeBinding {
-                    index: binding_index,
-                    mutable: false,
-                },
-            );
-            Ok(())
-        }
+            .borrow_mut()
+            .create_immutable_binding(name);
     }
 
     /// Initialize an immutable binding at bytecode compile time and return it's binding locator.
@@ -285,16 +350,10 @@ impl Context {
     /// Panics if the global environment does not exist or a the binding was not created on the current environment.
     #[inline]
     pub(crate) fn initialize_immutable_binding(&self, name: Sym) -> BindingLocator {
-        let environment_index = self.realm.compile_env.stack.len() - 1;
-        let env = self
-            .realm
+        self.realm
             .compile_env
-            .stack
-            .last()
-            .expect("global environment must always exist");
-
-        let binding = env.bindings.get(&name).expect("binding must exist");
-        BindingLocator::declarative(name, environment_index, binding.index)
+            .borrow()
+            .initialize_immutable_binding(name)
     }
 
     /// Return the binding locator for a set operation on an existing binding.
@@ -302,14 +361,9 @@ impl Context {
     /// Note: This function only works at bytecode compile time!
     #[inline]
     pub(crate) fn set_mutable_binding(&self, name: Sym) -> BindingLocator {
-        for (i, env) in self.realm.compile_env.stack.iter().enumerate().rev() {
-            if let Some(binding) = env.bindings.get(&name) {
-                if binding.mutable {
-                    return BindingLocator::declarative(name, i, binding.index);
-                }
-                return BindingLocator::mutate_immutable(name);
-            }
-        }
-        BindingLocator::global(name)
+        self.realm
+            .compile_env
+            .borrow()
+            .set_mutable_binding_recursive(name)
     }
 }

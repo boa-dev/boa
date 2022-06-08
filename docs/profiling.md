@@ -10,7 +10,7 @@ We use a crate called [measureme](https://github.com/rust-lang/measureme), which
 When the "profiler" flag is enabled, you compile with the profiler and it is called throughout the interpreter.  
 when the feature flag is not enabled, you have an empty dummy implementation that is just no ops. rustc should completely optimize that away. So there should be no performance downgrade from these changes
 
-## Prerequesites
+## Prerequisites
 
 - [Crox](https://github.com/rust-lang/measureme/blob/master/crox/README.md)
 - [summarize (Optional)](https://github.com/rust-lang/measureme/blob/master/summarize/README.md)

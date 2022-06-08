@@ -11,7 +11,6 @@ use super::{InternalObjectMethods, ORDINARY_INTERNAL_METHODS};
 pub(crate) static BOUND_FUNCTION_EXOTIC_INTERNAL_METHODS: InternalObjectMethods =
     InternalObjectMethods {
         __call__: Some(bound_function_exotic_call),
-        __construct__: None,
         ..ORDINARY_INTERNAL_METHODS
     };
 

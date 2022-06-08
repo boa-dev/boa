@@ -157,11 +157,10 @@ impl JsValue {
 #[cfg(test)]
 mod tests {
     use crate::object::JsArray;
+    use crate::{Context, JsValue};
 
     #[test]
     fn ut_json_conversions() {
-        use crate::{Context, JsValue};
-
         let data = r#"
          {
              "name": "John Doe",
@@ -207,5 +206,72 @@ mod tests {
         }
 
         assert_eq!(json, value.to_json(&mut context).unwrap());
+    }
+
+    #[test]
+    fn integer_ops_to_json() {
+        let mut context = Context::default();
+
+        let add = context
+            .eval(
+                r#"
+                1000000 + 500
+            "#,
+            )
+            .unwrap();
+        let add: u32 = serde_json::from_value(add.to_json(&mut context).unwrap()).unwrap();
+        assert_eq!(add, 1_000_500);
+
+        let sub = context
+            .eval(
+                r#"
+                1000000 - 500
+            "#,
+            )
+            .unwrap();
+        let sub: u32 = serde_json::from_value(sub.to_json(&mut context).unwrap()).unwrap();
+        assert_eq!(sub, 999_500);
+
+        let mult = context
+            .eval(
+                r#"
+                1000000 * 500
+            "#,
+            )
+            .unwrap();
+        let mult: u32 = serde_json::from_value(mult.to_json(&mut context).unwrap()).unwrap();
+        assert_eq!(mult, 500_000_000);
+
+        let div = context
+            .eval(
+                r#"
+                1000000 / 500
+            "#,
+            )
+            .unwrap();
+        let div: u32 = serde_json::from_value(div.to_json(&mut context).unwrap()).unwrap();
+        assert_eq!(div, 2000);
+
+        let rem = context
+            .eval(
+                r#"
+                233894 % 500
+            "#,
+            )
+            .unwrap();
+        let rem: u32 = serde_json::from_value(rem.to_json(&mut context).unwrap()).unwrap();
+        assert_eq!(rem, 394);
+
+        let pow = context
+            .eval(
+                r#"
+                36 ** 5
+            "#,
+            )
+            .unwrap();
+
+        let pow: u32 = serde_json::from_value(pow.to_json(&mut context).unwrap()).unwrap();
+
+        assert_eq!(pow, 60466176);
     }
 }

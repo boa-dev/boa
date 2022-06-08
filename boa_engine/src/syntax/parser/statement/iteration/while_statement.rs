@@ -56,7 +56,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("WhileStatement", "Parsing");
-        cursor.expect(Keyword::While, "while statement", interner)?;
+        cursor.expect((Keyword::While, false), "while statement", interner)?;
 
         cursor.expect(Punctuator::OpenParen, "while statement", interner)?;
 

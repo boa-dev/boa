@@ -1,10 +1,11 @@
 use crate::builtins::string::is_trimmable_whitespace;
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
-use rustc_hash::FxHashSet;
+use rustc_hash::{FxHashMap, FxHasher};
 use std::{
     alloc::{alloc, dealloc, handle_alloc_error, Layout},
     borrow::Borrow,
     cell::Cell,
+    hash::BuildHasherDefault,
     hash::{Hash, Hasher},
     marker::PhantomData,
     ops::Deref,
@@ -12,7 +13,7 @@ use std::{
     rc::Rc,
 };
 
-const CONSTANTS_ARRAY: [&str; 127] = [
+const CONSTANTS_ARRAY: [&str; 419] = [
     // Empty string
     "",
     // Misc
@@ -24,6 +25,10 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "arguments",
     "prototype",
     "constructor",
+    "return",
+    "throw",
+    "global",
+    "globalThis",
     // typeof
     "null",
     "undefined",
@@ -42,7 +47,7 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "configurable",
     // Object object
     "Object",
-    "assing",
+    "assign",
     "create",
     "toString",
     "valueOf",
@@ -51,20 +56,34 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "isSealed",
     "freeze",
     "isFrozen",
+    "isExtensible",
+    "hasOwnProperty",
+    "isPrototypeOf",
+    "setPrototypeOf",
+    "getPrototypeOf",
+    "defineProperty",
+    "defineProperties",
+    "deleteProperty",
+    "construct",
+    "hasOwn",
+    "ownKeys",
     "keys",
     "values",
     "entries",
+    "fromEntries",
     // Function object
     "Function",
     "apply",
     "bind",
     "call",
+    // Generator object
+    "Generator",
     // Array object
     "Array",
+    "at",
     "from",
     "isArray",
     "of",
-    "get [Symbol.species]",
     "copyWithin",
     "entries",
     "every",
@@ -72,6 +91,8 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "filter",
     "find",
     "findIndex",
+    "findLast",
+    "findLastIndex",
     "flat",
     "flatMap",
     "forEach",
@@ -79,11 +100,13 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "indexOf",
     "join",
     "map",
+    "next",
     "reduce",
     "reduceRight",
     "reverse",
     "shift",
     "slice",
+    "splice",
     "some",
     "sort",
     "unshift",
@@ -93,8 +116,11 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "String",
     "charAt",
     "charCodeAt",
+    "codePointAt",
     "concat",
     "endsWith",
+    "fromCharCode",
+    "fromCodePoint",
     "includes",
     "indexOf",
     "lastIndexOf",
@@ -103,6 +129,7 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "normalize",
     "padEnd",
     "padStart",
+    "raw",
     "repeat",
     "replace",
     "replaceAll",
@@ -110,16 +137,39 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "slice",
     "split",
     "startsWith",
+    "substr",
     "substring",
-    "toLowerString",
-    "toUpperString",
+    "toLocaleString",
+    "toLowerCase",
+    "toUpperCase",
     "trim",
     "trimEnd",
     "trimStart",
     // Number object
     "Number",
+    "Infinity",
+    "NaN",
+    "parseInt",
+    "parseFloat",
+    "isFinite",
+    "isNaN",
+    "parseInt",
+    "EPSILON",
+    "MAX_SAFE_INTEGER",
+    "MIN_SAFE_INTEGER",
+    "MAX_VALUE",
+    "MIN_VALUE",
+    "isSafeInteger",
+    "isInteger",
+    "toExponential",
+    "toFixed",
+    "toPrecision",
     // Boolean object
     "Boolean",
+    // BigInt object
+    "BigInt",
+    "asIntN",
+    "asUintN",
     // RegExp object
     "RegExp",
     "exec",
@@ -127,13 +177,46 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "flags",
     "index",
     "lastIndex",
+    "hasIndices",
+    "ignoreCase",
+    "multiline",
+    "dotAll",
+    "unicode",
+    "sticky",
+    "source",
+    "get hasIndices",
+    "get global",
+    "get ignoreCase",
+    "get multiline",
+    "get dotAll",
+    "get unicode",
+    "get sticky",
+    "get flags",
+    "get source",
     // Symbol object
     "Symbol",
     "for",
     "keyFor",
     "description",
-    "[Symbol.toPrimitive]",
-    "",
+    "asyncIterator",
+    "hasInstance",
+    "species",
+    "Symbol.species",
+    "unscopables",
+    "iterator",
+    "Symbol.iterator",
+    "Symbol.match",
+    "[Symbol.match]",
+    "Symbol.matchAll",
+    "Symbol.replace",
+    "[Symbol.replace]",
+    "Symbol.search",
+    "[Symbol.search]",
+    "Symbol.split",
+    "[Symbol.split]",
+    "toStringTag",
+    "toPrimitive",
+    "get description",
     // Map object
     "Map",
     "clear",
@@ -144,20 +227,241 @@ const CONSTANTS_ARRAY: [&str; 127] = [
     "size",
     // Set object
     "Set",
+    "add",
     // Reflect object
     "Reflect",
+    // Proxy object
+    "Proxy",
+    "revocable",
     // Error objects
     "Error",
+    "AggregateError",
     "TypeError",
     "RangeError",
     "SyntaxError",
     "ReferenceError",
     "EvalError",
+    "ThrowTypeError",
     "URIError",
     "message",
     // Date object
     "Date",
     "toJSON",
+    "getDate",
+    "getDay",
+    "getFullYear",
+    "getHours",
+    "getMilliseconds",
+    "getMinutes",
+    "getMonth",
+    "getSeconds",
+    "getTime",
+    "getYear",
+    "getUTCDate",
+    "getUTCDay",
+    "getUTCFullYear",
+    "getUTCHours",
+    "getUTCMinutes",
+    "getUTCMonth",
+    "getUTCSeconds",
+    "setDate",
+    "setFullYear",
+    "setHours",
+    "setMilliseconds",
+    "setMinutes",
+    "setMonth",
+    "setSeconds",
+    "setYear",
+    "setTime",
+    "setUTCDate",
+    "setUTCFullYear",
+    "setUTCHours",
+    "setUTCMinutes",
+    "setUTCMonth",
+    "setUTCSeconds",
+    "toDateString",
+    "toGMTString",
+    "toISOString",
+    "toTimeString",
+    "toUTCString",
+    "now",
+    "UTC",
+    // JSON object
+    "JSON",
+    "parse",
+    "stringify",
+    // Iterator object
+    "Array Iterator",
+    "Set Iterator",
+    "String Iterator",
+    "Map Iterator",
+    "For In Iterator",
+    // Math object
+    "Math",
+    "LN10",
+    "LN2",
+    "LOG10E",
+    "LOG2E",
+    "PI",
+    "SQRT1_2",
+    "SQRT2",
+    "abs",
+    "acos",
+    "acosh",
+    "asin",
+    "asinh",
+    "atan",
+    "atanh",
+    "atan2",
+    "cbrt",
+    "ceil",
+    "clz32",
+    "cos",
+    "cosh",
+    "exp",
+    "expm1",
+    "floor",
+    "fround",
+    "hypot",
+    "imul",
+    "log",
+    "log1p",
+    "log10",
+    "log2",
+    "max",
+    "min",
+    "pow",
+    "random",
+    "round",
+    "sign",
+    "sin",
+    "sinh",
+    "sqrt",
+    "tan",
+    "tanh",
+    "trunc",
+    // Intl object
+    "Intl",
+    "DateTimeFormat",
+    // TypedArray object
+    "TypedArray",
+    "ArrayBuffer",
+    "Int8Array",
+    "Uint8Array",
+    "Int16Array",
+    "Uint16Array",
+    "Int32Array",
+    "Uint32Array",
+    "BigInt64Array",
+    "BigUint64Array",
+    "Float32Array",
+    "Float64Array",
+    "buffer",
+    "byteLength",
+    "byteOffset",
+    "isView",
+    "subarray",
+    "get byteLength",
+    "get buffer",
+    "get byteOffset",
+    "get size",
+    "get length",
+    // DataView object
+    "DataView",
+    "getBigInt64",
+    "getBigUint64",
+    "getFloat32",
+    "getFloat64",
+    "getInt8",
+    "getInt16",
+    "getInt32",
+    "getUint8",
+    "getUint16",
+    "getUint32",
+    "setBigInt64",
+    "setBigUint64",
+    "setFloat32",
+    "setFloat64",
+    "setInt8",
+    "setInt16",
+    "setInt32",
+    "setUint8",
+    "setUint16",
+    "setUint32",
+    // Console object
+    "console",
+    "assert",
+    "debug",
+    "error",
+    "info",
+    "trace",
+    "warn",
+    "exception",
+    "count",
+    "countReset",
+    "group",
+    "groupCollapsed",
+    "groupEnd",
+    "time",
+    "timeLog",
+    "timeEnd",
+    "dir",
+    "dirxml",
+    // Minified name
+    "a",
+    "b",
+    "c",
+    "d",
+    "e",
+    "f",
+    "g",
+    "h",
+    "i",
+    "j",
+    "k",
+    "l",
+    "m",
+    "n",
+    "o",
+    "p",
+    "q",
+    "r",
+    "s",
+    "t",
+    "u",
+    "v",
+    "w",
+    "x",
+    "y",
+    "z",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G",
+    "H",
+    "I",
+    "J",
+    "K",
+    "L",
+    "M",
+    "N",
+    "O",
+    "P",
+    "Q",
+    "R",
+    "S",
+    "T",
+    "U",
+    "V",
+    "W",
+    "X",
+    "Y",
+    "Z",
+    "_",
+    "$",
 ];
 
 const MAX_CONSTANT_STRING_LENGTH: usize = {
@@ -182,15 +486,16 @@ unsafe fn try_alloc(layout: Layout) -> *mut u8 {
 }
 
 thread_local! {
-    static CONSTANTS: FxHashSet<JsString> = {
-        let mut constants = FxHashSet::default();
+    static CONSTANTS: FxHashMap<&'static str, JsString> = {
+        let mut constants = FxHashMap::with_capacity_and_hasher(
+            CONSTANTS_ARRAY.len(),
+            BuildHasherDefault::<FxHasher>::default(),
+        );
 
-        for s in CONSTANTS_ARRAY.iter() {
-            let s = JsString {
-                inner: Inner::new(s),
-                _marker: PhantomData,
-            };
-            constants.insert(s);
+        for (idx, &s) in CONSTANTS_ARRAY.iter().enumerate() {
+            // Safety: We already know it's an index of [`CONSTANTS_ARRAY`].
+            let v = unsafe { JsString::new_static(idx) };
+            constants.insert(s, v);
         }
 
         constants
@@ -304,6 +609,14 @@ impl Inner {
 
         dealloc(x.as_ptr().cast::<_>(), layout);
     }
+
+    #[inline]
+    fn as_str(&self) -> &str {
+        unsafe {
+            let slice = std::slice::from_raw_parts(self.data.as_ptr(), self.len);
+            std::str::from_utf8_unchecked(slice)
+        }
+    }
 }
 
 /// This represents a JavaScript primitive string.
@@ -312,20 +625,115 @@ impl Inner {
 /// on the stack and a pointer to the data (this is also known as fat pointers).
 /// The `JsString` length and data is stored on the heap. and just an non-null
 /// pointer is kept, so its size is the size of a pointer.
+///
+/// We define some commonly used string constants in an interner. For these
+/// strings, we no longer allocate memory on the heap to reduce the overhead of
+/// memory allocation and reference counting.
 #[derive(Finalize)]
 pub struct JsString {
-    inner: NonNull<Inner>,
+    inner: TaggedInner,
     _marker: PhantomData<Rc<str>>,
+}
+
+/// This struct uses a technique called tagged pointer to benefit from the fact that newly
+/// allocated pointers are always word aligned on 64-bits platforms, making it impossible
+/// to have a LSB equal to 1. More details about this technique on the article of Wikipedia
+/// about [tagged pointers][tagged_wp].
+///
+/// # Representation
+///
+/// If the LSB of the internal [`NonNull<Inner>`] is set (1), then the pointer address represents
+/// an index value for [`CONSTANTS_ARRAY`], where the remaining MSBs store the index.
+/// Otherwise, the whole pointer represents the address of a heap allocated [`Inner`].
+///
+/// It uses [`NonNull`], which guarantees that `TaggedInner` (and subsequently [`JsString`])
+/// can use the "null pointer optimization" to optimize the size of [`Option<TaggedInner>`].
+///
+/// # Provenance
+///
+/// This struct stores a [`NonNull<Inner>`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]
+/// in order to preserve the provenance of our valid heap pointers.
+/// On the other hand, all index values are just casted to invalid pointers,
+/// because we don't need to preserve the provenance of [`usize`] indices.
+///
+/// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
+#[repr(transparent)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
+struct TaggedInner(NonNull<Inner>);
+
+impl TaggedInner {
+    #[inline]
+    unsafe fn new_heap(inner: NonNull<Inner>) -> Self {
+        Self(inner)
+    }
+
+    /// Create a new static `TaggedInner` from the index of an element inside
+    /// [`CONSTANTS_ARRAY`].
+    #[inline]
+    const unsafe fn new_static(idx: usize) -> Self {
+        // Safety: We already know it's not null, so this is safe.
+        Self(NonNull::new_unchecked(((idx << 1) | 1) as *mut _))
+    }
+
+    /// Check if `TaggedInner` contains an index for [`CONSTANTS_ARRAY`].
+    #[inline]
+    fn is_static(self) -> bool {
+        (self.0.as_ptr() as usize) & 1 == 1
+    }
+
+    /// Returns a reference to a string stored on the heap,
+    /// without checking if its internal pointer is valid.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method with a static `TaggedInner` results in Undefined Behaviour.
+    #[inline]
+    const unsafe fn get_heap_unchecked(self) -> NonNull<Inner> {
+        self.0
+    }
+
+    /// Returns the string inside [`CONSTANTS_ARRAY`] corresponding to the
+    /// index inside `TaggedInner`, without checking its validity.
+    ///
+    /// # Safety
+    ///
+    /// Calling this method with a `TaggedInner` storing an out of bounds index
+    /// for [`CONSTANTS_ARRAY`] or a valid pointer to a heap allocated [`Inner`]
+    /// results in Undefined Behaviour.
+    #[inline]
+    unsafe fn get_static_unchecked(self) -> &'static str {
+        // shift right to get the index.
+        CONSTANTS_ARRAY.get_unchecked((self.0.as_ptr() as usize) >> 1)
+    }
 }
 
 impl Default for JsString {
     #[inline]
     fn default() -> Self {
-        Self::new("")
+        // Safety: We already know it's an index of [`CONSTANTS_ARRAY`].
+        unsafe { Self::new_static(0) }
     }
 }
 
+/// Enum representing either a reference to a heap allocated [`Inner`]
+/// or a static reference to a [`str`] inside [`CONSTANTS_ARRAY`].
+enum InnerKind<'a> {
+    // A string allocated on the heap.
+    Heap(&'a Inner),
+    // A static string slice.
+    Static(&'static str),
+}
+
 impl JsString {
+    /// Create a new JavaScript string from an index of [`CONSTANTS_ARRAY`].
+    #[inline]
+    unsafe fn new_static(idx: usize) -> Self {
+        Self {
+            inner: TaggedInner::new_static(idx),
+            _marker: PhantomData,
+        }
+    }
+
     /// Create an empty string, same as calling default.
     #[inline]
     pub fn empty() -> Self {
@@ -344,7 +752,8 @@ impl JsString {
         }
 
         Self {
-            inner: Inner::new(s),
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { TaggedInner::new_heap(Inner::new(s)) },
             _marker: PhantomData,
         }
     }
@@ -358,57 +767,71 @@ impl JsString {
         let x = x.as_ref();
         let y = y.as_ref();
 
-        let this = Self {
-            inner: Inner::concat_array(&[x, y]),
-            _marker: PhantomData,
-        };
+        let inner = Inner::concat_array(&[x, y]);
+        let s = unsafe { inner.as_ref() }.as_str();
 
-        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
-            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+        if s.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(s).cloned()) {
+                unsafe { Inner::dealloc(inner) };
                 return constant;
             }
         }
 
-        this
+        Self {
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { TaggedInner::new_heap(inner) },
+            _marker: PhantomData,
+        }
     }
 
     /// Concatenate array of string.
     pub fn concat_array(strings: &[&str]) -> Self {
-        let this = Self {
-            inner: Inner::concat_array(strings),
-            _marker: PhantomData,
-        };
+        let inner = Inner::concat_array(strings);
+        let s = unsafe { inner.as_ref() }.as_str();
 
-        if this.len() <= MAX_CONSTANT_STRING_LENGTH {
-            if let Some(constant) = CONSTANTS.with(|c| c.get(&this).cloned()) {
+        if s.len() <= MAX_CONSTANT_STRING_LENGTH {
+            if let Some(constant) = CONSTANTS.with(|c| c.get(s).cloned()) {
+                unsafe { Inner::dealloc(inner) };
                 return constant;
             }
         }
 
-        this
+        Self {
+            // Safety: We already know it's a valid heap pointer.
+            inner: unsafe { TaggedInner::new_heap(inner) },
+            _marker: PhantomData,
+        }
     }
 
     /// Return the inner representation.
     #[inline]
-    fn inner(&self) -> &Inner {
-        unsafe { self.inner.as_ref() }
+    fn inner(&self) -> InnerKind<'_> {
+        // Check the first bit to 1.
+        if self.inner.is_static() {
+            // Safety: We already checked.
+            InnerKind::Static(unsafe { self.inner.get_static_unchecked() })
+        } else {
+            // Safety: We already checked.
+            InnerKind::Heap(unsafe { self.inner.get_heap_unchecked().as_ref() })
+        }
     }
 
     /// Return the JavaScript string as a rust `&str`.
     #[inline]
     pub fn as_str(&self) -> &str {
-        let inner = self.inner();
-
-        unsafe {
-            let slice = std::slice::from_raw_parts(inner.data.as_ptr(), inner.len);
-            std::str::from_utf8_unchecked(slice)
+        match self.inner() {
+            InnerKind::Heap(inner) => inner.as_str(),
+            InnerKind::Static(inner) => inner,
         }
     }
 
     /// Gets the number of `JsString`s which point to this allocation.
     #[inline]
-    pub fn refcount(this: &Self) -> usize {
-        this.inner().refcount.get()
+    pub fn refcount(this: &Self) -> Option<usize> {
+        match this.inner() {
+            InnerKind::Heap(inner) => Some(inner.refcount.get()),
+            InnerKind::Static(_inner) => None,
+        }
     }
 
     /// Returns `true` if the two `JsString`s point to the same allocation (in a vein similar to [`ptr::eq`]).
@@ -528,9 +951,9 @@ unsafe impl Trace for JsString {
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        let inner = self.inner();
-        inner.refcount.set(inner.refcount.get() + 1);
-
+        if let InnerKind::Heap(inner) = self.inner() {
+            inner.refcount.set(inner.refcount.get() + 1);
+        }
         Self {
             inner: self.inner,
             _marker: PhantomData,
@@ -541,15 +964,16 @@ impl Clone for JsString {
 impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
-        let inner = self.inner();
-        if inner.refcount.get() == 1 {
-            // Safety: If refcount is 1 and we call drop, that means this is the last
-            // JsString which points to this memory allocation, so deallocating it is safe.
-            unsafe {
-                Inner::dealloc(self.inner);
+        if let InnerKind::Heap(inner) = self.inner() {
+            if inner.refcount.get() == 1 {
+                // Safety: If refcount is 1 and we call drop, that means this is the last
+                // JsString which points to this memory allocation, so deallocating it is safe.
+                unsafe {
+                    Inner::dealloc(self.inner.get_heap_unchecked());
+                }
+            } else {
+                inner.refcount.set(inner.refcount.get() - 1);
             }
-        } else {
-            inner.refcount.set(inner.refcount.get() - 1);
         }
     }
 }
@@ -694,25 +1118,39 @@ mod tests {
     #[test]
     fn refcount() {
         let x = JsString::new("Hello wrold");
-        assert_eq!(JsString::refcount(&x), 1);
+        assert_eq!(JsString::refcount(&x), Some(1));
 
         {
             let y = x.clone();
-            assert_eq!(JsString::refcount(&x), 2);
-            assert_eq!(JsString::refcount(&y), 2);
+            assert_eq!(JsString::refcount(&x), Some(2));
+            assert_eq!(JsString::refcount(&y), Some(2));
 
             {
                 let z = y.clone();
-                assert_eq!(JsString::refcount(&x), 3);
-                assert_eq!(JsString::refcount(&y), 3);
-                assert_eq!(JsString::refcount(&z), 3);
+                assert_eq!(JsString::refcount(&x), Some(3));
+                assert_eq!(JsString::refcount(&y), Some(3));
+                assert_eq!(JsString::refcount(&z), Some(3));
             }
 
-            assert_eq!(JsString::refcount(&x), 2);
-            assert_eq!(JsString::refcount(&y), 2);
+            assert_eq!(JsString::refcount(&x), Some(2));
+            assert_eq!(JsString::refcount(&y), Some(2));
         }
 
-        assert_eq!(JsString::refcount(&x), 1);
+        assert_eq!(JsString::refcount(&x), Some(1));
+    }
+
+    #[test]
+    fn static_refcount() {
+        let x = JsString::new("");
+        assert_eq!(JsString::refcount(&x), None);
+
+        {
+            let y = x.clone();
+            assert_eq!(JsString::refcount(&x), None);
+            assert_eq!(JsString::refcount(&y), None);
+        };
+
+        assert_eq!(JsString::refcount(&x), None);
     }
 
     #[test]
@@ -725,6 +1163,18 @@ mod tests {
         let z = JsString::new("Hello");
         assert!(!JsString::ptr_eq(&x, &z));
         assert!(!JsString::ptr_eq(&y, &z));
+    }
+
+    #[test]
+    fn static_ptr_eq() {
+        let x = JsString::new("");
+        let y = x.clone();
+
+        assert!(JsString::ptr_eq(&x, &y));
+
+        let z = JsString::new("");
+        assert!(JsString::ptr_eq(&x, &z));
+        assert!(JsString::ptr_eq(&y, &z));
     }
 
     #[test]
@@ -764,14 +1214,14 @@ mod tests {
 
         let xy = JsString::concat(x, y);
         assert_eq!(xy, "hello, ");
-        assert_eq!(JsString::refcount(&xy), 1);
+        assert_eq!(JsString::refcount(&xy), Some(1));
 
         let xyz = JsString::concat(xy, z);
         assert_eq!(xyz, "hello, world");
-        assert_eq!(JsString::refcount(&xyz), 1);
+        assert_eq!(JsString::refcount(&xyz), Some(1));
 
         let xyzw = JsString::concat(xyz, w);
         assert_eq!(xyzw, "hello, world!");
-        assert_eq!(JsString::refcount(&xyzw), 1);
+        assert_eq!(JsString::refcount(&xyzw), Some(1));
     }
 }

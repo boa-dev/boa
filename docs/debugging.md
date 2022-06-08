@@ -13,38 +13,14 @@ arguments to start a shell to execute JS.
 
 These are added in order of how the code is read:
 
-## Tokens
+## Tokens and AST nodes
 
-The first thing boa will do is generate tokens from source code. If the token
-generation is wrong the rest of the operation will be wrong, this is usually
-a good starting place.
+The first thing boa will do is to generate tokens from the source code.
+These tokens are then parsed into an abstract syntax tree (AST).
+Any syntax errors should be thrown while the AST is generated.
 
-To print the tokens to stdout, you can use the `boa_cli` command-line flag
-`--dump-tokens` or `-t`, which can optionally take a format type. Supports
-these formats: `Debug`, `Json`, `JsonPretty`. By default it is the `Debug`
-format.
-
-```bash
-cargo run -- test.js --dump-tokens # token dump format is Debug by default.
-```
-
-or with interactive mode (REPL):
-
-```bash
-cargo run -- --dump-tokens # token dump format is Debug by default.
-```
-
-Seeing the order of tokens can be a big help to understanding what the parser
-is working with.
-
-**Note:** flags `--dump-tokens` and `--dump-ast` are mutually exclusive. When
-using the flag `--dump-tokens`, the code will not be executed.
-
-## AST nodes
-
-Assuming the tokens looks fine, the next step is to see the AST. You can use
-the `boa_cli` command-line flag `--dump-ast`, which can optionally take a
-format type. Supports these formats: `Debug`, `Json`, `JsonPretty`. By default
+You can use the `boa_cli` command-line flag `--dump-ast` to print the AST.
+The flag supports these formats: `Debug`, `Json`, `JsonPretty`. By default
 it is the `Debug` format.
 
 Dumping the AST of a file:
@@ -59,22 +35,18 @@ or with interactive mode (REPL):
 cargo run -- --dump-ast # AST dump format is Debug by default.
 ```
 
-These methods will print out the entire parse tree.
+## Bytecode generation and Execution
 
-**Note:** flags `--dump-tokens` and `--dump-ast` are mutually exclusive. When
-using the flag `--dump-ast`, the code will not be executed.
+Once the AST has been generated boa will compile it into bytecode.
+The bytecode is then executed by the vm.
+You can print the bytecode and the executed instructions with the command-line flag `--trace`.
+
+For more detailed information about the vm and the trace output look [here](./vm.md).
 
 ## Compiler panics
 
 In the case of a compiler panic, to get a full backtrace you will need to set
 the environment variable `RUST_BACKTRACE=1`.
-
-## Execution
-
-Once the tree has been generated [exec](../boa/src/lib.rs#L92) will begin to
-run through each node. If the tokens and tree looks fine, you can start looking
-here. We usually just add `dbg!()` in the relevent places to see what the
-output is at the time.
 
 ## Debugger
 
@@ -94,7 +66,3 @@ rust-lldb ./target/debug/boa [arguments]
 
 [remote_containers]: https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
 [blog_debugging]: https://jason-williams.co.uk/debugging-rust-in-vscode
-
-## VM
-
-For debugging the new VM see [here](./vm.md)

@@ -15,6 +15,6 @@ fn generator_function_declaration() {
             vec![],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

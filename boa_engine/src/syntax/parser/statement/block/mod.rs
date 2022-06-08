@@ -16,8 +16,9 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
 /// The possible `TokenKind` which indicate the end of a block statement.
@@ -81,17 +82,50 @@ where
                 return Ok(node::Block::from(vec![]));
             }
         }
-
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         let statement_list = StatementList::new(
             self.allow_yield,
             self.allow_await,
             self.allow_return,
-            true,
             &BLOCK_BREAK_TOKENS,
         )
         .parse(cursor, interner)
         .map(node::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block", interner)?;
+
+        let lexically_declared_names = statement_list.lexically_declared_names();
+        let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+        for (name, is_function_declaration) in &lexically_declared_names {
+            if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
+                if !(!cursor.strict_mode()
+                    && *is_function_declaration
+                    && *existing_is_function_declaration)
+                {
+                    return Err(ParseError::general(
+                        "lexical name declared multiple times",
+                        position,
+                    ));
+                }
+            }
+            lexically_declared_names_map.insert(*name, *is_function_declaration);
+        }
+
+        let mut var_declared_names = FxHashSet::default();
+        for node in statement_list.items() {
+            node.var_declared_names(&mut var_declared_names);
+        }
+        for (lex_name, _) in &lexically_declared_names {
+            if var_declared_names.contains(lex_name) {
+                return Err(ParseError::general(
+                    "lexical name declared in var names",
+                    position,
+                ));
+            }
+        }
 
         Ok(statement_list)
     }

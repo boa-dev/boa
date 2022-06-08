@@ -4,9 +4,9 @@ use crate::syntax::{
     parser::{
         cursor::Cursor,
         error::ParseError,
+        expression::LabelIdentifier,
         statement::{
-            declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn, LabelIdentifier,
-            Statement,
+            declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn, Statement,
         },
         AllowYield, TokenParser,
     },
@@ -69,13 +69,13 @@ where
             // Early Error: It is a Syntax Error if any strict mode source code matches this rule.
             // https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors
             // https://tc39.es/ecma262/#sec-labelled-function-declarations
-            TokenKind::Keyword(Keyword::Function) if strict => {
+            TokenKind::Keyword((Keyword::Function, _)) if strict => {
                 return Err(ParseError::general(
                     "In strict mode code, functions can only be declared at top level or inside a block.",
                     next_token.span().start()
                 ))
             }
-            TokenKind::Keyword(Keyword::Function) => {
+            TokenKind::Keyword((Keyword::Function, _)) => {
                 FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
                 .parse(cursor, interner)?
                 .into()

@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::{
         node::{self, Identifier},
-        Keyword, Position, Punctuator,
+        Keyword, Punctuator,
     },
     lexer::TokenKind,
     parser::{
@@ -57,7 +57,12 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("Catch", "Parsing");
-        cursor.expect(Keyword::Catch, "try statement", interner)?;
+        cursor.expect((Keyword::Catch, false), "try statement", interner)?;
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         let catch_param = if cursor.next_if(Punctuator::OpenParen, interner)?.is_some() {
             let catch_param =
                 CatchParameter::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
@@ -68,52 +73,75 @@ where
             None
         };
 
-        let mut set = FxHashSet::default();
-        let idents = match &catch_param {
-            Some(node::Declaration::Identifier { ident, .. }) => vec![ident.sym()],
-            Some(node::Declaration::Pattern(p)) => p.idents(),
-            _ => vec![],
-        };
-
         // It is a Syntax Error if BoundNames of CatchParameter contains any duplicate elements.
-        // https://tc39.es/ecma262/#sec-variablestatements-in-catch-blocks
-        for ident in idents {
-            if !set.insert(ident) {
-                // FIXME: pass correct position once #1295 lands
-                return Err(ParseError::general(
-                    "duplicate identifier",
-                    Position::new(1, 1),
-                ));
+        // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
+        if let Some(node::Declaration::Pattern(pattern)) = &catch_param {
+            let mut set = FxHashSet::default();
+            for ident in pattern.idents() {
+                if !set.insert(ident) {
+                    return Err(ParseError::general(
+                        "duplicate catch parameter identifier",
+                        position,
+                    ));
+                }
             }
         }
 
-        // Catch block
+        let position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
         let catch_block = Block::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
 
         // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the LexicallyDeclaredNames of Block.
-        // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the VarDeclaredNames of Block.
+        // It is a Syntax Error if any element of the BoundNames of CatchParameter also occurs in the VarDeclaredNames of Block unless CatchParameter is CatchParameter : BindingIdentifier .
         // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
-
-        // FIXME: `lexically_declared_names` only holds part of LexicallyDeclaredNames of the
-        // Block e.g. function names are *not* included but should be.
-        let lexically_declared_names = catch_block.lexically_declared_names(interner);
-        let var_declared_names = catch_block.var_declared_named();
-
-        for ident in set {
-            // FIXME: pass correct position once #1295 lands
-            if lexically_declared_names.contains(&ident) {
-                return Err(ParseError::general(
-                    "identifier redeclared",
-                    Position::new(1, 1),
-                ));
+        // https://tc39.es/ecma262/#sec-variablestatements-in-catch-blocks
+        let lexically_declared_names = catch_block.lexically_declared_names();
+        match &catch_param {
+            Some(node::Declaration::Identifier { ident, .. }) => {
+                if lexically_declared_names.contains(&(ident.sym(), false)) {
+                    return Err(ParseError::general(
+                        "catch parameter identifier declared in catch body",
+                        position,
+                    ));
+                }
+                if lexically_declared_names.contains(&(ident.sym(), true)) {
+                    return Err(ParseError::general(
+                        "catch parameter identifier declared in catch body",
+                        position,
+                    ));
+                }
             }
-            if var_declared_names.contains(&ident) {
-                return Err(ParseError::general(
-                    "identifier redeclared",
-                    Position::new(1, 1),
-                ));
+            Some(node::Declaration::Pattern(pattern)) => {
+                let mut var_declared_names = FxHashSet::default();
+                for node in catch_block.items() {
+                    node.var_declared_names(&mut var_declared_names);
+                }
+                for ident in pattern.idents() {
+                    if lexically_declared_names.contains(&(ident, false)) {
+                        return Err(ParseError::general(
+                            "catch parameter identifier declared in catch body",
+                            position,
+                        ));
+                    }
+                    if lexically_declared_names.contains(&(ident, true)) {
+                        return Err(ParseError::general(
+                            "catch parameter identifier declared in catch body",
+                            position,
+                        ));
+                    }
+                    if var_declared_names.contains(&ident) {
+                        return Err(ParseError::general(
+                            "catch parameter identifier declared in catch body",
+                            position,
+                        ));
+                    }
+                }
             }
+            _ => {}
         }
 
         let catch_node = node::Catch::new::<_, node::Declaration, _>(catch_param, catch_block);

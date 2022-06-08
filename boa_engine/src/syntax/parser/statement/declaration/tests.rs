@@ -21,7 +21,7 @@ fn var_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -39,7 +39,7 @@ fn var_declaration_keywords() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -53,7 +53,7 @@ fn var_declaration_keywords() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -71,7 +71,7 @@ fn var_declaration_no_spaces() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -89,7 +89,7 @@ fn empty_var_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -114,7 +114,7 @@ fn multiple_var_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -132,7 +132,7 @@ fn let_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -150,7 +150,7 @@ fn let_declaration_keywords() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -164,7 +164,7 @@ fn let_declaration_keywords() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -182,7 +182,7 @@ fn let_declaration_no_spaces() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -200,7 +200,7 @@ fn empty_let_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -225,7 +225,7 @@ fn multiple_let_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -243,7 +243,7 @@ fn const_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -261,7 +261,7 @@ fn const_declaration_keywords() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -275,7 +275,7 @@ fn const_declaration_keywords() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -293,7 +293,7 @@ fn const_declaration_no_spaces() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -323,6 +323,6 @@ fn multiple_const_declaration() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

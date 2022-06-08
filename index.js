@@ -1,26 +1,6 @@
-// Note that a dynamic `import` statement here is required due to
-// webpack/webpack#6615, but in theory `import { greet } from './pkg/hello_world';`
-// will work here one day as well!
-const rust = import("./boa_wasm/pkg");
-import * as monaco from "monaco-editor";
+import { evaluate } from "./boa_wasm/pkg";
 
-window.MonacoEnvironment = {
-  getWorkerUrl: function (moduleId, label) {
-    if (label === "json") {
-      return "./json.worker.js";
-    }
-    if (label === "css") {
-      return "./css.worker.js";
-    }
-    if (label === "html") {
-      return "./html.worker.js";
-    }
-    if (label === "typescript" || label === "javascript") {
-      return "./ts.worker.js";
-    }
-    return "./editor.worker.js";
-  },
-};
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 
 const initialCode = `\
 function greet(targetName) {
@@ -47,12 +27,10 @@ window.addEventListener("resize", () => {
   editor.layout();
 });
 
-rust.then((m) => {
-  window.evaluate = m.evaluate;
+window.evaluate = evaluate;
 
-  editor.getModel().onDidChangeContent(inputHandler);
-  inputHandler(); // Evaluate initial code
-});
+editor.getModel().onDidChangeContent(inputHandler);
+inputHandler(); // Evaluate initial code
 
 function inputHandler(evt) {
   const text = editor.getValue();

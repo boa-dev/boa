@@ -1,18 +1,34 @@
-use crate::{Context, JsResult, JsValue};
+use crate::{environments::CompileTimeEnvironment, Context, JsResult, JsValue};
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::Sym;
+use rustc_hash::FxHashSet;
 
-/// A declarative environment holds the bindings values at runtime.
+/// A declarative environment holds binding values at runtime.
 ///
 /// Bindings are stored in a fixed size list of optional values.
 /// If a binding is not initialized, the value is `None`.
 ///
 /// Optionally, an environment can hold a `this` value.
 /// The `this` value is present only if the environment is a function environment.
+///
+/// Code evaluation at runtime (e.g. the `eval` built-in function) can add
+/// bindings to existing, compiled function environments.
+/// This makes it impossible to determine the location of all bindings at compile time.
+/// To dynamically check for added bindings at runtime, a reference to the
+/// corresponding compile time environment is needed.
+///
+/// Checking all environments for potential added bindings at runtime on every get/set
+/// would offset the performance improvement of determining binding locations at compile time.
+/// To minimize this, each environment holds a `poisoned` flag.
+/// If bindings where added at runtime, the current environment and all inner environments
+/// are marked as poisoned.
+/// All poisoned environments have to be checked for added bindings.
 #[derive(Debug, Trace, Finalize)]
 pub(crate) struct DeclarativeEnvironment {
     bindings: Cell<Vec<Option<JsValue>>>,
     this: Option<JsValue>,
+    compile: Gc<Cell<CompileTimeEnvironment>>,
+    poisoned: Cell<bool>,
 }
 
 impl DeclarativeEnvironment {
@@ -59,13 +75,75 @@ pub struct DeclarativeEnvironmentStack {
 impl DeclarativeEnvironmentStack {
     /// Create a new environment stack with the most outer declarative environment.
     #[inline]
-    pub(crate) fn new() -> Self {
+    pub(crate) fn new(global_compile_environment: Gc<Cell<CompileTimeEnvironment>>) -> Self {
         Self {
             stack: vec![Gc::new(DeclarativeEnvironment {
                 bindings: Cell::new(Vec::new()),
                 this: None,
+                compile: global_compile_environment,
+                poisoned: Cell::new(false),
             })],
         }
+    }
+
+    /// Extends the length of the next outer function environment to the number of compiled bindings.
+    ///
+    /// This is only useful when compiled bindings are added after the initial compilation (eval).
+    pub(crate) fn extend_outer_function_environment(&mut self) {
+        for env in self.stack.iter().rev() {
+            if env.this.is_some() {
+                let compile_bindings_number = env.compile.borrow().num_bindings();
+                let mut bindings_mut = env.bindings.borrow_mut();
+
+                if compile_bindings_number > bindings_mut.len() {
+                    let diff = compile_bindings_number - bindings_mut.len();
+                    bindings_mut.extend(vec![None; diff]);
+                }
+                break;
+            }
+        }
+    }
+
+    /// Check if any of the provided binding names are defined as lexical bindings.
+    ///
+    /// Start at the current environment.
+    /// Stop at the next outer function environment.
+    pub(crate) fn has_lex_binding_until_function_environment(
+        &self,
+        names: &FxHashSet<Sym>,
+    ) -> Option<Sym> {
+        for env in self.stack.iter().rev() {
+            let compile = env.compile.borrow();
+            for name in names {
+                if compile.has_lex_binding(*name) {
+                    return Some(*name);
+                }
+            }
+            if compile.is_function() {
+                break;
+            }
+        }
+        None
+    }
+
+    /// Pop all current environments except the global environment.
+    pub(crate) fn pop_to_global(&mut self) -> Vec<Gc<DeclarativeEnvironment>> {
+        self.stack.split_off(1)
+    }
+
+    /// Get the number of current environments.
+    pub(crate) fn len(&self) -> usize {
+        self.stack.len()
+    }
+
+    /// Truncate current environments to the given number.
+    pub(crate) fn truncate(&mut self, len: usize) {
+        self.stack.truncate(len);
+    }
+
+    /// Extend the current environment stack with the given environments.
+    pub(crate) fn extend(&mut self, other: Vec<Gc<DeclarativeEnvironment>>) {
+        self.stack.extend(other);
     }
 
     /// Set the number of bindings on the global environment.
@@ -97,20 +175,57 @@ impl DeclarativeEnvironmentStack {
     }
 
     /// Push a declarative environment on the environments stack.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
     #[inline]
-    pub(crate) fn push_declarative(&mut self, num_bindings: usize) {
+    pub(crate) fn push_declarative(
+        &mut self,
+        num_bindings: usize,
+        compile_environment: Gc<Cell<CompileTimeEnvironment>>,
+    ) {
+        let poisoned = self
+            .stack
+            .last()
+            .expect("global environment must always exist")
+            .poisoned
+            .borrow()
+            .to_owned();
+
         self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: Cell::new(vec![None; num_bindings]),
             this: None,
+            compile: compile_environment,
+            poisoned: Cell::new(poisoned),
         }));
     }
 
     /// Push a function environment on the environments stack.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
     #[inline]
-    pub(crate) fn push_function(&mut self, num_bindings: usize, this: JsValue) {
+    pub(crate) fn push_function(
+        &mut self,
+        num_bindings: usize,
+        compile_environment: Gc<Cell<CompileTimeEnvironment>>,
+        this: JsValue,
+    ) {
+        let poisoned = self
+            .stack
+            .last()
+            .expect("global environment must always exist")
+            .poisoned
+            .borrow()
+            .to_owned();
+
         self.stack.push(Gc::new(DeclarativeEnvironment {
             bindings: Cell::new(vec![None; num_bindings]),
             this: Some(this),
+            compile: compile_environment,
+            poisoned: Cell::new(poisoned),
         }));
     }
 
@@ -134,6 +249,47 @@ impl DeclarativeEnvironmentStack {
             .clone()
     }
 
+    /// Get the compile environment for the current runtime environment.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
+    pub(crate) fn current_compile_environment(&self) -> Gc<Cell<CompileTimeEnvironment>> {
+        self.stack
+            .last()
+            .expect("global environment must always exist")
+            .compile
+            .clone()
+    }
+
+    /// Mark that there may be added bindings in the current environment.
+    ///
+    /// # Panics
+    ///
+    /// Panics if no environment exists on the stack.
+    #[inline]
+    pub(crate) fn poison_current(&mut self) {
+        let mut poisoned = self
+            .stack
+            .last()
+            .expect("global environment must always exist")
+            .poisoned
+            .borrow_mut();
+        *poisoned = true;
+    }
+
+    /// Mark that there may be added binding in all environments.
+    #[inline]
+    pub(crate) fn poison_all(&mut self) {
+        for env in &mut self.stack {
+            let mut poisoned = env.poisoned.borrow_mut();
+            if *poisoned {
+                return;
+            }
+            *poisoned = true;
+        }
+    }
+
     /// Get the value of a binding.
     ///
     /// # Panics
@@ -142,9 +298,30 @@ impl DeclarativeEnvironmentStack {
     #[inline]
     pub(crate) fn get_value_optional(
         &self,
-        environment_index: usize,
-        binding_index: usize,
+        mut environment_index: usize,
+        mut binding_index: usize,
+        name: Sym,
     ) -> Option<JsValue> {
+        if environment_index != self.stack.len() - 1 {
+            for env_index in (environment_index + 1..self.stack.len()).rev() {
+                let env = self
+                    .stack
+                    .get(env_index)
+                    .expect("environment index must be in range");
+                if !*env.poisoned.borrow() {
+                    break;
+                }
+                let compile = env.compile.borrow();
+                if compile.is_function() {
+                    if let Some(b) = compile.get_binding(name) {
+                        environment_index = b.environment_index;
+                        binding_index = b.binding_index;
+                        break;
+                    }
+                }
+            }
+        }
+
         self.stack
             .get(environment_index)
             .expect("environment index must be in range")
@@ -153,6 +330,34 @@ impl DeclarativeEnvironmentStack {
             .get(binding_index)
             .expect("binding index must be in range")
             .clone()
+    }
+
+    /// Get the value of a binding by it's name.
+    ///
+    /// This only considers function environments that are poisoned.
+    /// All other bindings are accessed via indices.
+    #[inline]
+    pub(crate) fn get_value_global_poisoned(&self, name: Sym) -> Option<JsValue> {
+        for env in self.stack.iter().rev() {
+            if !*env.poisoned.borrow() {
+                return None;
+            }
+            let compile = env.compile.borrow();
+            if compile.is_function() {
+                if let Some(b) = compile.get_binding(name) {
+                    return self
+                        .stack
+                        .get(b.environment_index)
+                        .expect("environment index must be in range")
+                        .bindings
+                        .borrow()
+                        .get(b.binding_index)
+                        .expect("binding index must be in range")
+                        .clone();
+                }
+            }
+        }
+        None
     }
 
     /// Set the value of a binding.
@@ -188,10 +393,31 @@ impl DeclarativeEnvironmentStack {
     #[inline]
     pub(crate) fn put_value_if_initialized(
         &mut self,
-        environment_index: usize,
-        binding_index: usize,
+        mut environment_index: usize,
+        mut binding_index: usize,
+        name: Sym,
         value: JsValue,
     ) -> bool {
+        if environment_index != self.stack.len() - 1 {
+            for env_index in (environment_index + 1..self.stack.len()).rev() {
+                let env = self
+                    .stack
+                    .get(env_index)
+                    .expect("environment index must be in range");
+                if !*env.poisoned.borrow() {
+                    break;
+                }
+                let compile = env.compile.borrow();
+                if compile.is_function() {
+                    if let Some(b) = compile.get_binding(name) {
+                        environment_index = b.environment_index;
+                        binding_index = b.binding_index;
+                        break;
+                    }
+                }
+            }
+        }
+
         let mut bindings = self
             .stack
             .get(environment_index)
@@ -233,6 +459,40 @@ impl DeclarativeEnvironmentStack {
         if binding.is_none() {
             *binding = Some(value);
         }
+    }
+
+    /// Set the value of a binding by it's name.
+    ///
+    /// This only considers function environments that are poisoned.
+    /// All other bindings are set via indices.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the environment or binding index are out of range.
+    #[inline]
+    pub(crate) fn put_value_global_poisoned(&mut self, name: Sym, value: &JsValue) -> bool {
+        for env in self.stack.iter().rev() {
+            if !*env.poisoned.borrow() {
+                return false;
+            }
+            let compile = env.compile.borrow();
+            if compile.is_function() {
+                if let Some(b) = compile.get_binding(name) {
+                    let mut bindings = self
+                        .stack
+                        .get(b.environment_index)
+                        .expect("environment index must be in range")
+                        .bindings
+                        .borrow_mut();
+                    let binding = bindings
+                        .get_mut(b.binding_index)
+                        .expect("binding index must be in range");
+                    *binding = Some(value.clone());
+                    return true;
+                }
+            }
+        }
+        false
     }
 }
 
