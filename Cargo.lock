@@ -112,7 +112,6 @@ dependencies = [
  "num-integer",
  "num-traits",
  "once_cell",
- "queues",
  "rand",
  "regress",
  "rustc-hash",
@@ -1214,12 +1213,6 @@ checksum = "c54b25569025b7fc9651de43004ae593a75ad88543b17178aa5e1b9c4f15f56f"
 dependencies = [
  "unicode-ident",
 ]
-
-[[package]]
-name = "queues"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1475abae4f8ad4998590fe3acfe20104f0a5d48fc420c817cd2c09c3f56151f0"
 
 [[package]]
 name = "quote"

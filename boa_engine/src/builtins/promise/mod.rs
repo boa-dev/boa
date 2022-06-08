@@ -404,7 +404,7 @@ impl Promise {
                 );
 
                 // 15. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-                context.host_enqueue_promise_job(Box::new(job));
+                context.host_enqueue_promise_job(job);
 
                 // 16. Return undefined.
                 Ok(JsValue::Undefined)
@@ -575,7 +575,7 @@ impl Promise {
                 PromiseJob::new_promise_reaction_job(reaction.clone(), argument.clone(), context);
 
             // b. Perform HostEnqueuePromiseJob(job.[[Job]], job.[[Realm]]).
-            context.host_enqueue_promise_job(Box::new(job));
+            context.host_enqueue_promise_job(job);
         }
 
         // 2. Return unused.
@@ -688,7 +688,7 @@ impl Promise {
                     PromiseJob::new_promise_reaction_job(fulfill_reaction, value, context);
 
                 //   c. Perform HostEnqueuePromiseJob(fulfillJob.[[Job]], fulfillJob.[[Realm]]).
-                context.host_enqueue_promise_job(Box::new(fulfill_job));
+                context.host_enqueue_promise_job(fulfill_job);
             }
 
             // 11. Else,
@@ -711,7 +711,7 @@ impl Promise {
                     PromiseJob::new_promise_reaction_job(reject_reaction, reason, context);
 
                 //   e. Perform HostEnqueuePromiseJob(rejectJob.[[Job]], rejectJob.[[Realm]]).
-                context.host_enqueue_promise_job(Box::new(reject_job));
+                context.host_enqueue_promise_job(reject_job);
 
                 // 12. Set promise.[[PromiseIsHandled]] to true.
                 self.promise_is_handled = true;

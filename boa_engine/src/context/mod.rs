@@ -5,6 +5,8 @@ pub mod intrinsics;
 #[cfg(feature = "intl")]
 mod icu;
 
+use std::collections::VecDeque;
+
 use intrinsics::{IntrinsicObjects, Intrinsics};
 
 #[cfg(feature = "console")]
@@ -25,7 +27,6 @@ use crate::{
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use queues::{queue, IsQueue, Queue};
 
 #[cfg(feature = "intl")]
 use icu_provider::DataError;
@@ -100,7 +101,7 @@ pub struct Context {
 
     pub(crate) vm: Vm,
 
-    pub(crate) promise_job_queue: Queue<Box<JobCallback>>,
+    pub(crate) promise_job_queue: VecDeque<JobCallback>,
 }
 
 impl Default for Context {
@@ -717,11 +718,7 @@ impl Context {
     }
 
     fn run_queued_jobs(&mut self) {
-        while self.promise_job_queue.size() != 0 {
-            let job = self
-                .promise_job_queue
-                .remove()
-                .expect("Job Queue should not be empty");
+        while let Some(job) = self.promise_job_queue.pop_front() {
             job.run(self);
         }
     }
@@ -748,15 +745,12 @@ impl Context {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
-    pub fn host_enqueue_promise_job(&mut self, job: Box<JobCallback> /* , realm: Realm */) {
+    pub fn host_enqueue_promise_job(&mut self, job: JobCallback /* , realm: Realm */) {
         // If realm is not null ...
         // TODO
         // Let scriptOrModule be ...
         // TODO
-        match self.promise_job_queue.add(job) {
-            Ok(Some(_)) | Err(_) => panic!("Promise queue error"),
-            _ => (),
-        }
+        self.promise_job_queue.push_back(job);
     }
 }
 /// Builder for the [`Context`] type.
@@ -825,7 +819,7 @@ impl ContextBuilder {
                 icu::Icu::new(Box::new(icu_testdata::get_provider()))
                     .expect("Failed to initialize default icu data.")
             }),
-            promise_job_queue: queue![],
+            promise_job_queue: VecDeque::new(),
         };
 
         // Add new builtIns to Context Realm

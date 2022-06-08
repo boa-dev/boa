@@ -1,6 +1,5 @@
 // Not implemented yet:
 flag:module
-flag:async
 
 // Non-implemented features:
 feature:json-modules
