@@ -13,6 +13,7 @@ use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -24,6 +25,7 @@ use crate::{
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use queues::{queue, IsQueue, Queue};
 
 #[cfg(feature = "intl")]
 use icu_provider::DataError;
@@ -97,6 +99,8 @@ pub struct Context {
     icu: icu::Icu,
 
     pub(crate) vm: Vm,
+
+    pub(crate) promise_job_queue: Queue<Box<JobCallback>>,
 }
 
 impl Default for Context {
@@ -707,8 +711,19 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
+        self.run_queued_jobs();
         let (result, _) = result?;
         Ok(result)
+    }
+
+    fn run_queued_jobs(&mut self) {
+        while self.promise_job_queue.size() != 0 {
+            let job = self
+                .promise_job_queue
+                .remove()
+                .expect("Job Queue should not be empty");
+            job.run(self);
+        }
     }
 
     /// Return the intrinsic constructors and objects.
@@ -727,6 +742,21 @@ impl Context {
     /// Get the ICU related utilities
     pub(crate) fn icu(&self) -> &icu::Icu {
         &self.icu
+    }
+
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
+    pub fn host_enqueue_promise_job(&mut self, job: Box<JobCallback> /* , realm: Realm */) {
+        // If realm is not null ...
+        // TODO
+        // Let scriptOrModule be ...
+        // TODO
+        match self.promise_job_queue.add(job) {
+            Ok(Some(_)) | Err(_) => panic!("Promise queue error"),
+            _ => (),
+        }
     }
 }
 /// Builder for the [`Context`] type.
@@ -795,6 +825,7 @@ impl ContextBuilder {
                 icu::Icu::new(Box::new(icu_testdata::get_provider()))
                     .expect("Failed to initialize default icu data.")
             }),
+            promise_job_queue: queue![],
         };
 
         // Add new builtIns to Context Realm

@@ -20,6 +20,7 @@ pub mod math;
 pub mod nan;
 pub mod number;
 pub mod object;
+pub mod promise;
 pub mod proxy;
 pub mod reflect;
 pub mod regexp;
@@ -57,6 +58,7 @@ pub(crate) use self::{
     number::Number,
     object::for_in_iterator::ForInIterator,
     object::Object as BuiltInObjectObject,
+    promise::Promise,
     proxy::Proxy,
     reflect::Reflect,
     regexp::RegExp,
@@ -182,7 +184,8 @@ pub fn init(context: &mut Context) {
         AggregateError,
         Reflect,
         Generator,
-        GeneratorFunction
+        GeneratorFunction,
+        Promise
     };
 
     #[cfg(feature = "intl")]
