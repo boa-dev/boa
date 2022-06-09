@@ -1,16 +1,12 @@
 //! This module implements the global `Promise` object.
 
-#![allow(dead_code, unused_results, unused_variables)]
-
 #[cfg(test)]
 mod tests;
 
 mod promise_job;
 
-use boa_gc::{Finalize, Gc, Trace};
-use boa_profiler::Profiler;
-use tap::{Conv, Pipe};
-
+use self::promise_job::PromiseJob;
+use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
@@ -23,16 +19,11 @@ use crate::{
     value::JsValue,
     Context, JsResult,
 };
+use boa_gc::{Finalize, Gc, Trace};
+use boa_profiler::Profiler;
+use tap::{Conv, Pipe};
 
-use self::promise_job::PromiseJob;
-
-use super::JsArgs;
-
-/// JavaScript `Array` built-in implementation.
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct Array;
-
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PromiseState {
     Pending,
     Fulfilled,
@@ -42,6 +33,7 @@ enum PromiseState {
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Promise {
     promise_result: Option<JsValue>,
+    #[unsafe_ignore_trace]
     promise_state: PromiseState,
     promise_fulfill_reactions: Vec<ReactionRecord>,
     promise_reject_reactions: Vec<ReactionRecord>,
@@ -51,11 +43,12 @@ pub struct Promise {
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct ReactionRecord {
     promise_capability: Option<PromiseCapability>,
+    #[unsafe_ignore_trace]
     reaction_type: ReactionType,
     handler: Option<JobCallback>,
 }
 
-#[derive(Debug, Clone, Trace, Finalize)]
+#[derive(Debug, Clone, Copy)]
 enum ReactionType {
     Fulfill,
     Reject,
@@ -71,6 +64,12 @@ struct PromiseCapability {
 #[derive(Debug, Trace, Finalize)]
 struct PromiseCapabilityCaptures {
     promise_capability: Gc<boa_gc::Cell<PromiseCapability>>,
+}
+
+#[derive(Debug, Trace, Finalize)]
+struct ReactionJobCaptures {
+    reaction: ReactionRecord,
+    argument: JsValue,
 }
 
 impl PromiseCapability {
@@ -97,7 +96,7 @@ impl PromiseCapability {
                 // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, "", « »).
                 let executor = FunctionBuilder::closure_with_captures(
                     context,
-                    |this, args: &[JsValue], captures: &mut PromiseCapabilityCaptures, context| {
+                    |_this, args: &[JsValue], captures: &mut PromiseCapabilityCaptures, context| {
                         let promise_capability: &mut Self =
                             &mut captures.promise_capability.try_borrow_mut().expect("msg");
 
@@ -190,10 +189,7 @@ impl BuiltIn for Promise {
     }
 }
 
-struct ResolvedRecord {
-    value: bool,
-}
-
+#[derive(Debug)]
 struct ResolvingFunctionsRecord {
     resolve: JsValue,
     reject: JsValue,
@@ -202,7 +198,7 @@ struct ResolvingFunctionsRecord {
 #[derive(Debug, Trace, Finalize)]
 struct RejectResolveCaptures {
     promise: JsObject,
-    already_resolved: JsObject,
+    already_resolved: bool,
 }
 
 impl Promise {
@@ -240,16 +236,16 @@ impl Promise {
                 // 4. Set promise.[[PromiseState]] to pending.
                 promise_state: PromiseState::Pending,
                 // 5. Set promise.[[PromiseFulfillReactions]] to a new empty List.
-                promise_fulfill_reactions: vec![],
+                promise_fulfill_reactions: Vec::new(),
                 // 6. Set promise.[[PromiseRejectReactions]] to a new empty List.
-                promise_reject_reactions: vec![],
+                promise_reject_reactions: Vec::new(),
                 // 7. Set promise.[[PromiseIsHandled]] to false.
                 promise_is_handled: false,
             }),
         );
 
         // // 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
-        let resolving_functions = Self::create_resolving_functions(&promise, context)?;
+        let resolving_functions = Self::create_resolving_functions(&promise, context);
 
         // // 9. Let completion Completion(Call(executor, undefined, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)be ).
         let completion = context.call(
@@ -264,8 +260,7 @@ impl Promise {
         // 10. If completion is an abrupt completion, then
         if let Err(value) = completion {
             // a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
-            let _reject_result =
-                context.call(&resolving_functions.reject, &JsValue::Undefined, &[value]);
+            context.call(&resolving_functions.reject, &JsValue::Undefined, &[value])?;
         }
 
         // 11. Return promise.
@@ -279,14 +274,15 @@ impl Promise {
     fn create_resolving_functions(
         promise: &JsObject,
         context: &mut Context,
-    ) -> JsResult<ResolvingFunctionsRecord> {
+    ) -> ResolvingFunctionsRecord {
         // TODO: can this not be a rust struct?
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
-        let already_resolved = JsObject::empty();
-        already_resolved.set("Value", JsValue::from(false), true, context)?;
+        let already_resolved = false;
 
+        // 5. Set resolve.[[Promise]] to promise.
+        // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
         let resolve_captures = RejectResolveCaptures {
-            already_resolved: already_resolved.clone(),
+            already_resolved,
             promise: promise.clone(),
         };
 
@@ -295,7 +291,7 @@ impl Promise {
         // 4. Let resolve be CreateBuiltinFunction(stepsResolve, lengthResolve, "", « [[Promise]], [[AlreadyResolved]] »).
         let resolve = FunctionBuilder::closure_with_captures(
             context,
-            |this, args, captures, context| {
+            |_this, args, captures, context| {
                 // https://tc39.es/ecma262/#sec-promise-resolve-functions
 
                 // 1. Let F be the active function object.
@@ -308,16 +304,12 @@ impl Promise {
                 } = captures;
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                if already_resolved
-                    .get("Value", context)?
-                    .as_boolean()
-                    .unwrap_or(false)
-                {
+                if *already_resolved {
                     return Ok(JsValue::Undefined);
                 }
 
                 // 6. Set alreadyResolved.[[Value]] to true.
-                already_resolved.set("Value", true, true, context)?;
+                *already_resolved = true;
 
                 let resolution = args.get_or_undefined(0);
 
@@ -376,7 +368,7 @@ impl Promise {
                 // 11. Let thenAction be then.[[Value]].
                 let then_action = then
                     .as_object()
-                    .expect("rsolution.[[then]] should be an object")
+                    .expect("resolution.[[then]] should be an object")
                     .get("Value", context)?;
 
                 // 12. If IsCallable(thenAction) is false, then
@@ -416,15 +408,11 @@ impl Promise {
         .constructor(false)
         .build();
 
-        // 5. Set resolve.[[Promise]] to promise.
-        resolve.set("Promise", promise.clone(), true, context)?;
-
-        // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
-        resolve.set("AlreadyResolved", already_resolved.clone(), true, context)?;
-
+        // 10. Set reject.[[Promise]] to promise.
+        // 11. Set reject.[[AlreadyResolved]] to alreadyResolved.
         let reject_captures = RejectResolveCaptures {
             promise: promise.clone(),
-            already_resolved: already_resolved.clone(),
+            already_resolved,
         };
 
         // 7. Let stepsReject be the algorithm steps defined in Promise Reject Functions.
@@ -432,7 +420,7 @@ impl Promise {
         // 9. Let reject be CreateBuiltinFunction(stepsReject, lengthReject, "", « [[Promise]], [[AlreadyResolved]] »).
         let reject = FunctionBuilder::closure_with_captures(
             context,
-            |this, args, captures, context| {
+            |_this, args, captures, context| {
                 // https://tc39.es/ecma262/#sec-promise-reject-functions
 
                 // 1. Let F be the active function object.
@@ -445,16 +433,12 @@ impl Promise {
                 } = captures;
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                if already_resolved
-                    .get("Value", context)?
-                    .as_boolean()
-                    .unwrap_or(false)
-                {
+                if *already_resolved {
                     return Ok(JsValue::Undefined);
                 }
 
                 // 6. Set alreadyResolved.[[Value]] to true.
-                already_resolved.set("Value", true, true, context)?;
+                *already_resolved = true;
 
                 let reason = args.get_or_undefined(0);
                 // 7. Perform RejectPromise(promise, reason).
@@ -474,16 +458,10 @@ impl Promise {
         .constructor(false)
         .build();
 
-        // 10. Set reject.[[Promise]] to promise.
-        reject.set("Promise", promise.clone(), true, context)?;
-
-        // 11. Set reject.[[AlreadyResolved]] to alreadyResolved.
-        reject.set("AlreadyResolved", already_resolved, true, context)?;
-
         // 12. Return the Record { [[Resolve]]: resolve, [[Reject]]: reject }.
         let resolve = resolve.conv::<JsValue>();
         let reject = reject.conv::<JsValue>();
-        Ok(ResolvingFunctionsRecord { resolve, reject })
+        ResolvingFunctionsRecord { resolve, reject }
     }
 
     /// More information:
@@ -492,10 +470,11 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
     pub fn fulfill(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
-        match self.promise_state {
-            PromiseState::Pending => (),
-            _ => return context.throw_error("Expected promise.[[PromiseState]] to be pending"),
-        }
+        assert_eq!(
+            self.promise_state,
+            PromiseState::Pending,
+            "promise was not pending"
+        );
 
         // 2. Let reactions be promise.[[PromiseFulfillReactions]].
         let reactions = &self.promise_fulfill_reactions;
@@ -508,10 +487,10 @@ impl Promise {
         self.promise_result = Some(value.clone());
 
         // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        self.promise_fulfill_reactions = vec![];
+        self.promise_fulfill_reactions = Vec::new();
 
         // 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        self.promise_reject_reactions = vec![];
+        self.promise_reject_reactions = Vec::new();
 
         // 6. Set promise.[[PromiseState]] to fulfilled.
         self.promise_state = PromiseState::Fulfilled;
@@ -542,10 +521,10 @@ impl Promise {
         self.promise_result = Some(reason.clone());
 
         // 4. Set promise.[[PromiseFulfillReactions]] to undefined.
-        self.promise_fulfill_reactions = vec![];
+        self.promise_fulfill_reactions = Vec::new();
 
         // 5. Set promise.[[PromiseRejectReactions]] to undefined.
-        self.promise_reject_reactions = vec![];
+        self.promise_reject_reactions = Vec::new();
 
         // 6. Set promise.[[PromiseState]] to rejected.
         self.promise_state = PromiseState::Rejected;

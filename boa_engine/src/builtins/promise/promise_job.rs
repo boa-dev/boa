@@ -1,21 +1,14 @@
-use gc::{Finalize, Trace};
-
+use super::{Promise, PromiseCapability, ReactionJobCaptures};
 use crate::{
     builtins::promise::{ReactionRecord, ReactionType},
     job::JobCallback,
     object::{FunctionBuilder, JsObject},
     Context, JsValue,
 };
+use boa_gc::{Finalize, Trace};
 
-use super::{Promise, PromiseCapability};
-
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PromiseJob;
-
-#[derive(Debug, Trace, Finalize)]
-struct ReactionJobCaptures {
-    reaction: ReactionRecord,
-    argument: JsValue,
-}
 
 impl PromiseJob {
     /// More information:
@@ -30,7 +23,7 @@ impl PromiseJob {
         // 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
         let job = FunctionBuilder::closure_with_captures(
             context,
-            |this, args, captures, context| {
+            |_this, _args, captures, context| {
                 let ReactionJobCaptures { reaction, argument } = captures;
 
                 let ReactionRecord {
@@ -43,23 +36,17 @@ impl PromiseJob {
                 } = reaction;
 
                 let handler_result = match handler {
-                    //   d. If handler is empty, then
-                    None =>
-                    //     i. If type is Fulfill, let handlerResult be NormalCompletion(argument).
-                    {
-                        if let ReactionType::Fulfill = reaction_type {
-                            Ok(argument.clone())
-                        } else {
-                            // ii. Else,
-                            //   1. Assert: type is Reject.
-                            match reaction_type {
-                                ReactionType::Reject => (),
-                                ReactionType::Fulfill => panic!(),
-                            }
-                            //   2. Let handlerResult be ThrowCompletion(argument).
-                            Ok(context.construct_error("ThrowCompletion(argument)"))
+                    // d. If handler is empty, then
+                    None => match reaction_type {
+                        // i. If type is Fulfill, let handlerResult be NormalCompletion(argument).
+                        ReactionType::Fulfill => Ok(argument.clone()),
+                        // ii. Else,
+                        //   1. Assert: type is Reject.
+                        ReactionType::Reject => {
+                            // 2. Let handlerResult be ThrowCompletion(argument).
+                            Ok(context.construct_error("argument")) // TODO: convert argument to string, somehow
                         }
-                    }
+                    },
                     //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
                     Some(handler) => {
                         handler.call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
@@ -68,33 +55,34 @@ impl PromiseJob {
 
                 match promise_capability {
                     None => {
-                        //   f. If promiseCapability is undefined, then
-                        if handler_result.is_err() {
-                            //     i. Assert: handlerResult is not an abrupt completion.
-                            panic!("Assertion: <handlerResult is not an abrupt completion> failed")
-                        }
+                        // f. If promiseCapability is undefined, then
+                        //    i. Assert: handlerResult is not an abrupt completion.
+                        assert!(
+                            handler_result.is_ok(),
+                            "Assertion: <handlerResult is not an abrupt completion> failed"
+                        );
 
-                        //     ii. Return empty.
+                        // ii. Return empty.
                         Ok(JsValue::Undefined)
                     }
                     Some(promise_capability_record) => {
-                        //   g. Assert: promiseCapability is a PromiseCapability Record.
+                        // g. Assert: promiseCapability is a PromiseCapability Record.
                         let PromiseCapability {
-                            promise,
+                            promise: _,
                             resolve,
                             reject,
                         } = promise_capability_record;
 
                         match handler_result {
-                            //   h. If handlerResult is an abrupt completion, then
+                            // h. If handlerResult is an abrupt completion, then
                             Err(value) => {
-                                //     i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
+                                // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
                                 context.call(reject, &JsValue::Undefined, &[value])
                             }
 
-                            //   i. Else,
+                            // i. Else,
                             Ok(value) => {
-                                //     i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
+                                // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
                                 context.call(resolve, &JsValue::Undefined, &[value])
                             }
                         }
@@ -129,7 +117,7 @@ impl PromiseJob {
         // 1. Let job be a new Job Abstract Closure with no parameters that captures promiseToResolve, thenable, and then and performs the following steps when called:
         let job = FunctionBuilder::closure_with_captures(
             context,
-            |this: &JsValue, args: &[JsValue], captures, context: &mut Context| {
+            |_this: &JsValue, _args: &[JsValue], captures, context: &mut Context| {
                 let JobCapture {
                     promise_to_resolve,
                     thenable,
@@ -138,7 +126,7 @@ impl PromiseJob {
 
                 //    a. Let resolvingFunctions be CreateResolvingFunctions(promiseToResolve).
                 let resolving_functions =
-                    Promise::create_resolving_functions(promise_to_resolve, context)?;
+                    Promise::create_resolving_functions(promise_to_resolve, context);
 
                 //    b. Let thenCallResult be Completion(HostCallJobCallback(then, thenable, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)).
                 let then_call_result = then.call_job_callback(

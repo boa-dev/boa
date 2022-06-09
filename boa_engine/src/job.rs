@@ -4,14 +4,12 @@ use gc::{Finalize, Trace};
 
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JobCallback {
-    callback: Box<JsValue>,
+    callback: JsValue,
 }
 
 impl JobCallback {
     pub fn make_job_callback(callback: JsValue) -> Self {
-        Self {
-            callback: Box::new(callback),
-        }
+        Self { callback }
     }
 
     pub fn call_job_callback(
@@ -20,7 +18,7 @@ impl JobCallback {
         argument_list: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let callback = match *self.callback {
+        let callback = match self.callback {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
             _ => panic!("Callback is not a callable object"),
         };
@@ -29,7 +27,7 @@ impl JobCallback {
     }
 
     pub fn run(&self, context: &mut Context) {
-        let callback = match *self.callback {
+        let callback = match self.callback {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
             _ => panic!("Callback is not a callable object"),
         };
