@@ -682,7 +682,7 @@ impl Promise {
                 //   c. If promise.[[PromiseIsHandled]] is false, perform HostPromiseRejectionTracker(promise, "handle").
                 if !self.promise_is_handled {
                     // HostPromiseRejectionTracker(promise, "handle")
-                    todo!(); // TODO
+                    // TODO
                 }
 
                 //   d. Let rejectJob be NewPromiseReactionJob(rejectReaction, reason).

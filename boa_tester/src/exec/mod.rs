@@ -6,7 +6,11 @@ use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
-use boa_engine::{syntax::Parser, Context, JsResult, JsValue};
+use boa_engine::{
+    builtins::JsArgs, object::FunctionBuilder, property::Attribute, syntax::Parser, Context,
+    JsResult, JsValue,
+};
+use boa_gc::{Cell, Finalize, Gc, Trace};
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;
@@ -165,14 +169,16 @@ impl Test {
                 )) {
             let res = panic::catch_unwind(|| match self.expected_outcome {
                 Outcome::Positive => {
-                    // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
                     let mut context = Context::default();
 
-                    match self.set_up_env(harness, &mut context) {
+                    let callback_obj = CallbackObject::default();
+                    // TODO: timeout
+                    match self.set_up_env(harness, &mut context, callback_obj.clone()) {
                         Ok(_) => {
                             let res = context.eval(&test_content);
 
-                            let passed = res.is_ok();
+                            let passed = res.is_ok()
+                                && matches!(*callback_obj.result.borrow(), Some(true) | None);
                             let text = match res {
                                 Ok(val) => val.display().to_string(),
                                 Err(e) => format!("Uncaught {}", e.display()),
@@ -215,7 +221,8 @@ impl Test {
                     if let Err(e) = Parser::new(test_content.as_bytes()).parse_all(&mut context) {
                         (false, format!("Uncaught {e}"))
                     } else {
-                        match self.set_up_env(harness, &mut context) {
+                        // TODO: timeout
+                        match self.set_up_env(harness, &mut context, CallbackObject::default()) {
                             Ok(_) => match context.eval(&test_content) {
                                 Ok(res) => (false, res.display().to_string()),
                                 Err(e) => {
@@ -306,9 +313,14 @@ impl Test {
     }
 
     /// Sets the environment up to run the test.
-    fn set_up_env(&self, harness: &Harness, context: &mut Context) -> Result<(), String> {
+    fn set_up_env(
+        &self,
+        harness: &Harness,
+        context: &mut Context,
+        callback_obj: CallbackObject,
+    ) -> Result<(), String> {
         // Register the print() function.
-        context.register_global_function("print", 1, test262_print);
+        Self::register_print_fn(context, callback_obj);
 
         // add the $262 object.
         let _js262 = js262::init(context);
@@ -349,9 +361,42 @@ impl Test {
 
         Ok(())
     }
+
+    /// Registers the print function in the context.
+    fn register_print_fn(context: &mut Context, callback_object: CallbackObject) {
+        // We use `FunctionBuilder` to define a closure with additional captures.
+        let js_function =
+            FunctionBuilder::closure_with_captures(context, test262_print, callback_object)
+                .name("print")
+                .length(1)
+                .build();
+
+        context.register_global_property(
+            "print",
+            js_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
+    }
+}
+
+/// Object which includes the result of the async operation.
+#[derive(Debug, Clone, Default, Trace, Finalize)]
+struct CallbackObject {
+    result: Gc<Cell<Option<bool>>>,
 }
 
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
-    todo!("print() function");
+#[allow(clippy::unnecessary_wraps)]
+fn test262_print(
+    _this: &JsValue,
+    args: &[JsValue],
+    captures: &mut CallbackObject,
+    _context: &mut Context,
+) -> JsResult<JsValue> {
+    if let Some(message) = args.get_or_undefined(0).as_string() {
+        *captures.result.borrow_mut() = Some(message.as_str() == "Test262:AsyncTestComplete");
+    } else {
+        *captures.result.borrow_mut() = Some(false);
+    }
+    Ok(JsValue::undefined())
 }
