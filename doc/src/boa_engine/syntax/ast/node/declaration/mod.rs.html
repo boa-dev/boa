@@ -903,7 +903,6 @@
 <span id="896">896</span>
 <span id="897">897</span>
 <span id="898">898</span>
-<span id="899">899</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Declaration nodes</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node</span>::{
     <span class="ident">field</span>::{<span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
@@ -912,7 +911,6 @@
     <span class="ident">statement_list::StatementList</span>,
     <span class="ident">Identifier</span>, <span class="ident">Node</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
@@ -940,7 +938,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DeclarationList</span> {
     <span class="doccomment">/// The `const` statements are block-scoped, much like variables defined using the `let`</span>
     <span class="doccomment">/// keyword.</span>
@@ -1060,7 +1058,7 @@
 <span class="doccomment">/// [spec2]: https://tc39.es/ecma262/#prod-VariableDeclaration</span>
 <span class="doccomment">/// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Declaration</span> {
     <span class="ident">Identifier</span> {
         <span class="ident">ident</span>: <span class="ident">Identifier</span>,
@@ -1147,7 +1145,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">DeclarationPattern</span> {
     <span class="ident">Object</span>(<span class="ident">DeclarationPatternObject</span>),
     <span class="ident">Array</span>(<span class="ident">DeclarationPatternArray</span>),
@@ -1301,7 +1299,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DeclarationPatternObject</span> {
     <span class="ident">bindings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingPatternTypeObject</span><span class="op">&gt;</span>,
     <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
@@ -1400,7 +1398,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DeclarationPatternArray</span> {
     <span class="ident">bindings</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">BindingPatternTypeArray</span><span class="op">&gt;</span>,
     <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
@@ -1494,7 +1492,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BindingPatternTypeObject</span> {
     <span class="doccomment">/// Empty represents an empty object binding pattern e.g. `{ }`.</span>
     <span class="ident">Empty</span>,
@@ -1638,7 +1636,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BindingPatternTypeArray</span> {
     <span class="doccomment">/// Empty represents an empty array binding pattern e.g. `[ ]`.</span>
     <span class="doccomment">///</span>

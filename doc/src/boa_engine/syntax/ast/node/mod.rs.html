@@ -953,7 +953,6 @@
 <span id="946">946</span>
 <span id="947">947</span>
 <span id="948">948</span>
-<span id="949">949</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">mod</span> <span class="ident">parameters</span>;
@@ -1001,7 +1000,7 @@
     <span class="ident">r#yield</span><span class="ident">::Yield</span>,
     <span class="ident">return_smt::Return</span>,
     <span class="ident">spread::Spread</span>,
-    <span class="ident">statement_list</span>::{<span class="ident">RcStatementList</span>, <span class="ident">StatementList</span>},
+    <span class="ident">statement_list::StatementList</span>,
     <span class="ident">switch</span>::{<span class="ident">Case</span>, <span class="ident">Switch</span>},
     <span class="ident">template</span>::{<span class="ident">TaggedTemplate</span>, <span class="ident">TemplateLit</span>},
     <span class="ident">throw::Throw</span>,
@@ -1016,7 +1015,6 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::parameters::FormalParameterListFlags</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Const</span>;
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 <span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
@@ -1026,7 +1024,7 @@
 
 <span class="comment">// TODO: This should be split into Expression and Statement.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Node</span> {
     <span class="doccomment">/// Array declaration node. [More information](./array/struct.ArrayDecl.html).</span>
     <span class="ident">ArrayDecl</span>(<span class="ident">ArrayDecl</span>),

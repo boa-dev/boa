@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RcStatementList",""],["StatementList","List of statements."]]});
+initSidebarItems({"struct":[["StatementList","List of statements."]]});

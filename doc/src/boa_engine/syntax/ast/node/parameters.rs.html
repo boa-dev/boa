@@ -229,13 +229,10 @@
 <span id="222">222</span>
 <span id="223">223</span>
 <span id="224">224</span>
-<span id="225">225</span>
-<span id="226">226</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{<span class="ident">ast::Position</span>, <span class="ident">parser::ParseError</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Declaration</span>, <span class="ident">DeclarationPattern</span>, <span class="ident">Node</span>};
 <span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
@@ -248,10 +245,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormalParameterList</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">parameters</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">FormalParameter</span>]<span class="op">&gt;</span>,
-    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">flags</span>: <span class="ident">FormalParameterListFlags</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">length</span>: <span class="ident">u32</span>,
 }
@@ -396,7 +392,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameter</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Missing_formal_parameter</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">FormalParameter</span> {
     <span class="ident">declaration</span>: <span class="ident">Declaration</span>,
     <span class="ident">is_rest_param</span>: <span class="ident">bool</span>,

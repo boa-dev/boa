@@ -1049,6 +1049,7 @@
 <span id="1042">1042</span>
 <span id="1043">1043</span>
 <span id="1044">1044</span>
+<span id="1045">1045</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1120,6 +1121,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
 
     <span class="doccomment">/// Parameters passed to this function.</span>
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">params</span>: <span class="ident">FormalParameterList</span>,
 
     <span class="doccomment">/// Bytecode</span>
