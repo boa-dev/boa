@@ -57,6 +57,7 @@ impl BuiltIn for Object {
         .method(Self::to_locale_string, "toLocaleString", 0)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::is_prototype_of, "isPrototypeOf", 1)
+        .method(Self::legacy_define_getter, "__defineGetter__", 2)
         .static_method(Self::create, "create", 2)
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
@@ -113,6 +114,48 @@ impl Object {
             }
         }
         Ok(context.construct_object().into())
+    }
+
+    /// `Object.prototype.__defineGetter__(prop, func)`
+    ///
+    /// Binds an object's property to a function to be called when that property is looked up.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__defineGetter__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__defineGetter__
+    pub fn legacy_define_getter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let getter = args.get_or_undefined(1);
+
+        // 1. Let O be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+
+        // 2. If IsCallable(getter) is false, throw a TypeError exception.
+        if !getter.is_callable() {
+            return context
+                .throw_type_error("Object.prototype.__defineGetter__: Expecting function");
+        }
+
+        // 3. Let desc be PropertyDescriptor { [[Get]]: getter, [[Enumerable]]: true, [[Configurable]]: true }.
+        let desc = PropertyDescriptor::builder()
+            .get(getter)
+            .enumerable(true)
+            .configurable(true);
+
+        // 4. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 5. Perform ? DefinePropertyOrThrow(O, key, desc).
+        obj.define_property_or_throw(key, desc, context)?;
+
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
     }
 
     /// `Object.create( proto, [propertiesObject] )`
