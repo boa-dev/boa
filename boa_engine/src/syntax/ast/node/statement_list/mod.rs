@@ -1,9 +1,7 @@
 //! Statement list node.
 
 use crate::syntax::ast::node::{Declaration, Node};
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::{ops::Deref, rc::Rc};
 
 use rustc_hash::FxHashSet;
 #[cfg(feature = "deser")]
@@ -21,7 +19,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct StatementList {
     items: Box<[Node]>,
     strict: bool,
@@ -191,29 +189,4 @@ impl ToInternedString for StatementList {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }
-}
-
-// List of statements wrapped with Rc. We need this for self mutating functions.
-// Since we need to cheaply clone the function body and drop the borrow of the function object to
-// mutably borrow the function object and call this cloned function body
-#[derive(Clone, Debug, Finalize, PartialEq)]
-pub struct RcStatementList(Rc<StatementList>);
-
-impl Deref for RcStatementList {
-    type Target = StatementList;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<StatementList> for RcStatementList {
-    #[inline]
-    fn from(statementlist: StatementList) -> Self {
-        Self(Rc::from(statementlist))
-    }
-}
-
-// SAFETY: This is safe for types not containing any `Trace` types.
-unsafe impl Trace for RcStatementList {
-    unsafe_empty_trace!();
 }

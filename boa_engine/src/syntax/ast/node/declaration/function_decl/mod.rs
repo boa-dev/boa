@@ -1,5 +1,4 @@
 use crate::syntax::ast::node::{join_nodes, FormalParameterList, Node, StatementList};
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -24,7 +23,7 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
 /// [func_expr]: ../enum.Node.html#variant.FunctionExpr
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FunctionDecl {
     name: Sym,
     parameters: FormalParameterList,

@@ -1,5 +1,4 @@
 use crate::syntax::ast::{node::Node, op};
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -12,7 +11,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Operators
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct BinOp {
     op: op::BinOp,
     lhs: Box<Node>,

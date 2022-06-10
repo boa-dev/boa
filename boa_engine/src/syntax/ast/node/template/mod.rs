@@ -1,7 +1,6 @@
 //! Template literal node.
 
 use super::Node;
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -19,7 +18,7 @@ mod tests;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals
 /// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TemplateLit {
     elements: Box<[TemplateElement]>,
 }
@@ -57,7 +56,7 @@ impl ToInternedString for TemplateLit {
     }
 }
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TaggedTemplate {
     tag: Box<Node>,
     raws: Box<[Sym]>,
@@ -122,7 +121,7 @@ impl From<TaggedTemplate> for Node {
 }
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TemplateElement {
     String(Sym),
     Expr(Node),
