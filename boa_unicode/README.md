@@ -2,7 +2,7 @@
 
 `boa-unicode` defines the trait to provide methods for querying properties or classes for Unicode identifiers. These properties are used to determine if a code point (char) is valid for being the start/part of an identifier in lexer and parser.
 
-Current version: Unicode 13.0.0
+Current version: Unicode 14.0.0
 
 ## Development
 
