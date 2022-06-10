@@ -1,0 +1,77 @@
+// This module is a wrapper for the Map Builtin Javascript Object
+
+use crate::{
+    builtins::Map::{self, map_iterator::MapIterator, ordered_map::OrderedMap},
+    object::{JsObject, JsObjectType},
+    property::{PropertyNameKind},
+    Context, JsResult, JsValue
+};
+
+use boa_gc::{Finalize, Trace};
+use std::ops::Deref;
+
+#[derive(Debug, Clone, Trace, Finalize)]
+pub struct JsMap {
+    inner: JsObject,
+}
+
+impl JsMap {
+    /// Create new Empty Map Object
+    #[inline]
+    pub fn new(context: &mut Context) -> Self {
+        // Get default Map prototype
+        let prototype = context.intrinsics().constructors().map().prototype();
+
+        // Create a default map object with [[MapData]] as a new empty list
+        let map = JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()));
+
+        map
+    }
+
+    /// Create a new map object for any object that has a `@@Iterator` field.
+    #[inline]
+    pub fn from_iterable(iterable: JsObject, context: &mut Context) -> JsResult<Self> {
+        // Create a new map
+        let map = Self::new();
+
+        // Let adder be Get(map, "set") per spec. This action should not fail with default map
+        let adder = map.get("set", context).expect("creating a map with the default prototype must not fail");
+
+        let inner = Map::add_entries_from_iterable(&map, iterable, &adder, context)?;
+
+        Ok(Self { inner })
+    }
+
+    /// Create a [`JsMap`] from a [`JsObject`], if the object is not a map, throw a `TypeError`.
+    #[inline]
+    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+        if object.borrow().is_map() {
+            Ok(Self{ inner: object})
+        } else {
+            context.throw_type_error("object is not a Map")
+        }
+    }
+    
+    /// Return a new Iterator object that contains the [key, value] pairs in order of assertion
+    #[inline]
+    pub fn entries(&self, context: &mut Context) -> JsResult<JsValue> {
+        MapIterator::create_map_iterator(self, PropertyNameKind::KeyAndValue, context)
+    }
+
+    /// Return the keys Iterator object
+    #[inline]
+    pub fn keys(&self, context: &mut Context) -> JsResult<JsValue> {
+        MapIterator::create_map_iterator(self, PropertyNameKind::Key, context)
+    }
+}
+
+impl Deref for JsMap {
+    type Target = JsObject;
+    
+    #[inline]
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl JsObjectType for JsMap {}
