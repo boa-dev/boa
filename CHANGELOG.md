@@ -2,7 +2,7 @@
 
 ## What's Changed
 
-# [0.15.0 (2022-06-05)](https://github.com/boa-dev/boa/compare/v0.14...v0.15)
+# [0.15.0 (2022-06-10)](https://github.com/boa-dev/boa/compare/v0.14...v0.15)
 
 ### Feature Enhancements
 
@@ -35,6 +35,7 @@
 - Remove `strict` flag from `Context` by @raskad in [#2069](https://github.com/boa-dev/boa/pull/2069)
 - Integrate ICU4X into `Intl` module by @jedel1043 in [#2083](https://github.com/boa-dev/boa/pull/2083)
 - Implement `Function` constructor by @raskad in [#2090](https://github.com/boa-dev/boa/pull/2090)
+- Parse private generator methods in classes by @raskad in [#2092](https://github.com/boa-dev/boa/pull/2092)
 
 ### Bug Fixes
 
