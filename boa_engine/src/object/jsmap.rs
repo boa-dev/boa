@@ -55,13 +55,81 @@ impl JsMap {
     /// Return a new Iterator object that contains the [key, value] pairs in order of assertion
     #[inline]
     pub fn entries(&self, context: &mut Context) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(self, PropertyNameKind::KeyAndValue, context)
+        MapIterator::create_map_iterator(&self.inner.clone().into(), PropertyNameKind::KeyAndValue, context)
     }
 
     /// Return the keys Iterator object
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(self, PropertyNameKind::Key, context)
+        MapIterator::create_map_iterator(&self.inner.clone().into(), PropertyNameKind::Key, context)
+    }
+
+    /// Insert a new entry into the Map object
+    #[inline]
+    pub fn set<T>(&self, key: T, value: T, context: &mut Context) -> JsResult<JsValue>
+    where
+        T: Into<JsValue>
+    {
+        Map::set(&self.inner.clone().into(), &[key.into(), value.into()], context)
+    }
+
+    /// Obtains the size of the map
+    #[inline]
+    pub fn get_size(&self, context: &mut Context) -> JsResult<JsValue> {
+        Map::get_size(&self.inner.clone().into(), &[], context)
+    }
+
+    /// Remove entry from Map associated with key
+    #[inline]
+    pub fn delete<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue> 
+    where
+        T: Into<JsValue>
+    {
+        Map::delete(&self.inner.clone().into(), &[key.into()], context)
+    }
+
+    /// Returns value associated to key
+    #[inline]
+    pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
+    where
+        T: Into<JsValue>
+    {
+        Map::get(&self.inner.clone().into(), &[key.into()], context)
+    }
+
+    /// Removes all entries from a map
+    #[inline]
+    pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
+        Map::clear(&self.inner.clone().into(), &[], context)
+    }
+
+    /// Checks if map contains provided key
+    #[inline]
+    pub fn has<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
+    where
+        T: Into<JsValue>
+    {
+        Map::has(&self.inner.clone().into(), &[key.into()], context)
+    }
+
+    /// Returns new Iterator object of value elements of the Map
+    #[inline]
+    pub fn values(&self, context: &mut Context) -> JsResult<JsValue> {
+        MapIterator::create_map_iterator(&self.inner.clone().into(), PropertyNameKind::Value, context)
+    }
+}
+
+impl From<JsMap> for JsObject {
+    #[inline]
+    fn from(o: JsMap) -> Self {
+        o.inner.clone()
+    }
+}
+
+impl From<JsMap> for JsValue {
+    #[inline]
+    fn from(o: JsMap) -> Self {
+        o.inner.clone().into()
     }
 }
 
