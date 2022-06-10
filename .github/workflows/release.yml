@@ -31,7 +31,7 @@ jobs:
         run: |
           git config --global user.email "runner@gha.local"
           git config --global user.name "Github Action"
-          cargo workspaces publish --yes minor
+          cargo workspaces publish --from-git --yes minor
   doc-publish:
     # needs: publish
     runs-on: ubuntu-latest
