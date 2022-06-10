@@ -1,10 +1,11 @@
 // This module is a wrapper for the Map Builtin Javascript Object
-
+// 
+// TODO: improve Iterator object interaction: entries, keys, values 
+// forEach implementation is missing
 use crate::{
     builtins::Map,
-    builtins::map::{add_entries_from_iterable, map_iterator::MapIterator, ordered_map::OrderedMap},
+    builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     object::{JsObject, ObjectData, JsObjectType},
-    property::PropertyNameKind,
     Context, JsResult, JsValue
 };
 
@@ -23,19 +24,19 @@ impl JsMap {
         let map = Self::create_map(context);
         Self { inner: map }
     }
-
+    
     /// Create a new map object for any object that has a `@@Iterator` field.
     #[inline]
-    pub fn from_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Self> {
+    pub fn from_js_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Self> {
         // Create a new map
         let map = Self::create_map(context);
 
         // Let adder be Get(map, "set") per spec. This action should not fail with default map
         let adder = map.get("set", context).expect("creating a map with the default prototype must not fail");
 
-        let iterator_record = add_entries_from_iterable(&map, iterable, &adder, context)?.to_object(context)?;
+        add_entries_from_iterable(&map, iterable, &adder, context)?;
 
-        Ok(Self { inner: iterator_record })
+        Ok(Self { inner: map })
     }
 
 
@@ -63,13 +64,13 @@ impl JsMap {
     /// Return a new Iterator object that contains the [key, value] pairs in order of assertion
     #[inline]
     pub fn entries(&self, context: &mut Context) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(&self.inner.clone().into(), PropertyNameKind::KeyAndValue, context)
+        Map::entries(&self.inner.clone().into(), &[], context)
     }
 
     /// Return the keys Iterator object
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(&self.inner.clone().into(), PropertyNameKind::Key, context)
+        Map::keys(&self.inner.clone().into(), &[], context)
     }
 
     /// Insert a new entry into the Map object
@@ -96,7 +97,7 @@ impl JsMap {
         Map::delete(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    /// Returns value associated to key
+    /// Returns value associated to key or undefined
     #[inline]
     pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -123,7 +124,7 @@ impl JsMap {
     /// Returns new Iterator object of value elements of the Map
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsValue> {
-        MapIterator::create_map_iterator(&self.inner.clone().into(), PropertyNameKind::Value, context)
+        Map::values(&self.inner.clone().into(), &[], context)
     }
 }
 
