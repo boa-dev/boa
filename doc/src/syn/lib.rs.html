@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.95/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.96/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -992,24 +992,6 @@
 <span id="987">987</span>
 <span id="988">988</span>
 <span id="989">989</span>
-<span id="990">990</span>
-<span id="991">991</span>
-<span id="992">992</span>
-<span id="993">993</span>
-<span id="994">994</span>
-<span id="995">995</span>
-<span id="996">996</span>
-<span id="997">997</span>
-<span id="998">998</span>
-<span id="999">999</span>
-<span id="1000">1000</span>
-<span id="1001">1001</span>
-<span id="1002">1002</span>
-<span id="1003">1003</span>
-<span id="1004">1004</span>
-<span id="1005">1005</span>
-<span id="1006">1006</span>
-<span id="1007">1007</span>
 </pre><pre class="rust"><code><span class="doccomment">//! [![github]](https://github.com/dtolnay/syn)&amp;ensp;[![crates-io]](https://crates.io/crates/syn)&amp;ensp;[![docs-rs]](crate)</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github</span>
@@ -1262,56 +1244,38 @@
 <span class="doccomment">//!   dynamic library libproc_macro from rustc toolchain.</span>
 
 <span class="comment">// Syn types in rustdoc of other crates get linked to here.</span>
-<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/syn/1.0.95&quot;</span>)]</span>
+<span class="attribute">#![<span class="ident">doc</span>(<span class="ident">html_root_url</span> <span class="op">=</span> <span class="string">&quot;https://docs.rs/syn/1.0.96&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">feature</span>(<span class="ident">doc_cfg</span>))]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">non_camel_case_types</span>)]</span>
-<span class="comment">// Ignored clippy lints.</span>
 <span class="attribute">#![<span class="ident">allow</span>(
     <span class="ident">clippy::cast_lossless</span>,
-    <span class="ident">clippy::collapsible_match</span>, <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/7575</span>
+    <span class="ident">clippy::cast_possible_truncation</span>,
+    <span class="ident">clippy::default_trait_access</span>,
     <span class="ident">clippy::doc_markdown</span>,
-    <span class="ident">clippy::eval_order_dependence</span>,
+    <span class="ident">clippy::expl_impl_clone_on_copy</span>,
+    <span class="ident">clippy::if_not_else</span>,
     <span class="ident">clippy::inherent_to_string</span>,
     <span class="ident">clippy::large_enum_variant</span>,
     <span class="ident">clippy::let_underscore_drop</span>,
     <span class="ident">clippy::manual_assert</span>,
-    <span class="ident">clippy::manual_map</span>, <span class="comment">// https://github.com/rust-lang/rust-clippy/issues/6795</span>
     <span class="ident">clippy::match_on_vec_items</span>,
+    <span class="ident">clippy::match_same_arms</span>,
+    <span class="ident">clippy::match_wildcard_for_single_variants</span>, <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/6984</span>
+    <span class="ident">clippy::missing_errors_doc</span>,
     <span class="ident">clippy::missing_panics_doc</span>,
+    <span class="ident">clippy::module_name_repetitions</span>,
+    <span class="ident">clippy::must_use_candidate</span>,
     <span class="ident">clippy::needless_doctest_main</span>,
     <span class="ident">clippy::needless_pass_by_value</span>,
     <span class="ident">clippy::never_loop</span>,
-    <span class="ident">clippy::return_self_not_must_use</span>,
-    <span class="ident">clippy::too_many_arguments</span>,
-    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
-    <span class="ident">clippy::unnecessary_unwrap</span>,
-    <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/6983</span>
-    <span class="ident">clippy::wrong_self_convention</span>
-)]</span>
-<span class="comment">// Ignored clippy_pedantic lints.</span>
-<span class="attribute">#![<span class="ident">allow</span>(
-    <span class="ident">clippy::cast_possible_truncation</span>,
-    <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/7127</span>
-    <span class="ident">clippy::cloned_instead_of_copied</span>,
-    <span class="ident">clippy::default_trait_access</span>,
-    <span class="ident">clippy::empty_enum</span>,
-    <span class="ident">clippy::expl_impl_clone_on_copy</span>,
-    <span class="ident">clippy::if_not_else</span>,
-    <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/8285</span>
-    <span class="ident">clippy::iter_not_returning_iterator</span>,
-    <span class="ident">clippy::match_same_arms</span>,
-    <span class="comment">// clippy bug: https://github.com/rust-lang/rust-clippy/issues/6984</span>
-    <span class="ident">clippy::match_wildcard_for_single_variants</span>,
-    <span class="ident">clippy::missing_errors_doc</span>,
-    <span class="ident">clippy::module_name_repetitions</span>,
-    <span class="ident">clippy::must_use_candidate</span>,
-    <span class="ident">clippy::option_if_let_else</span>,
     <span class="ident">clippy::redundant_else</span>,
-    <span class="ident">clippy::shadow_unrelated</span>,
+    <span class="ident">clippy::return_self_not_must_use</span>,
     <span class="ident">clippy::similar_names</span>,
     <span class="ident">clippy::single_match_else</span>,
+    <span class="ident">clippy::too_many_arguments</span>,
     <span class="ident">clippy::too_many_lines</span>,
-    <span class="ident">clippy::unseparated_literal_suffix</span>,
+    <span class="ident">clippy::trivially_copy_pass_by_ref</span>,
+    <span class="ident">clippy::unnecessary_unwrap</span>,
     <span class="ident">clippy::used_underscore_binding</span>,
     <span class="ident">clippy::wildcard_imports</span>
 )]</span>
