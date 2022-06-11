@@ -185,6 +185,7 @@ impl BuiltIn for Promise {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .method(Self::then, "then", 1)
+        .method(Self::catch, "catch", 1)
         .method(Self::finally, "finally", 1)
         .build()
         .conv::<JsValue>()
@@ -468,6 +469,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
+    #[track_caller]
     pub fn fulfill(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert_eq!(
@@ -561,6 +563,25 @@ impl Promise {
         }
 
         // 2. Return unused.
+    }
+
+    /// `Promise.prototype.catch ( onRejected )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.catch
+    pub fn catch(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let on_rejected = args.get_or_undefined(0);
+
+        // 1. Let promise be the this value.
+        let promise = this;
+        // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
+        promise.invoke(
+            "then",
+            &[JsValue::undefined(), on_rejected.clone()],
+            context,
+        )
     }
 
     /// `Promise.prototype.finally ( onFinally )`
