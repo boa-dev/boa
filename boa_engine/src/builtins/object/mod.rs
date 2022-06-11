@@ -237,13 +237,13 @@ impl Object {
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
-                }
+                };
             }
             match obj.__get_prototype_of__(context)? {
                 // c. Set O to ? O.[[GetPrototypeOf]]().
                 Some(o) => obj = o,
                 // d. If O is null, return undefined.
-                None => return Ok(JsValue::undefined())
+                None => return Ok(JsValue::undefined()),
             }
         }
     }
