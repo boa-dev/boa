@@ -1,7 +1,18 @@
-on: [pull_request]
 name: Benchmarks
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+
 jobs:
   runBenchmark:
+    if: contains(github.event.pull_request.labels.*.name, 'run-benchmark')
     name: run benchmark
     runs-on: ubuntu-latest
     steps:
