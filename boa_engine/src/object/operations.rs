@@ -102,7 +102,7 @@ impl JsObject {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
+    /// [spec]: https://tc39.es/ecma262/#sec-createdataproperty
     pub fn create_data_property<K, V>(
         &self,
         key: K,
@@ -132,7 +132,7 @@ impl JsObject {
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
+    /// [spec]: https://tc39.es/ecma262/#sec-createdatapropertyorthrow
     pub fn create_data_property_or_throw<K, V>(
         &self,
         key: K,
@@ -228,7 +228,7 @@ impl JsObject {
     /// More information:
     /// - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-definepropertyorthrow
+    /// [spec]: https://tc39.es/ecma262/#sec-deletepropertyorthrow
     #[inline]
     pub fn delete_property_or_throw<K>(&self, key: K, context: &mut Context) -> JsResult<bool>
     where
