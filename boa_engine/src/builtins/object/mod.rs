@@ -21,7 +21,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
-    property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult, JsString,
@@ -43,6 +43,10 @@ impl BuiltIn for Object {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        let legacy_proto_getter = FunctionBuilder::native(context, Self::legacy_proto_getter)
+            .name("get __proto__")
+            .build();
+
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
@@ -51,6 +55,12 @@ impl BuiltIn for Object {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .inherit(None)
+        .accessor(
+            "__proto__",
+            Some(legacy_proto_getter),
+            None,
+            Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .method(Self::has_own_property, "hasOwnProperty", 1)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
         .method(Self::to_string, "toString", 0)
@@ -115,6 +125,31 @@ impl Object {
             }
         }
         Ok(context.construct_object().into())
+    }
+
+    /// `get Object.prototype.__proto__`
+    ///
+    /// The `__proto__` getter function exposes the value of the
+    /// internal `[[Prototype]]` of an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-object.prototype.__proto__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto
+    pub fn legacy_proto_getter(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+
+        // 2. Return ? O.[[GetPrototypeOf]]().
+        let proto = obj.__get_prototype_of__(context)?;
+
+        Ok(proto.map_or(JsValue::Null, JsValue::new))
     }
 
     /// `Object.prototype.__defineGetter__(prop, func)`
