@@ -282,7 +282,6 @@ impl Promise {
         promise: &JsObject,
         context: &mut Context,
     ) -> ResolvingFunctionsRecord {
-        // TODO: can this not be a rust struct?
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
         let already_resolved = false;
 
@@ -331,15 +330,18 @@ impl Promise {
                         .borrow_mut()
                         .as_promise_mut()
                         .expect("Expected promise to be a Promise")
-                        .reject(&self_resolution_error, context)?;
+                        .reject(&self_resolution_error, context);
 
                     //   c. Return undefined.
                     return Ok(JsValue::Undefined);
                 }
 
-                // 8. If Type(resolution) is not Object, then
-                if !resolution.is_object() {
-                    // a. Perform FulfillPromise(promise, resolution).
+                let then = if let Some(resolution) = resolution.as_object() {
+                    // 9. Let then be Completion(Get(resolution, "then")).
+                    resolution.get("then", context)
+                } else {
+                    // 8. If Type(resolution) is not Object, then
+                    //   a. Perform FulfillPromise(promise, resolution).
                     promise
                         .borrow_mut()
                         .as_promise_mut()
@@ -348,15 +350,9 @@ impl Promise {
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
-                }
+                };
 
-                // 9. Let then be Completion(Get(resolution, "then")).
-                let then = resolution
-                    .as_object()
-                    .unwrap_or_else(|| unreachable!())
-                    .get("then", context);
-
-                let then = match then {
+                let then_action = match then {
                     // 10. If then is an abrupt completion, then
                     Err(value) => {
                         //   a. Perform RejectPromise(promise, then.[[Value]]).
@@ -364,19 +360,14 @@ impl Promise {
                             .borrow_mut()
                             .as_promise_mut()
                             .expect("Expected promise to be a Promise")
-                            .reject(&value, context)?;
+                            .reject(&value, context);
 
                         //   b. Return undefined.
                         return Ok(JsValue::Undefined);
                     }
+                    // 11. Let thenAction be then.[[Value]].
                     Ok(then) => then,
                 };
-
-                // 11. Let thenAction be then.[[Value]].
-                let then_action = then
-                    .as_object()
-                    .expect("resolution.[[then]] should be an object")
-                    .get("Value", context)?;
 
                 // 12. If IsCallable(thenAction) is false, then
                 if !then_action.is_callable() {
@@ -453,7 +444,7 @@ impl Promise {
                     .borrow_mut()
                     .as_promise_mut()
                     .expect("Expected promise to be a Promise")
-                    .reject(reason, context)?;
+                    .reject(reason, context);
 
                 // 8. Return undefined.
                 Ok(JsValue::Undefined)
@@ -512,7 +503,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
-    pub fn reject(&mut self, reason: &JsValue, context: &mut Context) -> JsResult<()> {
+    pub fn reject(&mut self, reason: &JsValue, context: &mut Context) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert_eq!(
             self.promise_state,
@@ -545,7 +536,6 @@ impl Promise {
         }
 
         // 9. Return unused.
-        Ok(())
     }
 
     /// `TriggerPromiseReactions ( reactions, argument )`
