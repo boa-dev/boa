@@ -47,6 +47,10 @@ impl BuiltIn for Object {
             .name("get __proto__")
             .build();
 
+        let legacy_setter_proto = FunctionBuilder::native(context, Self::legacy_proto_setter)
+            .name("set __proto__")
+            .build();
+
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
@@ -58,7 +62,7 @@ impl BuiltIn for Object {
         .accessor(
             "__proto__",
             Some(legacy_proto_getter),
-            None,
+            Some(legacy_setter_proto),
             Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         )
         .method(Self::has_own_property, "hasOwnProperty", 1)
@@ -150,6 +154,50 @@ impl Object {
         let proto = obj.__get_prototype_of__(context)?;
 
         Ok(proto.map_or(JsValue::Null, JsValue::new))
+    }
+
+    /// `set Object.prototype.__proto__`
+    ///
+    /// The `__proto__` setter allows the `[[Prototype]]` of
+    /// an object to be mutated.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-object.prototype.__proto__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto
+    pub fn legacy_proto_setter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let this = this.require_object_coercible(context)?;
+
+        // 2. If Type(proto) is neither Object nor Null, return undefined.
+        let proto = match args.get_or_undefined(0) {
+            JsValue::Object(proto) => Some(proto.clone()),
+            JsValue::Null => None,
+            _ => return Ok(JsValue::undefined()),
+        };
+
+        // 3. If Type(O) is not Object, return undefined.
+        let object = match this {
+            JsValue::Object(object) => object,
+            _ => return Ok(JsValue::undefined()),
+        };
+
+        // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+        let status = object.__set_prototype_of__(proto, context)?;
+
+        // 5. If status is false, throw a TypeError exception.
+        if !status {
+            return context.throw_type_error("__proto__ called on null or undefined");
+        }
+
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
     }
 
     /// `Object.prototype.__defineGetter__(prop, func)`
