@@ -318,11 +318,17 @@ impl Test {
         }
 
         context
-            .eval(&harness.assert.as_ref())
+            .eval(harness.assert.as_ref())
             .map_err(|e| format!("could not run assert.js:\n{}", e.display()))?;
         context
-            .eval(&harness.sta.as_ref())
+            .eval(harness.sta.as_ref())
             .map_err(|e| format!("could not run sta.js:\n{}", e.display()))?;
+
+        if self.flags.contains(TestFlags::ASYNC) {
+            context
+                .eval(harness.doneprint_handle.as_ref())
+                .map_err(|e| format!("could not run doneprintHandle.js:\n{}", e.display()))?;
+        }
 
         for include in self.includes.iter() {
             context

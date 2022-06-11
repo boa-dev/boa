@@ -13,6 +13,7 @@ pub(super) fn init(context: &mut Context) -> JsObject {
         .function(create_realm, "createRealm", 0)
         .function(detach_array_buffer, "detachArrayBuffer", 2)
         .function(eval_script, "evalScript", 1)
+        .function(gc, "gc", 0)
         .property("global", global_obj, Attribute::default())
         // .property("agent", agent, Attribute::default())
         .build();
@@ -99,7 +100,8 @@ fn eval_script(_this: &JsValue, args: &[JsValue], context: &mut Context) -> JsRe
 /// Wraps the host's garbage collection invocation mechanism, if such a capability exists.
 /// Must throw an exception if no capability exists. This is necessary for testing the
 /// semantics of any feature that relies on garbage collection, e.g. the `WeakRef` API.
-#[allow(dead_code)]
+#[allow(clippy::unnecessary_wraps)]
 fn gc(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
-    todo!()
+    boa_gc::force_collect();
+    Ok(JsValue::undefined())
 }

@@ -84,7 +84,7 @@ pub(super) fn read_harness(test262_path: &Path) -> anyhow::Result<Harness> {
         let file_name = entry.file_name();
         let file_name = file_name.to_string_lossy();
 
-        if file_name == "assert.js" || file_name == "sta.js" {
+        if file_name == "assert.js" || file_name == "sta.js" || file_name == "doneprintHandle.js" {
             continue;
         }
 
@@ -102,10 +102,14 @@ pub(super) fn read_harness(test262_path: &Path) -> anyhow::Result<Harness> {
     let sta = fs::read_to_string(test262_path.join("harness/sta.js"))
         .context("error reading harnes/sta.js")?
         .into_boxed_str();
+    let doneprint_handle = fs::read_to_string(test262_path.join("harness/doneprintHandle.js"))
+        .context("error reading harnes/doneprintHandle.js")?
+        .into_boxed_str();
 
     Ok(Harness {
         assert,
         sta,
+        doneprint_handle,
         includes,
     })
 }

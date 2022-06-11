@@ -164,6 +164,7 @@ dependencies = [
  "anyhow",
  "bitflags",
  "boa_engine",
+ "boa_gc",
  "boa_interner",
  "colored",
  "fxhash",

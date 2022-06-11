@@ -342,6 +342,7 @@ fn run_test_suite(
 struct Harness {
     assert: Box<str>,
     sta: Box<str>,
+    doneprint_handle: Box<str>,
     includes: FxHashMap<Box<str>, Box<str>>,
 }
 
