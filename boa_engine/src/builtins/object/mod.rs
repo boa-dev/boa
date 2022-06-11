@@ -58,6 +58,7 @@ impl BuiltIn for Object {
         .method(Self::value_of, "valueOf", 0)
         .method(Self::is_prototype_of, "isPrototypeOf", 1)
         .method(Self::legacy_define_getter, "__defineGetter__", 2)
+        .method(Self::legacy_define_setter, "__defineSetter__", 2)
         .static_method(Self::create, "create", 2)
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
@@ -145,6 +146,48 @@ impl Object {
         // 3. Let desc be PropertyDescriptor { [[Get]]: getter, [[Enumerable]]: true, [[Configurable]]: true }.
         let desc = PropertyDescriptor::builder()
             .get(getter)
+            .enumerable(true)
+            .configurable(true);
+
+        // 4. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 5. Perform ? DefinePropertyOrThrow(O, key, desc).
+        obj.define_property_or_throw(key, desc, context)?;
+
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `Object.prototype.__defineSetter__(prop, func)`
+    ///
+    /// Binds an object's property to a function to be called when an attempt is made to set that property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__defineSetter__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__defineSetter__
+    pub fn legacy_define_setter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let setter = args.get_or_undefined(1);
+
+        // 1. Let O be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+
+        // 2. If IsCallable(setter) is false, throw a TypeError exception.
+        if !setter.is_callable() {
+            return context
+                .throw_type_error("Object.prototype.__defineSetter__: Expecting function");
+        }
+
+        // 3. Let desc be PropertyDescriptor { [[Set]]: setter, [[Enumerable]]: true, [[Configurable]]: true }.
+        let desc = PropertyDescriptor::builder()
+            .set(setter)
             .enumerable(true)
             .configurable(true);
 
