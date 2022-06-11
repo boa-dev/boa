@@ -1244,6 +1244,52 @@
 <span id="1237">1237</span>
 <span id="1238">1238</span>
 <span id="1239">1239</span>
+<span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
+<span id="1243">1243</span>
+<span id="1244">1244</span>
+<span id="1245">1245</span>
+<span id="1246">1246</span>
+<span id="1247">1247</span>
+<span id="1248">1248</span>
+<span id="1249">1249</span>
+<span id="1250">1250</span>
+<span id="1251">1251</span>
+<span id="1252">1252</span>
+<span id="1253">1253</span>
+<span id="1254">1254</span>
+<span id="1255">1255</span>
+<span id="1256">1256</span>
+<span id="1257">1257</span>
+<span id="1258">1258</span>
+<span id="1259">1259</span>
+<span id="1260">1260</span>
+<span id="1261">1261</span>
+<span id="1262">1262</span>
+<span id="1263">1263</span>
+<span id="1264">1264</span>
+<span id="1265">1265</span>
+<span id="1266">1266</span>
+<span id="1267">1267</span>
+<span id="1268">1268</span>
+<span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Object` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Object` class represents one of JavaScript&#39;s data types.</span>
@@ -1319,6 +1365,7 @@
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::is_prototype_of</span>, <span class="string">&quot;isPrototypeOf&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::legacy_define_getter</span>, <span class="string">&quot;__defineGetter__&quot;</span>, <span class="number">2</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::legacy_define_setter</span>, <span class="string">&quot;__defineSetter__&quot;</span>, <span class="number">2</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::legacy_lookup_getter</span>, <span class="string">&quot;__lookupGetter__&quot;</span>, <span class="number">1</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::create</span>, <span class="string">&quot;create&quot;</span>, <span class="number">2</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::set_prototype_of</span>, <span class="string">&quot;setPrototypeOf&quot;</span>, <span class="number">2</span>)
         .<span class="ident">static_method</span>(<span class="ident"><span class="self">Self</span>::get_prototype_of</span>, <span class="string">&quot;getPrototypeOf&quot;</span>, <span class="number">1</span>)
@@ -1528,6 +1575,51 @@
 
         <span class="comment">// 6. Return undefined.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+    }
+
+    <span class="doccomment">/// `Object.prototype.__lookupGetter__(prop)`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Returns the function bound as a getter to the specified property.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///  - [MDN documentation][mdn]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__lookupGetter__</span>
+    <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__lookupGetter__</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">legacy_lookup_getter</span>(
+        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let O be ? ToObject(this value).</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. Let key be ? ToPropertyKey(P).</span>
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 3. Repeat</span>
+        <span class="kw">loop</span> {
+            <span class="comment">// a. Let desc be ? O.[[GetOwnProperty]](key).</span>
+            <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// b. If desc is not undefined, then</span>
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">current_desc</span>) <span class="op">=</span> <span class="ident">desc</span> {
+                <span class="comment">// i. If IsAccessorDescriptor(desc) is true, return desc.[[Get]].</span>
+                <span class="kw">return</span> <span class="kw">if</span> <span class="ident">current_desc</span>.<span class="ident">is_accessor_descriptor</span>() {
+                    <span class="prelude-val">Ok</span>(<span class="ident">current_desc</span>.<span class="ident">expect_get</span>().<span class="ident">into</span>())
+                } <span class="kw">else</span> {
+                    <span class="comment">// ii. Return undefined.</span>
+                    <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
+                };
+            }
+            <span class="kw">match</span> <span class="ident">obj</span>.<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
+                <span class="comment">// c. Set O to ? O.[[GetPrototypeOf]]().</span>
+                <span class="prelude-val">Some</span>(<span class="ident">o</span>) =&gt; <span class="ident">obj</span> <span class="op">=</span> <span class="ident">o</span>,
+                <span class="comment">// d. If O is null, return undefined.</span>
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>()),
+            }
+        }
     }
 
     <span class="doccomment">/// `Object.create( proto, [propertiesObject] )`</span>
