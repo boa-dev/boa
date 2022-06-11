@@ -44,7 +44,7 @@ impl PromiseJob {
                         //   1. Assert: type is Reject.
                         ReactionType::Reject => {
                             // 2. Let handlerResult be ThrowCompletion(argument).
-                            Ok(context.construct_error("argument")) // TODO: convert argument to string, somehow
+                            Err(argument.clone())
                         }
                     },
                     //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).

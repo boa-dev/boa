@@ -449,6 +449,17 @@ impl JsObject {
         self.borrow().is_typed_array()
     }
 
+    /// Checks if it's a `Promise` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_promise(&self) -> bool {
+        self.borrow().is_promise()
+    }
+
     /// Checks if it's an ordinary object.
     ///
     /// # Panics

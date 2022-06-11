@@ -73,6 +73,8 @@ struct ReactionJobCaptures {
 }
 
 impl PromiseCapability {
+    /// `NewPromiseCapability ( C )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -183,6 +185,7 @@ impl BuiltIn for Promise {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .method(Self::then, "then", 1)
+        .method(Self::finally, "finally", 1)
         .build()
         .conv::<JsValue>()
         .pipe(Some)
@@ -204,6 +207,8 @@ struct RejectResolveCaptures {
 impl Promise {
     const LENGTH: usize = 1;
 
+    /// `Promise ( executor )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -267,6 +272,8 @@ impl Promise {
         promise.conv::<JsValue>().pipe(Ok)
     }
 
+    /// `CreateResolvingFunctions ( promise )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -464,6 +471,8 @@ impl Promise {
         ResolvingFunctionsRecord { resolve, reject }
     }
 
+    /// `FulfillPromise ( promise, value )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -505,10 +514,11 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
     pub fn reject(&mut self, reason: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
-        match self.promise_state {
-            PromiseState::Pending => (),
-            _ => return context.throw_error("Expected promise.[[PromiseState]] to be pending"),
-        }
+        assert_eq!(
+            self.promise_state,
+            PromiseState::Pending,
+            "Expected promise.[[PromiseState]] to be pending"
+        );
 
         // 2. Let reactions be promise.[[PromiseRejectReactions]].
         let reactions = &self.promise_reject_reactions;
@@ -538,6 +548,8 @@ impl Promise {
         Ok(())
     }
 
+    /// `TriggerPromiseReactions ( reactions, argument )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -560,6 +572,144 @@ impl Promise {
         // 2. Return unused.
     }
 
+    /// `Promise.prototype.finally ( onFinally )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.finally
+    pub fn finally(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        // 1. Let promise be the this value.
+        let promise = this;
+
+        // 2. If Type(promise) is not Object, throw a TypeError exception.
+        let promise_obj = if let Some(p) = promise.as_object() {
+            p
+        } else {
+            return context.throw_type_error("finally called with a non-object promise");
+        };
+
+        // 3. Let C be ? SpeciesConstructor(promise, %Promise%).
+        let c = promise_obj.species_constructor(StandardConstructors::promise, context)?;
+
+        // 4. Assert: IsConstructor(C) is true.
+        assert!(c.is_constructor());
+
+        let on_finally = args.get_or_undefined(0);
+
+        // 5. If IsCallable(onFinally) is false, then
+        let (then_finally, catch_finally) = if on_finally.is_callable() {
+            /// Capture object for the `thenFinallyClosure` abstract closure.
+            #[derive(Debug, Trace, Finalize)]
+            struct FinallyCaptures {
+                on_finally: JsValue,
+                c: JsObject,
+            }
+
+            // a. Let thenFinallyClosure be a new Abstract Closure with parameters (value) that captures onFinally and C and performs the following steps when called:
+            let then_finally_closure = FunctionBuilder::closure_with_captures(
+                context,
+                |_this, args, captures, context| {
+                    /// Capture object for the abstract `returnValue` closure.
+                    #[derive(Debug, Trace, Finalize)]
+                    struct ReturnValueCaptures {
+                        value: JsValue,
+                    }
+
+                    let value = args.get_or_undefined(0);
+
+                    // i. Let result be ? Call(onFinally, undefined).
+                    let result = context.call(&captures.on_finally, &JsValue::undefined(), &[])?;
+
+                    // ii. Let promise be ? PromiseResolve(C, result).
+                    let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
+
+                    // iii. Let returnValue be a new Abstract Closure with no parameters that captures value and performs the following steps when called:
+                    let return_value = FunctionBuilder::closure_with_captures(
+                        context,
+                        |_this, _args, captures, _context| {
+                            // 1. Return value.
+                            Ok(captures.value.clone())
+                        },
+                        ReturnValueCaptures {
+                            value: value.clone(),
+                        },
+                    );
+
+                    // iv. Let valueThunk be CreateBuiltinFunction(returnValue, 0, "", « »).
+                    let value_thunk = return_value.length(0).name("").build();
+
+                    // v. Return ? Invoke(promise, "then", « valueThunk »).
+                    promise.invoke("then", &[value_thunk.into()], context)
+                },
+                FinallyCaptures {
+                    on_finally: on_finally.clone(),
+                    c: c.clone(),
+                },
+            );
+
+            // b. Let thenFinally be CreateBuiltinFunction(thenFinallyClosure, 1, "", « »).
+            let then_finally = then_finally_closure.length(1).name("").build();
+
+            // c. Let catchFinallyClosure be a new Abstract Closure with parameters (reason) that captures onFinally and C and performs the following steps when called:
+            let catch_finally_closure = FunctionBuilder::closure_with_captures(
+                context,
+                |_this, args, captures, context| {
+                    /// Capture object for the abstract `throwReason` closure.
+                    #[derive(Debug, Trace, Finalize)]
+                    struct ThrowReasonCaptures {
+                        reason: JsValue,
+                    }
+
+                    let reason = args.get_or_undefined(0);
+
+                    // i. Let result be ? Call(onFinally, undefined).
+                    let result = context.call(&captures.on_finally, &JsValue::undefined(), &[])?;
+
+                    // ii. Let promise be ? PromiseResolve(C, result).
+                    let promise = Self::promise_resolve(captures.c.clone(), result, context)?;
+
+                    // iii. Let throwReason be a new Abstract Closure with no parameters that captures reason and performs the following steps when called:
+                    let throw_reason = FunctionBuilder::closure_with_captures(
+                        context,
+                        |_this, _args, captures, _context| {
+                            // 1. Return ThrowCompletion(reason).
+                            Err(captures.reason.clone())
+                        },
+                        ThrowReasonCaptures {
+                            reason: reason.clone(),
+                        },
+                    );
+
+                    // iv. Let thrower be CreateBuiltinFunction(throwReason, 0, "", « »).
+                    let thrower = throw_reason.length(0).name("").build();
+
+                    // v. Return ? Invoke(promise, "then", « thrower »).
+                    promise.invoke("then", &[thrower.into()], context)
+                },
+                FinallyCaptures {
+                    on_finally: on_finally.clone(),
+                    c,
+                },
+            );
+
+            // d. Let catchFinally be CreateBuiltinFunction(catchFinallyClosure, 1, "", « »).
+            let catch_finally = catch_finally_closure.length(1).name("").build();
+
+            (then_finally.into(), catch_finally.into()) // TODO
+        } else {
+            // 6. Else,
+            //  a. Let thenFinally be onFinally.
+            //  b. Let catchFinally be onFinally.
+            (on_finally.clone(), on_finally.clone())
+        };
+
+        // 7. Return ? Invoke(promise, "then", « thenFinally, catchFinally »).
+        promise.invoke("then", &[then_finally, catch_finally], context)
+    }
+
+    /// `Promise.prototype.then ( onFulfilled, onRejected )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -592,6 +742,8 @@ impl Promise {
             .pipe(Ok)
     }
 
+    /// `PerformPromiseThen ( promise, onFulfilled, onRejected [ , resultCapability ] )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -706,5 +858,36 @@ impl Promise {
             //   a. Return resultCapability.[[Promise]].
             Some(result_capability) => result_capability.promise.clone(),
         }
+    }
+
+    /// `PromiseResolve ( C, x )`
+    ///
+    /// The abstract operation `PromiseResolve` takes arguments `C` (a constructor) and `x` (an
+    /// ECMAScript language value) and returns either a normal completion containing an ECMAScript
+    /// language value or a throw completion. It returns a new promise resolved with `x`.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise-resolve
+    fn promise_resolve(c: JsObject, x: JsValue, context: &mut Context) -> JsResult<JsValue> {
+        // 1. If IsPromise(x) is true, then
+        if let Some(x) = x.as_promise() {
+            // a. Let xConstructor be ? Get(x, "constructor").
+            let x_constructor = x.get("constructor", context)?;
+            // b. If SameValue(xConstructor, C) is true, return x.
+            if JsValue::same_value(&x_constructor, &JsValue::from(c.clone())) {
+                return Ok(JsValue::from(x.clone()));
+            }
+        }
+
+        // 2. Let promiseCapability be ? NewPromiseCapability(C).
+        let promise_capability = PromiseCapability::new(&JsValue::from(c), context)?;
+
+        // 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
+        context.call(&promise_capability.resolve, &JsValue::undefined(), &[x])?;
+
+        // 4. Return promiseCapability.[[Promise]].
+        Ok(promise_capability.promise.clone())
     }
 }
