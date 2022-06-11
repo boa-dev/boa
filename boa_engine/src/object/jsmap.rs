@@ -36,7 +36,7 @@ impl JsMap {
             .get("set", context)
             .expect("creating a map with the default prototype must not fail");
 
-        add_entries_from_iterable(&map, iterable, &adder, context)?;
+        let _completion_record = add_entries_from_iterable(&map, iterable, &adder, context)?;
 
         Ok(Self { inner: map })
     }
