@@ -232,8 +232,7 @@ impl Object {
             if let Some(current_desc) = desc {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Get]].
                 return if current_desc.is_accessor_descriptor() {
-                    Ok(current_desc.get().expect("get cannot fail here").into())
-                    // Ok(Self::from_property_descriptor(Some(current_desc), context))
+                    Ok(current_desc.expect_get().into())
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
