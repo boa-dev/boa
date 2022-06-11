@@ -201,7 +201,7 @@ struct ResolvingFunctionsRecord {
 #[derive(Debug, Trace, Finalize)]
 struct RejectResolveCaptures {
     promise: JsObject,
-    already_resolved: bool,
+    already_resolved: Gc<boa_gc::Cell<bool>>,
 }
 
 impl Promise {
@@ -283,12 +283,12 @@ impl Promise {
         context: &mut Context,
     ) -> ResolvingFunctionsRecord {
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
-        let already_resolved = false;
+        let already_resolved = Gc::new(boa_gc::Cell::new(false));
 
         // 5. Set resolve.[[Promise]] to promise.
         // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
         let resolve_captures = RejectResolveCaptures {
-            already_resolved,
+            already_resolved: already_resolved.clone(),
             promise: promise.clone(),
         };
 
@@ -310,12 +310,12 @@ impl Promise {
                 } = captures;
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                if *already_resolved {
+                if *already_resolved.borrow() {
                     return Ok(JsValue::Undefined);
                 }
 
                 // 6. Set alreadyResolved.[[Value]] to true.
-                *already_resolved = true;
+                *already_resolved.borrow_mut() = true;
 
                 let resolution = args.get_or_undefined(0);
 
@@ -431,20 +431,20 @@ impl Promise {
                 } = captures;
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                if *already_resolved {
+                if *already_resolved.borrow() {
                     return Ok(JsValue::Undefined);
                 }
 
                 // 6. Set alreadyResolved.[[Value]] to true.
-                *already_resolved = true;
+                *already_resolved.borrow_mut() = true;
 
-                let reason = args.get_or_undefined(0);
+                // let reason = args.get_or_undefined(0);
                 // 7. Perform RejectPromise(promise, reason).
                 promise
                     .borrow_mut()
                     .as_promise_mut()
                     .expect("Expected promise to be a Promise")
-                    .reject(reason, context);
+                    .reject(args.get_or_undefined(0), context);
 
                 // 8. Return undefined.
                 Ok(JsValue::Undefined)
@@ -503,6 +503,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
+    #[track_caller]
     pub fn reject(&mut self, reason: &JsValue, context: &mut Context) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert_eq!(
@@ -709,7 +710,7 @@ impl Promise {
         let promise = this;
 
         // 2. If IsPromise(promise) is false, throw a TypeError exception.
-        let promise_obj = match promise.as_object() {
+        let promise_obj = match promise.as_promise() {
             Some(obj) => obj,
             None => return context.throw_type_error("IsPromise(promise) is false"),
         };
