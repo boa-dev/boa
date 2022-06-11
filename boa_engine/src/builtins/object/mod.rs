@@ -74,6 +74,7 @@ impl BuiltIn for Object {
         .method(Self::legacy_define_getter, "__defineGetter__", 2)
         .method(Self::legacy_define_setter, "__defineSetter__", 2)
         .method(Self::legacy_lookup_getter, "__lookupGetter__", 1)
+        .method(Self::legacy_lookup_setter, "__lookupSetter__", 1)
         .static_method(Self::create, "create", 2)
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
@@ -316,6 +317,50 @@ impl Object {
                 // i. If IsAccessorDescriptor(desc) is true, return desc.[[Get]].
                 return if current_desc.is_accessor_descriptor() {
                     Ok(current_desc.expect_get().into())
+                } else {
+                    // ii. Return undefined.
+                    Ok(JsValue::undefined())
+                };
+            }
+            match obj.__get_prototype_of__(context)? {
+                // c. Set O to ? O.[[GetPrototypeOf]]().
+                Some(o) => obj = o,
+                // d. If O is null, return undefined.
+                None => return Ok(JsValue::undefined()),
+            }
+        }
+    }
+    /// `Object.prototype.__lookupSetter__(prop)`
+    ///
+    /// Returns the function bound as a getter to the specified property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__lookupSetter__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__lookupSetter__
+    pub fn legacy_lookup_setter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let mut obj = this.to_object(context)?;
+
+        // 2. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 3. Repeat
+        loop {
+            // a. Let desc be ? O.[[GetOwnProperty]](key).
+            let desc = obj.__get_own_property__(&key, context)?;
+
+            // b. If desc is not undefined, then
+            if let Some(current_desc) = desc {
+                // i. If IsAccessorDescriptor(desc) is true, return desc.[[Set]].
+                return if current_desc.is_accessor_descriptor() {
+                    Ok(current_desc.expect_set().into())
                 } else {
                     // ii. Return undefined.
                     Ok(JsValue::undefined())
