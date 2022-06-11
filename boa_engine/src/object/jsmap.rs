@@ -75,8 +75,12 @@ impl JsMap {
     /// Return the keys Iterator object
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsMapIterator> {
-        let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?.get_iterator(context, None, None)?;
-        let map_iterator_object = iterator_record.iterator_object().as_object().expect("MapIterator for Map.prototype.keys() should not fail");
+        let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
+            .get_iterator(context, None, None)?;
+        let map_iterator_object = iterator_record
+            .iterator_object()
+            .as_object()
+            .expect("MapIterator for Map.prototype.keys() should not fail");
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 
@@ -135,8 +139,12 @@ impl JsMap {
     /// Returns new Iterator object of value elements of the Map
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsMapIterator> {
-        let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?.get_iterator(context, None, None)?;
-        let map_iterator_object = iterator_record.iterator_object().as_object().expect("MapIterator for Map.prototype.values() should not fail");
+        let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
+            .get_iterator(context, None, None)?;
+        let map_iterator_object = iterator_record
+            .iterator_object()
+            .as_object()
+            .expect("MapIterator for Map.prototype.values() should not fail");
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 }
