@@ -27,6 +27,11 @@ use tap::{Conv, Pipe};
 /// `IfAbruptRejectPromise ( value, capability )`
 ///
 /// `IfAbruptRejectPromise` is a shorthand for a sequence of algorithm steps that use a `PromiseCapability` Record.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ifabruptrejectpromise
 macro_rules! if_abrupt_reject_promise {
     ($value:ident, $capability:expr, $context: expr) => {
         let $value = match $value {
@@ -505,6 +510,9 @@ impl Promise {
 
     /// `FulfillPromise ( promise, value )`
     ///
+    /// The abstract operation `FulfillPromise` takes arguments `promise` and `value` and returns
+    /// `unused`.
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -541,6 +549,9 @@ impl Promise {
     }
 
     /// `RejectPromise ( promise, reason )`
+    ///
+    /// The abstract operation `RejectPromise` takes arguments `promise` and `reason` and returns
+    /// `unused`.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -583,6 +594,13 @@ impl Promise {
 
     /// `TriggerPromiseReactions ( reactions, argument )`
     ///
+    /// The abstract operation `TriggerPromiseReactions` takes arguments `reactions` (a `List` of
+    /// `PromiseReaction` Records) and `argument` and returns unused. It enqueues a new `Job` for
+    /// each record in `reactions`. Each such `Job` processes the `[[Type]]` and `[[Handler]]` of
+    /// the `PromiseReaction` Record, and if the `[[Handler]]` is not `empty`, calls it passing the
+    /// given argument. If the `[[Handler]]` is `empty`, the behaviour is determined by the
+    /// `[[Type]]`.
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
@@ -607,10 +625,15 @@ impl Promise {
 
     /// `Promise.race ( iterable )`
     ///
+    /// The `race` function returns a new promise which is settled in the same way as the first
+    /// passed promise to settle. It resolves all elements of the passed `iterable` to promises.
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.race
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
     pub fn race(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let iterable = args.get_or_undefined(0);
 
@@ -663,6 +686,11 @@ impl Promise {
     /// (a constructor), `resultCapability` (a [`PromiseCapability`] Record), and `promiseResolve`
     /// (a function object) and returns either a normal completion containing an ECMAScript
     /// language value or a throw completion.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-performpromiserace
     fn perform_promise_race(
         iterator_record: &IteratorRecord,
         constructor: &JsValue,
@@ -722,8 +750,10 @@ impl Promise {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.reject
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/reject
     pub fn reject(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let r = args.get_or_undefined(0);
 
@@ -748,8 +778,10 @@ impl Promise {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.resolve
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/resolve
     pub fn resolve(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let x = args.get_or_undefined(0);
 
@@ -785,8 +817,10 @@ impl Promise {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.catch
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch
     pub fn catch(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let on_rejected = args.get_or_undefined(0);
 
@@ -804,8 +838,10 @@ impl Promise {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.finally
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/finally
     pub fn finally(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
@@ -940,8 +976,10 @@ impl Promise {
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise.prototype.then
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then
     pub fn then(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let promise be the this value.
         let promise = this;
