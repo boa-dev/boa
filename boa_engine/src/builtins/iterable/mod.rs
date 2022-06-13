@@ -202,19 +202,26 @@ pub struct IteratorResult {
 }
 
 impl IteratorResult {
-    /// Get `done` property of iterator result object.
+    /// `IteratorComplete ( iterResult )`
+    ///
+    /// The abstract operation `IteratorComplete` takes argument `iterResult` (an `Object`) and
+    /// returns either a normal completion containing a `Boolean` or a throw completion.
     ///
     /// More information:
     ///  - [ECMA reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-iteratorclose
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete
     #[inline]
     pub fn complete(&self, context: &mut Context) -> JsResult<bool> {
         // 1. Return ToBoolean(? Get(iterResult, "done")).
         Ok(self.object.get("done", context)?.to_boolean())
     }
 
-    /// Get `value` property of iterator result object.
+    /// `IteratorValue ( iterResult )`
+    ///
+    /// The abstract operation `IteratorValue` takes argument `iterResult` (an `Object`) and
+    /// returns either a normal completion containing an ECMAScript language value or a throw
+    /// completion.
     ///
     /// More information:
     ///  - [ECMA reference][spec]
@@ -226,13 +233,16 @@ impl IteratorResult {
         self.object.get("value", context)
     }
 }
+
+/// Iterator Record
+///
 /// An Iterator Record is a Record value used to encapsulate an
-/// `Iterator` or `AsyncIterator` along with the next method.
+/// `Iterator` or `AsyncIterator` along with the `next` method.
 ///
 /// More information:
 ///  - [ECMA reference][spec]
 ///
-/// [spec]:https://tc39.es/ecma262/#table-iterator-record-fields
+/// [spec]: https://tc39.es/ecma262/#sec-iterator-records
 #[derive(Debug)]
 pub struct IteratorRecord {
     /// `[[Iterator]]`
@@ -265,7 +275,11 @@ impl IteratorRecord {
         &self.next_function
     }
 
-    /// Get the next value in the iterator
+    /// `IteratorNext ( iteratorRecord [ , value ] )`
+    ///
+    /// The abstract operation `IteratorNext` takes argument `iteratorRecord` (an `Iterator`
+    /// Record) and optional argument `value` (an ECMAScript language value) and returns either a
+    /// normal completion containing an `Object` or a throw completion.
     ///
     /// More information:
     ///  - [ECMA reference][spec]
@@ -298,7 +312,18 @@ impl IteratorRecord {
         }
     }
 
-    #[inline]
+    /// `IteratorStep ( iteratorRecord )`
+    ///
+    /// The abstract operation `IteratorStep` takes argument `iteratorRecord` (an `Iterator`
+    /// Record) and returns either a normal completion containing either an `Object` or `false`, or
+    /// a throw completion. It requests the next value from `iteratorRecord.[[Iterator]]` by
+    /// calling `iteratorRecord.[[NextMethod]]` and returns either `false` indicating that the
+    /// iterator has reached its end or the `IteratorResult` object if a next value is available.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-iteratorstep
     pub(crate) fn step(&self, context: &mut Context) -> JsResult<Option<IteratorResult>> {
         let _timer = Profiler::global().start_event("IteratorRecord::step", "iterator");
 
@@ -317,7 +342,12 @@ impl IteratorRecord {
         Ok(Some(result))
     }
 
-    /// Cleanup the iterator
+    /// `IteratorClose ( iteratorRecord, completion )`
+    ///
+    /// The abstract operation `IteratorClose` takes arguments `iteratorRecord` (an
+    /// [Iterator Record][Self]) and `completion` (a Completion Record) and returns a Completion
+    /// Record. It is used to notify an iterator that it should perform any actions it would
+    /// normally perform when it has reached its completed state.
     ///
     /// More information:
     ///  - [ECMA reference][spec]

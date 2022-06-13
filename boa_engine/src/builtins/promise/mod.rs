@@ -6,7 +6,7 @@ mod tests;
 mod promise_job;
 
 use self::promise_job::PromiseJob;
-use super::JsArgs;
+use super::{iterable::IteratorRecord, JsArgs};
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
@@ -16,12 +16,33 @@ use crate::{
         JsObject, ObjectData,
     },
     property::Attribute,
+    symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult,
 };
 use boa_gc::{Finalize, Gc, Trace};
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
+
+/// `IfAbruptRejectPromise ( value, capability )`
+///
+/// `IfAbruptRejectPromise` is a shorthand for a sequence of algorithm steps that use a `PromiseCapability` Record.
+macro_rules! if_abrupt_reject_promise {
+    ($value:ident, $capability:expr, $context: expr) => {
+        let $value = match $value {
+            // 1. If value is an abrupt completion, then
+            Err(value) => {
+                // a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
+                $context.call(&$capability.reject, &JsValue::undefined(), &[value])?;
+
+                // b. Return capability.[[Promise]].
+                return Ok($capability.promise.clone());
+            }
+            // 2. Else if value is a Completion Record, set value to value.[[Value]].
+            Ok(value) => value,
+        };
+    };
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PromiseState {
@@ -177,6 +198,11 @@ impl BuiltIn for Promise {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        let get_species = FunctionBuilder::native(context, Self::get_species)
+            .name("get [Symbol.species]")
+            .constructor(false)
+            .build();
+
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
@@ -184,9 +210,23 @@ impl BuiltIn for Promise {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .static_method(Self::race, "race", 1)
+        .static_method(Self::reject, "reject", 1)
+        .static_method(Self::resolve, "resolve", 1)
+        .static_accessor(
+            WellKnownSymbols::species(),
+            Some(get_species),
+            None,
+            Attribute::CONFIGURABLE,
+        )
         .method(Self::then, "then", 1)
         .method(Self::catch, "catch", 1)
         .method(Self::finally, "finally", 1)
+        .property(
+            WellKnownSymbols::to_string_tag(),
+            Self::NAME,
+            Attribute::READONLY | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .build()
         .conv::<JsValue>()
         .pipe(Some)
@@ -331,7 +371,7 @@ impl Promise {
                         .borrow_mut()
                         .as_promise_mut()
                         .expect("Expected promise to be a Promise")
-                        .reject(&self_resolution_error, context);
+                        .reject_promise(&self_resolution_error, context);
 
                     //   c. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -347,7 +387,7 @@ impl Promise {
                         .borrow_mut()
                         .as_promise_mut()
                         .expect("Expected promise to be a Promise")
-                        .fulfill(resolution, context)?;
+                        .fulfill_promise(resolution, context)?;
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -361,7 +401,7 @@ impl Promise {
                             .borrow_mut()
                             .as_promise_mut()
                             .expect("Expected promise to be a Promise")
-                            .reject(&value, context);
+                            .reject_promise(&value, context);
 
                         //   b. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -377,7 +417,7 @@ impl Promise {
                         .borrow_mut()
                         .as_promise_mut()
                         .expect("Expected promise to be a Promise")
-                        .fulfill(resolution, context)?;
+                        .fulfill_promise(resolution, context)?;
 
                     //   b. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -445,7 +485,7 @@ impl Promise {
                     .borrow_mut()
                     .as_promise_mut()
                     .expect("Expected promise to be a Promise")
-                    .reject(args.get_or_undefined(0), context);
+                    .reject_promise(args.get_or_undefined(0), context);
 
                 // 8. Return undefined.
                 Ok(JsValue::Undefined)
@@ -469,8 +509,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-fulfillpromise
-    #[track_caller]
-    pub fn fulfill(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
+    pub fn fulfill_promise(&mut self, value: &JsValue, context: &mut Context) -> JsResult<()> {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert_eq!(
             self.promise_state,
@@ -501,12 +540,13 @@ impl Promise {
         Ok(())
     }
 
+    /// `RejectPromise ( promise, reason )`
+    ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-rejectpromise
-    #[track_caller]
-    pub fn reject(&mut self, reason: &JsValue, context: &mut Context) {
+    pub fn reject_promise(&mut self, reason: &JsValue, context: &mut Context) {
         // 1. Assert: The value of promise.[[PromiseState]] is pending.
         assert_eq!(
             self.promise_state,
@@ -563,6 +603,182 @@ impl Promise {
         }
 
         // 2. Return unused.
+    }
+
+    /// `Promise.race ( iterable )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.race
+    pub fn race(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let iterable = args.get_or_undefined(0);
+
+        // 1. Let C be the this value.
+        let c = this;
+
+        // 2. Let promiseCapability be ? NewPromiseCapability(C).
+        let promise_capability = PromiseCapability::new(c, context)?;
+
+        // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
+        let promise_resolve =
+            Self::get_promise_resolve(c.as_object().expect("this was not an object"), context);
+
+        // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
+        if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
+
+        // 5. Let iteratorRecord be Completion(GetIterator(iterable)).
+        let iterator_record = iterable.get_iterator(context, None, None);
+
+        // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
+        if_abrupt_reject_promise!(iterator_record, promise_capability, context);
+
+        // 7. Let result be Completion(PerformPromiseRace(iteratorRecord, C, promiseCapability, promiseResolve)).
+        let result = Self::perform_promise_race(
+            &iterator_record,
+            c,
+            &promise_capability,
+            &promise_resolve,
+            context,
+        );
+
+        // 8. If result is an abrupt completion, then
+        if result.is_err() {
+            // a. If iteratorRecord.[[Done]] is false, set result to Completion(IteratorClose(iteratorRecord, result)).
+            // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+
+            // b. IfAbruptRejectPromise(result, promiseCapability).
+            if_abrupt_reject_promise!(result, promise_capability, context);
+
+            Ok(result)
+        } else {
+            // 9. Return ? result.
+            result
+        }
+    }
+
+    /// `PerformPromiseRace ( iteratorRecord, constructor, resultCapability, promiseResolve )`
+    ///
+    /// The abstract operation `PerformPromiseRace` takes arguments `iteratorRecord`, `constructor`
+    /// (a constructor), `resultCapability` (a [`PromiseCapability`] Record), and `promiseResolve`
+    /// (a function object) and returns either a normal completion containing an ECMAScript
+    /// language value or a throw completion.
+    fn perform_promise_race(
+        iterator_record: &IteratorRecord,
+        constructor: &JsValue,
+        result_capability: &PromiseCapability,
+        promise_resolve: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Repeat,
+        loop {
+            // a. Let next be Completion(IteratorStep(iteratorRecord)).
+            let next = iterator_record.step(context);
+
+            // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+            if next.is_err() {
+                // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+            }
+
+            // c. ReturnIfAbrupt(next).
+            let next = next?;
+
+            if let Some(next) = next {
+                // e. Let nextValue be Completion(IteratorValue(next)).
+                let next_value = next.value(context);
+
+                // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                if next_value.is_err() {
+                    // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+                }
+
+                // g. ReturnIfAbrupt(nextValue).
+                let next_value = next_value?;
+
+                // h. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
+                let next_promise = context.call(promise_resolve, constructor, &[next_value])?;
+
+                // i. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], resultCapability.[[Reject]] »).
+                next_promise.invoke(
+                    "then",
+                    &[
+                        result_capability.resolve.clone(),
+                        result_capability.reject.clone(),
+                    ],
+                    context,
+                )?;
+            } else {
+                // d. If next is false, then
+                // i. Set iteratorRecord.[[Done]] to true.
+                // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+
+                // ii. Return resultCapability.[[Promise]].
+                return Ok(result_capability.promise.clone());
+            }
+        }
+    }
+
+    /// `Promise.reject ( r )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.reject
+    pub fn reject(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let r = args.get_or_undefined(0);
+
+        // 1. Let C be the this value.
+        let c = this;
+
+        // 2. Let promiseCapability be ? NewPromiseCapability(C).
+        let promise_capability = PromiseCapability::new(c, context)?;
+
+        // 3. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
+        context.call(
+            &promise_capability.reject,
+            &JsValue::undefined(),
+            &[r.clone()],
+        )?;
+
+        // 4. Return promiseCapability.[[Promise]].
+        Ok(promise_capability.promise.clone())
+    }
+
+    /// `Promise.resolve ( x )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.resolve
+    pub fn resolve(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        let x = args.get_or_undefined(0);
+
+        // 1. Let C be the this value.
+        let c = this;
+
+        if let Some(c) = c.as_object() {
+            // 3. Return ? PromiseResolve(C, x).
+            Self::promise_resolve(c.clone(), x.clone(), context)
+        } else {
+            // 2. If Type(C) is not Object, throw a TypeError exception.
+            context.throw_type_error("Promise.resolve() called on a non-object")
+        }
+    }
+
+    /// `get Promise [ @@species ]`
+    ///
+    /// The `Promise [ @@species ]` accessor property returns the Promise constructor.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-promise-@@species
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/@@species
+    #[allow(clippy::unnecessary_wraps)]
+    fn get_species(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        // 1. Return the this value.
+        Ok(this.clone())
     }
 
     /// `Promise.prototype.catch ( onRejected )`
@@ -894,12 +1110,38 @@ impl Promise {
         }
 
         // 2. Let promiseCapability be ? NewPromiseCapability(C).
-        let promise_capability = PromiseCapability::new(&JsValue::from(c), context)?;
+        let promise_capability = PromiseCapability::new(&c.into(), context)?;
 
         // 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
         context.call(&promise_capability.resolve, &JsValue::undefined(), &[x])?;
 
         // 4. Return promiseCapability.[[Promise]].
         Ok(promise_capability.promise.clone())
+    }
+
+    /// `GetPromiseResolve ( promiseConstructor )`
+    ///
+    /// The abstract operation `GetPromiseResolve` takes argument `promiseConstructor` (a
+    /// constructor) and returns either a normal completion containing a function object or a throw
+    /// completion.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-getpromiseresolve
+    fn get_promise_resolve(
+        promise_constructor: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let promiseResolve be ? Get(promiseConstructor, "resolve").
+        let promise_resolve = promise_constructor.get("resolve", context)?;
+
+        // 2. If IsCallable(promiseResolve) is false, throw a TypeError exception.
+        if !promise_resolve.is_callable() {
+            return context.throw_type_error("retrieving a non-callable promise resolver");
+        }
+
+        // 3. Return promiseResolve.
+        Ok(promise_resolve)
     }
 }
