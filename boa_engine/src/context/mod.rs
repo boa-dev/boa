@@ -712,15 +712,17 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
-        self.run_queued_jobs();
+        self.run_queued_jobs()?;
         let (result, _) = result?;
         Ok(result)
     }
 
-    fn run_queued_jobs(&mut self) {
+    /// Runs all the jobs in the job queue.
+    fn run_queued_jobs(&mut self) -> JsResult<()> {
         while let Some(job) = self.promise_job_queue.pop_front() {
-            job.run(self);
+            job.call_job_callback(&JsValue::Undefined, &[], self)?;
         }
+        Ok(())
     }
 
     /// Return the intrinsic constructors and objects.

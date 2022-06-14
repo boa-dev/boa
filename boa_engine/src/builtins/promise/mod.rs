@@ -419,20 +419,23 @@ impl Promise {
                 };
 
                 // 12. If IsCallable(thenAction) is false, then
-                if !then_action.is_callable() {
-                    // a. Perform FulfillPromise(promise, resolution).
-                    promise
-                        .borrow_mut()
-                        .as_promise_mut()
-                        .expect("Expected promise to be a Promise")
-                        .fulfill_promise(resolution, context)?;
+                let then_action = match then_action.as_object() {
+                    Some(then_action) if then_action.is_callable() => then_action,
+                    _ => {
+                        // a. Perform FulfillPromise(promise, resolution).
+                        promise
+                            .borrow_mut()
+                            .as_promise_mut()
+                            .expect("Expected promise to be a Promise")
+                            .fulfill_promise(resolution, context)?;
 
-                    //   b. Return undefined.
-                    return Ok(JsValue::Undefined);
-                }
+                        //   b. Return undefined.
+                        return Ok(JsValue::Undefined);
+                    }
+                };
 
                 // 13. Let thenJobCallback be HostMakeJobCallback(thenAction).
-                let then_job_callback = JobCallback::make_job_callback(then_action);
+                let then_job_callback = JobCallback::make_job_callback(then_action.clone());
 
                 // 14. Let job be NewPromiseResolveThenableJob(promise, resolution, thenJobCallback).
                 let job: JobCallback = PromiseJob::new_promise_resolve_thenable_job(
@@ -999,8 +1002,8 @@ impl Promise {
         // 4. Let resultCapability be ? NewPromiseCapability(C).
         let result_capability = PromiseCapability::new(&c.into(), context)?;
 
-        let on_fulfilled = args.get_or_undefined(0).clone();
-        let on_rejected = args.get_or_undefined(1).clone();
+        let on_fulfilled = args.get_or_undefined(0);
+        let on_rejected = args.get_or_undefined(1);
 
         // 5. Return PerformPromiseThen(promise, onFulfilled, onRejected, resultCapability).
         promise_obj
@@ -1019,8 +1022,8 @@ impl Promise {
     /// [spec]: https://tc39.es/ecma262/#sec-performpromisethen
     fn perform_promise_then(
         &mut self,
-        on_fulfilled: JsValue,
-        on_rejected: JsValue,
+        on_fulfilled: &JsValue,
+        on_rejected: &JsValue,
         result_capability: Option<PromiseCapability>,
         context: &mut Context,
     ) -> JsValue {
@@ -1029,27 +1032,27 @@ impl Promise {
         // 2. If resultCapability is not present, then
         //   a. Set resultCapability to undefined.
 
-        let on_fulfilled_job_callback: Option<JobCallback> =
-        // 3. If IsCallable(onFulfilled) is false, then
-            if on_fulfilled.is_callable() {
-                // 4. Else,
-                //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
-                Some(JobCallback::make_job_callback(on_fulfilled))
-            } else {
-                //   a. Let onFulfilledJobCallback be empty.
-                None
-            };
+        let on_fulfilled_job_callback = match on_fulfilled.as_object() {
+            // 4. Else,
+            //   a. Let onFulfilledJobCallback be HostMakeJobCallback(onFulfilled).
+            Some(on_fulfilled) if on_fulfilled.is_callable() => {
+                Some(JobCallback::make_job_callback(on_fulfilled.clone()))
+            }
+            // 3. If IsCallable(onFulfilled) is false, then
+            //   a. Let onFulfilledJobCallback be empty.
+            _ => None,
+        };
 
-        let on_rejected_job_callback: Option<JobCallback> =
-        // 5. If IsCallable(onRejected) is false, then
-            if on_rejected.is_callable() {
-                // 6. Else,
-                //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
-                Some(JobCallback::make_job_callback(on_rejected))
-            } else {
-                //   a. Let onRejectedJobCallback be empty.
-                None
-            };
+        let on_rejected_job_callback = match on_rejected.as_object() {
+            // 6. Else,
+            //   a. Let onRejectedJobCallback be HostMakeJobCallback(onRejected).
+            Some(on_rejected) if on_rejected.is_callable() => {
+                Some(JobCallback::make_job_callback(on_rejected.clone()))
+            }
+            // 5. If IsCallable(onRejected) is false, then
+            //   a. Let onRejectedJobCallback be empty.
+            _ => None,
+        };
 
         // 7. Let fulfillReaction be the PromiseReaction { [[Capability]]: resultCapability, [[Type]]: Fulfill, [[Handler]]: onFulfilledJobCallback }.
         let fulfill_reaction = ReactionRecord {
