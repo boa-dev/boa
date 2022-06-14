@@ -22,6 +22,7 @@ use crate::{
 };
 use boa_gc::{Finalize, Gc, Trace};
 use boa_profiler::Profiler;
+use std::{cell::Cell, rc::Rc};
 use tap::{Conv, Pipe};
 
 /// `IfAbruptRejectPromise ( value, capability )`
@@ -227,6 +228,7 @@ impl BuiltIn for Promise {
         .method(Self::then, "then", 1)
         .method(Self::catch, "catch", 1)
         .method(Self::finally, "finally", 1)
+        // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
         .property(
             WellKnownSymbols::to_string_tag(),
             Self::NAME,
@@ -247,7 +249,8 @@ struct ResolvingFunctionsRecord {
 #[derive(Debug, Trace, Finalize)]
 struct RejectResolveCaptures {
     promise: JsObject,
-    already_resolved: Gc<boa_gc::Cell<bool>>,
+    #[unsafe_ignore_trace]
+    already_resolved: Rc<Cell<bool>>,
 }
 
 impl Promise {
@@ -329,7 +332,7 @@ impl Promise {
         context: &mut Context,
     ) -> ResolvingFunctionsRecord {
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
-        let already_resolved = Gc::new(boa_gc::Cell::new(false));
+        let already_resolved = Rc::new(Cell::new(false));
 
         // 5. Set resolve.[[Promise]] to promise.
         // 6. Set resolve.[[AlreadyResolved]] to alreadyResolved.
@@ -356,12 +359,12 @@ impl Promise {
                 } = captures;
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                if *already_resolved.borrow() {
+                if already_resolved.get() {
                     return Ok(JsValue::Undefined);
                 }
 
                 // 6. Set alreadyResolved.[[Value]] to true.
-                *already_resolved.borrow_mut() = true;
+                already_resolved.set(true);
 
                 let resolution = args.get_or_undefined(0);
 
@@ -477,12 +480,12 @@ impl Promise {
                 } = captures;
 
                 // 5. If alreadyResolved.[[Value]] is true, return undefined.
-                if *already_resolved.borrow() {
+                if already_resolved.get() {
                     return Ok(JsValue::Undefined);
                 }
 
                 // 6. Set alreadyResolved.[[Value]] to true.
-                *already_resolved.borrow_mut() = true;
+                already_resolved.set(true);
 
                 // let reason = args.get_or_undefined(0);
                 // 7. Perform RejectPromise(promise, reason).
