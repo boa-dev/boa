@@ -163,7 +163,7 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: array, iterator, next_function **=>** array
+    /// Stack: array, iterator, next_method, done **=>** array
     PushIteratorToArray,
 
     /// Binary `+` operator.
@@ -920,42 +920,42 @@ pub enum Opcode {
     ///
     /// Operands: address: `u32`
     ///
-    /// Stack: object **=>** iterator, next_function
+    /// Stack: object **=>** iterator, next_method, done
     ForInLoopInitIterator,
 
     /// Initialize an iterator.
     ///
     /// Operands:
     ///
-    /// Stack: object **=>** iterator, next_function
+    /// Stack: object **=>** iterator, next_method, done
     InitIterator,
 
     /// Advance the iterator by one and put the value on the stack.
     ///
     /// Operands:
     ///
-    /// Stack: iterator, next_function **=>** iterator, next_function, next_value
+    /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_value
     IteratorNext,
 
     /// Advance the iterator by one and put done and value on the stack.
     ///
     /// Operands:
     ///
-    /// Stack: iterator, next_function **=>** iterator, next_function, next_done, next_value
+    /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_value
     IteratorNextFull,
 
     /// Close an iterator.
     ///
     /// Operands:
     ///
-    /// Stack: iterator, next_function, done **=>**
+    /// Stack: iterator, next_method, done **=>**
     IteratorClose,
 
     /// Consume the iterator and construct and array with all the values.
     ///
     /// Operands:
     ///
-    /// Stack: iterator, next_function **=>** iterator, next_function, array
+    /// Stack: iterator, next_method, done **=>** iterator, next_method, done, array
     IteratorToArray,
 
     /// Move to the next value in a for..in loop or jump to exit of the loop if done.
@@ -964,7 +964,7 @@ pub enum Opcode {
     ///
     /// Operands: address: `u32`
     ///
-    /// Stack: iterator, next_function **=>** iterator, next_function, next_result
+    /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_result
     ForInLoopNext,
 
     /// Concat multiple stack objects into a string.
@@ -1034,7 +1034,7 @@ pub enum Opcode {
     ///
     /// Operands: done_address: `u32`
     ///
-    /// Stack: iterator, next_function, received **=>** iterator, next_function
+    /// Stack: iterator, next_method, done, received **=>** iterator, next_method, done
     GeneratorNextDelegate,
 
     /// No-operation instruction, does nothing.

@@ -660,7 +660,7 @@ impl JsValue {
     /// More information:
     /// - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#sec-getmethod
+    /// [spec]: https://tc39.es/ecma262/#sec-getv
     #[inline]
     pub(crate) fn get_v<K>(&self, key: K, context: &mut Context) -> JsResult<Self>
     where
