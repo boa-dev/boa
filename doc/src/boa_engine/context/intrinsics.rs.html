@@ -411,6 +411,13 @@
 <span id="404">404</span>
 <span id="405">405</span>
 <span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">error</span>::<span class="ident">r#type</span><span class="ident">::create_throw_type_error</span>, <span class="ident">iterable::IteratorPrototypes</span>},
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
@@ -523,6 +530,7 @@
     <span class="ident">array_buffer</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">data_view</span>: <span class="ident">StandardConstructor</span>,
     <span class="ident">date_time_format</span>: <span class="ident">StandardConstructor</span>,
+    <span class="ident">promise</span>: <span class="ident">StandardConstructor</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">StandardConstructors</span> {
@@ -578,6 +586,7 @@
             <span class="ident">array_buffer</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">data_view</span>: <span class="ident">StandardConstructor::default</span>(),
             <span class="ident">date_time_format</span>: <span class="ident">StandardConstructor::default</span>(),
+            <span class="ident">promise</span>: <span class="ident">StandardConstructor::default</span>(),
         };
 
         <span class="comment">// The value of `Array.prototype` is the Array prototype object.</span>
@@ -784,6 +793,11 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">date_time_format</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">date_time_format</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">promise</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StandardConstructor</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">promise</span>
     }
 }
 

@@ -556,6 +556,7 @@
 <span id="549">549</span>
 <span id="550">550</span>
 <span id="551">551</span>
+<span id="552">552</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate will run the full ECMAScript test suite (Test262) and report compliance of the</span>
@@ -900,6 +901,7 @@
 <span class="kw">struct</span> <span class="ident">Harness</span> {
     <span class="ident">assert</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">sta</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="ident">doneprint_handle</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     <span class="ident">includes</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>, <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 

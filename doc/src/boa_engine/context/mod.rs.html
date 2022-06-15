@@ -812,12 +812,41 @@
 <span id="805">805</span>
 <span id="806">806</span>
 <span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
 <span class="kw">mod</span> <span class="ident">icu</span>;
+
+<span class="kw">use</span> <span class="ident">std::collections::VecDeque</span>;
 
 <span class="kw">use</span> <span class="ident">intrinsics</span>::{<span class="ident">IntrinsicObjects</span>, <span class="ident">Intrinsics</span>};
 
@@ -827,6 +856,7 @@
     <span class="ident">builtins</span>::{<span class="self">self</span>, <span class="ident">function::NativeFunctionSignature</span>},
     <span class="ident">bytecompiler::ByteCompiler</span>,
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
+    <span class="ident">job::JobCallback</span>,
     <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">GlobalPropertyMap</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">realm::Realm</span>,
@@ -911,6 +941,8 @@
     <span class="ident">icu</span>: <span class="ident">icu::Icu</span>,
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">vm</span>: <span class="ident">Vm</span>,
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">promise_job_queue</span>: <span class="ident">VecDeque</span><span class="op">&lt;</span><span class="ident">JobCallback</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Context</span> {
@@ -1521,8 +1553,17 @@
         <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">set_global_binding_number</span>();
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">run</span>();
         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop_frame</span>();
+        <span class="self">self</span>.<span class="ident">run_queued_jobs</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> (<span class="ident">result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
+    }
+
+    <span class="doccomment">/// Runs all the jobs in the job queue.</span>
+    <span class="kw">fn</span> <span class="ident">run_queued_jobs</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">job</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">promise_job_queue</span>.<span class="ident">pop_front</span>() {
+            <span class="ident">job</span>.<span class="ident">call_job_callback</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
+        }
+        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="doccomment">/// Return the intrinsic constructors and objects.</span>
@@ -1541,6 +1582,18 @@
     <span class="doccomment">/// Get the ICU related utilities</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">icu</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">icu::Icu</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">icu</span>
+    }
+
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">host_enqueue_promise_job</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">job</span>: <span class="ident">JobCallback</span> <span class="comment">/* , realm: Realm */</span>) {
+        <span class="comment">// If realm is not null ...</span>
+        <span class="comment">// TODO</span>
+        <span class="comment">// Let scriptOrModule be ...</span>
+        <span class="comment">// TODO</span>
+        <span class="self">self</span>.<span class="ident">promise_job_queue</span>.<span class="ident">push_back</span>(<span class="ident">job</span>);
     }
 }
 <span class="doccomment">/// Builder for the [`Context`] type.</span>
@@ -1609,6 +1662,7 @@
                 <span class="ident">icu::Icu::new</span>(<span class="ident">Box::new</span>(<span class="ident">icu_testdata::get_provider</span>()))
                     .<span class="ident">expect</span>(<span class="string">&quot;Failed to initialize default icu data.&quot;</span>)
             }),
+            <span class="ident">promise_job_queue</span>: <span class="ident">VecDeque::new</span>(),
         };
 
         <span class="comment">// Add new builtIns to Context Realm</span>

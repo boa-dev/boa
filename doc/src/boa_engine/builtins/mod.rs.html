@@ -220,6 +220,9 @@
 <span id="213">213</span>
 <span id="214">214</span>
 <span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
@@ -242,6 +245,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">nan</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">number</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">object</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">promise</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">proxy</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">reflect</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">regexp</span>;
@@ -279,6 +283,7 @@
     <span class="ident">number::Number</span>,
     <span class="ident">object::for_in_iterator::ForInIterator</span>,
     <span class="ident">object::Object</span> <span class="kw">as</span> <span class="ident">BuiltInObjectObject</span>,
+    <span class="ident">promise::Promise</span>,
     <span class="ident">proxy::Proxy</span>,
     <span class="ident">reflect::Reflect</span>,
     <span class="ident">regexp::RegExp</span>,
@@ -404,7 +409,8 @@
         <span class="ident">AggregateError</span>,
         <span class="ident">Reflect</span>,
         <span class="ident">Generator</span>,
-        <span class="ident">GeneratorFunction</span>
+        <span class="ident">GeneratorFunction</span>,
+        <span class="ident">Promise</span>
     };
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>

@@ -438,6 +438,36 @@
 <span id="431">431</span>
 <span id="432">432</span>
 <span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
@@ -642,19 +672,26 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorResult</span> {
-    <span class="doccomment">/// Get `done` property of iterator result object.</span>
+    <span class="doccomment">/// `IteratorComplete ( iterResult )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The abstract operation `IteratorComplete` takes argument `iterResult` (an `Object`) and</span>
+    <span class="doccomment">/// returns either a normal completion containing a `Boolean` or a throw completion.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMA reference][spec]</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratorclose</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratorcomplete</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">complete</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return ToBoolean(? Get(iterResult, &quot;done&quot;)).</span>
         <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;done&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>())
     }
 
-    <span class="doccomment">/// Get `value` property of iterator result object.</span>
+    <span class="doccomment">/// `IteratorValue ( iterResult )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The abstract operation `IteratorValue` takes argument `iterResult` (an `Object`) and</span>
+    <span class="doccomment">/// returns either a normal completion containing an ECMAScript language value or a throw</span>
+    <span class="doccomment">/// completion.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMA reference][spec]</span>
@@ -666,13 +703,16 @@
         <span class="self">self</span>.<span class="ident">object</span>.<span class="ident">get</span>(<span class="string">&quot;value&quot;</span>, <span class="ident">context</span>)
     }
 }
+
+<span class="doccomment">/// Iterator Record</span>
+<span class="doccomment">///</span>
 <span class="doccomment">/// An Iterator Record is a Record value used to encapsulate an</span>
-<span class="doccomment">/// `Iterator` or `AsyncIterator` along with the next method.</span>
+<span class="doccomment">/// `Iterator` or `AsyncIterator` along with the `next` method.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMA reference][spec]</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [spec]:https://tc39.es/ecma262/#table-iterator-record-fields</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iterator-records</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorRecord</span> {
     <span class="doccomment">/// `[[Iterator]]`</span>
@@ -705,7 +745,11 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">next_function</span>
     }
 
-    <span class="doccomment">/// Get the next value in the iterator</span>
+    <span class="doccomment">/// `IteratorNext ( iteratorRecord [ , value ] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The abstract operation `IteratorNext` takes argument `iteratorRecord` (an `Iterator`</span>
+    <span class="doccomment">/// Record) and optional argument `value` (an ECMAScript language value) and returns either a</span>
+    <span class="doccomment">/// normal completion containing an `Object` or a throw completion.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMA reference][spec]</span>
@@ -738,7 +782,18 @@
         }
     }
 
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="doccomment">/// `IteratorStep ( iteratorRecord )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The abstract operation `IteratorStep` takes argument `iteratorRecord` (an `Iterator`</span>
+    <span class="doccomment">/// Record) and returns either a normal completion containing either an `Object` or `false`, or</span>
+    <span class="doccomment">/// a throw completion. It requests the next value from `iteratorRecord.[[Iterator]]` by</span>
+    <span class="doccomment">/// calling `iteratorRecord.[[NextMethod]]` and returns either `false` indicating that the</span>
+    <span class="doccomment">/// iterator has reached its end or the `IteratorResult` object if a next value is available.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMA reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iteratorstep</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">step</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">IteratorResult</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;IteratorRecord::step&quot;</span>, <span class="string">&quot;iterator&quot;</span>);
 
@@ -757,7 +812,12 @@
         <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">result</span>))
     }
 
-    <span class="doccomment">/// Cleanup the iterator</span>
+    <span class="doccomment">/// `IteratorClose ( iteratorRecord, completion )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The abstract operation `IteratorClose` takes arguments `iteratorRecord` (an</span>
+    <span class="doccomment">/// [Iterator Record][Self]) and `completion` (a Completion Record) and returns a Completion</span>
+    <span class="doccomment">/// Record. It is used to notify an iterator that it should perform any actions it would</span>
+    <span class="doccomment">/// normally perform when it has reached its completed state.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMA reference][spec]</span>

@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `boa_engine/src/job.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>job.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../boa_engine/index.html"><div class="logo-container">
+                    <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></div>
+        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../boa_engine/index.html">
+                        <img src="https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<span id="2">2</span>
+<span id="3">3</span>
+<span id="4">4</span>
+<span id="5">5</span>
+<span id="6">6</span>
+<span id="7">7</span>
+<span id="8">8</span>
+<span id="9">9</span>
+<span id="10">10</span>
+<span id="11">11</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">prelude::JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>};
+<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+
+<span class="doccomment">/// `JobCallback` records</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-jobcallback-records</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JobCallback</span> {
+    <span class="ident">callback</span>: <span class="ident">JsObject</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">JobCallback</span> {
+    <span class="doccomment">/// `HostMakeJobCallback ( callback )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The host-defined abstract operation `HostMakeJobCallback` takes argument `callback` (a</span>
+    <span class="doccomment">/// function object) and returns a `JobCallback` Record.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-hostmakejobcallback</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">make_job_callback</span>(<span class="ident">callback</span>: <span class="ident">JsObject</span>) -&gt; <span class="self">Self</span> {
+        <span class="comment">// 1. Return the JobCallback Record { [[Callback]]: callback, [[HostDefined]]: empty }.</span>
+        <span class="self">Self</span> { <span class="ident">callback</span> }
+    }
+
+    <span class="doccomment">/// `HostCallJobCallback ( jobCallback, V, argumentsList )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The host-defined abstract operation `HostCallJobCallback` takes arguments `jobCallback` (a</span>
+    <span class="doccomment">/// `JobCallback` Record), `V` (an ECMAScript language value), and `argumentsList` (a `List` of</span>
+    <span class="doccomment">/// ECMAScript language values) and returns either a normal completion containing an ECMAScript</span>
+    <span class="doccomment">/// language value or a throw completion.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-hostcalljobcallback</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">call_job_callback</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// It must perform and return the result of Call(jobCallback.[[Callback]], V, argumentsList).</span>
+
+        <span class="comment">// 1. Assert: IsCallable(jobCallback.[[Callback]]) is true.</span>
+        <span class="macro">assert!</span>(
+            <span class="self">self</span>.<span class="ident">callback</span>.<span class="ident">is_callable</span>(),
+            <span class="string">&quot;the callback of the job callback was not callable&quot;</span>
+        );
+
+        <span class="comment">// 2. Return ? Call(jobCallback.[[Callback]], V, argumentsList).</span>
+        <span class="self">self</span>.<span class="ident">callback</span>.<span class="ident">__call__</span>(<span class="ident">v</span>, <span class="ident">arguments_list</span>, <span class="ident">context</span>)
+    }
+}
+</code></pre></div>
+</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</body></html>
