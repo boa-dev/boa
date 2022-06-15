@@ -110,6 +110,7 @@ pub struct StandardConstructors {
     array_buffer: StandardConstructor,
     data_view: StandardConstructor,
     date_time_format: StandardConstructor,
+    promise: StandardConstructor,
 }
 
 impl Default for StandardConstructors {
@@ -165,6 +166,7 @@ impl Default for StandardConstructors {
             array_buffer: StandardConstructor::default(),
             data_view: StandardConstructor::default(),
             date_time_format: StandardConstructor::default(),
+            promise: StandardConstructor::default(),
         };
 
         // The value of `Array.prototype` is the Array prototype object.
@@ -371,6 +373,11 @@ impl StandardConstructors {
     #[inline]
     pub fn date_time_format(&self) -> &StandardConstructor {
         &self.date_time_format
+    }
+
+    #[inline]
+    pub fn promise(&self) -> &StandardConstructor {
+        &self.promise
     }
 }
 

@@ -5,6 +5,8 @@ pub mod intrinsics;
 #[cfg(feature = "intl")]
 mod icu;
 
+use std::collections::VecDeque;
+
 use intrinsics::{IntrinsicObjects, Intrinsics};
 
 #[cfg(feature = "console")]
@@ -13,6 +15,7 @@ use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -97,6 +100,8 @@ pub struct Context {
     icu: icu::Icu,
 
     pub(crate) vm: Vm,
+
+    pub(crate) promise_job_queue: VecDeque<JobCallback>,
 }
 
 impl Default for Context {
@@ -707,8 +712,17 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
+        self.run_queued_jobs()?;
         let (result, _) = result?;
         Ok(result)
+    }
+
+    /// Runs all the jobs in the job queue.
+    fn run_queued_jobs(&mut self) -> JsResult<()> {
+        while let Some(job) = self.promise_job_queue.pop_front() {
+            job.call_job_callback(&JsValue::Undefined, &[], self)?;
+        }
+        Ok(())
     }
 
     /// Return the intrinsic constructors and objects.
@@ -727,6 +741,18 @@ impl Context {
     /// Get the ICU related utilities
     pub(crate) fn icu(&self) -> &icu::Icu {
         &self.icu
+    }
+
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
+    pub fn host_enqueue_promise_job(&mut self, job: JobCallback /* , realm: Realm */) {
+        // If realm is not null ...
+        // TODO
+        // Let scriptOrModule be ...
+        // TODO
+        self.promise_job_queue.push_back(job);
     }
 }
 /// Builder for the [`Context`] type.
@@ -795,6 +821,7 @@ impl ContextBuilder {
                 icu::Icu::new(Box::new(icu_testdata::get_provider()))
                     .expect("Failed to initialize default icu data.")
             }),
+            promise_job_queue: VecDeque::new(),
         };
 
         // Add new builtIns to Context Realm

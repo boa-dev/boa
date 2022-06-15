@@ -14,6 +14,7 @@ publish = false
 [dependencies]
 boa_engine = { path = "../boa_engine", features = ["intl"], version = "0.15.0" }
 boa_interner = { path = "../boa_interner", version = "0.15.0" }
+boa_gc = { path = "../boa_gc", version = "0.15.0" }
 structopt = "0.3.26"
 serde = { version = "1.0.137", features = ["derive"] }
 serde_yaml = "0.8.24"

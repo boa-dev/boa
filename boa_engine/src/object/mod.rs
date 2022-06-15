@@ -40,7 +40,7 @@ use crate::{
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
-        DataView, Date, RegExp,
+        DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -172,6 +172,7 @@ pub enum ObjectKind {
     IntegerIndexed(IntegerIndexed),
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
+    Promise(Promise),
 }
 
 impl ObjectData {
@@ -251,6 +252,14 @@ impl ObjectData {
     pub fn data_view(data_view: DataView) -> Self {
         Self {
             kind: ObjectKind::DataView(data_view),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `Promise` object data
+    pub fn promise(promise: Promise) -> Self {
+        Self {
+            kind: ObjectKind::Promise(promise),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -473,6 +482,7 @@ impl Display for ObjectKind {
             Self::DataView(_) => "DataView",
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(_) => "DateTimeFormat",
+            Self::Promise(_) => "Promise",
         })
     }
 }
@@ -1199,6 +1209,41 @@ impl Object {
                 kind: ObjectKind::NativeObject(ref object),
                 ..
             } => Some(object.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// Checks if it is a `Promise` object.
+    #[inline]
+    pub fn is_promise(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Promise(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the promise data if the object is a promise.
+    #[inline]
+    pub fn as_promise(&self) -> Option<&Promise> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Promise(ref promise),
+                ..
+            } => Some(promise),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_promise_mut(&mut self) -> Option<&mut Promise> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Promise(ref mut promise),
+                ..
+            } => Some(promise),
             _ => None,
         }
     }

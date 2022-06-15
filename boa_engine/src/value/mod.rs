@@ -148,7 +148,7 @@ impl JsValue {
         self.as_object().filter(|obj| obj.is_callable())
     }
 
-    /// Returns true if the value is a constructor object
+    /// Returns true if the value is a constructor object.
     #[inline]
     pub fn is_constructor(&self) -> bool {
         matches!(self, Self::Object(obj) if obj.is_constructor())
@@ -157,6 +157,17 @@ impl JsValue {
     #[inline]
     pub fn as_constructor(&self) -> Option<&JsObject> {
         self.as_object().filter(|obj| obj.is_constructor())
+    }
+
+    /// Returns true if the value is a promise object.
+    #[inline]
+    pub fn is_promise(&self) -> bool {
+        matches!(self, Self::Object(obj) if obj.is_promise())
+    }
+
+    #[inline]
+    pub fn as_promise(&self) -> Option<&JsObject> {
+        self.as_object().filter(|obj| obj.is_promise())
     }
 
     /// Returns true if the value is a symbol.
