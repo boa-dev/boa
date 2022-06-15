@@ -5,7 +5,7 @@
 use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
-    object::{JsMapIterator, JsObject, JsObjectType, ObjectData},
+    object::{JsFunction, JsMapIterator, JsObject, JsObjectType, ObjectData},
     Context, JsResult, JsValue,
 };
 
@@ -134,6 +134,21 @@ impl JsMap {
         T: Into<JsValue>,
     {
         Map::has(&self.inner.clone().into(), &[key.into()], context)
+    }
+
+    // Executes provided callback function for each key-value pair.
+    #[inline]
+    pub fn for_each(
+        &self,
+        callback: JsFunction,
+        this_arg: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Map::for_each(
+            &self.inner.clone().into(),
+            &[callback.into(), this_arg],
+            context,
+        )
     }
 
     /// Returns new Iterator object of value elements of the Map.
