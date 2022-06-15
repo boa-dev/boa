@@ -18,7 +18,7 @@ pub struct JsMap {
 }
 
 impl JsMap {
-    /// Create new Empty Map Object
+    /// Create new Empty Map Object.
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         let map = Self::create_map(context);
@@ -28,10 +28,10 @@ impl JsMap {
     /// Create a new map object for any object that has a `@@Iterator` field.
     #[inline]
     pub fn from_js_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Self> {
-        // Create a new map
+        // Create a new map object.
         let map = Self::create_map(context);
 
-        // Let adder be Get(map, "set") per spec. This action should not fail with default map
+        // Let adder be Get(map, "set") per spec. This action should not fail with default map.
         let adder = map
             .get("set", context)
             .expect("creating a map with the default prototype must not fail");
@@ -51,7 +51,7 @@ impl JsMap {
         }
     }
 
-    // utility function to generate default Map object
+    // Utility function to generate default Map object.
     fn create_map(context: &mut Context) -> JsObject {
         // Get default Map prototype
         let prototype = context.intrinsics().constructors().map().prototype();
@@ -60,7 +60,7 @@ impl JsMap {
         JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()))
     }
 
-    /// Return a new Iterator object that contains the [key, value] pairs in order of assertion
+    /// Return a new Iterator object that contains the [key, value] pairs in order of assertion.
     #[inline]
     pub fn entries(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
@@ -97,13 +97,13 @@ impl JsMap {
         )
     }
 
-    /// Obtains the size of the map
+    /// Obtains the size of the map.
     #[inline]
     pub fn get_size(&self, context: &mut Context) -> JsResult<JsValue> {
         Map::get_size(&self.inner.clone().into(), &[], context)
     }
 
-    /// Remove entry from Map associated with key
+    /// Remove entry from Map associated with key.
     #[inline]
     pub fn delete<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -112,7 +112,7 @@ impl JsMap {
         Map::delete(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    /// Returns value associated to key or undefined
+    /// Returns value associated to key or undefined.
     #[inline]
     pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -121,13 +121,13 @@ impl JsMap {
         Map::get(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    /// Removes all entries from a map
+    /// Removes all entries from a map.
     #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
         Map::clear(&self.inner.clone().into(), &[], context)
     }
 
-    /// Checks if map contains provided key
+    /// Checks if map contains provided key.
     #[inline]
     pub fn has<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -136,7 +136,7 @@ impl JsMap {
         Map::has(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    /// Returns new Iterator object of value elements of the Map
+    /// Returns new Iterator object of value elements of the Map.
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
