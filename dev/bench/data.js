@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1655153752337,
+  "lastUpdate": 1655258970753,
   "repoUrl": "https://github.com/boa-dev/boa",
   "entries": {
     "Boa Benchmarks": [
@@ -98227,6 +98227,432 @@ window.BENCHMARK_DATA = {
             "name": "Mini js (Execution)",
             "value": 691621,
             "range": "± 9870",
+            "unit": "ns/iter"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "razican@protonmail.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "committer": {
+            "email": "razican@protonmail.ch",
+            "name": "Iban Eguia",
+            "username": "Razican"
+          },
+          "distinct": false,
+          "id": "0454ddec195fcf46a72a59adabc45b754d925176",
+          "message": "Execution stack & promises (#2107)\n\nThis PR overrides #1923. It also removes the `queues` dependency added there, and rebases it to the latest `main` branch state.\r\n\r\nIt adds the following:\r\n\r\n- A job queue (in `Context`)\r\n- The constructor [`Promise`](https://tc39.es/ecma262/#sec-promise-executor)\r\n- [`Promise.race`](https://tc39.es/ecma262/#sec-promise.race)\r\n- [`Promise.reject`](https://tc39.es/ecma262/#sec-promise.reject)\r\n- [`Promise.resolve`](https://tc39.es/ecma262/#sec-promise.resolve)\r\n- [`get Promise [ @@species ]`](https://tc39.es/ecma262/#sec-get-promise-@@species)\r\n- [`Promise.prototype [ @@toStringTag ]`](https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag)\r\n- [`Promise.prototype.then`](https://tc39.es/ecma262/#sec-promise.prototype.then)\r\n- [`Promise.prototype.finally`](https://tc39.es/ecma262/#sec-promise.prototype.finally)\r\n- [`Promise.prototype.catch`](https://tc39.es/ecma262/#sec-promise.prototype.catch)\r\n- The additional needed infrastructure\r\n  - [`PerformPromiseThen ( promise, onFulfilled, onRejected [ , resultCapability ] )`](https://tc39.es/ecma262/#sec-performpromisethen)\r\n  - [`TriggerPromiseReactions ( reactions, argument )`](https://tc39.es/ecma262/#sec-triggerpromisereactions)\r\n  - [`PerformPromiseRace ( iteratorRecord, constructor, resultCapability, promiseResolve )`](https://tc39.es/ecma262/#sec-performpromiserace)\r\n  - [`RejectPromise ( promise, reason )`](https://tc39.es/ecma262/#sec-rejectpromise)\r\n  - [`FulfillPromise ( promise, value )`](https://tc39.es/ecma262/#sec-fulfillpromise)\r\n  - [`IfAbruptRejectPromise ( value, capability )`](https://tc39.es/ecma262/#sec-ifabruptrejectpromise)\r\n  - [`CreateResolvingFunctions ( promise )`](https://tc39.es/ecma262/#sec-createresolvingfunctions)\r\n  - [`NewPromiseCapability ( C )`](https://tc39.es/ecma262/#sec-newpromisecapability)\r\n  - [`NewPromiseReactionJob ( reaction, argument )`](https://tc39.es/ecma262/#sec-newpromisereactionjob)\r\n  - [`NewPromiseResolveThenableJob ( promiseToResolve, thenable, then )`](https://tc39.es/ecma262/#sec-newpromiseresolvethenablejob)\r\n  - [`PromiseResolve ( C, x )`](https://tc39.es/ecma262/#sec-promise-resolve)\r\n- A test case showcasing the run-to-completion semantics.\r\n\r\nAn example program that shows the control flow with this addition is:\r\n```javascript\r\nnew Promise((res, rej) => {\r\n  console.log(\"A\");\r\n  res(undefined);\r\n}).then((_) => console.log(\"B\"));\r\nconsole.log(\"C\");\r\n```\r\nWhich would output:\r\n```\r\nA\r\nC\r\nB\r\n```",
+          "timestamp": "2022-06-15T01:25:46Z",
+          "tree_id": "1c9ceb47c3f6968edf6c8998847bc27e0d2b167d",
+          "url": "https://github.com/boa-dev/boa/commit/0454ddec195fcf46a72a59adabc45b754d925176"
+        },
+        "date": 1655258899925,
+        "tool": "cargo",
+        "benches": [
+          {
+            "name": "Create Realm",
+            "value": 236,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Parser)",
+            "value": 5137,
+            "range": "± 47",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Parser)",
+            "value": 16124,
+            "range": "± 39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Parser)",
+            "value": 18637,
+            "range": "± 50",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Parser)",
+            "value": 10804,
+            "range": "± 35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Parser)",
+            "value": 11534,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Parser)",
+            "value": 12303,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Parser)",
+            "value": 7599,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Parser)",
+            "value": 9876,
+            "range": "± 30",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Parser)",
+            "value": 9645,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Parser)",
+            "value": 11881,
+            "range": "± 26",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Parser)",
+            "value": 13751,
+            "range": "± 19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Parser)",
+            "value": 15845,
+            "range": "± 29",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Parser)",
+            "value": 150706,
+            "range": "± 129",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Parser)",
+            "value": 8792,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Parser)",
+            "value": 12619,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Parser)",
+            "value": 6706,
+            "range": "± 40",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Parser)",
+            "value": 12791,
+            "range": "± 64",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Parser)",
+            "value": 16431,
+            "range": "± 56",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Parser)",
+            "value": 16128,
+            "range": "± 37",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Parser)",
+            "value": 6058,
+            "range": "± 43",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Parser)",
+            "value": 34519,
+            "range": "± 89",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Parser)",
+            "value": 30128,
+            "range": "± 111",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Compiler)",
+            "value": 1124,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Compiler)",
+            "value": 2731,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Compiler)",
+            "value": 2876,
+            "range": "± 7",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Compiler)",
+            "value": 1645,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Compiler)",
+            "value": 1650,
+            "range": "± 3",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Compiler)",
+            "value": 1854,
+            "range": "± 6",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Compiler)",
+            "value": 1660,
+            "range": "± 17",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Compiler)",
+            "value": 1665,
+            "range": "± 18",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Compiler)",
+            "value": 1829,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Compiler)",
+            "value": 1854,
+            "range": "± 25",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Compiler)",
+            "value": 1547,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Compiler)",
+            "value": 2388,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Compiler)",
+            "value": 4173,
+            "range": "± 13",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Compiler)",
+            "value": 1895,
+            "range": "± 49",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Compiler)",
+            "value": 2386,
+            "range": "± 34",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Compiler)",
+            "value": 1539,
+            "range": "± 31",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Compiler)",
+            "value": 1117,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Compiler)",
+            "value": 1178,
+            "range": "± 2",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Compiler)",
+            "value": 1467,
+            "range": "± 5",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Compiler)",
+            "value": 537,
+            "range": "± 1",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Compiler)",
+            "value": 5104,
+            "range": "± 15",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Compiler)",
+            "value": 4492,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Symbols (Execution)",
+            "value": 4289,
+            "range": "± 12",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "For loop (Execution)",
+            "value": 15887,
+            "range": "± 77",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Fibonacci (Execution)",
+            "value": 1373268,
+            "range": "± 1050",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Object Creation (Execution)",
+            "value": 5037,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Static Object Property Access (Execution)",
+            "value": 5238,
+            "range": "± 19",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Dynamic Object Property Access (Execution)",
+            "value": 5413,
+            "range": "± 21",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal Creation (Execution)",
+            "value": 9247,
+            "range": "± 58",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Creation (Execution)",
+            "value": 9198,
+            "range": "± 39",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp Literal (Execution)",
+            "value": 12300,
+            "range": "± 35",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "RegExp (Execution)",
+            "value": 13070,
+            "range": "± 384",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array access (Execution)",
+            "value": 8615,
+            "range": "± 24",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array creation (Execution)",
+            "value": 2492840,
+            "range": "± 2614",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Array pop (Execution)",
+            "value": 1183043,
+            "range": "± 10914",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String concatenation (Execution)",
+            "value": 4353,
+            "range": "± 9",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String comparison (Execution)",
+            "value": 4582,
+            "range": "± 11",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String copy (Execution)",
+            "value": 4127,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Number Object Access (Execution)",
+            "value": 3513,
+            "range": "± 8",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Boolean Object Access (Execution)",
+            "value": 4540,
+            "range": "± 10",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "String Object Access (Execution)",
+            "value": 6448,
+            "range": "± 27",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Arithmetic operations (Execution)",
+            "value": 520,
+            "range": "± 0",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Clean js (Execution)",
+            "value": 746323,
+            "range": "± 5182",
+            "unit": "ns/iter"
+          },
+          {
+            "name": "Mini js (Execution)",
+            "value": 701024,
+            "range": "± 5723",
             "unit": "ns/iter"
           }
         ]
