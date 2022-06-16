@@ -937,13 +937,6 @@ pub enum Opcode {
     /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_value
     IteratorNext,
 
-    /// Advance the iterator by one and put done and value on the stack.
-    ///
-    /// Operands:
-    ///
-    /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_value
-    IteratorNextFull,
-
     /// Close an iterator.
     ///
     /// Operands:
@@ -1185,7 +1178,6 @@ impl Opcode {
             Self::ForInLoopInitIterator => "ForInLoopInitIterator",
             Self::InitIterator => "InitIterator",
             Self::IteratorNext => "IteratorNext",
-            Self::IteratorNextFull => "IteratorNextFull",
             Self::IteratorClose => "IteratorClose",
             Self::IteratorToArray => "IteratorToArray",
             Self::ForInLoopNext => "ForInLoopNext",
@@ -1319,7 +1311,6 @@ impl Opcode {
             Self::ForInLoopInitIterator => "INST - ForInLoopInitIterator",
             Self::InitIterator => "INST - InitIterator",
             Self::IteratorNext => "INST - IteratorNext",
-            Self::IteratorNextFull => "INST - IteratorNextFull",
             Self::IteratorClose => "INST - IteratorClose",
             Self::IteratorToArray => "INST - IteratorToArray",
             Self::ForInLoopNext => "INST - ForInLoopNext",

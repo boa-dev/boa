@@ -173,10 +173,7 @@ impl JsValue {
         // 7. Return iteratorRecord.
         Ok(IteratorRecord::new(
             iterator_obj.clone(),
-            next_method
-                .as_object()
-                .expect("iterator [[NextMethod]] was not an object")
-                .clone(),
+            next_method,
             false,
         ))
     }
@@ -261,7 +258,7 @@ pub struct IteratorRecord {
     /// `[[NextMethod]]`
     ///
     /// The `next` method of the `[[Iterator]]` object.
-    next_method: JsObject,
+    next_method: JsValue,
 
     /// `[[Done]]`
     ///
@@ -272,7 +269,7 @@ pub struct IteratorRecord {
 impl IteratorRecord {
     /// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
     #[inline]
-    pub fn new(iterator: JsObject, next_method: JsObject, done: bool) -> Self {
+    pub fn new(iterator: JsObject, next_method: JsValue, done: bool) -> Self {
         Self {
             iterator,
             next_method,
@@ -286,7 +283,7 @@ impl IteratorRecord {
     }
 
     #[inline]
-    pub(crate) fn next_method(&self) -> &JsObject {
+    pub(crate) fn next_method(&self) -> &JsValue {
         &self.next_method
     }
 
@@ -313,16 +310,22 @@ impl IteratorRecord {
     ) -> JsResult<IteratorResult> {
         let _timer = Profiler::global().start_event("IteratorRecord::next", "iterator");
 
+        // Note: We check if iteratorRecord.[[NextMethod]] is callable here.
+        // This check would happen in `Call` according to the spec, but we do not implement call for `JsValue`.
+        let next_method = if let Some(next_method) = self.next_method.as_callable() {
+            next_method
+        } else {
+            return context.throw_type_error("iterable next method not a function");
+        };
+
         let result = if let Some(value) = value {
             // 2. Else,
             //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-            self.next_method
-                .call(&self.iterator.clone().into(), &[value], context)?
+            next_method.call(&self.iterator.clone().into(), &[value], context)?
         } else {
             // 1. If value is not present, then
             //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
-            self.next_method
-                .call(&self.iterator.clone().into(), &[], context)?
+            next_method.call(&self.iterator.clone().into(), &[], context)?
         };
 
         // 3. If Type(result) is not Object, throw a TypeError exception.
@@ -392,28 +395,37 @@ impl IteratorRecord {
         let inner_result = iterator.get_method("return", context);
 
         // 4. If innerResult.[[Type]] is normal, then
-        let inner_result = if let Ok(inner_result) = inner_result {
-            // a. Let return be innerResult.[[Value]].
-            let r#return = inner_result;
+        let inner_result = match inner_result {
+            Ok(inner_result) => {
+                // a. Let return be innerResult.[[Value]].
+                let r#return = inner_result;
 
-            if let Some(r#return) = r#return {
-                // c. Set innerResult to Completion(Call(return, iterator)).
-                r#return.call(&iterator.clone().into(), &[], context)
-            } else {
-                // b. If return is undefined, return ? completion.
-                return completion;
+                if let Some(r#return) = r#return {
+                    // c. Set innerResult to Completion(Call(return, iterator)).
+                    r#return.call(&iterator.clone().into(), &[], context)
+                } else {
+                    // b. If return is undefined, return ? completion.
+                    return completion;
+                }
             }
-        } else {
-            // 5. If completion.[[Type]] is throw, return ? completion.
-            return completion;
+            Err(inner_result) => {
+                // 5. If completion.[[Type]] is throw, return ? completion.
+                completion?;
+
+                // 6. If innerResult.[[Type]] is throw, return ? innerResult.
+                return Err(inner_result);
+            }
         };
+
+        // 5. If completion.[[Type]] is throw, return ? completion.
+        let completion = completion?;
 
         // 6. If innerResult.[[Type]] is throw, return ? innerResult.
         let inner_result = inner_result?;
 
         if inner_result.is_object() {
             // 8. Return ? completion.
-            completion
+            Ok(completion)
         } else {
             // 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
             context.throw_type_error("inner result was not an object")

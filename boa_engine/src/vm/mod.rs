@@ -239,14 +239,11 @@ impl Context {
                     .as_boolean()
                     .expect("iterator [[Done]] was not a boolean");
                 let next_method = self.vm.pop();
-                let next_method = next_method
-                    .as_object()
-                    .expect("iterator [[NextMethod]] was not an object");
                 let iterator = self.vm.pop();
                 let iterator = iterator.as_object().expect("iterator was not an object");
                 let array = self.vm.pop();
 
-                let iterator = IteratorRecord::new(iterator.clone(), next_method.clone(), done);
+                let iterator = IteratorRecord::new(iterator.clone(), next_method, done);
                 while let Some(next) = iterator.step(self)? {
                     Array::push(&array, &[next.value(self)?], self)?;
                 }
@@ -1559,38 +1556,8 @@ impl Context {
                     .vm
                     .pop()
                     .as_boolean()
-                    .expect("iterator done was not a boolean");
-                let next_method = self.vm.pop();
-                let next_method = next_method
-                    .as_object()
-                    .expect("iterator [[NextMethod]] was not an object");
-                let iterator = self.vm.pop();
-                let iterator = iterator.as_object().expect("iterator was not an object");
-
-                let iterator_record =
-                    IteratorRecord::new(iterator.clone(), next_method.clone(), done);
-                let next = iterator_record.step(self)?;
-
-                self.vm.push(iterator.clone());
-                self.vm.push(next_method.clone());
-                self.vm.push(done);
-                if let Some(next) = next {
-                    let value = next.value(self)?;
-                    self.vm.push(value);
-                } else {
-                    self.vm.push(JsValue::undefined());
-                }
-            }
-            Opcode::IteratorNextFull => {
-                let done = self
-                    .vm
-                    .pop()
-                    .as_boolean()
                     .expect("iterator [[Done]] was not a boolean");
                 let next_method = self.vm.pop();
-                let next_method = next_method
-                    .as_object()
-                    .expect("iterator [[NextMethod]] was not an object");
                 let iterator = self.vm.pop();
                 let iterator = iterator.as_object().expect("iterator was not an object");
 
@@ -1599,8 +1566,7 @@ impl Context {
                 let next = iterator_record.step(self)?;
 
                 self.vm.push(iterator.clone());
-                self.vm.push(next_method.clone());
-                self.vm.push(done);
+                self.vm.push(next_method);
                 if let Some(next) = next {
                     let value = next.value(self)?;
                     self.vm.push(false);
@@ -1617,14 +1583,10 @@ impl Context {
                     .as_boolean()
                     .expect("iterator [[Done]] was not a boolean");
                 let next_method = self.vm.pop();
-                let next_method = next_method
-                    .as_object()
-                    .expect("iterator [[NextMethod]] was not an object");
                 let iterator = self.vm.pop();
                 let iterator = iterator.as_object().expect("iterator was not an object");
                 if !done {
-                    let iterator_record =
-                        IteratorRecord::new(iterator.clone(), next_method.clone(), done);
+                    let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
                     iterator_record.close(Ok(JsValue::Null), self)?;
                 }
             }
@@ -1635,9 +1597,6 @@ impl Context {
                     .as_boolean()
                     .expect("iterator [[Done]] was not a boolean");
                 let next_method = self.vm.pop();
-                let next_method = next_method
-                    .as_object()
-                    .expect("iterator [[NextMethod]] was not an object");
                 let iterator = self.vm.pop();
                 let iterator = iterator.as_object().expect("iterator was not an object");
 
@@ -1652,8 +1611,8 @@ impl Context {
                 let array = Array::create_array_from_list(values, self);
 
                 self.vm.push(iterator.clone());
-                self.vm.push(next_method.clone());
-                self.vm.push(done);
+                self.vm.push(next_method);
+                self.vm.push(true);
                 self.vm.push(array);
             }
             Opcode::ForInLoopNext => {
@@ -1665,9 +1624,6 @@ impl Context {
                     .as_boolean()
                     .expect("iterator [[Done]] was not a boolean");
                 let next_method = self.vm.pop();
-                let next_method = next_method
-                    .as_object()
-                    .expect("iterator [[NextMethod]] was not an object");
                 let iterator = self.vm.pop();
                 let iterator = iterator.as_object().expect("iterator was not an object");
 
@@ -1675,7 +1631,7 @@ impl Context {
                     IteratorRecord::new(iterator.clone(), next_method.clone(), done);
                 if let Some(next) = iterator_record.step(self)? {
                     self.vm.push(iterator.clone());
-                    self.vm.push(next_method.clone());
+                    self.vm.push(next_method);
                     self.vm.push(done);
                     let value = next.value(self)?;
                     self.vm.push(value);
@@ -1685,7 +1641,7 @@ impl Context {
                     self.vm.frame_mut().try_env_stack_dec();
                     self.realm.environments.pop();
                     self.vm.push(iterator.clone());
-                    self.vm.push(next_method.clone());
+                    self.vm.push(next_method);
                     self.vm.push(done);
                 }
             }
@@ -1788,19 +1744,13 @@ impl Context {
                     .as_boolean()
                     .expect("iterator [[Done]] was not a boolean");
                 let next_method = self.vm.pop();
-                let next_method = next_method
-                    .as_object()
-                    .expect("iterator [[NextMethod]] was not an object");
                 let iterator = self.vm.pop();
                 let iterator = iterator.as_object().expect("iterator was not an object");
 
                 match self.vm.frame().generator_resume_kind {
                     GeneratorResumeKind::Normal => {
-                        let result = self.call(
-                            &next_method.clone().into(),
-                            &iterator.clone().into(),
-                            &[received],
-                        )?;
+                        let result =
+                            self.call(&next_method, &iterator.clone().into(), &[received])?;
                         let result_object = result.as_object().ok_or_else(|| {
                             self.construct_type_error("generator next method returned non-object")
                         })?;
@@ -1843,7 +1793,7 @@ impl Context {
                         }
                         self.vm.frame_mut().pc = done_address as usize;
                         let iterator_record =
-                            IteratorRecord::new(iterator.clone(), next_method.clone(), done);
+                            IteratorRecord::new(iterator.clone(), next_method, done);
                         iterator_record.close(Ok(JsValue::Undefined), self)?;
                         let error =
                             self.construct_type_error("iterator does not have a throw method");
