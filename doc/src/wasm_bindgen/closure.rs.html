@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.80/src/closure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>closure.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.81/src/closure.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>closure.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../wasm_bindgen/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -874,6 +874,21 @@
 <span id="869">869</span>
 <span id="870">870</span>
 <span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Support for long-lived closures in `wasm-bindgen`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module defines the `Closure` type which is used to pass &quot;owned</span>
@@ -881,8 +896,6 @@
 <span class="doccomment">//! type itself.</span>
 
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">std::marker::Unsize</span>;
 <span class="kw">use</span> <span class="ident">std::mem</span>::{<span class="self">self</span>, <span class="ident">ManuallyDrop</span>};
 <span class="kw">use</span> <span class="ident">std::prelude::v1</span>::<span class="kw-2">*</span>;
 
@@ -907,9 +920,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// The type parameter on `Closure` is the type of closure that this represents.</span>
 <span class="doccomment">/// Currently this can only be the `Fn` and `FnMut` traits with up to 7</span>
-<span class="doccomment">/// arguments (and an optional return value). The arguments/return value of the</span>
-<span class="doccomment">/// trait must be numbers like `u32` for now, although this restriction may be</span>
-<span class="doccomment">/// lifted in the future!</span>
+<span class="doccomment">/// arguments (and an optional return value).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -947,9 +958,9 @@
 <span class="doccomment">/// pub fn run() -&gt; IntervalHandle {</span>
 <span class="doccomment">///     // First up we use `Closure::wrap` to wrap up a Rust closure and create</span>
 <span class="doccomment">///     // a JS closure.</span>
-<span class="doccomment">///     let cb = Closure::wrap(Box::new(|| {</span>
+<span class="doccomment">///     let cb = Closure::new(|| {</span>
 <span class="doccomment">///         log(&quot;interval elapsed!&quot;);</span>
-<span class="doccomment">///     }) as Box&lt;dyn FnMut()&gt;);</span>
+<span class="doccomment">///     });</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     // Next we pass this via reference to the `setInterval` function, and</span>
 <span class="doccomment">///     // `setInterval` gets a handle to the corresponding JS closure.</span>
@@ -989,9 +1000,9 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[wasm_bindgen]</span>
 <span class="doccomment">/// pub fn run() -&gt; Result&lt;IntervalHandle, JsValue&gt; {</span>
-<span class="doccomment">///     let cb = Closure::wrap(Box::new(|| {</span>
+<span class="doccomment">///     let cb = Closure::new(|| {</span>
 <span class="doccomment">///         web_sys::console::log_1(&amp;&quot;interval elapsed!&quot;.into());</span>
-<span class="doccomment">///     }) as Box&lt;dyn FnMut()&gt;);</span>
+<span class="doccomment">///     });</span>
 <span class="doccomment">///</span>
 <span class="doccomment">///     let window = web_sys::window().unwrap();</span>
 <span class="doccomment">///     let interval_id = window.set_interval_with_callback_and_timeout_and_arguments_0(</span>
@@ -1130,24 +1141,9 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">WasmClosure</span>,
 {
-    <span class="doccomment">/// A more ergonomic version of `Closure::wrap` that does the boxing and</span>
-    <span class="doccomment">/// cast to trait object for you.</span>
+    <span class="doccomment">/// Creates a new instance of `Closure` from the provided Rust function.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// *This method requires the `nightly` feature of the `wasm-bindgen` crate</span>
-    <span class="doccomment">/// to be enabled, meaning this is a nightly-only API. Users on stable</span>
-    <span class="doccomment">/// should use `Closure::wrap`.*</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">F</span>) -&gt; <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">F</span>: <span class="ident">Unsize</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    {
-        <span class="ident">Closure::wrap</span>(<span class="ident">Box::new</span>(<span class="ident">t</span>) <span class="kw">as</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>)
-    }
-
-    <span class="doccomment">/// Creates a new instance of `Closure` from the provided boxed Rust</span>
-    <span class="doccomment">/// function.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Note that the closure provided here, `Box&lt;T&gt;`, has a few requirements</span>
+    <span class="doccomment">/// Note that the closure provided here, `F`, has a few requirements</span>
     <span class="doccomment">/// associated with it:</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// * It must implement `Fn` or `FnMut` (for `FnOnce` functions see</span>
@@ -1161,6 +1157,15 @@
     <span class="doccomment">/// * Its arguments and return values are all types that can be shared with</span>
     <span class="doccomment">///   JS (i.e. have `#[wasm_bindgen]` annotations or are simple numbers,</span>
     <span class="doccomment">///   etc.)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="ident">F</span>) -&gt; <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">IntoWasmClosure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="ident">Closure::wrap</span>(<span class="ident">Box::new</span>(<span class="ident">t</span>).<span class="ident">unsize</span>())
+    }
+
+    <span class="doccomment">/// A more direct version of `Closure::new` which creates a `Closure` from</span>
+    <span class="doccomment">/// a `Box&lt;dyn Fn&gt;`/`Box&lt;dyn FnMut&gt;`, which is how it&#39;s kept internally.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">wrap</span>(<span class="kw-2">mut</span> <span class="ident">data</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="ident">Closure</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="kw-2">*const</span> <span class="ident">T</span><span class="op">&gt;</span>(), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">FatPtr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>());
         <span class="kw">let</span> (<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">=</span> <span class="kw">unsafe</span> {
@@ -1419,6 +1424,15 @@
     <span class="kw">fn</span> <span class="ident">describe</span>();
 }
 
+<span class="doccomment">/// An internal trait for the `Closure` type.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This trait is not stable and it&#39;s not recommended to use this in bounds or</span>
+<span class="doccomment">/// implement yourself.</span>
+<span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">IntoWasmClosure</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">unsize</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+}
+
 <span class="comment">// The memory safety here in these implementations below is a bit tricky. We</span>
 <span class="comment">// want to be able to drop the `Closure` object from within the invocation of a</span>
 <span class="comment">// `Closure` for cases like promises. That means that while it&#39;s running we</span>
@@ -1586,6 +1600,22 @@
 
                 <span class="ident">js_val</span>
             }
+        }
+
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmClosure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span>
+            <span class="kw">where</span> <span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span>,
+                  $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="ident">FromWasmAbi</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,)<span class="op">*</span>
+                  <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        {
+            <span class="kw">fn</span> <span class="ident">unsize</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">FnMut</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span><span class="op">&gt;</span> { <span class="self">self</span> }
+        }
+
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>,)<span class="op">*</span> <span class="ident">R</span><span class="op">&gt;</span> <span class="ident">IntoWasmClosure</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">T</span>
+            <span class="kw">where</span> <span class="ident">T</span>: <span class="lifetime">&#39;static</span> <span class="op">+</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span>,
+                  $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>: <span class="ident">FromWasmAbi</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,)<span class="op">*</span>
+                  <span class="ident">R</span>: <span class="ident">ReturnWasmAbi</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        {
+            <span class="kw">fn</span> <span class="ident">unsize</span>(<span class="self">self</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Fn</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">var</span>),<span class="kw-2">*</span>) -&gt; <span class="ident">R</span><span class="op">&gt;</span> { <span class="self">self</span> }
         }
     )<span class="kw-2">*</span>)
 }
