@@ -9,6 +9,13 @@ pub enum Opcode {
     /// Stack: value **=>**
     Pop,
 
+    /// Pop the top value from the stack if the last try block has thrown a value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>**
+    PopIfThrown,
+
     /// Push a copy of the top value on the stack.
     ///
     /// Operands:
@@ -1053,6 +1060,7 @@ impl Opcode {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Pop => "Pop",
+            Self::PopIfThrown => "PopIfThrown",
             Self::Dup => "Dup",
             Self::Swap => "Swap",
             Self::PushZero => "PushZero",
@@ -1199,6 +1207,7 @@ impl Opcode {
     pub fn as_instruction_str(self) -> &'static str {
         match self {
             Self::Pop => "INST - Pop",
+            Self::PopIfThrown => "INST - PopIfThrown",
             Self::Dup => "INST - Dup",
             Self::Swap => "INST - Swap",
             Self::PushZero => "INST - PushZero",

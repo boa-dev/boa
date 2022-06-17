@@ -146,6 +146,13 @@ impl Context {
             Opcode::Pop => {
                 let _val = self.vm.pop();
             }
+            Opcode::PopIfThrown => {
+                let frame = self.vm.frame_mut();
+                if frame.thrown {
+                    frame.thrown = false;
+                    self.vm.pop();
+                }
+            }
             Opcode::Dup => {
                 let value = self.vm.pop();
                 self.vm.push(value.clone());
@@ -1150,6 +1157,7 @@ impl Context {
                     num_env: 0,
                     num_loop_stack_entries: 0,
                 });
+                self.vm.frame_mut().thrown = false;
             }
             Opcode::CatchEnd2 => {
                 let frame = self.vm.frame_mut();
@@ -1960,6 +1968,7 @@ impl Context {
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch.pop();
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
+                        self.vm.frame_mut().thrown = true;
                         self.vm.push(e);
                     } else {
                         self.vm.stack.truncate(start_stack_size);

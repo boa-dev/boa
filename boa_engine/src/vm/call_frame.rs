@@ -32,6 +32,9 @@ pub struct CallFrame {
     pub(crate) arg_count: usize,
     #[unsafe_ignore_trace]
     pub(crate) generator_resume_kind: GeneratorResumeKind,
+
+    // Indicate that the last try block has thrown an exception.
+    pub(crate) thrown: bool,
 }
 
 impl CallFrame {

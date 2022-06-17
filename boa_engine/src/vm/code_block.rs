@@ -266,6 +266,7 @@ impl CodeBlock {
                 )
             }
             Opcode::Pop
+            | Opcode::PopIfThrown
             | Opcode::Dup
             | Opcode::Swap
             | Opcode::PushZero
@@ -716,6 +717,7 @@ impl JsObject {
                     param_count,
                     arg_count,
                     generator_resume_kind: GeneratorResumeKind::Normal,
+                    thrown: false,
                 });
 
                 let result = context.run();
@@ -819,6 +821,7 @@ impl JsObject {
                     param_count,
                     arg_count,
                     generator_resume_kind: GeneratorResumeKind::Normal,
+                    thrown: false,
                 };
                 let mut stack = args;
 
@@ -1015,6 +1018,7 @@ impl JsObject {
                     param_count,
                     arg_count,
                     generator_resume_kind: GeneratorResumeKind::Normal,
+                    thrown: false,
                 });
 
                 let result = context.run();

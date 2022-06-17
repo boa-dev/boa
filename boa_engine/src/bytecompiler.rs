@@ -1567,8 +1567,12 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         false
                     };
+                    let in_catch_no_finally = !info.has_finally && info.in_catch;
 
-                    if in_finally || (!info.has_finally && info.in_catch) {
+                    if in_finally {
+                        self.emit_opcode(Opcode::PopIfThrown);
+                    }
+                    if in_finally || in_catch_no_finally {
                         self.emit_opcode(Opcode::CatchEnd2);
                         self.emit(Opcode::FinallySetJump, &[start_address]);
                     } else {
@@ -1644,8 +1648,12 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         false
                     };
+                    let in_catch_no_finally = !info.has_finally && info.in_catch;
 
-                    if in_finally || (!info.has_finally && info.in_catch) {
+                    if in_finally {
+                        self.emit_opcode(Opcode::PopIfThrown);
+                    }
+                    if in_finally || in_catch_no_finally {
                         self.emit_opcode(Opcode::CatchEnd2);
                     } else {
                         self.emit_opcode(Opcode::TryEnd);
