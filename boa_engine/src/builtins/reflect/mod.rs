@@ -13,7 +13,7 @@
 use super::{Array, JsArgs};
 use crate::{
     builtins::{self, BuiltIn},
-    object::{JsObject, ObjectInitializer},
+    object::ObjectInitializer,
     property::Attribute,
     symbol::WellKnownSymbols,
     Context, JsResult, JsValue,
@@ -102,27 +102,31 @@ impl Reflect {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
+        // 1. If IsConstructor(target) is false, throw a TypeError exception.
         let target = args
-            .get(0)
-            .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be a function"))?;
-        let args_list = args.get_or_undefined(1);
-
-        if !target.is_constructor() {
-            return context.throw_type_error("target must be a constructor");
-        }
+            .get_or_undefined(0)
+            .as_constructor()
+            .ok_or_else(|| context.construct_type_error("target must be a constructor"))?;
 
         let new_target = if let Some(new_target) = args.get(2) {
-            if new_target.as_object().map(JsObject::is_constructor) != Some(true) {
-                return context.throw_type_error("newTarget must be constructor");
+            // 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.
+            if let Some(new_target) = new_target.as_constructor() {
+                new_target
+            } else {
+                return context.throw_type_error("newTarget must be a constructor");
             }
-            new_target.clone()
         } else {
-            target.clone().into()
+            // 2. If newTarget is not present, set newTarget to target.
+            target
         };
 
-        let args = args_list.create_list_from_array_like(&[], context)?;
-        target.construct(&args, &new_target, context)
+        // 4. Let args be ? CreateListFromArrayLike(argumentsList).
+        let args = args
+            .get_or_undefined(1)
+            .create_list_from_array_like(&[], context)?;
+
+        // 5. Return ? Construct(target, args, newTarget).
+        target.construct(&args, Some(new_target), context)
     }
 
     /// Defines a property on an object.

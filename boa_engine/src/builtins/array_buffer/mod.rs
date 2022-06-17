@@ -241,7 +241,7 @@ impl ArrayBuffer {
         let ctor = obj.species_constructor(StandardConstructors::array_buffer, context)?;
 
         // 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
-        let new = ctor.construct(&[new_len.into()], &ctor.clone().into(), context)?;
+        let new = ctor.construct(&[new_len.into()], Some(&ctor), context)?;
 
         // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
         let new_obj = new.as_object().cloned().ok_or_else(|| {

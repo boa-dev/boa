@@ -259,7 +259,7 @@ impl JsObject {
     pub(crate) fn __construct__(
         &self,
         args: &[JsValue],
-        new_target: &JsValue,
+        new_target: &JsObject,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
@@ -324,7 +324,7 @@ pub(crate) struct InternalObjectMethods {
     pub(crate) __call__:
         Option<fn(&JsObject, &JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>>,
     pub(crate) __construct__:
-        Option<fn(&JsObject, &[JsValue], &JsValue, &mut Context) -> JsResult<JsValue>>,
+        Option<fn(&JsObject, &[JsValue], &JsObject, &mut Context) -> JsResult<JsValue>>,
 }
 
 /// Abstract operation `OrdinaryGetPrototypeOf`.

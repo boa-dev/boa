@@ -277,19 +277,28 @@ impl IteratorRecord {
         }
     }
 
+    /// Get the `[[Iterator]]` field of the `IteratorRecord`.
     #[inline]
     pub(crate) fn iterator(&self) -> &JsObject {
         &self.iterator
     }
 
+    /// Get the `[[NextMethod]]` field of the `IteratorRecord`.
     #[inline]
     pub(crate) fn next_method(&self) -> &JsValue {
         &self.next_method
     }
 
+    /// Get the `[[Done]]` field of the `IteratorRecord`.
     #[inline]
     pub(crate) fn done(&self) -> bool {
         self.done
+    }
+
+    /// Sets the `[[Done]]` field of the `IteratorRecord`.
+    #[inline]
+    pub(crate) fn set_done(&mut self, done: bool) {
+        self.done = done;
     }
 
     /// `IteratorNext ( iteratorRecord [ , value ] )`

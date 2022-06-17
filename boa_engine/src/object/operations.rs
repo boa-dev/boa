@@ -309,21 +309,28 @@ impl JsObject {
         self.__call__(this, args, context)
     }
 
+    /// `Construct ( F [ , argumentsList [ , newTarget ] ] )`
+    ///
     /// Construct an instance of this object with the specified arguments.
     ///
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.
-    // <https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget>
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-construct
     #[track_caller]
     #[inline]
     pub fn construct(
         &self,
         args: &[JsValue],
-        new_target: &JsValue,
+        new_target: Option<&JsObject>,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If newTarget is not present, set newTarget to F.
+        let new_target = new_target.unwrap_or(self);
         // 2. If argumentsList is not present, set argumentsList to a new empty List.
         // 3. Return ? F.[[Construct]](argumentsList, newTarget).
         self.__construct__(args, new_target, context)

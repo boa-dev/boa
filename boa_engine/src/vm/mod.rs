@@ -1400,7 +1400,7 @@ impl Context {
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
 
                 self.vm.push(result);
             }
@@ -1427,7 +1427,7 @@ impl Context {
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
 
                 self.vm.push(result);
             }

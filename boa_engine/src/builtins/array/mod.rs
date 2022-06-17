@@ -366,12 +366,10 @@ impl Array {
         // 7. If IsConstructor(C) is false, throw a TypeError exception.
         if let Some(c) = c.as_constructor() {
             // 8. Return ? Construct(C, « 𝔽(length) »).
-            Ok(
-                c.construct(&[JsValue::new(length)], &c.clone().into(), context)?
-                    .as_object()
-                    .expect("constructing an object should always return an object")
-                    .clone(),
-            )
+            Ok(c.construct(&[JsValue::new(length)], Some(c), context)?
+                .as_object()
+                .expect("constructing an object should always return an object")
+                .clone())
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
         }
@@ -421,7 +419,7 @@ impl Array {
             //     i. Let A be ? ArrayCreate(0en).
             let a = match this.as_constructor() {
                 Some(constructor) => constructor
-                    .construct(&[], this, context)?
+                    .construct(&[], None, context)?
                     .as_object()
                     .cloned()
                     .ok_or_else(|| {
@@ -500,7 +498,7 @@ impl Array {
             //     a. Let A be ? ArrayCreate(len).
             let a = match this.as_constructor() {
                 Some(constructor) => constructor
-                    .construct(&[len.into()], this, context)?
+                    .construct(&[len.into()], None, context)?
                     .as_object()
                     .cloned()
                     .ok_or_else(|| {
@@ -582,7 +580,7 @@ impl Array {
         //     a. Let A be ? ArrayCreate(len).
         let a = match this.as_constructor() {
             Some(constructor) => constructor
-                .construct(&[len.into()], this, context)?
+                .construct(&[len.into()], None, context)?
                 .as_object()
                 .cloned()
                 .ok_or_else(|| {

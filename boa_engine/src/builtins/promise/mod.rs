@@ -164,7 +164,7 @@ impl PromiseCapability {
                 .into();
 
                 // 6. Let promise be ? Construct(C, « executor »).
-                let promise = c.construct(&[executor], &c.clone().into(), context)?;
+                let promise = c.construct(&[executor], Some(&c), context)?;
 
                 let promise_capability: &mut Self =
                     &mut promise_capability.try_borrow_mut().expect("msg");
@@ -661,10 +661,11 @@ impl Promise {
 
         // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
         if_abrupt_reject_promise!(iterator_record, promise_capability, context);
+        let mut iterator_record = iterator_record;
 
         // 7. Let result be Completion(PerformPromiseRace(iteratorRecord, C, promiseCapability, promiseResolve)).
-        let result = Self::perform_promise_race(
-            &iterator_record,
+        let mut result = Self::perform_promise_race(
+            &mut iterator_record,
             c,
             &promise_capability,
             &promise_resolve,
@@ -674,7 +675,9 @@ impl Promise {
         // 8. If result is an abrupt completion, then
         if result.is_err() {
             // a. If iteratorRecord.[[Done]] is false, set result to Completion(IteratorClose(iteratorRecord, result)).
-            // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+            if !iterator_record.done() {
+                result = iterator_record.close(result, context);
+            }
 
             // b. IfAbruptRejectPromise(result, promiseCapability).
             if_abrupt_reject_promise!(result, promise_capability, context);
@@ -698,7 +701,7 @@ impl Promise {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromiserace
     fn perform_promise_race(
-        iterator_record: &IteratorRecord,
+        iterator_record: &mut IteratorRecord,
         constructor: &JsValue,
         result_capability: &PromiseCapability,
         promise_resolve: &JsValue,
@@ -711,7 +714,7 @@ impl Promise {
 
             // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
             if next.is_err() {
-                // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+                iterator_record.set_done(true);
             }
 
             // c. ReturnIfAbrupt(next).
@@ -723,7 +726,7 @@ impl Promise {
 
                 // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
                 if next_value.is_err() {
-                    // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+                    iterator_record.set_done(true);
                 }
 
                 // g. ReturnIfAbrupt(nextValue).
@@ -744,7 +747,7 @@ impl Promise {
             } else {
                 // d. If next is false, then
                 // i. Set iteratorRecord.[[Done]] to true.
-                // TODO: set the [[Done]] field in the IteratorRecord (currently doesn't exist)
+                iterator_record.set_done(true);
 
                 // ii. Return resultCapability.[[Promise]].
                 return Ok(result_capability.promise.clone());
