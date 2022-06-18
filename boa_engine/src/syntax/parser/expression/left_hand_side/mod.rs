@@ -31,7 +31,7 @@ use std::io::Read;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Left-hand-side_expressions
 /// [spec]: https://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[derive(Debug, Clone, Copy)]
-pub(super) struct LeftHandSideExpression {
+pub(in crate::syntax::parser) struct LeftHandSideExpression {
     name: Option<Sym>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -39,7 +39,7 @@ pub(super) struct LeftHandSideExpression {
 
 impl LeftHandSideExpression {
     /// Creates a new `LeftHandSideExpression` parser.
-    pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
         N: Into<Option<Sym>>,
         Y: Into<AllowYield>,

@@ -7,22 +7,25 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#Primary_expressions
 //! [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 
-mod array_initializer;
-mod async_function_expression;
-mod async_generator_expression;
-mod function_expression;
-mod generator_expression;
-mod object_initializer;
-mod template;
 #[cfg(test)]
 mod tests;
 
+mod array_initializer;
+mod async_function_expression;
+mod async_generator_expression;
+mod class_expression;
+mod function_expression;
+mod generator_expression;
+mod template;
+
+pub(in crate::syntax::parser) mod object_initializer;
+
 use self::{
     array_initializer::ArrayLiteral, async_function_expression::AsyncFunctionExpression,
-    async_generator_expression::AsyncGeneratorExpression, function_expression::FunctionExpression,
-    generator_expression::GeneratorExpression, object_initializer::ObjectLiteral,
+    async_generator_expression::AsyncGeneratorExpression, class_expression::ClassExpression,
+    function_expression::FunctionExpression, generator_expression::GeneratorExpression,
+    object_initializer::ObjectLiteral,
 };
-use super::Expression;
 use crate::syntax::{
     ast::{
         node::{Call, Identifier, New, Node},
@@ -30,8 +33,10 @@ use crate::syntax::{
     },
     lexer::{token::Numeric, InputElement, TokenKind},
     parser::{
-        expression::primary::template::TemplateLiteral, AllowAwait, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        expression::{
+            identifiers::IdentifierReference, primary::template::TemplateLiteral, Expression,
+        },
+        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -82,11 +87,19 @@ where
 
         // TODO: tok currently consumes the token instead of peeking, so the token
         // isn't passed and consumed by parsers according to spec (EX: GeneratorExpression)
-        let tok = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::This) => Ok(Node::This),
-            TokenKind::Keyword(Keyword::Function) => {
+            TokenKind::Keyword((Keyword::This | Keyword::Async, true)) => Err(ParseError::general(
+                "Keyword must not contain escaped characters",
+                tok.span().start(),
+            )),
+            TokenKind::Keyword((Keyword::This, false)) => {
+                cursor.next(interner).expect("token disappeared");
+                Ok(Node::This)
+            }
+            TokenKind::Keyword((Keyword::Function, _)) => {
+                cursor.next(interner).expect("token disappeared");
                 let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new(self.name)
@@ -98,7 +111,13 @@ where
                         .map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword((Keyword::Class, _)) => {
+                cursor.next(interner).expect("token disappeared");
+                ClassExpression::new(self.name, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+            }
+            TokenKind::Keyword((Keyword::Async, false)) => {
+                cursor.next(interner).expect("token disappeared");
                 let mul_peek = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if mul_peek.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     AsyncGeneratorExpression::new(self.name)
@@ -111,6 +130,7 @@ where
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
+                cursor.next(interner).expect("token disappeared");
                 cursor.set_goal(InputElement::RegExp);
                 let expr = Expression::new(self.name, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
@@ -118,70 +138,76 @@ where
                 Ok(expr)
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                cursor.next(interner).expect("token disappeared");
                 cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
                     .map(Node::ArrayDecl)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
+                cursor.next(interner).expect("token disappeared");
                 cursor.set_goal(InputElement::RegExp);
                 Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
                     .into())
             }
-            TokenKind::BooleanLiteral(boolean) => Ok(Const::from(*boolean).into()),
-            TokenKind::NullLiteral => Ok(Const::Null.into()),
-            TokenKind::Identifier(ident) => Ok(Identifier::new(*ident).into()),
-            TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
-                // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
-                Err(ParseError::general(
-                    "Unexpected identifier",
-                    tok.span().start(),
-                ))
+            TokenKind::BooleanLiteral(boolean) => {
+                let node = Const::from(*boolean).into();
+                cursor.next(interner).expect("token disappeared");
+                Ok(node)
             }
-            TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
-                if cursor.strict_mode() {
-                    return Err(ParseError::general(
-                        "Unexpected strict mode reserved word",
-                        tok.span().start(),
-                    ));
-                }
-                Ok(Identifier::new(Sym::YIELD).into())
+            TokenKind::NullLiteral => {
+                cursor.next(interner).expect("token disappeared");
+                Ok(Const::Null.into())
             }
-            TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
-                // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
-                Err(ParseError::general(
-                    "Unexpected identifier",
-                    tok.span().start(),
-                ))
+            TokenKind::Identifier(_)
+            | TokenKind::Keyword((Keyword::Let | Keyword::Yield | Keyword::Await, _)) => {
+                IdentifierReference::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(Node::from)
             }
-            TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
-                if cursor.strict_mode() {
-                    return Err(ParseError::general(
-                        "Unexpected strict mode reserved word",
-                        tok.span().start(),
-                    ));
-                }
-                Ok(Identifier::new(Sym::AWAIT).into())
+            TokenKind::StringLiteral(lit) => {
+                let node = Const::from(*lit).into();
+                cursor.next(interner).expect("token disappeared");
+                Ok(node)
             }
-            TokenKind::StringLiteral(lit) => Ok(Const::from(*lit).into()),
-            TokenKind::TemplateNoSubstitution(template_string) => Ok(Const::from(
-                template_string
-                    .to_owned_cooked(interner)
-                    .map_err(ParseError::lex)?,
-            )
-            .into()),
-            TokenKind::NumericLiteral(Numeric::Integer(num)) => Ok(Const::from(*num).into()),
-            TokenKind::NumericLiteral(Numeric::Rational(num)) => Ok(Const::from(*num).into()),
-            TokenKind::NumericLiteral(Numeric::BigInt(num)) => Ok(Const::from(num.clone()).into()),
+            TokenKind::TemplateNoSubstitution(template_string) => {
+                let node = Const::from(
+                    template_string
+                        .to_owned_cooked(interner)
+                        .map_err(ParseError::lex)?,
+                )
+                .into();
+                cursor.next(interner).expect("token disappeared");
+                Ok(node)
+            }
+            TokenKind::NumericLiteral(Numeric::Integer(num)) => {
+                let node = Const::from(*num).into();
+                cursor.next(interner).expect("token disappeared");
+                Ok(node)
+            }
+            TokenKind::NumericLiteral(Numeric::Rational(num)) => {
+                let node = Const::from(*num).into();
+                cursor.next(interner).expect("token disappeared");
+                Ok(node)
+            }
+            TokenKind::NumericLiteral(Numeric::BigInt(num)) => {
+                let node = Const::from(num.clone()).into();
+                cursor.next(interner).expect("token disappeared");
+                Ok(node)
+            }
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                Ok(Node::from(New::from(Call::new(
+                let node = Node::from(New::from(Call::new(
                     Identifier::new(Sym::REGEXP),
                     vec![Const::from(*body).into(), Const::from(*flags).into()],
-                ))))
+                )));
+                cursor.next(interner).expect("token disappeared");
+                Ok(node)
             }
             TokenKind::Punctuator(Punctuator::Div) => {
-                let tok = cursor.lex_regex(tok.span().start(), interner)?;
+                let position = tok.span().start();
+                cursor.next(interner).expect("token disappeared");
+                let tok = cursor.lex_regex(position, interner)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
                     Ok(Node::from(New::from(Call::new(
@@ -197,16 +223,18 @@ where
                     ))
                 }
             }
-            TokenKind::TemplateMiddle(template_string) => TemplateLiteral::new(
-                self.allow_yield,
-                self.allow_await,
-                tok.span().start(),
-                template_string
-                    .to_owned_cooked(interner)
-                    .map_err(ParseError::lex)?,
-            )
-            .parse(cursor, interner)
-            .map(Node::TemplateLit),
+            TokenKind::TemplateMiddle(template_string) => {
+                let parser = TemplateLiteral::new(
+                    self.allow_yield,
+                    self.allow_await,
+                    tok.span().start(),
+                    template_string
+                        .to_owned_cooked(interner)
+                        .map_err(ParseError::lex)?,
+                );
+                cursor.next(interner).expect("token disappeared");
+                parser.parse(cursor, interner).map(Node::TemplateLit)
+            }
             _ => Err(ParseError::unexpected(
                 tok.to_string(interner),
                 tok.span(),

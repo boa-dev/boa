@@ -37,9 +37,15 @@ impl BuiltIn for ArrayBuffer {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        let flag_attributes = Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE;
+
         let get_species = FunctionBuilder::native(context, Self::get_species)
             .name("get [Symbol.species]")
             .constructor(false)
+            .build();
+
+        let get_byte_length = FunctionBuilder::native(context, Self::get_byte_length)
+            .name("get byteLength")
             .build();
 
         ConstructorBuilder::with_standard_constructor(
@@ -49,6 +55,7 @@ impl BuiltIn for ArrayBuffer {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .accessor("byteLength", Some(get_byte_length), None, flag_attributes)
         .static_accessor(
             WellKnownSymbols::species(),
             Some(get_species),
@@ -56,7 +63,6 @@ impl BuiltIn for ArrayBuffer {
             Attribute::CONFIGURABLE,
         )
         .static_method(Self::is_view, "isView", 1)
-        .method(Self::byte_length, "byteLength", 0)
         .method(Self::slice, "slice", 2)
         .property(
             WellKnownSymbols::to_string_tag(),
@@ -122,7 +128,7 @@ impl ArrayBuffer {
         Ok(args
             .get_or_undefined(0)
             .as_object()
-            .map(|obj| obj.borrow().is_typed_array())
+            .map(|obj| obj.borrow().has_viewed_array_buffer())
             .unwrap_or_default()
             .into())
     }
@@ -133,7 +139,11 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer.prototype.bytelength
-    fn byte_length(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn get_byte_length(
+        this: &JsValue,
+        _args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[ArrayBufferData]]).
         let obj = if let Some(obj) = this.as_object() {
@@ -754,7 +764,7 @@ pub fn create_byte_data_block(size: usize, context: &mut Context) -> JsResult<Ve
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-copydatablockbytes
 fn copy_data_block_bytes(
-    to_block: &mut Vec<u8>,
+    to_block: &mut [u8],
     mut to_index: usize,
     from_block: &[u8],
     mut from_index: usize,

@@ -2,6 +2,7 @@
 
 pub mod get_const_field;
 pub mod get_field;
+pub mod get_private_field;
 
 pub use self::{get_const_field::GetConstField, get_field::GetField};
 

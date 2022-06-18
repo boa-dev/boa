@@ -20,6 +20,8 @@ use self::internal_methods::{
     string::STRING_EXOTIC_INTERNAL_METHODS,
     InternalObjectMethods, ORDINARY_INTERNAL_METHODS,
 };
+#[cfg(feature = "intl")]
+use crate::builtins::intl::date_time_format::DateTimeFormat;
 use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
@@ -38,13 +40,16 @@ use crate::{
         set::set_iterator::SetIterator,
         string::string_iterator::StringIterator,
         typed_array::integer_indexed_object::IntegerIndexed,
-        DataView, Date, RegExp,
+        DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
+
 use boa_gc::{Finalize, Trace};
+use boa_interner::Sym;
+use rustc_hash::FxHashMap;
 use std::{
     any::Any,
     fmt::{self, Debug, Display},
@@ -56,11 +61,17 @@ mod tests;
 
 pub(crate) mod internal_methods;
 mod jsarray;
+mod jsfunction;
 mod jsobject;
+mod jsproxy;
+mod jstypedarray;
 mod operations;
 mod property_map;
 
 pub use jsarray::*;
+pub use jsfunction::*;
+pub use jsproxy::*;
+pub use jstypedarray::*;
 
 pub(crate) trait JsObjectType:
     Into<JsValue> + Into<JsObject> + Deref<Target = JsObject>
@@ -106,6 +117,18 @@ pub struct Object {
     prototype: JsPrototype,
     /// Whether it can have new properties added to it.
     extensible: bool,
+    /// The `[[PrivateElements]]` internal slot.
+    private_elements: FxHashMap<Sym, PrivateElement>,
+}
+
+/// The representation of private object elements.
+#[derive(Clone, Debug, Trace, Finalize)]
+pub(crate) enum PrivateElement {
+    Value(JsValue),
+    Accessor {
+        getter: Option<JsObject>,
+        setter: Option<JsObject>,
+    },
 }
 
 /// Defines the kind of an object and its internal methods
@@ -147,6 +170,9 @@ pub enum ObjectKind {
     Arguments(Arguments),
     NativeObject(Box<dyn NativeObject>),
     IntegerIndexed(IntegerIndexed),
+    #[cfg(feature = "intl")]
+    DateTimeFormat(Box<DateTimeFormat>),
+    Promise(Promise),
 }
 
 impl ObjectData {
@@ -226,6 +252,14 @@ impl ObjectData {
     pub fn data_view(data_view: DataView) -> Self {
         Self {
             kind: ObjectKind::DataView(data_view),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `Promise` object data
+    pub fn promise(promise: Promise) -> Self {
+        Self {
+            kind: ObjectKind::Promise(promise),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -403,6 +437,15 @@ impl ObjectData {
             internal_methods: &INTEGER_INDEXED_EXOTIC_INTERNAL_METHODS,
         }
     }
+
+    /// Create the `DateTimeFormat` object data
+    #[cfg(feature = "intl")]
+    pub fn date_time_format(date_time_fmt: Box<DateTimeFormat>) -> Self {
+        Self {
+            kind: ObjectKind::DateTimeFormat(date_time_fmt),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
 }
 
 impl Display for ObjectKind {
@@ -437,6 +480,9 @@ impl Display for ObjectKind {
             Self::NativeObject(_) => "NativeObject",
             Self::IntegerIndexed(_) => "TypedArray",
             Self::DataView(_) => "DataView",
+            #[cfg(feature = "intl")]
+            Self::DateTimeFormat(_) => "DateTimeFormat",
+            Self::Promise(_) => "Promise",
         })
     }
 }
@@ -459,6 +505,7 @@ impl Default for Object {
             properties: PropertyMap::default(),
             prototype: None,
             extensible: true,
+            private_elements: FxHashMap::default(),
         }
     }
 }
@@ -502,6 +549,23 @@ impl Object {
             } => Some(iter),
             _ => None,
         }
+    }
+
+    #[inline]
+    pub(crate) fn has_viewed_array_buffer(&self) -> bool {
+        self.is_typed_array() || self.is_data_view()
+    }
+
+    /// Checks if it an `DataView` object.
+    #[inline]
+    pub fn is_data_view(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::DataView(_),
+                ..
+            }
+        )
     }
 
     /// Checks if it an `ArrayBuffer` object.
@@ -1149,6 +1213,41 @@ impl Object {
         }
     }
 
+    /// Checks if it is a `Promise` object.
+    #[inline]
+    pub fn is_promise(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::Promise(_),
+                ..
+            }
+        )
+    }
+
+    /// Gets the promise data if the object is a promise.
+    #[inline]
+    pub fn as_promise(&self) -> Option<&Promise> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Promise(ref promise),
+                ..
+            } => Some(promise),
+            _ => None,
+        }
+    }
+
+    #[inline]
+    pub fn as_promise_mut(&mut self) -> Option<&mut Promise> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Promise(ref mut promise),
+                ..
+            } => Some(promise),
+            _ => None,
+        }
+    }
+
     /// Return `true` if it is a native object and the native type is `T`.
     #[inline]
     pub fn is<T>(&self) -> bool
@@ -1218,6 +1317,62 @@ impl Object {
     #[inline]
     pub(crate) fn remove(&mut self, key: &PropertyKey) -> Option<PropertyDescriptor> {
         self.properties.remove(key)
+    }
+
+    /// Get a private element.
+    #[inline]
+    pub(crate) fn get_private_element(&self, name: Sym) -> Option<&PrivateElement> {
+        self.private_elements.get(&name)
+    }
+
+    /// Set a private element.
+    #[inline]
+    pub(crate) fn set_private_element(&mut self, name: Sym, value: PrivateElement) {
+        self.private_elements.insert(name, value);
+    }
+
+    /// Set a private setter.
+    #[inline]
+    pub(crate) fn set_private_element_setter(&mut self, name: Sym, setter: JsObject) {
+        match self.private_elements.get_mut(&name) {
+            Some(PrivateElement::Accessor {
+                getter: _,
+                setter: s,
+            }) => {
+                *s = Some(setter);
+            }
+            _ => {
+                self.private_elements.insert(
+                    name,
+                    PrivateElement::Accessor {
+                        getter: None,
+                        setter: Some(setter),
+                    },
+                );
+            }
+        }
+    }
+
+    /// Set a private getter.
+    #[inline]
+    pub(crate) fn set_private_element_getter(&mut self, name: Sym, getter: JsObject) {
+        match self.private_elements.get_mut(&name) {
+            Some(PrivateElement::Accessor {
+                getter: g,
+                setter: _,
+            }) => {
+                *g = Some(getter);
+            }
+            _ => {
+                self.private_elements.insert(
+                    name,
+                    PrivateElement::Accessor {
+                        getter: Some(getter),
+                        setter: None,
+                    },
+                );
+            }
+        }
     }
 }
 
@@ -1415,7 +1570,7 @@ impl<'context> FunctionBuilder<'context> {
 
     /// Build the function object.
     #[inline]
-    pub fn build(self) -> JsObject {
+    pub fn build(self) -> JsFunction {
         let function = JsObject::from_proto_and_data(
             self.context
                 .intrinsics()
@@ -1431,7 +1586,7 @@ impl<'context> FunctionBuilder<'context> {
         function.insert_property("length", property.clone().value(self.length));
         function.insert_property("name", property.value(self.name));
 
-        function
+        JsFunction::from_object_unchecked(function)
     }
 
     /// Initializes the `Function.prototype` function object.
@@ -1716,8 +1871,8 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn accessor<K>(
         &mut self,
         key: K,
-        get: Option<JsObject>,
-        set: Option<JsObject>,
+        get: Option<JsFunction>,
+        set: Option<JsFunction>,
         attribute: Attribute,
     ) -> &mut Self
     where
@@ -1737,8 +1892,8 @@ impl<'context> ConstructorBuilder<'context> {
     pub fn static_accessor<K>(
         &mut self,
         key: K,
-        get: Option<JsObject>,
-        set: Option<JsObject>,
+        get: Option<JsFunction>,
+        set: Option<JsFunction>,
         attribute: Attribute,
     ) -> &mut Self
     where
@@ -1851,7 +2006,7 @@ impl<'context> ConstructorBuilder<'context> {
     }
 
     /// Build the constructor function object.
-    pub fn build(&mut self) -> JsObject {
+    pub fn build(&mut self) -> JsFunction {
         // Create the native function
         let function = Function::Native {
             function: self.function,
@@ -1923,6 +2078,6 @@ impl<'context> ConstructorBuilder<'context> {
             }
         }
 
-        self.object.clone()
+        JsFunction::from_object_unchecked(self.object.clone())
     }
 }

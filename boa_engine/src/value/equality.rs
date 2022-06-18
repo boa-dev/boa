@@ -189,11 +189,11 @@ impl JsValue {
     fn same_value_non_numeric(x: &Self, y: &Self) -> bool {
         debug_assert!(x.get_type() == y.get_type());
         match (x, y) {
-            (JsValue::Null, JsValue::Null) | (JsValue::Undefined, JsValue::Undefined) => true,
-            (JsValue::String(ref x), JsValue::String(ref y)) => x == y,
-            (JsValue::Boolean(x), JsValue::Boolean(y)) => x == y,
-            (JsValue::Object(ref x), JsValue::Object(ref y)) => JsObject::equals(x, y),
-            (JsValue::Symbol(ref x), JsValue::Symbol(ref y)) => x == y,
+            (Self::Null, Self::Null) | (Self::Undefined, Self::Undefined) => true,
+            (Self::String(ref x), Self::String(ref y)) => x == y,
+            (Self::Boolean(x), Self::Boolean(y)) => x == y,
+            (Self::Object(ref x), Self::Object(ref y)) => JsObject::equals(x, y),
+            (Self::Symbol(ref x), Self::Symbol(ref y)) => x == y,
             _ => false,
         }
     }

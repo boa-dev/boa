@@ -34,7 +34,7 @@ fn check_function_expression() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -85,6 +85,6 @@ fn check_nested_function_expression() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }

@@ -13,17 +13,20 @@ mod async_generator_decl;
 mod function_decl;
 mod generator_decl;
 
+pub(in crate::syntax) mod class_decl;
+
 use self::{
     async_function_decl::AsyncFunctionDeclaration, async_generator_decl::AsyncGeneratorDeclaration,
-    generator_decl::GeneratorDeclaration,
+    class_decl::ClassDeclaration, generator_decl::GeneratorDeclaration,
 };
 use crate::syntax::{
     ast::node::{FormalParameterList, StatementList},
     ast::{Keyword, Node, Position, Punctuator},
     lexer::TokenKind,
     parser::{
+        expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        statement::{BindingIdentifier, LexError},
+        statement::LexError,
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
@@ -73,7 +76,13 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Function) => {
+            TokenKind::Keyword((Keyword::Function | Keyword::Async | Keyword::Class, true)) => {
+                Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    tok.span().start(),
+                ))
+            }
+            TokenKind::Keyword((Keyword::Function, false)) => {
                 let next_token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
@@ -85,7 +94,7 @@ where
                         .map(Node::from)
                 }
             }
-            TokenKind::Keyword(Keyword::Async) => {
+            TokenKind::Keyword((Keyword::Async, false)) => {
                 let next_token = cursor.peek(2, interner)?.ok_or(ParseError::AbruptEnd)?;
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     AsyncGeneratorDeclaration::new(
@@ -100,6 +109,11 @@ where
                         .parse(cursor, interner)
                         .map(Node::from)
                 }
+            }
+            TokenKind::Keyword((Keyword::Class, false)) => {
+                ClassDeclaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor, interner)
+                    .map(Node::from)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
@@ -194,26 +208,10 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     // It is a Syntax Error if any element of the BoundNames of FormalParameters
     // also occurs in the LexicallyDeclaredNames of FunctionBody.
     // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
-    {
-        let lexically_declared_names = body.lexically_declared_names(interner);
-        for param in params.parameters.as_ref() {
-            for param_name in param.names() {
-                if lexically_declared_names.contains(&param_name) {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        format!(
-                            "Redeclaration of formal parameter `{}`",
-                            interner.resolve_expect(param_name)
-                        )
-                        .into(),
-                        match cursor.peek(0, interner)? {
-                            Some(token) => token.span().end(),
-                            None => Position::new(1, 1),
-                        },
-                    )));
-                }
-            }
-        }
-    }
+    params.name_in_lexically_declared_names(
+        &body.lexically_declared_names_top_level(),
+        params_start_position,
+    )?;
 
     Ok((name, params, body))
 }

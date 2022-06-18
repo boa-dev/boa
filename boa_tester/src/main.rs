@@ -22,7 +22,6 @@
     clippy::all,
     clippy::cast_lossless,
     clippy::redundant_closure_for_method_calls,
-    clippy::use_self,
     clippy::unnested_or_patterns,
     clippy::trivially_copy_pass_by_ref,
     clippy::needless_pass_by_value,
@@ -45,6 +44,7 @@
     nonstandard_style,
 )]
 #![allow(
+    clippy::use_self, // TODO: deny once false positives are fixed
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
@@ -342,6 +342,7 @@ fn run_test_suite(
 struct Harness {
     assert: Box<str>,
     sta: Box<str>,
+    doneprint_handle: Box<str>,
     includes: FxHashMap<Box<str>, Box<str>>,
 }
 

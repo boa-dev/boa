@@ -26,8 +26,9 @@ use crate::syntax::{
         AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
+use rustc_hash::FxHashSet;
 use std::io::Read;
 
 /// For statement parsing
@@ -77,7 +78,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("ForStatement", "Parsing");
-        cursor.expect(Keyword::For, "for statement", interner)?;
+        cursor.expect((Keyword::For, false), "for statement", interner)?;
         let init_position = cursor
             .expect(Punctuator::OpenParen, "for statement", interner)?
             .span()
@@ -88,7 +89,7 @@ where
             .ok_or(ParseError::AbruptEnd)?
             .kind()
         {
-            TokenKind::Keyword(Keyword::Var) => {
+            TokenKind::Keyword((Keyword::Var, _)) => {
                 let _next = cursor.next(interner)?;
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
@@ -96,7 +97,7 @@ where
                         .map(Node::from)?,
                 )
             }
-            TokenKind::Keyword(Keyword::Let | Keyword::Const) => Some(
+            TokenKind::Keyword((Keyword::Let | Keyword::Const, _)) => Some(
                 Declaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)?,
             ),
@@ -107,9 +108,18 @@ where
             ),
         };
 
-        match (init.as_ref(), cursor.peek(0, interner)?) {
-            (Some(init), Some(tok)) if tok.kind() == &TokenKind::Keyword(Keyword::In) => {
-                let init = node_to_iterable_loop_initializer(init, init_position)?;
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        match (init.as_ref(), token.kind()) {
+            (Some(_), TokenKind::Keyword((Keyword::In | Keyword::Of, true))) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
+            (Some(init), TokenKind::Keyword((Keyword::In, false))) => {
+                let init_position = token.span().start();
+                let init =
+                    node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
 
                 let _next = cursor.next(interner)?;
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -128,10 +138,38 @@ where
                     return Err(ParseError::wrong_function_declaration_non_strict(position));
                 }
 
+                // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
+                // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
+                // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
+                let mut vars = FxHashSet::default();
+                body.var_declared_names(&mut vars);
+                let mut bound_names = FxHashSet::default();
+                for name in init.bound_names() {
+                    if name == Sym::LET {
+                        return Err(ParseError::general(
+                            "Cannot use 'let' as a lexically bound name",
+                            init_position,
+                        ));
+                    }
+                    if vars.contains(&name) {
+                        return Err(ParseError::general(
+                            "For loop initializer declared in loop body",
+                            init_position,
+                        ));
+                    }
+                    if !bound_names.insert(name) {
+                        return Err(ParseError::general(
+                            "For loop initializer cannot contain duplicate identifiers",
+                            init_position,
+                        ));
+                    }
+                }
+
                 return Ok(ForInLoop::new(init, expr, body).into());
             }
-            (Some(init), Some(tok)) if tok.kind() == &TokenKind::Keyword(Keyword::Of) => {
-                let init = node_to_iterable_loop_initializer(init, init_position)?;
+            (Some(init), TokenKind::Keyword((Keyword::Of, false))) => {
+                let init =
+                    node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
 
                 let _next = cursor.next(interner)?;
                 let iterable = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -148,6 +186,33 @@ where
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
                 if let Node::FunctionDecl(_) = body {
                     return Err(ParseError::wrong_function_declaration_non_strict(position));
+                }
+
+                // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
+                // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
+                // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
+                let mut vars = FxHashSet::default();
+                body.var_declared_names(&mut vars);
+                let mut bound_names = FxHashSet::default();
+                for name in init.bound_names() {
+                    if name == Sym::LET {
+                        return Err(ParseError::general(
+                            "Cannot use 'let' as a lexically bound name",
+                            init_position,
+                        ));
+                    }
+                    if vars.contains(&name) {
+                        return Err(ParseError::general(
+                            "For loop initializer declared in loop body",
+                            init_position,
+                        ));
+                    }
+                    if !bound_names.insert(name) {
+                        return Err(ParseError::general(
+                            "For loop initializer cannot contain duplicate identifiers",
+                            init_position,
+                        ));
+                    }
                 }
 
                 return Ok(ForOfLoop::new(init, iterable, body).into());
@@ -214,6 +279,7 @@ where
 fn node_to_iterable_loop_initializer(
     node: &Node,
     position: Position,
+    strict: bool,
 ) -> Result<IterableLoopInitializer, ParseError> {
     match node {
         Node::Identifier(name) => Ok(IterableLoopInitializer::Identifier(*name)),
@@ -270,7 +336,7 @@ fn node_to_iterable_loop_initializer(
             position,
         ))),
         Node::Object(object) => {
-            if let Some(pattern) = object_decl_to_declaration_pattern(object) {
+            if let Some(pattern) = object_decl_to_declaration_pattern(object, strict) {
                 Ok(IterableLoopInitializer::DeclarationPattern(pattern))
             } else {
                 Err(ParseError::lex(LexError::Syntax(
@@ -280,7 +346,7 @@ fn node_to_iterable_loop_initializer(
             }
         }
         Node::ArrayDecl(array) => {
-            if let Some(pattern) = array_decl_to_declaration_pattern(array) {
+            if let Some(pattern) = array_decl_to_declaration_pattern(array, strict) {
                 Ok(IterableLoopInitializer::DeclarationPattern(pattern))
             } else {
                 Err(ParseError::lex(LexError::Syntax(

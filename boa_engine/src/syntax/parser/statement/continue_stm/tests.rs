@@ -9,28 +9,25 @@ use boa_interner::Interner;
 
 #[test]
 fn inline() {
-    let mut interner = Interner::default();
     check_parser(
         "while (true) continue;",
         vec![WhileLoop::new(Const::from(true), Continue::new(None)).into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 #[test]
 fn new_line() {
-    let mut interner = Interner::default();
     check_parser(
         "while (true)
             continue;",
         vec![WhileLoop::new(Const::from(true), Continue::new(None)).into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 #[test]
 fn inline_block_semicolon_insertion() {
-    let mut interner = Interner::default();
     check_parser(
         "while (true) {continue}",
         vec![WhileLoop::new(
@@ -38,7 +35,7 @@ fn inline_block_semicolon_insertion() {
             Block::from(vec![Continue::new(None).into()]),
         )
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
@@ -56,13 +53,12 @@ fn new_line_semicolon_insertion() {
             ]),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
 #[test]
 fn inline_block() {
-    let mut interner = Interner::default();
     check_parser(
         "while (true) {continue;}",
         vec![WhileLoop::new(
@@ -70,7 +66,7 @@ fn inline_block() {
             Block::from(vec![Continue::new(None).into()]),
         )
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
@@ -88,7 +84,7 @@ fn new_line_block() {
             ]),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -106,7 +102,7 @@ fn reserved_label() {
             ]),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -121,13 +117,12 @@ fn reserved_label() {
             ]),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
 #[test]
 fn new_line_block_empty() {
-    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             continue;
@@ -137,13 +132,12 @@ fn new_line_block_empty() {
             Block::from(vec![Continue::new(None).into()]),
         )
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 #[test]
 fn new_line_block_empty_semicolon_insertion() {
-    let mut interner = Interner::default();
     check_parser(
         "while (true) {
             continue
@@ -153,6 +147,6 @@ fn new_line_block_empty_semicolon_insertion() {
             Block::from(vec![Continue::new(None).into()]),
         )
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }

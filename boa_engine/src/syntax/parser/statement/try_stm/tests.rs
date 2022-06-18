@@ -2,7 +2,8 @@ use crate::syntax::{
     ast::{
         node::{
             declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
-            Block, Catch, Declaration, DeclarationList, Finally, Try,
+            object::PropertyName,
+            Block, Catch, Declaration, DeclarationList, Finally, Identifier, Try,
         },
         Const,
     },
@@ -24,7 +25,7 @@ fn check_inline_with_empty_try_catch() {
             None,
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -49,7 +50,7 @@ fn check_inline_with_var_decl_inside_try() {
             None,
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -81,7 +82,7 @@ fn check_inline_with_var_decl_inside_catch() {
             None,
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -99,17 +100,16 @@ fn check_inline_with_empty_try_catch_finally() {
             Some(Finally::from(vec![])),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
 #[test]
 fn check_inline_with_empty_try_finally() {
-    let mut interner = Interner::default();
     check_parser(
         "try {} finally {}",
         vec![Try::new(vec![], None, Some(Finally::from(vec![]))).into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
@@ -131,7 +131,7 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
             .into()])),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -156,7 +156,7 @@ fn check_inline_empty_try_paramless_catch() {
             None,
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -173,12 +173,14 @@ fn check_inline_with_binding_pattern_object() {
                     vec![
                         BindingPatternTypeObject::SingleName {
                             ident: a,
-                            property_name: a,
+                            property_name: PropertyName::Literal(a),
                             default_init: None,
                         },
                         BindingPatternTypeObject::SingleName {
                             ident: interner.get_or_intern_static("c"),
-                            property_name: interner.get_or_intern_static("b"),
+                            property_name: PropertyName::Literal(
+                                interner.get_or_intern_static("b"),
+                            ),
                             default_init: None,
                         },
                     ],
@@ -189,7 +191,7 @@ fn check_inline_with_binding_pattern_object() {
             None,
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -219,7 +221,35 @@ fn check_inline_with_binding_pattern_array() {
             None,
         )
         .into()],
-        &mut interner,
+        interner,
+    );
+}
+
+#[test]
+fn check_catch_with_var_redeclaration() {
+    let mut interner = Interner::default();
+    check_parser(
+        "try {} catch(e) { var e = 'oh' }",
+        vec![Try::new(
+            Block::from(vec![]),
+            Some(Catch::new::<_, Declaration, _>(
+                Some(Declaration::new_with_identifier(
+                    Identifier::new(interner.get_or_intern_static("e")),
+                    None,
+                )),
+                vec![DeclarationList::Var(
+                    vec![Declaration::new_with_identifier(
+                        interner.get_or_intern_static("e"),
+                        Some(Const::from(interner.get_or_intern_static("oh")).into()),
+                    )]
+                    .into(),
+                )
+                .into()],
+            )),
+            None,
+        )
+        .into()],
+        interner,
     );
 }
 
@@ -256,9 +286,4 @@ fn check_invalid_catch_with_duplicate_params() {
 #[test]
 fn check_invalid_catch_with_lexical_redeclaration() {
     check_invalid("try {} catch(e) { let e = 'oh' }");
-}
-
-#[test]
-fn check_invalid_catch_with_var_redeclaration() {
-    check_invalid("try {} catch(e) { var e = 'oh' }");
 }

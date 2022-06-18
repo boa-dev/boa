@@ -21,7 +21,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
-    property::{PropertyDescriptor, PropertyKey, PropertyNameKind},
+    property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult, JsString,
@@ -43,6 +43,14 @@ impl BuiltIn for Object {
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
+        let legacy_proto_getter = FunctionBuilder::native(context, Self::legacy_proto_getter)
+            .name("get __proto__")
+            .build();
+
+        let legacy_setter_proto = FunctionBuilder::native(context, Self::legacy_proto_setter)
+            .name("set __proto__")
+            .build();
+
         ConstructorBuilder::with_standard_constructor(
             context,
             Self::constructor,
@@ -51,12 +59,22 @@ impl BuiltIn for Object {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .inherit(None)
+        .accessor(
+            "__proto__",
+            Some(legacy_proto_getter),
+            Some(legacy_setter_proto),
+            Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        )
         .method(Self::has_own_property, "hasOwnProperty", 1)
         .method(Self::property_is_enumerable, "propertyIsEnumerable", 1)
         .method(Self::to_string, "toString", 0)
         .method(Self::to_locale_string, "toLocaleString", 0)
         .method(Self::value_of, "valueOf", 0)
         .method(Self::is_prototype_of, "isPrototypeOf", 1)
+        .method(Self::legacy_define_getter, "__defineGetter__", 2)
+        .method(Self::legacy_define_setter, "__defineSetter__", 2)
+        .method(Self::legacy_lookup_getter, "__lookupGetter__", 1)
+        .method(Self::legacy_lookup_setter, "__lookupSetter__", 1)
         .static_method(Self::create, "create", 2)
         .static_method(Self::set_prototype_of, "setPrototypeOf", 2)
         .static_method(Self::get_prototype_of, "getPrototypeOf", 1)
@@ -113,6 +131,248 @@ impl Object {
             }
         }
         Ok(context.construct_object().into())
+    }
+
+    /// `get Object.prototype.__proto__`
+    ///
+    /// The `__proto__` getter function exposes the value of the
+    /// internal `[[Prototype]]` of an object.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-get-object.prototype.__proto__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto
+    pub fn legacy_proto_getter(
+        this: &JsValue,
+        _: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+
+        // 2. Return ? O.[[GetPrototypeOf]]().
+        let proto = obj.__get_prototype_of__(context)?;
+
+        Ok(proto.map_or(JsValue::Null, JsValue::new))
+    }
+
+    /// `set Object.prototype.__proto__`
+    ///
+    /// The `__proto__` setter allows the `[[Prototype]]` of
+    /// an object to be mutated.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-set-object.prototype.__proto__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/proto
+    pub fn legacy_proto_setter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? RequireObjectCoercible(this value).
+        let this = this.require_object_coercible(context)?;
+
+        // 2. If Type(proto) is neither Object nor Null, return undefined.
+        let proto = match args.get_or_undefined(0) {
+            JsValue::Object(proto) => Some(proto.clone()),
+            JsValue::Null => None,
+            _ => return Ok(JsValue::undefined()),
+        };
+
+        // 3. If Type(O) is not Object, return undefined.
+        let object = match this {
+            JsValue::Object(object) => object,
+            _ => return Ok(JsValue::undefined()),
+        };
+
+        // 4. Let status be ? O.[[SetPrototypeOf]](proto).
+        let status = object.__set_prototype_of__(proto, context)?;
+
+        // 5. If status is false, throw a TypeError exception.
+        if !status {
+            return context.throw_type_error("__proto__ called on null or undefined");
+        }
+
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `Object.prototype.__defineGetter__(prop, func)`
+    ///
+    /// Binds an object's property to a function to be called when that property is looked up.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__defineGetter__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__defineGetter__
+    pub fn legacy_define_getter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let getter = args.get_or_undefined(1);
+
+        // 1. Let O be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+
+        // 2. If IsCallable(getter) is false, throw a TypeError exception.
+        if !getter.is_callable() {
+            return context
+                .throw_type_error("Object.prototype.__defineGetter__: Expecting function");
+        }
+
+        // 3. Let desc be PropertyDescriptor { [[Get]]: getter, [[Enumerable]]: true, [[Configurable]]: true }.
+        let desc = PropertyDescriptor::builder()
+            .get(getter)
+            .enumerable(true)
+            .configurable(true);
+
+        // 4. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 5. Perform ? DefinePropertyOrThrow(O, key, desc).
+        obj.define_property_or_throw(key, desc, context)?;
+
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `Object.prototype.__defineSetter__(prop, func)`
+    ///
+    /// Binds an object's property to a function to be called when an attempt is made to set that property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__defineSetter__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__defineSetter__
+    pub fn legacy_define_setter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        let setter = args.get_or_undefined(1);
+
+        // 1. Let O be ? ToObject(this value).
+        let obj = this.to_object(context)?;
+
+        // 2. If IsCallable(setter) is false, throw a TypeError exception.
+        if !setter.is_callable() {
+            return context
+                .throw_type_error("Object.prototype.__defineSetter__: Expecting function");
+        }
+
+        // 3. Let desc be PropertyDescriptor { [[Set]]: setter, [[Enumerable]]: true, [[Configurable]]: true }.
+        let desc = PropertyDescriptor::builder()
+            .set(setter)
+            .enumerable(true)
+            .configurable(true);
+
+        // 4. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 5. Perform ? DefinePropertyOrThrow(O, key, desc).
+        obj.define_property_or_throw(key, desc, context)?;
+
+        // 6. Return undefined.
+        Ok(JsValue::undefined())
+    }
+
+    /// `Object.prototype.__lookupGetter__(prop)`
+    ///
+    /// Returns the function bound as a getter to the specified property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__lookupGetter__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__lookupGetter__
+    pub fn legacy_lookup_getter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let mut obj = this.to_object(context)?;
+
+        // 2. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 3. Repeat
+        loop {
+            // a. Let desc be ? O.[[GetOwnProperty]](key).
+            let desc = obj.__get_own_property__(&key, context)?;
+
+            // b. If desc is not undefined, then
+            if let Some(current_desc) = desc {
+                // i. If IsAccessorDescriptor(desc) is true, return desc.[[Get]].
+                return if current_desc.is_accessor_descriptor() {
+                    Ok(current_desc.expect_get().into())
+                } else {
+                    // ii. Return undefined.
+                    Ok(JsValue::undefined())
+                };
+            }
+            match obj.__get_prototype_of__(context)? {
+                // c. Set O to ? O.[[GetPrototypeOf]]().
+                Some(o) => obj = o,
+                // d. If O is null, return undefined.
+                None => return Ok(JsValue::undefined()),
+            }
+        }
+    }
+    /// `Object.prototype.__lookupSetter__(prop)`
+    ///
+    /// Returns the function bound as a getter to the specified property.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-object.prototype.__lookupSetter__
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/__lookupSetter__
+    pub fn legacy_lookup_setter(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let O be ? ToObject(this value).
+        let mut obj = this.to_object(context)?;
+
+        // 2. Let key be ? ToPropertyKey(P).
+        let key = args.get_or_undefined(0).to_property_key(context)?;
+
+        // 3. Repeat
+        loop {
+            // a. Let desc be ? O.[[GetOwnProperty]](key).
+            let desc = obj.__get_own_property__(&key, context)?;
+
+            // b. If desc is not undefined, then
+            if let Some(current_desc) = desc {
+                // i. If IsAccessorDescriptor(desc) is true, return desc.[[Set]].
+                return if current_desc.is_accessor_descriptor() {
+                    Ok(current_desc.expect_set().into())
+                } else {
+                    // ii. Return undefined.
+                    Ok(JsValue::undefined())
+                };
+            }
+            match obj.__get_prototype_of__(context)? {
+                // c. Set O to ? O.[[GetPrototypeOf]]().
+                Some(o) => obj = o,
+                // d. If O is null, return undefined.
+                None => return Ok(JsValue::undefined()),
+            }
+        }
     }
 
     /// `Object.create( proto, [propertiesObject] )`

@@ -15,14 +15,14 @@ use crate::syntax::{
         node::{
             object::{self, MethodDefinition},
             AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
-            GeneratorExpr, Identifier, Node, Object,
+            GeneratorExpr, Node, Object,
         },
-        Keyword, Position, Punctuator,
+        Const, Keyword, Punctuator,
     },
-    lexer::{Error as LexError, TokenKind},
+    lexer::{token::Numeric, Error as LexError, TokenKind},
     parser::{
-        expression::AssignmentExpression,
-        function::{FormalParameters, FunctionBody},
+        expression::{identifiers::IdentifierReference, AssignmentExpression},
+        function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
@@ -108,14 +108,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[derive(Debug, Clone, Copy)]
-struct PropertyDefinition {
+pub(in crate::syntax::parser) struct PropertyDefinition {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl PropertyDefinition {
     /// Creates a new `PropertyDefinition` parser.
-    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -146,51 +146,8 @@ where
                 next_token.kind(),
                 TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma)
             ) {
-                let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
-                let ident = match token.kind() {
-                    TokenKind::Identifier(ident) => Identifier::new(*ident),
-                    TokenKind::Keyword(Keyword::Yield) if self.allow_yield.0 => {
-                        // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
-                        return Err(ParseError::general(
-                            "Unexpected identifier",
-                            token.span().start(),
-                        ));
-                    }
-                    TokenKind::Keyword(Keyword::Yield) if !self.allow_yield.0 => {
-                        if cursor.strict_mode() {
-                            // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
-                            return Err(ParseError::general(
-                                "Unexpected strict mode reserved word",
-                                token.span().start(),
-                            ));
-                        }
-                        Identifier::new(Sym::YIELD)
-                    }
-                    TokenKind::Keyword(Keyword::Await) if self.allow_await.0 => {
-                        // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
-                        return Err(ParseError::general(
-                            "Unexpected identifier",
-                            token.span().start(),
-                        ));
-                    }
-                    TokenKind::Keyword(Keyword::Await) if !self.allow_await.0 => {
-                        if cursor.strict_mode() {
-                            // Early Error: It is a Syntax Error if the code matched by this production is contained in strict mode code.
-                            return Err(ParseError::general(
-                                "Unexpected strict mode reserved word",
-                                token.span().start(),
-                            ));
-                        }
-                        Identifier::new(Sym::YIELD)
-                    }
-                    _ => {
-                        return Err(ParseError::unexpected(
-                            token.to_string(interner),
-                            token.span(),
-                            "expected IdentifierReference",
-                        ));
-                    }
-                };
+                let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
                 return Ok(object::PropertyDefinition::property(ident.sym(), ident));
             }
         }
@@ -203,236 +160,66 @@ where
         }
 
         //Async [AsyncMethod, AsyncGeneratorMethod] object methods
-        if cursor.next_if(Keyword::Async, interner)?.is_some() {
-            cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        match token.kind() {
+            TokenKind::Keyword((Keyword::Async, true)) => {
+                return Err(ParseError::general(
+                    "Keyword must not contain escaped characters",
+                    token.span().start(),
+                ));
+            }
+            TokenKind::Keyword((Keyword::Async, false)) => {
+                cursor.next(interner)?.expect("token disappeared");
+                cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
 
-            let mul_check = cursor.next_if(Punctuator::Mul, interner)?;
-            let property_name =
-                PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-
-            if mul_check.is_some() {
-                // MethodDefinition[?Yield, ?Await] -> AsyncGeneratorMethod[?Yield, ?Await]
-
-                let params_start_position = cursor
-                    .expect(
-                        Punctuator::OpenParen,
-                        "async generator method definition",
-                        interner,
-                    )?
-                    .span()
-                    .start();
-                let params = FormalParameters::new(true, true).parse(cursor, interner)?;
-                cursor.expect(
-                    Punctuator::CloseParen,
-                    "async generator method definition",
-                    interner,
-                )?;
-
-                // Early Error: UniqueFormalParameters : FormalParameters
-                // NOTE: does not appear to formally be in ECMAScript specs for method
-                if params.has_duplicates() {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "Duplicate parameter name not allowed in this context".into(),
-                        params_start_position,
-                    )));
+                let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                if let TokenKind::Punctuator(Punctuator::Mul) = token.kind() {
+                    let (property_name, method) =
+                        AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                    return Ok(object::PropertyDefinition::method_definition(
+                        method,
+                        property_name,
+                    ));
                 }
-
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::OpenBlock),
-                    "async generator method definition",
-                    interner,
-                )?;
-                let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-                cursor.expect(
-                    TokenKind::Punctuator(Punctuator::CloseBlock),
-                    "async generator method definition",
-                    interner,
-                )?;
-
-                // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
-                // and IsSimpleParameterList of UniqueFormalParameters is false.
-                if body.strict() && !params.is_simple() {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "Illegal 'use strict' directive in function with non-simple parameter list"
-                            .into(),
-                        params_start_position,
-                    )));
-                }
-
-                // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
-                // occurs in the LexicallyDeclaredNames of GeneratorBody.
-                {
-                    let lexically_declared_names = body.lexically_declared_names(interner);
-                    for param in params.parameters.as_ref() {
-                        for param_name in param.names() {
-                            if lexically_declared_names.contains(&param_name) {
-                                return Err(ParseError::lex(LexError::Syntax(
-                                    format!(
-                                        "Redeclaration of formal parameter `{}`",
-                                        interner.resolve_expect(param_name)
-                                    )
-                                    .into(),
-                                    match cursor.peek(0, interner)? {
-                                        Some(token) => token.span().end(),
-                                        None => Position::new(1, 1),
-                                    },
-                                )));
-                            }
-                        }
-                    }
-                }
-
+                let (property_name, method) =
+                    AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
                 return Ok(object::PropertyDefinition::method_definition(
-                    MethodDefinition::AsyncGenerator(AsyncGeneratorExpr::new(None, params, body)),
+                    method,
                     property_name,
                 ));
             }
-            // MethodDefinition[?Yield, ?Await] -> AsyncMethod[?Yield, ?Await]
-
-            let params_start_position = cursor
-                .expect(Punctuator::OpenParen, "async method definition", interner)?
-                .span()
-                .start();
-            let params = FormalParameters::new(false, true).parse(cursor, interner)?;
-            cursor.expect(Punctuator::CloseParen, "async method definition", interner)?;
-
-            // Early Error: UniqueFormalParameters : FormalParameters
-            // NOTE: does not appear to be in ECMAScript specs
-            if params.has_duplicates() {
-                return Err(ParseError::lex(LexError::Syntax(
-                    "Duplicate parameter name not allowed in this context".into(),
-                    params_start_position,
-                )));
-            }
-
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "async method definition",
-                interner,
-            )?;
-            let body = FunctionBody::new(true, true).parse(cursor, interner)?;
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::CloseBlock),
-                "async method definition",
-                interner,
-            )?;
-
-            // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
-            // and IsSimpleParameterList of UniqueFormalParameters is false.
-            if body.strict() && !params.is_simple() {
-                return Err(ParseError::lex(LexError::Syntax(
-                    "Illegal 'use strict' directive in function with non-simple parameter list"
-                        .into(),
-                    params_start_position,
-                )));
-            }
-
-            // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
-            // occurs in the LexicallyDeclaredNames of GeneratorBody.
-            {
-                let lexically_declared_names = body.lexically_declared_names(interner);
-                for param in params.parameters.as_ref() {
-                    for param_name in param.names() {
-                        if lexically_declared_names.contains(&param_name) {
-                            return Err(ParseError::lex(LexError::Syntax(
-                                format!(
-                                    "Redeclaration of formal parameter `{}`",
-                                    interner.resolve_expect(param_name)
-                                )
-                                .into(),
-                                match cursor.peek(0, interner)? {
-                                    Some(token) => token.span().end(),
-                                    None => Position::new(1, 1),
-                                },
-                            )));
-                        }
-                    }
-                }
-            }
-            return Ok(object::PropertyDefinition::method_definition(
-                MethodDefinition::Async(AsyncFunctionExpr::new(None, params, body)),
-                property_name,
-            ));
+            _ => {}
         }
 
-        // MethodDefinition[?Yield, ?Await] -> GeneratorMethod[?Yield, ?Await]
-        if cursor.next_if(Punctuator::Mul, interner)?.is_some() {
-            let property_name =
-                PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-
-            let params_start_position = cursor
-                .expect(
-                    Punctuator::OpenParen,
-                    "generator method definition",
-                    interner,
-                )?
+        if cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+            == &TokenKind::Punctuator(Punctuator::Mul)
+        {
+            let position = cursor
+                .peek(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
                 .span()
                 .start();
-            let params = FormalParameters::new(false, false).parse(cursor, interner)?;
-            cursor.expect(
-                Punctuator::CloseParen,
-                "generator method definition",
-                interner,
-            )?;
+            let (class_element_name, method) =
+                GeneratorMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-            // Early Error: UniqueFormalParameters : FormalParameters
-            // NOTE: does not appear to be in ECMAScript specs for GeneratorMethod
-            if params.has_duplicates() {
-                return Err(ParseError::lex(LexError::Syntax(
-                    "Duplicate parameter name not allowed in this context".into(),
-                    params_start_position,
-                )));
-            }
-
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::OpenBlock),
-                "generator method definition",
-                interner,
-            )?;
-            let body = FunctionBody::new(true, false).parse(cursor, interner)?;
-            cursor.expect(
-                TokenKind::Punctuator(Punctuator::CloseBlock),
-                "generator method definition",
-                interner,
-            )?;
-
-            // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
-            // and IsSimpleParameterList of UniqueFormalParameters is false.
-            if body.strict() && !params.is_simple() {
-                return Err(ParseError::lex(LexError::Syntax(
-                    "Illegal 'use strict' directive in function with non-simple parameter list"
-                        .into(),
-                    params_start_position,
-                )));
-            }
-
-            // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
-            // occurs in the LexicallyDeclaredNames of GeneratorBody.
-            {
-                let lexically_declared_names = body.lexically_declared_names(interner);
-                for param in params.parameters.as_ref() {
-                    for param_name in param.names() {
-                        if lexically_declared_names.contains(&param_name) {
-                            return Err(ParseError::lex(LexError::Syntax(
-                                format!(
-                                    "Redeclaration of formal parameter `{}`",
-                                    interner.resolve_expect(param_name)
-                                )
-                                .into(),
-                                match cursor.peek(0, interner)? {
-                                    Some(token) => token.span().end(),
-                                    None => Position::new(1, 1),
-                                },
-                            )));
-                        }
-                    }
+            match class_element_name {
+                object::ClassElementName::PropertyName(property_name) => {
+                    return Ok(object::PropertyDefinition::method_definition(
+                        method,
+                        property_name,
+                    ))
+                }
+                object::ClassElementName::PrivateIdentifier(_) => {
+                    return Err(ParseError::general(
+                        "private identifier not allowed in object literal",
+                        position,
+                    ))
                 }
             }
-
-            return Ok(object::PropertyDefinition::method_definition(
-                MethodDefinition::Generator(GeneratorExpr::new(None, params, body)),
-                property_name,
-            ));
         }
 
         let mut property_name =
@@ -502,18 +289,14 @@ where
                     )?
                     .span()
                     .end();
-                let params = FormalParameters::new(false, false).parse(cursor, interner)?;
+                let parameters: FormalParameterList = FormalParameter::new(false, false)
+                    .parse(cursor, interner)?
+                    .into();
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::CloseParen),
                     "set method definition",
                     interner,
                 )?;
-                if params.parameters.len() != 1 {
-                    return Err(ParseError::general(
-                        "set method definition must have one parameter",
-                        params_start_position,
-                    ));
-                }
 
                 cursor.expect(
                     TokenKind::Punctuator(Punctuator::OpenBlock),
@@ -529,7 +312,7 @@ where
 
                 // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
                 // and IsSimpleParameterList of PropertySetParameterList is false.
-                if body.strict() && !params.is_simple() {
+                if body.strict() && !parameters.is_simple() {
                     return Err(ParseError::lex(LexError::Syntax(
                         "Illegal 'use strict' directive in function with non-simple parameter list"
                             .into(),
@@ -538,7 +321,7 @@ where
                 }
 
                 Ok(object::PropertyDefinition::method_definition(
-                    MethodDefinition::Set(FunctionExpr::new(None, params, body)),
+                    MethodDefinition::Set(FunctionExpr::new(None, parameters, body)),
                     property_name,
                 ))
             }
@@ -589,6 +372,25 @@ where
                     )));
                 }
 
+                // It is a Syntax Error if any element of the BoundNames of FormalParameters also occurs in the LexicallyDeclaredNames of FunctionBody.
+                let lexically_declared_names = body.lexically_declared_names();
+                for parameter in params.parameters.iter() {
+                    for name in &parameter.names() {
+                        if lexically_declared_names.contains(&(*name, false)) {
+                            return Err(ParseError::general(
+                                "formal parameter declared in lexically declared names",
+                                params_start_position,
+                            ));
+                        }
+                        if lexically_declared_names.contains(&(*name, true)) {
+                            return Err(ParseError::general(
+                                "formal parameter declared in lexically declared names",
+                                params_start_position,
+                            ));
+                        }
+                    }
+                }
+
                 Ok(object::PropertyDefinition::method_definition(
                     MethodDefinition::Ordinary(FunctionExpr::new(None, params, body)),
                     property_name,
@@ -605,14 +407,14 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[derive(Debug, Clone)]
-struct PropertyName {
+pub(in crate::syntax::parser) struct PropertyName {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl PropertyName {
     /// Creates a new `PropertyName` parser.
-    fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -637,20 +439,91 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("PropertyName", "Parsing");
 
-        // ComputedPropertyName[?Yield, ?Await] -> [ AssignmentExpression[+In, ?Yield, ?Await] ]
-        if cursor.next_if(Punctuator::OpenBracket, interner)?.is_some() {
-            let node = AssignmentExpression::new(None, false, self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
-            cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
-            return Ok(node.into());
-        }
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let name = match token.kind() {
+            TokenKind::Punctuator(Punctuator::OpenBracket) => {
+                cursor.next(interner).expect("token disappeared");
+                let node =
+                    AssignmentExpression::new(None, false, self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
+                cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
+                return Ok(node.into());
+            }
+            TokenKind::Identifier(name) => object::PropertyName::Literal(*name),
+            TokenKind::StringLiteral(name) => Node::Const(Const::from(*name)).into(),
+            TokenKind::NumericLiteral(num) => match num {
+                Numeric::Rational(num) => Node::Const(Const::from(*num)).into(),
+                Numeric::Integer(num) => Node::Const(Const::from(*num)).into(),
+                Numeric::BigInt(num) => Node::Const(Const::from(num.clone())).into(),
+            },
+            TokenKind::Keyword((word, _)) => {
+                Node::Const(Const::from(interner.get_or_intern_static(word.as_str()))).into()
+            }
+            TokenKind::NullLiteral => Node::Const(Const::from(Sym::NULL)).into(),
+            TokenKind::BooleanLiteral(bool) => match bool {
+                true => Node::Const(Const::from(interner.get_or_intern_static("true"))).into(),
+                false => Node::Const(Const::from(interner.get_or_intern_static("false"))).into(),
+            },
+            _ => return Err(ParseError::AbruptEnd),
+        };
+        cursor.next(interner).expect("token disappeared");
+        Ok(name)
+    }
+}
 
-        // LiteralPropertyName
-        Ok(cursor
-            .next(interner)?
+/// `ClassElementName` can be either a property name or a private identifier.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ClassElementName
+#[derive(Debug, Clone)]
+pub(in crate::syntax::parser) struct ClassElementName {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl ClassElementName {
+    /// Creates a new `ClassElementName` parser.
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for ClassElementName
+where
+    R: Read,
+{
+    type Output = object::ClassElementName;
+
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        let _timer = Profiler::global().start_event("ClassElementName", "Parsing");
+
+        match cursor
+            .peek(0, interner)?
             .ok_or(ParseError::AbruptEnd)?
-            .to_sym(interner)
-            .into())
+            .kind()
+        {
+            TokenKind::PrivateIdentifier(ident) => {
+                let ident = *ident;
+                cursor.next(interner).expect("token disappeared");
+                Ok(object::ClassElementName::PrivateIdentifier(ident))
+            }
+            _ => Ok(object::ClassElementName::PropertyName(
+                PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
+            )),
+        }
     }
 }
 
@@ -703,5 +576,257 @@ where
         cursor.expect(Punctuator::Assign, "initializer", interner)?;
         AssignmentExpression::new(self.name, self.allow_in, self.allow_yield, self.allow_await)
             .parse(cursor, interner)
+    }
+}
+
+/// `GeneratorMethod` parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-GeneratorMethod
+#[derive(Debug, Clone, Copy)]
+pub(in crate::syntax::parser) struct GeneratorMethod {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl GeneratorMethod {
+    /// Creates a new `GeneratorMethod` parser.
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for GeneratorMethod
+where
+    R: Read,
+{
+    type Output = (object::ClassElementName, MethodDefinition);
+
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        let _timer = Profiler::global().start_event("GeneratorMethod", "Parsing");
+        cursor.expect(Punctuator::Mul, "generator method definition", interner)?;
+
+        let class_element_name =
+            ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        let params = UniqueFormalParameters::new(true, false).parse(cursor, interner)?;
+
+        let body_start = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "generator method definition",
+                interner,
+            )?
+            .span()
+            .start();
+        let body = FunctionBody::new(true, false).parse(cursor, interner)?;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::CloseBlock),
+            "generator method definition",
+            interner,
+        )?;
+
+        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+        // and IsSimpleParameterList of UniqueFormalParameters is false.
+        if body.strict() && !params.is_simple() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Illegal 'use strict' directive in function with non-simple parameter list".into(),
+                body_start,
+            )));
+        }
+
+        // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
+        // occurs in the LexicallyDeclaredNames of GeneratorBody.
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            body_start,
+        )?;
+
+        Ok((
+            class_element_name,
+            MethodDefinition::Generator(GeneratorExpr::new(None, params, body)),
+        ))
+    }
+}
+
+/// `AsyncGeneratorMethod` parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorMethod
+#[derive(Debug, Clone, Copy)]
+pub(in crate::syntax::parser) struct AsyncGeneratorMethod {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl AsyncGeneratorMethod {
+    /// Creates a new `AsyncGeneratorMethod` parser.
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for AsyncGeneratorMethod
+where
+    R: Read,
+{
+    type Output = (object::PropertyName, MethodDefinition);
+
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        let _timer = Profiler::global().start_event("AsyncGeneratorMethod", "Parsing");
+        cursor.expect(
+            Punctuator::Mul,
+            "async generator method definition",
+            interner,
+        )?;
+
+        let property_name =
+            PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        let params = UniqueFormalParameters::new(true, true).parse(cursor, interner)?;
+
+        let body_start = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "async generator method definition",
+                interner,
+            )?
+            .span()
+            .start();
+        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::CloseBlock),
+            "async generator method definition",
+            interner,
+        )?;
+
+        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+        // and IsSimpleParameterList of UniqueFormalParameters is false.
+        if body.strict() && !params.is_simple() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Illegal 'use strict' directive in function with non-simple parameter list".into(),
+                body_start,
+            )));
+        }
+
+        // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
+        // occurs in the LexicallyDeclaredNames of GeneratorBody.
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            body_start,
+        )?;
+
+        Ok((
+            property_name,
+            MethodDefinition::AsyncGenerator(AsyncGeneratorExpr::new(None, params, body)),
+        ))
+    }
+}
+
+/// `AsyncMethod` parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-AsyncMethod
+#[derive(Debug, Clone, Copy)]
+pub(in crate::syntax::parser) struct AsyncMethod {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl AsyncMethod {
+    /// Creates a new `AsyncMethod` parser.
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for AsyncMethod
+where
+    R: Read,
+{
+    type Output = (object::PropertyName, MethodDefinition);
+
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        let _timer = Profiler::global().start_event("AsyncMethod", "Parsing");
+
+        let property_name =
+            PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        let params = UniqueFormalParameters::new(false, true).parse(cursor, interner)?;
+
+        let body_start = cursor
+            .expect(
+                TokenKind::Punctuator(Punctuator::OpenBlock),
+                "async method definition",
+                interner,
+            )?
+            .span()
+            .start();
+        let body = FunctionBody::new(true, true).parse(cursor, interner)?;
+        cursor.expect(
+            TokenKind::Punctuator(Punctuator::CloseBlock),
+            "async method definition",
+            interner,
+        )?;
+
+        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
+        // and IsSimpleParameterList of UniqueFormalParameters is false.
+        if body.strict() && !params.is_simple() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "Illegal 'use strict' directive in function with non-simple parameter list".into(),
+                body_start,
+            )));
+        }
+
+        // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
+        // occurs in the LexicallyDeclaredNames of GeneratorBody.
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            body_start,
+        )?;
+
+        Ok((
+            property_name,
+            MethodDefinition::Async(AsyncFunctionExpr::new(None, params, body)),
+        ))
     }
 }

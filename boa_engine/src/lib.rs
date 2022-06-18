@@ -3,8 +3,12 @@
 //!
 //! # Crate Features
 //!  - **serde** - Enables serialization and deserialization of the AST (Abstract Syntax Tree).
-//!  - **console** - Enables `boa`s WHATWG `console` object implementation.
+//!  - **console** - Enables `boa`'s [WHATWG `console`][whatwg] object implementation.
 //!  - **profiler** - Enables profiling with measureme (this is mostly internal).
+//!  - **intl** - Enables `boa`'s [ECMA-402 Internationalization API][ecma-402] (`Intl` object)
+//!
+//! [whatwg]: https://console.spec.whatwg.org
+//! [ecma-402]: https://tc39.es/ecma402
 
 #![doc(
     html_logo_url = "https://raw.githubusercontent.com/boa-dev/boa/main/assets/logo.svg",
@@ -26,7 +30,6 @@
     clippy::all,
     clippy::cast_lossless,
     clippy::redundant_closure_for_method_calls,
-    clippy::use_self,
     clippy::unnested_or_patterns,
     clippy::trivially_copy_pass_by_ref,
     clippy::needless_pass_by_value,
@@ -49,6 +52,7 @@
     nonstandard_style,
 )]
 #![allow(
+    clippy::use_self, // TODO: deny once false positives are fixed
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
@@ -73,6 +77,7 @@ pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environments;
+pub mod job;
 pub mod object;
 pub mod property;
 pub mod realm;
@@ -99,7 +104,6 @@ pub use crate::{
 };
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
-#[must_use]
 pub type JsResult<T> = StdResult<T, JsValue>;
 
 /// Execute the code using an existing `Context`.

@@ -131,6 +131,13 @@ pub enum Opcode {
     /// Stack: **=>** `{}`
     PushEmptyObject,
 
+    /// Get the prototype of a superclass and push it on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: superclass **=>** superclass.prototype
+    PushClassPrototype,
+
     /// Push an empty array value on the stack.
     ///
     /// Operands:
@@ -508,6 +515,13 @@ pub enum Opcode {
     /// Stack: value, object **=>**
     DefineOwnPropertyByName,
 
+    /// Defines a class method by name.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineClassMethodByName,
+
     /// Sets a property by value of an object.
     ///
     /// Like `object[key] = value`
@@ -524,6 +538,13 @@ pub enum Opcode {
     /// Stack: object, key, value **=>**
     DefineOwnPropertyByValue,
 
+    /// Defines a class method by value.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=>**
+    DefineClassMethodByValue,
+
     /// Sets a getter property by name of an object.
     ///
     /// Like `get name() value`
@@ -532,6 +553,15 @@ pub enum Opcode {
     ///
     /// Stack: value, object **=>**
     SetPropertyGetterByName,
+
+    /// Defines a getter class method by name.
+    ///
+    /// Like `get name() value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineClassGetterByName,
 
     /// Sets a getter property by value of an object.
     ///
@@ -542,6 +572,15 @@ pub enum Opcode {
     /// Stack: object, key, value **=>**
     SetPropertyGetterByValue,
 
+    /// Defines a getter class method by value.
+    ///
+    /// Like `get [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=>**
+    DefineClassGetterByValue,
+
     /// Sets a setter property by name of an object.
     ///
     /// Like `set name() value`
@@ -551,6 +590,15 @@ pub enum Opcode {
     /// Stack: value, object **=>**
     SetPropertySetterByName,
 
+    /// Defines a setter class method by name.
+    ///
+    /// Like `set name() value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: value, object **=>**
+    DefineClassSetterByName,
+
     /// Sets a setter property by value of an object.
     ///
     /// Like `set [key]() value`
@@ -559,6 +607,58 @@ pub enum Opcode {
     ///
     /// Stack: object, key, value **=>**
     SetPropertySetterByValue,
+
+    /// Defines a setter class method by value.
+    ///
+    /// Like `set [key]() value`
+    ///
+    /// Operands:
+    ///
+    /// Stack: object, key, value **=>**
+    DefineClassSetterByValue,
+
+    /// Set a private property by name from an object.
+    ///
+    /// Like `#name = value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    SetPrivateValue,
+
+    /// Set a private setter property by name from an object.
+    ///
+    /// Like `set #name() {}`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    SetPrivateSetter,
+
+    /// Set a private getter property by name from an object.
+    ///
+    /// Like `get #name() {}`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    SetPrivateGetter,
+
+    /// Get a private property by name from an object an push it on the stack.
+    ///
+    /// Like `object.#name`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object **=>** value
+    GetPrivateField,
+
+    /// Push a computed class field name to a class constructor object.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value, object **=>**
+    PushClassComputedFieldName,
 
     /// Deletes a property by name of an object.
     ///
@@ -584,6 +684,13 @@ pub enum Opcode {
     ///
     /// Stack: source, value, excluded_key_0 ... excluded_key_n **=>** value
     CopyDataProperties,
+
+    /// Call ToPropertyKey on the value on the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: value **=>** key
+    ToPropertyKey,
 
     /// Unconditional jump to address.
     ///
@@ -718,6 +825,20 @@ pub enum Opcode {
     /// Stack: **=>** func
     GetGenerator,
 
+    /// Call a function named "eval".
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: func, this, argument_1, ... argument_n **=>** result
+    CallEval,
+
+    /// Call a function named "eval" where the last argument is a rest parameter.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: func, this, argument_1, ... argument_n **=>** result
+    CallEvalWithRest,
+
     /// Call a function.
     ///
     /// Operands: argument_count: `u32`
@@ -755,14 +876,14 @@ pub enum Opcode {
 
     /// Push a declarative environment.
     ///
-    /// Operands: num_bindings: `u32`
+    /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
     ///
     /// Stack: **=>**
     PushDeclarativeEnvironment,
 
     /// Push a function environment.
     ///
-    /// Operands:
+    /// Operands: num_bindings: `u32`, compile_environments_index: `u32`
     ///
     /// Stack: **=>**
     PushFunctionEnvironment,
@@ -938,264 +1059,294 @@ impl Opcode {
 
     pub fn as_str(self) -> &'static str {
         match self {
-            Opcode::Pop => "Pop",
-            Opcode::Dup => "Dup",
-            Opcode::Swap => "Swap",
-            Opcode::PushZero => "PushZero",
-            Opcode::PushOne => "PushOne",
-            Opcode::PushInt8 => "PushInt8",
-            Opcode::PushInt16 => "PushInt16",
-            Opcode::PushInt32 => "PushInt32",
-            Opcode::PushRational => "PushRational",
-            Opcode::PushNaN => "PushNaN",
-            Opcode::PushPositiveInfinity => "PushPositiveInfinity",
-            Opcode::PushNegativeInfinity => "PushNegativeInfinity",
-            Opcode::PushNull => "PushNull",
-            Opcode::PushTrue => "PushTrue",
-            Opcode::PushFalse => "PushFalse",
-            Opcode::PushUndefined => "PushUndefined",
-            Opcode::PushLiteral => "PushLiteral",
-            Opcode::PushEmptyObject => "PushEmptyObject",
-            Opcode::PushNewArray => "PushNewArray",
-            Opcode::PushValueToArray => "PushValueToArray",
-            Opcode::PushElisionToArray => "PushElisionToArray",
-            Opcode::PushIteratorToArray => "PushIteratorToArray",
-            Opcode::Add => "Add",
-            Opcode::Sub => "Sub",
-            Opcode::Div => "Div",
-            Opcode::Mul => "Mul",
-            Opcode::Mod => "Mod",
-            Opcode::Pow => "Pow",
-            Opcode::ShiftRight => "ShiftRight",
-            Opcode::ShiftLeft => "ShiftLeft",
-            Opcode::UnsignedShiftRight => "UnsignedShiftRight",
-            Opcode::BitOr => "BitOr",
-            Opcode::BitAnd => "BitAnd",
-            Opcode::BitXor => "BitXor",
-            Opcode::BitNot => "BitNot",
-            Opcode::In => "In",
-            Opcode::Eq => "Eq",
-            Opcode::StrictEq => "StrictEq",
-            Opcode::NotEq => "NotEq",
-            Opcode::StrictNotEq => "StrictNotEq",
-            Opcode::GreaterThan => "GreaterThan",
-            Opcode::GreaterThanOrEq => "GreaterThanOrEq",
-            Opcode::LessThan => "LessThan",
-            Opcode::LessThanOrEq => "LessThanOrEq",
-            Opcode::InstanceOf => "InstanceOf",
-            Opcode::TypeOf => "TypeOf",
-            Opcode::Void => "Void",
-            Opcode::LogicalNot => "LogicalNot",
-            Opcode::LogicalAnd => "LogicalAnd",
-            Opcode::LogicalOr => "LogicalOr",
-            Opcode::Coalesce => "Coalesce",
-            Opcode::Pos => "Pos",
-            Opcode::Neg => "Neg",
-            Opcode::Inc => "Inc",
-            Opcode::IncPost => "IncPost",
-            Opcode::Dec => "Dec",
-            Opcode::DecPost => "DecPost",
-            Opcode::DefInitArg => "DefInitArg",
-            Opcode::DefVar => "DefVar",
-            Opcode::DefInitVar => "DefInitVar",
-            Opcode::DefLet => "DefLet",
-            Opcode::DefInitLet => "DefInitLet",
-            Opcode::DefInitConst => "DefInitConst",
-            Opcode::GetName => "GetName",
-            Opcode::GetNameOrUndefined => "GetNameOrUndefined",
-            Opcode::SetName => "SetName",
-            Opcode::GetPropertyByName => "GetPropertyByName",
-            Opcode::GetPropertyByValue => "GetPropertyByValue",
-            Opcode::SetPropertyByName => "SetPropertyByName",
-            Opcode::DefineOwnPropertyByName => "DefineOwnPropertyByName",
-            Opcode::SetPropertyByValue => "SetPropertyByValue",
-            Opcode::DefineOwnPropertyByValue => "DefineOwnPropertyByValue",
-            Opcode::SetPropertyGetterByName => "SetPropertyGetterByName",
-            Opcode::SetPropertyGetterByValue => "SetPropertyGetterByValue",
-            Opcode::SetPropertySetterByName => "SetPropertySetterByName",
-            Opcode::SetPropertySetterByValue => "SetPropertySetterByValue",
-            Opcode::DeletePropertyByName => "DeletePropertyByName",
-            Opcode::DeletePropertyByValue => "DeletePropertyByValue",
-            Opcode::CopyDataProperties => "CopyDataProperties",
-            Opcode::Jump => "Jump",
-            Opcode::JumpIfFalse => "JumpIfFalse",
-            Opcode::JumpIfNotUndefined => "JumpIfNotUndefined",
-            Opcode::Throw => "Throw",
-            Opcode::TryStart => "TryStart",
-            Opcode::TryEnd => "TryEnd",
-            Opcode::CatchStart => "CatchStart",
-            Opcode::CatchEnd => "CatchEnd",
-            Opcode::CatchEnd2 => "CatchEnd2",
-            Opcode::FinallyStart => "FinallyStart",
-            Opcode::FinallyEnd => "FinallyEnd",
-            Opcode::FinallySetJump => "FinallySetJump",
-            Opcode::ToBoolean => "ToBoolean",
-            Opcode::This => "This",
-            Opcode::Case => "Case",
-            Opcode::Default => "Default",
-            Opcode::GetFunction => "GetFunction",
-            Opcode::GetGenerator => "GetGenerator",
-            Opcode::Call => "Call",
-            Opcode::CallWithRest => "CallWithRest",
-            Opcode::New => "New",
-            Opcode::NewWithRest => "NewWithRest",
-            Opcode::Return => "Return",
-            Opcode::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
-            Opcode::PushFunctionEnvironment => "PushFunctionEnvironment",
-            Opcode::PopEnvironment => "PopEnvironment",
-            Opcode::LoopStart => "LoopStart",
-            Opcode::LoopContinue => "LoopContinue",
-            Opcode::LoopEnd => "LoopEnd",
-            Opcode::ForInLoopInitIterator => "ForInLoopInitIterator",
-            Opcode::InitIterator => "InitIterator",
-            Opcode::IteratorNext => "IteratorNext",
-            Opcode::IteratorNextFull => "IteratorNextFull",
-            Opcode::IteratorClose => "IteratorClose",
-            Opcode::IteratorToArray => "IteratorToArray",
-            Opcode::ForInLoopNext => "ForInLoopNext",
-            Opcode::ConcatToString => "ConcatToString",
-            Opcode::RequireObjectCoercible => "RequireObjectCoercible",
-            Opcode::ValueNotNullOrUndefined => "ValueNotNullOrUndefined",
-            Opcode::RestParameterInit => "FunctionRestParameter",
-            Opcode::RestParameterPop => "RestParameterPop",
-            Opcode::PopOnReturnAdd => "PopOnReturnAdd",
-            Opcode::PopOnReturnSub => "PopOnReturnSub",
-            Opcode::Yield => "Yield",
-            Opcode::GeneratorNext => "GeneratorNext",
-            Opcode::GeneratorNextDelegate => "GeneratorNextDelegate",
-            Opcode::Nop => "Nop",
+            Self::Pop => "Pop",
+            Self::Dup => "Dup",
+            Self::Swap => "Swap",
+            Self::PushZero => "PushZero",
+            Self::PushOne => "PushOne",
+            Self::PushInt8 => "PushInt8",
+            Self::PushInt16 => "PushInt16",
+            Self::PushInt32 => "PushInt32",
+            Self::PushRational => "PushRational",
+            Self::PushNaN => "PushNaN",
+            Self::PushPositiveInfinity => "PushPositiveInfinity",
+            Self::PushNegativeInfinity => "PushNegativeInfinity",
+            Self::PushNull => "PushNull",
+            Self::PushTrue => "PushTrue",
+            Self::PushFalse => "PushFalse",
+            Self::PushUndefined => "PushUndefined",
+            Self::PushLiteral => "PushLiteral",
+            Self::PushEmptyObject => "PushEmptyObject",
+            Self::PushClassPrototype => "PushClassPrototype",
+            Self::PushNewArray => "PushNewArray",
+            Self::PushValueToArray => "PushValueToArray",
+            Self::PushElisionToArray => "PushElisionToArray",
+            Self::PushIteratorToArray => "PushIteratorToArray",
+            Self::Add => "Add",
+            Self::Sub => "Sub",
+            Self::Div => "Div",
+            Self::Mul => "Mul",
+            Self::Mod => "Mod",
+            Self::Pow => "Pow",
+            Self::ShiftRight => "ShiftRight",
+            Self::ShiftLeft => "ShiftLeft",
+            Self::UnsignedShiftRight => "UnsignedShiftRight",
+            Self::BitOr => "BitOr",
+            Self::BitAnd => "BitAnd",
+            Self::BitXor => "BitXor",
+            Self::BitNot => "BitNot",
+            Self::In => "In",
+            Self::Eq => "Eq",
+            Self::StrictEq => "StrictEq",
+            Self::NotEq => "NotEq",
+            Self::StrictNotEq => "StrictNotEq",
+            Self::GreaterThan => "GreaterThan",
+            Self::GreaterThanOrEq => "GreaterThanOrEq",
+            Self::LessThan => "LessThan",
+            Self::LessThanOrEq => "LessThanOrEq",
+            Self::InstanceOf => "InstanceOf",
+            Self::TypeOf => "TypeOf",
+            Self::Void => "Void",
+            Self::LogicalNot => "LogicalNot",
+            Self::LogicalAnd => "LogicalAnd",
+            Self::LogicalOr => "LogicalOr",
+            Self::Coalesce => "Coalesce",
+            Self::Pos => "Pos",
+            Self::Neg => "Neg",
+            Self::Inc => "Inc",
+            Self::IncPost => "IncPost",
+            Self::Dec => "Dec",
+            Self::DecPost => "DecPost",
+            Self::DefInitArg => "DefInitArg",
+            Self::DefVar => "DefVar",
+            Self::DefInitVar => "DefInitVar",
+            Self::DefLet => "DefLet",
+            Self::DefInitLet => "DefInitLet",
+            Self::DefInitConst => "DefInitConst",
+            Self::GetName => "GetName",
+            Self::GetNameOrUndefined => "GetNameOrUndefined",
+            Self::SetName => "SetName",
+            Self::GetPropertyByName => "GetPropertyByName",
+            Self::GetPropertyByValue => "GetPropertyByValue",
+            Self::SetPropertyByName => "SetPropertyByName",
+            Self::DefineOwnPropertyByName => "DefineOwnPropertyByName",
+            Self::DefineClassMethodByName => "DefineClassMethodByName",
+            Self::SetPropertyByValue => "SetPropertyByValue",
+            Self::DefineOwnPropertyByValue => "DefineOwnPropertyByValue",
+            Self::DefineClassMethodByValue => "DefineClassMethodByValue",
+            Self::SetPropertyGetterByName => "SetPropertyGetterByName",
+            Self::DefineClassGetterByName => "DefineClassGetterByName",
+            Self::SetPropertyGetterByValue => "SetPropertyGetterByValue",
+            Self::DefineClassGetterByValue => "DefineClassGetterByValue",
+            Self::SetPropertySetterByName => "SetPropertySetterByName",
+            Self::DefineClassSetterByName => "DefineClassSetterByName",
+            Self::SetPropertySetterByValue => "SetPropertySetterByValue",
+            Self::DefineClassSetterByValue => "DefineClassSetterByValue",
+            Self::SetPrivateValue => "SetPrivateValue",
+            Self::SetPrivateSetter => "SetPrivateSetter",
+            Self::SetPrivateGetter => "SetPrivateGetter",
+            Self::GetPrivateField => "GetPrivateByName",
+            Self::PushClassComputedFieldName => "PushClassComputedFieldName",
+            Self::DeletePropertyByName => "DeletePropertyByName",
+            Self::DeletePropertyByValue => "DeletePropertyByValue",
+            Self::CopyDataProperties => "CopyDataProperties",
+            Self::ToPropertyKey => "ToPropertyKey",
+            Self::Jump => "Jump",
+            Self::JumpIfFalse => "JumpIfFalse",
+            Self::JumpIfNotUndefined => "JumpIfNotUndefined",
+            Self::Throw => "Throw",
+            Self::TryStart => "TryStart",
+            Self::TryEnd => "TryEnd",
+            Self::CatchStart => "CatchStart",
+            Self::CatchEnd => "CatchEnd",
+            Self::CatchEnd2 => "CatchEnd2",
+            Self::FinallyStart => "FinallyStart",
+            Self::FinallyEnd => "FinallyEnd",
+            Self::FinallySetJump => "FinallySetJump",
+            Self::ToBoolean => "ToBoolean",
+            Self::This => "This",
+            Self::Case => "Case",
+            Self::Default => "Default",
+            Self::GetFunction => "GetFunction",
+            Self::GetGenerator => "GetGenerator",
+            Self::CallEval => "CallEval",
+            Self::CallEvalWithRest => "CallEvalWithRest",
+            Self::Call => "Call",
+            Self::CallWithRest => "CallWithRest",
+            Self::New => "New",
+            Self::NewWithRest => "NewWithRest",
+            Self::Return => "Return",
+            Self::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
+            Self::PushFunctionEnvironment => "PushFunctionEnvironment",
+            Self::PopEnvironment => "PopEnvironment",
+            Self::LoopStart => "LoopStart",
+            Self::LoopContinue => "LoopContinue",
+            Self::LoopEnd => "LoopEnd",
+            Self::ForInLoopInitIterator => "ForInLoopInitIterator",
+            Self::InitIterator => "InitIterator",
+            Self::IteratorNext => "IteratorNext",
+            Self::IteratorNextFull => "IteratorNextFull",
+            Self::IteratorClose => "IteratorClose",
+            Self::IteratorToArray => "IteratorToArray",
+            Self::ForInLoopNext => "ForInLoopNext",
+            Self::ConcatToString => "ConcatToString",
+            Self::RequireObjectCoercible => "RequireObjectCoercible",
+            Self::ValueNotNullOrUndefined => "ValueNotNullOrUndefined",
+            Self::RestParameterInit => "FunctionRestParameter",
+            Self::RestParameterPop => "RestParameterPop",
+            Self::PopOnReturnAdd => "PopOnReturnAdd",
+            Self::PopOnReturnSub => "PopOnReturnSub",
+            Self::Yield => "Yield",
+            Self::GeneratorNext => "GeneratorNext",
+            Self::GeneratorNextDelegate => "GeneratorNextDelegate",
+            Self::Nop => "Nop",
         }
     }
 
     /// Name of the profiler event for this opcode
     pub fn as_instruction_str(self) -> &'static str {
         match self {
-            Opcode::Pop => "INST - Pop",
-            Opcode::Dup => "INST - Dup",
-            Opcode::Swap => "INST - Swap",
-            Opcode::PushZero => "INST - PushZero",
-            Opcode::PushOne => "INST - PushOne",
-            Opcode::PushInt8 => "INST - PushInt8",
-            Opcode::PushInt16 => "INST - PushInt16",
-            Opcode::PushInt32 => "INST - PushInt32",
-            Opcode::PushRational => "INST - PushRational",
-            Opcode::PushNaN => "INST - PushNaN",
-            Opcode::PushPositiveInfinity => "INST - PushPositiveInfinity",
-            Opcode::PushNegativeInfinity => "INST - PushNegativeInfinity",
-            Opcode::PushNull => "INST - PushNull",
-            Opcode::PushTrue => "INST - PushTrue",
-            Opcode::PushFalse => "INST - PushFalse",
-            Opcode::PushUndefined => "INST - PushUndefined",
-            Opcode::PushLiteral => "INST - PushLiteral",
-            Opcode::PushEmptyObject => "INST - PushEmptyObject",
-            Opcode::PushNewArray => "INST - PushNewArray",
-            Opcode::PushValueToArray => "INST - PushValueToArray",
-            Opcode::PushElisionToArray => "INST - PushElisionToArray",
-            Opcode::PushIteratorToArray => "INST - PushIteratorToArray",
-            Opcode::Add => "INST - Add",
-            Opcode::Sub => "INST - Sub",
-            Opcode::Div => "INST - Div",
-            Opcode::Mul => "INST - Mul",
-            Opcode::Mod => "INST - Mod",
-            Opcode::Pow => "INST - Pow",
-            Opcode::ShiftRight => "INST - ShiftRight",
-            Opcode::ShiftLeft => "INST - ShiftLeft",
-            Opcode::UnsignedShiftRight => "INST - UnsignedShiftRight",
-            Opcode::BitOr => "INST - BitOr",
-            Opcode::BitAnd => "INST - BitAnd",
-            Opcode::BitXor => "INST - BitXor",
-            Opcode::BitNot => "INST - BitNot",
-            Opcode::In => "INST - In",
-            Opcode::Eq => "INST - Eq",
-            Opcode::StrictEq => "INST - StrictEq",
-            Opcode::NotEq => "INST - NotEq",
-            Opcode::StrictNotEq => "INST - StrictNotEq",
-            Opcode::GreaterThan => "INST - GreaterThan",
-            Opcode::GreaterThanOrEq => "INST - GreaterThanOrEq",
-            Opcode::LessThan => "INST - LessThan",
-            Opcode::LessThanOrEq => "INST - LessThanOrEq",
-            Opcode::InstanceOf => "INST - InstanceOf",
-            Opcode::TypeOf => "INST - TypeOf",
-            Opcode::Void => "INST - Void",
-            Opcode::LogicalNot => "INST - LogicalNot",
-            Opcode::LogicalAnd => "INST - LogicalAnd",
-            Opcode::LogicalOr => "INST - LogicalOr",
-            Opcode::Coalesce => "INST - Coalesce",
-            Opcode::Pos => "INST - Pos",
-            Opcode::Neg => "INST - Neg",
-            Opcode::Inc => "INST - Inc",
-            Opcode::IncPost => "INST - IncPost",
-            Opcode::Dec => "INST - Dec",
-            Opcode::DecPost => "INST - DecPost",
-            Opcode::DefInitArg => "INST - DefInitArg",
-            Opcode::DefVar => "INST - DefVar",
-            Opcode::DefInitVar => "INST - DefInitVar",
-            Opcode::DefLet => "INST - DefLet",
-            Opcode::DefInitLet => "INST - DefInitLet",
-            Opcode::DefInitConst => "INST - DefInitConst",
-            Opcode::GetName => "INST - GetName",
-            Opcode::GetNameOrUndefined => "INST - GetNameOrUndefined",
-            Opcode::SetName => "INST - SetName",
-            Opcode::GetPropertyByName => "INST - GetPropertyByName",
-            Opcode::GetPropertyByValue => "INST - GetPropertyByValue",
-            Opcode::SetPropertyByName => "INST - SetPropertyByName",
-            Opcode::DefineOwnPropertyByName => "INST - DefineOwnPropertyByName",
-            Opcode::SetPropertyByValue => "INST - SetPropertyByValue",
-            Opcode::DefineOwnPropertyByValue => "INST - DefineOwnPropertyByValue",
-            Opcode::SetPropertyGetterByName => "INST - SetPropertyGetterByName",
-            Opcode::SetPropertyGetterByValue => "INST - SetPropertyGetterByValue",
-            Opcode::SetPropertySetterByName => "INST - SetPropertySetterByName",
-            Opcode::SetPropertySetterByValue => "INST - SetPropertySetterByValue",
-            Opcode::DeletePropertyByName => "INST - DeletePropertyByName",
-            Opcode::DeletePropertyByValue => "INST - DeletePropertyByValue",
-            Opcode::CopyDataProperties => "INST - CopyDataProperties",
-            Opcode::Jump => "INST - Jump",
-            Opcode::JumpIfFalse => "INST - JumpIfFalse",
-            Opcode::JumpIfNotUndefined => "INST - JumpIfNotUndefined",
-            Opcode::Throw => "INST - Throw",
-            Opcode::TryStart => "INST - TryStart",
-            Opcode::TryEnd => "INST - TryEnd",
-            Opcode::CatchStart => "INST - CatchStart",
-            Opcode::CatchEnd => "INST - CatchEnd",
-            Opcode::CatchEnd2 => "INST - CatchEnd2",
-            Opcode::FinallyStart => "INST - FinallyStart",
-            Opcode::FinallyEnd => "INST - FinallyEnd",
-            Opcode::FinallySetJump => "INST - FinallySetJump",
-            Opcode::ToBoolean => "INST - ToBoolean",
-            Opcode::This => "INST - This",
-            Opcode::Case => "INST - Case",
-            Opcode::Default => "INST - Default",
-            Opcode::GetFunction => "INST - GetFunction",
-            Opcode::GetGenerator => "INST - GetGenerator",
-            Opcode::Call => "INST - Call",
-            Opcode::CallWithRest => "INST - CallWithRest",
-            Opcode::New => "INST - New",
-            Opcode::NewWithRest => "INST - NewWithRest",
-            Opcode::Return => "INST - Return",
-            Opcode::PushDeclarativeEnvironment => "INST - PushDeclarativeEnvironment",
-            Opcode::PushFunctionEnvironment => "INST - PushFunctionEnvironment",
-            Opcode::PopEnvironment => "INST - PopEnvironment",
-            Opcode::LoopStart => "INST - LoopStart",
-            Opcode::LoopContinue => "INST - LoopContinue",
-            Opcode::LoopEnd => "INST - LoopEnd",
-            Opcode::ForInLoopInitIterator => "INST - ForInLoopInitIterator",
-            Opcode::InitIterator => "INST - InitIterator",
-            Opcode::IteratorNext => "INST - IteratorNext",
-            Opcode::IteratorNextFull => "INST - IteratorNextFull",
-            Opcode::IteratorClose => "INST - IteratorClose",
-            Opcode::IteratorToArray => "INST - IteratorToArray",
-            Opcode::ForInLoopNext => "INST - ForInLoopNext",
-            Opcode::ConcatToString => "INST - ConcatToString",
-            Opcode::RequireObjectCoercible => "INST - RequireObjectCoercible",
-            Opcode::ValueNotNullOrUndefined => "INST - ValueNotNullOrUndefined",
-            Opcode::RestParameterInit => "INST - FunctionRestParameter",
-            Opcode::RestParameterPop => "INST - RestParameterPop",
-            Opcode::PopOnReturnAdd => "INST - PopOnReturnAdd",
-            Opcode::PopOnReturnSub => "INST - PopOnReturnSub",
-            Opcode::Yield => "INST - Yield",
-            Opcode::GeneratorNext => "INST - GeneratorNext",
-            Opcode::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
-            Opcode::Nop => "INST - Nop",
+            Self::Pop => "INST - Pop",
+            Self::Dup => "INST - Dup",
+            Self::Swap => "INST - Swap",
+            Self::PushZero => "INST - PushZero",
+            Self::PushOne => "INST - PushOne",
+            Self::PushInt8 => "INST - PushInt8",
+            Self::PushInt16 => "INST - PushInt16",
+            Self::PushInt32 => "INST - PushInt32",
+            Self::PushRational => "INST - PushRational",
+            Self::PushNaN => "INST - PushNaN",
+            Self::PushPositiveInfinity => "INST - PushPositiveInfinity",
+            Self::PushNegativeInfinity => "INST - PushNegativeInfinity",
+            Self::PushNull => "INST - PushNull",
+            Self::PushTrue => "INST - PushTrue",
+            Self::PushFalse => "INST - PushFalse",
+            Self::PushUndefined => "INST - PushUndefined",
+            Self::PushLiteral => "INST - PushLiteral",
+            Self::PushEmptyObject => "INST - PushEmptyObject",
+            Self::PushNewArray => "INST - PushNewArray",
+            Self::PushValueToArray => "INST - PushValueToArray",
+            Self::PushElisionToArray => "INST - PushElisionToArray",
+            Self::PushIteratorToArray => "INST - PushIteratorToArray",
+            Self::Add => "INST - Add",
+            Self::Sub => "INST - Sub",
+            Self::Div => "INST - Div",
+            Self::Mul => "INST - Mul",
+            Self::Mod => "INST - Mod",
+            Self::Pow => "INST - Pow",
+            Self::ShiftRight => "INST - ShiftRight",
+            Self::ShiftLeft => "INST - ShiftLeft",
+            Self::UnsignedShiftRight => "INST - UnsignedShiftRight",
+            Self::BitOr => "INST - BitOr",
+            Self::BitAnd => "INST - BitAnd",
+            Self::BitXor => "INST - BitXor",
+            Self::BitNot => "INST - BitNot",
+            Self::In => "INST - In",
+            Self::Eq => "INST - Eq",
+            Self::StrictEq => "INST - StrictEq",
+            Self::NotEq => "INST - NotEq",
+            Self::StrictNotEq => "INST - StrictNotEq",
+            Self::GreaterThan => "INST - GreaterThan",
+            Self::GreaterThanOrEq => "INST - GreaterThanOrEq",
+            Self::LessThan => "INST - LessThan",
+            Self::LessThanOrEq => "INST - LessThanOrEq",
+            Self::InstanceOf => "INST - InstanceOf",
+            Self::TypeOf => "INST - TypeOf",
+            Self::Void => "INST - Void",
+            Self::LogicalNot => "INST - LogicalNot",
+            Self::LogicalAnd => "INST - LogicalAnd",
+            Self::LogicalOr => "INST - LogicalOr",
+            Self::Coalesce => "INST - Coalesce",
+            Self::Pos => "INST - Pos",
+            Self::Neg => "INST - Neg",
+            Self::Inc => "INST - Inc",
+            Self::IncPost => "INST - IncPost",
+            Self::Dec => "INST - Dec",
+            Self::DecPost => "INST - DecPost",
+            Self::DefInitArg => "INST - DefInitArg",
+            Self::DefVar => "INST - DefVar",
+            Self::DefInitVar => "INST - DefInitVar",
+            Self::DefLet => "INST - DefLet",
+            Self::DefInitLet => "INST - DefInitLet",
+            Self::DefInitConst => "INST - DefInitConst",
+            Self::GetName => "INST - GetName",
+            Self::GetNameOrUndefined => "INST - GetNameOrUndefined",
+            Self::SetName => "INST - SetName",
+            Self::GetPropertyByName => "INST - GetPropertyByName",
+            Self::GetPropertyByValue => "INST - GetPropertyByValue",
+            Self::SetPropertyByName => "INST - SetPropertyByName",
+            Self::DefineOwnPropertyByName => "INST - DefineOwnPropertyByName",
+            Self::SetPropertyByValue => "INST - SetPropertyByValue",
+            Self::DefineOwnPropertyByValue => "INST - DefineOwnPropertyByValue",
+            Self::SetPropertyGetterByName => "INST - SetPropertyGetterByName",
+            Self::SetPropertyGetterByValue => "INST - SetPropertyGetterByValue",
+            Self::SetPropertySetterByName => "INST - SetPropertySetterByName",
+            Self::SetPropertySetterByValue => "INST - SetPropertySetterByValue",
+            Self::DeletePropertyByName => "INST - DeletePropertyByName",
+            Self::DeletePropertyByValue => "INST - DeletePropertyByValue",
+            Self::CopyDataProperties => "INST - CopyDataProperties",
+            Self::Jump => "INST - Jump",
+            Self::JumpIfFalse => "INST - JumpIfFalse",
+            Self::JumpIfNotUndefined => "INST - JumpIfNotUndefined",
+            Self::Throw => "INST - Throw",
+            Self::TryStart => "INST - TryStart",
+            Self::TryEnd => "INST - TryEnd",
+            Self::CatchStart => "INST - CatchStart",
+            Self::CatchEnd => "INST - CatchEnd",
+            Self::CatchEnd2 => "INST - CatchEnd2",
+            Self::FinallyStart => "INST - FinallyStart",
+            Self::FinallyEnd => "INST - FinallyEnd",
+            Self::FinallySetJump => "INST - FinallySetJump",
+            Self::ToBoolean => "INST - ToBoolean",
+            Self::This => "INST - This",
+            Self::Case => "INST - Case",
+            Self::Default => "INST - Default",
+            Self::GetFunction => "INST - GetFunction",
+            Self::GetGenerator => "INST - GetGenerator",
+            Self::CallEval => "INST - CallEval",
+            Self::CallEvalWithRest => "INST - CallEvalWithRest",
+            Self::Call => "INST - Call",
+            Self::CallWithRest => "INST - CallWithRest",
+            Self::New => "INST - New",
+            Self::NewWithRest => "INST - NewWithRest",
+            Self::Return => "INST - Return",
+            Self::PushDeclarativeEnvironment => "INST - PushDeclarativeEnvironment",
+            Self::PushFunctionEnvironment => "INST - PushFunctionEnvironment",
+            Self::PopEnvironment => "INST - PopEnvironment",
+            Self::LoopStart => "INST - LoopStart",
+            Self::LoopContinue => "INST - LoopContinue",
+            Self::LoopEnd => "INST - LoopEnd",
+            Self::ForInLoopInitIterator => "INST - ForInLoopInitIterator",
+            Self::InitIterator => "INST - InitIterator",
+            Self::IteratorNext => "INST - IteratorNext",
+            Self::IteratorNextFull => "INST - IteratorNextFull",
+            Self::IteratorClose => "INST - IteratorClose",
+            Self::IteratorToArray => "INST - IteratorToArray",
+            Self::ForInLoopNext => "INST - ForInLoopNext",
+            Self::ConcatToString => "INST - ConcatToString",
+            Self::RequireObjectCoercible => "INST - RequireObjectCoercible",
+            Self::ValueNotNullOrUndefined => "INST - ValueNotNullOrUndefined",
+            Self::RestParameterInit => "INST - FunctionRestParameter",
+            Self::RestParameterPop => "INST - RestParameterPop",
+            Self::PopOnReturnAdd => "INST - PopOnReturnAdd",
+            Self::PopOnReturnSub => "INST - PopOnReturnSub",
+            Self::Yield => "INST - Yield",
+            Self::GeneratorNext => "INST - GeneratorNext",
+            Self::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
+            Self::Nop => "INST - Nop",
+            Self::PushClassPrototype => "INST - PushClassPrototype",
+            Self::DefineClassMethodByName => "INST - DefineClassMethodByName",
+            Self::DefineClassMethodByValue => "INST - DefineClassMethodByValue",
+            Self::DefineClassGetterByName => "INST - DefineClassGetterByName",
+            Self::DefineClassGetterByValue => "INST - DefineClassGetterByValue",
+            Self::DefineClassSetterByName => "INST - DefineClassSetterByName",
+            Self::DefineClassSetterByValue => "INST - DefineClassSetterByValue",
+            Self::SetPrivateValue => "INST - SetPrivateValue",
+            Self::SetPrivateSetter => "INST - SetPrivateSetter",
+            Self::SetPrivateGetter => "INST - SetPrivateGetter",
+            Self::GetPrivateField => "INST - GetPrivateField",
+            Self::PushClassComputedFieldName => "INST - PushClassComputedFieldName",
+            Self::ToPropertyKey => "INST - ToPropertyKey",
         }
     }
 }

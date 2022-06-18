@@ -1,7 +1,6 @@
 //! Switch node.
 //!
 use crate::syntax::ast::node::Node;
-use boa_gc::{Finalize, Trace};
 use boa_interner::{Interner, ToInternedString};
 
 use crate::syntax::ast::node::StatementList;
@@ -13,7 +12,7 @@ use serde::{Deserialize, Serialize};
 mod tests;
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Case {
     condition: Node,
     body: StatementList,
@@ -60,7 +59,7 @@ impl Case {
 /// [spec]: https://tc39.es/ecma262/#prod-SwitchStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Switch {
     val: Box<Node>,
     cases: Box<[Case]>,

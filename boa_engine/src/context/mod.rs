@@ -2,12 +2,20 @@
 
 pub mod intrinsics;
 
+#[cfg(feature = "intl")]
+mod icu;
+
+use std::collections::VecDeque;
+
 use intrinsics::{IntrinsicObjects, Intrinsics};
 
+#[cfg(feature = "console")]
+use crate::builtins::console::Console;
 use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
@@ -15,12 +23,17 @@ use crate::{
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
     JsResult, JsValue,
 };
+
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 
-#[cfg(feature = "console")]
-use crate::builtins::console::Console;
+#[cfg(feature = "intl")]
+use icu_provider::DataError;
+
+#[doc(inline)]
+#[cfg(all(feature = "intl", doc))]
+pub use icu::BoaProvider;
 
 /// Javascript context. It is the primary way to interact with the runtime.
 ///
@@ -82,48 +95,27 @@ pub struct Context {
     /// Intrinsic objects
     intrinsics: Intrinsics,
 
-    /// Whether or not global strict mode is active.
-    strict: bool,
+    /// ICU related utilities
+    #[cfg(feature = "intl")]
+    icu: icu::Icu,
 
     pub(crate) vm: Vm,
+
+    pub(crate) promise_job_queue: VecDeque<JobCallback>,
 }
 
 impl Default for Context {
     fn default() -> Self {
-        let mut context = Self {
-            realm: Realm::create(),
-            interner: Interner::default(),
-            #[cfg(feature = "console")]
-            console: Console::default(),
-            intrinsics: Intrinsics::default(),
-            strict: false,
-            vm: Vm {
-                frame: None,
-                stack: Vec::with_capacity(1024),
-                trace: false,
-                stack_size_limit: 1024,
-            },
-        };
-
-        // Add new builtIns to Context Realm
-        // At a later date this can be removed from here and called explicitly,
-        // but for now we almost always want these default builtins
-        context.intrinsics.objects = IntrinsicObjects::init(&mut context);
-        context.create_intrinsics();
-        context
+        ContextBuilder::default().build()
     }
 }
 
 impl Context {
-    /// Create a new `Context`.
-    #[inline]
-    pub fn new(interner: Interner) -> Self {
-        Self {
-            interner,
-            ..Self::default()
-        }
+    /// Create a new [`ContextBuilder`] to specify the [`Interner`] and/or
+    /// the icu data provider.
+    pub fn builder() -> ContextBuilder {
+        ContextBuilder::default()
     }
-
     /// Gets the string interner.
     #[inline]
     pub fn interner(&self) -> &Interner {
@@ -149,18 +141,6 @@ impl Context {
         &mut self.console
     }
 
-    /// Returns if strict mode is currently active.
-    #[inline]
-    pub fn strict(&self) -> bool {
-        self.strict
-    }
-
-    /// Set the global strict mode of the context.
-    #[inline]
-    pub fn set_strict_mode(&mut self, strict: bool) {
-        self.strict = strict;
-    }
-
     /// Sets up the default global objects within Global
     #[inline]
     fn create_intrinsics(&mut self) {
@@ -178,11 +158,23 @@ impl Context {
         )
     }
 
+    /// Parse the given source text.
     pub fn parse<S>(&mut self, src: S) -> Result<StatementList, ParseError>
     where
         S: AsRef<[u8]>,
     {
-        Parser::new(src.as_ref(), self.strict).parse_all(&mut self.interner)
+        let mut parser = Parser::new(src.as_ref());
+        parser.parse_all(self)
+    }
+
+    /// Parse the given source text in strict mode.
+    pub(crate) fn parse_strict<S>(&mut self, src: S) -> Result<StatementList, ParseError>
+    where
+        S: AsRef<[u8]>,
+    {
+        let mut parser = Parser::new(src.as_ref());
+        parser.set_strict();
+        parser.parse_all(self)
     }
 
     /// <https://tc39.es/ecma262/#sec-call>
@@ -202,12 +194,6 @@ impl Context {
     #[inline]
     pub fn global_object(&self) -> &JsObject {
         self.realm.global_object()
-    }
-
-    /// Return a reference to the global object string bindings.
-    #[inline]
-    pub(crate) fn global_bindings(&self) -> &GlobalPropertyMap {
-        self.realm.global_bindings()
     }
 
     /// Return a mutable reference to the global object string bindings.
@@ -647,8 +633,8 @@ impl Context {
     {
         let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
-        let parsing_result = Parser::new(src.as_ref(), false)
-            .parse_all(&mut self.interner)
+        let parsing_result = Parser::new(src.as_ref())
+            .parse_all(self)
             .map_err(|e| e.to_string());
 
         let statement_list = match parsing_result {
@@ -673,6 +659,23 @@ impl Context {
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
         compiler.create_declarations(statement_list.items())?;
         compiler.compile_statement_list(statement_list.items(), true)?;
+        Ok(Gc::new(compiler.finish()))
+    }
+
+    /// Compile the AST into a `CodeBlock` with an additional declarative environment.
+    #[inline]
+    pub(crate) fn compile_with_new_declarative(
+        &mut self,
+        statement_list: &StatementList,
+        strict: bool,
+    ) -> JsResult<Gc<CodeBlock>> {
+        let _timer = Profiler::global().start_event("Compilation", "Main");
+        let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
+        compiler.compile_statement_list_with_new_declarative(
+            statement_list.items(),
+            true,
+            strict || statement_list.strict(),
+        )?;
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -709,8 +712,17 @@ impl Context {
         self.realm.set_global_binding_number();
         let result = self.run();
         self.vm.pop_frame();
+        self.run_queued_jobs()?;
         let (result, _) = result?;
         Ok(result)
+    }
+
+    /// Runs all the jobs in the job queue.
+    fn run_queued_jobs(&mut self) -> JsResult<()> {
+        while let Some(job) = self.promise_job_queue.pop_front() {
+            job.call_job_callback(&JsValue::Undefined, &[], self)?;
+        }
+        Ok(())
     }
 
     /// Return the intrinsic constructors and objects.
@@ -722,5 +734,101 @@ impl Context {
     /// Set the value of trace on the context
     pub fn set_trace(&mut self, trace: bool) {
         self.vm.trace = trace;
+    }
+
+    #[cfg(feature = "intl")]
+    #[inline]
+    /// Get the ICU related utilities
+    pub(crate) fn icu(&self) -> &icu::Icu {
+        &self.icu
+    }
+
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-hostenqueuepromisejob
+    pub fn host_enqueue_promise_job(&mut self, job: JobCallback /* , realm: Realm */) {
+        // If realm is not null ...
+        // TODO
+        // Let scriptOrModule be ...
+        // TODO
+        self.promise_job_queue.push_back(job);
+    }
+}
+/// Builder for the [`Context`] type.
+///
+/// This builder allows custom initialization of the [`Interner`] within
+/// the context.
+/// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
+/// the only way to create a new [`Context`], since now it requires a
+/// valid data provider for the `Intl` functionality.
+///
+#[cfg_attr(
+    feature = "intl",
+    doc = "The required data in a valid provider is specified in [`BoaProvider`]"
+)]
+#[derive(Debug, Default)]
+pub struct ContextBuilder {
+    interner: Option<Interner>,
+    #[cfg(feature = "intl")]
+    icu: Option<icu::Icu>,
+}
+
+impl ContextBuilder {
+    /// Initializes the context [`Interner`] to the provided interner.
+    ///
+    /// This is useful when you want to initialize an [`Interner`] with
+    /// a collection of words before parsing.
+    #[must_use]
+    pub fn interner(mut self, interner: Interner) -> Self {
+        self.interner = Some(interner);
+        self
+    }
+
+    /// Provides an icu data provider to the [`Context`].
+    ///
+    /// This function is only available if the `intl` feature is enabled.
+    #[cfg(any(feature = "intl", docs))]
+    pub fn icu_provider(mut self, provider: Box<dyn icu::BoaProvider>) -> Result<Self, DataError> {
+        self.icu = Some(icu::Icu::new(provider)?);
+        Ok(self)
+    }
+
+    /// Creates a new [`ContextBuilder`] with a default empty [`Interner`]
+    /// and a default [`BoaProvider`] if the `intl` feature is enabled.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Builds a new [`Context`] with the provided parameters, and defaults
+    /// all missing parameters to their default values.
+    pub fn build(self) -> Context {
+        let mut context = Context {
+            realm: Realm::create(),
+            interner: self.interner.unwrap_or_default(),
+            #[cfg(feature = "console")]
+            console: Console::default(),
+            intrinsics: Intrinsics::default(),
+            vm: Vm {
+                frame: None,
+                stack: Vec::with_capacity(1024),
+                trace: false,
+                stack_size_limit: 1024,
+            },
+            #[cfg(feature = "intl")]
+            icu: self.icu.unwrap_or_else(|| {
+                // TODO: Replace with a more fitting default
+                icu::Icu::new(Box::new(icu_testdata::get_provider()))
+                    .expect("Failed to initialize default icu data.")
+            }),
+            promise_job_queue: VecDeque::new(),
+        };
+
+        // Add new builtIns to Context Realm
+        // At a later date this can be removed from here and called explicitly,
+        // but for now we almost always want these default builtins
+        context.intrinsics.objects = IntrinsicObjects::init(&mut context);
+        context.create_intrinsics();
+        context
     }
 }

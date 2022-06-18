@@ -60,7 +60,7 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("IfStatement", "Parsing");
 
-        cursor.expect(Keyword::If, "if statement", interner)?;
+        cursor.expect((Keyword::If, false), "if statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "if statement", interner)?;
 
         let condition = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -71,61 +71,72 @@ where
             .span()
             .end();
 
-        let then_node = if !cursor.strict_mode()
-            && cursor
-                .peek(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .kind()
-                == &TokenKind::Keyword(Keyword::Function)
-        {
-            // FunctionDeclarations in IfStatement Statement Clauses
-            // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-            FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                .parse(cursor, interner)?
-                .into()
-        } else {
-            let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(cursor, interner)?;
-
-            // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-            if let Node::FunctionDecl(_) = node {
-                return Err(ParseError::wrong_function_declaration_non_strict(position));
-            }
-
-            node
-        };
-
-        let else_node = if cursor.next_if(Keyword::Else, interner)?.is_some() {
-            let position = cursor
-                .peek(0, interner)?
-                .ok_or(ParseError::AbruptEnd)?
-                .span()
-                .start();
-
-            if !cursor.strict_mode()
-                && cursor
-                    .peek(0, interner)?
-                    .ok_or(ParseError::AbruptEnd)?
-                    .kind()
-                    == &TokenKind::Keyword(Keyword::Function)
-            {
+        let strict = cursor.strict_mode();
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let then_node = match token.kind() {
+            TokenKind::Keyword((Keyword::Function, _)) if !strict => {
                 // FunctionDeclarations in IfStatement Statement Clauses
                 // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-                Some(
-                    FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                        .parse(cursor, interner)?
-                        .into(),
-                )
-            } else {
+                FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                    .parse(cursor, interner)?
+                    .into()
+            }
+            _ => {
                 let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
 
-                // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
+                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
                 if let Node::FunctionDecl(_) = node {
                     return Err(ParseError::wrong_function_declaration_non_strict(position));
                 }
 
-                Some(node)
+                node
+            }
+        };
+
+        let else_node = if let Some(token) = cursor.peek(0, interner)? {
+            match token.kind() {
+                TokenKind::Keyword((Keyword::Else, true)) => {
+                    return Err(ParseError::general(
+                        "Keyword must not contain escaped characters",
+                        token.span().start(),
+                    ));
+                }
+                TokenKind::Keyword((Keyword::Else, false)) => {
+                    cursor.next(interner)?.expect("token disappeared");
+
+                    let strict = cursor.strict_mode();
+                    let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+                    match token.kind() {
+                        TokenKind::Keyword((Keyword::Function, _)) if !strict => {
+                            // FunctionDeclarations in IfStatement Statement Clauses
+                            // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
+                            Some(
+                                FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                                    .parse(cursor, interner)?
+                                    .into(),
+                            )
+                        }
+                        _ => {
+                            let node = Statement::new(
+                                self.allow_yield,
+                                self.allow_await,
+                                self.allow_return,
+                            )
+                            .parse(cursor, interner)?;
+
+                            // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
+                            if let Node::FunctionDecl(_) = node {
+                                return Err(ParseError::wrong_function_declaration_non_strict(
+                                    position,
+                                ));
+                            }
+
+                            Some(node)
+                        }
+                    }
+                }
+                _ => None,
             }
         } else {
             None

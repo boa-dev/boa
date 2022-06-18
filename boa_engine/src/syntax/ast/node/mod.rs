@@ -31,11 +31,11 @@ pub use self::{
     conditional::{ConditionalOp, If},
     declaration::{
         async_generator_decl::AsyncGeneratorDecl, async_generator_expr::AsyncGeneratorExpr,
-        generator_decl::GeneratorDecl, generator_expr::GeneratorExpr, ArrowFunctionDecl,
-        AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList, DeclarationPattern,
-        FunctionDecl, FunctionExpr,
+        class_decl::Class, generator_decl::GeneratorDecl, generator_expr::GeneratorExpr,
+        ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
+        DeclarationPattern, FunctionDecl, FunctionExpr,
     },
-    field::{GetConstField, GetField},
+    field::{get_private_field::GetPrivateField, GetConstField, GetField},
     identifier::Identifier,
     iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
     new::New,
@@ -45,18 +45,23 @@ pub use self::{
     r#yield::Yield,
     return_smt::Return,
     spread::Spread,
-    statement_list::{RcStatementList, StatementList},
+    statement_list::StatementList,
     switch::{Case, Switch},
     template::{TaggedTemplate, TemplateLit},
     throw::Throw,
     try_node::{Catch, Finally, Try},
 };
+use self::{
+    declaration::class_decl::ClassElement,
+    iteration::IterableLoopInitializer,
+    object::{MethodDefinition, PropertyDefinition},
+};
 
 pub(crate) use self::parameters::FormalParameterListFlags;
 
 use super::Const;
-use boa_gc::{Finalize, Trace};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
+use rustc_hash::FxHashSet;
 use std::cmp::Ordering;
 
 #[cfg(feature = "deser")]
@@ -64,7 +69,7 @@ use serde::{Deserialize, Serialize};
 
 // TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Node {
     /// Array declaration node. [More information](./array/struct.ArrayDecl.html).
     ArrayDecl(ArrayDecl),
@@ -134,6 +139,9 @@ pub enum Node {
 
     /// Provides access to an object types' constant properties. [More information](./declaration/struct.GetConstField.html).
     GetConstField(GetConstField),
+
+    /// Provides access to an object types' private properties. [More information](./declaration/struct.GetPrivateField.html).
+    GetPrivateField(GetPrivateField),
 
     /// Provides access to object fields. [More information](./declaration/struct.GetField.html).
     GetField(GetField),
@@ -226,6 +234,12 @@ pub enum Node {
 
     /// A generator function expression node. [More information](./declaration/struct.GeneratorExpr.html).
     GeneratorExpr(GeneratorExpr),
+
+    /// A class declaration. [More information](./declaration/struct.class_decl.Class.html).
+    ClassDecl(Class),
+
+    /// A class declaration. [More information](./declaration/struct.class_decl.Class.html).
+    ClassExpr(Class),
 }
 
 impl From<Const> for Node {
@@ -296,6 +310,9 @@ impl Node {
             Self::GetConstField(ref get_const_field) => {
                 get_const_field.to_interned_string(interner)
             }
+            Self::GetPrivateField(ref get_private_field) => {
+                get_private_field.to_interned_string(interner)
+            }
             Self::GetField(ref get_field) => get_field.to_interned_string(interner),
             Self::WhileLoop(ref while_loop) => while_loop.to_indented_string(interner, indentation),
             Self::DoWhileLoop(ref do_while) => do_while.to_indented_string(interner, indentation),
@@ -326,7 +343,542 @@ impl Node {
             Self::GeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
             Self::AsyncGeneratorExpr(ref expr) => expr.to_indented_string(interner, indentation),
             Self::AsyncGeneratorDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::ClassDecl(ref decl) => decl.to_indented_string(interner, indentation),
+            Self::ClassExpr(ref expr) => expr.to_indented_string(interner, indentation),
         }
+    }
+
+    pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Sym>) {
+        match self {
+            Node::Block(block) => {
+                for node in block.items() {
+                    node.var_declared_names(vars);
+                }
+            }
+            Node::VarDeclList(DeclarationList::Var(declarations)) => {
+                for declaration in declarations.iter() {
+                    match declaration {
+                        Declaration::Identifier { ident, .. } => {
+                            vars.insert(ident.sym());
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                vars.insert(ident);
+                            }
+                        }
+                    }
+                }
+            }
+            Node::If(if_statement) => {
+                if_statement.body().var_declared_names(vars);
+                if let Some(node) = if_statement.else_node() {
+                    node.var_declared_names(vars);
+                }
+            }
+            Node::DoWhileLoop(do_while_loop) => {
+                do_while_loop.body().var_declared_names(vars);
+            }
+            Node::WhileLoop(while_loop) => {
+                while_loop.body().var_declared_names(vars);
+            }
+            Node::ForLoop(for_loop) => {
+                if let Some(Node::VarDeclList(DeclarationList::Var(declarations))) = for_loop.init()
+                {
+                    for declaration in declarations.iter() {
+                        match declaration {
+                            Declaration::Identifier { ident, .. } => {
+                                vars.insert(ident.sym());
+                            }
+                            Declaration::Pattern(pattern) => {
+                                for ident in pattern.idents() {
+                                    vars.insert(ident);
+                                }
+                            }
+                        }
+                    }
+                }
+                for_loop.body().var_declared_names(vars);
+            }
+            Node::ForInLoop(for_in_loop) => {
+                if let IterableLoopInitializer::Var(declaration) = for_in_loop.init() {
+                    match declaration {
+                        Declaration::Identifier { ident, .. } => {
+                            vars.insert(ident.sym());
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                vars.insert(ident);
+                            }
+                        }
+                    }
+                }
+                for_in_loop.body().var_declared_names(vars);
+            }
+            Node::ForOfLoop(for_of_loop) => {
+                if let IterableLoopInitializer::Var(declaration) = for_of_loop.init() {
+                    match declaration {
+                        Declaration::Identifier { ident, .. } => {
+                            vars.insert(ident.sym());
+                        }
+                        Declaration::Pattern(pattern) => {
+                            for ident in pattern.idents() {
+                                vars.insert(ident);
+                            }
+                        }
+                    }
+                }
+                for_of_loop.body().var_declared_names(vars);
+            }
+            Node::Switch(switch) => {
+                for case in switch.cases() {
+                    for node in case.body().items() {
+                        node.var_declared_names(vars);
+                    }
+                }
+                if let Some(nodes) = switch.default() {
+                    for node in nodes {
+                        node.var_declared_names(vars);
+                    }
+                }
+            }
+            Node::Try(try_statement) => {
+                for node in try_statement.block().items() {
+                    node.var_declared_names(vars);
+                }
+                if let Some(catch) = try_statement.catch() {
+                    for node in catch.block().items() {
+                        node.var_declared_names(vars);
+                    }
+                }
+                if let Some(finally) = try_statement.finally() {
+                    for node in finally.items() {
+                        node.var_declared_names(vars);
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+
+    /// Returns true if the node contains a identifier reference named 'arguments'.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            Node::Identifier(ident) if ident.sym() == Sym::ARGUMENTS => return true,
+            Node::ArrayDecl(array) => {
+                for node in array.as_ref() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::ArrowFunctionDecl(decl) => {
+                for node in decl.body().items() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::Assign(assign) => {
+                if assign.rhs().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::AwaitExpr(r#await) => {
+                if r#await.expr().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::BinOp(bin_op) => {
+                if bin_op.lhs().contains_arguments() || bin_op.rhs().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::Block(block) => {
+                for node in block.items() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::Call(call) => {
+                if call.expr().contains_arguments() {
+                    return true;
+                }
+                for node in call.args() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::ConditionalOp(conditional) => {
+                if conditional.cond().contains_arguments() {
+                    return true;
+                }
+                if conditional.if_true().contains_arguments() {
+                    return true;
+                }
+                if conditional.if_false().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::DoWhileLoop(do_while_loop) => {
+                if do_while_loop.body().contains_arguments() {
+                    return true;
+                }
+                if do_while_loop.cond().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::GetConstField(get_const_field) => {
+                if get_const_field.obj().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::GetPrivateField(get_private_field) => {
+                if get_private_field.obj().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::GetField(get_field) => {
+                if get_field.obj().contains_arguments() {
+                    return true;
+                }
+                if get_field.field().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::ForLoop(for_loop) => {
+                if let Some(node) = for_loop.init() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if let Some(node) = for_loop.condition() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if let Some(node) = for_loop.final_expr() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if for_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::ForInLoop(for_in_loop) => {
+                match for_in_loop.init() {
+                    IterableLoopInitializer::Var(declaration)
+                    | IterableLoopInitializer::Let(declaration)
+                    | IterableLoopInitializer::Const(declaration) => match declaration {
+                        Declaration::Identifier { init, .. } => {
+                            if let Some(init) = init {
+                                {
+                                    if init.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        Declaration::Pattern(pattern) => {
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                        }
+                    },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        if pattern.contains_arguments() {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::Identifier(_) => {}
+                }
+                if for_in_loop.expr().contains_arguments() {
+                    return true;
+                }
+                if for_in_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::ForOfLoop(for_of_loop) => {
+                match for_of_loop.init() {
+                    IterableLoopInitializer::Var(declaration)
+                    | IterableLoopInitializer::Let(declaration)
+                    | IterableLoopInitializer::Const(declaration) => match declaration {
+                        Declaration::Identifier { init, .. } => {
+                            if let Some(init) = init {
+                                {
+                                    if init.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                        Declaration::Pattern(pattern) => {
+                            if pattern.contains_arguments() {
+                                return true;
+                            }
+                        }
+                    },
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        if pattern.contains_arguments() {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::Identifier(_) => {}
+                }
+                if for_of_loop.iterable().contains_arguments() {
+                    return true;
+                }
+                if for_of_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::If(r#if) => {
+                if r#if.cond().contains_arguments() {
+                    return true;
+                }
+                if r#if.body().contains_arguments() {
+                    return true;
+                }
+                if let Some(node) = r#if.else_node() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::VarDeclList(decl_list)
+            | Node::ConstDeclList(decl_list)
+            | Node::LetDeclList(decl_list) => match decl_list {
+                DeclarationList::Const(declarations)
+                | DeclarationList::Let(declarations)
+                | DeclarationList::Var(declarations) => {
+                    for declaration in declarations.iter() {
+                        match declaration {
+                            Declaration::Identifier { init, .. } => {
+                                if let Some(init) = init {
+                                    {
+                                        if init.contains_arguments() {
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
+                            Declaration::Pattern(pattern) => {
+                                if pattern.contains_arguments() {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            Node::New(new) => {
+                if new.expr().contains_arguments() {
+                    return true;
+                }
+                for node in new.args() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::Object(object) => {
+                for property in object.properties() {
+                    match property {
+                        PropertyDefinition::IdentifierReference(ident) => {
+                            if *ident == Sym::ARGUMENTS {
+                                return true;
+                            }
+                        }
+                        PropertyDefinition::Property(_, node)
+                        | PropertyDefinition::SpreadObject(node) => {
+                            if node.contains_arguments() {
+                                return true;
+                            }
+                        }
+                        PropertyDefinition::MethodDefinition(method, _) => match method {
+                            MethodDefinition::Get(function)
+                            | MethodDefinition::Set(function)
+                            | MethodDefinition::Ordinary(function) => {
+                                if let Some(Sym::ARGUMENTS) = function.name() {
+                                    return true;
+                                }
+                            }
+                            MethodDefinition::Generator(generator) => {
+                                if let Some(Sym::ARGUMENTS) = generator.name() {
+                                    return true;
+                                }
+                            }
+                            MethodDefinition::AsyncGenerator(async_generator) => {
+                                if let Some(Sym::ARGUMENTS) = async_generator.name() {
+                                    return true;
+                                }
+                            }
+                            MethodDefinition::Async(function) => {
+                                if let Some(Sym::ARGUMENTS) = function.name() {
+                                    return true;
+                                }
+                            }
+                        },
+                    }
+                }
+            }
+            Node::Return(r#return) => {
+                if let Some(node) = r#return.expr() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::Switch(r#switch) => {
+                if r#switch.val().contains_arguments() {
+                    return true;
+                }
+                for case in r#switch.cases() {
+                    if case.condition().contains_arguments() {
+                        return true;
+                    }
+                    for node in case.body().items() {
+                        if node.contains_arguments() {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Node::Spread(spread) => {
+                if spread.val().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::TaggedTemplate(tagged_template) => {
+                if tagged_template.tag().contains_arguments() {
+                    return true;
+                }
+                for node in tagged_template.exprs() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::TemplateLit(template_lit) => {
+                for element in template_lit.elements() {
+                    if let template::TemplateElement::Expr(node) = element {
+                        if node.contains_arguments() {
+                            return false;
+                        }
+                    }
+                }
+            }
+            Node::Throw(throw) => {
+                if throw.expr().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::Try(r#try) => {
+                for node in r#try.block().items() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+                if let Some(catch) = r#try.catch() {
+                    for node in catch.block().items() {
+                        if node.contains_arguments() {
+                            return true;
+                        }
+                    }
+                }
+                if let Some(finally) = r#try.finally() {
+                    for node in finally.items() {
+                        if node.contains_arguments() {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Node::UnaryOp(unary_op) => {
+                if unary_op.target().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::WhileLoop(while_loop) => {
+                if while_loop.cond().contains_arguments() {
+                    return true;
+                }
+                if while_loop.body().contains_arguments() {
+                    return true;
+                }
+            }
+            Node::Yield(r#yield) => {
+                if let Some(node) = r#yield.expr() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                }
+            }
+            Node::ClassExpr(class) | Node::ClassDecl(class) => {
+                if let Some(node) = class.super_ref() {
+                    if node.contains_arguments() {
+                        return true;
+                    }
+                    for element in class.elements() {
+                        match element {
+                            ClassElement::MethodDefinition(_, method)
+                            | ClassElement::StaticMethodDefinition(_, method) => match method {
+                                MethodDefinition::Get(function)
+                                | MethodDefinition::Set(function)
+                                | MethodDefinition::Ordinary(function) => {
+                                    if let Some(Sym::ARGUMENTS) = function.name() {
+                                        return true;
+                                    }
+                                }
+                                MethodDefinition::Generator(generator) => {
+                                    if let Some(Sym::ARGUMENTS) = generator.name() {
+                                        return true;
+                                    }
+                                }
+                                MethodDefinition::AsyncGenerator(async_generator) => {
+                                    if let Some(Sym::ARGUMENTS) = async_generator.name() {
+                                        return true;
+                                    }
+                                }
+                                MethodDefinition::Async(function) => {
+                                    if let Some(Sym::ARGUMENTS) = function.name() {
+                                        return true;
+                                    }
+                                }
+                            },
+                            ClassElement::FieldDefinition(_, node)
+                            | ClassElement::StaticFieldDefinition(_, node)
+                            | ClassElement::PrivateFieldDefinition(_, node)
+                            | ClassElement::PrivateStaticFieldDefinition(_, node) => {
+                                if let Some(node) = node {
+                                    if node.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                            ClassElement::StaticBlock(statement_list) => {
+                                for node in statement_list.items() {
+                                    if node.contains_arguments() {
+                                        return true;
+                                    }
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+        false
     }
 }
 
@@ -365,7 +917,7 @@ where
 /// level.
 #[cfg(test)]
 fn test_formatting(source: &'static str) {
-    use crate::syntax::Parser;
+    use crate::{syntax::Parser, Context};
 
     // Remove preceding newline.
     let source = &source[1..];
@@ -380,11 +932,11 @@ fn test_formatting(source: &'static str) {
         .map(|l| &l[characters_to_remove..]) // Remove preceding whitespace from each line
         .collect::<Vec<&'static str>>()
         .join("\n");
-    let mut interner = Interner::default();
-    let result = Parser::new(scenario.as_bytes(), false)
-        .parse_all(&mut interner)
+    let mut context = Context::default();
+    let result = Parser::new(scenario.as_bytes())
+        .parse_all(&mut context)
         .expect("parsing failed")
-        .to_interned_string(&interner);
+        .to_interned_string(context.interner());
     if scenario != result {
         eprint!("========= Expected:\n{scenario}");
         eprint!("========= Got:\n{result}");

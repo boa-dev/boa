@@ -66,26 +66,41 @@ where
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let token_start = tok.span().start();
         match tok.kind() {
-            TokenKind::Keyword(Keyword::Delete) => {
-                cursor.next(interner)?.expect("Delete keyword vanished"); // Consume the token.
+            TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, true)) => Err(
+                ParseError::general("Keyword must not contain escaped characters", token_start),
+            ),
+            TokenKind::Keyword((Keyword::Delete, false)) => {
+                cursor.next(interner)?.expect("Delete keyword vanished");
+                let position = cursor
+                    .peek(0, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
+                    .span()
+                    .start();
                 let val = self.parse(cursor, interner)?;
 
-                if cursor.strict_mode() {
-                    if let Node::Identifier(_) = val {
+                match val {
+                    Node::Identifier(_) if cursor.strict_mode() => {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Delete <variable> statements not allowed in strict mode".into(),
                             token_start,
                         )));
                     }
+                    Node::GetPrivateField(_) => {
+                        return Err(ParseError::general(
+                            "private fields can not be deleted",
+                            position,
+                        ));
+                    }
+                    _ => {}
                 }
 
                 Ok(node::UnaryOp::new(UnaryOp::Delete, val).into())
             }
-            TokenKind::Keyword(Keyword::Void) => {
+            TokenKind::Keyword((Keyword::Void, false)) => {
                 cursor.next(interner)?.expect("Void keyword vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor, interner)?).into())
             }
-            TokenKind::Keyword(Keyword::TypeOf) => {
+            TokenKind::Keyword((Keyword::TypeOf, false)) => {
                 cursor.next(interner)?.expect("TypeOf keyword vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor, interner)?).into())
             }

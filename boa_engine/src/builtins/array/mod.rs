@@ -25,7 +25,7 @@ use crate::{
     context::intrinsics::StandardConstructors,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        JsFunction, JsObject, ObjectData,
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -2071,7 +2071,9 @@ impl Array {
             // c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.
             let max = len - actual_start;
             match dc {
-                IntegerOrInfinity::Integer(i) => (i as usize).clamp(0, max),
+                IntegerOrInfinity::Integer(i) => {
+                    usize::try_from(i).unwrap_or_default().clamp(0, max)
+                }
                 IntegerOrInfinity::PositiveInfinity => max,
                 IntegerOrInfinity::NegativeInfinity => 0,
             }
@@ -2855,7 +2857,7 @@ impl Array {
         }
     }
 
-    pub(crate) fn values_intrinsic(context: &mut Context) -> JsObject {
+    pub(crate) fn values_intrinsic(context: &mut Context) -> JsFunction {
         FunctionBuilder::native(context, Self::values)
             .name("values")
             .length(0)

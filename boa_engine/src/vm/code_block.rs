@@ -11,9 +11,9 @@ use crate::{
         generator::{Generator, GeneratorContext, GeneratorState},
     },
     context::intrinsics::StandardConstructors,
-    environments::{BindingLocator, DeclarativeEnvironmentStack},
+    environments::{BindingLocator, CompileTimeEnvironment, DeclarativeEnvironmentStack},
     object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
-    property::PropertyDescriptor,
+    property::{PropertyDescriptor, PropertyKey},
     syntax::ast::node::FormalParameterList,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
@@ -69,6 +69,7 @@ pub struct CodeBlock {
     pub(crate) this_mode: ThisMode,
 
     /// Parameters passed to this function.
+    #[unsafe_ignore_trace]
     pub(crate) params: FormalParameterList,
 
     /// Bytecode
@@ -96,6 +97,13 @@ pub struct CodeBlock {
     /// The `arguments` binding location of the function, if set.
     #[unsafe_ignore_trace]
     pub(crate) arguments_binding: Option<BindingLocator>,
+
+    /// Similar to the `[[ClassFieldInitializerName]]` slot in the spec.
+    /// Holds class field names that are computed at class declaration time.
+    pub(crate) computed_field_names: Option<Cell<Vec<PropertyKey>>>,
+
+    /// Compile time environments in this function.
+    pub(crate) compile_environments: Vec<Gc<Cell<CompileTimeEnvironment>>>,
 }
 
 impl CodeBlock {
@@ -116,6 +124,8 @@ impl CodeBlock {
             params: FormalParameterList::default(),
             lexical_name_argument: false,
             arguments_binding: None,
+            computed_field_names: None,
+            compile_environments: Vec::new(),
         }
     }
 
@@ -185,6 +195,8 @@ impl CodeBlock {
             | Opcode::LogicalAnd
             | Opcode::LogicalOr
             | Opcode::Coalesce
+            | Opcode::CallEval
+            | Opcode::CallEvalWithRest
             | Opcode::Call
             | Opcode::CallWithRest
             | Opcode::New
@@ -193,13 +205,14 @@ impl CodeBlock {
             | Opcode::ForInLoopNext
             | Opcode::ConcatToString
             | Opcode::CopyDataProperties
-            | Opcode::GeneratorNextDelegate
-            | Opcode::PushDeclarativeEnvironment => {
+            | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
             }
-            Opcode::TryStart => {
+            Opcode::TryStart
+            | Opcode::PushDeclarativeEnvironment
+            | Opcode::PushFunctionEnvironment => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -235,8 +248,15 @@ impl CodeBlock {
             Opcode::GetPropertyByName
             | Opcode::SetPropertyByName
             | Opcode::DefineOwnPropertyByName
+            | Opcode::DefineClassMethodByName
             | Opcode::SetPropertyGetterByName
+            | Opcode::DefineClassGetterByName
             | Opcode::SetPropertySetterByName
+            | Opcode::DefineClassSetterByName
+            | Opcode::SetPrivateValue
+            | Opcode::SetPrivateSetter
+            | Opcode::SetPrivateGetter
+            | Opcode::GetPrivateField
             | Opcode::DeletePropertyByName => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
@@ -258,6 +278,7 @@ impl CodeBlock {
             | Opcode::PushFalse
             | Opcode::PushUndefined
             | Opcode::PushEmptyObject
+            | Opcode::PushClassPrototype
             | Opcode::Add
             | Opcode::Sub
             | Opcode::Div
@@ -293,9 +314,13 @@ impl CodeBlock {
             | Opcode::GetPropertyByValue
             | Opcode::SetPropertyByValue
             | Opcode::DefineOwnPropertyByValue
+            | Opcode::DefineClassMethodByValue
             | Opcode::SetPropertyGetterByValue
+            | Opcode::DefineClassGetterByValue
             | Opcode::SetPropertySetterByValue
+            | Opcode::DefineClassSetterByValue
             | Opcode::DeletePropertyByValue
+            | Opcode::ToPropertyKey
             | Opcode::ToBoolean
             | Opcode::Throw
             | Opcode::TryEnd
@@ -305,7 +330,6 @@ impl CodeBlock {
             | Opcode::FinallyEnd
             | Opcode::This
             | Opcode::Return
-            | Opcode::PushFunctionEnvironment
             | Opcode::PopEnvironment
             | Opcode::LoopStart
             | Opcode::LoopContinue
@@ -327,6 +351,7 @@ impl CodeBlock {
             | Opcode::PopOnReturnSub
             | Opcode::Yield
             | Opcode::GeneratorNext
+            | Opcode::PushClassComputedFieldName
             | Opcode::Nop => String::new(),
         }
     }
@@ -610,31 +635,43 @@ impl JsObject {
                     } else {
                         context.global_object().clone().into()
                     }
-                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                } else if code.strict {
+                    this.clone()
+                } else if this.is_null_or_undefined() {
                     context.global_object().clone().into()
                 } else {
-                    this.clone()
+                    this.to_object(context)
+                        .expect("conversion cannot fail")
+                        .into()
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone(),
+                    );
+                }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -709,31 +746,39 @@ impl JsObject {
                     } else {
                         context.global_object().clone().into()
                     }
-                } else if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
+                } else if !code.strict && this.is_null_or_undefined() {
                     context.global_object().clone().into()
                 } else {
                     this.clone()
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone(),
+                    );
+                }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -864,7 +909,7 @@ impl JsObject {
             } => {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
-                let this: JsValue = {
+                let this = {
                     // If the prototype of the constructor is not an object, then use the default object
                     // prototype as prototype for the new object
                     // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
@@ -874,13 +919,31 @@ impl JsObject {
                         StandardConstructors::object,
                         context,
                     )?;
-                    Self::from_proto_and_data(prototype, ObjectData::ordinary()).into()
+                    let this = Self::from_proto_and_data(prototype, ObjectData::ordinary());
+
+                    // Set computed class field names if they exist.
+                    if let Some(fields) = &code.computed_field_names {
+                        for key in fields.borrow().iter().rev() {
+                            context.vm.push(key);
+                        }
+                    }
+
+                    this
                 };
 
-                context
-                    .realm
-                    .environments
-                    .push_function(code.num_bindings, this.clone());
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this.clone().into(),
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this.clone().into(),
+                    );
+                }
 
                 let mut arguments_in_parameter_names = false;
                 let mut is_simple_parameter_list = true;
@@ -897,19 +960,18 @@ impl JsObject {
                 }
 
                 if let Some(binding) = code.arguments_binding {
-                    let arguments_obj =
-                        if context.strict() || code.strict || !code.params.is_simple() {
-                            Arguments::create_unmapped_arguments_object(args, context)
-                        } else {
-                            let env = context.realm.environments.current();
-                            Arguments::create_mapped_arguments_object(
-                                &this_function_object,
-                                &code.params,
-                                args,
-                                &env,
-                                context,
-                            )
-                        };
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
                     context.realm.environments.put_value(
                         binding.environment_index(),
                         binding.binding_index(),
@@ -937,16 +999,10 @@ impl JsObject {
 
                 let param_count = code.params.parameters.len();
 
-                let this = if (!code.strict && !context.strict()) && this.is_null_or_undefined() {
-                    context.global_object().clone().into()
-                } else {
-                    this
-                };
-
                 context.vm.push_frame(CallFrame {
                     prev: None,
                     code,
-                    this,
+                    this: this.into(),
                     pc: 0,
                     catch: Vec::new(),
                     finally_return: FinallyReturn::None,

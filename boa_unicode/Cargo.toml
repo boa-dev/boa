@@ -1,8 +1,8 @@
 [package]
 name = "boa_unicode"
-version = "0.14.0"
+version = "0.15.0"
 edition = "2021"
-rust-version = "1.58"
+rust-version = "1.60"
 authors = ["boa-dev"]
 description = "Unicode support for the Boa JavaScript engine."
 repository = "https://github.com/boa-dev/boa"

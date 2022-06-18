@@ -1,28 +1,33 @@
 //! Tests for the parser.
 
 use super::Parser;
-use crate::syntax::ast::{
-    node::{
-        field::GetConstField, object::PropertyDefinition, ArrowFunctionDecl, Assign, BinOp, Call,
-        Declaration, DeclarationList, FormalParameter, FormalParameterList,
-        FormalParameterListFlags, FunctionDecl, Identifier, If, New, Node, Object, Return,
-        StatementList, UnaryOp,
+use crate::{
+    context::ContextBuilder,
+    syntax::ast::{
+        node::{
+            field::GetConstField, object::PropertyDefinition, ArrowFunctionDecl, Assign, BinOp,
+            Call, Declaration, DeclarationList, FormalParameter, FormalParameterList,
+            FormalParameterListFlags, FunctionDecl, Identifier, If, New, Node, Object, Return,
+            StatementList, UnaryOp,
+        },
+        op::{self, CompOp, LogOp, NumOp},
+        Const,
     },
-    op::{self, CompOp, LogOp, NumOp},
-    Const,
+    Context,
 };
 use boa_interner::Interner;
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[allow(clippy::unwrap_used)]
 #[track_caller]
-pub(super) fn check_parser<L>(js: &str, expr: L, interner: &mut Interner)
+pub(super) fn check_parser<L>(js: &str, expr: L, interner: Interner)
 where
     L: Into<Box<[Node]>>,
 {
+    let mut context = ContextBuilder::default().interner(interner).build();
     assert_eq!(
-        Parser::new(js.as_bytes(), false)
-            .parse_all(interner)
+        Parser::new(js.as_bytes())
+            .parse_all(&mut context)
             .expect("failed to parse"),
         StatementList::from(expr)
     );
@@ -31,10 +36,8 @@ where
 /// Checks that the given javascript string creates a parse error.
 #[track_caller]
 pub(super) fn check_invalid(js: &str) {
-    let mut interner = Interner::default();
-    assert!(Parser::new(js.as_bytes(), false)
-        .parse_all(&mut interner)
-        .is_err());
+    let mut context = Context::default();
+    assert!(Parser::new(js.as_bytes()).parse_all(&mut context).is_err());
 }
 
 /// Should be parsed as `new Class().method()` instead of `new (Class().method())`
@@ -53,7 +56,7 @@ fn check_construct_call_precedence() {
             ),
             vec![],
         ))],
-        &mut interner,
+        interner,
     );
 }
 
@@ -71,7 +74,7 @@ fn assign_operator_precedence() {
             ),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -103,7 +106,7 @@ fn hoisting() {
             .into(),
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
         ],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -119,7 +122,7 @@ fn hoisting() {
             UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
             DeclarationList::Var(vec![Declaration::new_with_identifier(a, None)].into()).into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -144,7 +147,7 @@ fn ambigous_regex_divide_expression() {
             ),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -170,7 +173,7 @@ fn two_divisions_in_expression() {
             ),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -202,7 +205,7 @@ fn comment_semi_colon_insertion() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -236,7 +239,7 @@ fn multiline_comment_semi_colon_insertion() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -267,7 +270,7 @@ fn multiline_comment_no_lineterminator() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -298,7 +301,7 @@ fn assignment_line_terminator() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -329,7 +332,7 @@ fn assignment_multiline_terminator() {
             .into(),
             Assign::new(Identifier::new(a), Const::from(5)).into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -341,7 +344,7 @@ fn bracketed_expr() {
     check_parser(
         s,
         vec![Identifier::new(interner.get_or_intern_static("b")).into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -359,7 +362,7 @@ fn increment_in_comma_op() {
             Identifier::new(b).into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -389,7 +392,7 @@ fn spread_in_object() {
             .into(),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -414,11 +417,12 @@ fn spread_in_arrow_function() {
                 )]),
                 flags: FormalParameterListFlags::empty()
                     .union(FormalParameterListFlags::HAS_REST_PARAMETER),
+                length: 0,
             },
             vec![Identifier::from(b).into()],
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -447,37 +451,34 @@ fn empty_statement() {
                 None,
             )),
         ],
-        &mut interner,
+        interner,
     );
 }
 
 #[test]
 fn hashbang_use_strict_no_with() {
-    let mut interner = Interner::default();
     check_parser(
         r#"#!\"use strict"
         "#,
         vec![],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 #[test]
 #[ignore]
 fn hashbang_use_strict_with_with_statement() {
-    let mut interner = Interner::default();
     check_parser(
         r#"#!\"use strict"
-        
+
         with({}) {}
         "#,
         vec![],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 #[test]
 fn hashbang_comment() {
-    let mut interner = Interner::default();
-    check_parser(r"#!Comment Here", vec![], &mut interner);
+    check_parser(r"#!Comment Here", vec![], Interner::default());
 }

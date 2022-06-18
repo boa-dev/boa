@@ -1,6 +1,5 @@
 // Not implemented yet:
 flag:module
-flag:async
 
 // Non-implemented features:
 feature:json-modules
@@ -8,8 +7,9 @@ feature:SharedArrayBuffer
 feature:resizable-arraybuffer
 feature:Temporal
 feature:tail-call-optimization
-//feature:async-iteration
-//feature:class
+
+// Non-standard
+feature:caller
 
 // These generate a stack overflow
 tco-call

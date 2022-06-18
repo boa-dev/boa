@@ -5,8 +5,8 @@ use crate::syntax::{
     ast::{node::AsyncFunctionExpr, Keyword, Position, Punctuator},
     lexer::{Error as LexError, TokenKind},
     parser::{
+        expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
         AllowYield, Cursor, ParseError, TokenParser,
     },
 };
@@ -55,7 +55,11 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("AsyncFunctionExpression", "Parsing");
         cursor.peek_expect_no_lineterminator(0, "async function expression", interner)?;
-        cursor.expect(Keyword::Function, "async function expression", interner)?;
+        cursor.expect(
+            (Keyword::Function, false),
+            "async function expression",
+            interner,
+        )?;
 
         let name = match cursor
             .peek(0, interner)?
@@ -123,26 +127,10 @@ where
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
-        {
-            let lexically_declared_names = body.lexically_declared_names(interner);
-            for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(&param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!(
-                                "Redeclaration of formal parameter `{}`",
-                                interner.resolve_expect(param_name)
-                            )
-                            .into(),
-                            match cursor.peek(0, interner)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            params_start_position,
+        )?;
 
         Ok(AsyncFunctionExpr::new(name, params, body))
     }

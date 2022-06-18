@@ -7,8 +7,7 @@ pub use self::{
 use crate::syntax::ast::node::{
     declaration::Declaration, identifier::Identifier, DeclarationPattern,
 };
-use boa_gc::{Finalize, Trace};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -17,13 +16,34 @@ use serde::{Deserialize, Serialize};
 mod tests;
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum IterableLoopInitializer {
     Identifier(Identifier),
     Var(Declaration),
     Let(Declaration),
     Const(Declaration),
     DeclarationPattern(DeclarationPattern),
+}
+
+impl IterableLoopInitializer {
+    /// Return the bound names of a for loop initializer.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
+    pub(crate) fn bound_names(&self) -> Vec<Sym> {
+        match self {
+            IterableLoopInitializer::Let(decl) | IterableLoopInitializer::Const(decl) => match decl
+            {
+                Declaration::Identifier { ident, .. } => vec![ident.sym()],
+                Declaration::Pattern(pattern) => pattern.idents(),
+            },
+            _ => Vec::new(),
+        }
+    }
 }
 
 impl ToInternedString for IterableLoopInitializer {

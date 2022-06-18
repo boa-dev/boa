@@ -2,9 +2,72 @@
 
 ## What's Changed
 
-# [0.14.0 (2022-03-15) - Virtual Machine](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
+# [0.15.0 (2022-06-10)](https://github.com/boa-dev/boa/compare/v0.14...v0.15)
 
-<!-- Release notes generated using configuration in .github/release.yml at main -->
+### Feature Enhancements
+
+- Deploy playground to custom destination dir by @jedel1043 in [#1943](https://github.com/boa-dev/boa/pull/1943)
+- add README for crates.io publish by @superhawk610 in [#1952](https://github.com/boa-dev/boa/pull/1952)
+- migrated to clap 3 by @manthanabc in [#1957](https://github.com/boa-dev/boa/pull/1957)
+- Implement unscopables for Array.prototype by @NorbertGarfield in [#1963](https://github.com/boa-dev/boa/pull/1963)
+- Retrieve feature-based results for Test262 runs by @NorbertGarfield in [#1980](https://github.com/boa-dev/boa/pull/1980)
+- Added better error handling for the Boa tester by @Razican in [#1984](https://github.com/boa-dev/boa/pull/1984)
+- Add From<f32> for JsValue by @lastmjs in [#1990](https://github.com/boa-dev/boa/pull/1990)
+- Implement Classes by @raskad in [#1976](https://github.com/boa-dev/boa/pull/1976)
+- Allow `PropertyName`s in `BindingProperty`in `ObjectBindingPattern` by @raskad in [#2022](https://github.com/boa-dev/boa/pull/2022)
+- Allow `Initializer` after `ArrayBindingPattern` in `FormalParameter` by @raskad in [#2002](https://github.com/boa-dev/boa/pull/2002)
+- Allow unicode escaped characters in identifiers that are keywords by @raskad in [#2021](https://github.com/boa-dev/boa/pull/2021)
+- Feature `JsTypedArray`s by @HalidOdat in [#2003](https://github.com/boa-dev/boa/pull/2003)
+- Allow creating object with true/false property names by @lupd in [#2028](https://github.com/boa-dev/boa/pull/2028)
+- Implement `get RegExp.prototype.hasIndices` by @HalidOdat in [#2031](https://github.com/boa-dev/boa/pull/2031)
+- Partial implementation for Intl.DateTimeFormat by @NorbertGarfield in [#2025](https://github.com/boa-dev/boa/pull/2025)
+- Allow `let` as variable declaration name by @raskad in [#2044](https://github.com/boa-dev/boa/pull/2044)
+- cargo workspaces fixes #2001 by @jasonwilliams in [#2026](https://github.com/boa-dev/boa/pull/2026)
+- Move redeclaration errors to parser by @raskad in [#2027](https://github.com/boa-dev/boa/pull/2027)
+- Feature `JsFunction` by @HalidOdat in [#2015](https://github.com/boa-dev/boa/pull/2015)
+- Improve `JsString` performance by @YXL76 in [#2042](https://github.com/boa-dev/boa/pull/2042)
+- Implement ResolveLocale helper by @NorbertGarfield in [#2036](https://github.com/boa-dev/boa/pull/2036)
+- Refactor `IdentifierReference` parsing by @raskad in [#2055](https://github.com/boa-dev/boa/pull/2055)
+- Implement the global `eval()` function by @raskad in [#2041](https://github.com/boa-dev/boa/pull/2041)
+- DateTimeFormat helpers by @NorbertGarfield in [#2064](https://github.com/boa-dev/boa/pull/2064)
+- Create `Date` standard constructor by @jedel1043 in [#2079](https://github.com/boa-dev/boa/pull/2079)
+- Implement `ProxyBuilder` by @jedel1043 in [#2076](https://github.com/boa-dev/boa/pull/2076)
+- Remove `strict` flag from `Context` by @raskad in [#2069](https://github.com/boa-dev/boa/pull/2069)
+- Integrate ICU4X into `Intl` module by @jedel1043 in [#2083](https://github.com/boa-dev/boa/pull/2083)
+- Implement `Function` constructor by @raskad in [#2090](https://github.com/boa-dev/boa/pull/2090)
+- Parse private generator methods in classes by @raskad in [#2092](https://github.com/boa-dev/boa/pull/2092)
+
+### Bug Fixes
+
+- Fix link to the playground by @raskad in [#1947](https://github.com/boa-dev/boa/pull/1947)
+- convert inner datetime to local in `to_date_string` by @superhawk610 in [#1953](https://github.com/boa-dev/boa/pull/1953)
+- Fix panic on AST dump in JSON format by @kilotaras in [#1959](https://github.com/boa-dev/boa/pull/1959)
+- Fix panic in do while by @pdogr in [#1968](https://github.com/boa-dev/boa/pull/1968)
+- Support numbers with multiple leading zeroes by @lupd in [#1979](https://github.com/boa-dev/boa/pull/1979)
+- Fix length properties on array methods by @lupd in [#1983](https://github.com/boa-dev/boa/pull/1983)
+- Allow boolean/null as property identifier by dot operator assignment by @lupd in [#1985](https://github.com/boa-dev/boa/pull/1985)
+- fix(vm): off-by-one in code block stringification. by @tsutton in [#1999](https://github.com/boa-dev/boa/pull/1999)
+- Indicate bigint has constructor by @lupd in [#2008](https://github.com/boa-dev/boa/pull/2008)
+- Change `ArrayBuffer` `byteLength` to accessor property by @lupd in [#2010](https://github.com/boa-dev/boa/pull/2010)
+- Fix `ArrayBuffer.isView()` by @HalidOdat in [#2019](https://github.com/boa-dev/boa/pull/2019)
+- Fix casting negative number to usize in `Array.splice` by @lupd in [#2030](https://github.com/boa-dev/boa/pull/2030)
+- Fix `Symbol` and `BigInt` constructors by @HalidOdat in [#2032](https://github.com/boa-dev/boa/pull/2032)
+- Make `Array.prototype` an array object by @HalidOdat in [#2033](https://github.com/boa-dev/boa/pull/2033)
+- Fix early return in `for in loop` head by @raskad in [#2043](https://github.com/boa-dev/boa/pull/2043)
+
+### Internal Improvements
+
+- docs: update README by structuring the topics by @ftonato in [#1958](https://github.com/boa-dev/boa/pull/1958)
+- Migrate to NPM and cleanup Playground by @jedel1043 in [#1951](https://github.com/boa-dev/boa/pull/1951)
+- Fix performance bottleneck in VM by @pdogr in [#1973](https://github.com/boa-dev/boa/pull/1973)
+- Remove `git2` and `hex` dependencies by @raskad in [#1992](https://github.com/boa-dev/boa/pull/1992)
+- Fix rust 1.60 clippy lints by @raskad in [#2014](https://github.com/boa-dev/boa/pull/2014)
+- Refactor `RegExp` constructor methods by @raskad in [#2049](https://github.com/boa-dev/boa/pull/2049)
+- Fixing build for changes in clippy for Rust 1.61 by @Razican in [#2082](https://github.com/boa-dev/boa/pull/2082)
+
+**Full Changelog**: https://github.com/boa-dev/boa/compare/v0.14...v0.15
+
+# [0.14.0 (2022-03-15) - Virtual Machine](https://github.com/boa-dev/boa/compare/v0.13...v0.14)
 
 ### Feature Enhancements
 

@@ -46,12 +46,12 @@ impl BuiltIn for BigInt {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .callable(true)
+        .constructor(true)
         .method(Self::to_string, "toString", 0)
         .method(Self::value_of, "valueOf", 0)
         .static_method(Self::as_int_n, "asIntN", 2)
         .static_method(Self::as_uint_n, "asUintN", 2)
-        .callable(true)
-        .constructor(false)
         .property(
             to_string_tag,
             Self::NAME,
@@ -77,7 +77,16 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint-objects
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/BigInt
-    fn constructor(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn constructor(
+        new_target: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. If NewTarget is not undefined, throw a TypeError exception.
+        if !new_target.is_undefined() {
+            return context.throw_type_error("BigInt is not a constructor");
+        }
+
         let value = args.get_or_undefined(0);
 
         // 2. Let prim be ? ToPrimitive(value, number).

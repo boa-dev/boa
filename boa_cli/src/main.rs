@@ -60,7 +60,6 @@
 )]
 
 use boa_engine::{syntax::ast::node::StatementList, Context};
-use boa_interner::Interner;
 use clap::{ArgEnum, Parser};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
@@ -135,15 +134,15 @@ enum DumpFormat {
 ///
 /// Returns a error of type String with a message,
 /// if the token stream has a parsing error.
-fn parse_tokens<S>(src: S, interner: &mut Interner) -> Result<StatementList, String>
+fn parse_tokens<S>(src: S, context: &mut Context) -> Result<StatementList, String>
 where
     S: AsRef<[u8]>,
 {
     use boa_engine::syntax::parser::Parser;
 
     let src_bytes = src.as_ref();
-    Parser::new(src_bytes, false)
-        .parse_all(interner)
+    Parser::new(src_bytes)
+        .parse_all(context)
         .map_err(|e| format!("ParsingError: {e}"))
 }
 
@@ -151,13 +150,12 @@ where
 ///
 /// Returns a error of type String with a error message,
 /// if the source has a syntax or parsing error.
-fn dump<S>(src: S, args: &Opt) -> Result<(), String>
+fn dump<S>(src: S, args: &Opt, context: &mut Context) -> Result<(), String>
 where
     S: AsRef<[u8]>,
 {
     if let Some(ref arg) = args.dump_ast {
-        let mut interner = Interner::default();
-        let ast = parse_tokens(src, &mut interner)?;
+        let ast = parse_tokens(src, context)?;
 
         match arg {
             Some(format) => match format {
@@ -194,7 +192,7 @@ pub fn main() -> Result<(), std::io::Error> {
         let buffer = read(file)?;
 
         if args.has_dump_flag() {
-            if let Err(e) = dump(&buffer, &args) {
+            if let Err(e) = dump(&buffer, &args, &mut context) {
                 eprintln!("{e}");
             }
         } else {
@@ -233,7 +231,7 @@ pub fn main() -> Result<(), std::io::Error> {
                     editor.add_history_entry(&line);
 
                     if args.has_dump_flag() {
-                        if let Err(e) = dump(&line, &args) {
+                        if let Err(e) = dump(&line, &args, &mut context) {
                             eprintln!("{e}");
                         }
                     } else {

@@ -20,7 +20,7 @@ fn check_numeric_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -32,7 +32,7 @@ fn check_numeric_operations() {
             Const::from(1),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -44,7 +44,7 @@ fn check_numeric_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -56,7 +56,7 @@ fn check_numeric_operations() {
             Const::from(1),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -68,7 +68,7 @@ fn check_numeric_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -80,7 +80,7 @@ fn check_numeric_operations() {
             Const::from(2),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -92,7 +92,7 @@ fn check_numeric_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -104,7 +104,7 @@ fn check_numeric_operations() {
             Const::from(2),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -116,7 +116,7 @@ fn check_numeric_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -128,7 +128,7 @@ fn check_numeric_operations() {
             Const::from(2),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -140,7 +140,7 @@ fn check_numeric_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -152,7 +152,7 @@ fn check_numeric_operations() {
             Const::from(2),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -180,7 +180,7 @@ fn check_complex_numeric_operations() {
             Const::from(1),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -196,7 +196,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -208,7 +208,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -220,7 +220,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -232,7 +232,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -244,7 +244,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -256,7 +256,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -268,7 +268,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -280,7 +280,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -292,7 +292,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -304,7 +304,7 @@ fn check_bitwise_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -320,7 +320,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -332,7 +332,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -344,7 +344,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -356,7 +356,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -368,7 +368,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -380,7 +380,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -392,7 +392,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -404,7 +404,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -416,7 +416,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -428,7 +428,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -440,7 +440,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -452,7 +452,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -464,7 +464,7 @@ fn check_assign_operations() {
             BinOp::new(NumOp::Div, Const::from(10), Const::from(2)),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -476,7 +476,7 @@ fn check_assign_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -491,7 +491,7 @@ fn check_relational_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -503,7 +503,7 @@ fn check_relational_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -515,7 +515,7 @@ fn check_relational_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -527,7 +527,7 @@ fn check_relational_operations() {
             Identifier::new(interner.get_or_intern_static("b")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -539,7 +539,7 @@ fn check_relational_operations() {
             Identifier::new(interner.get_or_intern_static("o")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -566,7 +566,7 @@ fn check_logical_expressions() {
             ),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     let mut interner = Interner::default();
@@ -582,7 +582,7 @@ fn check_logical_expressions() {
             Identifier::new(interner.get_or_intern_static("c")),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 
     check_invalid("a ?? b && c");

@@ -112,6 +112,8 @@ impl BuiltIn for Symbol {
         )
         .name(Self::NAME)
         .length(Self::LENGTH)
+        .callable(true)
+        .constructor(true)
         .static_method(Self::for_, "for", 1)
         .static_method(Self::key_for, "keyFor", 1)
         .static_property("asyncIterator", symbol_async_iterator, attribute)
@@ -135,8 +137,6 @@ impl BuiltIn for Symbol {
             None,
             Attribute::CONFIGURABLE | Attribute::NON_ENUMERABLE,
         )
-        .callable(true)
-        .constructor(false)
         .property(
             symbol_to_string_tag,
             Self::NAME,
@@ -173,14 +173,19 @@ impl Symbol {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if new_target.is_undefined() {
+        // 1. If NewTarget is not undefined, throw a TypeError exception.
+        if !new_target.is_undefined() {
             return context.throw_type_error("Symbol is not a constructor");
         }
+
+        // 2. If description is undefined, let descString be undefined.
+        // 3. Else, let descString be ? ToString(description).
         let description = match args.get(0) {
             Some(value) if !value.is_undefined() => Some(value.to_string(context)?),
             _ => None,
         };
 
+        // 4. Return a new unique Symbol value whose [[Description]] value is descString.
         Ok(JsSymbol::new(description).into())
     }
 

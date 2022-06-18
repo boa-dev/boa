@@ -29,7 +29,7 @@ fn check_do_while() {
             Const::from(true),
         )
         .into()],
-        &mut interner,
+        interner,
     );
 }
 
@@ -77,7 +77,7 @@ fn check_do_while_semicolon_insertion() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
@@ -126,14 +126,13 @@ fn check_do_while_semicolon_insertion_no_space() {
             )
             .into(),
         ],
-        &mut interner,
+        interner,
     );
 }
 
 /// Checks parsing of a while statement which is seperated out with line terminators.
 #[test]
 fn while_spaces() {
-    let mut interner = Interner::default();
     check_parser(
         r#"
 
@@ -149,14 +148,13 @@ fn while_spaces() {
 
         "#,
         vec![WhileLoop::new(Const::from(true), Break::new(None)).into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 
 /// Checks parsing of a while statement which is seperated out with line terminators.
 #[test]
 fn do_while_spaces() {
-    let mut interner = Interner::default();
     check_parser(
         r#"
 
@@ -176,7 +174,7 @@ fn do_while_spaces() {
             Const::Bool(true),
         )
         .into()],
-        &mut interner,
+        Interner::default(),
     );
 }
 

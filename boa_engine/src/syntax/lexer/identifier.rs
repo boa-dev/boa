@@ -8,21 +8,7 @@ use crate::syntax::{
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use boa_unicode::UnicodeProperties;
-use std::{io::Read, str};
-
-const STRICT_FORBIDDEN_IDENTIFIERS: [&str; 11] = [
-    "eval",
-    "arguments",
-    "implements",
-    "interface",
-    "let",
-    "package",
-    "private",
-    "protected",
-    "public",
-    "static",
-    "yield",
-];
+use std::io::Read;
 
 /// Identifier lexing.
 ///
@@ -92,38 +78,13 @@ impl<R> Tokenizer<R> for Identifier {
             Self::take_identifier_name(cursor, start_pos, self.init)?;
 
         let token_kind = if let Ok(keyword) = identifier_name.parse() {
-            if contains_escaped_chars {
-                return Err(Error::Syntax(
-                    "unicode escaped characters are not allowed in keyword".into(),
-                    start_pos,
-                ));
-            }
-
-            if cursor.strict_mode() && keyword == Keyword::With {
-                return Err(Error::Syntax(
-                    "using 'with' statement not allowed in strict mode".into(),
-                    start_pos,
-                ));
-            }
-
             match keyword {
                 Keyword::True => TokenKind::BooleanLiteral(true),
                 Keyword::False => TokenKind::BooleanLiteral(false),
                 Keyword::Null => TokenKind::NullLiteral,
-                _ => TokenKind::Keyword(keyword),
+                _ => TokenKind::Keyword((keyword, contains_escaped_chars)),
             }
         } else {
-            if cursor.strict_mode()
-                && STRICT_FORBIDDEN_IDENTIFIERS.contains(&identifier_name.as_str())
-            {
-                return Err(Error::Syntax(
-                    format!(
-                        "using future reserved keyword '{identifier_name}' not allowed in strict mode",
-                    )
-                    .into(),
-                    start_pos,
-                ));
-            }
             TokenKind::identifier(interner.get_or_intern(identifier_name))
         };
 
@@ -133,7 +94,7 @@ impl<R> Tokenizer<R> for Identifier {
 
 impl Identifier {
     #[inline]
-    fn take_identifier_name<R>(
+    pub(super) fn take_identifier_name<R>(
         cursor: &mut Cursor<R>,
         start_pos: Position,
         init: char,

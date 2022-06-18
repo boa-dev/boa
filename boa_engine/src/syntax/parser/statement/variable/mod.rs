@@ -20,7 +20,7 @@ use std::io::Read;
 
 /// Variable statement parsing.
 ///
-/// A varible statement contains the `var` keyword.
+/// A variable statement contains the `var` keyword.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
@@ -60,7 +60,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("VariableStatement", "Parsing");
-        cursor.expect(Keyword::Var, "variable statement", interner)?;
+        cursor.expect((Keyword::Var, false), "variable statement", interner)?;
 
         let decl_list = VariableDeclarationList::new(true, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
@@ -232,7 +232,6 @@ where
 
                 Ok(Declaration::new_with_array_pattern(bindings, init))
             }
-
             _ => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
@@ -249,7 +248,6 @@ where
                 } else {
                     None
                 };
-
                 Ok(Declaration::new_with_identifier(ident, init))
             }
         }

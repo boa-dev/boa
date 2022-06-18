@@ -1,20 +1,20 @@
 [package]
 name = "boa_wasm"
-version = "0.14.0"
+version = "0.15.0"
 edition = "2021"
-rust-version = "1.58"
+rust-version = "1.60"
 authors = ["boa-dev"]
 description = "WASM package for the Boa JavaScript engine."
 repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["parser-implementations", "wasm", "compilers"]
 license = "Unlicense/MIT"
+publish = false
 
 [dependencies]
-boa_engine = { path = "../boa_engine", features = ["console"], version = "0.14.0" }
-# BUG: Pump when 0.2.80 releases. See https://github.com/rustwasm/wasm-bindgen/issues/2774
-wasm-bindgen = "=0.2.78"
-getrandom = { version = "0.2.6", features = ["js"] }
+boa_engine = { path = "../boa_engine", features = ["console"], version = "0.15.0" }
+wasm-bindgen = "0.2.81"
+getrandom = { version = "0.2.7", features = ["js"] }
 
 [lib]
 crate-type = ["cdylib", "lib"]

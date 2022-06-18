@@ -6,8 +6,11 @@ use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
-use boa_engine::{syntax::Parser, Context, JsResult, JsValue};
-use boa_interner::Interner;
+use boa_engine::{
+    builtins::JsArgs, object::FunctionBuilder, property::Attribute, syntax::Parser, Context,
+    JsResult, JsValue,
+};
+use boa_gc::{Cell, Finalize, Gc, Trace};
 use colored::Colorize;
 use rayon::prelude::*;
 use std::panic;
@@ -112,7 +115,7 @@ impl Test {
     /// Runs the test.
     pub(crate) fn run(&self, harness: &Harness, verbose: u8) -> Vec<TestResult> {
         let mut results = Vec::new();
-        if self.flags.contains(TestFlags::STRICT) {
+        if self.flags.contains(TestFlags::STRICT) && !self.flags.contains(TestFlags::RAW) {
             results.push(self.run_once(harness, true, verbose));
         }
 
@@ -132,6 +135,12 @@ impl Test {
                 if strict { " (strict mode)" } else { "" }
             );
         }
+
+        let test_content = if strict {
+            format!("\"use strict\";\n{}", self.content)
+        } else {
+            self.content.to_string()
+        };
 
         let (result, result_text) = if !IGNORED.contains_any_flag(self.flags)
             && !IGNORED.contains_test(&self.name)
@@ -160,14 +169,16 @@ impl Test {
                 )) {
             let res = panic::catch_unwind(|| match self.expected_outcome {
                 Outcome::Positive => {
-                    // TODO: implement async and add `harness/doneprintHandle.js` to the includes.
+                    let mut context = Context::default();
 
-                    match self.set_up_env(harness, strict) {
-                        Ok(mut context) => {
-                            context.set_strict_mode(strict);
-                            let res = context.eval(&self.content.as_ref());
+                    let callback_obj = CallbackObject::default();
+                    // TODO: timeout
+                    match self.set_up_env(harness, &mut context, callback_obj.clone()) {
+                        Ok(_) => {
+                            let res = context.eval(&test_content);
 
-                            let passed = res.is_ok();
+                            let passed = res.is_ok()
+                                && matches!(*callback_obj.result.borrow(), Some(true) | None);
                             let text = match res {
                                 Ok(val) => val.display().to_string(),
                                 Err(e) => format!("Uncaught {}", e.display()),
@@ -190,8 +201,7 @@ impl Test {
                     );
 
                     let mut context = Context::default();
-                    context.set_strict_mode(strict);
-                    match context.parse(self.content.as_bytes()) {
+                    match context.parse(&test_content) {
                         Ok(statement_list) => match context.compile(&statement_list) {
                             Ok(_) => (false, "StatementList compilation should fail".to_owned()),
                             Err(e) => (true, format!("Uncaught {e:?}")),
@@ -207,28 +217,24 @@ impl Test {
                     phase: Phase::Runtime,
                     ref error_type,
                 } => {
-                    let mut interner = Interner::default();
-                    if let Err(e) =
-                        Parser::new(self.content.as_bytes(), strict).parse_all(&mut interner)
-                    {
+                    let mut context = Context::default();
+                    if let Err(e) = Parser::new(test_content.as_bytes()).parse_all(&mut context) {
                         (false, format!("Uncaught {e}"))
                     } else {
-                        match self.set_up_env(harness, strict) {
-                            Ok(mut context) => {
-                                context.set_strict_mode(strict);
-                                match context.eval(&self.content.as_ref()) {
-                                    Ok(res) => (false, res.display().to_string()),
-                                    Err(e) => {
-                                        let passed = e
-                                            .display()
-                                            .internals(true)
-                                            .to_string()
-                                            .contains(error_type.as_ref());
+                        // TODO: timeout
+                        match self.set_up_env(harness, &mut context, CallbackObject::default()) {
+                            Ok(_) => match context.eval(&test_content) {
+                                Ok(res) => (false, res.display().to_string()),
+                                Err(e) => {
+                                    let passed = e
+                                        .display()
+                                        .internals(true)
+                                        .to_string()
+                                        .contains(error_type.as_ref());
 
-                                        (passed, format!("Uncaught {}", e.display()))
-                                    }
+                                    (passed, format!("Uncaught {}", e.display()))
                                 }
-                            }
+                            },
                             Err(e) => (false, e),
                         }
                     }
@@ -307,28 +313,34 @@ impl Test {
     }
 
     /// Sets the environment up to run the test.
-    fn set_up_env(&self, harness: &Harness, strict: bool) -> Result<Context, String> {
-        // Create new Realm
-        let mut context = Context::default();
-
+    fn set_up_env(
+        &self,
+        harness: &Harness,
+        context: &mut Context,
+        callback_obj: CallbackObject,
+    ) -> Result<(), String> {
         // Register the print() function.
-        context.register_global_function("print", 1, test262_print);
+        Self::register_print_fn(context, callback_obj);
 
         // add the $262 object.
-        let _js262 = js262::init(&mut context);
+        let _js262 = js262::init(context);
 
-        if strict {
-            context
-                .eval(r#""use strict";"#)
-                .map_err(|e| format!("could not set strict mode:\n{}", e.display()))?;
+        if self.flags.contains(TestFlags::RAW) {
+            return Ok(());
         }
 
         context
-            .eval(&harness.assert.as_ref())
+            .eval(harness.assert.as_ref())
             .map_err(|e| format!("could not run assert.js:\n{}", e.display()))?;
         context
-            .eval(&harness.sta.as_ref())
+            .eval(harness.sta.as_ref())
             .map_err(|e| format!("could not run sta.js:\n{}", e.display()))?;
+
+        if self.flags.contains(TestFlags::ASYNC) {
+            context
+                .eval(harness.doneprint_handle.as_ref())
+                .map_err(|e| format!("could not run doneprintHandle.js:\n{}", e.display()))?;
+        }
 
         for include in self.includes.iter() {
             context
@@ -347,11 +359,44 @@ impl Test {
                 })?;
         }
 
-        Ok(context)
+        Ok(())
+    }
+
+    /// Registers the print function in the context.
+    fn register_print_fn(context: &mut Context, callback_object: CallbackObject) {
+        // We use `FunctionBuilder` to define a closure with additional captures.
+        let js_function =
+            FunctionBuilder::closure_with_captures(context, test262_print, callback_object)
+                .name("print")
+                .length(1)
+                .build();
+
+        context.register_global_property(
+            "print",
+            js_function,
+            Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
+        );
     }
 }
 
+/// Object which includes the result of the async operation.
+#[derive(Debug, Clone, Default, Trace, Finalize)]
+struct CallbackObject {
+    result: Gc<Cell<Option<bool>>>,
+}
+
 /// `print()` function required by the test262 suite.
-fn test262_print(_this: &JsValue, _: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
-    todo!("print() function");
+#[allow(clippy::unnecessary_wraps)]
+fn test262_print(
+    _this: &JsValue,
+    args: &[JsValue],
+    captures: &mut CallbackObject,
+    _context: &mut Context,
+) -> JsResult<JsValue> {
+    if let Some(message) = args.get_or_undefined(0).as_string() {
+        *captures.result.borrow_mut() = Some(message.as_str() == "Test262:AsyncTestComplete");
+    } else {
+        *captures.result.borrow_mut() = Some(false);
+    }
+    Ok(JsValue::undefined())
 }

@@ -70,7 +70,7 @@ where
     Ok(if let Some(tok) = cursor.peek(0, interner)? {
         matches!(
             tok.kind(),
-            TokenKind::Keyword(Keyword::Delete | Keyword::Void | Keyword::TypeOf)
+            TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, _))
                 | TokenKind::Punctuator(
                     Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg
                 )
@@ -88,7 +88,6 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
-
         if is_unary_expression(cursor, interner)? {
             return UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
                 .parse(cursor, interner);

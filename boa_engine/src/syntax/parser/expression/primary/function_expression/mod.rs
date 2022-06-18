@@ -14,8 +14,8 @@ use crate::syntax::{
     ast::{node::FunctionExpr, Keyword, Position, Punctuator},
     lexer::{Error as LexError, TokenKind},
     parser::{
+        expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
         Cursor, ParseError, TokenParser,
     },
 };
@@ -64,7 +64,7 @@ where
             .ok_or(ParseError::AbruptEnd)?
             .kind()
         {
-            TokenKind::Identifier(_) | TokenKind::Keyword(Keyword::Yield | Keyword::Await) => {
+            TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 Some(BindingIdentifier::new(false, false).parse(cursor, interner)?)
             }
             _ => self.name,
@@ -119,26 +119,10 @@ where
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
         // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
-        {
-            let lexically_declared_names = body.lexically_declared_names(interner);
-            for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(&param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!(
-                                "Redeclaration of formal parameter `{}`",
-                                interner.resolve_expect(param_name)
-                            )
-                            .into(),
-                            match cursor.peek(0, interner)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            params_start_position,
+        )?;
 
         Ok(FunctionExpr::new(name, params, body))
     }

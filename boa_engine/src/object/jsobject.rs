@@ -10,6 +10,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 use boa_gc::{self, Finalize, Gc, Trace};
+use rustc_hash::FxHashMap;
 use std::{
     cell::RefCell,
     collections::HashMap,
@@ -51,12 +52,28 @@ impl JsObject {
     /// internal slots from the `data` provided.
     #[inline]
     pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
-        Self::from_object(Object {
-            data,
-            prototype: prototype.into(),
-            extensible: true,
-            properties: PropertyMap::default(),
-        })
+        let prototype: Option<Self> = prototype.into();
+        if let Some(prototype) = prototype {
+            let private = {
+                let prototype_b = prototype.borrow();
+                prototype_b.private_elements.clone()
+            };
+            Self::from_object(Object {
+                data,
+                prototype: Some(prototype),
+                extensible: true,
+                properties: PropertyMap::default(),
+                private_elements: private,
+            })
+        } else {
+            Self::from_object(Object {
+                data,
+                prototype: None,
+                extensible: true,
+                properties: PropertyMap::default(),
+                private_elements: FxHashMap::default(),
+            })
+        }
     }
 
     /// Immutably borrows the `Object`.
@@ -430,6 +447,17 @@ impl JsObject {
     #[track_caller]
     pub fn is_typed_array(&self) -> bool {
         self.borrow().is_typed_array()
+    }
+
+    /// Checks if it's a `Promise` object.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_promise(&self) -> bool {
+        self.borrow().is_promise()
     }
 
     /// Checks if it's an ordinary object.

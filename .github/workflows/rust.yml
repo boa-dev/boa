@@ -30,9 +30,9 @@ jobs:
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
-          args: --ignore-tests
+          args: --features intl --ignore-tests
       - name: Upload to codecov.io
-        uses: codecov/codecov-action@v2.1.0
+        uses: codecov/codecov-action@v3
 
   test_on_windows:
     name: Tests on Windows
@@ -55,7 +55,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -v
+          args: -v --features intl
 
   test_on_macos:
     name: Tests on MacOS
@@ -70,7 +70,7 @@ jobs:
       - uses: actions-rs/cargo@v1
         with:
           command: test
-          args: -v
+          args: -v --features intl
 
   fmt:
     name: Rustfmt
@@ -163,4 +163,4 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: -v --document-private-items
+          args: -v --document-private-items --all-features

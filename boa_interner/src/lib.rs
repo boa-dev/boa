@@ -291,6 +291,36 @@ impl Sym {
     /// Symbol for the `"raw"` string.
     pub const RAW: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(12)) };
 
+    /// Symbol for the `"static"` string.
+    pub const STATIC: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(13)) };
+
+    /// Symbol for the `"prototype"` string.
+    pub const PROTOTYPE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(14)) };
+
+    /// Symbol for the `"constructor"` string.
+    pub const CONSTRUCTOR: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(15)) };
+
+    /// Symbol for the `"implements"` string.
+    pub const IMPLEMENTS: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(16)) };
+
+    /// Symbol for the `"interface"` string.
+    pub const INTERFACE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(17)) };
+
+    /// Symbol for the `"let"` string.
+    pub const LET: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(18)) };
+
+    /// Symbol for the `"package"` string.
+    pub const PACKAGE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(19)) };
+
+    /// Symbol for the `"private"` string.
+    pub const PRIVATE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(20)) };
+
+    /// Symbol for the `"protected"` string.
+    pub const PROTECTED: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(21)) };
+
+    /// Symbol for the `"public"` string.
+    pub const PUBLIC: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(22)) };
+
     /// Creates a `Sym` from a raw `NonZeroUsize`.
     const fn from_raw(value: NonZeroUsize) -> Self {
         Self { value }
@@ -341,7 +371,7 @@ impl Interner {
     /// List of commonly used static strings.
     ///
     /// Make sure that any string added as a `Sym` constant is also added here.
-    const STATIC_STRINGS: [&'static str; 12] = [
+    const STATIC_STRINGS: [&'static str; 22] = [
         "",
         "arguments",
         "await",
@@ -354,5 +384,15 @@ impl Interner {
         "set",
         "<main>",
         "raw",
+        "static",
+        "prototype",
+        "constructor",
+        "implements",
+        "interface",
+        "let",
+        "package",
+        "private",
+        "protected",
+        "public",
     ];
 }

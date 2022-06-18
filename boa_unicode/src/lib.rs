@@ -1,5 +1,5 @@
 //! This library implements the extension to query if a char belongs to a particular unicode identifier property.
-//! Version: Unicode 13.0.0
+//! Version: Unicode 14.0.0
 //!
 //! More information:
 //!  - [Unicode® Standard Annex #31][uax31]

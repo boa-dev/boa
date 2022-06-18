@@ -4,7 +4,7 @@
 //!  - [ECMAScript reference][spec]
 //!  - [MDN documentation][mdn]
 //!
-//! [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
+//! [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
 use crate::syntax::ast::op::{BinOp, CompOp};
@@ -22,7 +22,7 @@ use serde::{Deserialize, Serialize};
 ///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://www.ecma-international.org/ecma-262/#sec-keywords
+/// [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -485,8 +485,8 @@ impl Keyword {
     /// Gets the keyword as a binary operation, if this keyword is the `in` keyword.
     pub fn as_binop(self) -> Option<BinOp> {
         match self {
-            Keyword::In => Some(BinOp::Comp(CompOp::In)),
-            Keyword::InstanceOf => Some(BinOp::Comp(CompOp::InstanceOf)),
+            Self::In => Some(BinOp::Comp(CompOp::In)),
+            Self::InstanceOf => Some(BinOp::Comp(CompOp::InstanceOf)),
             _ => None,
         }
     }

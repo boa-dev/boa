@@ -14,13 +14,13 @@ use crate::syntax::{
             declaration::Declaration, ArrowFunctionDecl, FormalParameter, FormalParameterList,
             FormalParameterListFlags, Node, Return, StatementList,
         },
-        Position, Punctuator,
+        Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         error::{ErrorContext, ParseError, ParseResult},
+        expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        statement::BindingIdentifier,
         AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
     },
 };
@@ -110,6 +110,7 @@ where
                             false,
                         )]),
                         flags,
+                        1,
                     ),
                     params_start_position,
                 )
@@ -122,8 +123,10 @@ where
             "arrow function",
             interner,
         )?;
+        let arrow = cursor.arrow();
+        cursor.set_arrow(true);
         let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
-
+        cursor.set_arrow(arrow);
         // Early Error: ArrowFormalParameters are UniqueFormalParameters.
         if params.has_duplicates() {
             return Err(ParseError::lex(LexError::Syntax(
@@ -144,26 +147,10 @@ where
         // It is a Syntax Error if any element of the BoundNames of ArrowParameters
         // also occurs in the LexicallyDeclaredNames of ConciseBody.
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
-        {
-            let lexically_declared_names = body.lexically_declared_names(interner);
-            for param in params.parameters.as_ref() {
-                for param_name in param.names() {
-                    if lexically_declared_names.contains(&param_name) {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            format!(
-                                "Redeclaration of formal parameter `{}`",
-                                interner.resolve_expect(param_name)
-                            )
-                            .into(),
-                            match cursor.peek(0, interner)? {
-                                Some(token) => token.span().end(),
-                                None => Position::new(1, 1),
-                            },
-                        )));
-                    }
-                }
-            }
-        }
+        params.name_in_lexically_declared_names(
+            &body.lexically_declared_names_top_level(),
+            params_start_position,
+        )?;
 
         Ok(ArrowFunctionDecl::new(self.name, params, body))
     }

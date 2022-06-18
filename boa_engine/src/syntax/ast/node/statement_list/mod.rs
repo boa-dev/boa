@@ -1,9 +1,7 @@
 //! Statement list node.
 
 use crate::syntax::ast::node::{Declaration, Node};
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::{ops::Deref, rc::Rc};
 
 use rustc_hash::FxHashSet;
 #[cfg(feature = "deser")]
@@ -21,7 +19,7 @@ mod tests;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementList
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct StatementList {
     items: Box<[Node]>,
     strict: bool,
@@ -68,64 +66,110 @@ impl StatementList {
         buf
     }
 
-    pub fn lexically_declared_names(&self, interner: &Interner) -> FxHashSet<Sym> {
-        let mut set = FxHashSet::default();
-        for stmt in self.items() {
-            if let Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) = stmt {
-                for decl in decl_list.as_ref() {
-                    // It is a Syntax Error if the LexicallyDeclaredNames of StatementList contains any duplicate entries.
-                    // https://tc39.es/ecma262/#sec-block-static-semantics-early-errors
-                    match decl {
-                        Declaration::Identifier { ident, .. } => {
-                            if !set.insert(ident.sym()) {
-                                unreachable!(
-                                    "Redeclaration of {}",
-                                    interner.resolve_expect(ident.sym())
-                                );
-                            }
-                        }
-                        Declaration::Pattern(p) => {
-                            for ident in p.idents().iter().copied() {
-                                if !set.insert(ident) {
-                                    unreachable!(
-                                        "Redeclaration of {}",
-                                        interner.resolve_expect(ident)
+    /// Return the lexically declared names of a `StatementList`.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// If a declared name originates from a function declaration it is flagged as `true` in the returned list.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
+    pub(crate) fn lexically_declared_names(&self) -> Vec<(Sym, bool)> {
+        let mut names = Vec::new();
+
+        for node in self.items() {
+            match node {
+                Node::FunctionDecl(decl) => {
+                    names.push((decl.name(), true));
+                }
+                Node::GeneratorDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::AsyncFunctionDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::AsyncGeneratorDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::ClassDecl(decl) => {
+                    names.push((decl.name(), false));
+                }
+                Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => match decl_list {
+                    super::DeclarationList::Const(declarations)
+                    | super::DeclarationList::Let(declarations) => {
+                        for decl in declarations.iter() {
+                            match decl {
+                                Declaration::Identifier { ident, .. } => {
+                                    names.push((ident.sym(), false));
+                                }
+                                Declaration::Pattern(pattern) => {
+                                    names.extend(
+                                        pattern.idents().into_iter().map(|name| (name, false)),
                                     );
                                 }
                             }
                         }
                     }
+                    super::DeclarationList::Var(_) => unreachable!(),
+                },
+                _ => {}
+            }
+        }
+
+        names
+    }
+
+    /// Return the top level lexically declared names of a `StatementList`.
+    ///
+    /// The returned list may contain duplicates.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
+    pub(crate) fn lexically_declared_names_top_level(&self) -> Vec<Sym> {
+        let mut names = Vec::new();
+
+        for node in self.items() {
+            match node {
+                Node::ClassDecl(decl) => {
+                    names.push(decl.name());
                 }
-            }
-        }
-        set
-    }
-
-    pub fn function_declared_names(&self) -> FxHashSet<Sym> {
-        let mut set = FxHashSet::default();
-        for stmt in self.items() {
-            if let Node::FunctionDecl(decl) = stmt {
-                set.insert(decl.name());
-            }
-        }
-        set
-    }
-
-    pub fn var_declared_names(&self) -> FxHashSet<Sym> {
-        let mut set = FxHashSet::default();
-        for stmt in self.items() {
-            if let Node::VarDeclList(decl_list) = stmt {
-                for decl in decl_list.as_ref() {
-                    match decl {
-                        Declaration::Identifier { ident, .. } => {
-                            set.insert(ident.sym());
+                Node::LetDeclList(decl_list) | Node::ConstDeclList(decl_list) => match decl_list {
+                    super::DeclarationList::Const(declarations)
+                    | super::DeclarationList::Let(declarations) => {
+                        for decl in declarations.iter() {
+                            match decl {
+                                Declaration::Identifier { ident, .. } => {
+                                    names.push(ident.sym());
+                                }
+                                Declaration::Pattern(pattern) => {
+                                    names.extend(pattern.idents());
+                                }
+                            }
                         }
-                        Declaration::Pattern(p) => set.extend(p.idents().into_iter()),
                     }
-                }
+                    super::DeclarationList::Var(_) => unreachable!(),
+                },
+                _ => {}
             }
         }
-        set
+
+        names
+    }
+
+    /// Return the variable declared names of a `StatementList`.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-vardeclarednames
+    pub(crate) fn var_declared_names_new(&self, vars: &mut FxHashSet<Sym>) {
+        for node in self.items() {
+            node.var_declared_names(vars);
+        }
     }
 }
 
@@ -145,29 +189,4 @@ impl ToInternedString for StatementList {
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }
-}
-
-// List of statements wrapped with Rc. We need this for self mutating functions.
-// Since we need to cheaply clone the function body and drop the borrow of the function object to
-// mutably borrow the function object and call this cloned function body
-#[derive(Clone, Debug, Finalize, PartialEq)]
-pub struct RcStatementList(Rc<StatementList>);
-
-impl Deref for RcStatementList {
-    type Target = StatementList;
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl From<StatementList> for RcStatementList {
-    #[inline]
-    fn from(statementlist: StatementList) -> Self {
-        Self(Rc::from(statementlist))
-    }
-}
-
-// SAFETY: This is safe for types not containing any `Trace` types.
-unsafe impl Trace for RcStatementList {
-    unsafe_empty_trace!();
 }

@@ -1,10 +1,12 @@
 //! Object node.
 
-use crate::syntax::ast::node::{
-    declaration::block_to_string, join_nodes, AsyncFunctionExpr, AsyncGeneratorExpr, FunctionExpr,
-    GeneratorExpr, Node,
+use crate::syntax::ast::{
+    node::{
+        declaration::block_to_string, join_nodes, AsyncFunctionExpr, AsyncGeneratorExpr,
+        FunctionExpr, GeneratorExpr, Node,
+    },
+    Const,
 };
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -34,7 +36,7 @@ mod tests;
 /// [primitive]: https://developer.mozilla.org/en-US/docs/Glossary/primitive
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Clone, Debug, Trace, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Object {
     properties: Box<[PropertyDefinition]>,
 }
@@ -155,7 +157,7 @@ impl From<Object> for Node {
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/property/JavaScript
 // TODO: Support all features: https://tc39.es/ecma262/#prod-PropertyDefinition
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Trace, Finalize)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum PropertyDefinition {
     /// Puts a variable into an object.
     ///
@@ -245,7 +247,7 @@ impl PropertyDefinition {
 /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Method_definitions
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Finalize, Trace)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum MethodDefinition {
     /// The `get` syntax binds an object property to a function that will be called when that property is looked up.
     ///
@@ -326,7 +328,7 @@ pub enum MethodDefinition {
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-PropertyName
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, PartialEq, Finalize)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum PropertyName {
     /// A `Literal` property name can be either an identifier, a string or a numeric literal.
     ///
@@ -335,6 +337,7 @@ pub enum PropertyName {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-LiteralPropertyName
     Literal(Sym),
+
     /// A `Computed` property name is an expression that gets evaluated and converted into a property name.
     ///
     /// More information:
@@ -342,6 +345,24 @@ pub enum PropertyName {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-ComputedPropertyName
     Computed(Node),
+}
+
+impl PropertyName {
+    pub(in crate::syntax) fn literal(&self) -> Option<Sym> {
+        if let Self::Literal(sym) = self {
+            Some(*sym)
+        } else {
+            None
+        }
+    }
+
+    pub(in crate::syntax) fn prop_name(&self) -> Option<Sym> {
+        match self {
+            PropertyName::Literal(sym)
+            | PropertyName::Computed(Node::Const(Const::String(sym))) => Some(*sym),
+            PropertyName::Computed(_) => None,
+        }
+    }
 }
 
 impl ToInternedString for PropertyName {
@@ -365,6 +386,15 @@ impl From<Node> for PropertyName {
     }
 }
 
-unsafe impl Trace for PropertyName {
-    unsafe_empty_trace!();
+/// `ClassElementName` can be either a property name or a private identifier.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ClassElementName
+#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) enum ClassElementName {
+    PropertyName(PropertyName),
+    PrivateIdentifier(Sym),
 }

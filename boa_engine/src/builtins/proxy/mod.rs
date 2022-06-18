@@ -12,13 +12,12 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
-    object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
+    object::{ConstructorBuilder, FunctionBuilder, JsFunction, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
-
 /// Javascript `Proxy` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct Proxy {
@@ -50,7 +49,7 @@ impl BuiltIn for Proxy {
 impl Proxy {
     const LENGTH: usize = 2;
 
-    fn new(target: JsObject, handler: JsObject) -> Self {
+    pub(crate) fn new(target: JsObject, handler: JsObject) -> Self {
         Self {
             data: Some((target, handler)),
         }
@@ -82,7 +81,7 @@ impl Proxy {
         }
 
         // 2. Return ? ProxyCreate(target, handler).
-        Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context)
+        Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context).map(JsValue::from)
     }
 
     // `10.5.14 ProxyCreate ( target, handler )`
@@ -91,7 +90,11 @@ impl Proxy {
     //  - [ECMAScript reference][spec]
     //
     // [spec]: https://tc39.es/ecma262/#sec-proxycreate
-    fn create(target: &JsValue, handler: &JsValue, context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn create(
+        target: &JsValue,
+        handler: &JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = target.as_object().ok_or_else(|| {
             context.construct_type_error("Proxy constructor called with non-object target")
@@ -120,7 +123,35 @@ impl Proxy {
         );
 
         // 8. Return P.
-        Ok(p.into())
+        Ok(p)
+    }
+
+    pub(crate) fn revoker(proxy: JsObject, context: &mut Context) -> JsFunction {
+        // 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
+        // 4. Set revoker.[[RevocableProxy]] to p.
+        FunctionBuilder::closure_with_captures(
+            context,
+            |_, _, revocable_proxy, _| {
+                // a. Let F be the active function object.
+                // b. Let p be F.[[RevocableProxy]].
+                // d. Set F.[[RevocableProxy]] to null.
+                if let Some(p) = revocable_proxy.take() {
+                    // e. Assert: p is a Proxy object.
+                    // f. Set p.[[ProxyTarget]] to null.
+                    // g. Set p.[[ProxyHandler]] to null.
+                    p.borrow_mut()
+                        .as_proxy_mut()
+                        .expect("[[RevocableProxy]] must be a proxy object")
+                        .data = None;
+                }
+
+                // c. If p is null, return undefined.
+                // h. Return undefined.
+                Ok(JsValue::undefined())
+            },
+            Some(proxy),
+        )
+        .build()
     }
 
     /// `28.2.2.1 Proxy.revocable ( target, handler )`
@@ -133,39 +164,8 @@ impl Proxy {
         // 1. Let p be ? ProxyCreate(target, handler).
         let p = Self::create(args.get_or_undefined(0), args.get_or_undefined(1), context)?;
 
-        // 3. Let revoker be ! CreateBuiltinFunction(revokerClosure, 0, "", « [[RevocableProxy]] »).
-        // 4. Set revoker.[[RevocableProxy]] to p.
-        let revoker = FunctionBuilder::closure_with_captures(
-            context,
-            |_, _, revocable_proxy, _| {
-                // a. Let F be the active function object.
-                // b. Let p be F.[[RevocableProxy]].
-                // c. If p is null, return undefined.
-                if revocable_proxy.is_null() {
-                    return Ok(JsValue::undefined());
-                }
-
-                let p = revocable_proxy
-                    .as_object()
-                    .expect("[[RevocableProxy]] must be an object or null");
-
-                // e. Assert: p is a Proxy object.
-                // f. Set p.[[ProxyTarget]] to null.
-                // g. Set p.[[ProxyHandler]] to null.
-                p.borrow_mut()
-                    .as_proxy_mut()
-                    .expect("[[RevocableProxy]] must be a proxy object")
-                    .data = None;
-
-                // d. Set F.[[RevocableProxy]] to null.
-                *revocable_proxy = JsValue::Null;
-
-                // h. Return undefined.
-                Ok(JsValue::undefined())
-            },
-            p.clone(),
-        )
-        .build();
+        // Revoker creation steps on `Proxy::revoker`
+        let revoker = Self::revoker(p.clone(), context);
 
         // 5. Let result be ! OrdinaryObjectCreate(%Object.prototype%).
         let result = context.construct_object();

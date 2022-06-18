@@ -51,7 +51,7 @@ where
         interner: &mut Interner,
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("ReturnStatement", "Parsing");
-        cursor.expect(Keyword::Return, "return statement", interner)?;
+        cursor.expect((Keyword::Return, false), "return statement", interner)?;
 
         if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
             match tok {

@@ -34,7 +34,7 @@ Explain what you expected to happen, and what is happening instead.
 <!-- E.g.:
 Running this code, `a` should be set to `10` and printed, but `a` is instead set to `20`. The expected behaviour can be found in the [ECMAScript specification][spec].
 
-[spec]: https://www.ecma-international.org/ecma-262/10.0/index.html#sec-variable-statement-runtime-semantics-evaluation
+[spec]: https://tc39.es/ecma262/#sec-variable-statement-runtime-semantics-evaluation
 -->
 
 **Build environment (please complete the following information):**
