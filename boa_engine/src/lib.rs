@@ -78,6 +78,7 @@ pub mod class;
 pub mod context;
 pub mod environments;
 pub mod job;
+pub mod nonmaxu32;
 pub mod object;
 pub mod property;
 pub mod realm;
