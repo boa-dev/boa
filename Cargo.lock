@@ -1600,13 +1600,15 @@ dependencies = [
 
 [[package]]
 name = "sys-locale"
-version = "0.2.0"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3913c5a3d30054d7f77cf07cdd800c8103ace15c6e44437c5db66a43dd3a92cf"
+checksum = "658ee915b6c7b73ec4c1ffcd838506b5c5a4087eadc1ec8f862f1066cf2c8132"
 dependencies = [
  "cc",
  "cstr_core",
+ "js-sys",
  "libc",
+ "wasm-bindgen",
  "web-sys",
  "winapi",
 ]
