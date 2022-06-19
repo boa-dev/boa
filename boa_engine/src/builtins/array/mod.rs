@@ -366,10 +366,7 @@ impl Array {
         // 7. If IsConstructor(C) is false, throw a TypeError exception.
         if let Some(c) = c.as_constructor() {
             // 8. Return ? Construct(C, « 𝔽(length) »).
-            Ok(c.construct(&[JsValue::new(length)], Some(c), context)?
-                .as_object()
-                .expect("constructing an object should always return an object")
-                .clone())
+            c.construct(&[JsValue::new(length)], Some(c), context)
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
         }
@@ -418,13 +415,7 @@ impl Array {
             // b. Else,
             //     i. Let A be ? ArrayCreate(0en).
             let a = match this.as_constructor() {
-                Some(constructor) => constructor
-                    .construct(&[], None, context)?
-                    .as_object()
-                    .cloned()
-                    .ok_or_else(|| {
-                        context.construct_type_error("Object constructor didn't return an object")
-                    })?,
+                Some(constructor) => constructor.construct(&[], None, context)?,
                 _ => Self::array_create(0, None, context)?,
             };
 
@@ -497,13 +488,7 @@ impl Array {
             // 10. Else,
             //     a. Let A be ? ArrayCreate(len).
             let a = match this.as_constructor() {
-                Some(constructor) => constructor
-                    .construct(&[len.into()], None, context)?
-                    .as_object()
-                    .cloned()
-                    .ok_or_else(|| {
-                        context.construct_type_error("Object constructor didn't return an object")
-                    })?,
+                Some(constructor) => constructor.construct(&[len.into()], None, context)?,
                 _ => Self::array_create(len, None, context)?,
             };
 
@@ -579,13 +564,7 @@ impl Array {
         // 5. Else,
         //     a. Let A be ? ArrayCreate(len).
         let a = match this.as_constructor() {
-            Some(constructor) => constructor
-                .construct(&[len.into()], None, context)?
-                .as_object()
-                .cloned()
-                .ok_or_else(|| {
-                    context.construct_type_error("object constructor didn't return an object")
-                })?,
+            Some(constructor) => constructor.construct(&[len.into()], None, context)?,
             _ => Self::array_create(len, None, context)?,
         };
 

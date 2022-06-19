@@ -1481,9 +1481,9 @@ impl Context {
                     [compile_environments_index as usize]
                     .clone();
 
-                let is_constructor = self.vm.frame().code.constructor;
+                let constructor = self.vm.frame().code.constructor;
                 let is_lexical = self.vm.frame().code.this_mode.is_lexical();
-                let this = if is_constructor || !is_lexical {
+                let this = if constructor.is_some() || !is_lexical {
                     self.vm.frame().this.clone()
                 } else {
                     JsValue::undefined()

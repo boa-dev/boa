@@ -2970,11 +2970,8 @@ impl TypedArray {
         // 1. Let newTypedArray be ? Construct(constructor, argumentList).
         let new_typed_array = constructor.construct(args, Some(constructor), context)?;
 
+        let obj_borrow = new_typed_array.borrow();
         // 2. Perform ? ValidateTypedArray(newTypedArray).
-        let obj = new_typed_array
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
-        let obj_borrow = obj.borrow();
         let o = obj_borrow
             .as_typed_array()
             .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
@@ -2994,7 +2991,7 @@ impl TypedArray {
         }
 
         // 4. Return newTypedArray.
-        Ok(obj.clone())
+        Ok(new_typed_array.clone())
     }
 
     /// <https://tc39.es/ecma262/#sec-allocatetypedarraybuffer>

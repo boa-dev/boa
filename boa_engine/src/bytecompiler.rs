@@ -1,5 +1,5 @@
 use crate::{
-    builtins::function::ThisMode,
+    builtins::function::{ConstructorKind, ThisMode},
     environments::{BindingLocator, CompileTimeEnvironment},
     syntax::ast::{
         node::{
@@ -81,7 +81,7 @@ impl<'b> ByteCompiler<'b> {
     #[inline]
     pub fn new(name: Sym, strict: bool, context: &'b mut Context) -> Self {
         Self {
-            code_block: CodeBlock::new(name, 0, strict, false),
+            code_block: CodeBlock::new(name, 0, strict, None),
             literals_map: FxHashMap::default(),
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
@@ -1885,15 +1885,20 @@ impl<'b> ByteCompiler<'b> {
     ) -> JsResult<Gc<CodeBlock>> {
         let strict = strict || body.strict();
         let length = parameters.length();
-        let mut code = CodeBlock::new(name.unwrap_or(Sym::EMPTY_STRING), length, strict, true);
+        let mut code = CodeBlock::new(
+            name.unwrap_or(Sym::EMPTY_STRING),
+            length,
+            strict,
+            Some(ConstructorKind::Base),
+        );
 
         if let FunctionKind::Arrow = kind {
-            code.constructor = false;
+            code.constructor = None;
             code.this_mode = ThisMode::Lexical;
         }
 
         if generator {
-            code.constructor = false;
+            code.constructor = None;
         }
 
         let mut compiler = ByteCompiler {
@@ -2494,7 +2499,16 @@ impl<'b> ByteCompiler<'b> {
     /// A class declaration binds the resulting class object to it's identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
     fn class(&mut self, class: &Class, expression: bool) -> JsResult<()> {
-        let mut code = CodeBlock::new(class.name(), 0, true, true);
+        let mut code = CodeBlock::new(
+            class.name(),
+            0,
+            true,
+            Some(if class.super_ref().is_some() {
+                ConstructorKind::Derived
+            } else {
+                ConstructorKind::Base
+            }),
+        );
         code.computed_field_names = Some(gc::GcCell::new(vec![]));
         let mut compiler = ByteCompiler {
             code_block: code,

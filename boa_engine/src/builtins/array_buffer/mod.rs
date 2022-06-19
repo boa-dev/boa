@@ -243,13 +243,9 @@ impl ArrayBuffer {
         // 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).
         let new = ctor.construct(&[new_len.into()], Some(&ctor), context)?;
 
-        // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
-        let new_obj = new.as_object().cloned().ok_or_else(|| {
-            context.construct_type_error("ArrayBuffer constructor returned non-object value")
-        })?;
-
         {
-            let new_obj = new_obj.borrow();
+            let new_obj = new.borrow();
+            // 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).
             let new_array_buffer = new_obj.as_array_buffer().ok_or_else(|| {
                 context.construct_type_error("ArrayBuffer constructor returned invalid object")
             })?;
@@ -264,44 +260,46 @@ impl ArrayBuffer {
             }
         }
         // 20. If SameValue(new, O) is true, throw a TypeError exception.
-        if JsValue::same_value(&new, this) {
+        if this.as_object().map(|obj| obj == &new).unwrap_or_default() {
             return context.throw_type_error("New ArrayBuffer is the same as this ArrayBuffer");
         }
 
-        let mut new_obj_borrow = new_obj.borrow_mut();
-        let new_array_buffer = new_obj_borrow
-            .as_array_buffer_mut()
-            .expect("Already checked that `new_obj` was an `ArrayBuffer`");
+        {
+            let mut new_obj_borrow = new.borrow_mut();
+            let new_array_buffer = new_obj_borrow
+                .as_array_buffer_mut()
+                .expect("Already checked that `new_obj` was an `ArrayBuffer`");
 
-        // 21. If new.[[ArrayBufferByteLength]] < newLen, throw a TypeError exception.
-        if new_array_buffer.array_buffer_byte_length < new_len {
-            return context.throw_type_error("New ArrayBuffer length too small");
+            // 21. If new.[[ArrayBufferByteLength]] < newLen, throw a TypeError exception.
+            if new_array_buffer.array_buffer_byte_length < new_len {
+                return context.throw_type_error("New ArrayBuffer length too small");
+            }
+
+            // 22. NOTE: Side-effects of the above steps may have detached O.
+            // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
+            if Self::is_detached_buffer(o) {
+                return context
+                    .throw_type_error("ArrayBuffer detached while ArrayBuffer.slice was running");
+            }
+
+            // 24. Let fromBuf be O.[[ArrayBufferData]].
+            let from_buf = o
+                .array_buffer_data
+                .as_ref()
+                .expect("ArrayBuffer cannot be detached here");
+
+            // 25. Let toBuf be new.[[ArrayBufferData]].
+            let to_buf = new_array_buffer
+                .array_buffer_data
+                .as_mut()
+                .expect("ArrayBuffer cannot be detached here");
+
+            // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
+            copy_data_block_bytes(to_buf, 0, from_buf, first as usize, new_len);
         }
-
-        // 22. NOTE: Side-effects of the above steps may have detached O.
-        // 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.
-        if Self::is_detached_buffer(o) {
-            return context
-                .throw_type_error("ArrayBuffer detached while ArrayBuffer.slice was running");
-        }
-
-        // 24. Let fromBuf be O.[[ArrayBufferData]].
-        let from_buf = o
-            .array_buffer_data
-            .as_ref()
-            .expect("ArrayBuffer cannot be detached here");
-
-        // 25. Let toBuf be new.[[ArrayBufferData]].
-        let to_buf = new_array_buffer
-            .array_buffer_data
-            .as_mut()
-            .expect("ArrayBuffer cannot be detached here");
-
-        // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
-        copy_data_block_bytes(to_buf, 0, from_buf, first as usize, new_len);
 
         // 27. Return new.
-        Ok(new)
+        Ok(new.into())
     }
 
     /// `25.1.2.1 AllocateArrayBuffer ( constructor, byteLength )`

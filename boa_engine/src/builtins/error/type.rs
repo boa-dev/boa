@@ -103,7 +103,7 @@ pub(crate) fn create_throw_type_error(context: &mut Context) -> JsObject {
         context.intrinsics().constructors().function().prototype(),
         ObjectData::function(Function::Native {
             function: throw_type_error,
-            constructor: false,
+            constructor: None,
         }),
     );
 

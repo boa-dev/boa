@@ -26,7 +26,7 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
-use boa_gc::{self, Finalize, Gc, Trace};
+use boa_gc::{self, unsafe_empty_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
 use dyn_clone::DynClone;
@@ -108,10 +108,15 @@ impl ThisMode {
     }
 }
 
-#[derive(Debug, Trace, Finalize, PartialEq, Clone)]
+#[derive(Debug, Finalize, PartialEq, Clone, Copy)]
 pub enum ConstructorKind {
     Base,
     Derived,
+}
+
+// SAFETY: `Copy` types are trivially not `Trace`.
+unsafe impl Trace for ConstructorKind {
+    unsafe_empty_trace!();
 }
 
 impl ConstructorKind {
@@ -178,12 +183,12 @@ pub enum Function {
     Native {
         #[unsafe_ignore_trace]
         function: NativeFunctionSignature,
-        constructor: bool,
+        constructor: Option<ConstructorKind>,
     },
     Closure {
         #[unsafe_ignore_trace]
         function: Box<dyn ClosureFunctionSignature>,
-        constructor: bool,
+        constructor: Option<ConstructorKind>,
         captures: Captures,
     },
     Ordinary {
@@ -205,6 +210,11 @@ impl fmt::Debug for Function {
 impl Function {
     /// Returns true if the function object is a constructor.
     pub fn is_constructor(&self) -> bool {
+        self.constructor().is_some()
+    }
+
+    /// Returns the constructor kind if the function is constructable, or `None` otherwise.
+    pub fn constructor(&self) -> Option<ConstructorKind> {
         match self {
             Self::Native { constructor, .. } | Self::Closure { constructor, .. } => *constructor,
             Self::Ordinary { code, .. } | Self::Generator { code, .. } => code.constructor,
@@ -251,7 +261,7 @@ pub(crate) fn make_builtin_fn<N>(
             .prototype(),
         ObjectData::function(Function::Native {
             function,
-            constructor: false,
+            constructor: None,
         }),
     );
     let attribute = PropertyDescriptor::builder()
@@ -417,7 +427,7 @@ impl BuiltInFunctionObject {
                 prototype,
                 ObjectData::function(Function::Native {
                     function: |_, _, _| Ok(JsValue::undefined()),
-                    constructor: true,
+                    constructor: Some(ConstructorKind::Base),
                 }),
             );
 

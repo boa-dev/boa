@@ -185,7 +185,7 @@ impl PromiseCapability {
                 }
 
                 // 9. Set promiseCapability.[[Promise]] to promise.
-                promise_capability.reject = promise;
+                promise_capability.reject = promise.into();
 
                 // 10. Return promiseCapability.
                 Ok(promise_capability.clone())

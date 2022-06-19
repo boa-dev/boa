@@ -5,7 +5,7 @@
 use crate::{
     builtins::{
         function::{
-            arguments::Arguments, Captures, ClosureFunctionSignature, Function,
+            arguments::Arguments, Captures, ClosureFunctionSignature, ConstructorKind, Function,
             NativeFunctionSignature, ThisMode,
         },
         generator::{Generator, GeneratorContext, GeneratorState},
@@ -62,10 +62,10 @@ pub struct CodeBlock {
     /// Is this function in strict mode.
     pub(crate) strict: bool,
 
-    /// Is this function a constructor.
-    pub(crate) constructor: bool,
+    /// Constructor type of this function, or `None` if the function is not constructable.
+    pub(crate) constructor: Option<ConstructorKind>,
 
-    /// [[ThisMode]]
+    /// \[\[ThisMode\]\]
     pub(crate) this_mode: ThisMode,
 
     /// Parameters passed to this function.
@@ -108,7 +108,7 @@ pub struct CodeBlock {
 
 impl CodeBlock {
     /// Constructs a new `CodeBlock`.
-    pub fn new(name: Sym, length: u32, strict: bool, constructor: bool) -> Self {
+    pub fn new(name: Sym, length: u32, strict: bool, constructor: Option<ConstructorKind>) -> Self {
         Self {
             code: Vec::new(),
             literals: Vec::new(),
@@ -588,7 +588,7 @@ impl JsObject {
                     function,
                     constructor,
                 } => {
-                    if *constructor {
+                    if constructor.is_some() {
                         construct = true;
                     }
 
@@ -868,17 +868,28 @@ impl JsObject {
         args: &[JsValue],
         this_target: &JsValue,
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject> {
         let this_function_object = self.clone();
         // let mut has_parameter_expressions = false;
+
+        let create_this = |context| {
+            let prototype =
+                get_prototype_from_constructor(this_target, StandardConstructors::object, context)?;
+            Ok(Self::from_proto_and_data(prototype, ObjectData::ordinary()))
+        };
 
         if !self.is_constructor() {
             return context.throw_type_error("not a constructor function");
         }
 
+        let constructor;
+
         let body = {
             let object = self.borrow();
             let function = object.as_function().expect("not a function");
+            constructor = function
+                .constructor()
+                .expect("Already checked that the function was a constructor");
 
             match function {
                 Function::Native { function, .. } => FunctionBody::Native {
@@ -901,9 +912,31 @@ impl JsObject {
         };
 
         match body {
-            FunctionBody::Native { function, .. } => function(this_target, args, context),
+            FunctionBody::Native { function, .. } => match function(this_target, args, context)? {
+                JsValue::Object(ref o) => Ok(o.clone()),
+                val => {
+                    if constructor.is_base() || val.is_undefined() {
+                        create_this(context)
+                    } else {
+                        context.throw_type_error(
+                            "Derived constructor can only return an Object or undefined",
+                        )
+                    }
+                }
+            },
             FunctionBody::Closure { function, captures } => {
-                (function)(this_target, args, captures, context)
+                match (function)(this_target, args, captures, context)? {
+                    JsValue::Object(ref o) => Ok(o.clone()),
+                    val => {
+                        if constructor.is_base() || val.is_undefined() {
+                            create_this(context)
+                        } else {
+                            context.throw_type_error(
+                                "Derived constructor can only return an Object or undefined",
+                            )
+                        }
+                    }
+                }
             }
             FunctionBody::Ordinary {
                 code,
@@ -911,27 +944,14 @@ impl JsObject {
             } => {
                 std::mem::swap(&mut environments, &mut context.realm.environments);
 
-                let this = {
-                    // If the prototype of the constructor is not an object, then use the default object
-                    // prototype as prototype for the new object
-                    // see <https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor>
-                    // see <https://tc39.es/ecma262/#sec-getprototypefromconstructor>
-                    let prototype = get_prototype_from_constructor(
-                        this_target,
-                        StandardConstructors::object,
-                        context,
-                    )?;
-                    let this = Self::from_proto_and_data(prototype, ObjectData::ordinary());
+                let this = create_this(context)?;
 
-                    // Set computed class field names if they exist.
-                    if let Some(fields) = &code.computed_field_names {
-                        for key in fields.borrow().iter().rev() {
-                            context.vm.push(key);
-                        }
+                // Set computed class field names if they exist.
+                if let Some(fields) = &code.computed_field_names {
+                    for key in fields.borrow().iter().rev() {
+                        context.vm.push(key);
                     }
-
-                    this
-                };
+                }
 
                 if code.params.has_expressions() {
                     context.realm.environments.push_function(
@@ -1034,10 +1054,21 @@ impl JsObject {
 
                 let (result, _) = result?;
 
-                if result.is_object() {
-                    Ok(result)
-                } else {
-                    Ok(frame.this.clone())
+                match result {
+                    JsValue::Object(ref obj) => Ok(obj.clone()),
+                    val => {
+                        if constructor.is_base() || val.is_undefined() {
+                            Ok(frame
+                                .this
+                                .as_object()
+                                .cloned()
+                                .expect("13. Assert: Type(thisBinding) is Object."))
+                        } else {
+                            context.throw_type_error(
+                                "Derived constructor can only return an Object or undefined",
+                            )
+                        }
+                    }
                 }
             }
             FunctionBody::Generator { .. } => {
