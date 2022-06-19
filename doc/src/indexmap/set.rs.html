@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.8.2/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.0/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../indexmap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1895,6 +1895,26 @@
 <span id="1890">1890</span>
 <span id="1891">1891</span>
 <span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A hash set implemented using `IndexMap`</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;rayon&quot;</span>)]</span>
@@ -1907,7 +1927,7 @@
 <span class="kw">use</span> <span class="ident">core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
 <span class="kw">use</span> <span class="ident">core::hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>};
-<span class="kw">use</span> <span class="ident">core::iter</span>::{<span class="ident">Chain</span>, <span class="ident">FromIterator</span>, <span class="ident">FusedIterator</span>};
+<span class="kw">use</span> <span class="ident">core::iter</span>::{<span class="ident">Chain</span>, <span class="ident">FusedIterator</span>};
 <span class="kw">use</span> <span class="ident">core::ops</span>::{<span class="ident">BitAnd</span>, <span class="ident">BitOr</span>, <span class="ident">BitXor</span>, <span class="ident">Index</span>, <span class="ident">RangeBounds</span>, <span class="ident">Sub</span>};
 <span class="kw">use</span> <span class="ident">core::slice</span>;
 
@@ -2089,7 +2109,7 @@
     <span class="doccomment">/// Return an iterator over the values of the set, in their order</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Iter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">Iter</span> {
-            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">keys</span>().<span class="ident">iter</span>,
+            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">as_entries</span>().<span class="ident">iter</span>(),
         }
     }
 
@@ -2163,6 +2183,13 @@
     <span class="doccomment">/// Computes in **O(n)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shrink_to_fit</span>();
+    }
+
+    <span class="doccomment">/// Shrink the capacity of the set with a lower limit.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n)** time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">min_capacity</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shrink_to</span>(<span class="ident">min_capacity</span>);
     }
 
     <span class="doccomment">/// Insert the value into the set.</span>
@@ -2492,8 +2519,10 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
     {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_entries</span>();
+        <span class="ident">entries</span>.<span class="ident">sort_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>));
         <span class="ident">IntoIter</span> {
-            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">sorted_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw">_</span>, <span class="ident">b</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>)).<span class="ident">iter</span>,
+            <span class="ident">iter</span>: <span class="ident">entries</span>.<span class="ident">into_iter</span>(),
         }
     }
 
@@ -2523,11 +2552,10 @@
     <span class="kw">where</span>
         <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">T</span>, <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">Ordering</span>,
     {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">entries</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">into_entries</span>();
+        <span class="ident">entries</span>.<span class="ident">sort_unstable_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="ident">b</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>.<span class="ident">key</span>, <span class="kw-2">&amp;</span><span class="ident">b</span>.<span class="ident">key</span>));
         <span class="ident">IntoIter</span> {
-            <span class="ident">iter</span>: <span class="self">self</span>
-                .<span class="ident">map</span>
-                .<span class="ident">sorted_unstable_by</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">a</span>, <span class="kw">_</span>, <span class="ident">b</span>, <span class="kw">_</span><span class="op">|</span> <span class="ident">cmp</span>(<span class="ident">a</span>, <span class="ident">b</span>))
-                .<span class="ident">iter</span>,
+            <span class="ident">iter</span>: <span class="ident">entries</span>.<span class="ident">into_iter</span>(),
         }
     }
 
@@ -2587,6 +2615,19 @@
     <span class="doccomment">/// Computes in **O(n)** time (average).</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shift_remove_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">shift_remove_index</span>(<span class="ident">index</span>).<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">x</span>, ())<span class="op">|</span> <span class="ident">x</span>)
+    }
+
+    <span class="doccomment">/// Moves the position of a value from one index to another</span>
+    <span class="doccomment">/// by shifting all other values in-between.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// * If `from &lt; to`, the other values will shift down while the targeted value moves up.</span>
+    <span class="doccomment">/// * If `from &gt; to`, the other values will shift up while the targeted value moves down.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ***Panics*** if `from` or `to` are out of bounds.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n)** time (average).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">from</span>: <span class="ident">usize</span>, <span class="ident">to</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">move_index</span>(<span class="ident">from</span>, <span class="ident">to</span>)
     }
 
     <span class="doccomment">/// Swaps the position of two values in the set.</span>
@@ -2767,7 +2808,7 @@
 
     <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
         <span class="ident">IntoIter</span> {
-            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">into_iter</span>().<span class="ident">iter</span>,
+            <span class="ident">iter</span>: <span class="self">self</span>.<span class="ident">into_entries</span>().<span class="ident">into_iter</span>(),
         }
     }
 }
@@ -2785,7 +2826,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">T</span>; <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">RandomState</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span>,
@@ -2800,7 +2841,7 @@
     <span class="doccomment">/// assert_eq!(set1, set2);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">arr</span>: [<span class="ident">T</span>; <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident">std::array::IntoIter::new</span>(<span class="ident">arr</span>).<span class="ident">collect</span>()
+        <span class="ident"><span class="self">Self</span>::from_iter</span>(<span class="ident">arr</span>)
     }
 }
 
@@ -3263,7 +3304,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::enumerate</span>;
     <span class="kw">use</span> <span class="ident">std::string::String</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3292,7 +3332,7 @@
         <span class="kw">let</span> <span class="ident">not_present</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">set</span>.<span class="ident">insert</span>(<span class="ident">elt</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
@@ -3311,7 +3351,7 @@
         <span class="kw">let</span> <span class="ident">present</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">6</span>, <span class="number">2</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">success</span>) <span class="op">=</span> <span class="ident">set</span>.<span class="ident">insert_full</span>(<span class="ident">elt</span>);
             <span class="macro">assert!</span>(<span class="ident">success</span>);
@@ -3398,7 +3438,7 @@
         <span class="kw">let</span> <span class="ident">not_present</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet::with_capacity</span>(<span class="ident">replace</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">replace</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">replace</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">set</span>.<span class="ident">replace</span>(<span class="ident">elt</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
@@ -3417,7 +3457,7 @@
         <span class="kw">let</span> <span class="ident">present</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">6</span>, <span class="number">2</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet::with_capacity</span>(<span class="ident">replace</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">replace</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">replace</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">replaced</span>) <span class="op">=</span> <span class="ident">set</span>.<span class="ident">replace_full</span>(<span class="ident">elt</span>);
             <span class="macro">assert!</span>(<span class="ident">replaced</span>.<span class="ident">is_none</span>());
@@ -3504,7 +3544,7 @@
         <span class="kw">let</span> <span class="ident">not_present</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">set</span>.<span class="ident">insert</span>(<span class="ident">elt</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
@@ -3779,7 +3819,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_array</span>() {
         <span class="kw">let</span> <span class="ident">set1</span> <span class="op">=</span> <span class="ident">IndexSet::from</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
         <span class="kw">let</span> <span class="ident">set2</span>: <span class="ident">IndexSet</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>].<span class="ident">into</span>();

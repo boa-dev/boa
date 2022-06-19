@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.8.2/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/indexmap-1.9.0/src/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../indexmap/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1921,6 +1921,35 @@
 <span id="1916">1916</span>
 <span id="1917">1917</span>
 <span id="1918">1918</span>
+<span id="1919">1919</span>
+<span id="1920">1920</span>
+<span id="1921">1921</span>
+<span id="1922">1922</span>
+<span id="1923">1923</span>
+<span id="1924">1924</span>
+<span id="1925">1925</span>
+<span id="1926">1926</span>
+<span id="1927">1927</span>
+<span id="1928">1928</span>
+<span id="1929">1929</span>
+<span id="1930">1930</span>
+<span id="1931">1931</span>
+<span id="1932">1932</span>
+<span id="1933">1933</span>
+<span id="1934">1934</span>
+<span id="1935">1935</span>
+<span id="1936">1936</span>
+<span id="1937">1937</span>
+<span id="1938">1938</span>
+<span id="1939">1939</span>
+<span id="1940">1940</span>
+<span id="1941">1941</span>
+<span id="1942">1942</span>
+<span id="1943">1943</span>
+<span id="1944">1944</span>
+<span id="1945">1945</span>
+<span id="1946">1946</span>
+<span id="1947">1947</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `IndexMap` is a hash table where the iteration order of the key-value</span>
 <span class="doccomment">//! pairs is independent of the hash values of the keys.</span>
 
@@ -1935,7 +1964,7 @@
 <span class="kw">use</span> <span class="ident">::core::cmp::Ordering</span>;
 <span class="kw">use</span> <span class="ident">::core::fmt</span>;
 <span class="kw">use</span> <span class="ident">::core::hash</span>::{<span class="ident">BuildHasher</span>, <span class="ident">Hash</span>, <span class="ident">Hasher</span>};
-<span class="kw">use</span> <span class="ident">::core::iter</span>::{<span class="ident">FromIterator</span>, <span class="ident">FusedIterator</span>};
+<span class="kw">use</span> <span class="ident">::core::iter::FusedIterator</span>;
 <span class="kw">use</span> <span class="ident">::core::ops</span>::{<span class="ident">Index</span>, <span class="ident">IndexMut</span>, <span class="ident">RangeBounds</span>};
 <span class="kw">use</span> <span class="ident">::core::slice</span>::{<span class="ident">Iter</span> <span class="kw">as</span> <span class="ident">SliceIter</span>, <span class="ident">IterMut</span> <span class="kw">as</span> <span class="ident">SliceIterMut</span>};
 
@@ -2255,7 +2284,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Computes in **O(n)** time.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">shrink_to_fit</span>();
+        <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">shrink_to</span>(<span class="number">0</span>);
+    }
+
+    <span class="doccomment">/// Shrink the capacity of the map with a lower limit.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n)** time.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">min_capacity</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">shrink_to</span>(<span class="ident">min_capacity</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">hash</span><span class="op">&lt;</span><span class="ident">Q</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Hash</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="kw-2">&amp;</span><span class="ident">Q</span>) -&gt; <span class="ident">HashValue</span> {
@@ -2761,6 +2797,19 @@
         <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">shift_remove_index</span>(<span class="ident">index</span>)
     }
 
+    <span class="doccomment">/// Moves the position of a key-value pair from one index to another</span>
+    <span class="doccomment">/// by shifting all other pairs in-between.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// * If `from &lt; to`, the other pairs will shift down while the targeted pair moves up.</span>
+    <span class="doccomment">/// * If `from &gt; to`, the other pairs will shift up while the targeted pair moves down.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ***Panics*** if `from` or `to` are out of bounds.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Computes in **O(n)** time (average).</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">move_index</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">from</span>: <span class="ident">usize</span>, <span class="ident">to</span>: <span class="ident">usize</span>) {
+        <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">move_index</span>(<span class="ident">from</span>, <span class="ident">to</span>)
+    }
+
     <span class="doccomment">/// Swaps the position of two key-value pairs in the map.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ***Panics*** if `a` or `b` are out of bounds.</span>
@@ -2777,7 +2826,7 @@
 <span class="doccomment">/// [`keys`]: struct.IndexMap.html#method.keys</span>
 <span class="doccomment">/// [`IndexMap`]: struct.IndexMap.html</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">iter</span>: <span class="ident">SliceIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">iter</span>: <span class="ident">SliceIter</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Keys</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -2922,7 +2971,12 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
 
-<span class="comment">// TODO: `impl Debug for ValuesMut` once we have MSRV 1.53 for `slice::IterMut::as_slice`</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">ValuesMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket::value_ref</span>);
+        <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">iter</span>).<span class="ident">finish</span>()
+    }
+}
 
 <span class="doccomment">/// An owning iterator over the values of a `IndexMap`.</span>
 <span class="doccomment">///</span>
@@ -3033,7 +3087,12 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {}
 
-<span class="comment">// TODO: `impl Debug for IterMut` once we have MSRV 1.53 for `slice::IterMut::as_slice`</span>
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>: <span class="ident">fmt::Debug</span>, <span class="ident">V</span>: <span class="ident">fmt::Debug</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">IterMut</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">let</span> <span class="ident">iter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Bucket::refs</span>);
+        <span class="ident">f</span>.<span class="ident">debug_list</span>().<span class="ident">entries</span>(<span class="ident">iter</span>).<span class="ident">finish</span>()
+    }
+}
 
 <span class="doccomment">/// An owning iterator over the entries of a `IndexMap`.</span>
 <span class="doccomment">///</span>
@@ -3043,7 +3102,7 @@
 <span class="doccomment">/// [`into_iter`]: struct.IndexMap.html#method.into_iter</span>
 <span class="doccomment">/// [`IndexMap`]: struct.IndexMap.html</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">iter</span>: <span class="ident">vec::IntoIter</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">iter</span>: <span class="ident">vec::IntoIter</span><span class="op">&lt;</span><span class="ident">Bucket</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">IntoIter</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span><span class="op">&gt;</span> {
@@ -3314,7 +3373,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="kw">const</span> <span class="ident">N</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>[(<span class="ident">K</span>, <span class="ident">V</span>); <span class="ident">N</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">IndexMap</span><span class="op">&lt;</span><span class="ident">K</span>, <span class="ident">V</span>, <span class="ident">RandomState</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">K</span>: <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Eq</span>,
@@ -3329,7 +3388,7 @@
     <span class="doccomment">/// assert_eq!(map1, map2);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">arr</span>: [(<span class="ident">K</span>, <span class="ident">V</span>); <span class="ident">N</span>]) -&gt; <span class="self">Self</span> {
-        <span class="ident">std::array::IntoIter::new</span>(<span class="ident">arr</span>).<span class="ident">collect</span>()
+        <span class="ident"><span class="self">Self</span>::from_iter</span>(<span class="ident">arr</span>)
     }
 }
 
@@ -3418,7 +3477,6 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
-    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::enumerate</span>;
     <span class="kw">use</span> <span class="ident">std::string::String</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -3447,7 +3505,7 @@
         <span class="kw">let</span> <span class="ident">not_present</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
@@ -3467,7 +3525,7 @@
         <span class="kw">let</span> <span class="ident">present</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">1</span>, <span class="number">6</span>, <span class="number">2</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="kw">let</span> (<span class="ident">index</span>, <span class="ident">existing</span>) <span class="op">=</span> <span class="ident">map</span>.<span class="ident">insert_full</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">existing</span>, <span class="prelude-val">None</span>);
@@ -3534,7 +3592,7 @@
         <span class="kw">let</span> <span class="ident">not_present</span> <span class="op">=</span> [<span class="number">1</span>, <span class="number">3</span>, <span class="number">6</span>, <span class="number">9</span>, <span class="number">10</span>];
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::with_capacity</span>(<span class="ident">insert</span>.<span class="ident">len</span>());
 
-        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">enumerate</span>(<span class="kw-2">&amp;</span><span class="ident">insert</span>) {
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="kw-2">&amp;</span><span class="ident">elt</span>) <span class="kw">in</span> <span class="ident">insert</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span>);
             <span class="ident">map</span>.<span class="ident">insert</span>(<span class="ident">elt</span>, <span class="ident">elt</span>);
             <span class="macro">assert_eq!</span>(<span class="ident">map</span>.<span class="ident">len</span>(), <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>);
@@ -3829,7 +3887,7 @@
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">has_std</span>, <span class="ident">rustc_1_51</span>))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">has_std</span>)]</span>
     <span class="kw">fn</span> <span class="ident">from_array</span>() {
         <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">IndexMap::from</span>([(<span class="number">1</span>, <span class="number">2</span>), (<span class="number">3</span>, <span class="number">4</span>)]);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">expected</span> <span class="op">=</span> <span class="ident">IndexMap::new</span>();
