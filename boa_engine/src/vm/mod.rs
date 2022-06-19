@@ -146,6 +146,13 @@ impl Context {
             Opcode::Pop => {
                 let _val = self.vm.pop();
             }
+            Opcode::PopIfThrown => {
+                let frame = self.vm.frame_mut();
+                if frame.thrown {
+                    frame.thrown = false;
+                    self.vm.pop();
+                }
+            }
             Opcode::Dup => {
                 let value = self.vm.pop();
                 self.vm.push(value.clone());
@@ -233,11 +240,17 @@ impl Context {
                 self.vm.push(array);
             }
             Opcode::PushIteratorToArray => {
-                let next_function = self.vm.pop();
+                let done = self
+                    .vm
+                    .pop()
+                    .as_boolean()
+                    .expect("iterator [[Done]] was not a boolean");
+                let next_method = self.vm.pop();
                 let iterator = self.vm.pop();
+                let iterator = iterator.as_object().expect("iterator was not an object");
                 let array = self.vm.pop();
 
-                let iterator = IteratorRecord::new(iterator, next_function);
+                let iterator = IteratorRecord::new(iterator.clone(), next_method, done);
                 while let Some(next) = iterator.step(self)? {
                     Array::push(&array, &[next.value(self)?], self)?;
                 }
@@ -1144,6 +1157,7 @@ impl Context {
                     num_env: 0,
                     num_loop_stack_entries: 0,
                 });
+                self.vm.frame_mut().thrown = false;
             }
             Opcode::CatchEnd2 => {
                 let frame = self.vm.frame_mut();
@@ -1386,7 +1400,7 @@ impl Context {
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
 
                 self.vm.push(result);
             }
@@ -1413,7 +1427,7 @@ impl Context {
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&arguments, &cons.clone().into(), self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
 
                 self.vm.push(result);
             }
@@ -1527,7 +1541,7 @@ impl Context {
 
                 let object = object.to_object(self)?;
                 let iterator = ForInIterator::create_for_in_iterator(JsValue::new(object), self);
-                let next_function = iterator
+                let next_method = iterator
                     .get_property("next")
                     .as_ref()
                     .map(PropertyDescriptor::expect_value)
@@ -1535,39 +1549,32 @@ impl Context {
                     .ok_or_else(|| self.construct_type_error("Could not find property `next`"))?;
 
                 self.vm.push(iterator);
-                self.vm.push(next_function);
+                self.vm.push(next_method);
+                self.vm.push(false);
             }
             Opcode::InitIterator => {
                 let object = self.vm.pop();
                 let iterator = object.get_iterator(self, None, None)?;
-                self.vm.push(iterator.iterator_object());
-                self.vm.push(iterator.next_function());
+                self.vm.push(iterator.iterator().clone());
+                self.vm.push(iterator.next_method().clone());
+                self.vm.push(iterator.done());
             }
             Opcode::IteratorNext => {
-                let next_function = self.vm.pop();
+                let done = self
+                    .vm
+                    .pop()
+                    .as_boolean()
+                    .expect("iterator [[Done]] was not a boolean");
+                let next_method = self.vm.pop();
                 let iterator = self.vm.pop();
+                let iterator = iterator.as_object().expect("iterator was not an object");
 
-                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_record =
+                    IteratorRecord::new(iterator.clone(), next_method.clone(), done);
                 let next = iterator_record.step(self)?;
 
-                self.vm.push(iterator);
-                self.vm.push(next_function);
-                if let Some(next) = next {
-                    let value = next.value(self)?;
-                    self.vm.push(value);
-                } else {
-                    self.vm.push(JsValue::undefined());
-                }
-            }
-            Opcode::IteratorNextFull => {
-                let next_function = self.vm.pop();
-                let iterator = self.vm.pop();
-
-                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
-                let next = iterator_record.step(self)?;
-
-                self.vm.push(iterator);
-                self.vm.push(next_function);
+                self.vm.push(iterator.clone());
+                self.vm.push(next_method);
                 if let Some(next) = next {
                     let value = next.value(self)?;
                     self.vm.push(false);
@@ -1578,19 +1585,31 @@ impl Context {
                 }
             }
             Opcode::IteratorClose => {
-                let done = self.vm.pop();
-                let next_function = self.vm.pop();
+                let done = self
+                    .vm
+                    .pop()
+                    .as_boolean()
+                    .expect("iterator [[Done]] was not a boolean");
+                let next_method = self.vm.pop();
                 let iterator = self.vm.pop();
-                if !done.as_boolean().expect("not a boolean") {
-                    let iterator_record = IteratorRecord::new(iterator, next_function);
+                let iterator = iterator.as_object().expect("iterator was not an object");
+                if !done {
+                    let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
                     iterator_record.close(Ok(JsValue::Null), self)?;
                 }
             }
             Opcode::IteratorToArray => {
-                let next_function = self.vm.pop();
+                let done = self
+                    .vm
+                    .pop()
+                    .as_boolean()
+                    .expect("iterator [[Done]] was not a boolean");
+                let next_method = self.vm.pop();
                 let iterator = self.vm.pop();
+                let iterator = iterator.as_object().expect("iterator was not an object");
 
-                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_record =
+                    IteratorRecord::new(iterator.clone(), next_method.clone(), done);
                 let mut values = Vec::new();
 
                 while let Some(result) = iterator_record.step(self)? {
@@ -1599,20 +1618,29 @@ impl Context {
 
                 let array = Array::create_array_from_list(values, self);
 
-                self.vm.push(iterator);
-                self.vm.push(next_function);
+                self.vm.push(iterator.clone());
+                self.vm.push(next_method);
+                self.vm.push(true);
                 self.vm.push(array);
             }
             Opcode::ForInLoopNext => {
                 let address = self.vm.read::<u32>();
 
-                let next_function = self.vm.pop();
+                let done = self
+                    .vm
+                    .pop()
+                    .as_boolean()
+                    .expect("iterator [[Done]] was not a boolean");
+                let next_method = self.vm.pop();
                 let iterator = self.vm.pop();
+                let iterator = iterator.as_object().expect("iterator was not an object");
 
-                let iterator_record = IteratorRecord::new(iterator.clone(), next_function.clone());
+                let iterator_record =
+                    IteratorRecord::new(iterator.clone(), next_method.clone(), done);
                 if let Some(next) = iterator_record.step(self)? {
-                    self.vm.push(iterator);
-                    self.vm.push(next_function);
+                    self.vm.push(iterator.clone());
+                    self.vm.push(next_method);
+                    self.vm.push(done);
                     let value = next.value(self)?;
                     self.vm.push(value);
                 } else {
@@ -1620,8 +1648,9 @@ impl Context {
                     self.vm.frame_mut().loop_env_stack_dec();
                     self.vm.frame_mut().try_env_stack_dec();
                     self.realm.environments.pop();
-                    self.vm.push(iterator);
-                    self.vm.push(next_function);
+                    self.vm.push(iterator.clone());
+                    self.vm.push(next_method);
+                    self.vm.push(done);
                 }
             }
             Opcode::ConcatToString => {
@@ -1717,12 +1746,19 @@ impl Context {
             Opcode::GeneratorNextDelegate => {
                 let done_address = self.vm.read::<u32>();
                 let received = self.vm.pop();
-                let next_function = self.vm.pop();
+                let done = self
+                    .vm
+                    .pop()
+                    .as_boolean()
+                    .expect("iterator [[Done]] was not a boolean");
+                let next_method = self.vm.pop();
                 let iterator = self.vm.pop();
+                let iterator = iterator.as_object().expect("iterator was not an object");
 
                 match self.vm.frame().generator_resume_kind {
                     GeneratorResumeKind::Normal => {
-                        let result = self.call(&next_function, &iterator, &[received])?;
+                        let result =
+                            self.call(&next_method, &iterator.clone().into(), &[received])?;
                         let result_object = result.as_object().ok_or_else(|| {
                             self.construct_type_error("generator next method returned non-object")
                         })?;
@@ -1734,15 +1770,16 @@ impl Context {
                             return Ok(ShouldExit::False);
                         }
                         let value = result_object.get("value", self)?;
-                        self.vm.push(iterator);
-                        self.vm.push(next_function);
+                        self.vm.push(iterator.clone());
+                        self.vm.push(next_method.clone());
+                        self.vm.push(done);
                         self.vm.push(value);
                         return Ok(ShouldExit::Yield);
                     }
                     GeneratorResumeKind::Throw => {
                         let throw = iterator.get_method("throw", self)?;
                         if let Some(throw) = throw {
-                            let result = throw.call(&iterator, &[received], self)?;
+                            let result = throw.call(&iterator.clone().into(), &[received], self)?;
                             let result_object = result.as_object().ok_or_else(|| {
                                 self.construct_type_error(
                                     "generator throw method returned non-object",
@@ -1756,14 +1793,15 @@ impl Context {
                                 return Ok(ShouldExit::False);
                             }
                             let value = result_object.get("value", self)?;
-                            self.vm.push(iterator);
-                            self.vm.push(next_function);
+                            self.vm.push(iterator.clone());
+                            self.vm.push(next_method.clone());
+                            self.vm.push(done);
                             self.vm.push(value);
                             return Ok(ShouldExit::Yield);
                         }
                         self.vm.frame_mut().pc = done_address as usize;
                         let iterator_record =
-                            IteratorRecord::new(iterator.clone(), next_function.clone());
+                            IteratorRecord::new(iterator.clone(), next_method, done);
                         iterator_record.close(Ok(JsValue::Undefined), self)?;
                         let error =
                             self.construct_type_error("iterator does not have a throw method");
@@ -1772,7 +1810,8 @@ impl Context {
                     GeneratorResumeKind::Return => {
                         let r#return = iterator.get_method("return", self)?;
                         if let Some(r#return) = r#return {
-                            let result = r#return.call(&iterator, &[received], self)?;
+                            let result =
+                                r#return.call(&iterator.clone().into(), &[received], self)?;
                             let result_object = result.as_object().ok_or_else(|| {
                                 self.construct_type_error(
                                     "generator return method returned non-object",
@@ -1786,8 +1825,9 @@ impl Context {
                                 return Ok(ShouldExit::True);
                             }
                             let value = result_object.get("value", self)?;
-                            self.vm.push(iterator);
-                            self.vm.push(next_function);
+                            self.vm.push(iterator.clone());
+                            self.vm.push(next_method.clone());
+                            self.vm.push(done);
                             self.vm.push(value);
                             return Ok(ShouldExit::Yield);
                         }
@@ -1928,6 +1968,7 @@ impl Context {
                         self.vm.frame_mut().pc = address as usize;
                         self.vm.frame_mut().catch.pop();
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
+                        self.vm.frame_mut().thrown = true;
                         self.vm.push(e);
                     } else {
                         self.vm.stack.truncate(start_stack_size);

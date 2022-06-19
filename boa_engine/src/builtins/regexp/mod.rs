@@ -1183,11 +1183,7 @@ impl RegExp {
         let flags = regexp.get("flags", context)?.to_string(context)?;
 
         // 6. Let matcher be ? Construct(C, « R, flags »).
-        let matcher = c.construct(
-            &[this.clone(), flags.clone().into()],
-            &c.clone().into(),
-            context,
-        )?;
+        let matcher = c.construct(&[this.clone(), flags.clone().into()], Some(&c), context)?;
         let matcher = matcher
             .as_object()
             .expect("construct must always return an Object");
@@ -1580,7 +1576,7 @@ impl RegExp {
         // 10. Let splitter be ? Construct(C, « rx, newFlags »).
         let splitter = constructor.construct(
             &[this.clone(), new_flags.into()],
-            &constructor.clone().into(),
+            Some(&constructor),
             context,
         )?;
         let splitter = splitter

@@ -162,16 +162,20 @@ impl JsValue {
         let iterator = context.call(&method, self, &[])?;
 
         // 4. If Type(iterator) is not Object, throw a TypeError exception.
-        if !iterator.is_object() {
-            return context.throw_type_error("the iterator is not an object");
-        }
+        let iterator_obj = iterator
+            .as_object()
+            .ok_or_else(|| context.construct_type_error("the iterator is not an object"))?;
 
         // 5. Let nextMethod be ? GetV(iterator, "next").
         let next_method = iterator.get_v("next", context)?;
 
         // 6. Let iteratorRecord be the Record { [[Iterator]]: iterator, [[NextMethod]]: nextMethod, [[Done]]: false }.
         // 7. Return iteratorRecord.
-        Ok(IteratorRecord::new(iterator, next_method))
+        Ok(IteratorRecord::new(
+            iterator_obj.clone(),
+            next_method,
+            false,
+        ))
     }
 }
 
@@ -196,6 +200,7 @@ fn create_iterator_prototype(context: &mut Context) -> JsObject {
     iterator_prototype
 }
 
+/// The result of the iteration process.
 #[derive(Debug)]
 pub struct IteratorResult {
     object: JsObject,
@@ -247,32 +252,53 @@ impl IteratorResult {
 pub struct IteratorRecord {
     /// `[[Iterator]]`
     ///
-    /// An object that conforms to the Iterator or AsyncIterator interface.
-    iterator_object: JsValue,
+    /// An object that conforms to the `Iterator` or `AsyncIterator` interface.
+    iterator: JsObject,
 
     /// `[[NextMethod]]`
     ///
-    /// The next method of the `[[Iterator]]` object.
-    next_function: JsValue,
+    /// The `next` method of the `[[Iterator]]` object.
+    next_method: JsValue,
+
+    /// `[[Done]]`
+    ///
+    /// Whether the iterator has been closed.
+    done: bool,
 }
 
 impl IteratorRecord {
+    /// Creates a new `IteratorRecord` with the given iterator object, next method and `done` flag.
     #[inline]
-    pub fn new(iterator_object: JsValue, next_function: JsValue) -> Self {
+    pub fn new(iterator: JsObject, next_method: JsValue, done: bool) -> Self {
         Self {
-            iterator_object,
-            next_function,
+            iterator,
+            next_method,
+            done,
         }
     }
 
+    /// Get the `[[Iterator]]` field of the `IteratorRecord`.
     #[inline]
-    pub(crate) fn iterator_object(&self) -> &JsValue {
-        &self.iterator_object
+    pub(crate) fn iterator(&self) -> &JsObject {
+        &self.iterator
     }
 
+    /// Get the `[[NextMethod]]` field of the `IteratorRecord`.
     #[inline]
-    pub(crate) fn next_function(&self) -> &JsValue {
-        &self.next_function
+    pub(crate) fn next_method(&self) -> &JsValue {
+        &self.next_method
+    }
+
+    /// Get the `[[Done]]` field of the `IteratorRecord`.
+    #[inline]
+    pub(crate) fn done(&self) -> bool {
+        self.done
+    }
+
+    /// Sets the `[[Done]]` field of the `IteratorRecord`.
+    #[inline]
+    pub(crate) fn set_done(&mut self, done: bool) {
+        self.done = done;
     }
 
     /// `IteratorNext ( iteratorRecord [ , value ] )`
@@ -293,14 +319,22 @@ impl IteratorRecord {
     ) -> JsResult<IteratorResult> {
         let _timer = Profiler::global().start_event("IteratorRecord::next", "iterator");
 
-        // 1. If value is not present, then
-        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
-        // 2. Else,
-        //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
-        let result = if let Some(value) = value {
-            context.call(&self.next_function, &self.iterator_object, &[value])?
+        // Note: We check if iteratorRecord.[[NextMethod]] is callable here.
+        // This check would happen in `Call` according to the spec, but we do not implement call for `JsValue`.
+        let next_method = if let Some(next_method) = self.next_method.as_callable() {
+            next_method
         } else {
-            context.call(&self.next_function, &self.iterator_object, &[])?
+            return context.throw_type_error("iterable next method not a function");
+        };
+
+        let result = if let Some(value) = value {
+            // 2. Else,
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]], « value »).
+            next_method.call(&self.iterator.clone().into(), &[value], context)?
+        } else {
+            // 1. If value is not present, then
+            //     a. Let result be ? Call(iteratorRecord.[[NextMethod]], iteratorRecord.[[Iterator]]).
+            next_method.call(&self.iterator.clone().into(), &[], context)?
         };
 
         // 3. If Type(result) is not Object, throw a TypeError exception.
@@ -345,9 +379,9 @@ impl IteratorRecord {
     /// `IteratorClose ( iteratorRecord, completion )`
     ///
     /// The abstract operation `IteratorClose` takes arguments `iteratorRecord` (an
-    /// [Iterator Record][Self]) and `completion` (a Completion Record) and returns a Completion
-    /// Record. It is used to notify an iterator that it should perform any actions it would
-    /// normally perform when it has reached its completed state.
+    /// [Iterator Record][Self]) and `completion` (a `Completion` Record) and returns a
+    /// `Completion` Record. It is used to notify an iterator that it should perform any actions it
+    /// would normally perform when it has reached its completed state.
     ///
     /// More information:
     ///  - [ECMA reference][spec]
@@ -362,42 +396,49 @@ impl IteratorRecord {
         let _timer = Profiler::global().start_event("IteratorRecord::close", "iterator");
 
         // 1. Assert: Type(iteratorRecord.[[Iterator]]) is Object.
+
         // 2. Let iterator be iteratorRecord.[[Iterator]].
-        // 3. Let innerResult be GetMethod(iterator, "return").
-        let inner_result = self.iterator_object.get_method("return", context);
+        let iterator = &self.iterator;
+
+        // 3. Let innerResult be Completion(GetMethod(iterator, "return")).
+        let inner_result = iterator.get_method("return", context);
 
         // 4. If innerResult.[[Type]] is normal, then
-        if let Ok(inner_value) = inner_result {
-            // a. Let return be innerResult.[[Value]].
-            match inner_value {
-                // b. If return is undefined, return Completion(completion).
-                None => return completion,
-                // c. Set innerResult to Call(return, iterator).
-                Some(value) => {
-                    let inner_result = value.call(&self.iterator_object, &[], context);
+        let inner_result = match inner_result {
+            Ok(inner_result) => {
+                // a. Let return be innerResult.[[Value]].
+                let r#return = inner_result;
 
-                    // 5. If completion.[[Type]] is throw, return Completion(completion).
-                    let completion = completion?;
-
-                    // 6. If innerResult.[[Type]] is throw, return Completion(innerResult).
-                    inner_result?;
-
-                    // 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
-                    // 8. Return Completion(completion).
-                    return Ok(completion);
+                if let Some(r#return) = r#return {
+                    // c. Set innerResult to Completion(Call(return, iterator)).
+                    r#return.call(&iterator.clone().into(), &[], context)
+                } else {
+                    // b. If return is undefined, return ? completion.
+                    return completion;
                 }
             }
-        }
+            Err(inner_result) => {
+                // 5. If completion.[[Type]] is throw, return ? completion.
+                completion?;
 
-        // 5. If completion.[[Type]] is throw, return Completion(completion).
+                // 6. If innerResult.[[Type]] is throw, return ? innerResult.
+                return Err(inner_result);
+            }
+        };
+
+        // 5. If completion.[[Type]] is throw, return ? completion.
         let completion = completion?;
 
-        // 6. If innerResult.[[Type]] is throw, return Completion(innerResult).
-        inner_result?;
+        // 6. If innerResult.[[Type]] is throw, return ? innerResult.
+        let inner_result = inner_result?;
 
-        // 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
-        // 8. Return Completion(completion).
-        Ok(completion)
+        if inner_result.is_object() {
+            // 8. Return ? completion.
+            Ok(completion)
+        } else {
+            // 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
+            context.throw_type_error("inner result was not an object")
+        }
     }
 }
 
@@ -424,6 +465,7 @@ pub(crate) fn iterable_to_list(
         // a. Let iteratorRecord be ? GetIterator(items, sync).
         items.get_iterator(context, Some(IteratorHint::Sync), None)?
     };
+
     // 3. Let values be a new empty List.
     let mut values = Vec::new();
 
@@ -442,7 +484,10 @@ pub(crate) fn iterable_to_list(
     Ok(values)
 }
 
-/// A shorthand for a sequence of algorithm steps that use an Iterator Record
+/// `IfAbruptCloseIterator ( value, iteratorRecord )`
+///
+/// `IfAbruptCloseIterator` is a shorthand for a sequence of algorithm steps that use an `Iterator`
+/// Record.
 ///
 /// More information:
 ///  - [ECMA reference][spec]

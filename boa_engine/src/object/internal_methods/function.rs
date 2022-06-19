@@ -53,8 +53,8 @@ fn function_call(
 fn function_construct(
     obj: &JsObject,
     args: &[JsValue],
-    new_target: &JsValue,
+    new_target: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsValue> {
-    obj.construct_internal(args, new_target, context)
+    obj.construct_internal(args, &new_target.clone().into(), context)
 }

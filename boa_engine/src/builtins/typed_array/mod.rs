@@ -2968,7 +2968,7 @@ impl TypedArray {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let newTypedArray be ? Construct(constructor, argumentList).
-        let new_typed_array = constructor.construct(args, &constructor.clone().into(), context)?;
+        let new_typed_array = constructor.construct(args, Some(constructor), context)?;
 
         // 2. Perform ? ValidateTypedArray(newTypedArray).
         let obj = new_typed_array

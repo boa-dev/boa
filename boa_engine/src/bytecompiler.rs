@@ -1433,7 +1433,6 @@ impl<'b> ByteCompiler<'b> {
                 self.patch_jump(exit);
                 self.pop_loop_control_info();
                 self.emit_opcode(Opcode::LoopEnd);
-                self.emit_opcode(Opcode::PushFalse);
                 self.emit_opcode(Opcode::IteratorClose);
 
                 self.patch_jump(early_exit);
@@ -1517,7 +1516,6 @@ impl<'b> ByteCompiler<'b> {
                 self.patch_jump(exit);
                 self.pop_loop_control_info();
                 self.emit_opcode(Opcode::LoopEnd);
-                self.emit_opcode(Opcode::PushFalse);
                 self.emit_opcode(Opcode::IteratorClose);
             }
             Node::WhileLoop(while_) => {
@@ -1569,8 +1567,12 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         false
                     };
+                    let in_catch_no_finally = !info.has_finally && info.in_catch;
 
-                    if in_finally || (!info.has_finally && info.in_catch) {
+                    if in_finally {
+                        self.emit_opcode(Opcode::PopIfThrown);
+                    }
+                    if in_finally || in_catch_no_finally {
                         self.emit_opcode(Opcode::CatchEnd2);
                         self.emit(Opcode::FinallySetJump, &[start_address]);
                     } else {
@@ -1614,6 +1616,7 @@ impl<'b> ByteCompiler<'b> {
                         for _ in 0..emit_for_of_in_exit {
                             self.emit_opcode(Opcode::Pop);
                             self.emit_opcode(Opcode::Pop);
+                            self.emit_opcode(Opcode::Pop);
                         }
                         for _ in 0..num_loops {
                             self.emit_opcode(Opcode::LoopEnd);
@@ -1645,8 +1648,12 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         false
                     };
+                    let in_catch_no_finally = !info.has_finally && info.in_catch;
 
-                    if in_finally || (!info.has_finally && info.in_catch) {
+                    if in_finally {
+                        self.emit_opcode(Opcode::PopIfThrown);
+                    }
+                    if in_finally || in_catch_no_finally {
                         self.emit_opcode(Opcode::CatchEnd2);
                     } else {
                         self.emit_opcode(Opcode::TryEnd);
@@ -2276,26 +2283,18 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::ValueNotNullOrUndefined);
                 self.emit_opcode(Opcode::InitIterator);
 
-                for (i, binding) in pattern.bindings().iter().enumerate() {
+                for binding in pattern.bindings().iter() {
                     use BindingPatternTypeArray::{
                         BindingPattern, BindingPatternRest, Elision, Empty, GetConstField,
                         GetConstFieldRest, GetField, GetFieldRest, SingleName, SingleNameRest,
                     };
 
-                    let next = if i == pattern.bindings().len() - 1 {
-                        Opcode::IteratorNextFull
-                    } else {
-                        Opcode::IteratorNext
-                    };
-
                     match binding {
                         // ArrayBindingPattern : [ ]
-                        Empty => {
-                            self.emit_opcode(Opcode::PushFalse);
-                        }
+                        Empty => {}
                         // ArrayBindingPattern : [ Elision ]
                         Elision => {
-                            self.emit_opcode(next);
+                            self.emit_opcode(Opcode::IteratorNext);
                             self.emit_opcode(Opcode::Pop);
                         }
                         // SingleNameBinding : BindingIdentifier Initializer[opt]
@@ -2303,7 +2302,7 @@ impl<'b> ByteCompiler<'b> {
                             ident,
                             default_init,
                         } => {
-                            self.emit_opcode(next);
+                            self.emit_opcode(Opcode::IteratorNext);
                             if let Some(init) = default_init {
                                 let skip =
                                     self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
@@ -2313,11 +2312,11 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_binding(def, *ident);
                         }
                         GetField { get_field } => {
-                            self.emit_opcode(next);
+                            self.emit_opcode(Opcode::IteratorNext);
                             self.access_set(Access::ByValue { node: get_field }, None, false)?;
                         }
                         GetConstField { get_const_field } => {
-                            self.emit_opcode(next);
+                            self.emit_opcode(Opcode::IteratorNext);
                             self.access_set(
                                 Access::ByName {
                                     node: get_const_field,
@@ -2328,19 +2327,17 @@ impl<'b> ByteCompiler<'b> {
                         }
                         // BindingElement : BindingPattern Initializer[opt]
                         BindingPattern { pattern } => {
-                            self.emit_opcode(next);
+                            self.emit_opcode(Opcode::IteratorNext);
                             self.compile_declaration_pattern(pattern, def)?;
                         }
                         // BindingRestElement : ... BindingIdentifier
                         SingleNameRest { ident } => {
                             self.emit_opcode(Opcode::IteratorToArray);
                             self.emit_binding(def, *ident);
-                            self.emit_opcode(Opcode::PushTrue);
                         }
                         GetFieldRest { get_field } => {
                             self.emit_opcode(Opcode::IteratorToArray);
                             self.access_set(Access::ByValue { node: get_field }, None, false)?;
-                            self.emit_opcode(Opcode::PushTrue);
                         }
                         GetConstFieldRest { get_const_field } => {
                             self.emit_opcode(Opcode::IteratorToArray);
@@ -2351,19 +2348,13 @@ impl<'b> ByteCompiler<'b> {
                                 None,
                                 false,
                             )?;
-                            self.emit_opcode(Opcode::PushTrue);
                         }
                         // BindingRestElement : ... BindingPattern
                         BindingPatternRest { pattern } => {
                             self.emit_opcode(Opcode::IteratorToArray);
                             self.compile_declaration_pattern(pattern, def)?;
-                            self.emit_opcode(Opcode::PushTrue);
                         }
                     }
-                }
-
-                if pattern.bindings().is_empty() {
-                    self.emit_opcode(Opcode::PushFalse);
                 }
 
                 self.emit_opcode(Opcode::IteratorClose);

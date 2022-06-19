@@ -935,7 +935,7 @@ fn proxy_exotic_call(
     )
 }
 
-/// `10.5.13 [[Construct]] ( argumentsList, newTarget )`
+/// `[[Construct]] ( argumentsList, newTarget )`
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -944,7 +944,7 @@ fn proxy_exotic_call(
 fn proxy_exotic_construct(
     obj: &JsObject,
     args: &[JsValue],
-    new_target: &JsValue,
+    new_target: &JsObject,
     context: &mut Context,
 ) -> JsResult<JsValue> {
     // 1. Let handler be O.[[ProxyHandler]].
@@ -966,7 +966,7 @@ fn proxy_exotic_construct(
     // 7. If trap is undefined, then
     } else {
         // a. Return ? Construct(target, argumentsList, newTarget).
-        return target.construct(args, new_target, context);
+        return target.construct(args, Some(new_target), context);
     };
 
     // 8. Let argArray be ! CreateArrayFromList(argumentsList).
@@ -975,7 +975,11 @@ fn proxy_exotic_construct(
     // 9. Let newObj be ? Call(trap, handler, « target, argArray, newTarget »).
     let new_obj = trap.call(
         &handler.into(),
-        &[target.clone().into(), arg_array.into(), new_target.clone()],
+        &[
+            target.clone().into(),
+            arg_array.into(),
+            new_target.clone().into(),
+        ],
         context,
     )?;
 

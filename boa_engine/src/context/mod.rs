@@ -177,17 +177,34 @@ impl Context {
         parser.parse_all(self)
     }
 
-    /// <https://tc39.es/ecma262/#sec-call>
+    /// `Call ( F, V [ , argumentsList ] )`
+    ///
+    /// The abstract operation `Call` takes arguments `F` (an ECMAScript language value) and `V`
+    /// (an ECMAScript language value) and optional argument `argumentsList` (a `List` of
+    /// ECMAScript language values) and returns either a normal completion containing an ECMAScript
+    /// language value or a throw completion. It is used to call the `[[Call]]` internal method of
+    /// a function object. `F` is the function object, `V` is an ECMAScript language value that is
+    /// the `this` value of the `[[Call]]`, and `argumentsList` is the value passed to the
+    /// corresponding argument of the internal method. If `argumentsList` is not present, a new
+    /// empty `List` is used as its value.
+    ///
+    /// More information:
+    ///  - [ECMA reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-call
     #[inline]
     pub(crate) fn call(
         &mut self,
         f: &JsValue,
-        this: &JsValue,
-        args: &[JsValue],
+        v: &JsValue,
+        arguments_list: &[JsValue],
     ) -> JsResult<JsValue> {
+        // 1. If argumentsList is not present, set argumentsList to a new empty List.
+        // 2. If IsCallable(F) is false, throw a TypeError exception.
+        // 3. Return ? F.[[Call]](V, argumentsList).
         f.as_callable()
             .ok_or_else(|| self.construct_type_error("Value is not callable"))
-            .and_then(|obj| obj.call(this, args, self))
+            .and_then(|f| f.call(v, arguments_list, self))
     }
 
     /// Return the global object.
@@ -707,6 +724,7 @@ impl Context {
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
+            thrown: false,
         });
 
         self.realm.set_global_binding_number();
