@@ -839,6 +839,13 @@
 <span id="832">832</span>
 <span id="833">833</span>
 <span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
     <span class="ident">context::intrinsics</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardConstructors</span>},
@@ -1150,21 +1157,28 @@
         <span class="self">self</span>.<span class="ident">__call__</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)
     }
 
+    <span class="doccomment">/// `Construct ( F [ , argumentsList [ , newTarget ] ] )`</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// Construct an instance of this object with the specified arguments.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the object is currently mutably borrowed.</span>
-    <span class="comment">// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects-construct-argumentslist-newtarget&gt;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-construct</span>
     <span class="attribute">#[<span class="ident">track_caller</span>]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">new_target</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If newTarget is not present, set newTarget to F.</span>
+        <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="ident">new_target</span>.<span class="ident">unwrap_or</span>(<span class="self">self</span>);
         <span class="comment">// 2. If argumentsList is not present, set argumentsList to a new empty List.</span>
         <span class="comment">// 3. Return ? F.[[Construct]](argumentsList, newTarget).</span>
         <span class="self">self</span>.<span class="ident">__construct__</span>(<span class="ident">args</span>, <span class="ident">new_target</span>, <span class="ident">context</span>)
@@ -1501,7 +1515,7 @@
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getmethod</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getv</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_v</span><span class="op">&lt;</span><span class="ident">K</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key</span>: <span class="ident">K</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>

@@ -1050,6 +1050,9 @@
 <span id="1043">1043</span>
 <span id="1044">1044</span>
 <span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1318,6 +1321,7 @@
                 )
             }
             <span class="ident">Opcode::Pop</span>
+            <span class="op">|</span> <span class="ident">Opcode::PopIfThrown</span>
             <span class="op">|</span> <span class="ident">Opcode::Dup</span>
             <span class="op">|</span> <span class="ident">Opcode::Swap</span>
             <span class="op">|</span> <span class="ident">Opcode::PushZero</span>
@@ -1388,7 +1392,6 @@
             <span class="op">|</span> <span class="ident">Opcode::LoopEnd</span>
             <span class="op">|</span> <span class="ident">Opcode::InitIterator</span>
             <span class="op">|</span> <span class="ident">Opcode::IteratorNext</span>
-            <span class="op">|</span> <span class="ident">Opcode::IteratorNextFull</span>
             <span class="op">|</span> <span class="ident">Opcode::IteratorClose</span>
             <span class="op">|</span> <span class="ident">Opcode::IteratorToArray</span>
             <span class="op">|</span> <span class="ident">Opcode::RequireObjectCoercible</span>
@@ -1769,6 +1772,7 @@
                     <span class="ident">param_count</span>,
                     <span class="ident">arg_count</span>,
                     <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,
+                    <span class="ident">thrown</span>: <span class="bool-val">false</span>,
                 });
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">run</span>();
@@ -1872,6 +1876,7 @@
                     <span class="ident">param_count</span>,
                     <span class="ident">arg_count</span>,
                     <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,
+                    <span class="ident">thrown</span>: <span class="bool-val">false</span>,
                 };
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">args</span>;
 
@@ -2068,6 +2073,7 @@
                     <span class="ident">param_count</span>,
                     <span class="ident">arg_count</span>,
                     <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,
+                    <span class="ident">thrown</span>: <span class="bool-val">false</span>,
                 });
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">run</span>();

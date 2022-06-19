@@ -124,6 +124,9 @@
 <span id="117">117</span>
 <span id="118">118</span>
 <span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CallFrame`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module will provides everything needed to implement the `CallFrame`</span>
@@ -158,6 +161,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">arg_count</span>: <span class="ident">usize</span>,
     <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind</span>,
+
+    <span class="comment">// Indicate that the last try block has thrown an exception.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">thrown</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">CallFrame</span> {

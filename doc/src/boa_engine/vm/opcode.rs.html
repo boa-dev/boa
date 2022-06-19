@@ -1411,6 +1411,13 @@
     <span class="doccomment">/// Stack: value **=&gt;**</span>
     <span class="ident">Pop</span>,
 
+    <span class="doccomment">/// Pop the top value from the stack if the last try block has thrown a value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: value **=&gt;**</span>
+    <span class="ident">PopIfThrown</span>,
+
     <span class="doccomment">/// Push a copy of the top value on the stack.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
@@ -1565,7 +1572,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: array, iterator, next_function **=&gt;** array</span>
+    <span class="doccomment">/// Stack: array, iterator, next_method, done **=&gt;** array</span>
     <span class="ident">PushIteratorToArray</span>,
 
     <span class="doccomment">/// Binary `+` operator.</span>
@@ -2322,42 +2329,35 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: address: `u32`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: object **=&gt;** iterator, next_function</span>
+    <span class="doccomment">/// Stack: object **=&gt;** iterator, next_method, done</span>
     <span class="ident">ForInLoopInitIterator</span>,
 
     <span class="doccomment">/// Initialize an iterator.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: object **=&gt;** iterator, next_function</span>
+    <span class="doccomment">/// Stack: object **=&gt;** iterator, next_method, done</span>
     <span class="ident">InitIterator</span>,
 
     <span class="doccomment">/// Advance the iterator by one and put the value on the stack.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: iterator, next_function **=&gt;** iterator, next_function, next_value</span>
+    <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_value</span>
     <span class="ident">IteratorNext</span>,
-
-    <span class="doccomment">/// Advance the iterator by one and put done and value on the stack.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: iterator, next_function **=&gt;** iterator, next_function, next_done, next_value</span>
-    <span class="ident">IteratorNextFull</span>,
 
     <span class="doccomment">/// Close an iterator.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: iterator, next_function, done **=&gt;**</span>
+    <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;**</span>
     <span class="ident">IteratorClose</span>,
 
     <span class="doccomment">/// Consume the iterator and construct and array with all the values.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: iterator, next_function **=&gt;** iterator, next_function, array</span>
+    <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, array</span>
     <span class="ident">IteratorToArray</span>,
 
     <span class="doccomment">/// Move to the next value in a for..in loop or jump to exit of the loop if done.</span>
@@ -2366,7 +2366,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: address: `u32`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: iterator, next_function **=&gt;** iterator, next_function, next_result</span>
+    <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_result</span>
     <span class="ident">ForInLoopNext</span>,
 
     <span class="doccomment">/// Concat multiple stack objects into a string.</span>
@@ -2436,7 +2436,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: done_address: `u32`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: iterator, next_function, received **=&gt;** iterator, next_function</span>
+    <span class="doccomment">/// Stack: iterator, next_method, done, received **=&gt;** iterator, next_method, done</span>
     <span class="ident">GeneratorNextDelegate</span>,
 
     <span class="doccomment">/// No-operation instruction, does nothing.</span>
@@ -2462,6 +2462,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Pop</span> =&gt; <span class="string">&quot;Pop&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PopIfThrown</span> =&gt; <span class="string">&quot;PopIfThrown&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Dup</span> =&gt; <span class="string">&quot;Dup&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Swap</span> =&gt; <span class="string">&quot;Swap&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushZero</span> =&gt; <span class="string">&quot;PushZero&quot;</span>,
@@ -2587,7 +2588,6 @@
             <span class="ident"><span class="self">Self</span>::ForInLoopInitIterator</span> =&gt; <span class="string">&quot;ForInLoopInitIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::InitIterator</span> =&gt; <span class="string">&quot;InitIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorNext</span> =&gt; <span class="string">&quot;IteratorNext&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::IteratorNextFull</span> =&gt; <span class="string">&quot;IteratorNextFull&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorClose</span> =&gt; <span class="string">&quot;IteratorClose&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorToArray</span> =&gt; <span class="string">&quot;IteratorToArray&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ForInLoopNext</span> =&gt; <span class="string">&quot;ForInLoopNext&quot;</span>,
@@ -2609,6 +2609,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_instruction_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Pop</span> =&gt; <span class="string">&quot;INST - Pop&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PopIfThrown</span> =&gt; <span class="string">&quot;INST - PopIfThrown&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Dup</span> =&gt; <span class="string">&quot;INST - Dup&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Swap</span> =&gt; <span class="string">&quot;INST - Swap&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushZero</span> =&gt; <span class="string">&quot;INST - PushZero&quot;</span>,
@@ -2721,7 +2722,6 @@
             <span class="ident"><span class="self">Self</span>::ForInLoopInitIterator</span> =&gt; <span class="string">&quot;INST - ForInLoopInitIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::InitIterator</span> =&gt; <span class="string">&quot;INST - InitIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorNext</span> =&gt; <span class="string">&quot;INST - IteratorNext&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::IteratorNextFull</span> =&gt; <span class="string">&quot;INST - IteratorNextFull&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorClose</span> =&gt; <span class="string">&quot;INST - IteratorClose&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorToArray</span> =&gt; <span class="string">&quot;INST - IteratorToArray&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ForInLoopNext</span> =&gt; <span class="string">&quot;INST - ForInLoopNext&quot;</span>,

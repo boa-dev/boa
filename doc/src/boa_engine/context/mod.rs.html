@@ -839,6 +839,24 @@
 <span id="832">832</span>
 <span id="833">833</span>
 <span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
@@ -1018,17 +1036,34 @@
         <span class="ident">parser</span>.<span class="ident">parse_all</span>(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-call&gt;</span>
+    <span class="doccomment">/// `Call ( F, V [ , argumentsList ] )`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The abstract operation `Call` takes arguments `F` (an ECMAScript language value) and `V`</span>
+    <span class="doccomment">/// (an ECMAScript language value) and optional argument `argumentsList` (a `List` of</span>
+    <span class="doccomment">/// ECMAScript language values) and returns either a normal completion containing an ECMAScript</span>
+    <span class="doccomment">/// language value or a throw completion. It is used to call the `[[Call]]` internal method of</span>
+    <span class="doccomment">/// a function object. `F` is the function object, `V` is an ECMAScript language value that is</span>
+    <span class="doccomment">/// the `this` value of the `[[Call]]`, and `argumentsList` is the value passed to the</span>
+    <span class="doccomment">/// corresponding argument of the internal method. If `argumentsList` is not present, a new</span>
+    <span class="doccomment">/// empty `List` is used as its value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMA reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-call</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">f</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+        <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. If argumentsList is not present, set argumentsList to a new empty List.</span>
+        <span class="comment">// 2. If IsCallable(F) is false, throw a TypeError exception.</span>
+        <span class="comment">// 3. Return ? F.[[Call]](V, argumentsList).</span>
         <span class="ident">f</span>.<span class="ident">as_callable</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not callable&quot;</span>))
-            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">call</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="self">self</span>))
+            .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">f</span><span class="op">|</span> <span class="ident">f</span>.<span class="ident">call</span>(<span class="ident">v</span>, <span class="ident">arguments_list</span>, <span class="self">self</span>))
     }
 
     <span class="doccomment">/// Return the global object.</span>
@@ -1548,6 +1583,7 @@
             <span class="ident">param_count</span>: <span class="number">0</span>,
             <span class="ident">arg_count</span>: <span class="number">0</span>,
             <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,
+            <span class="ident">thrown</span>: <span class="bool-val">false</span>,
         });
 
         <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">set_global_binding_number</span>();

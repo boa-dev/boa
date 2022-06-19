@@ -2935,8 +2935,6 @@
 <span id="2928">2928</span>
 <span id="2929">2929</span>
 <span id="2930">2930</span>
-<span id="2931">2931</span>
-<span id="2932">2932</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -3305,12 +3303,10 @@
         <span class="comment">// 7. If IsConstructor(C) is false, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_constructor</span>() {
             <span class="comment">// 8. Return ? Construct(C, « 𝔽(length) »).</span>
-            <span class="prelude-val">Ok</span>(
-                <span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">length</span>)], <span class="kw-2">&amp;</span><span class="ident">c</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
-                    .<span class="ident">as_object</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;constructing an object should always return an object&quot;</span>)
-                    .<span class="ident">clone</span>(),
-            )
+            <span class="prelude-val">Ok</span>(<span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">length</span>)], <span class="prelude-val">Some</span>(<span class="ident">c</span>), <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">as_object</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;constructing an object should always return an object&quot;</span>)
+                .<span class="ident">clone</span>())
         } <span class="kw">else</span> {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
         }
@@ -3360,7 +3356,7 @@
             <span class="comment">//     i. Let A be ? ArrayCreate(0en).</span>
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_constructor</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>
-                    .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[], <span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+                    .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_object</span>()
                     .<span class="ident">cloned</span>()
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -3439,7 +3435,7 @@
             <span class="comment">//     a. Let A be ? ArrayCreate(len).</span>
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_constructor</span>() {
                 <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>
-                    .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+                    .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_object</span>()
                     .<span class="ident">cloned</span>()
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
@@ -3521,7 +3517,7 @@
         <span class="comment">//     a. Let A be ? ArrayCreate(len).</span>
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_constructor</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>
-                .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
                 .<span class="ident">as_object</span>()
                 .<span class="ident">cloned</span>()
                 .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {

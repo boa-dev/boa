@@ -104,6 +104,7 @@
 <span id="97">97</span>
 <span id="98">98</span>
 <span id="99">99</span>
+<span id="100">100</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">object::JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">InternalObjectMethods</span>, <span class="ident">ORDINARY_INTERNAL_METHODS</span>};
@@ -174,7 +175,7 @@
 <span class="kw">fn</span> <span class="ident">bound_function_exotic_construct</span>(
     <span class="ident">obj</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">arguments_list</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-    <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
+    <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
@@ -195,13 +196,14 @@
     <span class="ident">args</span>.<span class="ident">extend_from_slice</span>(<span class="ident">arguments_list</span>);
 
     <span class="comment">// 5. If SameValue(F, newTarget) is true, set newTarget to target.</span>
-    <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">new_target</span> {
-        <span class="ident">JsValue::Object</span>(<span class="ident">new_target</span>) <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="ident">obj</span>, <span class="ident">new_target</span>) =&gt; <span class="ident">target</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
-        <span class="kw">_</span> =&gt; <span class="ident">new_target</span>.<span class="ident">clone</span>(),
+    <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">JsObject::equals</span>(<span class="ident">obj</span>, <span class="ident">new_target</span>) {
+        <span class="ident">target</span>
+    } <span class="kw">else</span> {
+        <span class="ident">new_target</span>
     };
 
     <span class="comment">// 6. Return ? Construct(target, args, newTarget).</span>
-    <span class="ident">target</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="ident">context</span>)
+    <span class="ident">target</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="prelude-val">Some</span>(<span class="ident">new_target</span>), <span class="ident">context</span>)
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
