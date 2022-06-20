@@ -160,8 +160,6 @@
 <span id="153">153</span>
 <span id="154">154</span>
 <span id="155">155</span>
-<span id="156">156</span>
-<span id="157">157</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `eval` function.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `eval()` function evaluates JavaScript code represented as a string.</span>
@@ -174,8 +172,8 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">function::Function</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
+    <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
+    <span class="ident">object::FunctionBuilder</span>,
     <span class="ident">property::Attribute</span>,
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
@@ -188,20 +186,18 @@
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">Eval</span> {
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;eval&quot;</span>;
 
-    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::READONLY</span>
+    <span class="kw">const</span> <span class="ident">ATTRIBUTE</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::CONFIGURABLE</span>
         .<span class="ident">union</span>(<span class="ident">Attribute::NON_ENUMERABLE</span>)
-        .<span class="ident">union</span>(<span class="ident">Attribute::PERMANENT</span>);
+        .<span class="ident">union</span>(<span class="ident">Attribute::WRITABLE</span>);
 
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="ident"><span class="self">Self</span>::NAME</span>, <span class="string">&quot;init&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
-            <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">function</span>().<span class="ident">prototype</span>(),
-            <span class="ident">ObjectData::function</span>(<span class="ident">Function::Native</span> {
-                <span class="ident">function</span>: <span class="ident"><span class="self">Self</span>::eval</span>,
-                <span class="ident">constructor</span>: <span class="bool-val">false</span>,
-            }),
-        );
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::eval</span>)
+            .<span class="ident">name</span>(<span class="string">&quot;eval&quot;</span>)
+            .<span class="ident">length</span>(<span class="number">1</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
+            .<span class="ident">build</span>();
 
         <span class="prelude-val">Some</span>(<span class="ident">object</span>.<span class="ident">into</span>())
     }
