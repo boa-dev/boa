@@ -737,7 +737,7 @@ pub(crate) fn ordinary_own_property_keys(
 
     // 2. For each own property key P of O such that P is an array index, in ascending numeric index order, do
     // a. Add P as the last element of keys.
-    keys.extend(ordered_indexes.into_iter().map(Into::into));
+    keys.extend(ordered_indexes.into_iter().map(|idx| idx.get().into()));
 
     // 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
     // a. Add P as the last element of keys.

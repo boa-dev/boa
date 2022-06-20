@@ -44,7 +44,7 @@ pub(crate) fn arguments_exotic_get_own_property(
             .borrow()
             .as_mapped_arguments()
             .expect("arguments exotic method must only be callable from arguments objects")
-            .get(*index as usize)
+            .get(index.get() as usize)
         {
             // a. Set desc.[[Value]] to Get(map, P).
             return Ok(Some(
@@ -81,8 +81,8 @@ pub(crate) fn arguments_exotic_define_own_property(
         obj.borrow()
             .as_mapped_arguments()
             .expect("arguments exotic method must only be callable from arguments objects")
-            .get(index as usize)
-            .map(|value| (index as usize, value))
+            .get(index.get() as usize)
+            .map(|value| (index.get() as usize, value))
     } else {
         None
     };
@@ -173,7 +173,7 @@ pub(crate) fn arguments_exotic_get(
             .borrow()
             .as_mapped_arguments()
             .expect("arguments exotic method must only be callable from arguments objects")
-            .get(*index as usize)
+            .get(index.get() as usize)
         {
             // a. Assert: map contains a formal parameter mapping for P.
             // b. Return Get(map, P).
@@ -212,7 +212,7 @@ pub(crate) fn arguments_exotic_set(
             obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect("arguments exotic method must only be callable from arguments objects")
-                .set(index as usize, &value);
+                .set(index.get() as usize, &value);
         }
     }
 
@@ -243,7 +243,7 @@ pub(crate) fn arguments_exotic_delete(
             obj.borrow_mut()
                 .as_mapped_arguments_mut()
                 .expect("arguments exotic method must only be callable from arguments objects")
-                .delete(*index as usize);
+                .delete(index.get() as usize);
         }
     }
 

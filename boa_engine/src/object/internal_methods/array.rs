@@ -38,7 +38,9 @@ pub(crate) fn array_exotic_define_own_property(
             array_set_length(obj, desc, context)
         }
         // 3. Else if P is an array index, then
-        PropertyKey::Index(index) if index < u32::MAX => {
+        PropertyKey::Index(index) => {
+            let index = index.get();
+
             // a. Let oldLenDesc be OrdinaryGetOwnProperty(A, "length").
             let old_len_desc = super::ordinary_get_own_property(obj, &"length".into(), context)?
                 .expect("the property descriptor must exist");
@@ -201,7 +203,7 @@ fn array_set_length(
             .borrow()
             .properties
             .index_property_keys()
-            .filter(|idx| new_len <= **idx && **idx < u32::MAX)
+            .filter(|idx| new_len <= idx.get())
             .copied()
             .collect();
         keys.sort_unstable_by(|x, y| y.cmp(x));
@@ -209,6 +211,8 @@ fn array_set_length(
     };
 
     for index in ordered_keys {
+        let index = index.get();
+
         // a. Let deleteSucceeded be ! A.[[Delete]](P).
         // b. If deleteSucceeded is false, then
         if !obj.__delete__(&index.into(), context)? {

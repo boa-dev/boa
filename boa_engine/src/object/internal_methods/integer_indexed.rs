@@ -1,5 +1,6 @@
 use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::integer_indexed_object::ContentType},
+    nonmaxu32::NonMaxU32,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
@@ -44,14 +45,16 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
         // i. Let value be ! IntegerIndexedElementGet(O, numericIndex).
         // ii. If value is undefined, return undefined.
         // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-        Ok(integer_indexed_element_get(obj, *index as usize).map(|v| {
-            PropertyDescriptor::builder()
-                .value(v)
-                .writable(true)
-                .enumerable(true)
-                .configurable(true)
-                .build()
-        }))
+        Ok(
+            integer_indexed_element_get(obj, index.get() as usize).map(|v| {
+                PropertyDescriptor::builder()
+                    .value(v)
+                    .writable(true)
+                    .enumerable(true)
+                    .configurable(true)
+                    .build()
+            }),
+        )
     } else {
         // 2. Return OrdinaryGetOwnProperty(O, P).
         super::ordinary_get_own_property(obj, key, context)
@@ -74,7 +77,7 @@ pub(crate) fn integer_indexed_exotic_has_property(
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     if let PropertyKey::Index(index) = key {
         // b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).
-        Ok(is_valid_integer_index(obj, *index as usize))
+        Ok(is_valid_integer_index(obj, index.get() as usize))
     } else {
         // 2. Return ? OrdinaryHasProperty(O, P).
         super::ordinary_has_property(obj, key, context)
@@ -103,7 +106,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
         // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.
         // v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.
         // iv. If ! IsAccessorDescriptor(Desc) is true, return false.
-        if !is_valid_integer_index(obj, index as usize)
+        if !is_valid_integer_index(obj, index.get() as usize)
             || !desc
                 .configurable()
                 .or_else(|| desc.enumerable())
@@ -116,7 +119,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
 
         // vi. If Desc has a [[Value]] field, perform ? IntegerIndexedElementSet(O, numericIndex, Desc.[[Value]]).
         if let Some(value) = desc.value() {
-            integer_indexed_element_set(obj, index as usize, value, context)?;
+            integer_indexed_element_set(obj, index.get() as usize, value, context)?;
         }
 
         // vii. Return true.
@@ -145,7 +148,7 @@ pub(crate) fn integer_indexed_exotic_get(
     // b. If numericIndex is not undefined, then
     if let PropertyKey::Index(index) = key {
         // i. Return ! IntegerIndexedElementGet(O, numericIndex).
-        Ok(integer_indexed_element_get(obj, *index as usize).unwrap_or_default())
+        Ok(integer_indexed_element_get(obj, index.get() as usize).unwrap_or_default())
     } else {
         // 2. Return ? OrdinaryGet(O, P, Receiver).
         super::ordinary_get(obj, key, receiver, context)
@@ -171,7 +174,7 @@ pub(crate) fn integer_indexed_exotic_set(
     // b. If numericIndex is not undefined, then
     if let PropertyKey::Index(index) = key {
         // i. Perform ? IntegerIndexedElementSet(O, numericIndex, V).
-        integer_indexed_element_set(obj, index as usize, &value, context)?;
+        integer_indexed_element_set(obj, index.get() as usize, &value, context)?;
 
         // ii. Return true.
         Ok(true)
@@ -198,7 +201,7 @@ pub(crate) fn integer_indexed_exotic_delete(
     // b. If numericIndex is not undefined, then
     if let PropertyKey::Index(index) = key {
         // i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
-        Ok(!is_valid_integer_index(obj, *index as usize))
+        Ok(!is_valid_integer_index(obj, index.get() as usize))
     } else {
         // 2. Return ? OrdinaryDelete(O, P).
         super::ordinary_delete(obj, key, context)
@@ -231,7 +234,7 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
         // i. Add ! ToString(𝔽(i)) as the last element of keys.
         (0..inner.array_length())
             .into_iter()
-            .map(|index| PropertyKey::Index(index as u32))
+            .filter_map(|index| NonMaxU32::new(index as u32).map(PropertyKey::Index))
             .collect()
     };
 

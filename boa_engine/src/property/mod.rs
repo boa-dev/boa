@@ -15,6 +15,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
+use crate::nonmaxu32::{NonMaxU32, TryFromIntError};
 use crate::{JsString, JsSymbol, JsValue};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use std::fmt;
@@ -492,13 +493,13 @@ impl From<PropertyDescriptorBuilder> for PropertyDescriptor {
 pub enum PropertyKey {
     String(JsString),
     Symbol(JsSymbol),
-    Index(u32),
+    Index(NonMaxU32),
 }
 
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        if let Ok(index) = string.parse() {
+        if let Ok(index) = string.parse::<NonMaxU32>() {
             Self::Index(index)
         } else {
             Self::String(string)
@@ -509,7 +510,7 @@ impl From<JsString> for PropertyKey {
 impl From<&str> for PropertyKey {
     #[inline]
     fn from(string: &str) -> Self {
-        if let Ok(index) = string.parse() {
+        if let Ok(index) = string.parse::<NonMaxU32>() {
             Self::Index(index)
         } else {
             Self::String(string.into())
@@ -520,7 +521,7 @@ impl From<&str> for PropertyKey {
 impl From<String> for PropertyKey {
     #[inline]
     fn from(string: String) -> Self {
-        if let Ok(index) = string.parse() {
+        if let Ok(index) = string.parse::<NonMaxU32>() {
             Self::Index(index)
         } else {
             Self::String(string.into())
@@ -531,7 +532,7 @@ impl From<String> for PropertyKey {
 impl From<Box<str>> for PropertyKey {
     #[inline]
     fn from(string: Box<str>) -> Self {
-        if let Ok(index) = string.parse() {
+        if let Ok(index) = string.parse::<NonMaxU32>() {
             Self::Index(index)
         } else {
             Self::String(string.into())
@@ -564,10 +565,10 @@ impl From<&PropertyKey> for JsValue {
             PropertyKey::String(ref string) => string.clone().into(),
             PropertyKey::Symbol(ref symbol) => symbol.clone().into(),
             PropertyKey::Index(index) => {
-                if let Ok(integer) = i32::try_from(*index) {
+                if let Ok(integer) = i32::try_from(index.get()) {
                     Self::new(integer)
                 } else {
-                    Self::new(*index)
+                    Self::new(index.get())
                 }
             }
         }
@@ -587,25 +588,39 @@ impl From<PropertyKey> for JsValue {
 
 impl From<u8> for PropertyKey {
     fn from(value: u8) -> Self {
-        Self::Index(value.into())
+        match NonMaxU32::new(value.into()) {
+            Some(index) => Self::Index(index),
+            // `u8` should always be valid for `NonMaxU32`
+            None => unreachable!(),
+        }
     }
 }
 
 impl From<u16> for PropertyKey {
     fn from(value: u16) -> Self {
-        Self::Index(value.into())
+        match NonMaxU32::new(value.into()) {
+            Some(index) => Self::Index(index),
+            // `u16` should always be valid for `NonMaxU32`
+            None => unreachable!(),
+        }
     }
 }
 
 impl From<u32> for PropertyKey {
     fn from(value: u32) -> Self {
-        Self::Index(value)
+        match NonMaxU32::new(value) {
+            Some(num) => Self::Index(num),
+            None => Self::String(value.to_string().into()),
+        }
     }
 }
 
 impl From<usize> for PropertyKey {
     fn from(value: usize) -> Self {
-        if let Ok(index) = u32::try_from(value) {
+        if let Ok(index) = u32::try_from(value)
+            .map_err(TryFromIntError::from)
+            .and_then(NonMaxU32::try_from)
+        {
             Self::Index(index)
         } else {
             Self::String(JsString::from(value.to_string()))
@@ -615,7 +630,10 @@ impl From<usize> for PropertyKey {
 
 impl From<i64> for PropertyKey {
     fn from(value: i64) -> Self {
-        if let Ok(index) = u32::try_from(value) {
+        if let Ok(index) = u32::try_from(value)
+            .map_err(TryFromIntError::from)
+            .and_then(NonMaxU32::try_from)
+        {
             Self::Index(index)
         } else {
             Self::String(JsString::from(value.to_string()))
@@ -625,7 +643,10 @@ impl From<i64> for PropertyKey {
 
 impl From<u64> for PropertyKey {
     fn from(value: u64) -> Self {
-        if let Ok(index) = u32::try_from(value) {
+        if let Ok(index) = u32::try_from(value)
+            .map_err(TryFromIntError::from)
+            .and_then(NonMaxU32::try_from)
+        {
             Self::Index(index)
         } else {
             Self::String(JsString::from(value.to_string()))
@@ -635,7 +656,10 @@ impl From<u64> for PropertyKey {
 
 impl From<isize> for PropertyKey {
     fn from(value: isize) -> Self {
-        if let Ok(index) = u32::try_from(value) {
+        if let Ok(index) = u32::try_from(value)
+            .map_err(TryFromIntError::from)
+            .and_then(NonMaxU32::try_from)
+        {
             Self::Index(index)
         } else {
             Self::String(JsString::from(value.to_string()))
@@ -645,7 +669,10 @@ impl From<isize> for PropertyKey {
 
 impl From<i32> for PropertyKey {
     fn from(value: i32) -> Self {
-        if let Ok(index) = u32::try_from(value) {
+        if let Ok(index) = u32::try_from(value)
+            .map_err(TryFromIntError::from)
+            .and_then(NonMaxU32::try_from)
+        {
             Self::Index(index)
         } else {
             Self::String(JsString::from(value.to_string()))
@@ -656,7 +683,7 @@ impl From<i32> for PropertyKey {
 impl From<f64> for PropertyKey {
     fn from(value: f64) -> Self {
         use num_traits::cast::FromPrimitive;
-        if let Some(index) = u32::from_f64(value) {
+        if let Some(index) = u32::from_f64(value).and_then(|n| NonMaxU32::try_from(n).ok()) {
             return Self::Index(index);
         }
 

@@ -113,10 +113,10 @@ pub(crate) fn string_exotic_own_property_keys(
         .properties
         .index_property_keys()
         .copied()
-        .filter(|idx| (*idx as usize) >= len)
+        .filter(|idx| (idx.get() as usize) >= len)
         .collect();
     remaining_indices.sort_unstable();
-    keys.extend(remaining_indices.into_iter().map(Into::into));
+    keys.extend(remaining_indices.into_iter().map(|idx| idx.get().into()));
 
     // 7. For each own property key P of O such that Type(P) is String and P is not
     // an array index, in ascending chronological order of property creation, do
@@ -159,7 +159,7 @@ fn string_get_own_property(obj: &JsObject, key: &PropertyKey) -> Option<Property
     // 6. If IsIntegralNumber(index) is false, return undefined.
     // 7. If index is -0𝔽, return undefined.
     let pos = match key {
-        PropertyKey::Index(index) => *index as usize,
+        PropertyKey::Index(index) => index.get() as usize,
         _ => return None,
     };
 

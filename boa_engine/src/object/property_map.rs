@@ -1,5 +1,5 @@
 use super::{PropertyDescriptor, PropertyKey};
-use crate::{JsString, JsSymbol};
+use crate::{nonmaxu32::NonMaxU32, JsString, JsSymbol};
 use boa_gc::{custom_trace, Finalize, Trace};
 use indexmap::IndexMap;
 use rustc_hash::{FxHashMap, FxHasher};
@@ -30,7 +30,7 @@ unsafe impl<K: Trace> Trace for OrderedHashMap<K> {
 
 #[derive(Default, Debug, Trace, Finalize)]
 pub struct PropertyMap {
-    indexed_properties: FxHashMap<u32, PropertyDescriptor>,
+    indexed_properties: FxHashMap<NonMaxU32, PropertyDescriptor>,
     /// Properties
     string_properties: OrderedHashMap<JsString>,
     /// Symbol Properties
@@ -126,7 +126,7 @@ impl PropertyMap {
         SymbolPropertyValues(self.symbol_properties.0.values())
     }
 
-    /// An iterator visiting all indexed key-value pairs in arbitrary order. The iterator element type is `(&'a u32, &'a Property)`.
+    /// An iterator visiting all indexed key-value pairs in arbitrary order. The iterator element type is `(&'a NonMaxU32, &'a Property)`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -134,7 +134,7 @@ impl PropertyMap {
         IndexProperties(self.indexed_properties.iter())
     }
 
-    /// An iterator visiting all index keys in arbitrary order. The iterator element type is `&'a u32`.
+    /// An iterator visiting all index keys in arbitrary order. The iterator element type is `&'a NonMaxU32`.
     ///
     /// This iterator does not recurse down the prototype chain.
     #[inline]
@@ -197,7 +197,7 @@ impl PropertyMap {
 /// An iterator over the property entries of an `Object`
 #[derive(Debug, Clone)]
 pub struct Iter<'a> {
-    indexed_properties: hash_map::Iter<'a, u32, PropertyDescriptor>,
+    indexed_properties: hash_map::Iter<'a, NonMaxU32, PropertyDescriptor>,
     string_properties: indexmap::map::Iter<'a, JsString, PropertyDescriptor>,
     symbol_properties: indexmap::map::Iter<'a, JsSymbol, PropertyDescriptor>,
 }
@@ -206,7 +206,7 @@ impl<'a> Iterator for Iter<'a> {
     type Item = (PropertyKey, &'a PropertyDescriptor);
     fn next(&mut self) -> Option<Self::Item> {
         if let Some((key, value)) = self.indexed_properties.next() {
-            Some(((*key).into(), value))
+            Some((key.get().into(), value))
         } else if let Some((key, value)) = self.string_properties.next() {
             Some((key.clone().into(), value))
         } else {
@@ -350,10 +350,10 @@ impl FusedIterator for SymbolPropertyValues<'_> {}
 
 /// An iterator over the indexed property entries of an `Object`
 #[derive(Debug, Clone)]
-pub struct IndexProperties<'a>(hash_map::Iter<'a, u32, PropertyDescriptor>);
+pub struct IndexProperties<'a>(hash_map::Iter<'a, NonMaxU32, PropertyDescriptor>);
 
 impl<'a> Iterator for IndexProperties<'a> {
-    type Item = (&'a u32, &'a PropertyDescriptor);
+    type Item = (&'a NonMaxU32, &'a PropertyDescriptor);
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -375,12 +375,12 @@ impl ExactSizeIterator for IndexProperties<'_> {
 
 impl FusedIterator for IndexProperties<'_> {}
 
-/// An iterator over the index keys (`u32`) of an `Object`.
+/// An iterator over the index keys (`NonMaxU32`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct IndexPropertyKeys<'a>(hash_map::Keys<'a, u32, PropertyDescriptor>);
+pub struct IndexPropertyKeys<'a>(hash_map::Keys<'a, NonMaxU32, PropertyDescriptor>);
 
 impl<'a> Iterator for IndexPropertyKeys<'a> {
-    type Item = &'a u32;
+    type Item = &'a NonMaxU32;
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
@@ -404,7 +404,7 @@ impl FusedIterator for IndexPropertyKeys<'_> {}
 
 /// An iterator over the index values (`Property`) of an `Object`.
 #[derive(Debug, Clone)]
-pub struct IndexPropertyValues<'a>(hash_map::Values<'a, u32, PropertyDescriptor>);
+pub struct IndexPropertyValues<'a>(hash_map::Values<'a, NonMaxU32, PropertyDescriptor>);
 
 impl<'a> Iterator for IndexPropertyValues<'a> {
     type Item = &'a PropertyDescriptor;
