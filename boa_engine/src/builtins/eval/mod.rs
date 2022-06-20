@@ -10,8 +10,8 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/eval
 
 use crate::{
-    builtins::{function::Function, BuiltIn, JsArgs},
-    object::{JsObject, ObjectData},
+    builtins::{BuiltIn, JsArgs},
+    object::FunctionBuilder,
     property::Attribute,
     Context, JsValue,
 };
@@ -24,20 +24,18 @@ pub(crate) struct Eval;
 impl BuiltIn for Eval {
     const NAME: &'static str = "eval";
 
-    const ATTRIBUTE: Attribute = Attribute::READONLY
+    const ATTRIBUTE: Attribute = Attribute::CONFIGURABLE
         .union(Attribute::NON_ENUMERABLE)
-        .union(Attribute::PERMANENT);
+        .union(Attribute::WRITABLE);
 
     fn init(context: &mut Context) -> Option<JsValue> {
         let _timer = Profiler::global().start_event(Self::NAME, "init");
 
-        let object = JsObject::from_proto_and_data(
-            context.intrinsics().constructors().function().prototype(),
-            ObjectData::function(Function::Native {
-                function: Self::eval,
-                constructor: false,
-            }),
-        );
+        let object = FunctionBuilder::native(context, Self::eval)
+            .name("eval")
+            .length(1)
+            .constructor(false)
+            .build();
 
         Some(object.into())
     }
