@@ -24,7 +24,7 @@ use tap::{Conv, Pipe};
 use super::Error;
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct ReferenceError;
+pub struct ReferenceError;
 
 impl BuiltIn for ReferenceError {
     const NAME: &'static str = "ReferenceError";
@@ -62,7 +62,7 @@ impl ReferenceError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

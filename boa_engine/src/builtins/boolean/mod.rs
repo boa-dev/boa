@@ -25,7 +25,7 @@ use tap::{Conv, Pipe};
 
 /// Boolean implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Boolean;
+pub struct Boolean;
 
 impl BuiltIn for Boolean {
     /// The name of the object.
@@ -56,7 +56,7 @@ impl Boolean {
     /// `[[Construct]]` Create a new boolean object
     ///
     /// `[[Call]]` Creates a new boolean primitive
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

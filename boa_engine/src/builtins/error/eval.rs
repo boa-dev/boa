@@ -27,7 +27,7 @@ use super::Error;
 
 /// JavaScript `EvalError` impleentation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct EvalError;
+pub struct EvalError;
 
 impl BuiltIn for EvalError {
     const NAME: &'static str = "EvalError";
@@ -61,7 +61,7 @@ impl EvalError {
     pub(crate) const LENGTH: usize = 1;
 
     /// Create a new error object.
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

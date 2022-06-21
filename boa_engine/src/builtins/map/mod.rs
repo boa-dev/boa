@@ -35,7 +35,7 @@ pub mod ordered_map;
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Map(OrderedMap<JsValue>);
+pub struct Map(OrderedMap<JsValue>);
 
 impl BuiltIn for Map {
     const NAME: &'static str = "Map";
@@ -116,7 +116,7 @@ impl Map {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-map-iterable
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/Map
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

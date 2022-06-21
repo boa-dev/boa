@@ -114,7 +114,7 @@ macro_rules! typed_array {
             ///  - [ECMAScript reference][spec]
             ///
             /// [spec]: https://tc39.es/ecma262/#sec-typedarray
-            pub(crate) fn constructor(
+            pub fn constructor(
                 new_target: &JsValue,
                 args: &[JsValue],
                 context: &mut Context,
@@ -242,7 +242,7 @@ macro_rules! typed_array {
 ///
 /// <https://tc39.es/ecma262/#sec-%typedarray%-intrinsic-object>
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct TypedArray;
+pub struct TypedArray;
 
 impl BuiltIn for TypedArray {
     const NAME: &'static str = "TypedArray";
@@ -380,7 +380,7 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%
-    fn constructor(
+    pub fn constructor(
         _new_target: &JsValue,
         _args: &[JsValue],
         context: &mut Context,

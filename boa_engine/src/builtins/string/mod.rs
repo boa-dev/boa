@@ -96,7 +96,7 @@ pub(crate) fn is_trailing_surrogate(value: u16) -> bool {
 
 /// JavaScript `String` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct String;
+pub struct String;
 
 impl BuiltIn for String {
     const NAME: &'static str = "String";
@@ -169,7 +169,7 @@ impl String {
     /// `String( value )`
     ///
     /// <https://tc39.es/ecma262/#sec-string-constructor-string-value>
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

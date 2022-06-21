@@ -22,7 +22,7 @@ use tap::{Conv, Pipe};
 use super::Error;
 
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct AggregateError;
+pub struct AggregateError;
 
 impl BuiltIn for AggregateError {
     const NAME: &'static str = "AggregateError";
@@ -61,7 +61,7 @@ impl AggregateError {
     pub(crate) const LENGTH: usize = 2;
 
     /// Create a new aggregate error object.
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

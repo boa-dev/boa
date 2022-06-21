@@ -109,7 +109,7 @@ impl BuiltIn for GeneratorFunction {
 }
 
 impl GeneratorFunction {
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         _: &[JsValue],
         context: &mut Context,

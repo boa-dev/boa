@@ -112,11 +112,7 @@ impl Generator {
     pub(crate) const LENGTH: usize = 0;
 
     #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn constructor(
-        _: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn constructor(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         let prototype = context.intrinsics().constructors().generator().prototype();
 
         let this = JsObject::from_proto_and_data(

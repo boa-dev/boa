@@ -33,19 +33,19 @@ pub(crate) mod uri;
 #[cfg(test)]
 mod tests;
 
-pub(crate) use self::aggregate::AggregateError;
-pub(crate) use self::eval::EvalError;
-pub(crate) use self::r#type::TypeError;
-pub(crate) use self::range::RangeError;
-pub(crate) use self::reference::ReferenceError;
-pub(crate) use self::syntax::SyntaxError;
-pub(crate) use self::uri::UriError;
+pub use self::aggregate::AggregateError;
+pub use self::eval::EvalError;
+pub use self::r#type::TypeError;
+pub use self::range::RangeError;
+pub use self::reference::ReferenceError;
+pub use self::syntax::SyntaxError;
+pub use self::uri::UriError;
 
 use super::JsArgs;
 
 /// Built-in `Error` object.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Error;
+pub struct Error;
 
 impl BuiltIn for Error {
     const NAME: &'static str = "Error";
@@ -97,7 +97,7 @@ impl Error {
     /// `Error( message [ , options ] )`
     ///
     /// Create a new error object.
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

@@ -32,7 +32,7 @@ pub mod set_iterator;
 mod tests;
 
 #[derive(Debug, Clone)]
-pub(crate) struct Set(OrderedSet<JsValue>);
+pub struct Set(OrderedSet<JsValue>);
 
 impl BuiltIn for Set {
     const NAME: &'static str = "Set";
@@ -110,7 +110,7 @@ impl Set {
     pub(crate) const LENGTH: usize = 0;
 
     /// Create a new set
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

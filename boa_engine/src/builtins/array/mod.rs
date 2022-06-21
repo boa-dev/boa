@@ -36,7 +36,7 @@ use std::cmp::{max, min, Ordering};
 
 /// JavaScript `Array` built-in implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Array;
+pub struct Array;
 
 impl BuiltIn for Array {
     const NAME: &'static str = "Array";
@@ -133,7 +133,7 @@ impl BuiltIn for Array {
 impl Array {
     const LENGTH: usize = 1;
 
-    fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,

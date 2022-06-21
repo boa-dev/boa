@@ -39,7 +39,7 @@ const BUF_SIZE: usize = 2200;
 
 /// `Number` implementation.
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct Number;
+pub struct Number;
 
 impl BuiltIn for Number {
     const NAME: &'static str = "Number";
@@ -167,7 +167,7 @@ impl Number {
     pub(crate) const MIN_VALUE: f64 = f64::MIN_POSITIVE;
 
     /// `Number( value )`
-    pub(crate) fn constructor(
+    pub fn constructor(
         new_target: &JsValue,
         args: &[JsValue],
         context: &mut Context,
