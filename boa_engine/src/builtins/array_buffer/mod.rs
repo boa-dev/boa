@@ -260,7 +260,11 @@ impl ArrayBuffer {
             }
         }
         // 20. If SameValue(new, O) is true, throw a TypeError exception.
-        if this.as_object().map(|obj| obj == &new).unwrap_or_default() {
+        if this
+            .as_object()
+            .map(|obj| JsObject::equals(obj, &new))
+            .unwrap_or_default()
+        {
             return context.throw_type_error("New ArrayBuffer is the same as this ArrayBuffer");
         }
 

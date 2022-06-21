@@ -26,7 +26,7 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
-use boa_gc::{self, unsafe_empty_trace, Finalize, Gc, Trace};
+use boa_gc::{self, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
 use dyn_clone::DynClone;
@@ -108,15 +108,10 @@ impl ThisMode {
     }
 }
 
-#[derive(Debug, Finalize, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum ConstructorKind {
     Base,
     Derived,
-}
-
-// SAFETY: `Copy` types are trivially not `Trace`.
-unsafe impl Trace for ConstructorKind {
-    unsafe_empty_trace!();
 }
 
 impl ConstructorKind {
@@ -183,11 +178,13 @@ pub enum Function {
     Native {
         #[unsafe_ignore_trace]
         function: NativeFunctionSignature,
+        #[unsafe_ignore_trace]
         constructor: Option<ConstructorKind>,
     },
     Closure {
         #[unsafe_ignore_trace]
         function: Box<dyn ClosureFunctionSignature>,
+        #[unsafe_ignore_trace]
         constructor: Option<ConstructorKind>,
         captures: Captures,
     },

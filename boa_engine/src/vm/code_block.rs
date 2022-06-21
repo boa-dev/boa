@@ -63,6 +63,7 @@ pub struct CodeBlock {
     pub(crate) strict: bool,
 
     /// Constructor type of this function, or `None` if the function is not constructable.
+    #[unsafe_ignore_trace]
     pub(crate) constructor: Option<ConstructorKind>,
 
     /// \[\[ThisMode\]\]

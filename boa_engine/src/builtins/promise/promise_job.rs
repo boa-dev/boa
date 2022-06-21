@@ -1,4 +1,4 @@
-use super::{Promise, PromiseCapability, ReactionJobCaptures};
+use super::{Promise, PromiseCapability};
 use crate::{
     builtins::promise::{ReactionRecord, ReactionType},
     job::JobCallback,
@@ -20,6 +20,12 @@ impl PromiseJob {
         argument: JsValue,
         context: &mut Context,
     ) -> JobCallback {
+        #[derive(Debug, Trace, Finalize)]
+        struct ReactionJobCaptures {
+            reaction: ReactionRecord,
+            argument: JsValue,
+        }
+
         // 1. Let job be a new Job Abstract Closure with no parameters that captures reaction and argument and performs the following steps when called:
         let job = FunctionBuilder::closure_with_captures(
             context,
@@ -77,13 +83,13 @@ impl PromiseJob {
                             // h. If handlerResult is an abrupt completion, then
                             Err(value) => {
                                 // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                                context.call(reject, &JsValue::Undefined, &[value])
+                                context.call(&reject.clone().into(), &JsValue::Undefined, &[value])
                             }
 
                             // i. Else,
                             Ok(value) => {
                                 // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                                context.call(resolve, &JsValue::Undefined, &[value])
+                                context.call(&resolve.clone().into(), &JsValue::Undefined, &[value])
                             }
                         }
                     }
