@@ -2927,6 +2927,48 @@
 <span id="2920">2920</span>
 <span id="2921">2921</span>
 <span id="2922">2922</span>
+<span id="2923">2923</span>
+<span id="2924">2924</span>
+<span id="2925">2925</span>
+<span id="2926">2926</span>
+<span id="2927">2927</span>
+<span id="2928">2928</span>
+<span id="2929">2929</span>
+<span id="2930">2930</span>
+<span id="2931">2931</span>
+<span id="2932">2932</span>
+<span id="2933">2933</span>
+<span id="2934">2934</span>
+<span id="2935">2935</span>
+<span id="2936">2936</span>
+<span id="2937">2937</span>
+<span id="2938">2938</span>
+<span id="2939">2939</span>
+<span id="2940">2940</span>
+<span id="2941">2941</span>
+<span id="2942">2942</span>
+<span id="2943">2943</span>
+<span id="2944">2944</span>
+<span id="2945">2945</span>
+<span id="2946">2946</span>
+<span id="2947">2947</span>
+<span id="2948">2948</span>
+<span id="2949">2949</span>
+<span id="2950">2950</span>
+<span id="2951">2951</span>
+<span id="2952">2952</span>
+<span id="2953">2953</span>
+<span id="2954">2954</span>
+<span id="2955">2955</span>
+<span id="2956">2956</span>
+<span id="2957">2957</span>
+<span id="2958">2958</span>
+<span id="2959">2959</span>
+<span id="2960">2960</span>
+<span id="2961">2961</span>
+<span id="2962">2962</span>
+<span id="2963">2963</span>
+<span id="2964">2964</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
@@ -4284,7 +4326,28 @@
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
             }
             <span class="ident">Node::ForInLoop</span>(<span class="ident">for_in_loop</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_in_loop</span>.<span class="ident">expr</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">init_bound_names</span> <span class="op">=</span> <span class="ident">for_in_loop</span>.<span class="ident">init</span>().<span class="ident">bound_names</span>();
+                <span class="kw">if</span> <span class="ident">init_bound_names</span>.<span class="ident">is_empty</span>() {
+                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_in_loop</span>.<span class="ident">expr</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
+                    <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
+
+                    <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">init_bound_names</span> {
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>);
+                    }
+                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_in_loop</span>.<span class="ident">expr</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+
+                    <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
+                    <span class="kw">let</span> <span class="ident">index_compile_environment</span> <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">push_compile_environment</span>(<span class="ident">compile_environment</span>);
+                    <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>.<span class="number">0</span>, <span class="ident">num_bindings</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                    <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>.<span class="number">1</span>, <span class="ident">index_compile_environment</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
+                }
+
                 <span class="kw">let</span> <span class="ident">early_exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::ForInLoopInitIterator</span>);
 
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
@@ -4367,7 +4430,28 @@
                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">early_exit</span>);
             }
             <span class="ident">Node::ForOfLoop</span>(<span class="ident">for_of_loop</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_of_loop</span>.<span class="ident">iterable</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">init_bound_names</span> <span class="op">=</span> <span class="ident">for_of_loop</span>.<span class="ident">init</span>().<span class="ident">bound_names</span>();
+                <span class="kw">if</span> <span class="ident">init_bound_names</span>.<span class="ident">is_empty</span>() {
+                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_of_loop</span>.<span class="ident">iterable</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
+                    <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
+
+                    <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">init_bound_names</span> {
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>);
+                    }
+                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_of_loop</span>.<span class="ident">iterable</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+
+                    <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
+                    <span class="kw">let</span> <span class="ident">index_compile_environment</span> <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">push_compile_environment</span>(<span class="ident">compile_environment</span>);
+                    <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>.<span class="number">0</span>, <span class="ident">num_bindings</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                    <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>.<span class="number">1</span>, <span class="ident">index_compile_environment</span> <span class="kw">as</span> <span class="ident">u32</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
+                }
+
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
 
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
