@@ -13,7 +13,7 @@ use crate::{
     job::JobCallback,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
-        JsObject, ObjectData,
+        JsFunction, JsObject, ObjectData,
     },
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -39,10 +39,14 @@ macro_rules! if_abrupt_reject_promise {
             // 1. If value is an abrupt completion, then
             Err(value) => {
                 // a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
-                $context.call(&$capability.reject, &JsValue::undefined(), &[value])?;
+                $context.call(
+                    &$capability.reject.clone().into(),
+                    &JsValue::undefined(),
+                    &[value],
+                )?;
 
                 // b. Return capability.[[Promise]].
-                return Ok($capability.promise.clone());
+                return Ok($capability.promise.clone().into());
             }
             // 2. Else if value is a Completion Record, set value to value.[[Value]].
             Ok(value) => value,
@@ -83,20 +87,9 @@ enum ReactionType {
 
 #[derive(Debug, Clone, Trace, Finalize)]
 struct PromiseCapability {
-    promise: JsValue,
-    resolve: JsValue,
-    reject: JsValue,
-}
-
-#[derive(Debug, Trace, Finalize)]
-struct PromiseCapabilityCaptures {
-    promise_capability: Gc<boa_gc::Cell<PromiseCapability>>,
-}
-
-#[derive(Debug, Trace, Finalize)]
-struct ReactionJobCaptures {
-    reaction: ReactionRecord,
-    argument: JsValue,
+    promise: JsObject,
+    resolve: JsFunction,
+    reject: JsFunction,
 }
 
 impl PromiseCapability {
@@ -107,6 +100,12 @@ impl PromiseCapability {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
     fn new(c: &JsValue, context: &mut Context) -> JsResult<Self> {
+        #[derive(Debug, Clone, Trace, Finalize)]
+        struct RejectResolve {
+            reject: JsValue,
+            resolve: JsValue,
+        }
+
         match c.as_constructor() {
             // 1. If IsConstructor(C) is false, throw a TypeError exception.
             None => context.throw_type_error("PromiseCapability: expected constructor"),
@@ -115,20 +114,17 @@ impl PromiseCapability {
 
                 // 2. NOTE: C is assumed to be a constructor function that supports the parameter conventions of the Promise constructor (see 27.2.3.1).
                 // 3. Let promiseCapability be the PromiseCapability Record { [[Promise]]: undefined, [[Resolve]]: undefined, [[Reject]]: undefined }.
-                let promise_capability = Gc::new(boa_gc::Cell::new(Self {
-                    promise: JsValue::Undefined,
-                    reject: JsValue::Undefined,
-                    resolve: JsValue::Undefined,
+                let promise_capability = Gc::new(boa_gc::Cell::new(RejectResolve {
+                    reject: JsValue::undefined(),
+                    resolve: JsValue::undefined(),
                 }));
 
                 // 4. Let executorClosure be a new Abstract Closure with parameters (resolve, reject) that captures promiseCapability and performs the following steps when called:
                 // 5. Let executor be CreateBuiltinFunction(executorClosure, 2, "", « »).
                 let executor = FunctionBuilder::closure_with_captures(
                     context,
-                    |_this, args: &[JsValue], captures: &mut PromiseCapabilityCaptures, context| {
-                        let promise_capability: &mut Self =
-                            &mut captures.promise_capability.try_borrow_mut().expect("msg");
-
+                    |_this, args: &[JsValue], captures, context| {
+                        let mut promise_capability = captures.borrow_mut();
                         // a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.
                         if !promise_capability.resolve.is_undefined() {
                             return context.throw_type_error(
@@ -154,9 +150,7 @@ impl PromiseCapability {
                         // e. Return undefined.
                         Ok(JsValue::Undefined)
                     },
-                    PromiseCapabilityCaptures {
-                        promise_capability: promise_capability.clone(),
-                    },
+                    promise_capability.clone(),
                 )
                 .name("")
                 .length(2)
@@ -166,29 +160,37 @@ impl PromiseCapability {
                 // 6. Let promise be ? Construct(C, « executor »).
                 let promise = c.construct(&[executor], Some(&c), context)?;
 
-                let promise_capability: &mut Self =
-                    &mut promise_capability.try_borrow_mut().expect("msg");
+                let promise_capability = promise_capability.borrow();
 
                 let resolve = promise_capability.resolve.clone();
                 let reject = promise_capability.reject.clone();
 
                 // 7. If IsCallable(promiseCapability.[[Resolve]]) is false, throw a TypeError exception.
-                if !resolve.is_callable() {
-                    return context
-                        .throw_type_error("promiseCapability.[[Resolve]] is not callable");
-                }
+                let resolve = resolve
+                    .as_object()
+                    .cloned()
+                    .and_then(JsFunction::from_object)
+                    .ok_or_else(|| {
+                        context
+                            .construct_type_error("promiseCapability.[[Resolve]] is not callable")
+                    })?;
 
                 // 8. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.
-                if !reject.is_callable() {
-                    return context
-                        .throw_type_error("promiseCapability.[[Reject]] is not callable");
-                }
+                let reject = reject
+                    .as_object()
+                    .cloned()
+                    .and_then(JsFunction::from_object)
+                    .ok_or_else(|| {
+                        context.construct_type_error("promiseCapability.[[Reject]] is not callable")
+                    })?;
 
                 // 9. Set promiseCapability.[[Promise]] to promise.
-                promise_capability.reject = promise;
-
                 // 10. Return promiseCapability.
-                Ok(promise_capability.clone())
+                Ok(PromiseCapability {
+                    promise,
+                    resolve,
+                    reject,
+                })
             }
         }
     }
@@ -246,13 +248,6 @@ struct ResolvingFunctionsRecord {
     reject: JsValue,
 }
 
-#[derive(Debug, Trace, Finalize)]
-struct RejectResolveCaptures {
-    promise: JsObject,
-    #[unsafe_ignore_trace]
-    already_resolved: Rc<Cell<bool>>,
-}
-
 impl Promise {
     const LENGTH: usize = 1;
 
@@ -298,10 +293,10 @@ impl Promise {
             }),
         );
 
-        // // 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
+        // 8. Let resolvingFunctions be CreateResolvingFunctions(promise).
         let resolving_functions = Self::create_resolving_functions(&promise, context);
 
-        // // 9. Let completion Completion(Call(executor, undefined, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)be ).
+        // 9. Let completion Completion(Call(executor, undefined, « resolvingFunctions.[[Resolve]], resolvingFunctions.[[Reject]] »)be ).
         let completion = context.call(
             executor,
             &JsValue::Undefined,
@@ -331,6 +326,13 @@ impl Promise {
         promise: &JsObject,
         context: &mut Context,
     ) -> ResolvingFunctionsRecord {
+        #[derive(Debug, Trace, Finalize)]
+        struct RejectResolveCaptures {
+            promise: JsObject,
+            #[unsafe_ignore_trace]
+            already_resolved: Rc<Cell<bool>>,
+        }
+
         // 1. Let alreadyResolved be the Record { [[Value]]: false }.
         let already_resolved = Rc::new(Cell::new(false));
 
@@ -739,8 +741,8 @@ impl Promise {
                 next_promise.invoke(
                     "then",
                     &[
-                        result_capability.resolve.clone(),
-                        result_capability.reject.clone(),
+                        result_capability.resolve.clone().into(),
+                        result_capability.reject.clone().into(),
                     ],
                     context,
                 )?;
@@ -750,7 +752,7 @@ impl Promise {
                 iterator_record.set_done(true);
 
                 // ii. Return resultCapability.[[Promise]].
-                return Ok(result_capability.promise.clone());
+                return Ok(result_capability.promise.clone().into());
             }
         }
     }
@@ -774,13 +776,13 @@ impl Promise {
 
         // 3. Perform ? Call(promiseCapability.[[Reject]], undefined, « r »).
         context.call(
-            &promise_capability.reject,
+            &promise_capability.reject.clone().into(),
             &JsValue::undefined(),
             &[r.clone()],
         )?;
 
         // 4. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise.clone())
+        Ok(promise_capability.promise.clone().into())
     }
 
     /// `Promise.resolve ( x )`
@@ -1131,7 +1133,7 @@ impl Promise {
 
             // 14. Else,
             //   a. Return resultCapability.[[Promise]].
-            Some(result_capability) => result_capability.promise.clone(),
+            Some(result_capability) => result_capability.promise.clone().into(),
         }
     }
 
@@ -1160,10 +1162,14 @@ impl Promise {
         let promise_capability = PromiseCapability::new(&c.into(), context)?;
 
         // 3. Perform ? Call(promiseCapability.[[Resolve]], undefined, « x »).
-        context.call(&promise_capability.resolve, &JsValue::undefined(), &[x])?;
+        context.call(
+            &promise_capability.resolve.clone().into(),
+            &JsValue::undefined(),
+            &[x],
+        )?;
 
         // 4. Return promiseCapability.[[Promise]].
-        Ok(promise_capability.promise.clone())
+        Ok(promise_capability.promise.clone().into())
     }
 
     /// `GetPromiseResolve ( promiseConstructor )`

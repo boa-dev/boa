@@ -21,6 +21,8 @@ use crate::{
 };
 use boa_profiler::Profiler;
 
+use super::function::ConstructorKind;
+
 /// The internal representation on a `Generator` object.
 #[derive(Debug, Clone, Copy)]
 pub struct GeneratorFunction;
@@ -71,7 +73,7 @@ impl BuiltIn for GeneratorFunction {
         constructor.borrow_mut().insert("prototype", property);
         constructor.borrow_mut().data = ObjectData::function(Function::Native {
             function: Self::constructor,
-            constructor: true,
+            constructor: Some(ConstructorKind::Base),
         });
 
         prototype.set_prototype(Some(
@@ -124,7 +126,7 @@ impl GeneratorFunction {
             prototype,
             ObjectData::function(Function::Native {
                 function: |_, _, _| Ok(JsValue::undefined()),
-                constructor: true,
+                constructor: Some(ConstructorKind::Base),
             }),
         );
 

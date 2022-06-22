@@ -1,6 +1,6 @@
 use crate::{
     object::{JsObject, JsObjectType},
-    Context, JsResult, JsValue,
+    JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
@@ -17,16 +17,14 @@ impl JsFunction {
         Self { inner: object }
     }
 
-    /// Create a [`JsFunction`] from a [`JsObject`], if the object is not a function throw a `TypeError`.
+    /// Create a [`JsFunction`] from a [`JsObject`], or return `None` if the object is not a function.
     ///
     /// This does not clone the fields of the function, it only does a shallow clone of the object.
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
-        if object.borrow().is_function() {
-            Ok(Self::from_object_unchecked(object))
-        } else {
-            context.throw_type_error("object is not an Function")
-        }
+    pub fn from_object(object: JsObject) -> Option<Self> {
+        object
+            .is_callable()
+            .then(|| Self::from_object_unchecked(object))
     }
 }
 

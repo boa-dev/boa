@@ -261,7 +261,7 @@ impl JsObject {
         args: &[JsValue],
         new_target: &JsObject,
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject> {
         let _timer = Profiler::global().start_event("Object::__construct__", "object");
         let func = self.borrow().data.internal_methods.__construct__;
         func.expect("called `[[Construct]]` for object without a `[[Construct]]` internal method")(
@@ -324,7 +324,7 @@ pub(crate) struct InternalObjectMethods {
     pub(crate) __call__:
         Option<fn(&JsObject, &JsValue, &[JsValue], &mut Context) -> JsResult<JsValue>>,
     pub(crate) __construct__:
-        Option<fn(&JsObject, &[JsValue], &JsObject, &mut Context) -> JsResult<JsValue>>,
+        Option<fn(&JsObject, &[JsValue], &JsObject, &mut Context) -> JsResult<JsObject>>,
 }
 
 /// Abstract operation `OrdinaryGetPrototypeOf`.

@@ -108,7 +108,7 @@ impl ThisMode {
     }
 }
 
-#[derive(Debug, Trace, Finalize, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum ConstructorKind {
     Base,
     Derived,
@@ -178,12 +178,14 @@ pub enum Function {
     Native {
         #[unsafe_ignore_trace]
         function: NativeFunctionSignature,
-        constructor: bool,
+        #[unsafe_ignore_trace]
+        constructor: Option<ConstructorKind>,
     },
     Closure {
         #[unsafe_ignore_trace]
         function: Box<dyn ClosureFunctionSignature>,
-        constructor: bool,
+        #[unsafe_ignore_trace]
+        constructor: Option<ConstructorKind>,
         captures: Captures,
     },
     Ordinary {
@@ -205,6 +207,11 @@ impl fmt::Debug for Function {
 impl Function {
     /// Returns true if the function object is a constructor.
     pub fn is_constructor(&self) -> bool {
+        self.constructor().is_some()
+    }
+
+    /// Returns the constructor kind if the function is constructable, or `None` otherwise.
+    pub fn constructor(&self) -> Option<ConstructorKind> {
         match self {
             Self::Native { constructor, .. } | Self::Closure { constructor, .. } => *constructor,
             Self::Ordinary { code, .. } | Self::Generator { code, .. } => code.constructor,
@@ -251,7 +258,7 @@ pub(crate) fn make_builtin_fn<N>(
             .prototype(),
         ObjectData::function(Function::Native {
             function,
-            constructor: false,
+            constructor: None,
         }),
     );
     let attribute = PropertyDescriptor::builder()
@@ -417,7 +424,7 @@ impl BuiltInFunctionObject {
                 prototype,
                 ObjectData::function(Function::Native {
                     function: |_, _, _| Ok(JsValue::undefined()),
-                    constructor: true,
+                    constructor: Some(ConstructorKind::Base),
                 }),
             );
 

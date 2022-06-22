@@ -1184,9 +1184,6 @@ impl RegExp {
 
         // 6. Let matcher be ? Construct(C, « R, flags »).
         let matcher = c.construct(&[this.clone(), flags.clone().into()], Some(&c), context)?;
-        let matcher = matcher
-            .as_object()
-            .expect("construct must always return an Object");
 
         // 7. Let lastIndex be ? ToLength(? Get(R, "lastIndex")).
         let last_index = regexp.get("lastIndex", context)?.to_length(context)?;
@@ -1579,11 +1576,6 @@ impl RegExp {
             Some(&constructor),
             context,
         )?;
-        let splitter = splitter
-            .as_object()
-            // TODO: remove when we handle realms on `get_prototype_from_constructor` and make
-            // `construct` always return a `JsObject`
-            .ok_or_else(|| context.construct_type_error("constructor did not return an object"))?;
 
         // 11. Let A be ! ArrayCreate(0).
         let a = Array::array_create(0, None, context).expect("this ArrayCreate call must not fail");
@@ -1610,7 +1602,7 @@ impl RegExp {
         // 16. If size is 0, then
         if size == 0 {
             // a. Let z be ? RegExpExec(splitter, S).
-            let result = Self::abstract_exec(splitter, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(&splitter, arg_str.clone(), context)?;
 
             // b. If z is not null, return A.
             if result.is_some() {
@@ -1636,7 +1628,7 @@ impl RegExp {
             splitter.set("lastIndex", JsValue::new(q), true, context)?;
 
             // b. Let z be ? RegExpExec(splitter, S).
-            let result = Self::abstract_exec(splitter, arg_str.clone(), context)?;
+            let result = Self::abstract_exec(&splitter, arg_str.clone(), context)?;
 
             // c. If z is null, set q to AdvanceStringIndex(S, q, unicodeMatching).
             // d. Else,

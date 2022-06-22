@@ -28,7 +28,8 @@ use crate::{
         array_buffer::ArrayBuffer,
         function::arguments::Arguments,
         function::{
-            arguments::ParameterMap, BoundFunction, Captures, Function, NativeFunctionSignature,
+            arguments::ParameterMap, BoundFunction, Captures, ConstructorKind, Function,
+            NativeFunctionSignature,
         },
         generator::Generator,
         map::map_iterator::MapIterator,
@@ -1460,7 +1461,7 @@ impl<'context> FunctionBuilder<'context> {
             context,
             function: Function::Native {
                 function,
-                constructor: false,
+                constructor: None,
             },
             name: JsString::default(),
             length: 0,
@@ -1477,7 +1478,7 @@ impl<'context> FunctionBuilder<'context> {
             context,
             function: Function::Closure {
                 function: Box::new(move |this, args, _, context| function(this, args, context)),
-                constructor: false,
+                constructor: None,
                 captures: Captures::new(()),
             },
             name: JsString::default(),
@@ -1511,7 +1512,7 @@ impl<'context> FunctionBuilder<'context> {
                     })?;
                     function(this, args, captures, context)
                 }),
-                constructor: false,
+                constructor: None,
                 captures: Captures::new(captures),
             },
             name: JsString::default(),
@@ -1559,7 +1560,7 @@ impl<'context> FunctionBuilder<'context> {
                 ref mut constructor,
                 ..
             } => {
-                *constructor = yes;
+                *constructor = yes.then(|| ConstructorKind::Base);
             }
             Function::Ordinary { .. } | Function::Generator { .. } => {
                 unreachable!("function must be native or closure");
@@ -1716,7 +1717,7 @@ pub struct ConstructorBuilder<'context> {
     name: JsString,
     length: usize,
     callable: bool,
-    constructor: bool,
+    constructor: Option<ConstructorKind>,
     inherit: Option<JsPrototype>,
     custom_prototype: Option<JsPrototype>,
 }
@@ -1748,7 +1749,7 @@ impl<'context> ConstructorBuilder<'context> {
             length: 0,
             name: JsString::default(),
             callable: true,
-            constructor: true,
+            constructor: Some(ConstructorKind::Base),
             inherit: None,
             custom_prototype: None,
             has_prototype_property: true,
@@ -1770,7 +1771,7 @@ impl<'context> ConstructorBuilder<'context> {
             length: 0,
             name: JsString::default(),
             callable: true,
-            constructor: true,
+            constructor: Some(ConstructorKind::Base),
             inherit: None,
             custom_prototype: None,
         }
@@ -1967,7 +1968,7 @@ impl<'context> ConstructorBuilder<'context> {
     /// Default is `true`
     #[inline]
     pub fn constructor(&mut self, constructor: bool) -> &mut Self {
-        self.constructor = constructor;
+        self.constructor = constructor.then(|| ConstructorKind::Base);
         self
     }
 

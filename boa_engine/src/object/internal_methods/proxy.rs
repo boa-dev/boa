@@ -946,7 +946,7 @@ fn proxy_exotic_construct(
     args: &[JsValue],
     new_target: &JsObject,
     context: &mut Context,
-) -> JsResult<JsValue> {
+) -> JsResult<JsObject> {
     // 1. Let handler be O.[[ProxyHandler]].
     // 2. If handler is null, throw a TypeError exception.
     // 3. Assert: Type(handler) is Object.
@@ -984,9 +984,9 @@ fn proxy_exotic_construct(
     )?;
 
     // 10. If Type(newObj) is not Object, throw a TypeError exception.
-    if !new_obj.is_object() {
-        return context.throw_type_error("Proxy trap constructor returned non-object value");
-    }
+    let new_obj = new_obj.as_object().cloned().ok_or_else(|| {
+        context.construct_type_error("Proxy trap constructor returned non-object value")
+    })?;
 
     // 11. Return newObj.
     Ok(new_obj)

@@ -328,7 +328,7 @@ impl JsObject {
         args: &[JsValue],
         new_target: Option<&JsObject>,
         context: &mut Context,
-    ) -> JsResult<JsValue> {
+    ) -> JsResult<JsObject> {
         // 1. If newTarget is not present, set newTarget to F.
         let new_target = new_target.unwrap_or(self);
         // 2. If argumentsList is not present, set argumentsList to a new empty List.

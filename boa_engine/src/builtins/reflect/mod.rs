@@ -126,7 +126,9 @@ impl Reflect {
             .create_list_from_array_like(&[], context)?;
 
         // 5. Return ? Construct(target, args, newTarget).
-        target.construct(&args, Some(new_target), context)
+        target
+            .construct(&args, Some(new_target), context)
+            .map(JsValue::from)
     }
 
     /// Defines a property on an object.

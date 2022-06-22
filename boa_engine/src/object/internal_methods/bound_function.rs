@@ -70,7 +70,7 @@ fn bound_function_exotic_construct(
     arguments_list: &[JsValue],
     new_target: &JsObject,
     context: &mut Context,
-) -> JsResult<JsValue> {
+) -> JsResult<JsObject> {
     let object = obj.borrow();
     let bound_function = object
         .as_bound_function()
