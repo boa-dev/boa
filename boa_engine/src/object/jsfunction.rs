@@ -17,7 +17,7 @@ impl JsFunction {
         Self { inner: object }
     }
 
-    /// Create a [`JsFunction`] from a [`JsObject`], or return None if the object is not a function.
+    /// Create a [`JsFunction`] from a [`JsObject`], or return `None` if the object is not a function.
     ///
     /// This does not clone the fields of the function, it only does a shallow clone of the object.
     #[inline]
