@@ -19,7 +19,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
         ObjectData,
     },
-    object::{ConstructorBuilder, FunctionBuilder, Ref, RefMut},
+    object::{ConstructorBuilder, FunctionBuilder, JsFunction, PrivateElement, Ref, RefMut},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
     syntax::{ast::node::FormalParameterList, Parser},
@@ -108,7 +108,13 @@ impl ThisMode {
     }
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+/// Represents the `[[ConstructorKind]]` internal slot of function objects.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum ConstructorKind {
     Base,
     Derived,
@@ -124,6 +130,18 @@ impl ConstructorKind {
     pub fn is_derived(&self) -> bool {
         matches!(self, Self::Derived)
     }
+}
+
+/// Record containing the field definition of classes.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type
+#[derive(Clone, Debug, Trace, Finalize)]
+pub enum ClassFieldDefinition {
+    Public(PropertyKey, JsFunction),
+    Private(Sym, JsFunction),
 }
 
 /// Wrapper for `Gc<GcCell<dyn NativeObject>>` that allows passing additional
@@ -191,6 +209,19 @@ pub enum Function {
     Ordinary {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
+
+        /// The `[[ConstructorKind]]` internal slot.
+        #[unsafe_ignore_trace]
+        constructor_kind: ConstructorKind,
+
+        /// The `[[HomeObject]]` internal slot.
+        home_object: Option<JsObject>,
+
+        /// The `[[Fields]]` internal slot.
+        fields: Vec<ClassFieldDefinition>,
+
+        /// The `[[PrivateMethods]]` internal slot.
+        private_methods: Vec<(Sym, PrivateElement)>,
     },
     Generator {
         code: Gc<crate::vm::CodeBlock>,
@@ -207,14 +238,85 @@ impl fmt::Debug for Function {
 impl Function {
     /// Returns true if the function object is a constructor.
     pub fn is_constructor(&self) -> bool {
-        self.constructor().is_some()
+        match self {
+            Self::Native { constructor, .. } | Self::Closure { constructor, .. } => {
+                constructor.is_some()
+            }
+            Self::Generator { .. } => false,
+            Self::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
+        }
     }
 
-    /// Returns the constructor kind if the function is constructable, or `None` otherwise.
-    pub fn constructor(&self) -> Option<ConstructorKind> {
-        match self {
-            Self::Native { constructor, .. } | Self::Closure { constructor, .. } => *constructor,
-            Self::Ordinary { code, .. } | Self::Generator { code, .. } => code.constructor,
+    /// Returns true if the function object is a derived constructor.
+    pub(crate) fn is_derived_constructor(&self) -> bool {
+        if let Self::Ordinary {
+            constructor_kind, ..
+        } = self
+        {
+            constructor_kind.is_derived()
+        } else {
+            false
+        }
+    }
+
+    /// Returns a reference to the function `[[HomeObject]]` slot if present.
+    pub(crate) fn get_home_object(&self) -> Option<&JsObject> {
+        if let Self::Ordinary { home_object, .. } = self {
+            home_object.as_ref()
+        } else {
+            None
+        }
+    }
+
+    ///  Sets the `[[HomeObject]]` slot if present.
+    pub(crate) fn set_home_object(&mut self, object: JsObject) {
+        if let Self::Ordinary { home_object, .. } = self {
+            *home_object = Some(object);
+        }
+    }
+
+    /// Returns the values of the `[[Fields]]` internal slot.
+    pub(crate) fn get_fields(&self) -> &[ClassFieldDefinition] {
+        if let Self::Ordinary { fields, .. } = self {
+            fields
+        } else {
+            &[]
+        }
+    }
+
+    /// Pushes a value to the `[[Fields]]` internal slot if present.
+    pub(crate) fn push_field(&mut self, key: PropertyKey, value: JsFunction) {
+        if let Self::Ordinary { fields, .. } = self {
+            fields.push(ClassFieldDefinition::Public(key, value));
+        }
+    }
+
+    /// Pushes a private value to the `[[Fields]]` internal slot if present.
+    pub(crate) fn push_field_private(&mut self, key: Sym, value: JsFunction) {
+        if let Self::Ordinary { fields, .. } = self {
+            fields.push(ClassFieldDefinition::Private(key, value));
+        }
+    }
+
+    /// Returns the values of the `[[PrivateMethods]]` internal slot.
+    pub(crate) fn get_private_methods(&self) -> &[(Sym, PrivateElement)] {
+        if let Self::Ordinary {
+            private_methods, ..
+        } = self
+        {
+            private_methods
+        } else {
+            &[]
+        }
+    }
+
+    /// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.
+    pub(crate) fn push_private_method(&mut self, name: Sym, method: PrivateElement) {
+        if let Self::Ordinary {
+            private_methods, ..
+        } = self
+        {
+            private_methods.push((name, method));
         }
     }
 }

@@ -52,28 +52,13 @@ impl JsObject {
     /// internal slots from the `data` provided.
     #[inline]
     pub fn from_proto_and_data<O: Into<Option<Self>>>(prototype: O, data: ObjectData) -> Self {
-        let prototype: Option<Self> = prototype.into();
-        if let Some(prototype) = prototype {
-            let private = {
-                let prototype_b = prototype.borrow();
-                prototype_b.private_elements.clone()
-            };
-            Self::from_object(Object {
-                data,
-                prototype: Some(prototype),
-                extensible: true,
-                properties: PropertyMap::default(),
-                private_elements: private,
-            })
-        } else {
-            Self::from_object(Object {
-                data,
-                prototype: None,
-                extensible: true,
-                properties: PropertyMap::default(),
-                private_elements: FxHashMap::default(),
-            })
-        }
+        Self::from_object(Object {
+            data,
+            prototype: prototype.into(),
+            extensible: true,
+            properties: PropertyMap::default(),
+            private_elements: FxHashMap::default(),
+        })
     }
 
     /// Immutably borrows the `Object`.

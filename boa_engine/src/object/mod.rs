@@ -124,8 +124,9 @@ pub struct Object {
 
 /// The representation of private object elements.
 #[derive(Clone, Debug, Trace, Finalize)]
-pub(crate) enum PrivateElement {
-    Value(JsValue),
+pub enum PrivateElement {
+    Field(JsValue),
+    Method(JsObject),
     Accessor {
         getter: Option<JsObject>,
         setter: Option<JsObject>,

@@ -11,7 +11,10 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::GeneratorExpr, Position, Punctuator},
+    ast::{
+        node::{function_contains_super, GeneratorExpr},
+        Position, Punctuator,
+    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
@@ -127,6 +130,13 @@ where
             &body.lexically_declared_names_top_level(),
             params_start_position,
         )?;
+
+        if function_contains_super(&body, &params) {
+            return Err(ParseError::lex(LexError::Syntax(
+                "invalid super usage".into(),
+                params_start_position,
+            )));
+        }
 
         Ok(GeneratorExpr::new(name, params, body))
     }
