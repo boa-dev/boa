@@ -821,6 +821,8 @@
 <span id="814">814</span>
 <span id="815">815</span>
 <span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -1066,13 +1068,9 @@
         <span class="comment">// 16. Let new be ? Construct(ctor, « 𝔽(newLen) »).</span>
         <span class="kw">let</span> <span class="ident">new</span> <span class="op">=</span> <span class="ident">ctor</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">new_len</span>.<span class="ident">into</span>()], <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ctor</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).</span>
-        <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="ident">new</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;ArrayBuffer constructor returned non-object value&quot;</span>)
-        })<span class="question-mark">?</span>;
-
         {
-            <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="ident">new_obj</span>.<span class="ident">borrow</span>();
+            <span class="kw">let</span> <span class="ident">new_obj</span> <span class="op">=</span> <span class="ident">new</span>.<span class="ident">borrow</span>();
+            <span class="comment">// 17. Perform ? RequireInternalSlot(new, [[ArrayBufferData]]).</span>
             <span class="kw">let</span> <span class="ident">new_array_buffer</span> <span class="op">=</span> <span class="ident">new_obj</span>.<span class="ident">as_array_buffer</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                 <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;ArrayBuffer constructor returned invalid object&quot;</span>)
             })<span class="question-mark">?</span>;
@@ -1087,44 +1085,50 @@
             }
         }
         <span class="comment">// 20. If SameValue(new, O) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">JsValue::same_value</span>(<span class="kw-2">&amp;</span><span class="ident">new</span>, <span class="ident">this</span>) {
+        <span class="kw">if</span> <span class="ident">this</span>
+            .<span class="ident">as_object</span>()
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">JsObject::equals</span>(<span class="ident">obj</span>, <span class="kw-2">&amp;</span><span class="ident">new</span>))
+            .<span class="ident">unwrap_or_default</span>()
+        {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;New ArrayBuffer is the same as this ArrayBuffer&quot;</span>);
         }
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_obj_borrow</span> <span class="op">=</span> <span class="ident">new_obj</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">new_array_buffer</span> <span class="op">=</span> <span class="ident">new_obj_borrow</span>
-            .<span class="ident">as_array_buffer_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;Already checked that `new_obj` was an `ArrayBuffer`&quot;</span>);
+        {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_obj_borrow</span> <span class="op">=</span> <span class="ident">new</span>.<span class="ident">borrow_mut</span>();
+            <span class="kw">let</span> <span class="ident">new_array_buffer</span> <span class="op">=</span> <span class="ident">new_obj_borrow</span>
+                .<span class="ident">as_array_buffer_mut</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;Already checked that `new_obj` was an `ArrayBuffer`&quot;</span>);
 
-        <span class="comment">// 21. If new.[[ArrayBufferByteLength]] &lt; newLen, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">new_array_buffer</span>.<span class="ident">array_buffer_byte_length</span> <span class="op">&lt;</span> <span class="ident">new_len</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;New ArrayBuffer length too small&quot;</span>);
+            <span class="comment">// 21. If new.[[ArrayBufferByteLength]] &lt; newLen, throw a TypeError exception.</span>
+            <span class="kw">if</span> <span class="ident">new_array_buffer</span>.<span class="ident">array_buffer_byte_length</span> <span class="op">&lt;</span> <span class="ident">new_len</span> {
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;New ArrayBuffer length too small&quot;</span>);
+            }
+
+            <span class="comment">// 22. NOTE: Side-effects of the above steps may have detached O.</span>
+            <span class="comment">// 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.</span>
+            <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_detached_buffer</span>(<span class="ident">o</span>) {
+                <span class="kw">return</span> <span class="ident">context</span>
+                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer detached while ArrayBuffer.slice was running&quot;</span>);
+            }
+
+            <span class="comment">// 24. Let fromBuf be O.[[ArrayBufferData]].</span>
+            <span class="kw">let</span> <span class="ident">from_buf</span> <span class="op">=</span> <span class="ident">o</span>
+                .<span class="ident">array_buffer_data</span>
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
+
+            <span class="comment">// 25. Let toBuf be new.[[ArrayBufferData]].</span>
+            <span class="kw">let</span> <span class="ident">to_buf</span> <span class="op">=</span> <span class="ident">new_array_buffer</span>
+                .<span class="ident">array_buffer_data</span>
+                .<span class="ident">as_mut</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
+
+            <span class="comment">// 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).</span>
+            <span class="ident">copy_data_block_bytes</span>(<span class="ident">to_buf</span>, <span class="number">0</span>, <span class="ident">from_buf</span>, <span class="ident">first</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">new_len</span>);
         }
-
-        <span class="comment">// 22. NOTE: Side-effects of the above steps may have detached O.</span>
-        <span class="comment">// 23. If IsDetachedBuffer(O) is true, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident"><span class="self">Self</span>::is_detached_buffer</span>(<span class="ident">o</span>) {
-            <span class="kw">return</span> <span class="ident">context</span>
-                .<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer detached while ArrayBuffer.slice was running&quot;</span>);
-        }
-
-        <span class="comment">// 24. Let fromBuf be O.[[ArrayBufferData]].</span>
-        <span class="kw">let</span> <span class="ident">from_buf</span> <span class="op">=</span> <span class="ident">o</span>
-            .<span class="ident">array_buffer_data</span>
-            .<span class="ident">as_ref</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
-
-        <span class="comment">// 25. Let toBuf be new.[[ArrayBufferData]].</span>
-        <span class="kw">let</span> <span class="ident">to_buf</span> <span class="op">=</span> <span class="ident">new_array_buffer</span>
-            .<span class="ident">array_buffer_data</span>
-            .<span class="ident">as_mut</span>()
-            .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
-
-        <span class="comment">// 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).</span>
-        <span class="ident">copy_data_block_bytes</span>(<span class="ident">to_buf</span>, <span class="number">0</span>, <span class="ident">from_buf</span>, <span class="ident">first</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">new_len</span>);
 
         <span class="comment">// 27. Return new.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">new</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">new</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `25.1.2.1 AllocateArrayBuffer ( constructor, byteLength )`</span>

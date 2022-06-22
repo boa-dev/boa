@@ -138,6 +138,8 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `GeneratorFunction` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `GeneratorFunction` constructor creates a new generator function object.</span>
@@ -160,6 +162,8 @@
     <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::function::ConstructorKind</span>;
 
 <span class="doccomment">/// The internal representation on a `Generator` object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
@@ -211,7 +215,7 @@
         <span class="ident">constructor</span>.<span class="ident">borrow_mut</span>().<span class="ident">insert</span>(<span class="string">&quot;prototype&quot;</span>, <span class="ident">property</span>);
         <span class="ident">constructor</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::function</span>(<span class="ident">Function::Native</span> {
             <span class="ident">function</span>: <span class="ident"><span class="self">Self</span>::constructor</span>,
-            <span class="ident">constructor</span>: <span class="bool-val">true</span>,
+            <span class="ident">constructor</span>: <span class="prelude-val">Some</span>(<span class="ident">ConstructorKind::Base</span>),
         });
 
         <span class="ident">prototype</span>.<span class="ident">set_prototype</span>(<span class="prelude-val">Some</span>(
@@ -264,7 +268,7 @@
             <span class="ident">prototype</span>,
             <span class="ident">ObjectData::function</span>(<span class="ident">Function::Native</span> {
                 <span class="ident">function</span>: <span class="op">|</span><span class="kw">_</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>()),
-                <span class="ident">constructor</span>: <span class="bool-val">true</span>,
+                <span class="ident">constructor</span>: <span class="prelude-val">Some</span>(<span class="ident">ConstructorKind::Base</span>),
             }),
         );
 

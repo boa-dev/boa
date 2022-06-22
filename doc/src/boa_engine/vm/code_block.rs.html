@@ -1053,6 +1053,38 @@
 <span id="1046">1046</span>
 <span id="1047">1047</span>
 <span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
+<span id="1054">1054</span>
+<span id="1055">1055</span>
+<span id="1056">1056</span>
+<span id="1057">1057</span>
+<span id="1058">1058</span>
+<span id="1059">1059</span>
+<span id="1060">1060</span>
+<span id="1061">1061</span>
+<span id="1062">1062</span>
+<span id="1063">1063</span>
+<span id="1064">1064</span>
+<span id="1065">1065</span>
+<span id="1066">1066</span>
+<span id="1067">1067</span>
+<span id="1068">1068</span>
+<span id="1069">1069</span>
+<span id="1070">1070</span>
+<span id="1071">1071</span>
+<span id="1072">1072</span>
+<span id="1073">1073</span>
+<span id="1074">1074</span>
+<span id="1075">1075</span>
+<span id="1076">1076</span>
+<span id="1077">1077</span>
+<span id="1078">1078</span>
+<span id="1079">1079</span>
+<span id="1080">1080</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1060,7 +1092,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">function</span>::{
-            <span class="ident">arguments::Arguments</span>, <span class="ident">Captures</span>, <span class="ident">ClosureFunctionSignature</span>, <span class="ident">Function</span>,
+            <span class="ident">arguments::Arguments</span>, <span class="ident">Captures</span>, <span class="ident">ClosureFunctionSignature</span>, <span class="ident">ConstructorKind</span>, <span class="ident">Function</span>,
             <span class="ident">NativeFunctionSignature</span>, <span class="ident">ThisMode</span>,
         },
         <span class="ident">generator</span>::{<span class="ident">Generator</span>, <span class="ident">GeneratorContext</span>, <span class="ident">GeneratorState</span>},
@@ -1117,10 +1149,11 @@
     <span class="doccomment">/// Is this function in strict mode.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">strict</span>: <span class="ident">bool</span>,
 
-    <span class="doccomment">/// Is this function a constructor.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">constructor</span>: <span class="ident">bool</span>,
+    <span class="doccomment">/// Constructor type of this function, or `None` if the function is not constructable.</span>
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">constructor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span>,
 
-    <span class="doccomment">/// [[ThisMode]]</span>
+    <span class="doccomment">/// \[\[ThisMode\]\]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">this_mode</span>: <span class="ident">ThisMode</span>,
 
     <span class="doccomment">/// Parameters passed to this function.</span>
@@ -1163,7 +1196,7 @@
 
 <span class="kw">impl</span> <span class="ident">CodeBlock</span> {
     <span class="doccomment">/// Constructs a new `CodeBlock`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">constructor</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">length</span>: <span class="ident">u32</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">constructor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">code</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">literals</span>: <span class="ident">Vec::new</span>(),
@@ -1643,7 +1676,7 @@
                     <span class="ident">function</span>,
                     <span class="ident">constructor</span>,
                 } =&gt; {
-                    <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">constructor</span> {
+                    <span class="kw">if</span> <span class="ident">constructor</span>.<span class="ident">is_some</span>() {
                         <span class="ident">construct</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
 
@@ -1923,17 +1956,28 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">this_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
         <span class="comment">// let mut has_parameter_expressions = false;</span>
+
+        <span class="kw">let</span> <span class="ident">create_this</span> <span class="op">=</span> <span class="op">|</span><span class="ident">context</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
+                <span class="ident">get_prototype_from_constructor</span>(<span class="ident">this_target</span>, <span class="ident">StandardConstructors::object</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::ordinary</span>()))
+        };
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_constructor</span>() {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a constructor function&quot;</span>);
         }
 
+        <span class="kw">let</span> <span class="ident">constructor</span>;
+
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>();
             <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_function</span>().<span class="ident">expect</span>(<span class="string">&quot;not a function&quot;</span>);
+            <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">function</span>
+                .<span class="ident">constructor</span>()
+                .<span class="ident">expect</span>(<span class="string">&quot;Already checked that the function was a constructor&quot;</span>);
 
             <span class="kw">match</span> <span class="ident">function</span> {
                 <span class="ident">Function::Native</span> { <span class="ident">function</span>, .. } =&gt; <span class="ident">FunctionBody::Native</span> {
@@ -1956,9 +2000,31 @@
         };
 
         <span class="kw">match</span> <span class="ident">body</span> {
-            <span class="ident">FunctionBody::Native</span> { <span class="ident">function</span>, .. } =&gt; <span class="ident">function</span>(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>),
+            <span class="ident">FunctionBody::Native</span> { <span class="ident">function</span>, .. } =&gt; <span class="kw">match</span> <span class="ident">function</span>(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+                <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">clone</span>()),
+                <span class="ident">val</span> =&gt; {
+                    <span class="kw">if</span> <span class="ident">constructor</span>.<span class="ident">is_base</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">is_undefined</span>() {
+                        <span class="ident">create_this</span>(<span class="ident">context</span>)
+                    } <span class="kw">else</span> {
+                        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                            <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
+                        )
+                    }
+                }
+            },
             <span class="ident">FunctionBody::Closure</span> { <span class="ident">function</span>, <span class="ident">captures</span> } =&gt; {
-                (<span class="ident">function</span>)(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">captures</span>, <span class="ident">context</span>)
+                <span class="kw">match</span> (<span class="ident">function</span>)(<span class="ident">this_target</span>, <span class="ident">args</span>, <span class="ident">captures</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+                    <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">o</span>.<span class="ident">clone</span>()),
+                    <span class="ident">val</span> =&gt; {
+                        <span class="kw">if</span> <span class="ident">constructor</span>.<span class="ident">is_base</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">is_undefined</span>() {
+                            <span class="ident">create_this</span>(<span class="ident">context</span>)
+                        } <span class="kw">else</span> {
+                            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                                <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
+                            )
+                        }
+                    }
+                }
             }
             <span class="ident">FunctionBody::Ordinary</span> {
                 <span class="ident">code</span>,
@@ -1966,27 +2032,14 @@
             } =&gt; {
                 <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">environments</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>);
 
-                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> {
-                    <span class="comment">// If the prototype of the constructor is not an object, then use the default object</span>
-                    <span class="comment">// prototype as prototype for the new object</span>
-                    <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-ordinarycreatefromconstructor&gt;</span>
-                    <span class="comment">// see &lt;https://tc39.es/ecma262/#sec-getprototypefromconstructor&gt;</span>
-                    <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(
-                        <span class="ident">this_target</span>,
-                        <span class="ident">StandardConstructors::object</span>,
-                        <span class="ident">context</span>,
-                    )<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::ordinary</span>());
+                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">create_this</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-                    <span class="comment">// Set computed class field names if they exist.</span>
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fields</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">computed_field_names</span> {
-                        <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">fields</span>.<span class="ident">borrow</span>().<span class="ident">iter</span>().<span class="ident">rev</span>() {
-                            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">key</span>);
-                        }
+                <span class="comment">// Set computed class field names if they exist.</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">fields</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">code</span>.<span class="ident">computed_field_names</span> {
+                    <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">fields</span>.<span class="ident">borrow</span>().<span class="ident">iter</span>().<span class="ident">rev</span>() {
+                        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">key</span>);
                     }
-
-                    <span class="ident">this</span>
-                };
+                }
 
                 <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>() {
                     <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">push_function</span>(
@@ -2089,10 +2142,21 @@
 
                 <span class="kw">let</span> (<span class="ident">result</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">result</span><span class="question-mark">?</span>;
 
-                <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_object</span>() {
-                    <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
-                } <span class="kw">else</span> {
-                    <span class="prelude-val">Ok</span>(<span class="ident">frame</span>.<span class="ident">this</span>.<span class="ident">clone</span>())
+                <span class="kw">match</span> <span class="ident">result</span> {
+                    <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
+                    <span class="ident">val</span> =&gt; {
+                        <span class="kw">if</span> <span class="ident">constructor</span>.<span class="ident">is_base</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">is_undefined</span>() {
+                            <span class="prelude-val">Ok</span>(<span class="ident">frame</span>
+                                .<span class="ident">this</span>
+                                .<span class="ident">as_object</span>()
+                                .<span class="ident">cloned</span>()
+                                .<span class="ident">expect</span>(<span class="string">&quot;13. Assert: Type(thisBinding) is Object.&quot;</span>))
+                        } <span class="kw">else</span> {
+                            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                                <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
+                            )
+                        }
+                    }
                 }
             }
             <span class="ident">FunctionBody::Generator</span> { .. } =&gt; {

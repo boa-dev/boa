@@ -3500,9 +3500,9 @@
                     [<span class="ident">compile_environments_index</span> <span class="kw">as</span> <span class="ident">usize</span>]
                     .<span class="ident">clone</span>();
 
-                <span class="kw">let</span> <span class="ident">is_constructor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">constructor</span>;
+                <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">constructor</span>;
                 <span class="kw">let</span> <span class="ident">is_lexical</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">this_mode</span>.<span class="ident">is_lexical</span>();
-                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">is_constructor</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">is_lexical</span> {
+                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">constructor</span>.<span class="ident">is_some</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">is_lexical</span> {
                     <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">this</span>.<span class="ident">clone</span>()
                 } <span class="kw">else</span> {
                     <span class="ident">JsValue::undefined</span>()

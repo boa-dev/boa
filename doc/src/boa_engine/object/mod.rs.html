@@ -2088,6 +2088,7 @@
 <span id="2081">2081</span>
 <span id="2082">2082</span>
 <span id="2083">2083</span>
+<span id="2084">2084</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2118,7 +2119,8 @@
         <span class="ident">array_buffer::ArrayBuffer</span>,
         <span class="ident">function::arguments::Arguments</span>,
         <span class="ident">function</span>::{
-            <span class="ident">arguments::ParameterMap</span>, <span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">Function</span>, <span class="ident">NativeFunctionSignature</span>,
+            <span class="ident">arguments::ParameterMap</span>, <span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">ConstructorKind</span>, <span class="ident">Function</span>,
+            <span class="ident">NativeFunctionSignature</span>,
         },
         <span class="ident">generator::Generator</span>,
         <span class="ident">map::map_iterator::MapIterator</span>,
@@ -3550,7 +3552,7 @@
             <span class="ident">context</span>,
             <span class="ident">function</span>: <span class="ident">Function::Native</span> {
                 <span class="ident">function</span>,
-                <span class="ident">constructor</span>: <span class="bool-val">false</span>,
+                <span class="ident">constructor</span>: <span class="prelude-val">None</span>,
             },
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
@@ -3567,7 +3569,7 @@
             <span class="ident">context</span>,
             <span class="ident">function</span>: <span class="ident">Function::Closure</span> {
                 <span class="ident">function</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="kw">_</span>, <span class="ident">context</span><span class="op">|</span> <span class="ident">function</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">context</span>)),
-                <span class="ident">constructor</span>: <span class="bool-val">false</span>,
+                <span class="ident">constructor</span>: <span class="prelude-val">None</span>,
                 <span class="ident">captures</span>: <span class="ident">Captures::new</span>(()),
             },
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
@@ -3601,7 +3603,7 @@
                     })<span class="question-mark">?</span>;
                     <span class="ident">function</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">captures</span>, <span class="ident">context</span>)
                 }),
-                <span class="ident">constructor</span>: <span class="bool-val">false</span>,
+                <span class="ident">constructor</span>: <span class="prelude-val">None</span>,
                 <span class="ident">captures</span>: <span class="ident">Captures::new</span>(<span class="ident">captures</span>),
             },
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
@@ -3649,7 +3651,7 @@
                 <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">constructor</span>,
                 ..
             } =&gt; {
-                <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>;
+                <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ConstructorKind::Base</span>);
             }
             <span class="ident">Function::Ordinary</span> { .. } <span class="op">|</span> <span class="ident">Function::Generator</span> { .. } =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;function must be native or closure&quot;</span>);
@@ -3806,7 +3808,7 @@
     <span class="ident">name</span>: <span class="ident">JsString</span>,
     <span class="ident">length</span>: <span class="ident">usize</span>,
     <span class="ident">callable</span>: <span class="ident">bool</span>,
-    <span class="ident">constructor</span>: <span class="ident">bool</span>,
+    <span class="ident">constructor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span>,
     <span class="ident">inherit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span>,
     <span class="ident">custom_prototype</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsPrototype</span><span class="op">&gt;</span>,
 }
@@ -3838,7 +3840,7 @@
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
-            <span class="ident">constructor</span>: <span class="bool-val">true</span>,
+            <span class="ident">constructor</span>: <span class="prelude-val">Some</span>(<span class="ident">ConstructorKind::Base</span>),
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
             <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
             <span class="ident">has_prototype_property</span>: <span class="bool-val">true</span>,
@@ -3860,7 +3862,7 @@
             <span class="ident">length</span>: <span class="number">0</span>,
             <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
-            <span class="ident">constructor</span>: <span class="bool-val">true</span>,
+            <span class="ident">constructor</span>: <span class="prelude-val">Some</span>(<span class="ident">ConstructorKind::Base</span>),
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
             <span class="ident">custom_prototype</span>: <span class="prelude-val">None</span>,
         }
@@ -4057,7 +4059,7 @@
     <span class="doccomment">/// Default is `true`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">constructor</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="ident">constructor</span>;
+        <span class="self">self</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ConstructorKind::Base</span>);
         <span class="self">self</span>
     }
 

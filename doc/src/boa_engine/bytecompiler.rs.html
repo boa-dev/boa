@@ -2969,8 +2969,22 @@
 <span id="2962">2962</span>
 <span id="2963">2963</span>
 <span id="2964">2964</span>
+<span id="2965">2965</span>
+<span id="2966">2966</span>
+<span id="2967">2967</span>
+<span id="2968">2968</span>
+<span id="2969">2969</span>
+<span id="2970">2970</span>
+<span id="2971">2971</span>
+<span id="2972">2972</span>
+<span id="2973">2973</span>
+<span id="2974">2974</span>
+<span id="2975">2975</span>
+<span id="2976">2976</span>
+<span id="2977">2977</span>
+<span id="2978">2978</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::function::ThisMode</span>,
+    <span class="ident">builtins::function</span>::{<span class="ident">ConstructorKind</span>, <span class="ident">ThisMode</span>},
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
     <span class="ident">syntax::ast</span>::{
         <span class="ident">node</span>::{
@@ -3052,7 +3066,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">strict</span>: <span class="ident">bool</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="kw-2">mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">code_block</span>: <span class="ident">CodeBlock::new</span>(<span class="ident">name</span>, <span class="number">0</span>, <span class="ident">strict</span>, <span class="bool-val">false</span>),
+            <span class="ident">code_block</span>: <span class="ident">CodeBlock::new</span>(<span class="ident">name</span>, <span class="number">0</span>, <span class="ident">strict</span>, <span class="prelude-val">None</span>),
             <span class="ident">literals_map</span>: <span class="ident">FxHashMap::default</span>(),
             <span class="ident">names_map</span>: <span class="ident">FxHashMap::default</span>(),
             <span class="ident">bindings_map</span>: <span class="ident">FxHashMap::default</span>(),
@@ -4898,15 +4912,20 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">strict</span> <span class="op">|</span><span class="op">|</span> <span class="ident">body</span>.<span class="ident">strict</span>();
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">length</span>();
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">CodeBlock::new</span>(<span class="ident">name</span>.<span class="ident">unwrap_or</span>(<span class="ident">Sym::EMPTY_STRING</span>), <span class="ident">length</span>, <span class="ident">strict</span>, <span class="bool-val">true</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">CodeBlock::new</span>(
+            <span class="ident">name</span>.<span class="ident">unwrap_or</span>(<span class="ident">Sym::EMPTY_STRING</span>),
+            <span class="ident">length</span>,
+            <span class="ident">strict</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">ConstructorKind::Base</span>),
+        );
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">FunctionKind::Arrow</span> <span class="op">=</span> <span class="ident">kind</span> {
-            <span class="ident">code</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            <span class="ident">code</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="prelude-val">None</span>;
             <span class="ident">code</span>.<span class="ident">this_mode</span> <span class="op">=</span> <span class="ident">ThisMode::Lexical</span>;
         }
 
         <span class="kw">if</span> <span class="ident">generator</span> {
-            <span class="ident">code</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="bool-val">false</span>;
+            <span class="ident">code</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         }
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">ByteCompiler</span> {
@@ -5507,7 +5526,16 @@
     <span class="doccomment">/// A class declaration binds the resulting class object to it&#39;s identifier.</span>
     <span class="doccomment">/// A class expression leaves the resulting class object on the stack for following operations.</span>
     <span class="kw">fn</span> <span class="ident">class</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">class</span>: <span class="kw-2">&amp;</span><span class="ident">Class</span>, <span class="ident">expression</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">CodeBlock::new</span>(<span class="ident">class</span>.<span class="ident">name</span>(), <span class="number">0</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">CodeBlock::new</span>(
+            <span class="ident">class</span>.<span class="ident">name</span>(),
+            <span class="number">0</span>,
+            <span class="bool-val">true</span>,
+            <span class="prelude-val">Some</span>(<span class="kw">if</span> <span class="ident">class</span>.<span class="ident">super_ref</span>().<span class="ident">is_some</span>() {
+                <span class="ident">ConstructorKind::Derived</span>
+            } <span class="kw">else</span> {
+                <span class="ident">ConstructorKind::Base</span>
+            }),
+        );
         <span class="ident">code</span>.<span class="ident">computed_field_names</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">gc::GcCell::new</span>(<span class="macro">vec!</span>[]));
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">ByteCompiler</span> {
             <span class="ident">code_block</span>: <span class="ident">code</span>,

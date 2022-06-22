@@ -2914,27 +2914,6 @@
 <span id="2907">2907</span>
 <span id="2908">2908</span>
 <span id="2909">2909</span>
-<span id="2910">2910</span>
-<span id="2911">2911</span>
-<span id="2912">2912</span>
-<span id="2913">2913</span>
-<span id="2914">2914</span>
-<span id="2915">2915</span>
-<span id="2916">2916</span>
-<span id="2917">2917</span>
-<span id="2918">2918</span>
-<span id="2919">2919</span>
-<span id="2920">2920</span>
-<span id="2921">2921</span>
-<span id="2922">2922</span>
-<span id="2923">2923</span>
-<span id="2924">2924</span>
-<span id="2925">2925</span>
-<span id="2926">2926</span>
-<span id="2927">2927</span>
-<span id="2928">2928</span>
-<span id="2929">2929</span>
-<span id="2930">2930</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -3303,10 +3282,7 @@
         <span class="comment">// 7. If IsConstructor(C) is false, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">c</span>) <span class="op">=</span> <span class="ident">c</span>.<span class="ident">as_constructor</span>() {
             <span class="comment">// 8. Return ? Construct(C, « 𝔽(length) »).</span>
-            <span class="prelude-val">Ok</span>(<span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">length</span>)], <span class="prelude-val">Some</span>(<span class="ident">c</span>), <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;constructing an object should always return an object&quot;</span>)
-                .<span class="ident">clone</span>())
+            <span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">length</span>)], <span class="prelude-val">Some</span>(<span class="ident">c</span>), <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
         }
@@ -3355,13 +3331,7 @@
             <span class="comment">// b. Else,</span>
             <span class="comment">//     i. Let A be ? ArrayCreate(0en).</span>
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_constructor</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>
-                    .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-                    .<span class="ident">as_object</span>()
-                    .<span class="ident">cloned</span>()
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Object constructor didn&#39;t return an object&quot;</span>)
-                    })<span class="question-mark">?</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
                 <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
             };
 
@@ -3434,13 +3404,7 @@
             <span class="comment">// 10. Else,</span>
             <span class="comment">//     a. Let A be ? ArrayCreate(len).</span>
             <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_constructor</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>
-                    .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-                    .<span class="ident">as_object</span>()
-                    .<span class="ident">cloned</span>()
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Object constructor didn&#39;t return an object&quot;</span>)
-                    })<span class="question-mark">?</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
                 <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="ident">len</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
             };
 
@@ -3516,13 +3480,7 @@
         <span class="comment">// 5. Else,</span>
         <span class="comment">//     a. Let A be ? ArrayCreate(len).</span>
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_constructor</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>
-                .<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
-                .<span class="ident">as_object</span>()
-                .<span class="ident">cloned</span>()
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;object constructor didn&#39;t return an object&quot;</span>)
-                })<span class="question-mark">?</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
             <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="ident">len</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
         };
 

@@ -59,11 +59,9 @@
 <span id="52">52</span>
 <span id="53">53</span>
 <span id="54">54</span>
-<span id="55">55</span>
-<span id="56">56</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">JsObjectType</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
@@ -80,16 +78,14 @@
         <span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">object</span> }
     }
 
-    <span class="doccomment">/// Create a [`JsFunction`] from a [`JsObject`], if the object is not a function throw a `TypeError`.</span>
+    <span class="doccomment">/// Create a [`JsFunction`] from a [`JsObject`], or return `None` if the object is not a function.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This does not clone the fields of the function, it only does a shallow clone of the object.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_function</span>() {
-            <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from_object_unchecked</span>(<span class="ident">object</span>))
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;object is not an Function&quot;</span>)
-        }
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+        <span class="ident">object</span>
+            .<span class="ident">is_callable</span>()
+            .<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident"><span class="self">Self</span>::from_object_unchecked</span>(<span class="ident">object</span>))
     }
 }
 

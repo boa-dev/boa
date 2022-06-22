@@ -3487,9 +3487,6 @@
 <span id="3480">3480</span>
 <span id="3481">3481</span>
 <span id="3482">3482</span>
-<span id="3483">3483</span>
-<span id="3484">3484</span>
-<span id="3485">3485</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -6462,11 +6459,8 @@
         <span class="comment">// 1. Let newTypedArray be ? Construct(constructor, argumentList).</span>
         <span class="kw">let</span> <span class="ident">new_typed_array</span> <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">construct</span>(<span class="ident">args</span>, <span class="prelude-val">Some</span>(<span class="ident">constructor</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">new_typed_array</span>.<span class="ident">borrow</span>();
         <span class="comment">// 2. Perform ? ValidateTypedArray(newTypedArray).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">new_typed_array</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
             .<span class="ident">as_typed_array</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
@@ -6486,7 +6480,7 @@
         }
 
         <span class="comment">// 4. Return newTypedArray.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">clone</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident">new_typed_array</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-allocatetypedarraybuffer&gt;</span>
