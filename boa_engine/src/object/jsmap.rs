@@ -63,9 +63,7 @@ impl JsMap {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record
-            .iterator_object()
-            .as_object()
-            .expect("MapIterator for Map.prototype.entries() should not fail");
+            .iterator();
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 
@@ -75,9 +73,7 @@ impl JsMap {
         let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record
-            .iterator_object()
-            .as_object()
-            .expect("MapIterator for Map.prototype.keys() should not fail");
+            .iterator();
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 
@@ -154,9 +150,7 @@ impl JsMap {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record
-            .iterator_object()
-            .as_object()
-            .expect("MapIterator for Map.prototype.values() should not fail");
+            .iterator();
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 }
