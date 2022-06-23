@@ -62,8 +62,7 @@ impl JsMap {
     pub fn entries(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
-        let map_iterator_object = iterator_record
-            .iterator();
+        let map_iterator_object = iterator_record.iterator();
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 
@@ -72,8 +71,7 @@ impl JsMap {
     pub fn keys(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
-        let map_iterator_object = iterator_record
-            .iterator();
+        let map_iterator_object = iterator_record.iterator();
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 
@@ -149,8 +147,7 @@ impl JsMap {
     pub fn values(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
-        let map_iterator_object = iterator_record
-            .iterator();
+        let map_iterator_object = iterator_record.iterator();
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 }
