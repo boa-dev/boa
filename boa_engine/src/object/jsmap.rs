@@ -1,7 +1,4 @@
 // This module is a wrapper for the Map Builtin Javascript Object
-//
-// TODO: improve Iterator object interaction: entries, keys, values
-// forEach implementation is missing
 use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
