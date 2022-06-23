@@ -129,7 +129,7 @@ impl JsMap {
         Map::has(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    // Executes provided callback function for each key-value pair.
+    /// Executes provided callback function for each key-value pair.
     #[inline]
     pub fn for_each(
         &self,
