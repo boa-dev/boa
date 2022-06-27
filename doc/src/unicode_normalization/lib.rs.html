@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.19/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-normalization-0.1.20/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://unicode-rs.github.io/unicode-rs_sm.png"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_normalization/index.html"><div class="logo-container"><img src="https://unicode-rs.github.io/unicode-rs_sm.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -204,6 +204,42 @@
 <span id="197">197</span>
 <span id="198">198</span>
 <span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2012-2015 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
@@ -240,7 +276,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```toml</span>
 <span class="doccomment">//! [dependencies]</span>
-<span class="doccomment">//! unicode-normalization = &quot;0.1.19&quot;</span>
+<span class="doccomment">//! unicode-normalization = &quot;0.1.20&quot;</span>
 <span class="doccomment">//! ```</span>
 
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>, <span class="ident">unsafe_code</span>)]</span>
@@ -268,7 +304,10 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::replace::Replacements</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::stream_safe::StreamSafe</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::tables::UNICODE_VERSION</span>;
-<span class="kw">use</span> <span class="ident">core::str::Chars</span>;
+<span class="kw">use</span> <span class="ident">core</span>::{
+    <span class="ident">str::Chars</span>,
+    <span class="ident">option</span>,
+};
 
 <span class="kw">mod</span> <span class="ident">no_std_prelude</span>;
 
@@ -369,6 +408,39 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) -&gt; <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">StreamSafe::new</span>(<span class="self">self</span>.<span class="ident">chars</span>())
+    }
+}
+
+
+<span class="kw">impl</span> <span class="ident">UnicodeNormalization</span><span class="op">&lt;</span><span class="ident">option::IntoIter</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">char</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">nfd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">option::IntoIter</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">decompose::new_canonical</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>).<span class="ident">into_iter</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">nfkd</span>(<span class="self">self</span>) -&gt; <span class="ident">Decompositions</span><span class="op">&lt;</span><span class="ident">option::IntoIter</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">decompose::new_compatible</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>).<span class="ident">into_iter</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">nfc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">option::IntoIter</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">recompose::new_canonical</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>).<span class="ident">into_iter</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">nfkc</span>(<span class="self">self</span>) -&gt; <span class="ident">Recompositions</span><span class="op">&lt;</span><span class="ident">option::IntoIter</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">recompose::new_compatible</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>).<span class="ident">into_iter</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">cjk_compat_variants</span>(<span class="self">self</span>) -&gt; <span class="ident">Replacements</span><span class="op">&lt;</span><span class="ident">option::IntoIter</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">replace::new_cjk_compat_variants</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>).<span class="ident">into_iter</span>())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">stream_safe</span>(<span class="self">self</span>) -&gt; <span class="ident">StreamSafe</span><span class="op">&lt;</span><span class="ident">option::IntoIter</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="ident">StreamSafe::new</span>(<span class="prelude-val">Some</span>(<span class="self">self</span>).<span class="ident">into_iter</span>())
     }
 }
 

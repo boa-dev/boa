@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/measureme-10.0.0/src/counters.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>counters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/measureme-10.1.0/src/counters.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>counters.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../measureme/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1002,10 +1002,6 @@
 <span id="997">997</span>
 <span id="998">998</span>
 <span id="999">999</span>
-<span id="1000">1000</span>
-<span id="1001">1001</span>
-<span id="1002">1002</span>
-<span id="1003">1003</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Profiling counters and their implementation.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Available counters</span>
@@ -1027,7 +1023,6 @@
 <span class="doccomment">//! performance counter support ([#143](https://github.com/rust-lang/measureme/pull/143)).*</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The hardware performance counters (i.e. all counters other than `wall-time`) are limited to:</span>
-<span class="doccomment">//! * nightly Rust (gated on `features = [&quot;nightly&quot;]`), for `asm!`</span>
 <span class="doccomment">//! * Linux, for out-of-the-box performance counter reads from userspace</span>
 <span class="doccomment">//!   * other OSes could work through custom kernel extensions/drivers, in the future</span>
 <span class="doccomment">//! * `x86_64` CPUs, mostly due to lack of other available test hardware</span>
@@ -1308,10 +1303,11 @@
     <span class="string">&quot;please report this to https://github.com/rust-lang/measureme/issues/new&quot;</span>;
 
 <span class="doccomment">/// Linux x86_64 implementation based on `perf_event_open` and `rdpmc`.</span>
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>))]</span>
 <span class="kw">mod</span> <span class="ident">hw</span> {
     <span class="kw">use</span> <span class="ident">memmap2</span>::{<span class="ident">Mmap</span>, <span class="ident">MmapOptions</span>};
     <span class="kw">use</span> <span class="ident">perf_event_open_sys</span>::{<span class="ident">bindings</span>::<span class="kw-2">*</span>, <span class="ident">perf_event_open</span>};
+    <span class="kw">use</span> <span class="ident">std::arch::asm</span>;
     <span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
     <span class="kw">use</span> <span class="ident">std::error::Error</span>;
     <span class="kw">use</span> <span class="ident">std::fs</span>;
@@ -1942,7 +1938,7 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>, <span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;linux&quot;</span>)))]</span>
 <span class="kw">mod</span> <span class="ident">hw</span> {
     <span class="kw">use</span> <span class="ident">std::error::Error</span>;
 
@@ -1992,10 +1988,6 @@
                 }
                 <span class="ident">msg</span> <span class="op">+</span><span class="op">=</span> <span class="ident">s</span>;
             };
-
-            <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;nightly&quot;</span>)) {
-                <span class="ident">add_error</span>(<span class="string">&quot;only supported with measureme&#39;s \&quot;nightly\&quot; feature&quot;</span>);
-            }
 
             <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">not</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;x86_64&quot;</span>)) {
                 <span class="ident">add_error</span>(<span class="string">&quot;only supported architecture is x86_64&quot;</span>);
