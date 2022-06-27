@@ -14,4 +14,4 @@ license = "Unlicense/MIT"
 gc = { version = "0.4.1", features = ["derive"] }
 
 # Optional Dependencies
-measureme = { version = "10.0.0", optional = true }
+measureme = { version = "10.1.0", optional = true }
