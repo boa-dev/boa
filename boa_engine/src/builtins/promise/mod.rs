@@ -8,14 +8,14 @@ mod promise_job;
 use self::promise_job::PromiseJob;
 use super::{iterable::IteratorRecord, JsArgs};
 use crate::{
-    builtins::BuiltIn,
+    builtins::{Array, BuiltIn},
     context::intrinsics::StandardConstructors,
     job::JobCallback,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsFunction, JsObject, ObjectData,
     },
-    property::Attribute,
+    property::{Attribute, PropertyDescriptorBuilder},
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult,
@@ -219,6 +219,7 @@ impl BuiltIn for Promise {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .static_method(Self::all, "all", 1)
+        .static_method(Self::any, "any", 1)
         .static_method(Self::race, "race", 1)
         .static_method(Self::reject, "reject", 1)
         .static_method(Self::resolve, "resolve", 1)
@@ -550,6 +551,284 @@ impl Promise {
             next_promise.invoke(
                 "then",
                 &[on_fulfilled.into(), result_capability.reject.clone().into()],
+                context,
+            )?;
+
+            // t. Set index to index + 1.
+            index += 1;
+        }
+    }
+
+    /// `Promise.any ( iterable )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.any
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/any
+    pub(crate) fn any(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let C be the this value.
+        let c = this;
+
+        // 2. Let promiseCapability be ? NewPromiseCapability(C).
+        let promise_capability = PromiseCapability::new(c, context)?;
+
+        // Note: We already checked that `C` is a constructor in `NewPromiseCapability(C)`.
+        let c = c.as_object().expect("must be a constructor");
+
+        // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
+        let promise_resolve = Self::get_promise_resolve(c, context);
+
+        // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
+        if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
+
+        // 5. Let iteratorRecord be Completion(GetIterator(iterable)).
+        let iterator_record = args.get_or_undefined(0).get_iterator(context, None, None);
+
+        // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
+        if_abrupt_reject_promise!(iterator_record, promise_capability, context);
+        let mut iterator_record = iterator_record;
+
+        // 7. Let result be Completion(PerformPromiseAny(iteratorRecord, C, promiseCapability, promiseResolve)).
+        let mut result = Self::perform_promise_any(
+            &mut iterator_record,
+            c,
+            &promise_capability,
+            &promise_resolve,
+            context,
+        )
+        .map(JsValue::from);
+
+        // 8. If result is an abrupt completion, then
+        if result.is_err() {
+            // a. If iteratorRecord.[[Done]] is false, set result to Completion(IteratorClose(iteratorRecord, result)).
+            if !iterator_record.done() {
+                result = iterator_record.close(result, context);
+            }
+
+            // b. IfAbruptRejectPromise(result, promiseCapability).
+            if_abrupt_reject_promise!(result, promise_capability, context);
+
+            return Ok(result);
+        }
+
+        // 9. Return ? result.
+        result
+    }
+
+    /// `PerformPromiseAny ( iteratorRecord, constructor, resultCapability, promiseResolve )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-performpromiseany
+    fn perform_promise_any(
+        iterator_record: &mut IteratorRecord,
+        constructor: &JsObject,
+        result_capability: &PromiseCapability,
+        promise_resolve: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
+        #[derive(Debug, Trace, Finalize)]
+        struct RejectElementCaptures {
+            #[unsafe_ignore_trace]
+            already_called: Rc<Cell<bool>>,
+            index: usize,
+            errors: GcCell<Vec<JsValue>>,
+            capability_reject: JsFunction,
+            #[unsafe_ignore_trace]
+            remaining_elements_count: Rc<Cell<i32>>,
+        }
+
+        // 1. Let errors be a new empty List.
+        let errors = GcCell::new(Vec::new());
+
+        // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
+        let remaining_elements_count = Rc::new(Cell::new(1));
+
+        // 3. Let index be 0.
+        let mut index = 0;
+
+        // 4. Repeat,
+        loop {
+            // a. Let next be Completion(IteratorStep(iteratorRecord)).
+            let next = iterator_record.step(context);
+
+            let next_value = match next {
+                Err(e) => {
+                    // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                    iterator_record.set_done(true);
+
+                    // c. ReturnIfAbrupt(next).
+                    return Err(e);
+                }
+                // d. If next is false, then
+                Ok(None) => {
+                    // i. Set iteratorRecord.[[Done]] to true.
+                    iterator_record.set_done(true);
+
+                    // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                    remaining_elements_count.set(remaining_elements_count.get() - 1);
+
+                    // iii. If remainingElementsCount.[[Value]] is 0, then
+                    if remaining_elements_count.get() == 0 {
+                        // 1. Let error be a newly created AggregateError object.
+                        let error = JsObject::from_proto_and_data(
+                            context
+                                .intrinsics()
+                                .constructors()
+                                .aggregate_error()
+                                .prototype(),
+                            ObjectData::error(),
+                        );
+
+                        // 2. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
+                        error
+                            .define_property_or_throw(
+                                "errors",
+                                PropertyDescriptorBuilder::new()
+                                    .configurable(true)
+                                    .enumerable(false)
+                                    .writable(true)
+                                    .value(Array::create_array_from_list(
+                                        errors.into_inner(),
+                                        context,
+                                    )),
+                                context,
+                            )
+                            .expect("cannot fail per spec");
+
+                        // 3. Return ThrowCompletion(error).
+                        return Err(error.into());
+                    }
+
+                    // iv. Return resultCapability.[[Promise]].
+                    return Ok(result_capability.promise.clone());
+                }
+                Ok(Some(next)) => {
+                    // e. Let nextValue be Completion(IteratorValue(next)).
+                    let next_value = next.value(context);
+
+                    match next_value {
+                        Err(e) => {
+                            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                            iterator_record.set_done(true);
+
+                            // g. ReturnIfAbrupt(nextValue).
+                            return Err(e);
+                        }
+                        Ok(next_value) => next_value,
+                    }
+                }
+            };
+
+            // h. Append undefined to errors.
+            errors.borrow_mut().push(JsValue::undefined());
+
+            // i. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
+            let next_promise =
+                promise_resolve.call(&constructor.clone().into(), &[next_value], context)?;
+
+            // j. Let stepsRejected be the algorithm steps defined in Promise.any Reject Element Functions.
+            // k. Let lengthRejected be the number of non-optional parameters of the function definition in Promise.any Reject Element Functions.
+            // l. Let onRejected be CreateBuiltinFunction(stepsRejected, lengthRejected, "", « [[AlreadyCalled]], [[Index]], [[Errors]], [[Capability]], [[RemainingElements]] »).
+            // m. Set onRejected.[[AlreadyCalled]] to false.
+            // n. Set onRejected.[[Index]] to index.
+            // o. Set onRejected.[[Errors]] to errors.
+            // p. Set onRejected.[[Capability]] to resultCapability.
+            // q. Set onRejected.[[RemainingElements]] to remainingElementsCount.
+            let on_rejected = FunctionBuilder::closure_with_captures(
+                context,
+                |_, args, captures, context| {
+                    // https://tc39.es/ecma262/#sec-promise.any-reject-element-functions
+
+                    // 1. Let F be the active function object.
+
+                    // 2. If F.[[AlreadyCalled]] is true, return undefined.
+                    if captures.already_called.get() {
+                        return Ok(JsValue::undefined());
+                    }
+
+                    // 3. Set F.[[AlreadyCalled]] to true.
+                    captures.already_called.set(true);
+
+                    // 4. Let index be F.[[Index]].
+                    // 5. Let errors be F.[[Errors]].
+                    // 6. Let promiseCapability be F.[[Capability]].
+                    // 7. Let remainingElementsCount be F.[[RemainingElements]].
+
+                    // 8. Set errors[index] to x.
+                    captures.errors.borrow_mut()[captures.index] = args.get_or_undefined(0).clone();
+
+                    // 9. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                    captures
+                        .remaining_elements_count
+                        .set(captures.remaining_elements_count.get() - 1);
+
+                    // 10. If remainingElementsCount.[[Value]] is 0, then
+                    if captures.remaining_elements_count.get() == 0 {
+                        // a. Let error be a newly created AggregateError object.
+                        let error = JsObject::from_proto_and_data(
+                            context
+                                .intrinsics()
+                                .constructors()
+                                .aggregate_error()
+                                .prototype(),
+                            ObjectData::error(),
+                        );
+
+                        // b. Perform ! DefinePropertyOrThrow(error, "errors", PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).
+                        error
+                            .define_property_or_throw(
+                                "errors",
+                                PropertyDescriptorBuilder::new()
+                                    .configurable(true)
+                                    .enumerable(false)
+                                    .writable(true)
+                                    .value(Array::create_array_from_list(
+                                        captures.errors.clone().into_inner(),
+                                        context,
+                                    )),
+                                context,
+                            )
+                            .expect("cannot fail per spec");
+
+                        // c. Return ? Call(promiseCapability.[[Reject]], undefined, « error »).
+                        return captures.capability_reject.call(
+                            &JsValue::undefined(),
+                            &[error.into()],
+                            context,
+                        );
+                    }
+
+                    // 11. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                RejectElementCaptures {
+                    already_called: Rc::new(Cell::new(false)),
+                    index,
+                    errors: errors.clone(),
+                    capability_reject: result_capability.reject.clone(),
+                    remaining_elements_count: remaining_elements_count.clone(),
+                },
+            )
+            .name("")
+            .length(1)
+            .constructor(false)
+            .build();
+
+            // r. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
+            remaining_elements_count.set(remaining_elements_count.get() + 1);
+
+            // s. Perform ? Invoke(nextPromise, "then", « resultCapability.[[Resolve]], onRejected »).
+            next_promise.invoke(
+                "then",
+                &[result_capability.resolve.clone().into(), on_rejected.into()],
                 context,
             )?;
 
