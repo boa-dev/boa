@@ -98,7 +98,7 @@ impl Sym {
     pub(super) const unsafe fn new_unchecked(value: usize) -> Self {
         Self {
             value:
-            // SAFETY: The user must ensure the invariants of the function.
+            // SAFETY: The caller must ensure the invariants of the function.
             unsafe {
                 NonZeroUsize::new_unchecked(value)
             },

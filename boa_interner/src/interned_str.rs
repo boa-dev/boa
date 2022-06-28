@@ -35,7 +35,7 @@ impl InternedStr {
     /// could cause Undefined Behaviour.
     #[inline]
     pub(super) unsafe fn as_str(&self) -> &str {
-        // SAFETY: The user must verify the invariants
+        // SAFETY: The caller must verify the invariants
         // specified on the struct definition.
         unsafe { self.ptr.as_ref() }
     }
@@ -43,7 +43,7 @@ impl InternedStr {
 
 impl std::hash::Hash for InternedStr {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        // SAFETY: The user must verify the invariants
+        // SAFETY: The caller must verify the invariants
         // specified in the struct definition.
         unsafe {
             self.as_str().hash(state);
@@ -55,7 +55,7 @@ impl Eq for InternedStr {}
 
 impl PartialEq for InternedStr {
     fn eq(&self, other: &Self) -> bool {
-        // SAFETY: The user must verify the invariants
+        // SAFETY: The caller must verify the invariants
         // specified in the struct definition.
         unsafe { self.as_str() == other.as_str() }
     }
@@ -63,7 +63,7 @@ impl PartialEq for InternedStr {
 
 impl Borrow<str> for InternedStr {
     fn borrow(&self) -> &str {
-        // SAFETY: The user must verify the invariants
+        // SAFETY: The caller must verify the invariants
         // specified in the struct definition.
         unsafe { self.as_str() }
     }

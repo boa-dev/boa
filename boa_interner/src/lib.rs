@@ -232,10 +232,9 @@ impl Interner {
     /// memory inside `head` and that it won't be invalidated
     /// by allocations and deallocations.
     unsafe fn generate_symbol(&mut self, string: NonNull<str>) -> Sym {
-        // SAFETY:  a static `str` lives throughout the entirety of the
-        //          program, so an `InternedStr` pointing to it
-        //          is always safe to use.
         let next = Sym::new(self.len() + 1).expect("Adding one makes `self.len()` always `> 0`");
+        // SAFETY: The caller has to maintain the invariants specified
+        // on the function.
         unsafe {
             let interned = InternedStr::new(string);
             self.spans.push(interned.clone());
