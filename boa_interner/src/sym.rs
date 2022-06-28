@@ -1,6 +1,5 @@
 use std::num::NonZeroUsize;
 
-use gc::{unsafe_empty_trace, Finalize, Trace};
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
@@ -8,7 +7,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it's
 /// optimized so that it can occupy 1 pointer width even in an `Option` type.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
 #[allow(clippy::unsafe_derive_deserialize)]
@@ -110,11 +109,6 @@ impl Sym {
     pub(super) const fn get(self) -> usize {
         self.value.get()
     }
-}
-
-// Safe because `Sym` implements `Copy`.
-unsafe impl Trace for Sym {
-    unsafe_empty_trace!();
 }
 
 /// Ordered set of commonly used static strings.

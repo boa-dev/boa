@@ -70,17 +70,16 @@
     rustdoc::missing_doc_code_examples
 )]
 
+mod fixed_string;
 mod interned_str;
 mod sym;
 #[cfg(test)]
 mod tests;
 
+use fixed_string::FixedString;
 pub use sym::*;
 
-use std::{
-    fmt::{Debug, Display},
-    ptr::NonNull,
-};
+use std::fmt::{Debug, Display};
 
 use interned_str::InternedStr;
 use rustc_hash::FxHashMap;
@@ -88,10 +87,22 @@ use rustc_hash::FxHashMap;
 /// The string interner for Boa.
 #[derive(Debug, Default)]
 pub struct Interner {
+    // COMMENT FOR DEVS:
+    // This interner works on the assumption that
+    // `head` won't ever be reallocated, since this could invalidate
+    // some of our stored pointers inside `spans`.
+    // This means that any operation on `head` and `full` should be carefully
+    // reviewed to not cause Undefined Behaviour.
+    // `get_or_intern` has a more thorough explanation on this.
+    //
+    // Also, if you want to implement `shrink_to_fit` (and friends),
+    // please check out https://github.com/Robbepop/string-interner/pull/47 first.
+    // This doesn't implement that method, since implementing it increases
+    // our memory footprint.
     symbols: FxHashMap<InternedStr, Sym>,
     spans: Vec<InternedStr>,
-    head: String,
-    full: Vec<String>,
+    head: FixedString,
+    full: Vec<FixedString>,
 }
 
 impl Interner {
@@ -106,7 +117,7 @@ impl Interner {
         Self {
             symbols: FxHashMap::default(),
             spans: Vec::with_capacity(capacity),
-            head: String::with_capacity(capacity),
+            head: FixedString::new(capacity),
             full: Vec::new(),
         }
     }
@@ -150,18 +161,42 @@ impl Interner {
             return sym;
         }
 
-        let capacity = self.head.capacity();
-
-        if capacity < self.head.len() + string.len() {
-            let new_cap = (usize::max(capacity, string.len()) + 1).next_power_of_two();
-            let new_head = String::with_capacity(new_cap);
-            let old_head = std::mem::replace(&mut self.head, new_head);
-            self.full.push(old_head);
-        }
-
-        let old_len = self.head.len();
-        self.head.push_str(string);
-        let interned_str = NonNull::from(&self.head[old_len..self.head.len()]);
+        // SAFETY:
+        //
+        // Firstly, this interner works on the assumption that the allocated
+        // memory by `head` won't ever be moved from its position on the heap,
+        // which is an important point to understand why manipulating it like
+        // this is safe.
+        //
+        // `String` (which is simply a `Vec<u8>` with additional invariants)
+        // is essentially a pointer to heap memory that can be moved without
+        // any problems, since copying a pointer cannot invalidate the memory
+        // that it points to.
+        //
+        // However, `String` CAN be invalidated when pushing, extending or
+        // shrinking it, since all those operations reallocate on the heap.
+        //
+        // To prevent that, we HAVE to ensure the capacity will succeed without
+        // having to reallocate, and the only way to do that without invalidating
+        // any other alive `InternedStr` is to create a brand new `head` with
+        // enough capacity and push the old `head` to `full` to keep it alive
+        // throughout the lifetime of the whole `Interner`.
+        //
+        // `FixedString` encapsulates this by only allowing checked `push`es
+        // to the internal string, but we still have to ensure the memory
+        // of `head` is not deallocated until the whole `Interner` deallocates,
+        // which we can do by moving it inside the `Interner` itself, specifically
+        // on the `full` vector, where every other old `head` also lives.
+        let interned_str = unsafe {
+            self.head.push(string).unwrap_or_else(|| {
+                let new_cap =
+                    (usize::max(self.head.capacity(), string.len()) + 1).next_power_of_two();
+                let new_head = FixedString::new(new_cap);
+                let old_head = std::mem::replace(&mut self.head, new_head);
+                self.full.push(old_head);
+                self.head.push_unchecked(string)
+            })
+        };
 
         // SAFETY: We are obtaining a pointer to the internal memory of
         // `head`, which is alive through the whole life of `Interner`, so
@@ -175,8 +210,8 @@ impl Interner {
     ///
     /// # Note
     ///
-    /// This is more efficient than [`StringInterner::get_or_intern`] since it might
-    /// avoid some memory allocations if the backends supports this.
+    /// This is more efficient than [`Interner::get_or_intern`], since it
+    /// avoids storing `string` inside the [`Interner`].
     ///
     /// # Panics
     ///
@@ -186,19 +221,17 @@ impl Interner {
         self.get(string).unwrap_or_else(|| {
             // SAFETY: a static `str` is always alive, so its pointer
             // should therefore always be valid.
-            unsafe { self.generate_symbol(NonNull::from(string)) }
+            unsafe { self.generate_symbol(InternedStr::new(string.into())) }
         })
     }
 
     /// Returns the string for the given symbol if any.
     #[inline]
     pub fn resolve(&self, symbol: Sym) -> Option<&str> {
-        let index = symbol.get();
+        let index = symbol.get() - 1;
 
-        COMMON_STRINGS.index(index - 1).copied().or_else(|| {
-            self.spans
-                .get(symbol.get() - COMMON_STRINGS.len() - 1)
-                .map(|ptr|
+        COMMON_STRINGS.index(index).copied().or_else(|| {
+            self.spans.get(index - COMMON_STRINGS.len()).map(|ptr|
                 // SAFETY: We always ensure the stored `InternedStr`s always
                 // reference memory inside `head` and `full`
                 unsafe {ptr.as_str()})
@@ -232,15 +265,10 @@ impl Interner {
     /// The caller must ensure `string` points to a valid
     /// memory inside `head` and that it won't be invalidated
     /// by allocations and deallocations.
-    unsafe fn generate_symbol(&mut self, string: NonNull<str>) -> Sym {
+    unsafe fn generate_symbol(&mut self, string: InternedStr) -> Sym {
         let next = Sym::new(self.len() + 1).expect("Adding one makes `self.len()` always `> 0`");
-        // SAFETY: The caller has to maintain the invariants specified
-        // on the function.
-        unsafe {
-            let interned = InternedStr::new(string);
-            self.spans.push(interned.clone());
-            self.symbols.insert(interned, next);
-        }
+        self.spans.push(string.clone());
+        self.symbols.insert(string, next);
         next
     }
 }

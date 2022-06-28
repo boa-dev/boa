@@ -133,7 +133,6 @@ dependencies = [
 name = "boa_interner"
 version = "0.15.0"
 dependencies = [
- "gc",
  "phf",
  "rustc-hash",
  "serde",

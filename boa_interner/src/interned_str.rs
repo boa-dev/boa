@@ -1,7 +1,7 @@
 use std::{borrow::Borrow, ptr::NonNull};
 
 /// Wrapper for an interned str pointer, required to
-/// quickly check using a hash if a string is inside an [`Interner`].
+/// quickly check using a hash if a string is inside an [`Interner`][`super::Interner`].
 ///
 /// # Safety
 ///
@@ -9,7 +9,7 @@ use std::{borrow::Borrow, ptr::NonNull};
 /// - Use without ensuring the referenced memory is still allocated.
 /// - Construction of an [`InternedStr`] from an invalid [`NonNull<str>`].
 ///
-/// In general, this should not be used outside of an [`Interner`].
+/// In general, this should not be used outside of an [`Interner`][`super::Interner`].
 #[derive(Debug, Clone)]
 pub(super) struct InternedStr {
     ptr: NonNull<str>,
