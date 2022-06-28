@@ -11,6 +11,7 @@ categories = ["data-structures"]
 license = "Unlicense/MIT"
 
 [dependencies]
-string-interner = "0.14.0"
 serde = { version = "1.0.137", features = ["derive"], optional = true }
 gc = { version = "0.4.1", features = ["derive"] }
+phf = { version = "0.10.1", features = ["macros"] }
+rustc-hash = "1.1.0"
