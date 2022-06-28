@@ -4,7 +4,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
 
-/// The super keyword is used to access fields on an object's parent.
+/// The `super` keyword is used to access fields on an object's parent.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]

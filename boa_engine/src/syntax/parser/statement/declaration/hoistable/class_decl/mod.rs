@@ -3,7 +3,7 @@ use crate::syntax::{
         node::{
             self,
             declaration::class_decl::ClassElement as ClassElementNode,
-            function_contains_super, function_contains_super_call,
+            function_contains_super, has_direct_super,
             object::{MethodDefinition, PropertyName::Literal},
             Class, ContainsSymbol, FormalParameterList, FunctionExpr,
         },
@@ -314,8 +314,8 @@ where
                     (None, Some(element)) => {
                         match &element {
                             ClassElementNode::PrivateMethodDefinition(name, method) => {
-                                if function_contains_super_call(method.body(), method.parameters())
-                                {
+                                // It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
+                                if has_direct_super(method.body(), method.parameters()) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,
@@ -372,8 +372,8 @@ where
                                 }
                             }
                             ClassElementNode::PrivateStaticMethodDefinition(name, method) => {
-                                if function_contains_super_call(method.body(), method.parameters())
-                                {
+                                // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                                if has_direct_super(method.body(), method.parameters()) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,
@@ -469,8 +469,11 @@ where
                             }
                             ClassElementNode::MethodDefinition(_, method)
                             | ClassElementNode::StaticMethodDefinition(_, method) => {
-                                if function_contains_super_call(method.body(), method.parameters())
-                                {
+                                // ClassElement : MethodDefinition:
+                                //  It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
+                                // ClassElement : static MethodDefinition:
+                                //  It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                                if has_direct_super(method.body(), method.parameters()) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,

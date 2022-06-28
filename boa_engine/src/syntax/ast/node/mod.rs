@@ -894,7 +894,7 @@ impl Node {
         false
     }
 
-    /// Returns true if the node contains the given token.
+    /// Returns `true` if the node contains the given token.
     ///
     /// More information:
     ///  - [ECMAScript specification][spec]
@@ -1336,11 +1336,13 @@ pub(crate) fn function_contains_super(
     false
 }
 
-/// Helper function to check if a function contains a super call.
-pub(crate) fn function_contains_super_call(
-    body: &StatementList,
-    parameters: &FormalParameterList,
-) -> bool {
+/// Returns `true` if the function parameters or body contain a direct `super` call.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
+pub(crate) fn has_direct_super(body: &StatementList, parameters: &FormalParameterList) -> bool {
     for param in parameters.parameters.iter() {
         if param.declaration().contains(ContainsSymbol::SuperCall) {
             return true;

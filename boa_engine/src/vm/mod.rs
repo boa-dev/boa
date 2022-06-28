@@ -1940,20 +1940,6 @@ impl Context {
                 let compile_environment = self.vm.frame().code.compile_environments
                     [compile_environments_index as usize]
                     .clone();
-
-                //let constructor = self.vm.frame().code.constructor;
-                //let is_lexical = self.vm.frame().code.this_mode.is_lexical();
-                //let this = if constructor.is_some() || !is_lexical {
-                //    self.vm.frame().this.clone()
-                //} else {
-                //    JsValue::undefined()
-                //};
-                //
-                //self.realm.environments.push_function(
-                //    num_bindings as usize,
-                //    compile_environment,
-                //    this,
-                //);
                 self.realm
                     .environments
                     .push_function_inherit(num_bindings as usize, compile_environment);

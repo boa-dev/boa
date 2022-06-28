@@ -230,7 +230,7 @@ impl Declaration {
         }
     }
 
-    /// Returns true if the node contains the given token.
+    /// Returns `true` if the node contains the given token.
     ///
     /// More information:
     ///  - [ECMAScript specification][spec]
@@ -408,7 +408,7 @@ impl DeclarationPattern {
         false
     }
 
-    /// Returns true if the node contains the given token.
+    /// Returns `true` if the node contains the given token.
     ///
     /// More information:
     ///  - [ECMAScript specification][spec]

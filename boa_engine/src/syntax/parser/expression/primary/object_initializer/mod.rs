@@ -13,7 +13,7 @@ mod tests;
 use crate::syntax::{
     ast::{
         node::{
-            function_contains_super, function_contains_super_call,
+            function_contains_super, has_direct_super,
             object::{self, MethodDefinition},
             AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
             GeneratorExpr, Node, Object,
@@ -182,7 +182,7 @@ where
                             .parse(cursor, interner)?;
 
                     // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                    if function_contains_super_call(method.body(), method.parameters()) {
+                    if has_direct_super(method.body(), method.parameters()) {
                         return Err(ParseError::general("invalid super usage", position));
                     }
 
@@ -195,7 +195,7 @@ where
                     AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if function_contains_super_call(method.body(), method.parameters()) {
+                if has_direct_super(method.body(), method.parameters()) {
                     return Err(ParseError::general("invalid super usage", position));
                 }
 
@@ -222,7 +222,7 @@ where
                 GeneratorMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
             // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-            if function_contains_super_call(method.body(), method.parameters()) {
+            if has_direct_super(method.body(), method.parameters()) {
                 return Err(ParseError::general("invalid super usage", position));
             }
 
@@ -294,7 +294,7 @@ where
                 )?;
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if function_contains_super_call(&body, &FormalParameterList::default()) {
+                if has_direct_super(&body, &FormalParameterList::default()) {
                     return Err(ParseError::general("invalid super usage", position));
                 }
 
@@ -352,7 +352,7 @@ where
                 }
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if function_contains_super_call(&body, &parameters) {
+                if has_direct_super(&body, &parameters) {
                     return Err(ParseError::general(
                         "invalid super usage",
                         params_start_position,
@@ -431,7 +431,7 @@ where
                 }
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if function_contains_super_call(&body, &params) {
+                if has_direct_super(&body, &params) {
                     return Err(ParseError::general(
                         "invalid super usage",
                         params_start_position,
