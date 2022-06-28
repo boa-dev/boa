@@ -95,12 +95,13 @@ pub struct Interner {
 }
 
 impl Interner {
-    /// Creates a new `StringInterner`.
+    /// Creates a new [`Interner`].
     #[inline]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Creates a new [`Interner`] with the specified capacity.
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             symbols: FxHashMap::default(),
