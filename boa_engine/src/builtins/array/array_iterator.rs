@@ -5,8 +5,8 @@ use crate::{
     symbol::WellKnownSymbols,
     Context, JsResult,
 };
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
-use gc::{Finalize, Trace};
 
 /// The Array Iterator object represents an iteration over an array. It implements the iterator protocol.
 ///
