@@ -13,9 +13,15 @@ impl FixedString {
         }
     }
 
-    /// Get the maximum capacity of the [`FixedString`].
+    /// Gets the maximum capacity of the [`FixedString`].
     pub(super) fn capacity(&self) -> usize {
         self.inner.capacity()
+    }
+
+    /// Returns `true` if the [`FixedString`] has length zero,
+    /// and `false` otherwise.
+    pub(super) fn is_empty(&self) -> bool {
+        self.inner.is_empty()
     }
 
     /// Tries to push `string` to the [`FixedString`], and returns

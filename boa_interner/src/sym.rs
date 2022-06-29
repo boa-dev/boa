@@ -82,18 +82,18 @@ impl Sym {
     /// Symbol for the `"public"` string.
     pub const PUBLIC: Self = unsafe { Self::new_unchecked(22) };
 
-    #[inline]
     /// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
+    #[inline]
     pub(super) fn new(value: usize) -> Option<Self> {
         NonZeroUsize::new(value).map(|value| Self { value })
     }
 
-    #[inline]
     /// Creates a new [`Sym`] from the provided `value`, without checking if `value` is not zero
     ///
     /// # Safety
     ///
     /// `value` must not be zero.
+    #[inline]
     pub(super) const unsafe fn new_unchecked(value: usize) -> Self {
         Self {
             value:
@@ -104,8 +104,8 @@ impl Sym {
         }
     }
 
-    #[inline]
     /// Returns the internal value of the [`Sym`]
+    #[inline]
     pub(super) const fn get(self) -> usize {
         self.value.get()
     }

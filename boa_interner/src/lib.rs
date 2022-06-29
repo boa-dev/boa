@@ -113,6 +113,7 @@ impl Interner {
     }
 
     /// Creates a new [`Interner`] with the specified capacity.
+    #[inline]
     pub fn with_capacity(capacity: usize) -> Self {
         Self {
             symbols: FxHashMap::default(),
@@ -128,8 +129,8 @@ impl Interner {
         COMMON_STRINGS.len() + self.spans.len()
     }
 
-    #[inline]
     /// Returns `true` if the [`Interner`] contains no interned strings.
+    #[inline]
     pub fn is_empty(&self) -> bool {
         COMMON_STRINGS.is_empty() && self.spans.is_empty()
     }
@@ -193,7 +194,16 @@ impl Interner {
                     (usize::max(self.head.capacity(), string.len()) + 1).next_power_of_two();
                 let new_head = FixedString::new(new_cap);
                 let old_head = std::mem::replace(&mut self.head, new_head);
-                self.full.push(old_head);
+
+                // If the user creates an `Interner`
+                // with `Interner::with_capacity(BIG_NUMBER)` and
+                // the first interned string's length is bigger than `BIG_NUMBER`,
+                // `self.full.push(old_head)` would push a big, empty string of
+                // allocated size `BIG_NUMBER` into `full`.
+                // This prevents that case.
+                if !old_head.is_empty() {
+                    self.full.push(old_head);
+                }
                 self.head.push_unchecked(string)
             })
         };
@@ -251,13 +261,15 @@ impl Interner {
     /// Gets the symbol of the common string if one of them
     fn get_common(string: &str) -> Option<Sym> {
         COMMON_STRINGS.get_index(string).map(|idx|
-            // SAFETY: `idx >= 0`, since it's an `usize`,
-            // and `idx + 1 > 0` (considering no overflows, but
-            // an overflow would panic on debug anyways).
+            // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
+            // In this case, we don't need to worry about overflows
+            // because `COMMON_STRINGS` would need to be of considerable
+            // size to cause an overflow, even on machines with `usize = u32`.
             unsafe {
                 Sym::new_unchecked(idx + 1)
             })
     }
+
     /// Generates a new symbol for the provided [`str`] pointer.
     ///
     /// # Safety
@@ -266,7 +278,7 @@ impl Interner {
     /// memory inside `head` and that it won't be invalidated
     /// by allocations and deallocations.
     unsafe fn generate_symbol(&mut self, string: InternedStr) -> Sym {
-        let next = Sym::new(self.len() + 1).expect("Adding one makes `self.len()` always `> 0`");
+        let next = Sym::new(self.len() + 1).expect("cannot get interner symbol: integer overflow");
         self.spans.push(string.clone());
         self.symbols.insert(string, next);
         next
