@@ -219,6 +219,7 @@ impl BuiltIn for Promise {
         .name(Self::NAME)
         .length(Self::LENGTH)
         .static_method(Self::all, "all", 1)
+        .static_method(Self::all_settled, "allSettled", 1)
         .static_method(Self::any, "any", 1)
         .static_method(Self::race, "race", 1)
         .static_method(Self::reject, "reject", 1)
@@ -555,6 +556,337 @@ impl Promise {
             )?;
 
             // t. Set index to index + 1.
+            index += 1;
+        }
+    }
+
+    /// `Promise.allSettled ( iterable )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///  - [MDN documentation][mdn]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-promise.allsettled
+    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/allSettled
+    pub(crate) fn all_settled(
+        this: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        // 1. Let C be the this value.
+        let c = this;
+
+        // 2. Let promiseCapability be ? NewPromiseCapability(C).
+        let promise_capability = PromiseCapability::new(c, context)?;
+
+        // Note: We already checked that `C` is a constructor in `NewPromiseCapability(C)`.
+        let c = c.as_object().expect("must be a constructor");
+
+        // 3. Let promiseResolve be Completion(GetPromiseResolve(C)).
+        let promise_resolve = Self::get_promise_resolve(c, context);
+
+        // 4. IfAbruptRejectPromise(promiseResolve, promiseCapability).
+        if_abrupt_reject_promise!(promise_resolve, promise_capability, context);
+
+        // 5. Let iteratorRecord be Completion(GetIterator(iterable)).
+        let iterator_record = args.get_or_undefined(0).get_iterator(context, None, None);
+
+        // 6. IfAbruptRejectPromise(iteratorRecord, promiseCapability).
+        if_abrupt_reject_promise!(iterator_record, promise_capability, context);
+        let mut iterator_record = iterator_record;
+
+        // 7. Let result be Completion(PerformPromiseAllSettled(iteratorRecord, C, promiseCapability, promiseResolve)).
+        let mut result = Self::perform_promise_all_settled(
+            &mut iterator_record,
+            c,
+            &promise_capability,
+            &promise_resolve,
+            context,
+        )
+        .map(JsValue::from);
+
+        // 8. If result is an abrupt completion, then
+        if result.is_err() {
+            // a. If iteratorRecord.[[Done]] is false, set result to Completion(IteratorClose(iteratorRecord, result)).
+            if !iterator_record.done() {
+                result = iterator_record.close(result, context);
+            }
+
+            // b. IfAbruptRejectPromise(result, promiseCapability).
+            if_abrupt_reject_promise!(result, promise_capability, context);
+
+            return Ok(result);
+        }
+
+        // 9. Return ? result.
+        result
+    }
+
+    /// `PerformPromiseAllSettled ( iteratorRecord, constructor, resultCapability, promiseResolve )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-performpromiseallsettled
+    fn perform_promise_all_settled(
+        iterator_record: &mut IteratorRecord,
+        constructor: &JsObject,
+        result_capability: &PromiseCapability,
+        promise_resolve: &JsObject,
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
+        #[derive(Debug, Trace, Finalize)]
+        struct ResolveRejectElementCaptures {
+            #[unsafe_ignore_trace]
+            already_called: Rc<Cell<bool>>,
+            index: usize,
+            values: GcCell<Vec<JsValue>>,
+            capability: JsFunction,
+            #[unsafe_ignore_trace]
+            remaining_elements: Rc<Cell<i32>>,
+        }
+
+        // 1. Let values be a new empty List.
+        let values = GcCell::new(Vec::new());
+
+        // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
+        let remaining_elements_count = Rc::new(Cell::new(1));
+
+        // 3. Let index be 0.
+        let mut index = 0;
+
+        // 4. Repeat,
+        loop {
+            // a. Let next be Completion(IteratorStep(iteratorRecord)).
+            let next = iterator_record.step(context);
+
+            let next_value = match next {
+                Err(e) => {
+                    // b. If next is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                    iterator_record.set_done(true);
+
+                    // c. ReturnIfAbrupt(next).
+                    return Err(e);
+                }
+                // d. If next is false, then
+                Ok(None) => {
+                    // i. Set iteratorRecord.[[Done]] to true.
+                    iterator_record.set_done(true);
+
+                    // ii. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                    remaining_elements_count.set(remaining_elements_count.get() - 1);
+
+                    // iii. If remainingElementsCount.[[Value]] is 0, then
+                    if remaining_elements_count.get() == 0 {
+                        // 1. Let valuesArray be CreateArrayFromList(values).
+                        let values_array = crate::builtins::Array::create_array_from_list(
+                            values.into_inner(),
+                            context,
+                        );
+
+                        // 2. Perform ? Call(resultCapability.[[Resolve]], undefined, « valuesArray »).
+                        result_capability.resolve.call(
+                            &JsValue::undefined(),
+                            &[values_array.into()],
+                            context,
+                        )?;
+                    }
+
+                    // iv. Return resultCapability.[[Promise]].
+                    return Ok(result_capability.promise.clone());
+                }
+                Ok(Some(next)) => {
+                    // e. Let nextValue be Completion(IteratorValue(next)).
+                    let next_value = next.value(context);
+
+                    match next_value {
+                        Err(e) => {
+                            // f. If nextValue is an abrupt completion, set iteratorRecord.[[Done]] to true.
+                            iterator_record.set_done(true);
+
+                            // g. ReturnIfAbrupt(nextValue).
+                            return Err(e);
+                        }
+                        Ok(next_value) => next_value,
+                    }
+                }
+            };
+
+            // h. Append undefined to values.
+            values.borrow_mut().push(JsValue::undefined());
+
+            // i. Let nextPromise be ? Call(promiseResolve, constructor, « nextValue »).
+            let next_promise =
+                promise_resolve.call(&constructor.clone().into(), &[next_value], context)?;
+
+            // j. Let stepsFulfilled be the algorithm steps defined in Promise.allSettled Resolve Element Functions.
+            // k. Let lengthFulfilled be the number of non-optional parameters of the function definition in Promise.allSettled Resolve Element Functions.
+            // l. Let onFulfilled be CreateBuiltinFunction(stepsFulfilled, lengthFulfilled, "", « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
+            // m. Let alreadyCalled be the Record { [[Value]]: false }.
+            // n. Set onFulfilled.[[AlreadyCalled]] to alreadyCalled.
+            // o. Set onFulfilled.[[Index]] to index.
+            // p. Set onFulfilled.[[Values]] to values.
+            // q. Set onFulfilled.[[Capability]] to resultCapability.
+            // r. Set onFulfilled.[[RemainingElements]] to remainingElementsCount.
+            let on_fulfilled = FunctionBuilder::closure_with_captures(
+                context,
+                |_, args, captures, context| {
+                    // https://tc39.es/ecma262/#sec-promise.allsettled-resolve-element-functions
+
+                    // 1. Let F be the active function object.
+                    // 2. Let alreadyCalled be F.[[AlreadyCalled]].
+
+                    // 3. If alreadyCalled.[[Value]] is true, return undefined.
+                    if captures.already_called.get() {
+                        return Ok(JsValue::undefined());
+                    }
+
+                    // 4. Set alreadyCalled.[[Value]] to true.
+                    captures.already_called.set(true);
+
+                    // 5. Let index be F.[[Index]].
+                    // 6. Let values be F.[[Values]].
+                    // 7. Let promiseCapability be F.[[Capability]].
+                    // 8. Let remainingElementsCount be F.[[RemainingElements]].
+
+                    // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+                    let obj = context.construct_object();
+
+                    // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "fulfilled").
+                    obj.create_data_property_or_throw("status", "fulfilled", context)
+                        .expect("cannot fail per spec");
+
+                    // 11. Perform ! CreateDataPropertyOrThrow(obj, "value", x).
+                    obj.create_data_property_or_throw("value", args.get_or_undefined(0), context)
+                        .expect("cannot fail per spec");
+
+                    // 12. Set values[index] to obj.
+                    captures.values.borrow_mut()[captures.index] = obj.into();
+
+                    // 13. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                    captures
+                        .remaining_elements
+                        .set(captures.remaining_elements.get() - 1);
+
+                    // 14. If remainingElementsCount.[[Value]] is 0, then
+                    if captures.remaining_elements.get() == 0 {
+                        // a. Let valuesArray be CreateArrayFromList(values).
+                        let values_array = Array::create_array_from_list(
+                            captures.values.clone().into_inner(),
+                            context,
+                        );
+
+                        // b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
+                        return captures.capability.call(
+                            &JsValue::undefined(),
+                            &[values_array.into()],
+                            context,
+                        );
+                    }
+
+                    // 15. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                ResolveRejectElementCaptures {
+                    already_called: Rc::new(Cell::new(false)),
+                    index,
+                    values: values.clone(),
+                    capability: result_capability.resolve.clone(),
+                    remaining_elements: remaining_elements_count.clone(),
+                },
+            )
+            .name("")
+            .length(1)
+            .constructor(false)
+            .build();
+
+            // s. Let stepsRejected be the algorithm steps defined in Promise.allSettled Reject Element Functions.
+            // t. Let lengthRejected be the number of non-optional parameters of the function definition in Promise.allSettled Reject Element Functions.
+            // u. Let onRejected be CreateBuiltinFunction(stepsRejected, lengthRejected, "", « [[AlreadyCalled]], [[Index]], [[Values]], [[Capability]], [[RemainingElements]] »).
+            // v. Set onRejected.[[AlreadyCalled]] to alreadyCalled.
+            // w. Set onRejected.[[Index]] to index.
+            // x. Set onRejected.[[Values]] to values.
+            // y. Set onRejected.[[Capability]] to resultCapability.
+            // z. Set onRejected.[[RemainingElements]] to remainingElementsCount.
+            let on_rejected = FunctionBuilder::closure_with_captures(
+                context,
+                |_, args, captures, context| {
+                    // https://tc39.es/ecma262/#sec-promise.allsettled-reject-element-functions
+
+                    // 1. Let F be the active function object.
+                    // 2. Let alreadyCalled be F.[[AlreadyCalled]].
+
+                    // 3. If alreadyCalled.[[Value]] is true, return undefined.
+                    if captures.already_called.get() {
+                        return Ok(JsValue::undefined());
+                    }
+
+                    // 4. Set alreadyCalled.[[Value]] to true.
+                    captures.already_called.set(true);
+
+                    // 5. Let index be F.[[Index]].
+                    // 6. Let values be F.[[Values]].
+                    // 7. Let promiseCapability be F.[[Capability]].
+                    // 8. Let remainingElementsCount be F.[[RemainingElements]].
+
+                    // 9. Let obj be OrdinaryObjectCreate(%Object.prototype%).
+                    let obj = context.construct_object();
+
+                    // 10. Perform ! CreateDataPropertyOrThrow(obj, "status", "rejected").
+                    obj.create_data_property_or_throw("status", "rejected", context)
+                        .expect("cannot fail per spec");
+
+                    // 11. Perform ! CreateDataPropertyOrThrow(obj, "reason", x).
+                    obj.create_data_property_or_throw("reason", args.get_or_undefined(0), context)
+                        .expect("cannot fail per spec");
+
+                    // 12. Set values[index] to obj.
+                    captures.values.borrow_mut()[captures.index] = obj.into();
+
+                    // 13. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] - 1.
+                    captures
+                        .remaining_elements
+                        .set(captures.remaining_elements.get() - 1);
+
+                    // 14. If remainingElementsCount.[[Value]] is 0, then
+                    if captures.remaining_elements.get() == 0 {
+                        // a. Let valuesArray be CreateArrayFromList(values).
+                        let values_array = Array::create_array_from_list(
+                            captures.values.clone().into_inner(),
+                            context,
+                        );
+
+                        // b. Return ? Call(promiseCapability.[[Resolve]], undefined, « valuesArray »).
+                        return captures.capability.call(
+                            &JsValue::undefined(),
+                            &[values_array.into()],
+                            context,
+                        );
+                    }
+
+                    // 15. Return undefined.
+                    Ok(JsValue::undefined())
+                },
+                ResolveRejectElementCaptures {
+                    already_called: Rc::new(Cell::new(false)),
+                    index,
+                    values: values.clone(),
+                    capability: result_capability.reject.clone(),
+                    remaining_elements: remaining_elements_count.clone(),
+                },
+            )
+            .name("")
+            .length(1)
+            .constructor(false)
+            .build();
+
+            // aa. Set remainingElementsCount.[[Value]] to remainingElementsCount.[[Value]] + 1.
+            remaining_elements_count.set(remaining_elements_count.get() + 1);
+
+            // ab. Perform ? Invoke(nextPromise, "then", « onFulfilled, onRejected »).
+            next_promise.invoke("then", &[on_fulfilled.into(), on_rejected.into()], context)?;
+
+            // ac. Set index to index + 1.
             index += 1;
         }
     }
