@@ -209,7 +209,7 @@ impl<R> Tokenizer<R> for NumberLiteral {
                         kind = NumericKind::Integer(16);
 
                         // Checks if the next char after '0x' is a digit of that base. if not return an error.
-                        if !cursor.next_is_ascii_pred(&|ch| ch.is_digit(16))? {
+                        if !cursor.next_is_ascii_pred(&|ch| ch.is_ascii_hexdigit())? {
                             return Err(Error::syntax(
                                 "expected hexadecimal digit after number base prefix",
                                 cursor.pos(),
@@ -277,11 +277,11 @@ impl<R> Tokenizer<R> for NumberLiteral {
 
                             take_integer(&mut buf, cursor, NumericKind::Integer(8), false)?;
 
-                            if !cursor.next_is_ascii_pred(&|c| c.is_digit(10) || c == '_')? {
+                            if !cursor.next_is_ascii_pred(&|c| c.is_ascii_digit() || c == '_')? {
                                 // LegacyOctalIntegerLiteral
                                 kind = NumericKind::Integer(8);
                             }
-                        } else if ch.is_digit(10) {
+                        } else if ch.is_ascii_digit() {
                             // Indicates a numerical digit comes after then 0 but it isn't an octal digit
                             // so therefore this must be a number with an unneeded leading 0. This is
                             // forbidden in strict mode.

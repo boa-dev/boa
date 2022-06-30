@@ -280,7 +280,7 @@ impl<R> Lexer<R> {
                 _ if Identifier::is_identifier_start(c as u32) => {
                     Identifier::new(c).lex(&mut self.cursor, start, interner)
                 }
-                _ if c.is_digit(10) => {
+                _ if c.is_ascii_digit() => {
                     NumberLiteral::new(next_ch as u8).lex(&mut self.cursor, start, interner)
                 }
                 _ => {
