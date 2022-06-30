@@ -117,27 +117,32 @@ impl Sym {
 ///
 /// `COMMON_STRINGS` and the constants defined in [`Sym`] must always
 /// be in sync.
-pub(super) static COMMON_STRINGS: phf::OrderedSet<&'static str> = phf::phf_ordered_set! {
-    "",
-    "arguments",
-    "await",
-    "yield",
-    "eval",
-    "default",
-    "null",
-    "RegExp",
-    "get",
-    "set",
-    "<main>",
-    "raw",
-    "static",
-    "prototype",
-    "constructor",
-    "implements",
-    "interface",
-    "let",
-    "package",
-    "private",
-    "protected",
-    "public",
+pub(super) static COMMON_STRINGS: phf::OrderedSet<&'static str> = {
+    const COMMON_STRINGS: phf::OrderedSet<&'static str> = phf::phf_ordered_set! {
+        "",
+        "arguments",
+        "await",
+        "yield",
+        "eval",
+        "default",
+        "null",
+        "RegExp",
+        "get",
+        "set",
+        "<main>",
+        "raw",
+        "static",
+        "prototype",
+        "constructor",
+        "implements",
+        "interface",
+        "let",
+        "package",
+        "private",
+        "protected",
+        "public",
+    };
+    // A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`
+    sa::const_assert!(COMMON_STRINGS.len() < usize::MAX);
+    COMMON_STRINGS
 };

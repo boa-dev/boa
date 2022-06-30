@@ -70,6 +70,8 @@
     rustdoc::missing_doc_code_examples
 )]
 
+extern crate static_assertions as sa;
+
 mod fixed_string;
 mod interned_str;
 mod sym;
@@ -263,8 +265,8 @@ impl Interner {
         COMMON_STRINGS.get_index(string).map(|idx|
             // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
             // In this case, we don't need to worry about overflows
-            // because `COMMON_STRINGS` would need to be of considerable
-            // size to cause an overflow, even on machines with `usize = u32`.
+            // because we have a static assertion in place checking that
+            // `COMMON_STRINGS.len() < usize::MAX`.
             unsafe {
                 Sym::new_unchecked(idx + 1)
             })

@@ -136,6 +136,7 @@ dependencies = [
  "phf",
  "rustc-hash",
  "serde",
+ "static_assertions",
 ]
 
 [[package]]
