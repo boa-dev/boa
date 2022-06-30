@@ -2,7 +2,7 @@
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
 //!
-//! The `Function` object is used for matching text with a pattern.
+//! The `&Function` object is used for matching text with a pattern.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
@@ -26,7 +26,7 @@ use crate::{
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
-use boa_gc::{self, Finalize, Gc, Trace};
+use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
 use dyn_clone::DynClone;
@@ -138,10 +138,24 @@ impl ConstructorKind {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type
-#[derive(Clone, Debug, Trace, Finalize)]
+#[derive(Clone, Debug, Finalize)]
 pub enum ClassFieldDefinition {
     Public(PropertyKey, JsFunction),
     Private(Sym, JsFunction),
+}
+
+unsafe impl Trace for ClassFieldDefinition {
+    custom_trace! {this, {
+        match this {
+            Self::Public(key, func) => {
+                mark(key);
+                mark(func);
+            }
+            Self::Private(_, func) => {
+                mark(func);
+            }
+        }
+    }}
 }
 
 /// Wrapper for `Gc<GcCell<dyn NativeObject>>` that allows passing additional
@@ -191,18 +205,14 @@ impl Captures {
 /// (AST Node).
 ///
 /// <https://tc39.es/ecma262/#sec-ecmascript-function-objects>
-#[derive(Trace, Finalize)]
+#[derive(Finalize)]
 pub enum Function {
     Native {
-        #[unsafe_ignore_trace]
         function: NativeFunctionSignature,
-        #[unsafe_ignore_trace]
         constructor: Option<ConstructorKind>,
     },
     Closure {
-        #[unsafe_ignore_trace]
         function: Box<dyn ClosureFunctionSignature>,
-        #[unsafe_ignore_trace]
         constructor: Option<ConstructorKind>,
         captures: Captures,
     },
@@ -211,7 +221,6 @@ pub enum Function {
         environments: DeclarativeEnvironmentStack,
 
         /// The `[[ConstructorKind]]` internal slot.
-        #[unsafe_ignore_trace]
         constructor_kind: ConstructorKind,
 
         /// The `[[HomeObject]]` internal slot.
@@ -227,6 +236,28 @@ pub enum Function {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
     },
+}
+
+unsafe impl Trace for Function {
+    custom_trace! {this, {
+        match this {
+            Self::Native { .. } => {}
+            Self::Closure { captures, .. } => mark(captures),
+            Self::Ordinary { code, environments, home_object, fields, private_methods, .. } => {
+                mark(code);
+                mark(environments);
+                mark(home_object);
+                mark(fields);
+                for (_, elem) in private_methods {
+                    mark(elem);
+                }
+            }
+            Self::Generator { code, environments } => {
+                mark(code);
+                mark(environments);
+            }
+        }
+    }}
 }
 
 impl fmt::Debug for Function {
