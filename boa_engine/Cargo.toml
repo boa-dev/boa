@@ -34,7 +34,7 @@ boa_gc = { path = "../boa_gc", version = "0.15.0" }
 gc = "0.4.1"
 boa_profiler = { path = "../boa_profiler", version = "0.15.0" }
 serde = { version = "1.0.137", features = ["derive", "rc"] }
-serde_json = "1.0.81"
+serde_json = "1.0.82"
 rand = "0.8.5"
 num-traits = "0.2.15"
 regress = "0.4.1"
