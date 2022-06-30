@@ -2,7 +2,7 @@
 //!
 //! Objects wrap `Function`s and expose them via call/construct slots.
 //!
-//! The `&Function` object is used for matching text with a pattern.
+//! The `Function` object is used for matching text with a pattern.
 //!
 //! More information:
 //!  - [ECMAScript reference][spec]
