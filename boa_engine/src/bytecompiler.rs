@@ -20,7 +20,7 @@ use crate::{
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
-use boa_gc::{Cell, Gc};
+use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 use std::mem::size_of;
@@ -98,7 +98,10 @@ impl<'b> ByteCompiler<'b> {
 
     /// Push a compile time environment to the current `CodeBlock` and return it's index.
     #[inline]
-    fn push_compile_environment(&mut self, environment: Gc<Cell<CompileTimeEnvironment>>) -> usize {
+    fn push_compile_environment(
+        &mut self,
+        environment: Gc<boa_gc::Cell<CompileTimeEnvironment>>,
+    ) -> usize {
         let index = self.code_block.compile_environments.len();
         self.code_block.compile_environments.push(environment);
         index

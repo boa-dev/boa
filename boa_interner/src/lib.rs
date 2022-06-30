@@ -49,6 +49,7 @@
     rust_2018_idioms,
     future_incompatible,
     nonstandard_style,
+    unsafe_op_in_unsafe_fn
 )]
 #![allow(
     clippy::module_name_repetitions,
@@ -69,46 +70,71 @@
     rustdoc::missing_doc_code_examples
 )]
 
+extern crate static_assertions as sa;
+
+mod fixed_string;
+mod interned_str;
+mod sym;
 #[cfg(test)]
 mod tests;
 
-use std::{fmt::Display, num::NonZeroUsize};
+use fixed_string::FixedString;
+pub use sym::*;
 
-use gc::{unsafe_empty_trace, Finalize, Trace};
-#[cfg(feature = "serde")]
-use serde::{Deserialize, Serialize};
-use string_interner::{backend::BucketBackend, StringInterner, Symbol};
+use std::fmt::{Debug, Display};
 
-/// Backend of the string interner.
-type Backend = BucketBackend<Sym>;
+use interned_str::InternedStr;
+use rustc_hash::FxHashMap;
 
 /// The string interner for Boa.
-///
-/// This is a type alias that makes it easier to reference it in the code.
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct Interner {
-    inner: StringInterner<Backend>,
+    // COMMENT FOR DEVS:
+    // This interner works on the assumption that
+    // `head` won't ever be reallocated, since this could invalidate
+    // some of our stored pointers inside `spans`.
+    // This means that any operation on `head` and `full` should be carefully
+    // reviewed to not cause Undefined Behaviour.
+    // `get_or_intern` has a more thorough explanation on this.
+    //
+    // Also, if you want to implement `shrink_to_fit` (and friends),
+    // please check out https://github.com/Robbepop/string-interner/pull/47 first.
+    // This doesn't implement that method, since implementing it increases
+    // our memory footprint.
+    symbols: FxHashMap<InternedStr, Sym>,
+    spans: Vec<InternedStr>,
+    head: FixedString,
+    full: Vec<FixedString>,
 }
 
 impl Interner {
-    /// Creates a new `StringInterner` with the given initial capacity.
+    /// Creates a new [`Interner`].
     #[inline]
-    pub fn with_capacity(cap: usize) -> Self {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Creates a new [`Interner`] with the specified capacity.
+    #[inline]
+    pub fn with_capacity(capacity: usize) -> Self {
         Self {
-            inner: StringInterner::with_capacity(cap),
+            symbols: FxHashMap::default(),
+            spans: Vec::with_capacity(capacity),
+            head: FixedString::new(capacity),
+            full: Vec::new(),
         }
     }
 
     /// Returns the number of strings interned by the interner.
     #[inline]
     pub fn len(&self) -> usize {
-        self.inner.len()
+        COMMON_STRINGS.len() + self.spans.len()
     }
 
-    /// Returns `true` if the string interner has no interned strings.
+    /// Returns `true` if the [`Interner`] contains no interned strings.
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.inner.is_empty()
+        COMMON_STRINGS.is_empty() && self.spans.is_empty()
     }
 
     /// Returns the symbol for the given string if any.
@@ -119,7 +145,7 @@ impl Interner {
         T: AsRef<str>,
     {
         let string = string.as_ref();
-        Self::get_static(string).or_else(|| self.inner.get(string))
+        Self::get_common(string).or_else(|| self.symbols.get(string).copied())
     }
 
     /// Interns the given string.
@@ -127,13 +153,67 @@ impl Interner {
     /// Returns a symbol for resolution into the original string.
     ///
     /// # Panics
+    ///
     /// If the interner already interns the maximum number of strings possible by the chosen symbol type.
     pub fn get_or_intern<T>(&mut self, string: T) -> Sym
     where
         T: AsRef<str>,
     {
         let string = string.as_ref();
-        Self::get_static(string).unwrap_or_else(|| self.inner.get_or_intern(string))
+        if let Some(sym) = self.get(string) {
+            return sym;
+        }
+
+        // SAFETY:
+        //
+        // Firstly, this interner works on the assumption that the allocated
+        // memory by `head` won't ever be moved from its position on the heap,
+        // which is an important point to understand why manipulating it like
+        // this is safe.
+        //
+        // `String` (which is simply a `Vec<u8>` with additional invariants)
+        // is essentially a pointer to heap memory that can be moved without
+        // any problems, since copying a pointer cannot invalidate the memory
+        // that it points to.
+        //
+        // However, `String` CAN be invalidated when pushing, extending or
+        // shrinking it, since all those operations reallocate on the heap.
+        //
+        // To prevent that, we HAVE to ensure the capacity will succeed without
+        // having to reallocate, and the only way to do that without invalidating
+        // any other alive `InternedStr` is to create a brand new `head` with
+        // enough capacity and push the old `head` to `full` to keep it alive
+        // throughout the lifetime of the whole `Interner`.
+        //
+        // `FixedString` encapsulates this by only allowing checked `push`es
+        // to the internal string, but we still have to ensure the memory
+        // of `head` is not deallocated until the whole `Interner` deallocates,
+        // which we can do by moving it inside the `Interner` itself, specifically
+        // on the `full` vector, where every other old `head` also lives.
+        let interned_str = unsafe {
+            self.head.push(string).unwrap_or_else(|| {
+                let new_cap =
+                    (usize::max(self.head.capacity(), string.len()) + 1).next_power_of_two();
+                let new_head = FixedString::new(new_cap);
+                let old_head = std::mem::replace(&mut self.head, new_head);
+
+                // If the user creates an `Interner`
+                // with `Interner::with_capacity(BIG_NUMBER)` and
+                // the first interned string's length is bigger than `BIG_NUMBER`,
+                // `self.full.push(old_head)` would push a big, empty string of
+                // allocated size `BIG_NUMBER` into `full`.
+                // This prevents that case.
+                if !old_head.is_empty() {
+                    self.full.push(old_head);
+                }
+                self.head.push_unchecked(string)
+            })
+        };
+
+        // SAFETY: We are obtaining a pointer to the internal memory of
+        // `head`, which is alive through the whole life of `Interner`, so
+        // this is safe.
+        unsafe { self.generate_symbol(interned_str) }
     }
 
     /// Interns the given `'static` string.
@@ -142,32 +222,32 @@ impl Interner {
     ///
     /// # Note
     ///
-    /// This is more efficient than [`StringInterner::get_or_intern`] since it might
-    /// avoid some memory allocations if the backends supports this.
+    /// This is more efficient than [`Interner::get_or_intern`], since it
+    /// avoids storing `string` inside the [`Interner`].
     ///
     /// # Panics
     ///
     /// If the interner already interns the maximum number of strings possible
     /// by the chosen symbol type.
     pub fn get_or_intern_static(&mut self, string: &'static str) -> Sym {
-        Self::get_static(string).unwrap_or_else(|| self.inner.get_or_intern_static(string))
-    }
-
-    /// Shrink backend capacity to fit the interned strings exactly.
-    #[inline]
-    pub fn shrink_to_fit(&mut self) {
-        self.inner.shrink_to_fit();
+        self.get(string).unwrap_or_else(|| {
+            // SAFETY: a static `str` is always alive, so its pointer
+            // should therefore always be valid.
+            unsafe { self.generate_symbol(InternedStr::new(string.into())) }
+        })
     }
 
     /// Returns the string for the given symbol if any.
     #[inline]
     pub fn resolve(&self, symbol: Sym) -> Option<&str> {
-        let index = symbol.as_raw().get();
-        if index <= Self::STATIC_STRINGS.len() {
-            Some(Self::STATIC_STRINGS[index - 1])
-        } else {
-            self.inner.resolve(symbol)
-        }
+        let index = symbol.get() - 1;
+
+        COMMON_STRINGS.index(index).copied().or_else(|| {
+            self.spans.get(index - COMMON_STRINGS.len()).map(|ptr|
+                // SAFETY: We always ensure the stored `InternedStr`s always
+                // reference memory inside `head` and `full`
+                unsafe {ptr.as_str()})
+        })
     }
 
     /// Returns the string for the given symbol.
@@ -180,176 +260,31 @@ impl Interner {
         self.resolve(symbol).expect("string disappeared")
     }
 
-    /// Gets the symbol of the static string if one of them
-    fn get_static(string: &str) -> Option<Sym> {
-        Self::STATIC_STRINGS
-            .into_iter()
-            .enumerate()
-            .find(|&(_i, s)| string == s)
-            .map(|(i, _str)| {
-                let raw = NonZeroUsize::new(i.wrapping_add(1)).expect("static array too big");
-                Sym::from_raw(raw)
+    /// Gets the symbol of the common string if one of them
+    fn get_common(string: &str) -> Option<Sym> {
+        COMMON_STRINGS.get_index(string).map(|idx|
+            // SAFETY: `idx >= 0`, since it's an `usize`, and `idx + 1 > 0`.
+            // In this case, we don't need to worry about overflows
+            // because we have a static assertion in place checking that
+            // `COMMON_STRINGS.len() < usize::MAX`.
+            unsafe {
+                Sym::new_unchecked(idx + 1)
             })
     }
-}
 
-impl<T> FromIterator<T> for Interner
-where
-    T: AsRef<str>,
-{
-    #[inline]
-    fn from_iter<I>(iter: I) -> Self
-    where
-        I: IntoIterator<Item = T>,
-    {
-        Self {
-            inner: StringInterner::from_iter(iter),
-        }
+    /// Generates a new symbol for the provided [`str`] pointer.
+    ///
+    /// # Safety
+    ///
+    /// The caller must ensure `string` points to a valid
+    /// memory inside `head` and that it won't be invalidated
+    /// by allocations and deallocations.
+    unsafe fn generate_symbol(&mut self, string: InternedStr) -> Sym {
+        let next = Sym::new(self.len() + 1).expect("cannot get interner symbol: integer overflow");
+        self.spans.push(string.clone());
+        self.symbols.insert(string, next);
+        next
     }
-}
-
-impl<T> Extend<T> for Interner
-where
-    T: AsRef<str>,
-{
-    #[inline]
-    fn extend<I>(&mut self, iter: I)
-    where
-        I: IntoIterator<Item = T>,
-    {
-        self.inner.extend(iter);
-    }
-}
-
-impl<'a> IntoIterator for &'a Interner {
-    type Item = (Sym, &'a str);
-    type IntoIter = <&'a Backend as IntoIterator>::IntoIter;
-
-    #[inline]
-    fn into_iter(self) -> Self::IntoIter {
-        self.inner.into_iter()
-    }
-}
-
-impl Default for Interner {
-    fn default() -> Self {
-        Self {
-            inner: StringInterner::new(),
-        }
-    }
-}
-
-/// The string symbol type for Boa.
-///
-/// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it's
-/// optimized so that it can occupy 1 pointer width even in an `Option` type.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Finalize)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
-#[allow(clippy::unsafe_derive_deserialize)]
-pub struct Sym {
-    value: NonZeroUsize,
-}
-
-impl Sym {
-    /// Padding for the symbol internal value.
-    const PADDING: usize = Interner::STATIC_STRINGS.len() + 1;
-
-    /// Symbol for the empty string (`""`).
-    pub const EMPTY_STRING: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(1)) };
-
-    /// Symbol for the `"arguments"` string.
-    pub const ARGUMENTS: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(2)) };
-
-    /// Symbol for the `"await"` string.
-    pub const AWAIT: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(3)) };
-
-    /// Symbol for the `"yield"` string.
-    pub const YIELD: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(4)) };
-
-    /// Symbol for the `"eval"` string.
-    pub const EVAL: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(5)) };
-
-    /// Symbol for the `"default"` string.
-    pub const DEFAULT: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(6)) };
-
-    /// Symbol for the `"null"` string.
-    pub const NULL: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(7)) };
-
-    /// Symbol for the `"RegExp"` string.
-    pub const REGEXP: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(8)) };
-
-    /// Symbol for the `"get"` string.
-    pub const GET: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(9)) };
-
-    /// Symbol for the `"set"` string.
-    pub const SET: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(10)) };
-
-    /// Symbol for the `"<main>"` string.
-    pub const MAIN: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(11)) };
-
-    /// Symbol for the `"raw"` string.
-    pub const RAW: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(12)) };
-
-    /// Symbol for the `"static"` string.
-    pub const STATIC: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(13)) };
-
-    /// Symbol for the `"prototype"` string.
-    pub const PROTOTYPE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(14)) };
-
-    /// Symbol for the `"constructor"` string.
-    pub const CONSTRUCTOR: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(15)) };
-
-    /// Symbol for the `"implements"` string.
-    pub const IMPLEMENTS: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(16)) };
-
-    /// Symbol for the `"interface"` string.
-    pub const INTERFACE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(17)) };
-
-    /// Symbol for the `"let"` string.
-    pub const LET: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(18)) };
-
-    /// Symbol for the `"package"` string.
-    pub const PACKAGE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(19)) };
-
-    /// Symbol for the `"private"` string.
-    pub const PRIVATE: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(20)) };
-
-    /// Symbol for the `"protected"` string.
-    pub const PROTECTED: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(21)) };
-
-    /// Symbol for the `"public"` string.
-    pub const PUBLIC: Self = unsafe { Self::from_raw(NonZeroUsize::new_unchecked(22)) };
-
-    /// Creates a `Sym` from a raw `NonZeroUsize`.
-    const fn from_raw(value: NonZeroUsize) -> Self {
-        Self { value }
-    }
-
-    /// Retrieves the raw `NonZeroUsize` for this symbol.
-    const fn as_raw(self) -> NonZeroUsize {
-        self.value
-    }
-}
-
-impl Symbol for Sym {
-    #[inline]
-    fn try_from_usize(index: usize) -> Option<Self> {
-        index
-            .checked_add(Self::PADDING)
-            .and_then(NonZeroUsize::new)
-            .map(|value| Self { value })
-    }
-
-    #[inline]
-    fn to_usize(self) -> usize {
-        self.value.get() - Self::PADDING
-    }
-}
-
-// Safe because `Sym` implements `Copy`.
-unsafe impl Trace for Sym {
-    unsafe_empty_trace!();
 }
 
 /// Converts a given element to a string using an interner.
@@ -365,34 +300,4 @@ where
     fn to_interned_string(&self, _interner: &Interner) -> String {
         self.to_string()
     }
-}
-
-impl Interner {
-    /// List of commonly used static strings.
-    ///
-    /// Make sure that any string added as a `Sym` constant is also added here.
-    const STATIC_STRINGS: [&'static str; 22] = [
-        "",
-        "arguments",
-        "await",
-        "yield",
-        "eval",
-        "default",
-        "null",
-        "RegExp",
-        "get",
-        "set",
-        "<main>",
-        "raw",
-        "static",
-        "prototype",
-        "constructor",
-        "implements",
-        "interface",
-        "let",
-        "package",
-        "private",
-        "protected",
-        "public",
-    ];
 }

@@ -108,7 +108,7 @@ impl<T: Any + Debug + Trace> NativeObject for T {
 }
 
 /// The internal representation of a JavaScript object.
-#[derive(Debug, Trace, Finalize)]
+#[derive(Debug, Finalize)]
 pub struct Object {
     /// The type of the object.
     pub data: ObjectData,
@@ -120,6 +120,17 @@ pub struct Object {
     extensible: bool,
     /// The `[[PrivateElements]]` internal slot.
     private_elements: FxHashMap<Sym, PrivateElement>,
+}
+
+unsafe impl Trace for Object {
+    boa_gc::custom_trace!(this, {
+        mark(&this.data);
+        mark(&this.properties);
+        mark(&this.prototype);
+        for elem in this.private_elements.values() {
+            mark(elem);
+        }
+    });
 }
 
 /// The representation of private object elements.

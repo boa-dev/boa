@@ -55,6 +55,7 @@ unsafe impl Readable for f64 {}
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct CodeBlock {
     /// Name of this function
+    #[unsafe_ignore_trace]
     pub(crate) name: Sym,
 
     /// The number of arguments expected.
@@ -77,6 +78,7 @@ pub struct CodeBlock {
     pub(crate) literals: Vec<JsValue>,
 
     /// Property field names.
+    #[unsafe_ignore_trace]
     pub(crate) names: Vec<Sym>,
 
     /// Locators for all bindings in the codeblock.
