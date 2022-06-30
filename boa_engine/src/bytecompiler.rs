@@ -2162,10 +2162,35 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::Swap, &[]);
                 self.emit(Opcode::GetPropertyByValue, &[]);
             }
+            Node::GetSuperField(get_super_field) => {
+                if kind == CallKind::Call {
+                    self.emit_opcode(Opcode::This);
+                }
+                self.emit_opcode(Opcode::Super);
+                match get_super_field {
+                    GetSuperField::Const(field) => {
+                        let index = self.get_or_insert_name(*field);
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    GetSuperField::Expr(expr) => {
+                        self.compile_expr(expr, true)?;
+                        self.emit_opcode(Opcode::Swap);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
+                    }
+                }
+            }
+            Node::GetPrivateField(get_private_field) => {
+                self.compile_expr(get_private_field.obj(), true)?;
+                if kind == CallKind::Call {
+                    self.emit(Opcode::Dup, &[]);
+                }
+                let index = self.get_or_insert_name(get_private_field.field());
+                self.emit(Opcode::GetPrivateField, &[index]);
+            }
             expr => {
                 self.compile_expr(expr, true)?;
                 if kind == CallKind::Call || kind == CallKind::CallEval {
-                    self.emit_opcode(Opcode::This);
+                    self.emit_opcode(Opcode::PushUndefined);
                     self.emit_opcode(Opcode::Swap);
                 }
             }

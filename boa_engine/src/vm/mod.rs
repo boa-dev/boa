@@ -1707,16 +1707,12 @@ impl Context {
                 arguments.reverse();
 
                 let func = self.vm.pop();
-                let mut this = self.vm.pop();
+                let this = self.vm.pop();
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
-
-                if this.is_null_or_undefined() {
-                    this = self.global_object().clone().into();
-                }
 
                 // A native function with the name "eval" implies, that is this the built-in eval function.
                 let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
@@ -1748,7 +1744,7 @@ impl Context {
                 }
                 arguments.reverse();
                 let func = self.vm.pop();
-                let mut this = self.vm.pop();
+                let this = self.vm.pop();
 
                 let iterator_record = rest_argument.get_iterator(self, None, None)?;
                 let mut rest_arguments = Vec::new();
@@ -1761,10 +1757,6 @@ impl Context {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
-
-                if this.is_null_or_undefined() {
-                    this = self.global_object().clone().into();
-                }
 
                 // A native function with the name "eval" implies, that is this the built-in eval function.
                 let eval = matches!(object.borrow().as_function(), Some(Function::Native { .. }));
@@ -1796,16 +1788,12 @@ impl Context {
                 arguments.reverse();
 
                 let func = self.vm.pop();
-                let mut this = self.vm.pop();
+                let this = self.vm.pop();
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
-
-                if this.is_null_or_undefined() {
-                    this = self.global_object().clone().into();
-                }
 
                 let result = object.__call__(&this, &arguments, self)?;
 
@@ -1823,7 +1811,7 @@ impl Context {
                 }
                 arguments.reverse();
                 let func = self.vm.pop();
-                let mut this = self.vm.pop();
+                let this = self.vm.pop();
 
                 let iterator_record = rest_argument.get_iterator(self, None, None)?;
                 let mut rest_arguments = Vec::new();
@@ -1836,10 +1824,6 @@ impl Context {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
-
-                if this.is_null_or_undefined() {
-                    this = self.global_object().clone().into();
-                }
 
                 let result = object.__call__(&this, &arguments, self)?;
 
