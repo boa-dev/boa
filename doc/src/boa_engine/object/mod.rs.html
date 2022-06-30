@@ -2090,6 +2090,17 @@
 <span id="2083">2083</span>
 <span id="2084">2084</span>
 <span id="2085">2085</span>
+<span id="2086">2086</span>
+<span id="2087">2087</span>
+<span id="2088">2088</span>
+<span id="2089">2089</span>
+<span id="2090">2090</span>
+<span id="2091">2091</span>
+<span id="2092">2092</span>
+<span id="2093">2093</span>
+<span id="2094">2094</span>
+<span id="2095">2095</span>
+<span id="2096">2096</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2200,7 +2211,7 @@
 }
 
 <span class="doccomment">/// The internal representation of a JavaScript object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Object</span> {
     <span class="doccomment">/// The type of the object.</span>
     <span class="kw">pub</span> <span class="ident">data</span>: <span class="ident">ObjectData</span>,
@@ -2212,6 +2223,17 @@
     <span class="ident">extensible</span>: <span class="ident">bool</span>,
     <span class="doccomment">/// The `[[PrivateElements]]` internal slot.</span>
     <span class="ident">private_elements</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">PrivateElement</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">Object</span> {
+    <span class="macro">boa_gc::custom_trace!</span>(<span class="ident">this</span>, {
+        <span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">data</span>);
+        <span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">properties</span>);
+        <span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>.<span class="ident">prototype</span>);
+        <span class="kw">for</span> <span class="ident">elem</span> <span class="kw">in</span> <span class="ident">this</span>.<span class="ident">private_elements</span>.<span class="ident">values</span>() {
+            <span class="ident">mark</span>(<span class="ident">elem</span>);
+        }
+    });
 }
 
 <span class="doccomment">/// The representation of private object elements.</span>

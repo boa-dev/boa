@@ -10,7 +10,7 @@
     Empty,
     Elision,
     SingleName {
-        ident: <a class="struct" href="../../../../../boa_interner/struct.Sym.html" title="struct boa_interner::Sym">Sym</a>,
+        ident: <a class="struct" href="../../../../../boa_interner/sym/struct.Sym.html" title="struct boa_interner::sym::Sym">Sym</a>,
         default_init: <a class="enum" href="https://doc.rust-lang.org/1.61.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../enum.Node.html" title="enum boa_engine::syntax::ast::node::Node">Node</a>&gt;,
     },
     GetField {
@@ -23,7 +23,7 @@
         pattern: <a class="enum" href="enum.DeclarationPattern.html" title="enum boa_engine::syntax::ast::node::declaration::DeclarationPattern">DeclarationPattern</a>,
     },
     SingleNameRest {
-        ident: <a class="struct" href="../../../../../boa_interner/struct.Sym.html" title="struct boa_interner::Sym">Sym</a>,
+        ident: <a class="struct" href="../../../../../boa_interner/sym/struct.Sym.html" title="struct boa_interner::sym::Sym">Sym</a>,
     },
     GetFieldRest {
         get_field: <a class="struct" href="../field/get_field/struct.GetField.html" title="struct boa_engine::syntax::ast::node::field::get_field::GetField">GetField</a>,
@@ -53,7 +53,7 @@ This variant strictly represents one elision. If there are multiple, this should
 <ul>
 <li><a href="https://tc39.es/ecma262/#prod-Elision">ECMAScript reference: 13.2.4 Array Initializer - Elision</a></li>
 </ul>
-</div><h3 id="variant.SingleName" class="variant small-section-header"><a href="#variant.SingleName" class="anchor field"></a><code>SingleName</code></h3><div class="sub-variant" id="variant.SingleName.fields"><h4>Fields</h4><div class="sub-variant-field"><span id="variant.SingleName.field.ident" class="variant small-section-header"><a href="#variant.SingleName.field.ident" class="anchor field"></a><code>ident:&nbsp;<a class="struct" href="../../../../../boa_interner/struct.Sym.html" title="struct boa_interner::Sym">Sym</a></code></span></div><div class="sub-variant-field"><span id="variant.SingleName.field.default_init" class="variant small-section-header"><a href="#variant.SingleName.field.default_init" class="anchor field"></a><code>default_init:&nbsp;<a class="enum" href="https://doc.rust-lang.org/1.61.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../enum.Node.html" title="enum boa_engine::syntax::ast::node::Node">Node</a>&gt;</code></span></div></div><div class="docblock"><p>SingleName represents a <code>SingleNameBinding</code> with an identifier and an optional default initializer.</p>
+</div><h3 id="variant.SingleName" class="variant small-section-header"><a href="#variant.SingleName" class="anchor field"></a><code>SingleName</code></h3><div class="sub-variant" id="variant.SingleName.fields"><h4>Fields</h4><div class="sub-variant-field"><span id="variant.SingleName.field.ident" class="variant small-section-header"><a href="#variant.SingleName.field.ident" class="anchor field"></a><code>ident:&nbsp;<a class="struct" href="../../../../../boa_interner/sym/struct.Sym.html" title="struct boa_interner::sym::Sym">Sym</a></code></span></div><div class="sub-variant-field"><span id="variant.SingleName.field.default_init" class="variant small-section-header"><a href="#variant.SingleName.field.default_init" class="anchor field"></a><code>default_init:&nbsp;<a class="enum" href="https://doc.rust-lang.org/1.61.0/core/option/enum.Option.html" title="enum core::option::Option">Option</a>&lt;<a class="enum" href="../enum.Node.html" title="enum boa_engine::syntax::ast::node::Node">Node</a>&gt;</code></span></div></div><div class="docblock"><p>SingleName represents a <code>SingleNameBinding</code> with an identifier and an optional default initializer.</p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#prod-SingleNameBinding">ECMAScript reference: 14.3.3 Destructuring Binding Patterns - SingleNameBinding</a></li>
@@ -78,7 +78,7 @@ This is only used when a array literal is used as the left-hand-side of an assig
 <ul>
 <li><a href="https://tc39.es/ecma262/#prod-BindingElement">ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingElement</a></li>
 </ul>
-</div><h3 id="variant.SingleNameRest" class="variant small-section-header"><a href="#variant.SingleNameRest" class="anchor field"></a><code>SingleNameRest</code></h3><div class="sub-variant" id="variant.SingleNameRest.fields"><h4>Fields</h4><div class="sub-variant-field"><span id="variant.SingleNameRest.field.ident" class="variant small-section-header"><a href="#variant.SingleNameRest.field.ident" class="anchor field"></a><code>ident:&nbsp;<a class="struct" href="../../../../../boa_interner/struct.Sym.html" title="struct boa_interner::Sym">Sym</a></code></span></div></div><div class="docblock"><p>SingleNameRest represents a <code>BindingIdentifier</code> in a <code>BindingRestElement</code> of an array binding pattern.</p>
+</div><h3 id="variant.SingleNameRest" class="variant small-section-header"><a href="#variant.SingleNameRest" class="anchor field"></a><code>SingleNameRest</code></h3><div class="sub-variant" id="variant.SingleNameRest.fields"><h4>Fields</h4><div class="sub-variant-field"><span id="variant.SingleNameRest.field.ident" class="variant small-section-header"><a href="#variant.SingleNameRest.field.ident" class="anchor field"></a><code>ident:&nbsp;<a class="struct" href="../../../../../boa_interner/sym/struct.Sym.html" title="struct boa_interner::sym::Sym">Sym</a></code></span></div></div><div class="docblock"><p>SingleNameRest represents a <code>BindingIdentifier</code> in a <code>BindingRestElement</code> of an array binding pattern.</p>
 <p>More information:</p>
 <ul>
 <li><a href="https://tc39.es/ecma262/#prod-BindingRestElement">ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement</a></li>

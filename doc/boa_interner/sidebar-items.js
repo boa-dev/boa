@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Interner","The string interner for Boa."],["Sym","The string symbol type for Boa."]],"trait":[["ToInternedString","Converts a given element to a string using an interner."]],"type":[["Backend","Backend of the string interner."]]});
+initSidebarItems({"mod":[["fixed_string",""],["interned_str",""],["sym",""]],"struct":[["Interner","The string interner for Boa."],["Sym","The string symbol type for Boa."]],"trait":[["ToInternedString","Converts a given element to a string using an interner."]]});

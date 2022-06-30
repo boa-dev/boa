@@ -1167,6 +1167,8 @@
 <span id="1160">1160</span>
 <span id="1161">1161</span>
 <span id="1162">1162</span>
+<span id="1163">1163</span>
+<span id="1164">1164</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1224,6 +1226,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">CodeBlock</span> {
     <span class="doccomment">/// Name of this function</span>
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">name</span>: <span class="ident">Sym</span>,
 
     <span class="doccomment">/// The number of arguments expected.</span>
@@ -1246,6 +1249,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">literals</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Property field names.</span>
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">names</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
 
     <span class="doccomment">/// Locators for all bindings in the codeblock.</span>

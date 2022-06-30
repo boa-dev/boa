@@ -929,6 +929,37 @@
 <span id="922">922</span>
 <span id="923">923</span>
 <span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -957,7 +988,7 @@
     <span class="ident">value::IntegerOrInfinity</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="self">self</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="self">self</span>, <span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">dyn_clone::DynClone</span>;
@@ -1069,10 +1100,24 @@
 <span class="doccomment">///  - [ECMAScript specification][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ClassFieldDefinition</span> {
     <span class="ident">Public</span>(<span class="ident">PropertyKey</span>, <span class="ident">JsFunction</span>),
     <span class="ident">Private</span>(<span class="ident">Sym</span>, <span class="ident">JsFunction</span>),
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ClassFieldDefinition</span> {
+    <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
+        <span class="kw">match</span> <span class="ident">this</span> {
+            <span class="ident"><span class="self">Self</span>::Public</span>(<span class="ident">key</span>, <span class="ident">func</span>) =&gt; {
+                <span class="ident">mark</span>(<span class="ident">key</span>);
+                <span class="ident">mark</span>(<span class="ident">func</span>);
+            }
+            <span class="ident"><span class="self">Self</span>::Private</span>(<span class="kw">_</span>, <span class="ident">func</span>) =&gt; {
+                <span class="ident">mark</span>(<span class="ident">func</span>);
+            }
+        }
+    }}
 }
 
 <span class="doccomment">/// Wrapper for `Gc&lt;GcCell&lt;dyn NativeObject&gt;&gt;` that allows passing additional</span>
@@ -1122,18 +1167,14 @@
 <span class="doccomment">/// (AST Node).</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-ecmascript-function-objects&gt;</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Function</span> {
     <span class="ident">Native</span> {
-        <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
         <span class="ident">function</span>: <span class="ident">NativeFunctionSignature</span>,
-        <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
         <span class="ident">constructor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span>,
     },
     <span class="ident">Closure</span> {
-        <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
         <span class="ident">function</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">ClosureFunctionSignature</span><span class="op">&gt;</span>,
-        <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
         <span class="ident">constructor</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span>,
         <span class="ident">captures</span>: <span class="ident">Captures</span>,
     },
@@ -1142,7 +1183,6 @@
         <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
 
         <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.</span>
-        <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
         <span class="ident">constructor_kind</span>: <span class="ident">ConstructorKind</span>,
 
         <span class="doccomment">/// The `[[HomeObject]]` internal slot.</span>
@@ -1158,6 +1198,28 @@
         <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
         <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
     },
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">Function</span> {
+    <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
+        <span class="kw">match</span> <span class="ident">this</span> {
+            <span class="ident"><span class="self">Self</span>::Native</span> { .. } =&gt; {}
+            <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">captures</span>, .. } =&gt; <span class="ident">mark</span>(<span class="ident">captures</span>),
+            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">code</span>, <span class="ident">environments</span>, <span class="ident">home_object</span>, <span class="ident">fields</span>, <span class="ident">private_methods</span>, .. } =&gt; {
+                <span class="ident">mark</span>(<span class="ident">code</span>);
+                <span class="ident">mark</span>(<span class="ident">environments</span>);
+                <span class="ident">mark</span>(<span class="ident">home_object</span>);
+                <span class="ident">mark</span>(<span class="ident">fields</span>);
+                <span class="kw">for</span> (<span class="kw">_</span>, <span class="ident">elem</span>) <span class="kw">in</span> <span class="ident">private_methods</span> {
+                    <span class="ident">mark</span>(<span class="ident">elem</span>);
+                }
+            }
+            <span class="ident"><span class="self">Self</span>::Generator</span> { <span class="ident">code</span>, <span class="ident">environments</span> } =&gt; {
+                <span class="ident">mark</span>(<span class="ident">code</span>);
+                <span class="ident">mark</span>(<span class="ident">environments</span>);
+            }
+        }
+    }}
 }
 
 <span class="kw">impl</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Function</span> {

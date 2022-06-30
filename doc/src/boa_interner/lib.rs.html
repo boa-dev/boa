@@ -308,101 +308,6 @@
 <span id="301">301</span>
 <span id="302">302</span>
 <span id="303">303</span>
-<span id="304">304</span>
-<span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
-<span id="310">310</span>
-<span id="311">311</span>
-<span id="312">312</span>
-<span id="313">313</span>
-<span id="314">314</span>
-<span id="315">315</span>
-<span id="316">316</span>
-<span id="317">317</span>
-<span id="318">318</span>
-<span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
-<span id="322">322</span>
-<span id="323">323</span>
-<span id="324">324</span>
-<span id="325">325</span>
-<span id="326">326</span>
-<span id="327">327</span>
-<span id="328">328</span>
-<span id="329">329</span>
-<span id="330">330</span>
-<span id="331">331</span>
-<span id="332">332</span>
-<span id="333">333</span>
-<span id="334">334</span>
-<span id="335">335</span>
-<span id="336">336</span>
-<span id="337">337</span>
-<span id="338">338</span>
-<span id="339">339</span>
-<span id="340">340</span>
-<span id="341">341</span>
-<span id="342">342</span>
-<span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
-<span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
-<span id="351">351</span>
-<span id="352">352</span>
-<span id="353">353</span>
-<span id="354">354</span>
-<span id="355">355</span>
-<span id="356">356</span>
-<span id="357">357</span>
-<span id="358">358</span>
-<span id="359">359</span>
-<span id="360">360</span>
-<span id="361">361</span>
-<span id="362">362</span>
-<span id="363">363</span>
-<span id="364">364</span>
-<span id="365">365</span>
-<span id="366">366</span>
-<span id="367">367</span>
-<span id="368">368</span>
-<span id="369">369</span>
-<span id="370">370</span>
-<span id="371">371</span>
-<span id="372">372</span>
-<span id="373">373</span>
-<span id="374">374</span>
-<span id="375">375</span>
-<span id="376">376</span>
-<span id="377">377</span>
-<span id="378">378</span>
-<span id="379">379</span>
-<span id="380">380</span>
-<span id="381">381</span>
-<span id="382">382</span>
-<span id="383">383</span>
-<span id="384">384</span>
-<span id="385">385</span>
-<span id="386">386</span>
-<span id="387">387</span>
-<span id="388">388</span>
-<span id="389">389</span>
-<span id="390">390</span>
-<span id="391">391</span>
-<span id="392">392</span>
-<span id="393">393</span>
-<span id="394">394</span>
-<span id="395">395</span>
-<span id="396">396</span>
-<span id="397">397</span>
-<span id="398">398</span>
 </pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The idea behind using a string interner is that in most of the code, strings such as</span>
@@ -454,6 +359,7 @@
     <span class="ident">rust_2018_idioms</span>,
     <span class="ident">future_incompatible</span>,
     <span class="ident">nonstandard_style</span>,
+    <span class="ident">unsafe_op_in_unsafe_fn</span>
 )]</span>
 <span class="attribute">#![<span class="ident">allow</span>(
     <span class="ident">clippy::module_name_repetitions</span>,
@@ -474,46 +380,71 @@
     <span class="ident">rustdoc::missing_doc_code_examples</span>
 )]</span>
 
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">static_assertions</span> <span class="kw">as</span> <span class="ident">sa</span>;
+
+<span class="kw">mod</span> <span class="ident">fixed_string</span>;
+<span class="kw">mod</span> <span class="ident">interned_str</span>;
+<span class="kw">mod</span> <span class="ident">sym</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">fmt::Display</span>, <span class="ident">num::NonZeroUsize</span>};
+<span class="kw">use</span> <span class="ident">fixed_string::FixedString</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">sym</span>::<span class="kw-2">*</span>;
 
-<span class="kw">use</span> <span class="ident">gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-<span class="kw">use</span> <span class="ident">string_interner</span>::{<span class="ident">backend::BucketBackend</span>, <span class="ident">StringInterner</span>, <span class="ident">Symbol</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="ident">Debug</span>, <span class="ident">Display</span>};
 
-<span class="doccomment">/// Backend of the string interner.</span>
-<span class="kw">type</span> <span class="ident">Backend</span> <span class="op">=</span> <span class="ident">BucketBackend</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>;
+<span class="kw">use</span> <span class="ident">interned_str::InternedStr</span>;
+<span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
 <span class="doccomment">/// The string interner for Boa.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This is a type alias that makes it easier to reference it in the code.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Interner</span> {
-    <span class="ident">inner</span>: <span class="ident">StringInterner</span><span class="op">&lt;</span><span class="ident">Backend</span><span class="op">&gt;</span>,
+    <span class="comment">// COMMENT FOR DEVS:</span>
+    <span class="comment">// This interner works on the assumption that</span>
+    <span class="comment">// `head` won&#39;t ever be reallocated, since this could invalidate</span>
+    <span class="comment">// some of our stored pointers inside `spans`.</span>
+    <span class="comment">// This means that any operation on `head` and `full` should be carefully</span>
+    <span class="comment">// reviewed to not cause Undefined Behaviour.</span>
+    <span class="comment">// `get_or_intern` has a more thorough explanation on this.</span>
+    <span class="comment">//</span>
+    <span class="comment">// Also, if you want to implement `shrink_to_fit` (and friends),</span>
+    <span class="comment">// please check out https://github.com/Robbepop/string-interner/pull/47 first.</span>
+    <span class="comment">// This doesn&#39;t implement that method, since implementing it increases</span>
+    <span class="comment">// our memory footprint.</span>
+    <span class="ident">symbols</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">InternedStr</span>, <span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">spans</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">InternedStr</span><span class="op">&gt;</span>,
+    <span class="ident">head</span>: <span class="ident">FixedString</span>,
+    <span class="ident">full</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">FixedString</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Interner</span> {
-    <span class="doccomment">/// Creates a new `StringInterner` with the given initial capacity.</span>
+    <span class="doccomment">/// Creates a new [`Interner`].</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">cap</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::default</span>()
+    }
+
+    <span class="doccomment">/// Creates a new [`Interner`] with the specified capacity.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_capacity</span>(<span class="ident">capacity</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">StringInterner::with_capacity</span>(<span class="ident">cap</span>),
+            <span class="ident">symbols</span>: <span class="ident">FxHashMap::default</span>(),
+            <span class="ident">spans</span>: <span class="ident">Vec::with_capacity</span>(<span class="ident">capacity</span>),
+            <span class="ident">head</span>: <span class="ident">FixedString::new</span>(<span class="ident">capacity</span>),
+            <span class="ident">full</span>: <span class="ident">Vec::new</span>(),
         }
     }
 
     <span class="doccomment">/// Returns the number of strings interned by the interner.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">len</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">len</span>()
+        <span class="ident">COMMON_STRINGS</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="self">self</span>.<span class="ident">spans</span>.<span class="ident">len</span>()
     }
 
-    <span class="doccomment">/// Returns `true` if the string interner has no interned strings.</span>
+    <span class="doccomment">/// Returns `true` if the [`Interner`] contains no interned strings.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_empty</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">is_empty</span>()
+        <span class="ident">COMMON_STRINGS</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">spans</span>.<span class="ident">is_empty</span>()
     }
 
     <span class="doccomment">/// Returns the symbol for the given string if any.</span>
@@ -524,7 +455,7 @@
         <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">as_ref</span>();
-        <span class="ident"><span class="self">Self</span>::get_static</span>(<span class="ident">string</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get</span>(<span class="ident">string</span>))
+        <span class="ident"><span class="self">Self</span>::get_common</span>(<span class="ident">string</span>).<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">get</span>(<span class="ident">string</span>).<span class="ident">copied</span>())
     }
 
     <span class="doccomment">/// Interns the given string.</span>
@@ -532,13 +463,67 @@
     <span class="doccomment">/// Returns a symbol for resolution into the original string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// If the interner already interns the maximum number of strings possible by the chosen symbol type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_intern</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="ident">T</span>) -&gt; <span class="ident">Sym</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">as_ref</span>();
-        <span class="ident"><span class="self">Self</span>::get_static</span>(<span class="ident">string</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_or_intern</span>(<span class="ident">string</span>))
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">string</span>) {
+            <span class="kw">return</span> <span class="ident">sym</span>;
+        }
+
+        <span class="comment">// SAFETY:</span>
+        <span class="comment">//</span>
+        <span class="comment">// Firstly, this interner works on the assumption that the allocated</span>
+        <span class="comment">// memory by `head` won&#39;t ever be moved from its position on the heap,</span>
+        <span class="comment">// which is an important point to understand why manipulating it like</span>
+        <span class="comment">// this is safe.</span>
+        <span class="comment">//</span>
+        <span class="comment">// `String` (which is simply a `Vec&lt;u8&gt;` with additional invariants)</span>
+        <span class="comment">// is essentially a pointer to heap memory that can be moved without</span>
+        <span class="comment">// any problems, since copying a pointer cannot invalidate the memory</span>
+        <span class="comment">// that it points to.</span>
+        <span class="comment">//</span>
+        <span class="comment">// However, `String` CAN be invalidated when pushing, extending or</span>
+        <span class="comment">// shrinking it, since all those operations reallocate on the heap.</span>
+        <span class="comment">//</span>
+        <span class="comment">// To prevent that, we HAVE to ensure the capacity will succeed without</span>
+        <span class="comment">// having to reallocate, and the only way to do that without invalidating</span>
+        <span class="comment">// any other alive `InternedStr` is to create a brand new `head` with</span>
+        <span class="comment">// enough capacity and push the old `head` to `full` to keep it alive</span>
+        <span class="comment">// throughout the lifetime of the whole `Interner`.</span>
+        <span class="comment">//</span>
+        <span class="comment">// `FixedString` encapsulates this by only allowing checked `push`es</span>
+        <span class="comment">// to the internal string, but we still have to ensure the memory</span>
+        <span class="comment">// of `head` is not deallocated until the whole `Interner` deallocates,</span>
+        <span class="comment">// which we can do by moving it inside the `Interner` itself, specifically</span>
+        <span class="comment">// on the `full` vector, where every other old `head` also lives.</span>
+        <span class="kw">let</span> <span class="ident">interned_str</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="self">self</span>.<span class="ident">head</span>.<span class="ident">push</span>(<span class="ident">string</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">new_cap</span> <span class="op">=</span>
+                    (<span class="ident">usize::max</span>(<span class="self">self</span>.<span class="ident">head</span>.<span class="ident">capacity</span>(), <span class="ident">string</span>.<span class="ident">len</span>()) <span class="op">+</span> <span class="number">1</span>).<span class="ident">next_power_of_two</span>();
+                <span class="kw">let</span> <span class="ident">new_head</span> <span class="op">=</span> <span class="ident">FixedString::new</span>(<span class="ident">new_cap</span>);
+                <span class="kw">let</span> <span class="ident">old_head</span> <span class="op">=</span> <span class="ident">std::mem::replace</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">head</span>, <span class="ident">new_head</span>);
+
+                <span class="comment">// If the user creates an `Interner`</span>
+                <span class="comment">// with `Interner::with_capacity(BIG_NUMBER)` and</span>
+                <span class="comment">// the first interned string&#39;s length is bigger than `BIG_NUMBER`,</span>
+                <span class="comment">// `self.full.push(old_head)` would push a big, empty string of</span>
+                <span class="comment">// allocated size `BIG_NUMBER` into `full`.</span>
+                <span class="comment">// This prevents that case.</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">old_head</span>.<span class="ident">is_empty</span>() {
+                    <span class="self">self</span>.<span class="ident">full</span>.<span class="ident">push</span>(<span class="ident">old_head</span>);
+                }
+                <span class="self">self</span>.<span class="ident">head</span>.<span class="ident">push_unchecked</span>(<span class="ident">string</span>)
+            })
+        };
+
+        <span class="comment">// SAFETY: We are obtaining a pointer to the internal memory of</span>
+        <span class="comment">// `head`, which is alive through the whole life of `Interner`, so</span>
+        <span class="comment">// this is safe.</span>
+        <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">generate_symbol</span>(<span class="ident">interned_str</span>) }
     }
 
     <span class="doccomment">/// Interns the given `&#39;static` string.</span>
@@ -547,32 +532,32 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Note</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is more efficient than [`StringInterner::get_or_intern`] since it might</span>
-    <span class="doccomment">/// avoid some memory allocations if the backends supports this.</span>
+    <span class="doccomment">/// This is more efficient than [`Interner::get_or_intern`], since it</span>
+    <span class="doccomment">/// avoids storing `string` inside the [`Interner`].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If the interner already interns the maximum number of strings possible</span>
     <span class="doccomment">/// by the chosen symbol type.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_or_intern_static</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="ident">Sym</span> {
-        <span class="ident"><span class="self">Self</span>::get_static</span>(<span class="ident">string</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">string</span>))
-    }
-
-    <span class="doccomment">/// Shrink backend capacity to fit the interned strings exactly.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">shrink_to_fit</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">shrink_to_fit</span>();
+        <span class="self">self</span>.<span class="ident">get</span>(<span class="ident">string</span>).<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="comment">// SAFETY: a static `str` is always alive, so its pointer</span>
+            <span class="comment">// should therefore always be valid.</span>
+            <span class="kw">unsafe</span> { <span class="self">self</span>.<span class="ident">generate_symbol</span>(<span class="ident">InternedStr::new</span>(<span class="ident">string</span>.<span class="ident">into</span>())) }
+        })
     }
 
     <span class="doccomment">/// Returns the string for the given symbol if any.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">resolve</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">Sym</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">as_raw</span>().<span class="ident">get</span>();
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::STATIC_STRINGS</span>.<span class="ident">len</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident"><span class="self">Self</span>::STATIC_STRINGS</span>[<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>])
-        } <span class="kw">else</span> {
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">resolve</span>(<span class="ident">symbol</span>)
-        }
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">get</span>() <span class="op">-</span> <span class="number">1</span>;
+
+        <span class="ident">COMMON_STRINGS</span>.<span class="ident">index</span>(<span class="ident">index</span>).<span class="ident">copied</span>().<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="self">self</span>.<span class="ident">spans</span>.<span class="ident">get</span>(<span class="ident">index</span> <span class="op">-</span> <span class="ident">COMMON_STRINGS</span>.<span class="ident">len</span>()).<span class="ident">map</span>(<span class="op">|</span><span class="ident">ptr</span><span class="op">|</span>
+                <span class="comment">// SAFETY: We always ensure the stored `InternedStr`s always</span>
+                <span class="comment">// reference memory inside `head` and `full`</span>
+                <span class="kw">unsafe</span> {<span class="ident">ptr</span>.<span class="ident">as_str</span>()})
+        })
     }
 
     <span class="doccomment">/// Returns the string for the given symbol.</span>
@@ -585,176 +570,31 @@
         <span class="self">self</span>.<span class="ident">resolve</span>(<span class="ident">symbol</span>).<span class="ident">expect</span>(<span class="string">&quot;string disappeared&quot;</span>)
     }
 
-    <span class="doccomment">/// Gets the symbol of the static string if one of them</span>
-    <span class="kw">fn</span> <span class="ident">get_static</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::STATIC_STRINGS</span>
-            .<span class="ident">into_iter</span>()
-            .<span class="ident">enumerate</span>()
-            .<span class="ident">find</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">_i</span>, <span class="ident">s</span>)<span class="op">|</span> <span class="ident">string</span> <span class="op">==</span> <span class="ident">s</span>)
-            .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">_str</span>)<span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">NonZeroUsize::new</span>(<span class="ident">i</span>.<span class="ident">wrapping_add</span>(<span class="number">1</span>)).<span class="ident">expect</span>(<span class="string">&quot;static array too big&quot;</span>);
-                <span class="ident">Sym::from_raw</span>(<span class="ident">raw</span>)
+    <span class="doccomment">/// Gets the symbol of the common string if one of them</span>
+    <span class="kw">fn</span> <span class="ident">get_common</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
+        <span class="ident">COMMON_STRINGS</span>.<span class="ident">get_index</span>(<span class="ident">string</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span>
+            <span class="comment">// SAFETY: `idx &gt;= 0`, since it&#39;s an `usize`, and `idx + 1 &gt; 0`.</span>
+            <span class="comment">// In this case, we don&#39;t need to worry about overflows</span>
+            <span class="comment">// because we have a static assertion in place checking that</span>
+            <span class="comment">// `COMMON_STRINGS.len() &lt; usize::MAX`.</span>
+            <span class="kw">unsafe</span> {
+                <span class="ident">Sym::new_unchecked</span>(<span class="ident">idx</span> <span class="op">+</span> <span class="number">1</span>)
             })
     }
-}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">FromIterator</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Interner</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-{
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
-    {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">StringInterner::from_iter</span>(<span class="ident">iter</span>),
-        }
+    <span class="doccomment">/// Generates a new symbol for the provided [`str`] pointer.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The caller must ensure `string` points to a valid</span>
+    <span class="doccomment">/// memory inside `head` and that it won&#39;t be invalidated</span>
+    <span class="doccomment">/// by allocations and deallocations.</span>
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">generate_symbol</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">string</span>: <span class="ident">InternedStr</span>) -&gt; <span class="ident">Sym</span> {
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">Sym::new</span>(<span class="self">self</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>).<span class="ident">expect</span>(<span class="string">&quot;cannot get interner symbol: integer overflow&quot;</span>);
+        <span class="self">self</span>.<span class="ident">spans</span>.<span class="ident">push</span>(<span class="ident">string</span>.<span class="ident">clone</span>());
+        <span class="self">self</span>.<span class="ident">symbols</span>.<span class="ident">insert</span>(<span class="ident">string</span>, <span class="ident">next</span>);
+        <span class="ident">next</span>
     }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">Extend</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Interner</span>
-<span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
-{
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">extend</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">iter</span>: <span class="ident">I</span>)
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
-    {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">extend</span>(<span class="ident">iter</span>);
-    }
-}
-
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Interner</span> {
-    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> (<span class="ident">Sym</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>);
-    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Backend</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>;
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
-        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_iter</span>()
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Interner</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> {
-            <span class="ident">inner</span>: <span class="ident">StringInterner::new</span>(),
-        }
-    }
-}
-
-<span class="doccomment">/// The string symbol type for Boa.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// This symbol type is internally a `NonZeroUsize`, which makes it pointer-width in size and it&#39;s</span>
-<span class="doccomment">/// optimized so that it can occupy 1 pointer width even in an `Option` type.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>, <span class="ident">Finalize</span>)]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>, <span class="ident">serde</span>(<span class="ident">transparent</span>))]</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unsafe_derive_deserialize</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Sym</span> {
-    <span class="ident">value</span>: <span class="ident">NonZeroUsize</span>,
-}
-
-<span class="kw">impl</span> <span class="ident">Sym</span> {
-    <span class="doccomment">/// Padding for the symbol internal value.</span>
-    <span class="kw">const</span> <span class="ident">PADDING</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">Interner::STATIC_STRINGS</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="number">1</span>;
-
-    <span class="doccomment">/// Symbol for the empty string (`&quot;&quot;`).</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EMPTY_STRING</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">1</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;arguments&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ARGUMENTS</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">2</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;await&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">AWAIT</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">3</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;yield&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">YIELD</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">4</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;eval&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">EVAL</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">5</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;default&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">DEFAULT</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">6</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;null&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">NULL</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">7</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;RegExp&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">REGEXP</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">8</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;get&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">GET</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">9</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;set&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">SET</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">10</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;&lt;main&gt;&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">MAIN</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">11</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;raw&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">RAW</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">12</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;static&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">STATIC</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">13</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;prototype&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROTOTYPE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">14</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;constructor&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">CONSTRUCTOR</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">15</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;implements&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">IMPLEMENTS</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">16</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;interface&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">INTERFACE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">17</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;let&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">LET</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">18</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;package&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PACKAGE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">19</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;private&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PRIVATE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">20</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;protected&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PROTECTED</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">21</span>)) };
-
-    <span class="doccomment">/// Symbol for the `&quot;public&quot;` string.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PUBLIC</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_raw</span>(<span class="ident">NonZeroUsize::new_unchecked</span>(<span class="number">22</span>)) };
-
-    <span class="doccomment">/// Creates a `Sym` from a raw `NonZeroUsize`.</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">from_raw</span>(<span class="ident">value</span>: <span class="ident">NonZeroUsize</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">value</span> }
-    }
-
-    <span class="doccomment">/// Retrieves the raw `NonZeroUsize` for this symbol.</span>
-    <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="self">self</span>) -&gt; <span class="ident">NonZeroUsize</span> {
-        <span class="self">self</span>.<span class="ident">value</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Symbol</span> <span class="kw">for</span> <span class="ident">Sym</span> {
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">try_from_usize</span>(<span class="ident">index</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="ident">index</span>
-            .<span class="ident">checked_add</span>(<span class="ident"><span class="self">Self</span>::PADDING</span>)
-            .<span class="ident">and_then</span>(<span class="ident">NonZeroUsize::new</span>)
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">value</span><span class="op">|</span> <span class="self">Self</span> { <span class="ident">value</span> })
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_usize</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="self">self</span>.<span class="ident">value</span>.<span class="ident">get</span>() <span class="op">-</span> <span class="ident"><span class="self">Self</span>::PADDING</span>
-    }
-}
-
-<span class="comment">// Safe because `Sym` implements `Copy`.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">Sym</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="doccomment">/// Converts a given element to a string using an interner.</span>
@@ -770,36 +610,6 @@
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="self">self</span>.<span class="ident">to_string</span>()
     }
-}
-
-<span class="kw">impl</span> <span class="ident">Interner</span> {
-    <span class="doccomment">/// List of commonly used static strings.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Make sure that any string added as a `Sym` constant is also added here.</span>
-    <span class="kw">const</span> <span class="ident">STATIC_STRINGS</span>: [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>; <span class="number">22</span>] <span class="op">=</span> [
-        <span class="string">&quot;&quot;</span>,
-        <span class="string">&quot;arguments&quot;</span>,
-        <span class="string">&quot;await&quot;</span>,
-        <span class="string">&quot;yield&quot;</span>,
-        <span class="string">&quot;eval&quot;</span>,
-        <span class="string">&quot;default&quot;</span>,
-        <span class="string">&quot;null&quot;</span>,
-        <span class="string">&quot;RegExp&quot;</span>,
-        <span class="string">&quot;get&quot;</span>,
-        <span class="string">&quot;set&quot;</span>,
-        <span class="string">&quot;&lt;main&gt;&quot;</span>,
-        <span class="string">&quot;raw&quot;</span>,
-        <span class="string">&quot;static&quot;</span>,
-        <span class="string">&quot;prototype&quot;</span>,
-        <span class="string">&quot;constructor&quot;</span>,
-        <span class="string">&quot;implements&quot;</span>,
-        <span class="string">&quot;interface&quot;</span>,
-        <span class="string">&quot;let&quot;</span>,
-        <span class="string">&quot;package&quot;</span>,
-        <span class="string">&quot;private&quot;</span>,
-        <span class="string">&quot;protected&quot;</span>,
-        <span class="string">&quot;public&quot;</span>,
-    ];
 }
 </code></pre></div>
 </section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_interner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>

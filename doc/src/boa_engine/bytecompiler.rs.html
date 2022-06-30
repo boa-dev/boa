@@ -3012,6 +3012,9 @@
 <span id="3005">3005</span>
 <span id="3006">3006</span>
 <span id="3007">3007</span>
+<span id="3008">3008</span>
+<span id="3009">3009</span>
+<span id="3010">3010</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
@@ -3034,7 +3037,7 @@
     <span class="ident">vm</span>::{<span class="ident">BindingOpcode</span>, <span class="ident">CodeBlock</span>, <span class="ident">Opcode</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Gc</span>};
+<span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std::mem::size_of</span>;
@@ -3112,7 +3115,10 @@
 
     <span class="doccomment">/// Push a compile time environment to the current `CodeBlock` and return it&#39;s index.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">push_compile_environment</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">environment</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">CompileTimeEnvironment</span><span class="op">&gt;</span><span class="op">&gt;</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">fn</span> <span class="ident">push_compile_environment</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">environment</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">boa_gc::Cell</span><span class="op">&lt;</span><span class="ident">CompileTimeEnvironment</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    ) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">compile_environments</span>.<span class="ident">len</span>();
         <span class="self">self</span>.<span class="ident">code_block</span>.<span class="ident">compile_environments</span>.<span class="ident">push</span>(<span class="ident">environment</span>);
         <span class="ident">index</span>
