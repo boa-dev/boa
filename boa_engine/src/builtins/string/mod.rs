@@ -2140,10 +2140,10 @@ pub(crate) fn get_substitution(
     while let Some(first) = chars.next() {
         if first == '$' {
             let second = chars.next();
-            let second_is_digit = second.map_or(false, |ch| ch.is_digit(10));
+            let second_is_digit = second.as_ref().map_or(false, char::is_ascii_digit);
             // we use peek so that it is still in the iterator if not used
             let third = if second_is_digit { chars.peek() } else { None };
-            let third_is_digit = third.map_or(false, |ch| ch.is_digit(10));
+            let third_is_digit = third.map_or(false, char::is_ascii_digit);
 
             match (second, third) {
                 // $$

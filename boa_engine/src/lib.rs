@@ -52,7 +52,6 @@
     nonstandard_style,
 )]
 #![allow(
-    clippy::use_self, // TODO: deny once false positives are fixed
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
@@ -68,6 +67,11 @@
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
+    // Ignore because `write!(string, ...)` instead of `string.push_str(&format!(...))` can fail.
+    // We only use it in `ToInternedString` where performance is not an issue.
+    clippy::format_push_string,
+    // TODO deny once false positive are fixed (https://github.com/rust-lang/rust-clippy/issues/9076).
+    clippy::trait_duplication_in_bounds,
     rustdoc::missing_doc_code_examples
 )]
 
