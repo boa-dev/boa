@@ -79,16 +79,10 @@ impl Eval {
 
         // Because of implementation details the following code differs from the spec.
 
-        // Parse the script body (11.a - 11.d)
-        // TODO: Implement errors for 11.e - 11.h
-        let parse_result = if strict {
-            context.parse_strict(x.as_bytes())
-        } else {
-            context.parse(x.as_bytes())
-        };
-        let body = match parse_result.map_err(|e| e.to_string()) {
+        // Parse the script body and handle early errors (6 - 11)
+        let body = match context.parse_eval(x.as_bytes(), direct, strict) {
             Ok(body) => body,
-            Err(e) => return context.throw_syntax_error(e),
+            Err(e) => return context.throw_syntax_error(e.to_string()),
         };
 
         // 12 - 13 are implicit in the call of `Context::compile_with_new_declarative`.

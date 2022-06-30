@@ -3,7 +3,7 @@
 use crate::syntax::ast::{
     node::{
         declaration::block_to_string, join_nodes, AsyncFunctionExpr, AsyncGeneratorExpr,
-        FunctionExpr, GeneratorExpr, Node,
+        FormalParameterList, FunctionExpr, GeneratorExpr, Node, StatementList,
     },
     Const,
 };
@@ -321,6 +321,32 @@ pub enum MethodDefinition {
     Async(AsyncFunctionExpr),
 }
 
+impl MethodDefinition {
+    /// Return the body of the method.
+    pub(crate) fn body(&self) -> &StatementList {
+        match self {
+            MethodDefinition::Get(expr)
+            | MethodDefinition::Set(expr)
+            | MethodDefinition::Ordinary(expr) => expr.body(),
+            MethodDefinition::Generator(expr) => expr.body(),
+            MethodDefinition::AsyncGenerator(expr) => expr.body(),
+            MethodDefinition::Async(expr) => expr.body(),
+        }
+    }
+
+    /// Return the parameters of the method.
+    pub(crate) fn parameters(&self) -> &FormalParameterList {
+        match self {
+            MethodDefinition::Get(expr)
+            | MethodDefinition::Set(expr)
+            | MethodDefinition::Ordinary(expr) => expr.parameters(),
+            MethodDefinition::Generator(expr) => expr.parameters(),
+            MethodDefinition::AsyncGenerator(expr) => expr.parameters(),
+            MethodDefinition::Async(expr) => expr.parameters(),
+        }
+    }
+}
+
 /// `PropertyName` can be either a literal or computed.
 ///
 /// More information:
@@ -348,6 +374,7 @@ pub enum PropertyName {
 }
 
 impl PropertyName {
+    /// Returns the literal property name if it exists.
     pub(in crate::syntax) fn literal(&self) -> Option<Sym> {
         if let Self::Literal(sym) = self {
             Some(*sym)
@@ -356,6 +383,16 @@ impl PropertyName {
         }
     }
 
+    /// Returns the expression node if the property name is computed.
+    pub(in crate::syntax) fn computed(&self) -> Option<&Node> {
+        if let Self::Computed(node) = self {
+            Some(node)
+        } else {
+            None
+        }
+    }
+
+    /// Returns either the literal property name or the computed const string property name.
     pub(in crate::syntax) fn prop_name(&self) -> Option<Sym> {
         match self {
             PropertyName::Literal(sym)

@@ -142,8 +142,22 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: superclass **=>** superclass.prototype
+    /// Stack: class, superclass **=>** class, superclass.prototype
     PushClassPrototype,
+
+    /// Set the prototype of a class object.
+    ///
+    /// Operands:
+    ///
+    /// Stack: class, prototype **=>** class.prototype
+    SetClassPrototype,
+
+    /// Set home object internal slot of a function object.
+    ///
+    /// Operands:
+    ///
+    /// Stack: home, function **=>** home, function
+    SetHomeObject,
 
     /// Push an empty array value on the stack.
     ///
@@ -624,16 +638,34 @@ pub enum Opcode {
     /// Stack: object, key, value **=>**
     DefineClassSetterByValue,
 
-    /// Set a private property by name from an object.
+    /// Assign the value of a private property of an object by it's name.
+    ///
+    /// Like `obj.#name = value`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    AssignPrivateField,
+
+    /// Set a private property of a class constructor by it's name.
     ///
     /// Like `#name = value`
     ///
     /// Operands: name_index: `u32`
     ///
     /// Stack: object, value **=>**
-    SetPrivateValue,
+    SetPrivateField,
 
-    /// Set a private setter property by name from an object.
+    /// Set a private method of a class constructor by it's name.
+    ///
+    /// Like `#name() {}`
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: object, value **=>**
+    SetPrivateMethod,
+
+    /// Set a private setter property of a class constructor by it's name.
     ///
     /// Like `set #name() {}`
     ///
@@ -642,7 +674,7 @@ pub enum Opcode {
     /// Stack: object, value **=>**
     SetPrivateSetter,
 
-    /// Set a private getter property by name from an object.
+    /// Set a private getter property of a class constructor by it's name.
     ///
     /// Like `get #name() {}`
     ///
@@ -660,12 +692,40 @@ pub enum Opcode {
     /// Stack: object **=>** value
     GetPrivateField,
 
-    /// Push a computed class field name to a class constructor object.
+    /// Push a field to a class.
     ///
     /// Operands:
     ///
-    /// Stack: value, object **=>**
-    PushClassComputedFieldName,
+    /// Stack: class, field_name, field_function **=>**
+    PushClassField,
+
+    /// Push a private field to the class.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: class, field_function **=>**
+    PushClassFieldPrivate,
+
+    /// Push a private getter to the class.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: class, getter **=>**
+    PushClassPrivateGetter,
+
+    /// Push a private setter to the class.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: class, setter **=>**
+    PushClassPrivateSetter,
+
+    /// Push a private method to the class.
+    ///
+    /// Operands: name_index: `u32`
+    ///
+    /// Stack: class, method **=>**
+    PushClassPrivateMethod,
 
     /// Deletes a property by name of an object.
     ///
@@ -802,6 +862,34 @@ pub enum Opcode {
     ///
     /// Stack: **=>** this
     This,
+
+    /// Pushes the current `super` value to the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>** super
+    Super,
+
+    /// Execute the `super()` method.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: argument_1, ... argument_n **=>**
+    SuperCall,
+
+    /// Execute the `super()` method where the last argument is a rest parameter.
+    ///
+    /// Operands: argument_count: `u32`
+    ///
+    /// Stack: argument_1, ... argument_n **=>**
+    SuperCallWithRest,
+
+    /// Execute the `super()` method when no constructor of the class is defined.
+    ///
+    /// Operands:
+    ///
+    /// Stack: argument_1, ... argument_n **=>**
+    SuperCallDerived,
 
     /// Pop the two values of the stack, strict equal compares the two values,
     /// if true jumps to address, otherwise push the second pop'ed value.
@@ -1079,6 +1167,8 @@ impl Opcode {
             Self::PushLiteral => "PushLiteral",
             Self::PushEmptyObject => "PushEmptyObject",
             Self::PushClassPrototype => "PushClassPrototype",
+            Self::SetClassPrototype => "SetClassPrototype",
+            Self::SetHomeObject => "SetHomeObject",
             Self::PushNewArray => "PushNewArray",
             Self::PushValueToArray => "PushValueToArray",
             Self::PushElisionToArray => "PushElisionToArray",
@@ -1143,11 +1233,17 @@ impl Opcode {
             Self::DefineClassSetterByName => "DefineClassSetterByName",
             Self::SetPropertySetterByValue => "SetPropertySetterByValue",
             Self::DefineClassSetterByValue => "DefineClassSetterByValue",
-            Self::SetPrivateValue => "SetPrivateValue",
+            Self::AssignPrivateField => "AssignPrivateField",
+            Self::SetPrivateField => "SetPrivateValue",
+            Self::SetPrivateMethod => "SetPrivateMethod",
             Self::SetPrivateSetter => "SetPrivateSetter",
             Self::SetPrivateGetter => "SetPrivateGetter",
-            Self::GetPrivateField => "GetPrivateByName",
-            Self::PushClassComputedFieldName => "PushClassComputedFieldName",
+            Self::GetPrivateField => "GetPrivateField",
+            Self::PushClassField => "PushClassField",
+            Self::PushClassFieldPrivate => "PushClassFieldPrivate",
+            Self::PushClassPrivateGetter => "PushClassPrivateGetter",
+            Self::PushClassPrivateSetter => "PushClassPrivateSetter",
+            Self::PushClassPrivateMethod => "PushClassPrivateMethod",
             Self::DeletePropertyByName => "DeletePropertyByName",
             Self::DeletePropertyByValue => "DeletePropertyByValue",
             Self::CopyDataProperties => "CopyDataProperties",
@@ -1166,6 +1262,10 @@ impl Opcode {
             Self::FinallySetJump => "FinallySetJump",
             Self::ToBoolean => "ToBoolean",
             Self::This => "This",
+            Self::Super => "Super",
+            Self::SuperCall => "SuperCall",
+            Self::SuperCallWithRest => "SuperCallWithRest",
+            Self::SuperCallDerived => "SuperCallDerived",
             Self::Case => "Case",
             Self::Default => "Default",
             Self::GetFunction => "GetFunction",
@@ -1300,6 +1400,10 @@ impl Opcode {
             Self::FinallySetJump => "INST - FinallySetJump",
             Self::ToBoolean => "INST - ToBoolean",
             Self::This => "INST - This",
+            Self::Super => "INST - Super",
+            Self::SuperCall => "INST - SuperCall",
+            Self::SuperCallWithRest => "INST - SuperCallWithRest",
+            Self::SuperCallDerived => "INST - SuperCallDerived",
             Self::Case => "INST - Case",
             Self::Default => "INST - Default",
             Self::GetFunction => "INST - GetFunction",
@@ -1335,17 +1439,25 @@ impl Opcode {
             Self::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
             Self::Nop => "INST - Nop",
             Self::PushClassPrototype => "INST - PushClassPrototype",
+            Self::SetClassPrototype => "INST - SetClassPrototype",
+            Self::SetHomeObject => "INST - SetHomeObject",
             Self::DefineClassMethodByName => "INST - DefineClassMethodByName",
             Self::DefineClassMethodByValue => "INST - DefineClassMethodByValue",
             Self::DefineClassGetterByName => "INST - DefineClassGetterByName",
             Self::DefineClassGetterByValue => "INST - DefineClassGetterByValue",
             Self::DefineClassSetterByName => "INST - DefineClassSetterByName",
             Self::DefineClassSetterByValue => "INST - DefineClassSetterByValue",
-            Self::SetPrivateValue => "INST - SetPrivateValue",
+            Self::AssignPrivateField => "INST - AssignPrivateField",
+            Self::SetPrivateField => "INST - SetPrivateValue",
+            Self::SetPrivateMethod => "INST - SetPrivateMethod",
             Self::SetPrivateSetter => "INST - SetPrivateSetter",
             Self::SetPrivateGetter => "INST - SetPrivateGetter",
             Self::GetPrivateField => "INST - GetPrivateField",
-            Self::PushClassComputedFieldName => "INST - PushClassComputedFieldName",
+            Self::PushClassField => "INST - PushClassField",
+            Self::PushClassFieldPrivate => "INST - PushClassFieldPrivate",
+            Self::PushClassPrivateGetter => "INST - PushClassPrivateGetter",
+            Self::PushClassPrivateSetter => "INST - PushClassPrivateSetter",
+            Self::PushClassPrivateMethod => "INST - PushClassPrivateMethod",
             Self::ToPropertyKey => "INST - ToPropertyKey",
         }
     }

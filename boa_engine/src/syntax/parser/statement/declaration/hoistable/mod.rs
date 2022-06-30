@@ -21,7 +21,7 @@ use self::{
 };
 use crate::syntax::{
     ast::node::{FormalParameterList, StatementList},
-    ast::{Keyword, Node, Position, Punctuator},
+    ast::{node::function_contains_super, Keyword, Node, Position, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::BindingIdentifier,
@@ -212,6 +212,13 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
         &body.lexically_declared_names_top_level(),
         params_start_position,
     )?;
+
+    if function_contains_super(&body, &params) {
+        return Err(ParseError::lex(LexError::Syntax(
+            "invalid super usage".into(),
+            params_start_position,
+        )));
+    }
 
     Ok((name, params, body))
 }

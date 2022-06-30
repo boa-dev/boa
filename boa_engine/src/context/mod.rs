@@ -167,14 +167,21 @@ impl Context {
         parser.parse_all(self)
     }
 
-    /// Parse the given source text in strict mode.
-    pub(crate) fn parse_strict<S>(&mut self, src: S) -> Result<StatementList, ParseError>
+    /// Parse the given source text with eval specific handling.
+    pub(crate) fn parse_eval<S>(
+        &mut self,
+        src: S,
+        direct: bool,
+        strict: bool,
+    ) -> Result<StatementList, ParseError>
     where
         S: AsRef<[u8]>,
     {
         let mut parser = Parser::new(src.as_ref());
-        parser.set_strict();
-        parser.parse_all(self)
+        if strict {
+            parser.set_strict();
+        }
+        parser.parse_eval(direct, self)
     }
 
     /// `Call ( F, V [ , argumentsList ] )`
@@ -705,22 +712,20 @@ impl Context {
     #[inline]
     pub fn execute(&mut self, code_block: Gc<CodeBlock>) -> JsResult<JsValue> {
         let _timer = Profiler::global().start_event("Execution", "Main");
-        let global_object = self.global_object().clone().into();
 
         self.vm.push_frame(CallFrame {
             prev: None,
             code: code_block,
-            this: global_object,
             pc: 0,
             catch: Vec::new(),
             finally_return: FinallyReturn::None,
             finally_jump: Vec::new(),
             pop_on_return: 0,
-            loop_env_stack: vec![0],
-            try_env_stack: vec![crate::vm::TryStackEntry {
+            loop_env_stack: Vec::from([0]),
+            try_env_stack: Vec::from([crate::vm::TryStackEntry {
                 num_env: 0,
                 num_loop_stack_entries: 0,
-            }],
+            }]),
             param_count: 0,
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,

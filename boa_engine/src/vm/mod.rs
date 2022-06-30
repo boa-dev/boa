@@ -3,13 +3,18 @@
 //! plus an interpreter to execute those instructions
 
 use crate::{
-    builtins::{function::Function, iterable::IteratorRecord, Array, ForInIterator, Number},
-    object::PrivateElement,
-    property::{DescriptorKind, PropertyDescriptor, PropertyKey},
+    builtins::{
+        function::{ConstructorKind, Function},
+        iterable::IteratorRecord,
+        Array, ForInIterator, Number,
+    },
+    environments::EnvironmentSlots,
+    object::{JsFunction, JsObject, ObjectData, PrivateElement},
+    property::{DescriptorKind, PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey},
     value::Numeric,
     vm::{
         call_frame::CatchAddresses,
-        code_block::{create_generator_function_object, Readable},
+        code_block::{create_generator_function_object, initialize_instance_elements, Readable},
     },
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
@@ -198,19 +203,102 @@ impl Context {
             Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
             Opcode::PushClassPrototype => {
                 let superclass = self.vm.pop();
-                if superclass.is_null() {
-                    self.vm.push(JsValue::Null);
-                }
+
                 if let Some(superclass) = superclass.as_constructor() {
                     let proto = superclass.get("prototype", self)?;
                     if !proto.is_object() && !proto.is_null() {
                         return self
                             .throw_type_error("superclass prototype must be an object or null");
                     }
+
+                    let class = self.vm.pop();
+                    {
+                        let class_object = class.as_object().expect("class must be object");
+                        class_object.set_prototype(Some(superclass.clone()));
+
+                        let mut class_object_mut = class_object.borrow_mut();
+                        let class_function = class_object_mut
+                            .as_function_mut()
+                            .expect("class must be function object");
+                        if let Function::Ordinary {
+                            constructor_kind, ..
+                        } = class_function
+                        {
+                            *constructor_kind = ConstructorKind::Derived;
+                        }
+                    }
+
+                    self.vm.push(class);
                     self.vm.push(proto);
+                } else if superclass.is_null() {
+                    self.vm.push(JsValue::Null);
                 } else {
                     return self.throw_type_error("superclass must be a constructor");
                 }
+            }
+            Opcode::SetClassPrototype => {
+                let prototype_value = self.vm.pop();
+                let prototype = match &prototype_value {
+                    JsValue::Object(proto) => Some(proto.clone()),
+                    JsValue::Null => None,
+                    JsValue::Undefined => {
+                        Some(self.intrinsics().constructors().object().prototype.clone())
+                    }
+                    _ => unreachable!(),
+                };
+
+                let proto = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
+                let class = self.vm.pop();
+
+                {
+                    let class_object = class.as_object().expect("class must be object");
+                    class_object
+                        .define_property_or_throw(
+                            "prototype",
+                            PropertyDescriptorBuilder::new()
+                                .value(proto.clone())
+                                .writable(false)
+                                .enumerable(false)
+                                .configurable(false),
+                            self,
+                        )
+                        .expect("cannot fail per spec");
+                    let mut class_object_mut = class_object.borrow_mut();
+                    let class_function = class_object_mut
+                        .as_function_mut()
+                        .expect("class must be function object");
+                    class_function.set_home_object(proto.clone());
+                }
+
+                proto
+                    .__define_own_property__(
+                        "constructor".into(),
+                        PropertyDescriptorBuilder::new()
+                            .value(class)
+                            .writable(true)
+                            .enumerable(false)
+                            .configurable(true)
+                            .build(),
+                        self,
+                    )
+                    .expect("cannot fail per spec");
+
+                self.vm.push(proto);
+            }
+            Opcode::SetHomeObject => {
+                let function = self.vm.pop();
+                let function_object = function.as_object().expect("must be object");
+                let home = self.vm.pop();
+                let home_object = home.as_object().expect("must be object");
+
+                function_object
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("must be function object")
+                    .set_home_object(home_object.clone());
+
+                self.vm.push(home);
+                self.vm.push(function);
             }
             Opcode::PushNewArray => {
                 let array = Array::array_create(0, None, self)
@@ -721,6 +809,13 @@ impl Context {
                 } else {
                     object.to_object(self)?
                 };
+                value
+                    .as_object()
+                    .expect("method must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("method must be function object")
+                    .set_home_object(object.clone());
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name);
                 object.__define_own_property__(
@@ -777,6 +872,13 @@ impl Context {
                 } else {
                     object.to_object(self)?
                 };
+                value
+                    .as_object()
+                    .expect("method must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("method must be function object")
+                    .set_home_object(object.clone());
                 let key = key.to_property_key(self)?;
                 object.__define_own_property__(
                     key,
@@ -817,6 +919,13 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
+                value
+                    .as_object()
+                    .expect("method must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("method must be function object")
+                    .set_home_object(object.clone());
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name).into();
                 let set = object
@@ -862,6 +971,13 @@ impl Context {
                 let key = self.vm.pop();
                 let object = self.vm.pop();
                 let object = object.to_object(self)?;
+                value
+                    .as_object()
+                    .expect("method must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("method must be function object")
+                    .set_home_object(object.clone());
                 let name = key.to_property_key(self)?;
                 let set = object
                     .__get_own_property__(&name, self)?
@@ -907,6 +1023,13 @@ impl Context {
                 let object = self.vm.pop();
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
+                value
+                    .as_object()
+                    .expect("method must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("method must be function object")
+                    .set_home_object(object.clone());
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name).into();
                 let get = object
@@ -952,6 +1075,13 @@ impl Context {
                 let key = self.vm.pop();
                 let object = self.vm.pop();
                 let object = object.to_object(self)?;
+                value
+                    .as_object()
+                    .expect("method must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("method must be function object")
+                    .set_home_object(object.clone());
                 let name = key.to_property_key(self)?;
                 let get = object
                     .__get_own_property__(&name, self)?
@@ -969,7 +1099,41 @@ impl Context {
                     self,
                 )?;
             }
-            Opcode::SetPrivateValue => {
+            Opcode::AssignPrivateField => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let value = self.vm.pop();
+                let object = self.vm.pop();
+                if let Some(object) = object.as_object() {
+                    let mut object_borrow_mut = object.borrow_mut();
+                    match object_borrow_mut.get_private_element(name) {
+                        Some(PrivateElement::Field(_)) => {
+                            object_borrow_mut
+                                .set_private_element(name, PrivateElement::Field(value));
+                        }
+                        Some(PrivateElement::Method(_)) => {
+                            return self.throw_type_error("private method is not writable");
+                        }
+                        Some(PrivateElement::Accessor {
+                            setter: Some(setter),
+                            ..
+                        }) => {
+                            let setter = setter.clone();
+                            drop(object_borrow_mut);
+                            setter.call(&object.clone().into(), &[value], self)?;
+                        }
+                        None => {
+                            return self.throw_type_error("private field not defined");
+                        }
+                        _ => {
+                            return self.throw_type_error("private field defined without a setter");
+                        }
+                    }
+                } else {
+                    return self.throw_type_error("cannot set private property on non-object");
+                }
+            }
+            Opcode::SetPrivateField => {
                 let index = self.vm.read::<u32>();
                 let name = self.vm.frame().code.names[index as usize];
                 let value = self.vm.pop();
@@ -985,10 +1149,24 @@ impl Context {
                         drop(object_borrow_mut);
                         setter.call(&object.clone().into(), &[value], self)?;
                     } else {
-                        object_borrow_mut.set_private_element(name, PrivateElement::Value(value));
+                        object_borrow_mut.set_private_element(name, PrivateElement::Field(value));
                     }
                 } else {
                     return self.throw_type_error("cannot set private property on non-object");
+                }
+            }
+            Opcode::SetPrivateMethod => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let value = self.vm.pop();
+                let value = value.as_callable().expect("method must be callable");
+                let object = self.vm.pop();
+                if let Some(object) = object.as_object() {
+                    let mut object_borrow_mut = object.borrow_mut();
+                    object_borrow_mut
+                        .set_private_element(name, PrivateElement::Method(value.clone()));
+                } else {
+                    return self.throw_type_error("cannot set private setter on non-object");
                 }
             }
             Opcode::SetPrivateSetter => {
@@ -1025,7 +1203,8 @@ impl Context {
                     let object_borrow_mut = object.borrow();
                     if let Some(element) = object_borrow_mut.get_private_element(name) {
                         match element {
-                            PrivateElement::Value(value) => self.vm.push(value),
+                            PrivateElement::Field(value) => self.vm.push(value),
+                            PrivateElement::Method(method) => self.vm.push(method.clone()),
                             PrivateElement::Accessor {
                                 getter: Some(getter),
                                 setter: _,
@@ -1046,25 +1225,111 @@ impl Context {
                     return self.throw_type_error("cannot read private property from non-object");
                 }
             }
-            Opcode::PushClassComputedFieldName => {
-                let object = self.vm.pop();
-                let value = self.vm.pop();
-                let value = value.to_property_key(self)?;
-                let object_obj = object
+            Opcode::PushClassField => {
+                let field_function_value = self.vm.pop();
+                let field_name_value = self.vm.pop();
+                let class_value = self.vm.pop();
+
+                let field_name_key = field_name_value.to_property_key(self)?;
+                let field_function_object = field_function_value
                     .as_object()
-                    .expect("can only add field to function object");
-                let object = object_obj.borrow();
-                let function = object
-                    .as_function()
-                    .expect("can only add field to function object");
-                if let Function::Ordinary { code, .. } = function {
-                    let code_b = code
-                        .computed_field_names
-                        .as_ref()
-                        .expect("class constructor must have fields");
-                    let mut fields_mut = code_b.borrow_mut();
-                    fields_mut.push(value);
-                }
+                    .expect("field value must be function object");
+                let mut field_function_object_borrow = field_function_object.borrow_mut();
+                let field_function = field_function_object_borrow
+                    .as_function_mut()
+                    .expect("field value must be function object");
+                let class_object = class_value
+                    .as_object()
+                    .expect("class must be function object");
+                field_function.set_home_object(class_object.clone());
+                class_object
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("class must be function object")
+                    .push_field(
+                        field_name_key,
+                        JsFunction::from_object_unchecked(field_function_object.clone()),
+                    );
+            }
+            Opcode::PushClassFieldPrivate => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let field_function_value = self.vm.pop();
+                let class_value = self.vm.pop();
+
+                let field_function_object = field_function_value
+                    .as_object()
+                    .expect("field value must be function object");
+                let mut field_function_object_borrow = field_function_object.borrow_mut();
+                let field_function = field_function_object_borrow
+                    .as_function_mut()
+                    .expect("field value must be function object");
+                let class_object = class_value
+                    .as_object()
+                    .expect("class must be function object");
+                field_function.set_home_object(class_object.clone());
+                class_object
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("class must be function object")
+                    .push_field_private(
+                        name,
+                        JsFunction::from_object_unchecked(field_function_object.clone()),
+                    );
+            }
+            Opcode::PushClassPrivateGetter => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let getter = self.vm.pop();
+                let getter_object = getter.as_callable().expect("getter must be callable");
+                let class = self.vm.pop();
+                class
+                    .as_object()
+                    .expect("class must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("class must be function object")
+                    .push_private_method(
+                        name,
+                        PrivateElement::Accessor {
+                            getter: Some(getter_object.clone()),
+                            setter: None,
+                        },
+                    );
+            }
+            Opcode::PushClassPrivateSetter => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let setter = self.vm.pop();
+                let setter_object = setter.as_callable().expect("getter must be callable");
+                let class = self.vm.pop();
+                class
+                    .as_object()
+                    .expect("class must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("class must be function object")
+                    .push_private_method(
+                        name,
+                        PrivateElement::Accessor {
+                            getter: None,
+                            setter: Some(setter_object.clone()),
+                        },
+                    );
+            }
+            Opcode::PushClassPrivateMethod => {
+                let index = self.vm.read::<u32>();
+                let name = self.vm.frame().code.names[index as usize];
+                let method = self.vm.pop();
+                let method_object = method.as_callable().expect("method must be callable");
+                let class = self.vm.pop();
+                class
+                    .as_object()
+                    .expect("class must be function object")
+                    .borrow_mut()
+                    .as_function_mut()
+                    .expect("class must be function object")
+                    .push_private_method(name, PrivateElement::Method(method_object.clone()));
             }
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();
@@ -1204,8 +1469,203 @@ impl Context {
                     .expect("finally jump must exist here") = Some(address);
             }
             Opcode::This => {
-                let this = self.vm.frame().this.clone();
-                self.vm.push(this);
+                let env = self.realm.environments.get_this_environment();
+                match env {
+                    EnvironmentSlots::Function(env) => {
+                        let env_b = env.borrow();
+                        if let Some(this) = env_b.get_this_binding() {
+                            self.vm.push(this);
+                        } else {
+                            drop(env_b);
+                            return self.throw_reference_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor");
+                        }
+                    }
+                    EnvironmentSlots::Global => {
+                        let this = self.realm.global_object();
+                        self.vm.push(this.clone());
+                    }
+                }
+            }
+            Opcode::Super => {
+                let env = self
+                    .realm
+                    .environments
+                    .get_this_environment()
+                    .as_function_slots()
+                    .expect("super access must be in a function environment");
+
+                let home = if env.borrow().get_this_binding().is_some() {
+                    let env = env.borrow();
+                    let function_object = env.function_object().borrow();
+                    let function = function_object
+                        .as_function()
+                        .expect("must be function object");
+                    function.get_home_object().cloned()
+                } else {
+                    return self.throw_range_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor");
+                };
+
+                if let Some(home) = home {
+                    if let Some(proto) = home.__get_prototype_of__(self)? {
+                        self.vm.push(JsValue::from(proto));
+                    } else {
+                        self.vm.push(JsValue::Null);
+                    }
+                } else {
+                    self.vm.push(JsValue::Null);
+                };
+            }
+            Opcode::SuperCall => {
+                let argument_count = self.vm.read::<u32>();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..argument_count {
+                    arguments.push(self.vm.pop());
+                }
+                arguments.reverse();
+
+                let (new_target, active_function) = {
+                    let this_env = self
+                        .realm
+                        .environments
+                        .get_this_environment()
+                        .as_function_slots()
+                        .expect("super call must be in function environment");
+                    let this_env_borrow = this_env.borrow();
+                    let new_target = this_env_borrow
+                        .new_target()
+                        .expect("must have new target")
+                        .clone();
+                    let active_function = this_env.borrow().function_object().clone();
+                    (new_target, active_function)
+                };
+                let super_constructor = active_function
+                    .__get_prototype_of__(self)
+                    .expect("function object must have prototype")
+                    .expect("function object must have prototype");
+
+                if !super_constructor.is_constructor() {
+                    return self.throw_type_error("super constructor object must be constructor");
+                }
+
+                let result = super_constructor.__construct__(&arguments, &new_target, self)?;
+
+                initialize_instance_elements(&result, &active_function, self)?;
+
+                let this_env = self
+                    .realm
+                    .environments
+                    .get_this_environment()
+                    .as_function_slots()
+                    .expect("super call must be in function environment");
+
+                if !this_env.borrow_mut().bind_this_value(&result) {
+                    return self.throw_reference_error("this already initialized");
+                }
+                self.vm.push(result);
+            }
+            Opcode::SuperCallWithRest => {
+                let argument_count = self.vm.read::<u32>();
+                let rest_argument = self.vm.pop();
+                let mut arguments = Vec::with_capacity(argument_count as usize);
+                for _ in 0..(argument_count - 1) {
+                    arguments.push(self.vm.pop());
+                }
+                arguments.reverse();
+
+                let iterator_record = rest_argument.get_iterator(self, None, None)?;
+                let mut rest_arguments = Vec::new();
+                while let Some(next) = iterator_record.step(self)? {
+                    rest_arguments.push(next.value(self)?);
+                }
+                arguments.append(&mut rest_arguments);
+
+                let (new_target, active_function) = {
+                    let this_env = self
+                        .realm
+                        .environments
+                        .get_this_environment()
+                        .as_function_slots()
+                        .expect("super call must be in function environment");
+                    let this_env_borrow = this_env.borrow();
+                    let new_target = this_env_borrow
+                        .new_target()
+                        .expect("must have new target")
+                        .clone();
+                    let active_function = this_env.borrow().function_object().clone();
+                    (new_target, active_function)
+                };
+                let super_constructor = active_function
+                    .__get_prototype_of__(self)
+                    .expect("function object must have prototype")
+                    .expect("function object must have prototype");
+
+                if !super_constructor.is_constructor() {
+                    return self.throw_type_error("super constructor object must be constructor");
+                }
+
+                let result = super_constructor.__construct__(&arguments, &new_target, self)?;
+
+                initialize_instance_elements(&result, &active_function, self)?;
+
+                let this_env = self
+                    .realm
+                    .environments
+                    .get_this_environment()
+                    .as_function_slots()
+                    .expect("super call must be in function environment");
+
+                if !this_env.borrow_mut().bind_this_value(&result) {
+                    return self.throw_reference_error("this already initialized");
+                }
+                self.vm.push(result);
+            }
+            Opcode::SuperCallDerived => {
+                let argument_count = self.vm.frame().arg_count;
+                let mut arguments = Vec::with_capacity(argument_count);
+                for _ in 0..argument_count {
+                    arguments.push(self.vm.pop());
+                }
+                arguments.reverse();
+
+                let (new_target, active_function) = {
+                    let this_env = self
+                        .realm
+                        .environments
+                        .get_this_environment()
+                        .as_function_slots()
+                        .expect("super call must be in function environment");
+                    let this_env_borrow = this_env.borrow();
+                    let new_target = this_env_borrow
+                        .new_target()
+                        .expect("must have new target")
+                        .clone();
+                    let active_function = this_env.borrow().function_object().clone();
+                    (new_target, active_function)
+                };
+                let super_constructor = active_function
+                    .__get_prototype_of__(self)
+                    .expect("function object must have prototype")
+                    .expect("function object must have prototype");
+
+                if !super_constructor.is_constructor() {
+                    return self.throw_type_error("super constructor object must be constructor");
+                }
+
+                let result = super_constructor.__construct__(&arguments, &new_target, self)?;
+
+                initialize_instance_elements(&result, &active_function, self)?;
+
+                let this_env = self
+                    .realm
+                    .environments
+                    .get_this_environment()
+                    .as_function_slots()
+                    .expect("super call must be in function environment");
+                if !this_env.borrow_mut().bind_this_value(&result) {
+                    return self.throw_reference_error("this already initialized");
+                }
+
+                self.vm.push(result);
             }
             Opcode::Case => {
                 let address = self.vm.read::<u32>();
@@ -1480,20 +1940,9 @@ impl Context {
                 let compile_environment = self.vm.frame().code.compile_environments
                     [compile_environments_index as usize]
                     .clone();
-
-                let constructor = self.vm.frame().code.constructor;
-                let is_lexical = self.vm.frame().code.this_mode.is_lexical();
-                let this = if constructor.is_some() || !is_lexical {
-                    self.vm.frame().this.clone()
-                } else {
-                    JsValue::undefined()
-                };
-
-                self.realm.environments.push_function(
-                    num_bindings as usize,
-                    compile_environment,
-                    this,
-                );
+                self.realm
+                    .environments
+                    .push_function_inherit(num_bindings as usize, compile_environment);
             }
             Opcode::PopEnvironment => {
                 self.realm.environments.pop();

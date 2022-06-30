@@ -3,8 +3,9 @@ use crate::syntax::{
         node::{
             self,
             declaration::class_decl::ClassElement as ClassElementNode,
+            function_contains_super, has_direct_super,
             object::{MethodDefinition, PropertyName::Literal},
-            Class, FormalParameterList, FunctionExpr,
+            Class, ContainsSymbol, FormalParameterList, FunctionExpr,
         },
         Keyword, Punctuator,
     },
@@ -165,10 +166,27 @@ where
             cursor.next(interner).expect("token disappeared");
             Ok(Class::new(self.name, super_ref, None, vec![]))
         } else {
+            let body_start = cursor
+                .peek(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .span()
+                .start();
             let (constructor, elements) =
                 ClassBody::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
             cursor.expect(Punctuator::CloseBlock, "class tail", interner)?;
+
+            if super_ref.is_none() {
+                if let Some(constructor) = &constructor {
+                    if function_contains_super(constructor.body(), constructor.parameters()) {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "invalid super usage".into(),
+                            body_start,
+                        )));
+                    }
+                }
+            }
+
             Ok(Class::new(self.name, super_ref, constructor, elements))
         }
     }
@@ -295,57 +313,72 @@ where
                     }
                     (None, Some(element)) => {
                         match &element {
-                            ClassElementNode::PrivateMethodDefinition(name, method) => match method
-                            {
-                                MethodDefinition::Get(_) => {
-                                    match private_elements_names.get(name) {
-                                        Some(PrivateElement::Setter) => {
-                                            private_elements_names
-                                                .insert(*name, PrivateElement::Value);
+                            ClassElementNode::PrivateMethodDefinition(name, method) => {
+                                // It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
+                                if has_direct_super(method.body(), method.parameters()) {
+                                    return Err(ParseError::lex(LexError::Syntax(
+                                        "invalid super usage".into(),
+                                        position,
+                                    )));
+                                }
+                                match method {
+                                    MethodDefinition::Get(_) => {
+                                        match private_elements_names.get(name) {
+                                            Some(PrivateElement::Setter) => {
+                                                private_elements_names
+                                                    .insert(*name, PrivateElement::Value);
+                                            }
+                                            Some(_) => {
+                                                return Err(ParseError::general(
+                                                    "private identifier has already been declared",
+                                                    position,
+                                                ));
+                                            }
+                                            None => {
+                                                private_elements_names
+                                                    .insert(*name, PrivateElement::Getter);
+                                            }
                                         }
-                                        Some(_) => {
+                                    }
+                                    MethodDefinition::Set(_) => {
+                                        match private_elements_names.get(name) {
+                                            Some(PrivateElement::Getter) => {
+                                                private_elements_names
+                                                    .insert(*name, PrivateElement::Value);
+                                            }
+                                            Some(_) => {
+                                                return Err(ParseError::general(
+                                                    "private identifier has already been declared",
+                                                    position,
+                                                ));
+                                            }
+                                            None => {
+                                                private_elements_names
+                                                    .insert(*name, PrivateElement::Setter);
+                                            }
+                                        }
+                                    }
+                                    _ => {
+                                        if private_elements_names
+                                            .insert(*name, PrivateElement::Value)
+                                            .is_some()
+                                        {
                                             return Err(ParseError::general(
                                                 "private identifier has already been declared",
                                                 position,
                                             ));
                                         }
-                                        None => {
-                                            private_elements_names
-                                                .insert(*name, PrivateElement::Getter);
-                                        }
                                     }
                                 }
-                                MethodDefinition::Set(_) => {
-                                    match private_elements_names.get(name) {
-                                        Some(PrivateElement::Getter) => {
-                                            private_elements_names
-                                                .insert(*name, PrivateElement::Value);
-                                        }
-                                        Some(_) => {
-                                            return Err(ParseError::general(
-                                                "private identifier has already been declared",
-                                                position,
-                                            ));
-                                        }
-                                        None => {
-                                            private_elements_names
-                                                .insert(*name, PrivateElement::Setter);
-                                        }
-                                    }
-                                }
-                                _ => {
-                                    if private_elements_names
-                                        .insert(*name, PrivateElement::Value)
-                                        .is_some()
-                                    {
-                                        return Err(ParseError::general(
-                                            "private identifier has already been declared",
-                                            position,
-                                        ));
-                                    }
-                                }
-                            },
+                            }
                             ClassElementNode::PrivateStaticMethodDefinition(name, method) => {
+                                // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                                if has_direct_super(method.body(), method.parameters()) {
+                                    return Err(ParseError::lex(LexError::Syntax(
+                                        "invalid super usage".into(),
+                                        position,
+                                    )));
+                                }
                                 match method {
                                     MethodDefinition::Get(_) => {
                                         match private_elements_names.get(name) {
@@ -396,7 +429,15 @@ where
                                     }
                                 }
                             }
-                            ClassElementNode::PrivateFieldDefinition(name, _) => {
+                            ClassElementNode::PrivateFieldDefinition(name, init) => {
+                                if let Some(node) = init {
+                                    if node.contains(node::ContainsSymbol::SuperCall) {
+                                        return Err(ParseError::lex(LexError::Syntax(
+                                            "invalid super usage".into(),
+                                            position,
+                                        )));
+                                    }
+                                }
                                 if private_elements_names
                                     .insert(*name, PrivateElement::Value)
                                     .is_some()
@@ -407,7 +448,15 @@ where
                                     ));
                                 }
                             }
-                            ClassElementNode::PrivateStaticFieldDefinition(name, _) => {
+                            ClassElementNode::PrivateStaticFieldDefinition(name, init) => {
+                                if let Some(node) = init {
+                                    if node.contains(node::ContainsSymbol::SuperCall) {
+                                        return Err(ParseError::lex(LexError::Syntax(
+                                            "invalid super usage".into(),
+                                            position,
+                                        )));
+                                    }
+                                }
                                 if private_elements_names
                                     .insert(*name, PrivateElement::StaticValue)
                                     .is_some()
@@ -416,6 +465,28 @@ where
                                         "private identifier has already been declared",
                                         position,
                                     ));
+                                }
+                            }
+                            ClassElementNode::MethodDefinition(_, method)
+                            | ClassElementNode::StaticMethodDefinition(_, method) => {
+                                // ClassElement : MethodDefinition:
+                                //  It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
+                                // ClassElement : static MethodDefinition:
+                                //  It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
+                                if has_direct_super(method.body(), method.parameters()) {
+                                    return Err(ParseError::lex(LexError::Syntax(
+                                        "invalid super usage".into(),
+                                        position,
+                                    )));
+                                }
+                            }
+                            ClassElementNode::FieldDefinition(_, Some(node))
+                            | ClassElementNode::StaticFieldDefinition(_, Some(node)) => {
+                                if node.contains(node::ContainsSymbol::SuperCall) {
+                                    return Err(ParseError::lex(LexError::Syntax(
+                                        "invalid super usage".into(),
+                                        position,
+                                    )));
                                 }
                             }
                             _ => {}
@@ -1276,6 +1347,7 @@ where
             }
             // ClassStaticBlockBody : ClassStaticBlockStatementList
             // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
+            // It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
             ClassElementNode::StaticBlock(block) => {
                 for node in block.items() {
                     if node.contains_arguments() {
@@ -1283,6 +1355,9 @@ where
                             "'arguments' not allowed in class static block",
                             position,
                         ));
+                    }
+                    if node.contains(ContainsSymbol::SuperCall) {
+                        return Err(ParseError::general("invalid super usage", position));
                     }
                 }
             }

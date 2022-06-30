@@ -4,7 +4,7 @@ use crate::syntax::ast::node::{
     join_nodes,
     object::PropertyName,
     statement_list::StatementList,
-    Identifier, Node,
+    ContainsSymbol, Identifier, Node,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -229,6 +229,30 @@ impl Declaration {
             Self::Pattern(pattern) => pattern.init(),
         }
     }
+
+    /// Returns `true` if the node contains the given token.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            Self::Identifier { init, .. } => {
+                if let Some(node) = init {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Self::Pattern(pattern) => {
+                if pattern.contains(symbol) {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }
 
 /// `DeclarationPattern` represents an object or array binding pattern.
@@ -373,6 +397,99 @@ impl DeclarationPattern {
                         BindingPatternTypeArray::BindingPattern { pattern }
                         | BindingPatternTypeArray::BindingPatternRest { pattern } => {
                             if pattern.contains_arguments() {
+                                return true;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+        }
+        false
+    }
+
+    /// Returns `true` if the node contains the given token.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            DeclarationPattern::Object(object) => {
+                if let Some(node) = object.init() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+                for binding in &object.bindings {
+                    match binding {
+                        BindingPatternTypeObject::SingleName {
+                            default_init: Some(node),
+                            ..
+                        } => {
+                            if node.contains(symbol) {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeObject::RestGetConstField {
+                            get_const_field, ..
+                        } => {
+                            if get_const_field.obj().contains(symbol) {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeObject::BindingPattern {
+                            pattern,
+                            default_init,
+                            ..
+                        } => {
+                            if let Some(node) = default_init {
+                                if node.contains(symbol) {
+                                    return true;
+                                }
+                            }
+                            if pattern.contains(symbol) {
+                                return true;
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            DeclarationPattern::Array(array) => {
+                if let Some(node) = array.init() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+                for binding in array.bindings() {
+                    match binding {
+                        BindingPatternTypeArray::SingleName {
+                            default_init: Some(node),
+                            ..
+                        } => {
+                            if node.contains(symbol) {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::GetField { get_field }
+                        | BindingPatternTypeArray::GetFieldRest { get_field } => {
+                            if get_field.obj().contains(symbol)
+                                || get_field.field().contains(symbol)
+                            {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::GetConstField { get_const_field }
+                        | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
+                            if get_const_field.obj().contains(symbol) {
+                                return true;
+                            }
+                        }
+                        BindingPatternTypeArray::BindingPattern { pattern }
+                        | BindingPatternTypeArray::BindingPatternRest { pattern } => {
+                            if pattern.contains(symbol) {
                                 return true;
                             }
                         }

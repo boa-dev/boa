@@ -17,6 +17,7 @@ pub mod operator;
 pub mod return_smt;
 pub mod spread;
 pub mod statement_list;
+pub mod super_call;
 pub mod switch;
 pub mod template;
 pub mod throw;
@@ -35,7 +36,7 @@ pub use self::{
         ArrowFunctionDecl, AsyncFunctionDecl, AsyncFunctionExpr, Declaration, DeclarationList,
         DeclarationPattern, FunctionDecl, FunctionExpr,
     },
-    field::{get_private_field::GetPrivateField, GetConstField, GetField},
+    field::{get_private_field::GetPrivateField, GetConstField, GetField, GetSuperField},
     identifier::Identifier,
     iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
     new::New,
@@ -46,6 +47,7 @@ pub use self::{
     return_smt::Return,
     spread::Spread,
     statement_list::StatementList,
+    super_call::SuperCall,
     switch::{Case, Switch},
     template::{TaggedTemplate, TemplateLit},
     throw::Throw,
@@ -55,6 +57,7 @@ use self::{
     declaration::class_decl::ClassElement,
     iteration::IterableLoopInitializer,
     object::{MethodDefinition, PropertyDefinition},
+    operator::assign::AssignTarget,
 };
 
 pub(crate) use self::parameters::FormalParameterListFlags;
@@ -145,6 +148,9 @@ pub enum Node {
 
     /// Provides access to object fields. [More information](./declaration/struct.GetField.html).
     GetField(GetField),
+
+    /// Provides access to super fields. [More information](./declaration/struct.GetSuperField.html).
+    GetSuperField(GetSuperField),
 
     /// A `for` statement. [More information](./iteration/struct.ForLoop.html).
     ForLoop(ForLoop),
@@ -240,6 +246,9 @@ pub enum Node {
 
     /// A class declaration. [More information](./declaration/struct.class_decl.Class.html).
     ClassExpr(Class),
+
+    /// A call of the super constructor. [More information](./super_call/struct.SuperCall.html).
+    SuperCall(SuperCall),
 }
 
 impl From<Const> for Node {
@@ -314,6 +323,9 @@ impl Node {
                 get_private_field.to_interned_string(interner)
             }
             Self::GetField(ref get_field) => get_field.to_interned_string(interner),
+            Self::GetSuperField(ref get_super_field) => {
+                get_super_field.to_interned_string(interner)
+            }
             Self::WhileLoop(ref while_loop) => while_loop.to_indented_string(interner, indentation),
             Self::DoWhileLoop(ref do_while) => do_while.to_indented_string(interner, indentation),
             Self::If(ref if_smt) => if_smt.to_indented_string(interner, indentation),
@@ -345,6 +357,7 @@ impl Node {
             Self::AsyncGeneratorDecl(ref decl) => decl.to_indented_string(interner, indentation),
             Self::ClassDecl(ref decl) => decl.to_indented_string(interner, indentation),
             Self::ClassExpr(ref expr) => expr.to_indented_string(interner, indentation),
+            Self::SuperCall(ref super_call) => super_call.to_interned_string(interner),
         }
     }
 
@@ -880,6 +893,361 @@ impl Node {
         }
         false
     }
+
+    /// Returns `true` if the node contains the given token.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            Node::ArrayDecl(array) => {
+                for node in array.as_ref() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::Assign(assign) => {
+                match assign.lhs() {
+                    AssignTarget::GetPrivateField(field) => {
+                        if field.obj().contains(symbol) {
+                            return true;
+                        }
+                    }
+                    AssignTarget::GetConstField(field) => {
+                        if field.obj().contains(symbol) {
+                            return true;
+                        }
+                    }
+                    AssignTarget::GetField(field) => {
+                        if field.obj().contains(symbol) || field.field().contains(symbol) {
+                            return true;
+                        }
+                    }
+                    AssignTarget::DeclarationPattern(pattern) => {
+                        if pattern.contains(symbol) {
+                            return true;
+                        }
+                    }
+                    AssignTarget::Identifier(_) => {}
+                }
+                if assign.rhs().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::AwaitExpr(expr) => {
+                if expr.expr().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::BinOp(bin_op) => {
+                if bin_op.lhs().contains(symbol) || bin_op.rhs().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::Block(block) => {
+                for node in block.items() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::Call(call) => {
+                if call.expr().contains(symbol) {
+                    return true;
+                }
+                for node in call.args() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::ConditionalOp(conditional) => {
+                if conditional.cond().contains(symbol)
+                    || conditional.if_true().contains(symbol)
+                    || conditional.if_false().contains(symbol)
+                {
+                    return true;
+                }
+            }
+            Node::ConstDeclList(decl_list)
+            | Node::LetDeclList(decl_list)
+            | Node::VarDeclList(decl_list) => match decl_list {
+                DeclarationList::Const(declarations)
+                | DeclarationList::Let(declarations)
+                | DeclarationList::Var(declarations) => {
+                    for declaration in declarations.iter() {
+                        if declaration.contains(symbol) {
+                            return true;
+                        }
+                    }
+                }
+            },
+            Node::DoWhileLoop(do_while_loop) => {
+                if do_while_loop.cond().contains(symbol) || do_while_loop.body().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::GetConstField(field) => {
+                if field.obj().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::GetPrivateField(field) => {
+                if field.obj().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::GetField(field) => {
+                if field.obj().contains(symbol) || field.field().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::ForLoop(for_loop) => {
+                if let Some(node) = for_loop.init() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+                if let Some(node) = for_loop.condition() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+                if let Some(node) = for_loop.final_expr() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+                if for_loop.body().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::ForInLoop(for_in_loop) => {
+                match for_in_loop.init() {
+                    IterableLoopInitializer::Var(declaration)
+                    | IterableLoopInitializer::Let(declaration)
+                    | IterableLoopInitializer::Const(declaration) => {
+                        if declaration.contains(symbol) {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        if pattern.contains(symbol) {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::Identifier(_) => {}
+                }
+                if for_in_loop.body().contains(symbol) || for_in_loop.expr().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::ForOfLoop(for_of_loop) => {
+                match for_of_loop.init() {
+                    IterableLoopInitializer::Var(declaration)
+                    | IterableLoopInitializer::Let(declaration)
+                    | IterableLoopInitializer::Const(declaration) => {
+                        if declaration.contains(symbol) {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::DeclarationPattern(pattern) => {
+                        if pattern.contains(symbol) {
+                            return true;
+                        }
+                    }
+                    IterableLoopInitializer::Identifier(_) => {}
+                }
+                if for_of_loop.body().contains(symbol) || for_of_loop.iterable().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::If(if_node) => {
+                if if_node.cond().contains(symbol) || if_node.body().contains(symbol) {
+                    return true;
+                }
+                if let Some(node) = if_node.else_node() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::New(new) => {
+                if new.call().expr().contains(symbol) {
+                    return true;
+                }
+                for node in new.call().args() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::Return(expr) => {
+                if let Some(expr) = expr.expr() {
+                    if expr.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::Switch(switch) => {
+                if switch.val().contains(symbol) {
+                    return true;
+                }
+                for case in switch.cases() {
+                    if case.condition().contains(symbol) {
+                        return true;
+                    }
+                    for node in case.body().items() {
+                        if node.contains(symbol) {
+                            return true;
+                        }
+                    }
+                }
+                if let Some(default) = switch.default() {
+                    for node in default {
+                        if node.contains(symbol) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Node::Spread(spread) => {
+                if spread.val().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::TaggedTemplate(template) => {
+                if template.tag().contains(symbol) {
+                    return true;
+                }
+                for node in template.exprs() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::TemplateLit(template) => {
+                for element in template.elements() {
+                    if let template::TemplateElement::Expr(node) = element {
+                        if node.contains(symbol) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Node::Throw(expr) => {
+                if expr.expr().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::Try(try_node) => {
+                for node in try_node.block().items() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+                if let Some(catch) = try_node.catch() {
+                    if let Some(declaration) = catch.parameter() {
+                        if declaration.contains(symbol) {
+                            return true;
+                        }
+                    }
+                    for node in catch.block().items() {
+                        if node.contains(symbol) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            Node::UnaryOp(unary) => {
+                if unary.target().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::WhileLoop(while_loop) => {
+                if while_loop.cond().contains(symbol) || while_loop.body().contains(symbol) {
+                    return true;
+                }
+            }
+            Node::SuperCall(_) if symbol == ContainsSymbol::SuperCall => return true,
+            Node::GetSuperField(_) if symbol == ContainsSymbol::SuperProperty => return true,
+            Node::ArrowFunctionDecl(arrow) => {
+                for parameter in arrow.params().parameters.iter() {
+                    if parameter.declaration().contains(symbol) {
+                        return true;
+                    }
+                }
+                for node in arrow.body().items() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+            }
+            Node::Object(object) => {
+                for property in object.properties() {
+                    match property {
+                        PropertyDefinition::IdentifierReference(_) => {}
+                        PropertyDefinition::Property(name, init) => {
+                            if let Some(node) = name.computed() {
+                                if node.contains(symbol) {
+                                    return true;
+                                }
+                            }
+                            if init.contains(symbol) {
+                                return true;
+                            }
+                        }
+                        PropertyDefinition::SpreadObject(spread) => {
+                            if spread.contains(symbol) {
+                                return true;
+                            }
+                        }
+                        PropertyDefinition::MethodDefinition(_, name) => {
+                            if let Some(node) = name.computed() {
+                                if node.contains(symbol) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Node::ClassDecl(class) | Node::ClassExpr(class) => {
+                if let Some(node) = class.super_ref() {
+                    if node.contains(symbol) {
+                        return true;
+                    }
+                }
+                for element in class.elements() {
+                    match element {
+                        ClassElement::MethodDefinition(name, _)
+                        | ClassElement::StaticMethodDefinition(name, _)
+                        | ClassElement::FieldDefinition(name, _)
+                        | ClassElement::StaticFieldDefinition(name, _) => {
+                            if let Some(node) = name.computed() {
+                                if node.contains(symbol) {
+                                    return true;
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
+            _ => {}
+        }
+        false
+    }
+}
+
+/// Represents the possible symbols that can be use the the `Node.contains` function.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum ContainsSymbol {
+    SuperProperty,
+    SuperCall,
 }
 
 impl ToInternedString for Node {
@@ -945,4 +1313,45 @@ fn test_formatting(source: &'static str) {
         eprintln!("========= Got:      {result:?}");
         panic!("parsing test did not give the correct result (see above)");
     }
+}
+
+/// Helper function to check if a function contains a super call or super property access.
+pub(crate) fn function_contains_super(
+    body: &StatementList,
+    parameters: &FormalParameterList,
+) -> bool {
+    for param in parameters.parameters.iter() {
+        if param.declaration().contains(ContainsSymbol::SuperCall)
+            || param.declaration().contains(ContainsSymbol::SuperProperty)
+        {
+            return true;
+        }
+    }
+    for node in body.items() {
+        if node.contains(ContainsSymbol::SuperCall) || node.contains(ContainsSymbol::SuperProperty)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// Returns `true` if the function parameters or body contain a direct `super` call.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
+pub(crate) fn has_direct_super(body: &StatementList, parameters: &FormalParameterList) -> bool {
+    for param in parameters.parameters.iter() {
+        if param.declaration().contains(ContainsSymbol::SuperCall) {
+            return true;
+        }
+    }
+    for node in body.items() {
+        if node.contains(ContainsSymbol::SuperCall) {
+            return true;
+        }
+    }
+    false
 }

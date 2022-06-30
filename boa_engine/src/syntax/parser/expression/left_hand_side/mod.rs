@@ -12,11 +12,15 @@ mod call;
 mod member;
 mod template;
 
-use self::{call::CallExpression, member::MemberExpression};
 use crate::syntax::{
-    ast::{Node, Punctuator},
+    ast::{node::SuperCall, Keyword, Node, Punctuator},
     lexer::{InputElement, TokenKind},
-    parser::{AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
+    parser::{
+        expression::left_hand_side::{
+            arguments::Arguments, call::CallExpression, member::MemberExpression,
+        },
+        AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
+    },
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -63,6 +67,19 @@ where
         let _timer = Profiler::global().start_event("LeftHandSIdeExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
+
+        if let Some(next) = cursor.peek(0, interner)? {
+            if let TokenKind::Keyword((Keyword::Super, _)) = next.kind() {
+                if let Some(next) = cursor.peek(1, interner)? {
+                    if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                        cursor.next(interner).expect("token disappeared");
+                        let args = Arguments::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?;
+                        return Ok(SuperCall::new(args).into());
+                    }
+                }
+            }
+        }
 
         // TODO: Implement NewExpression: new MemberExpression
         let lhs = MemberExpression::new(self.name, self.allow_yield, self.allow_await)
