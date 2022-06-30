@@ -27,12 +27,12 @@ There are two forms of this macro:</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let</span> <span class="ident">v</span>: <span class="ident">SmallVec</span><span class="op">&lt;</span>[<span class="kw">_</span>; <span class="number">0x8000</span>]<span class="op">&gt;</span> <span class="op">=</span> <span class="macro">smallvec!</span>[<span class="number">1</span>; <span class="number">3</span>];
 <span class="macro">assert_eq!</span>(<span class="ident">v</span>, <span class="ident">SmallVec::from_buf</span>([<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>]));</code></pre></div>
 <p>Note that unlike array expressions this syntax supports all elements
-which implement <a href="https://doc.rust-lang.org/1.61.0/core/clone/trait.Clone.html" title="Clone"><code>Clone</code></a> and the number of elements doesn’t have to be
+which implement <a href="https://doc.rust-lang.org/1.62.0/core/clone/trait.Clone.html" title="Clone"><code>Clone</code></a> and the number of elements doesn’t have to be
 a constant.</p>
 <p>This will use <code>clone</code> to duplicate an expression, so one should be careful
 using this with types having a nonstandard <code>Clone</code> implementation. For
 example, <code>smallvec![Rc::new(1); 5]</code> will create a vector of five references
 to the same boxed integer value, not five references pointing to independently
 boxed integers.</p>
-</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="smallvec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="smallvec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

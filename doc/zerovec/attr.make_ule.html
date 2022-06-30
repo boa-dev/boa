@@ -7,17 +7,17 @@
     <h1 class="fqn"><span class="in-band">Attribute Macro <a href="index.html">zerovec</a>::<wbr><a class="attr" href="#">make_ule</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/zerovec_derive/lib.rs.html#33">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><div class="docblock item-decl"><pre class="rust attr"><code>#[make_ule]</code></pre></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Generate a corresponding <a href="ule/trait.ULE.html"><code>ULE</code></a> type and the relevant <a href="ule/trait.AsULE.html"><code>AsULE</code></a> implementations for this type</p>
 <p>This can be attached to structs containing only <a href="ule/trait.AsULE.html"><code>AsULE</code></a> types, or C-like enums that have <code>#[repr(u8)]</code>
 and all explicit discriminants.</p>
-<p>The type must be <a href="https://doc.rust-lang.org/1.61.0/core/marker/trait.Copy.html" title="Copy"><code>Copy</code></a>, <a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.PartialEq.html" title="PartialEq"><code>PartialEq</code></a>, and <a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.Eq.html" title="Eq"><code>Eq</code></a>.</p>
+<p>The type must be <a href="https://doc.rust-lang.org/1.62.0/core/marker/trait.Copy.html" title="Copy"><code>Copy</code></a>, <a href="https://doc.rust-lang.org/1.62.0/core/cmp/trait.PartialEq.html" title="PartialEq"><code>PartialEq</code></a>, and <a href="https://doc.rust-lang.org/1.62.0/core/cmp/trait.Eq.html" title="Eq"><code>Eq</code></a>.</p>
 <p><code>#[make_ule]</code> will automatically derive the following traits on the <a href="ule/trait.ULE.html"><code>ULE</code></a> type:</p>
 <ul>
-<li><a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.Ord.html" title="Ord"><code>Ord</code></a> and <a href="https://doc.rust-lang.org/1.61.0/core/cmp/trait.PartialOrd.html" title="PartialOrd"><code>PartialOrd</code></a></li>
+<li><a href="https://doc.rust-lang.org/1.62.0/core/cmp/trait.Ord.html" title="Ord"><code>Ord</code></a> and <a href="https://doc.rust-lang.org/1.62.0/core/cmp/trait.PartialOrd.html" title="PartialOrd"><code>PartialOrd</code></a></li>
 <li><a href="maps/trait.ZeroMapKV.html"><code>ZeroMapKV</code></a></li>
 </ul>
 <p>To disable one of the automatic derives, use <code>#[zerovec::skip_derive(...)]</code> like so: <code>#[zerovec::skip_derive(ZeroMapKV)]</code>.
 <code>Ord</code> and <code>PartialOrd</code> are implemented as a unit and can only be disabled as a group with <code>#[zerovec::skip_derive(Ord)]</code>.</p>
 <p>The following traits are available to derive, but not automatic:</p>
 <ul>
-<li><a href="https://doc.rust-lang.org/1.61.0/core/fmt/macros/derive.Debug.html" title="Debug"><code>Debug</code></a></li>
+<li><a href="https://doc.rust-lang.org/1.62.0/core/fmt/macros/derive.Debug.html" title="Debug"><code>Debug</code></a></li>
 </ul>
 <p>To enable one of these additional derives, use <code>#[zerovec::derive(...)]</code> like so: <code>#[zerovec::derive(Debug)]</code>.</p>
 <p>In most cases these derives will defer to the impl of the same trait on the current type, so such impls must exist.</p>
@@ -54,5 +54,5 @@ to be more public, it should be wrapped.</p>
 <span class="macro">assert_eq!</span>(<span class="ident">deserialized</span>.<span class="ident">dates</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">unwrap</span>().<span class="ident">d</span>, <span class="number">13</span>);
 </code></pre></div>
 <p>Full docs for this proc macro can be found on the <a href="docs.rs/zerovec"><code>zerovec</code></a> crate.</p>
-</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="zerovec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="zerovec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

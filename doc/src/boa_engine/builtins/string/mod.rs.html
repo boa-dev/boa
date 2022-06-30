@@ -4493,10 +4493,10 @@
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
         <span class="kw">if</span> <span class="ident">first</span> <span class="op">==</span> <span class="string">&#39;$&#39;</span> {
             <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>();
-            <span class="kw">let</span> <span class="ident">second_is_digit</span> <span class="op">=</span> <span class="ident">second</span>.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="number">10</span>));
+            <span class="kw">let</span> <span class="ident">second_is_digit</span> <span class="op">=</span> <span class="ident">second</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">char::is_ascii_digit</span>);
             <span class="comment">// we use peek so that it is still in the iterator if not used</span>
             <span class="kw">let</span> <span class="ident">third</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">second_is_digit</span> { <span class="ident">chars</span>.<span class="ident">peek</span>() } <span class="kw">else</span> { <span class="prelude-val">None</span> };
-            <span class="kw">let</span> <span class="ident">third_is_digit</span> <span class="op">=</span> <span class="ident">third</span>.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="op">|</span><span class="ident">ch</span><span class="op">|</span> <span class="ident">ch</span>.<span class="ident">is_digit</span>(<span class="number">10</span>));
+            <span class="kw">let</span> <span class="ident">third_is_digit</span> <span class="op">=</span> <span class="ident">third</span>.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">char::is_ascii_digit</span>);
 
             <span class="kw">match</span> (<span class="ident">second</span>, <span class="ident">third</span>) {
                 <span class="comment">// $$</span>
@@ -4698,5 +4698,5 @@
     <span class="prelude-val">Ok</span>(<span class="ident">argument</span>.<span class="ident">is_regexp</span>())
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

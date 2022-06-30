@@ -8,18 +8,18 @@
 <p><code>litemap</code> is a crate providing <a href="struct.LiteMap.html" title="LiteMap"><code>LiteMap</code></a>, a highly simplistic “flat” key-value map
 based off of a single sorted vector.</p>
 <p>The goal of this crate is to provide a map that is good enough for small
-sizes, and does not carry the binary size impact of <a href="https://doc.rust-lang.org/1.61.0/std/collections/hash/map/struct.HashMap.html"><code>HashMap</code></a>
-or <a href="https://doc.rust-lang.org/1.61.0/alloc/collections/btree/map/struct.BTreeMap.html"><code>BTreeMap</code></a>.</p>
-<p>If binary size is not a concern, <a href="https://doc.rust-lang.org/1.61.0/alloc/collections/btree/map/struct.BTreeMap.html" title="std::collections::BTreeMap"><code>std::collections::BTreeMap</code></a> may be a better choice
+sizes, and does not carry the binary size impact of <a href="https://doc.rust-lang.org/1.62.0/std/collections/hash/map/struct.HashMap.html"><code>HashMap</code></a>
+or <a href="https://doc.rust-lang.org/1.62.0/alloc/collections/btree/map/struct.BTreeMap.html"><code>BTreeMap</code></a>.</p>
+<p>If binary size is not a concern, <a href="https://doc.rust-lang.org/1.62.0/alloc/collections/btree/map/struct.BTreeMap.html" title="std::collections::BTreeMap"><code>std::collections::BTreeMap</code></a> may be a better choice
 for your use case. It behaves very similarly to <a href="struct.LiteMap.html" title="LiteMap"><code>LiteMap</code></a> for less than 12 elements,
 and upgrades itself gracefully for larger inputs.</p>
 <h3 id="pluggable-backends"><a href="#pluggable-backends">Pluggable Backends</a></h3>
-<p>By default, <a href="struct.LiteMap.html" title="LiteMap"><code>LiteMap</code></a> is backed by a <a href="https://doc.rust-lang.org/1.61.0/alloc/vec/struct.Vec.html"><code>Vec</code></a>; however, it can be backed by any appropriate
+<p>By default, <a href="struct.LiteMap.html" title="LiteMap"><code>LiteMap</code></a> is backed by a <a href="https://doc.rust-lang.org/1.62.0/alloc/vec/struct.Vec.html"><code>Vec</code></a>; however, it can be backed by any appropriate
 random-access data store, giving that data store a map-like interface. See the <a href="store/index.html" title="store"><code>store</code></a>
 module for more details.</p>
 </div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="store/index.html" title="litemap::store mod">store</a></div><div class="item-right docblock-short"><p>Traits for pluggable LiteMap backends.</p>
 </div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.LiteMap.html" title="litemap::LiteMap struct">LiteMap</a></div><div class="item-right docblock-short"><p>A simple “flat” map based on a sorted vector</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="litemap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="litemap" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

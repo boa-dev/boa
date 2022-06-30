@@ -19,9 +19,9 @@ read-only data.</p>
 </ul>
 <p>The first two are intended as close-to-drop-in replacements for <code>Vec&lt;T&gt;</code> in Serde structs. The third and fourth are
 intended as a replacement for <code>HashMap</code> or <a href="docs.rs/litemap"><code>LiteMap</code></a>. When used with Serde derives, <strong>be sure to apply
-<code>#[serde(borrow)]</code> to these types</strong>, same as one would for <a href="https://doc.rust-lang.org/1.61.0/alloc/borrow/enum.Cow.html"><code>Cow&lt;'a, T&gt;</code></a>.</p>
+<code>#[serde(borrow)]</code> to these types</strong>, same as one would for <a href="https://doc.rust-lang.org/1.62.0/alloc/borrow/enum.Cow.html"><code>Cow&lt;'a, T&gt;</code></a>.</p>
 <p><a href="enum.ZeroVec.html"><code>ZeroVec&lt;'a, T&gt;</code></a>, <a href="enum.VarZeroVec.html"><code>VarZeroVec&lt;'a, T&gt;</code></a>, <a href="struct.ZeroMap.html"><code>ZeroMap&lt;'a, K, V&gt;</code></a>, and <a href="struct.ZeroMap2d.html"><code>ZeroMap2d&lt;'a, K0, K1, V&gt;</code></a> all behave like
-<a href="https://doc.rust-lang.org/1.61.0/alloc/borrow/enum.Cow.html"><code>Cow&lt;'a, T&gt;</code></a> in that they abstract over either borrowed or owned data. When performing deserialization
+<a href="https://doc.rust-lang.org/1.62.0/alloc/borrow/enum.Cow.html"><code>Cow&lt;'a, T&gt;</code></a> in that they abstract over either borrowed or owned data. When performing deserialization
 from human-readable formats (like <code>json</code> and <code>xml</code>), typically these types will allocate and fully own their data, whereas if deserializing
 from binary formats like <code>bincode</code> and <code>postcard</code>, these types will borrow data directly from the buffer being deserialized from,
 avoiding allocations and only performing validity checks. As such, this crate can be pretty fast (see <a href="#Performance">below</a> for more information)
@@ -193,5 +193,5 @@ serialization formats cannot unconditionally deserialize zero-copy.</p>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="attr" href="attr.make_ule.html" title="zerovec::make_ule attr">make_ule</a></div><div class="item-right docblock-short"><p>Generate a corresponding <a href="ule/trait.ULE.html"><code>ULE</code></a> type and the relevant <a href="ule/trait.AsULE.html"><code>AsULE</code></a> implementations for this type</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="attr" href="attr.make_varule.html" title="zerovec::make_varule attr">make_varule</a></div><div class="item-right docblock-short"><p>Generate a corresponding <a href="ule/trait.VarULE.html"><code>VarULE</code></a> type and the relevant <a href="ule/trait.EncodeAsVarULE.html"><code>EncodeAsVarULE</code></a>/<a href="../zerofrom/zero_from/trait.ZeroFrom.html" title="zerofrom::ZeroFrom"><code>zerofrom::ZeroFrom</code></a>
 implementations for this type</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="zerovec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="zerovec" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

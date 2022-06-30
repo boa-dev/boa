@@ -61,7 +61,7 @@ the compiler cannot prove they will be joined before <code>people</code> is dest
 before the scope ends.</p>
 <h2 id="how-scoped-threads-work"><a href="#how-scoped-threads-work">How scoped threads work</a></h2>
 <p>If a variable is borrowed by a thread, the thread must complete before the variable is
-destroyed. Threads spawned using <a href="https://doc.rust-lang.org/1.61.0/std/thread/fn.spawn.html" title="std::thread::spawn"><code>std::thread::spawn</code></a> can only borrow variables with the
+destroyed. Threads spawned using <a href="https://doc.rust-lang.org/1.62.0/std/thread/fn.spawn.html" title="std::thread::spawn"><code>std::thread::spawn</code></a> can only borrow variables with the
 <code>'static</code> lifetime because the borrow checker cannot be sure when the thread will complete.</p>
 <p>A scope creates a clear boundary between variables outside the scope and threads inside the
 scope. Whenever a scope spawns a thread, it promises to join the thread before the scope ends.
@@ -99,5 +99,5 @@ argument, which can be used for spawning nested threads:</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ScopedThreadBuilder.html" title="crossbeam_utils::thread::ScopedThreadBuilder struct">ScopedThreadBuilder</a></div><div class="item-right docblock-short"><p>Configures the properties of a new thread.</p>
 </div></div></div><h2 id="functions" class="small-section-header"><a href="#functions">Functions</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="fn" href="fn.scope.html" title="crossbeam_utils::thread::scope fn">scope</a></div><div class="item-right docblock-short"><p>Creates a new scope for spawning threads.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="crossbeam_utils" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

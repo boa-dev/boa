@@ -11,7 +11,7 @@ them stores the result.</p>
 <p>This module does not require <code>std</code> feature.</p>
 <h2 id="atomic-orderings"><a href="#atomic-orderings">Atomic orderings</a></h2>
 <p>All types in this module use <code>Acquire</code> and <code>Release</code>
-<a href="https://doc.rust-lang.org/1.61.0/core/sync/atomic/enum.Ordering.html">atomic orderings</a> for all their operations. While this is not
+<a href="https://doc.rust-lang.org/1.62.0/core/sync/atomic/enum.Ordering.html">atomic orderings</a> for all their operations. While this is not
 strictly necessary for types other than <code>OnceBox</code>, it is useful for users as
 it allows them to be certain that after <code>get</code> or <code>get_or_init</code> returns on
 one thread, any side-effects caused by the setter thread prior to them
@@ -24,5 +24,5 @@ architectures versus <code>Relaxed</code>.</p>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OnceBool.html" title="once_cell::race::OnceBool struct">OnceBool</a></div><div class="item-right docblock-short"><p>A thread-safe cell which can be written to only once.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OnceBox.html" title="once_cell::race::OnceBox struct">OnceBox</a></div><div class="item-right docblock-short"><p>A thread-safe cell which can be written to only once.</p>
 </div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.OnceNonZeroUsize.html" title="once_cell::race::OnceNonZeroUsize struct">OnceNonZeroUsize</a></div><div class="item-right docblock-short"><p>A thread-safe cell which can be written to only once.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="once_cell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="once_cell" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

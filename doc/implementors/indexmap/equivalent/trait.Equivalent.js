@@ -1,3 +1,4 @@
 (function() {var implementors = {};
 implementors["boa_engine"] = [{"text":"impl <a class=\"trait\" href=\"indexmap/equivalent/trait.Equivalent.html\" title=\"trait indexmap::equivalent::Equivalent\">Equivalent</a>&lt;<a class=\"enum\" href=\"boa_engine/builtins/map/ordered_map/enum.MapKey.html\" title=\"enum boa_engine::builtins::map::ordered_map::MapKey\">MapKey</a>&gt; for <a class=\"enum\" href=\"boa_engine/enum.JsValue.html\" title=\"enum boa_engine::JsValue\">JsValue</a>","synthetic":false,"types":["boa_engine::value::JsValue"]}];
+implementors["indexmap"] = [];
 if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

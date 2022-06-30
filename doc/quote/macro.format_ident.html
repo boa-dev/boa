@@ -11,18 +11,18 @@
 </div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Formatting macro for constructing <code>Ident</code>s.</p>
 <br>
 <h2 id="syntax"><a href="#syntax">Syntax</a></h2>
-<p>Syntax is copied from the <a href="https://doc.rust-lang.org/1.61.0/alloc/macro.format.html" title="format!"><code>format!</code></a> macro, supporting both positional and
+<p>Syntax is copied from the <a href="https://doc.rust-lang.org/1.62.0/alloc/macro.format.html" title="format!"><code>format!</code></a> macro, supporting both positional and
 named arguments.</p>
 <p>Only a limited set of formatting traits are supported. The current mapping
 of format types to traits is:</p>
 <ul>
 <li><code>{}</code> ⇒ <a href="trait.IdentFragment.html"><code>IdentFragment</code></a></li>
-<li><code>{:o}</code> ⇒ <a href="https://doc.rust-lang.org/1.61.0/core/fmt/trait.Octal.html"><code>Octal</code></a></li>
-<li><code>{:x}</code> ⇒ <a href="https://doc.rust-lang.org/1.61.0/core/fmt/trait.LowerHex.html"><code>LowerHex</code></a></li>
-<li><code>{:X}</code> ⇒ <a href="https://doc.rust-lang.org/1.61.0/core/fmt/trait.UpperHex.html"><code>UpperHex</code></a></li>
-<li><code>{:b}</code> ⇒ <a href="https://doc.rust-lang.org/1.61.0/core/fmt/trait.Binary.html"><code>Binary</code></a></li>
+<li><code>{:o}</code> ⇒ <a href="https://doc.rust-lang.org/1.62.0/core/fmt/trait.Octal.html"><code>Octal</code></a></li>
+<li><code>{:x}</code> ⇒ <a href="https://doc.rust-lang.org/1.62.0/core/fmt/trait.LowerHex.html"><code>LowerHex</code></a></li>
+<li><code>{:X}</code> ⇒ <a href="https://doc.rust-lang.org/1.62.0/core/fmt/trait.UpperHex.html"><code>UpperHex</code></a></li>
+<li><code>{:b}</code> ⇒ <a href="https://doc.rust-lang.org/1.62.0/core/fmt/trait.Binary.html"><code>Binary</code></a></li>
 </ul>
-<p>See <a href="https://doc.rust-lang.org/1.61.0/alloc/fmt/index.html" title="std::fmt"><code>std::fmt</code></a> for more information.</p>
+<p>See <a href="https://doc.rust-lang.org/1.62.0/alloc/fmt/index.html" title="std::fmt"><code>std::fmt</code></a> for more information.</p>
 <br>
 <h2 id="identfragment"><a href="#identfragment">IdentFragment</a></h2>
 <p>Unlike <code>format!</code>, this macro uses the <a href="trait.IdentFragment.html"><code>IdentFragment</code></a> formatting trait by
@@ -80,5 +80,5 @@ identifier.</p>
 
 <span class="kw">let</span> <span class="ident">upper_hex</span> <span class="op">=</span> <span class="macro">format_ident!</span>(<span class="string">&quot;Id_{:X}&quot;</span>, <span class="ident">num</span>);
 <span class="macro">assert_eq!</span>(<span class="ident">upper_hex</span>, <span class="string">&quot;Id_A&quot;</span>);</code></pre></div>
-</div></details></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="quote" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="quote" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

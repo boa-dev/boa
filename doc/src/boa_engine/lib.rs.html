@@ -202,6 +202,10 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it</span>
 <span class="doccomment">//! has support for some of the language.</span>
 <span class="doccomment">//!</span>
@@ -256,7 +260,6 @@
     <span class="ident">nonstandard_style</span>,
 )]</span>
 <span class="attribute">#![<span class="ident">allow</span>(
-    <span class="ident">clippy::use_self</span>, <span class="comment">// TODO: deny once false positives are fixed</span>
     <span class="ident">clippy::module_name_repetitions</span>,
     <span class="ident">clippy::cast_possible_truncation</span>,
     <span class="ident">clippy::cast_sign_loss</span>,
@@ -272,6 +275,11 @@
     <span class="ident">clippy::missing_errors_doc</span>,
     <span class="ident">clippy::as_conversions</span>,
     <span class="ident">clippy::let_unit_value</span>,
+    <span class="comment">// Ignore because `write!(string, ...)` instead of `string.push_str(&amp;format!(...))` can fail.</span>
+    <span class="comment">// We only use it in `ToInternedString` where performance is not an issue.</span>
+    <span class="ident">clippy::format_push_string</span>,
+    <span class="comment">// TODO deny once false positive are fixed (https://github.com/rust-lang/rust-clippy/issues/9076).</span>
+    <span class="ident">clippy::trait_duplication_in_bounds</span>,
     <span class="ident">rustdoc::missing_doc_code_examples</span>
 )]</span>
 
@@ -400,5 +408,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

@@ -628,7 +628,7 @@
                 <span class="kw">_</span> <span class="kw">if</span> <span class="ident">Identifier::is_identifier_start</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>) =&gt; {
                     <span class="ident">Identifier::new</span>(<span class="ident">c</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
-                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="number">10</span>) =&gt; {
+                <span class="kw">_</span> <span class="kw">if</span> <span class="ident">c</span>.<span class="ident">is_ascii_digit</span>() =&gt; {
                     <span class="ident">NumberLiteral::new</span>(<span class="ident">next_ch</span> <span class="kw">as</span> <span class="ident">u8</span>).<span class="ident">lex</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">start</span>, <span class="ident">interner</span>)
                 }
                 <span class="kw">_</span> =&gt; {
@@ -688,5 +688,5 @@
     }
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>

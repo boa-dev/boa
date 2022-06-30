@@ -11,7 +11,7 @@ tree node.</p>
 <br>
 <h2 id="example"><a href="#example">Example</a></h2>
 <p>Suppose in a procedural macro we have a <a href="../enum.Type.html"><code>Type</code></a> that we want to assert
-implements the <a href="https://doc.rust-lang.org/1.61.0/core/marker/trait.Sync.html"><code>Sync</code></a> trait. Maybe this is the type of one of the fields
+implements the <a href="https://doc.rust-lang.org/1.62.0/core/marker/trait.Sync.html"><code>Sync</code></a> trait. Maybe this is the type of one of the fields
 of a struct for which we are deriving a trait implementation, and we need to
 be able to pass a reference to one of those fields across threads.</p>
 <p>If the field type does <em>not</em> implement <code>Sync</code> as required, we want the
@@ -47,7 +47,7 @@ our macro, the user’s code will fail to compile if <code>ty</code> does not im
 error appear in the correct place underlining the right type.</p>
 <br>
 <h2 id="limitations"><a href="#limitations">Limitations</a></h2>
-<p>The underlying <a href="https://doc.rust-lang.org/1.61.0/proc_macro/struct.Span.html#method.join" title="proc_macro::Span::join"><code>proc_macro::Span::join</code></a> method is nightly-only. When
+<p>The underlying <a href="https://doc.rust-lang.org/1.62.0/proc_macro/struct.Span.html#method.join" title="proc_macro::Span::join"><code>proc_macro::Span::join</code></a> method is nightly-only. When
 called from within a procedural macro in a nightly compiler, <code>Spanned</code> will
 use <code>join</code> to produce the intended span. When not using a nightly compiler,
 only the span of the <em>first token</em> of the syntax tree node is returned.</p>
@@ -58,5 +58,5 @@ needing the unstable <code>join</code>.</p>
 </div></details><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
 <div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Spanned.html" title="syn::spanned::Spanned trait">Spanned</a></div><div class="item-right docblock-short"><p>A trait that can provide the <code>Span</code> of the complete contents of a syntax
 tree node.</p>
-</div></div></div></section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="syn" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.0 (a8314ef7d 2022-06-27)" ></div>
 </body></html>
