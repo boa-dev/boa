@@ -138,6 +138,16 @@
 <span id="131">131</span>
 <span id="132">132</span>
 <span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Generator expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -151,7 +161,10 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node::GeneratorExpr</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">ast</span>::{
+        <span class="ident">node</span>::{<span class="ident">function_contains_super</span>, <span class="ident">GeneratorExpr</span>},
+        <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
+    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::BindingIdentifier</span>,
@@ -267,6 +280,13 @@
             <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">lexically_declared_names_top_level</span>(),
             <span class="ident">params_start_position</span>,
         )<span class="question-mark">?</span>;
+
+        <span class="kw">if</span> <span class="ident">function_contains_super</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">params</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">params_start_position</span>,
+            )));
+        }
 
         <span class="prelude-val">Ok</span>(<span class="ident">GeneratorExpr::new</span>(<span class="ident">name</span>, <span class="ident">params</span>, <span class="ident">body</span>))
     }

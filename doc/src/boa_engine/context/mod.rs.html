@@ -857,6 +857,11 @@
 <span id="850">850</span>
 <span id="851">851</span>
 <span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
@@ -1026,14 +1031,21 @@
         <span class="ident">parser</span>.<span class="ident">parse_all</span>(<span class="self">self</span>)
     }
 
-    <span class="doccomment">/// Parse the given source text in strict mode.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_strict</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">src</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
+    <span class="doccomment">/// Parse the given source text with eval specific handling.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_eval</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">src</span>: <span class="ident">S</span>,
+        <span class="ident">direct</span>: <span class="ident">bool</span>,
+        <span class="ident">strict</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">StatementList</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parser</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">src</span>.<span class="ident">as_ref</span>());
-        <span class="ident">parser</span>.<span class="ident">set_strict</span>();
-        <span class="ident">parser</span>.<span class="ident">parse_all</span>(<span class="self">self</span>)
+        <span class="kw">if</span> <span class="ident">strict</span> {
+            <span class="ident">parser</span>.<span class="ident">set_strict</span>();
+        }
+        <span class="ident">parser</span>.<span class="ident">parse_eval</span>(<span class="ident">direct</span>, <span class="self">self</span>)
     }
 
     <span class="doccomment">/// `Call ( F, V [ , argumentsList ] )`</span>
@@ -1564,22 +1576,20 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">execute</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">code_block</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
-        <span class="kw">let</span> <span class="ident">global_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>();
 
         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
             <span class="ident">prev</span>: <span class="prelude-val">None</span>,
             <span class="ident">code</span>: <span class="ident">code_block</span>,
-            <span class="ident">this</span>: <span class="ident">global_object</span>,
             <span class="ident">pc</span>: <span class="number">0</span>,
             <span class="ident">catch</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">finally_return</span>: <span class="ident">FinallyReturn::None</span>,
             <span class="ident">finally_jump</span>: <span class="ident">Vec::new</span>(),
             <span class="ident">pop_on_return</span>: <span class="number">0</span>,
-            <span class="ident">loop_env_stack</span>: <span class="macro">vec!</span>[<span class="number">0</span>],
-            <span class="ident">try_env_stack</span>: <span class="macro">vec!</span>[<span class="ident"><span class="kw">crate</span>::vm::TryStackEntry</span> {
+            <span class="ident">loop_env_stack</span>: <span class="ident">Vec::from</span>([<span class="number">0</span>]),
+            <span class="ident">try_env_stack</span>: <span class="ident">Vec::from</span>([<span class="ident"><span class="kw">crate</span>::vm::TryStackEntry</span> {
                 <span class="ident">num_env</span>: <span class="number">0</span>,
                 <span class="ident">num_loop_stack_entries</span>: <span class="number">0</span>,
-            }],
+            }]),
             <span class="ident">param_count</span>: <span class="number">0</span>,
             <span class="ident">arg_count</span>: <span class="number">0</span>,
             <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,

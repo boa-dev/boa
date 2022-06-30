@@ -41,6 +41,8 @@
 <span id="34">34</span>
 <span id="35">35</span>
 <span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements ECMAScript `Environment Records`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Environments contain the bindings of identifiers to their values.</span>
@@ -72,7 +74,9 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> {
     <span class="ident">compile::CompileTimeEnvironment</span>,
-    <span class="ident">runtime</span>::{<span class="ident">BindingLocator</span>, <span class="ident">DeclarativeEnvironment</span>, <span class="ident">DeclarativeEnvironmentStack</span>},
+    <span class="ident">runtime</span>::{
+        <span class="ident">BindingLocator</span>, <span class="ident">DeclarativeEnvironment</span>, <span class="ident">DeclarativeEnvironmentStack</span>, <span class="ident">EnvironmentSlots</span>,
+    },
 };
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

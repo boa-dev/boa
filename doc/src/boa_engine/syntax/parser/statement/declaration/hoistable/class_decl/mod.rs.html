@@ -1299,13 +1299,89 @@
 <span id="1292">1292</span>
 <span id="1293">1293</span>
 <span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
+<span id="1305">1305</span>
+<span id="1306">1306</span>
+<span id="1307">1307</span>
+<span id="1308">1308</span>
+<span id="1309">1309</span>
+<span id="1310">1310</span>
+<span id="1311">1311</span>
+<span id="1312">1312</span>
+<span id="1313">1313</span>
+<span id="1314">1314</span>
+<span id="1315">1315</span>
+<span id="1316">1316</span>
+<span id="1317">1317</span>
+<span id="1318">1318</span>
+<span id="1319">1319</span>
+<span id="1320">1320</span>
+<span id="1321">1321</span>
+<span id="1322">1322</span>
+<span id="1323">1323</span>
+<span id="1324">1324</span>
+<span id="1325">1325</span>
+<span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
+<span id="1330">1330</span>
+<span id="1331">1331</span>
+<span id="1332">1332</span>
+<span id="1333">1333</span>
+<span id="1334">1334</span>
+<span id="1335">1335</span>
+<span id="1336">1336</span>
+<span id="1337">1337</span>
+<span id="1338">1338</span>
+<span id="1339">1339</span>
+<span id="1340">1340</span>
+<span id="1341">1341</span>
+<span id="1342">1342</span>
+<span id="1343">1343</span>
+<span id="1344">1344</span>
+<span id="1345">1345</span>
+<span id="1346">1346</span>
+<span id="1347">1347</span>
+<span id="1348">1348</span>
+<span id="1349">1349</span>
+<span id="1350">1350</span>
+<span id="1351">1351</span>
+<span id="1352">1352</span>
+<span id="1353">1353</span>
+<span id="1354">1354</span>
+<span id="1355">1355</span>
+<span id="1356">1356</span>
+<span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{
             <span class="self">self</span>,
             <span class="ident">declaration::class_decl::ClassElement</span> <span class="kw">as</span> <span class="ident">ClassElementNode</span>,
+            <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>,
             <span class="ident">object</span>::{<span class="ident">MethodDefinition</span>, <span class="ident">PropertyName::Literal</span>},
-            <span class="ident">Class</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FunctionExpr</span>,
+            <span class="ident">Class</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FunctionExpr</span>,
         },
         <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
     },
@@ -1466,10 +1542,27 @@
             <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
             <span class="prelude-val">Ok</span>(<span class="ident">Class::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">super_ref</span>, <span class="prelude-val">None</span>, <span class="macro">vec!</span>[]))
         } <span class="kw">else</span> {
+            <span class="kw">let</span> <span class="ident">body_start</span> <span class="op">=</span> <span class="ident">cursor</span>
+                .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                .<span class="ident">span</span>()
+                .<span class="ident">start</span>();
             <span class="kw">let</span> (<span class="ident">constructor</span>, <span class="ident">elements</span>) <span class="op">=</span>
                 <span class="ident">ClassBody::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
             <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBlock</span>, <span class="string">&quot;class tail&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+            <span class="kw">if</span> <span class="ident">super_ref</span>.<span class="ident">is_none</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">constructor</span> {
+                    <span class="kw">if</span> <span class="ident">function_contains_super</span>(<span class="ident">constructor</span>.<span class="ident">body</span>(), <span class="ident">constructor</span>.<span class="ident">parameters</span>()) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                            <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                            <span class="ident">body_start</span>,
+                        )));
+                    }
+                }
+            }
+
             <span class="prelude-val">Ok</span>(<span class="ident">Class::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">super_ref</span>, <span class="ident">constructor</span>, <span class="ident">elements</span>))
         }
     }
@@ -1596,57 +1689,72 @@
                     }
                     (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">element</span>)) =&gt; {
                         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">element</span> {
-                            <span class="ident">ClassElementNode::PrivateMethodDefinition</span>(<span class="ident">name</span>, <span class="ident">method</span>) =&gt; <span class="kw">match</span> <span class="ident">method</span>
-                            {
-                                <span class="ident">MethodDefinition::Get</span>(<span class="kw">_</span>) =&gt; {
-                                    <span class="kw">match</span> <span class="ident">private_elements_names</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
-                                        <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Setter</span>) =&gt; {
-                                            <span class="ident">private_elements_names</span>
-                                                .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Value</span>);
+                            <span class="ident">ClassElementNode::PrivateMethodDefinition</span>(<span class="ident">name</span>, <span class="ident">method</span>) =&gt; {
+                                <span class="comment">// It is a Syntax Error if PropName of MethodDefinition is not &quot;constructor&quot; and HasDirectSuper of MethodDefinition is true.</span>
+                                <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="ident">method</span>.<span class="ident">body</span>(), <span class="ident">method</span>.<span class="ident">parameters</span>()) {
+                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                                        <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                                        <span class="ident">position</span>,
+                                    )));
+                                }
+                                <span class="kw">match</span> <span class="ident">method</span> {
+                                    <span class="ident">MethodDefinition::Get</span>(<span class="kw">_</span>) =&gt; {
+                                        <span class="kw">match</span> <span class="ident">private_elements_names</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
+                                            <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Setter</span>) =&gt; {
+                                                <span class="ident">private_elements_names</span>
+                                                    .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Value</span>);
+                                            }
+                                            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
+                                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                                                    <span class="string">&quot;private identifier has already been declared&quot;</span>,
+                                                    <span class="ident">position</span>,
+                                                ));
+                                            }
+                                            <span class="prelude-val">None</span> =&gt; {
+                                                <span class="ident">private_elements_names</span>
+                                                    .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Getter</span>);
+                                            }
                                         }
-                                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
+                                    }
+                                    <span class="ident">MethodDefinition::Set</span>(<span class="kw">_</span>) =&gt; {
+                                        <span class="kw">match</span> <span class="ident">private_elements_names</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
+                                            <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Getter</span>) =&gt; {
+                                                <span class="ident">private_elements_names</span>
+                                                    .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Value</span>);
+                                            }
+                                            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
+                                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                                                    <span class="string">&quot;private identifier has already been declared&quot;</span>,
+                                                    <span class="ident">position</span>,
+                                                ));
+                                            }
+                                            <span class="prelude-val">None</span> =&gt; {
+                                                <span class="ident">private_elements_names</span>
+                                                    .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Setter</span>);
+                                            }
+                                        }
+                                    }
+                                    <span class="kw">_</span> =&gt; {
+                                        <span class="kw">if</span> <span class="ident">private_elements_names</span>
+                                            .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Value</span>)
+                                            .<span class="ident">is_some</span>()
+                                        {
                                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                                                 <span class="string">&quot;private identifier has already been declared&quot;</span>,
                                                 <span class="ident">position</span>,
                                             ));
                                         }
-                                        <span class="prelude-val">None</span> =&gt; {
-                                            <span class="ident">private_elements_names</span>
-                                                .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Getter</span>);
-                                        }
                                     }
                                 }
-                                <span class="ident">MethodDefinition::Set</span>(<span class="kw">_</span>) =&gt; {
-                                    <span class="kw">match</span> <span class="ident">private_elements_names</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
-                                        <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Getter</span>) =&gt; {
-                                            <span class="ident">private_elements_names</span>
-                                                .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Value</span>);
-                                        }
-                                        <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {
-                                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
-                                                <span class="string">&quot;private identifier has already been declared&quot;</span>,
-                                                <span class="ident">position</span>,
-                                            ));
-                                        }
-                                        <span class="prelude-val">None</span> =&gt; {
-                                            <span class="ident">private_elements_names</span>
-                                                .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Setter</span>);
-                                        }
-                                    }
-                                }
-                                <span class="kw">_</span> =&gt; {
-                                    <span class="kw">if</span> <span class="ident">private_elements_names</span>
-                                        .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Value</span>)
-                                        .<span class="ident">is_some</span>()
-                                    {
-                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
-                                            <span class="string">&quot;private identifier has already been declared&quot;</span>,
-                                            <span class="ident">position</span>,
-                                        ));
-                                    }
-                                }
-                            },
+                            }
                             <span class="ident">ClassElementNode::PrivateStaticMethodDefinition</span>(<span class="ident">name</span>, <span class="ident">method</span>) =&gt; {
+                                <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+                                <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="ident">method</span>.<span class="ident">body</span>(), <span class="ident">method</span>.<span class="ident">parameters</span>()) {
+                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                                        <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                                        <span class="ident">position</span>,
+                                    )));
+                                }
                                 <span class="kw">match</span> <span class="ident">method</span> {
                                     <span class="ident">MethodDefinition::Get</span>(<span class="kw">_</span>) =&gt; {
                                         <span class="kw">match</span> <span class="ident">private_elements_names</span>.<span class="ident">get</span>(<span class="ident">name</span>) {
@@ -1697,7 +1805,15 @@
                                     }
                                 }
                             }
-                            <span class="ident">ClassElementNode::PrivateFieldDefinition</span>(<span class="ident">name</span>, <span class="kw">_</span>) =&gt; {
+                            <span class="ident">ClassElementNode::PrivateFieldDefinition</span>(<span class="ident">name</span>, <span class="ident">init</span>) =&gt; {
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">init</span> {
+                                    <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">node::ContainsSymbol::SuperCall</span>) {
+                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                                            <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                                            <span class="ident">position</span>,
+                                        )));
+                                    }
+                                }
                                 <span class="kw">if</span> <span class="ident">private_elements_names</span>
                                     .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::Value</span>)
                                     .<span class="ident">is_some</span>()
@@ -1708,7 +1824,15 @@
                                     ));
                                 }
                             }
-                            <span class="ident">ClassElementNode::PrivateStaticFieldDefinition</span>(<span class="ident">name</span>, <span class="kw">_</span>) =&gt; {
+                            <span class="ident">ClassElementNode::PrivateStaticFieldDefinition</span>(<span class="ident">name</span>, <span class="ident">init</span>) =&gt; {
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">init</span> {
+                                    <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">node::ContainsSymbol::SuperCall</span>) {
+                                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                                            <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                                            <span class="ident">position</span>,
+                                        )));
+                                    }
+                                }
                                 <span class="kw">if</span> <span class="ident">private_elements_names</span>
                                     .<span class="ident">insert</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">PrivateElement::StaticValue</span>)
                                     .<span class="ident">is_some</span>()
@@ -1717,6 +1841,28 @@
                                         <span class="string">&quot;private identifier has already been declared&quot;</span>,
                                         <span class="ident">position</span>,
                                     ));
+                                }
+                            }
+                            <span class="ident">ClassElementNode::MethodDefinition</span>(<span class="kw">_</span>, <span class="ident">method</span>)
+                            <span class="op">|</span> <span class="ident">ClassElementNode::StaticMethodDefinition</span>(<span class="kw">_</span>, <span class="ident">method</span>) =&gt; {
+                                <span class="comment">// ClassElement : MethodDefinition:</span>
+                                <span class="comment">//  It is a Syntax Error if PropName of MethodDefinition is not &quot;constructor&quot; and HasDirectSuper of MethodDefinition is true.</span>
+                                <span class="comment">// ClassElement : static MethodDefinition:</span>
+                                <span class="comment">//  It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+                                <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="ident">method</span>.<span class="ident">body</span>(), <span class="ident">method</span>.<span class="ident">parameters</span>()) {
+                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                                        <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                                        <span class="ident">position</span>,
+                                    )));
+                                }
+                            }
+                            <span class="ident">ClassElementNode::FieldDefinition</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">node</span>))
+                            <span class="op">|</span> <span class="ident">ClassElementNode::StaticFieldDefinition</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">node</span>)) =&gt; {
+                                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">node::ContainsSymbol::SuperCall</span>) {
+                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                                        <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                                        <span class="ident">position</span>,
+                                    )));
                                 }
                             }
                             <span class="kw">_</span> =&gt; {}
@@ -2577,6 +2723,7 @@
             }
             <span class="comment">// ClassStaticBlockBody : ClassStaticBlockStatementList</span>
             <span class="comment">// It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.</span>
+            <span class="comment">// It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.</span>
             <span class="ident">ClassElementNode::StaticBlock</span>(<span class="ident">block</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">block</span>.<span class="ident">items</span>() {
                     <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains_arguments</span>() {
@@ -2584,6 +2731,9 @@
                             <span class="string">&quot;&#39;arguments&#39; not allowed in class static block&quot;</span>,
                             <span class="ident">position</span>,
                         ));
+                    }
+                    <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
                     }
                 }
             }

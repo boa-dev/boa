@@ -1400,6 +1400,118 @@
 <span id="1393">1393</span>
 <span id="1394">1394</span>
 <span id="1395">1395</span>
+<span id="1396">1396</span>
+<span id="1397">1397</span>
+<span id="1398">1398</span>
+<span id="1399">1399</span>
+<span id="1400">1400</span>
+<span id="1401">1401</span>
+<span id="1402">1402</span>
+<span id="1403">1403</span>
+<span id="1404">1404</span>
+<span id="1405">1405</span>
+<span id="1406">1406</span>
+<span id="1407">1407</span>
+<span id="1408">1408</span>
+<span id="1409">1409</span>
+<span id="1410">1410</span>
+<span id="1411">1411</span>
+<span id="1412">1412</span>
+<span id="1413">1413</span>
+<span id="1414">1414</span>
+<span id="1415">1415</span>
+<span id="1416">1416</span>
+<span id="1417">1417</span>
+<span id="1418">1418</span>
+<span id="1419">1419</span>
+<span id="1420">1420</span>
+<span id="1421">1421</span>
+<span id="1422">1422</span>
+<span id="1423">1423</span>
+<span id="1424">1424</span>
+<span id="1425">1425</span>
+<span id="1426">1426</span>
+<span id="1427">1427</span>
+<span id="1428">1428</span>
+<span id="1429">1429</span>
+<span id="1430">1430</span>
+<span id="1431">1431</span>
+<span id="1432">1432</span>
+<span id="1433">1433</span>
+<span id="1434">1434</span>
+<span id="1435">1435</span>
+<span id="1436">1436</span>
+<span id="1437">1437</span>
+<span id="1438">1438</span>
+<span id="1439">1439</span>
+<span id="1440">1440</span>
+<span id="1441">1441</span>
+<span id="1442">1442</span>
+<span id="1443">1443</span>
+<span id="1444">1444</span>
+<span id="1445">1445</span>
+<span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
+<span id="1461">1461</span>
+<span id="1462">1462</span>
+<span id="1463">1463</span>
+<span id="1464">1464</span>
+<span id="1465">1465</span>
+<span id="1466">1466</span>
+<span id="1467">1467</span>
+<span id="1468">1468</span>
+<span id="1469">1469</span>
+<span id="1470">1470</span>
+<span id="1471">1471</span>
+<span id="1472">1472</span>
+<span id="1473">1473</span>
+<span id="1474">1474</span>
+<span id="1475">1475</span>
+<span id="1476">1476</span>
+<span id="1477">1477</span>
+<span id="1478">1478</span>
+<span id="1479">1479</span>
+<span id="1480">1480</span>
+<span id="1481">1481</span>
+<span id="1482">1482</span>
+<span id="1483">1483</span>
+<span id="1484">1484</span>
+<span id="1485">1485</span>
+<span id="1486">1486</span>
+<span id="1487">1487</span>
+<span id="1488">1488</span>
+<span id="1489">1489</span>
+<span id="1490">1490</span>
+<span id="1491">1491</span>
+<span id="1492">1492</span>
+<span id="1493">1493</span>
+<span id="1494">1494</span>
+<span id="1495">1495</span>
+<span id="1496">1496</span>
+<span id="1497">1497</span>
+<span id="1498">1498</span>
+<span id="1499">1499</span>
+<span id="1500">1500</span>
+<span id="1501">1501</span>
+<span id="1502">1502</span>
+<span id="1503">1503</span>
+<span id="1504">1504</span>
+<span id="1505">1505</span>
+<span id="1506">1506</span>
+<span id="1507">1507</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -1544,8 +1656,22 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: superclass **=&gt;** superclass.prototype</span>
+    <span class="doccomment">/// Stack: class, superclass **=&gt;** class, superclass.prototype</span>
     <span class="ident">PushClassPrototype</span>,
+
+    <span class="doccomment">/// Set the prototype of a class object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: class, prototype **=&gt;** class.prototype</span>
+    <span class="ident">SetClassPrototype</span>,
+
+    <span class="doccomment">/// Set home object internal slot of a function object.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: home, function **=&gt;** home, function</span>
+    <span class="ident">SetHomeObject</span>,
 
     <span class="doccomment">/// Push an empty array value on the stack.</span>
     <span class="doccomment">///</span>
@@ -2026,16 +2152,34 @@
     <span class="doccomment">/// Stack: object, key, value **=&gt;**</span>
     <span class="ident">DefineClassSetterByValue</span>,
 
-    <span class="doccomment">/// Set a private property by name from an object.</span>
+    <span class="doccomment">/// Assign the value of a private property of an object by it&#39;s name.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Like `obj.#name = value`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: name_index: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: object, value **=&gt;**</span>
+    <span class="ident">AssignPrivateField</span>,
+
+    <span class="doccomment">/// Set a private property of a class constructor by it&#39;s name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Like `#name = value`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: name_index: `u32`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: object, value **=&gt;**</span>
-    <span class="ident">SetPrivateValue</span>,
+    <span class="ident">SetPrivateField</span>,
 
-    <span class="doccomment">/// Set a private setter property by name from an object.</span>
+    <span class="doccomment">/// Set a private method of a class constructor by it&#39;s name.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Like `#name() {}`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: name_index: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: object, value **=&gt;**</span>
+    <span class="ident">SetPrivateMethod</span>,
+
+    <span class="doccomment">/// Set a private setter property of a class constructor by it&#39;s name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Like `set #name() {}`</span>
     <span class="doccomment">///</span>
@@ -2044,7 +2188,7 @@
     <span class="doccomment">/// Stack: object, value **=&gt;**</span>
     <span class="ident">SetPrivateSetter</span>,
 
-    <span class="doccomment">/// Set a private getter property by name from an object.</span>
+    <span class="doccomment">/// Set a private getter property of a class constructor by it&#39;s name.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Like `get #name() {}`</span>
     <span class="doccomment">///</span>
@@ -2062,12 +2206,40 @@
     <span class="doccomment">/// Stack: object **=&gt;** value</span>
     <span class="ident">GetPrivateField</span>,
 
-    <span class="doccomment">/// Push a computed class field name to a class constructor object.</span>
+    <span class="doccomment">/// Push a field to a class.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: value, object **=&gt;**</span>
-    <span class="ident">PushClassComputedFieldName</span>,
+    <span class="doccomment">/// Stack: class, field_name, field_function **=&gt;**</span>
+    <span class="ident">PushClassField</span>,
+
+    <span class="doccomment">/// Push a private field to the class.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: name_index: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: class, field_function **=&gt;**</span>
+    <span class="ident">PushClassFieldPrivate</span>,
+
+    <span class="doccomment">/// Push a private getter to the class.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: name_index: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: class, getter **=&gt;**</span>
+    <span class="ident">PushClassPrivateGetter</span>,
+
+    <span class="doccomment">/// Push a private setter to the class.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: name_index: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: class, setter **=&gt;**</span>
+    <span class="ident">PushClassPrivateSetter</span>,
+
+    <span class="doccomment">/// Push a private method to the class.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: name_index: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: class, method **=&gt;**</span>
+    <span class="ident">PushClassPrivateMethod</span>,
 
     <span class="doccomment">/// Deletes a property by name of an object.</span>
     <span class="doccomment">///</span>
@@ -2204,6 +2376,34 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: **=&gt;** this</span>
     <span class="ident">This</span>,
+
+    <span class="doccomment">/// Pushes the current `super` value to the stack.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: **=&gt;** super</span>
+    <span class="ident">Super</span>,
+
+    <span class="doccomment">/// Execute the `super()` method.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: argument_1, ... argument_n **=&gt;**</span>
+    <span class="ident">SuperCall</span>,
+
+    <span class="doccomment">/// Execute the `super()` method where the last argument is a rest parameter.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: argument_1, ... argument_n **=&gt;**</span>
+    <span class="ident">SuperCallWithRest</span>,
+
+    <span class="doccomment">/// Execute the `super()` method when no constructor of the class is defined.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: argument_1, ... argument_n **=&gt;**</span>
+    <span class="ident">SuperCallDerived</span>,
 
     <span class="doccomment">/// Pop the two values of the stack, strict equal compares the two values,</span>
     <span class="doccomment">/// if true jumps to address, otherwise push the second pop&#39;ed value.</span>
@@ -2481,6 +2681,8 @@
             <span class="ident"><span class="self">Self</span>::PushLiteral</span> =&gt; <span class="string">&quot;PushLiteral&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushEmptyObject</span> =&gt; <span class="string">&quot;PushEmptyObject&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushClassPrototype</span> =&gt; <span class="string">&quot;PushClassPrototype&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetClassPrototype</span> =&gt; <span class="string">&quot;SetClassPrototype&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetHomeObject</span> =&gt; <span class="string">&quot;SetHomeObject&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushNewArray</span> =&gt; <span class="string">&quot;PushNewArray&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushValueToArray</span> =&gt; <span class="string">&quot;PushValueToArray&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushElisionToArray</span> =&gt; <span class="string">&quot;PushElisionToArray&quot;</span>,
@@ -2545,11 +2747,17 @@
             <span class="ident"><span class="self">Self</span>::DefineClassSetterByName</span> =&gt; <span class="string">&quot;DefineClassSetterByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPropertySetterByValue</span> =&gt; <span class="string">&quot;SetPropertySetterByValue&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassSetterByValue</span> =&gt; <span class="string">&quot;DefineClassSetterByValue&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::SetPrivateValue</span> =&gt; <span class="string">&quot;SetPrivateValue&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::AssignPrivateField</span> =&gt; <span class="string">&quot;AssignPrivateField&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetPrivateField</span> =&gt; <span class="string">&quot;SetPrivateValue&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetPrivateMethod</span> =&gt; <span class="string">&quot;SetPrivateMethod&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPrivateSetter</span> =&gt; <span class="string">&quot;SetPrivateSetter&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPrivateGetter</span> =&gt; <span class="string">&quot;SetPrivateGetter&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::GetPrivateField</span> =&gt; <span class="string">&quot;GetPrivateByName&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::PushClassComputedFieldName</span> =&gt; <span class="string">&quot;PushClassComputedFieldName&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GetPrivateField</span> =&gt; <span class="string">&quot;GetPrivateField&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassField</span> =&gt; <span class="string">&quot;PushClassField&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassFieldPrivate</span> =&gt; <span class="string">&quot;PushClassFieldPrivate&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassPrivateGetter</span> =&gt; <span class="string">&quot;PushClassPrivateGetter&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassPrivateSetter</span> =&gt; <span class="string">&quot;PushClassPrivateSetter&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassPrivateMethod</span> =&gt; <span class="string">&quot;PushClassPrivateMethod&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DeletePropertyByName</span> =&gt; <span class="string">&quot;DeletePropertyByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DeletePropertyByValue</span> =&gt; <span class="string">&quot;DeletePropertyByValue&quot;</span>,
             <span class="ident"><span class="self">Self</span>::CopyDataProperties</span> =&gt; <span class="string">&quot;CopyDataProperties&quot;</span>,
@@ -2568,6 +2776,10 @@
             <span class="ident"><span class="self">Self</span>::FinallySetJump</span> =&gt; <span class="string">&quot;FinallySetJump&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ToBoolean</span> =&gt; <span class="string">&quot;ToBoolean&quot;</span>,
             <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="string">&quot;This&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Super</span> =&gt; <span class="string">&quot;Super&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCall</span> =&gt; <span class="string">&quot;SuperCall&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCallWithRest</span> =&gt; <span class="string">&quot;SuperCallWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCallDerived</span> =&gt; <span class="string">&quot;SuperCallDerived&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Case</span> =&gt; <span class="string">&quot;Case&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Default</span> =&gt; <span class="string">&quot;Default&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetFunction</span> =&gt; <span class="string">&quot;GetFunction&quot;</span>,
@@ -2702,6 +2914,10 @@
             <span class="ident"><span class="self">Self</span>::FinallySetJump</span> =&gt; <span class="string">&quot;INST - FinallySetJump&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ToBoolean</span> =&gt; <span class="string">&quot;INST - ToBoolean&quot;</span>,
             <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="string">&quot;INST - This&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Super</span> =&gt; <span class="string">&quot;INST - Super&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCall</span> =&gt; <span class="string">&quot;INST - SuperCall&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCallWithRest</span> =&gt; <span class="string">&quot;INST - SuperCallWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCallDerived</span> =&gt; <span class="string">&quot;INST - SuperCallDerived&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Case</span> =&gt; <span class="string">&quot;INST - Case&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Default</span> =&gt; <span class="string">&quot;INST - Default&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetFunction</span> =&gt; <span class="string">&quot;INST - GetFunction&quot;</span>,
@@ -2737,17 +2953,25 @@
             <span class="ident"><span class="self">Self</span>::GeneratorNextDelegate</span> =&gt; <span class="string">&quot;INST - GeneratorNextDelegate&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Nop</span> =&gt; <span class="string">&quot;INST - Nop&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushClassPrototype</span> =&gt; <span class="string">&quot;INST - PushClassPrototype&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetClassPrototype</span> =&gt; <span class="string">&quot;INST - SetClassPrototype&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetHomeObject</span> =&gt; <span class="string">&quot;INST - SetHomeObject&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassMethodByName</span> =&gt; <span class="string">&quot;INST - DefineClassMethodByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassMethodByValue</span> =&gt; <span class="string">&quot;INST - DefineClassMethodByValue&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassGetterByName</span> =&gt; <span class="string">&quot;INST - DefineClassGetterByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassGetterByValue</span> =&gt; <span class="string">&quot;INST - DefineClassGetterByValue&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassSetterByName</span> =&gt; <span class="string">&quot;INST - DefineClassSetterByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassSetterByValue</span> =&gt; <span class="string">&quot;INST - DefineClassSetterByValue&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::SetPrivateValue</span> =&gt; <span class="string">&quot;INST - SetPrivateValue&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::AssignPrivateField</span> =&gt; <span class="string">&quot;INST - AssignPrivateField&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetPrivateField</span> =&gt; <span class="string">&quot;INST - SetPrivateValue&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SetPrivateMethod</span> =&gt; <span class="string">&quot;INST - SetPrivateMethod&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPrivateSetter</span> =&gt; <span class="string">&quot;INST - SetPrivateSetter&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPrivateGetter</span> =&gt; <span class="string">&quot;INST - SetPrivateGetter&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetPrivateField</span> =&gt; <span class="string">&quot;INST - GetPrivateField&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::PushClassComputedFieldName</span> =&gt; <span class="string">&quot;INST - PushClassComputedFieldName&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassField</span> =&gt; <span class="string">&quot;INST - PushClassField&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassFieldPrivate</span> =&gt; <span class="string">&quot;INST - PushClassFieldPrivate&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassPrivateGetter</span> =&gt; <span class="string">&quot;INST - PushClassPrivateGetter&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassPrivateSetter</span> =&gt; <span class="string">&quot;INST - PushClassPrivateSetter&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushClassPrivateMethod</span> =&gt; <span class="string">&quot;INST - PushClassPrivateMethod&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ToPropertyKey</span> =&gt; <span class="string">&quot;INST - ToPropertyKey&quot;</span>,
         }
     }

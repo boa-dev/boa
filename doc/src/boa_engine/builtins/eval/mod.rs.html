@@ -154,12 +154,6 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
-<span id="155">155</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `eval` function.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `eval()` function evaluates JavaScript code represented as a string.</span>
@@ -241,16 +235,10 @@
 
         <span class="comment">// Because of implementation details the following code differs from the spec.</span>
 
-        <span class="comment">// Parse the script body (11.a - 11.d)</span>
-        <span class="comment">// TODO: Implement errors for 11.e - 11.h</span>
-        <span class="kw">let</span> <span class="ident">parse_result</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">strict</span> {
-            <span class="ident">context</span>.<span class="ident">parse_strict</span>(<span class="ident">x</span>.<span class="ident">as_bytes</span>())
-        } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">parse</span>(<span class="ident">x</span>.<span class="ident">as_bytes</span>())
-        };
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">parse_result</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_string</span>()) {
+        <span class="comment">// Parse the script body and handle early errors (6 - 11)</span>
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">parse_eval</span>(<span class="ident">x</span>.<span class="ident">as_bytes</span>(), <span class="ident">direct</span>, <span class="ident">strict</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">body</span>) =&gt; <span class="ident">body</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()),
         };
 
         <span class="comment">// 12 - 13 are implicit in the call of `Context::compile_with_new_declarative`.</span>

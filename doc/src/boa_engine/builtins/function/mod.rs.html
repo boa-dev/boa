@@ -827,6 +827,108 @@
 <span id="820">820</span>
 <span id="821">821</span>
 <span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -848,7 +950,7 @@
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>,
         <span class="ident">ObjectData</span>,
     },
-    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>},
+    <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">PrivateElement</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">syntax</span>::{<span class="ident">ast::node::FormalParameterList</span>, <span class="ident">Parser</span>},
@@ -937,7 +1039,13 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="doccomment">/// Represents the `[[ConstructorKind]]` internal slot of function objects.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ConstructorKind</span> {
     <span class="ident">Base</span>,
     <span class="ident">Derived</span>,
@@ -953,6 +1061,18 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_derived</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>, <span class="ident"><span class="self">Self</span>::Derived</span>)
     }
+}
+
+<span class="doccomment">/// Record containing the field definition of classes.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-classfielddefinition-record-specification-type</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ClassFieldDefinition</span> {
+    <span class="ident">Public</span>(<span class="ident">PropertyKey</span>, <span class="ident">JsFunction</span>),
+    <span class="ident">Private</span>(<span class="ident">Sym</span>, <span class="ident">JsFunction</span>),
 }
 
 <span class="doccomment">/// Wrapper for `Gc&lt;GcCell&lt;dyn NativeObject&gt;&gt;` that allows passing additional</span>
@@ -1020,6 +1140,19 @@
     <span class="ident">Ordinary</span> {
         <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
         <span class="ident">environments</span>: <span class="ident">DeclarativeEnvironmentStack</span>,
+
+        <span class="doccomment">/// The `[[ConstructorKind]]` internal slot.</span>
+        <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
+        <span class="ident">constructor_kind</span>: <span class="ident">ConstructorKind</span>,
+
+        <span class="doccomment">/// The `[[HomeObject]]` internal slot.</span>
+        <span class="ident">home_object</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+
+        <span class="doccomment">/// The `[[Fields]]` internal slot.</span>
+        <span class="ident">fields</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ClassFieldDefinition</span><span class="op">&gt;</span>,
+
+        <span class="doccomment">/// The `[[PrivateMethods]]` internal slot.</span>
+        <span class="ident">private_methods</span>: <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Sym</span>, <span class="ident">PrivateElement</span>)<span class="op">&gt;</span>,
     },
     <span class="ident">Generator</span> {
         <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::vm::CodeBlock</span><span class="op">&gt;</span>,
@@ -1036,14 +1169,85 @@
 <span class="kw">impl</span> <span class="ident">Function</span> {
     <span class="doccomment">/// Returns true if the function object is a constructor.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">constructor</span>().<span class="ident">is_some</span>()
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } =&gt; {
+                <span class="ident">constructor</span>.<span class="ident">is_some</span>()
+            }
+            <span class="ident"><span class="self">Self</span>::Generator</span> { .. } =&gt; <span class="bool-val">false</span>,
+            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">code</span>, .. } =&gt; <span class="op">!</span>(<span class="ident">code</span>.<span class="ident">this_mode</span> <span class="op">==</span> <span class="ident">ThisMode::Lexical</span>),
+        }
     }
 
-    <span class="doccomment">/// Returns the constructor kind if the function is constructable, or `None` otherwise.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ConstructorKind</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Native</span> { <span class="ident">constructor</span>, .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Closure</span> { <span class="ident">constructor</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">constructor</span>,
-            <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">code</span>, .. } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Generator</span> { <span class="ident">code</span>, .. } =&gt; <span class="ident">code</span>.<span class="ident">constructor</span>,
+    <span class="doccomment">/// Returns true if the function object is a derived constructor.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_derived_constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> {
+            <span class="ident">constructor_kind</span>, ..
+        } <span class="op">=</span> <span class="self">self</span>
+        {
+            <span class="ident">constructor_kind</span>.<span class="ident">is_derived</span>()
+        } <span class="kw">else</span> {
+            <span class="bool-val">false</span>
+        }
+    }
+
+    <span class="doccomment">/// Returns a reference to the function `[[HomeObject]]` slot if present.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_home_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">home_object</span>, .. } <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">home_object</span>.<span class="ident">as_ref</span>()
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
+    }
+
+    <span class="doccomment">///  Sets the `[[HomeObject]]` slot if present.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_home_object</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="ident">JsObject</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">home_object</span>, .. } <span class="op">=</span> <span class="self">self</span> {
+            <span class="kw-2">*</span><span class="ident">home_object</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>);
+        }
+    }
+
+    <span class="doccomment">/// Returns the values of the `[[Fields]]` internal slot.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_fields</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">ClassFieldDefinition</span>] {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">fields</span>, .. } <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">fields</span>
+        } <span class="kw">else</span> {
+            <span class="kw-2">&amp;</span>[]
+        }
+    }
+
+    <span class="doccomment">/// Pushes a value to the `[[Fields]]` internal slot if present.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_field</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">PropertyKey</span>, <span class="ident">value</span>: <span class="ident">JsFunction</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">fields</span>, .. } <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">fields</span>.<span class="ident">push</span>(<span class="ident">ClassFieldDefinition::Public</span>(<span class="ident">key</span>, <span class="ident">value</span>));
+        }
+    }
+
+    <span class="doccomment">/// Pushes a private value to the `[[Fields]]` internal slot if present.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_field_private</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key</span>: <span class="ident">Sym</span>, <span class="ident">value</span>: <span class="ident">JsFunction</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> { <span class="ident">fields</span>, .. } <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">fields</span>.<span class="ident">push</span>(<span class="ident">ClassFieldDefinition::Private</span>(<span class="ident">key</span>, <span class="ident">value</span>));
+        }
+    }
+
+    <span class="doccomment">/// Returns the values of the `[[PrivateMethods]]` internal slot.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_private_methods</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[(<span class="ident">Sym</span>, <span class="ident">PrivateElement</span>)] {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> {
+            <span class="ident">private_methods</span>, ..
+        } <span class="op">=</span> <span class="self">self</span>
+        {
+            <span class="ident">private_methods</span>
+        } <span class="kw">else</span> {
+            <span class="kw-2">&amp;</span>[]
+        }
+    }
+
+    <span class="doccomment">/// Pushes a private method to the `[[PrivateMethods]]` internal slot if present.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_private_method</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Sym</span>, <span class="ident">method</span>: <span class="ident">PrivateElement</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Ordinary</span> {
+            <span class="ident">private_methods</span>, ..
+        } <span class="op">=</span> <span class="self">self</span>
+        {
+            <span class="ident">private_methods</span>.<span class="ident">push</span>((<span class="ident">name</span>, <span class="ident">method</span>));
         }
     }
 }

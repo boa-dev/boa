@@ -837,6 +837,74 @@
 <span id="830">830</span>
 <span id="831">831</span>
 <span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -852,6 +920,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{
+            <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>,
             <span class="ident">object</span>::{<span class="self">self</span>, <span class="ident">MethodDefinition</span>},
             <span class="ident">AsyncFunctionExpr</span>, <span class="ident">AsyncGeneratorExpr</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FunctionExpr</span>,
             <span class="ident">GeneratorExpr</span>, <span class="ident">Node</span>, <span class="ident">Object</span>,
@@ -1012,10 +1081,18 @@
                 <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;Async object methods&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
+
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) <span class="op">=</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
                     <span class="kw">let</span> (<span class="ident">property_name</span>, <span class="ident">method</span>) <span class="op">=</span>
                         <span class="ident">AsyncGeneratorMethod::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+                    <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+                    <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="ident">method</span>.<span class="ident">body</span>(), <span class="ident">method</span>.<span class="ident">parameters</span>()) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
+                    }
+
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
                         <span class="ident">method</span>,
                         <span class="ident">property_name</span>,
@@ -1023,6 +1100,12 @@
                 }
                 <span class="kw">let</span> (<span class="ident">property_name</span>, <span class="ident">method</span>) <span class="op">=</span>
                     <span class="ident">AsyncMethod::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+                <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+                <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="ident">method</span>.<span class="ident">body</span>(), <span class="ident">method</span>.<span class="ident">parameters</span>()) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
+                }
+
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
                     <span class="ident">method</span>,
                     <span class="ident">property_name</span>,
@@ -1044,6 +1127,11 @@
                 .<span class="ident">start</span>();
             <span class="kw">let</span> (<span class="ident">class_element_name</span>, <span class="ident">method</span>) <span class="op">=</span>
                 <span class="ident">GeneratorMethod::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+            <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+            <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="ident">method</span>.<span class="ident">body</span>(), <span class="ident">method</span>.<span class="ident">parameters</span>()) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
+            }
 
             <span class="kw">match</span> <span class="ident">class_element_name</span> {
                 <span class="ident">object::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) =&gt; {
@@ -1080,6 +1168,12 @@
         <span class="kw">match</span> <span class="ident">property_name</span> {
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }</span>
             <span class="ident">object::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span> <span class="op">==</span> <span class="ident">Sym::GET</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
+                    .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                    .<span class="ident">span</span>()
+                    .<span class="ident">start</span>();
+
                 <span class="ident">property_name</span> <span class="op">=</span> <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -1105,6 +1199,11 @@
                     <span class="string">&quot;get method definition&quot;</span>,
                     <span class="ident">interner</span>,
                 )<span class="question-mark">?</span>;
+
+                <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+                <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::default</span>()) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
+                }
 
                 <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
                     <span class="ident">MethodDefinition::Get</span>(<span class="ident">FunctionExpr::new</span>(
@@ -1157,6 +1256,14 @@
                             .<span class="ident">into</span>(),
                         <span class="ident">params_start_position</span>,
                     )));
+                }
+
+                <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+                <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">parameters</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;invalid super usage&quot;</span>,
+                        <span class="ident">params_start_position</span>,
+                    ));
                 }
 
                 <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
@@ -1228,6 +1335,14 @@
                             ));
                         }
                     }
+                }
+
+                <span class="comment">// It is a Syntax Error if HasDirectSuper of MethodDefinition is true.</span>
+                <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">params</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;invalid super usage&quot;</span>,
+                        <span class="ident">params_start_position</span>,
+                    ));
                 }
 
                 <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
@@ -1494,6 +1609,13 @@
             <span class="ident">body_start</span>,
         )<span class="question-mark">?</span>;
 
+        <span class="kw">if</span> <span class="ident">function_contains_super</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">params</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">body_start</span>,
+            )));
+        }
+
         <span class="prelude-val">Ok</span>((
             <span class="ident">class_element_name</span>,
             <span class="ident">MethodDefinition::Generator</span>(<span class="ident">GeneratorExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
@@ -1581,6 +1703,13 @@
             <span class="ident">body_start</span>,
         )<span class="question-mark">?</span>;
 
+        <span class="kw">if</span> <span class="ident">function_contains_super</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">params</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">body_start</span>,
+            )));
+        }
+
         <span class="prelude-val">Ok</span>((
             <span class="ident">property_name</span>,
             <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="ident">AsyncGeneratorExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
@@ -1662,6 +1791,13 @@
             <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">lexically_declared_names_top_level</span>(),
             <span class="ident">body_start</span>,
         )<span class="question-mark">?</span>;
+
+        <span class="kw">if</span> <span class="ident">function_contains_super</span>(<span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="kw-2">&amp;</span><span class="ident">params</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;invalid super usage&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">body_start</span>,
+            )));
+        }
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">property_name</span>,
