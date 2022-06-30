@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.81/src/value/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.82/src/value/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1170,17 +1170,17 @@
 
 <span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Value</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Value::Null</span> =&gt; <span class="ident">formatter</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Null&quot;</span>).<span class="ident">finish</span>(),
-            <span class="ident">Value::Bool</span>(<span class="ident">v</span>) =&gt; <span class="ident">formatter</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Bool&quot;</span>).<span class="ident">field</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>).<span class="ident">finish</span>(),
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">v</span>, <span class="ident">formatter</span>),
-            <span class="ident">Value::String</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">formatter</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;String&quot;</span>).<span class="ident">field</span>(<span class="ident">v</span>).<span class="ident">finish</span>(),
-            <span class="ident">Value::Array</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; {
+            <span class="ident">Value::Bool</span>(<span class="ident">v</span>) =&gt; <span class="ident">formatter</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Bool&quot;</span>).<span class="ident">field</span>(<span class="ident">v</span>).<span class="ident">finish</span>(),
+            <span class="ident">Value::Number</span>(<span class="ident">v</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">v</span>, <span class="ident">formatter</span>),
+            <span class="ident">Value::String</span>(<span class="ident">v</span>) =&gt; <span class="ident">formatter</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;String&quot;</span>).<span class="ident">field</span>(<span class="ident">v</span>).<span class="ident">finish</span>(),
+            <span class="ident">Value::Array</span>(<span class="ident">v</span>) =&gt; {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;Array(&quot;</span>)<span class="question-mark">?</span>;
                 <span class="ident">Debug::fmt</span>(<span class="ident">v</span>, <span class="ident">formatter</span>)<span class="question-mark">?</span>;
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;)&quot;</span>)
             }
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; {
+            <span class="ident">Value::Object</span>(<span class="ident">v</span>) =&gt; {
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;Object(&quot;</span>)<span class="question-mark">?</span>;
                 <span class="ident">Debug::fmt</span>(<span class="ident">v</span>, <span class="ident">formatter</span>)<span class="question-mark">?</span>;
                 <span class="ident">formatter</span>.<span class="ident">write_str</span>(<span class="string">&quot;)&quot;</span>)
@@ -1359,8 +1359,8 @@
     <span class="doccomment">/// assert_eq!(v[&quot;b&quot;].as_object(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Map</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">map</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">map</span>),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Object</span>(<span class="ident">map</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">map</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1377,8 +1377,8 @@
     <span class="doccomment">/// assert_eq!(v, json!({ &quot;a&quot;: {} }));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_object_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Map</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">map</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">map</span>),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Object</span>(<span class="ident">map</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">map</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1418,8 +1418,8 @@
     <span class="doccomment">/// assert_eq!(v[&quot;b&quot;].as_array(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_array</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Array</span>(<span class="kw-2">ref</span> <span class="ident">array</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">array</span>),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Array</span>(<span class="ident">array</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">array</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1436,8 +1436,8 @@
     <span class="doccomment">/// assert_eq!(v, json!({ &quot;a&quot;: [] }));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_array_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Value</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Array</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">list</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">list</span>),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Array</span>(<span class="ident">list</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">list</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1485,8 +1485,8 @@
     <span class="doccomment">/// println!(&quot;The value is: {}&quot;, v[&quot;a&quot;].as_str().unwrap());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">s</span>),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::String</span>(<span class="ident">s</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">s</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1531,8 +1531,8 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_i64());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">is_i64</span>(),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">is_i64</span>(),
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1556,8 +1556,8 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_u64());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">is_u64</span>(),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">is_u64</span>(),
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1582,8 +1582,8 @@
     <span class="doccomment">/// assert!(!v[&quot;c&quot;].is_f64());</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">is_f64</span>(),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">is_f64</span>(),
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -1602,8 +1602,8 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_i64(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_i64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_i64</span>(),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_i64</span>(),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1621,8 +1621,8 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_u64(), None);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_u64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_u64</span>(),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_u64</span>(),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -1640,8 +1640,8 @@
     <span class="doccomment">/// assert_eq!(v[&quot;c&quot;].as_f64(), Some(-64.0));</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_f64</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_f64</span>(),
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">as_f64</span>(),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }

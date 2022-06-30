@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.81/src/value/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.82/src/value/ser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1028,11 +1028,6 @@
 <span id="1023">1023</span>
 <span id="1024">1024</span>
 <span id="1025">1025</span>
-<span id="1026">1026</span>
-<span id="1027">1027</span>
-<span id="1028">1028</span>
-<span id="1029">1029</span>
-<span id="1030">1030</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">Error</span>, <span class="ident">ErrorCode</span>, <span class="prelude-ty">Result</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map::Map</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::number::Number</span>;
@@ -1053,14 +1048,14 @@
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">::serde::Serializer</span>,
     {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">Value::Null</span> =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_unit</span>(),
-            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_bool</span>(<span class="ident">b</span>),
-            <span class="ident">Value::Number</span>(<span class="kw-2">ref</span> <span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">serialize</span>(<span class="ident">serializer</span>),
-            <span class="ident">Value::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_str</span>(<span class="ident">s</span>),
-            <span class="ident">Value::Array</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">serialize</span>(<span class="ident">serializer</span>),
+            <span class="ident">Value::Bool</span>(<span class="ident">b</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_bool</span>(<span class="kw-2">*</span><span class="ident">b</span>),
+            <span class="ident">Value::Number</span>(<span class="ident">n</span>) =&gt; <span class="ident">n</span>.<span class="ident">serialize</span>(<span class="ident">serializer</span>),
+            <span class="ident">Value::String</span>(<span class="ident">s</span>) =&gt; <span class="ident">serializer</span>.<span class="ident">serialize_str</span>(<span class="ident">s</span>),
+            <span class="ident">Value::Array</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">serialize</span>(<span class="ident">serializer</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;std&quot;</span>, <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;alloc&quot;</span>))]</span>
-            <span class="ident">Value::Object</span>(<span class="kw-2">ref</span> <span class="ident">m</span>) =&gt; {
+            <span class="ident">Value::Object</span>(<span class="ident">m</span>) =&gt; {
                 <span class="kw">use</span> <span class="ident">serde::ser::SerializeMap</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="macro">tri!</span>(<span class="ident">serializer</span>.<span class="ident">serialize_map</span>(<span class="prelude-val">Some</span>(<span class="ident">m</span>.<span class="ident">len</span>())));
                 <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">v</span>) <span class="kw">in</span> <span class="ident">m</span> {
@@ -1419,10 +1414,8 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Serialize</span>,
     {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">SerializeMap::Map</span> {
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">next_key</span>, ..
-            } =&gt; {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">SerializeMap::Map</span> { <span class="ident">next_key</span>, .. } =&gt; {
                 <span class="kw-2">*</span><span class="ident">next_key</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="macro">tri!</span>(<span class="ident">key</span>.<span class="ident">serialize</span>(<span class="ident">MapKeySerializer</span>)));
                 <span class="prelude-val">Ok</span>(())
             }
@@ -1437,11 +1430,8 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Serialize</span>,
     {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident">SerializeMap::Map</span> {
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">map</span>,
-                <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">next_key</span>,
-            } =&gt; {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">SerializeMap::Map</span> { <span class="ident">map</span>, <span class="ident">next_key</span> } =&gt; {
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">next_key</span>.<span class="ident">take</span>();
                 <span class="comment">// Panic because this indicates a bug in the program rather than an</span>
                 <span class="comment">// expected failure.</span>
@@ -1657,10 +1647,10 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Serialize</span>,
     {
-        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">SerializeMap::Map</span> { .. } =&gt; <span class="ident">serde::ser::SerializeMap::serialize_entry</span>(<span class="self">self</span>, <span class="ident">key</span>, <span class="ident">value</span>),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
-            <span class="ident">SerializeMap::Number</span> { <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">out_value</span> } =&gt; {
+            <span class="ident">SerializeMap::Number</span> { <span class="ident">out_value</span> } =&gt; {
                 <span class="kw">if</span> <span class="ident">key</span> <span class="op">==</span> <span class="ident"><span class="kw">crate</span>::number::TOKEN</span> {
                     <span class="kw-2">*</span><span class="ident">out_value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">serialize</span>(<span class="ident">NumberValueEmitter</span>)<span class="question-mark">?</span>);
                     <span class="prelude-val">Ok</span>(())
@@ -1669,7 +1659,7 @@
                 }
             }
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;raw_value&quot;</span>)]</span>
-            <span class="ident">SerializeMap::RawValue</span> { <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">out_value</span> } =&gt; {
+            <span class="ident">SerializeMap::RawValue</span> { <span class="ident">out_value</span> } =&gt; {
                 <span class="kw">if</span> <span class="ident">key</span> <span class="op">==</span> <span class="ident"><span class="kw">crate</span>::raw::TOKEN</span> {
                     <span class="kw-2">*</span><span class="ident">out_value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>.<span class="ident">serialize</span>(<span class="ident">RawValueEmitter</span>)<span class="question-mark">?</span>);
                     <span class="prelude-val">Ok</span>(())
