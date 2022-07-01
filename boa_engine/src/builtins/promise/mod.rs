@@ -230,7 +230,7 @@ impl BuiltIn for Promise {
             None,
             Attribute::CONFIGURABLE,
         )
-        .method(Self::then, "then", 1)
+        .method(Self::then, "then", 2)
         .method(Self::catch, "catch", 1)
         .method(Self::finally, "finally", 1)
         // <https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag>
@@ -399,14 +399,14 @@ impl Promise {
             #[unsafe_ignore_trace]
             already_called: Rc<Cell<bool>>,
             index: usize,
-            values: GcCell<Vec<JsValue>>,
+            values: Gc<GcCell<Vec<JsValue>>>,
             capability_resolve: JsFunction,
             #[unsafe_ignore_trace]
             remaining_elements_count: Rc<Cell<i32>>,
         }
 
         // 1. Let values be a new empty List.
-        let values = GcCell::new(Vec::new());
+        let values = Gc::new(GcCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -439,7 +439,7 @@ impl Promise {
                     if remaining_elements_count.get() == 0 {
                         // 1. Let valuesArray be CreateArrayFromList(values).
                         let values_array = crate::builtins::Array::create_array_from_list(
-                            values.into_inner(),
+                            values.borrow().iter().cloned(),
                             context,
                         );
 
@@ -517,7 +517,7 @@ impl Promise {
                     if captures.remaining_elements_count.get() == 0 {
                         // a. Let valuesArray be CreateArrayFromList(values).
                         let values_array = crate::builtins::Array::create_array_from_list(
-                            captures.values.clone().into_inner(),
+                            captures.values.borrow().as_slice().iter().cloned(),
                             context,
                         );
 
@@ -640,14 +640,14 @@ impl Promise {
             #[unsafe_ignore_trace]
             already_called: Rc<Cell<bool>>,
             index: usize,
-            values: GcCell<Vec<JsValue>>,
+            values: Gc<GcCell<Vec<JsValue>>>,
             capability: JsFunction,
             #[unsafe_ignore_trace]
             remaining_elements: Rc<Cell<i32>>,
         }
 
         // 1. Let values be a new empty List.
-        let values = GcCell::new(Vec::new());
+        let values = Gc::new(GcCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -680,7 +680,7 @@ impl Promise {
                     if remaining_elements_count.get() == 0 {
                         // 1. Let valuesArray be CreateArrayFromList(values).
                         let values_array = crate::builtins::Array::create_array_from_list(
-                            values.into_inner(),
+                            values.borrow().as_slice().iter().cloned(),
                             context,
                         );
 
@@ -772,7 +772,7 @@ impl Promise {
                     if captures.remaining_elements.get() == 0 {
                         // a. Let valuesArray be CreateArrayFromList(values).
                         let values_array = Array::create_array_from_list(
-                            captures.values.clone().into_inner(),
+                            captures.values.borrow().as_slice().iter().cloned(),
                             context,
                         );
 
@@ -852,7 +852,7 @@ impl Promise {
                     if captures.remaining_elements.get() == 0 {
                         // a. Let valuesArray be CreateArrayFromList(values).
                         let values_array = Array::create_array_from_list(
-                            captures.values.clone().into_inner(),
+                            captures.values.borrow().as_slice().iter().cloned(),
                             context,
                         );
 
@@ -871,7 +871,7 @@ impl Promise {
                     already_called: Rc::new(Cell::new(false)),
                     index,
                     values: values.clone(),
-                    capability: result_capability.reject.clone(),
+                    capability: result_capability.resolve.clone(),
                     remaining_elements: remaining_elements_count.clone(),
                 },
             )
@@ -971,14 +971,14 @@ impl Promise {
             #[unsafe_ignore_trace]
             already_called: Rc<Cell<bool>>,
             index: usize,
-            errors: GcCell<Vec<JsValue>>,
+            errors: Gc<GcCell<Vec<JsValue>>>,
             capability_reject: JsFunction,
             #[unsafe_ignore_trace]
             remaining_elements_count: Rc<Cell<i32>>,
         }
 
         // 1. Let errors be a new empty List.
-        let errors = GcCell::new(Vec::new());
+        let errors = Gc::new(GcCell::new(Vec::new()));
 
         // 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.
         let remaining_elements_count = Rc::new(Cell::new(1));
@@ -1028,7 +1028,7 @@ impl Promise {
                                     .enumerable(false)
                                     .writable(true)
                                     .value(Array::create_array_from_list(
-                                        errors.into_inner(),
+                                        errors.borrow().as_slice().iter().cloned(),
                                         context,
                                     )),
                                 context,
@@ -1123,7 +1123,7 @@ impl Promise {
                                     .enumerable(false)
                                     .writable(true)
                                     .value(Array::create_array_from_list(
-                                        captures.errors.clone().into_inner(),
+                                        captures.errors.borrow().as_slice().iter().cloned(),
                                         context,
                                     )),
                                 context,
