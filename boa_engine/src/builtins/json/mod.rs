@@ -487,7 +487,7 @@ impl Json {
         let mut product = vec!['"' as u16];
 
         // 2. For each code point C of ! StringToCodePoints(value), do
-        for code_point in value.to_code_points() {
+        for code_point in value.code_points() {
             match code_point {
                 // a. If C is listed in the “Code Point” column of Table 73, then
                 // i. Set product to the string-concatenation of product and the

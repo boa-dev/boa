@@ -656,7 +656,7 @@ impl RegExp {
         } else {
             let mut s = Vec::with_capacity(src.len());
             let mut buf = [0; 2];
-            for c in src.to_code_points() {
+            for c in src.code_points() {
                 match c {
                     CodePoint::Unicode('/') => s.extend_from_slice(utf16!(r"\/")),
                     CodePoint::Unicode('\n') => s.extend_from_slice(utf16!(r"\\n")),

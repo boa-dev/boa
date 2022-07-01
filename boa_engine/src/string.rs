@@ -568,7 +568,7 @@ thread_local! {
             // a valid index in `COMMON_STRINGS`.
             let v = unsafe {
                 JsString {
-                    inner: TaggedInner::new_static(idx),
+                    ptr: TaggedJsString::new_static(idx),
                 }
             };
             constants.insert(s, v);
@@ -578,8 +578,10 @@ thread_local! {
     };
 }
 
-/// Represents a codepoint within a [`JsString`], which could be a valid
-/// Unicode code point, or an unpaired surrogate.
+/// Represents a Unicode codepoint within a [`JsString`], which could be a valid
+/// '[Unicode scalar value]', or an unpaired surrogate.
+///
+/// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum CodePoint {
     Unicode(char),
@@ -599,13 +601,14 @@ impl CodePoint {
     /// Convert the code point to its [`u32`] representation.
     pub(crate) fn as_u32(self) -> u32 {
         match self {
-            Self::Unicode(c) => c as u32,
+            Self::Unicode(c) => u32::from(c),
             Self::UnpairedSurrogate(surr) => u32::from(surr),
         }
     }
 
-    /// If the code point represents a valid Unicode code point, return
-    /// its [`char`] representation.
+    /// If the code point represents a valid 'Unicode scalar value', returns
+    /// its [`char`] representation, otherwise returns [`None`] on unpaired
+    /// surrogates.
     pub(crate) fn as_char(self) -> Option<char> {
         match self {
             Self::Unicode(c) => Some(c),
@@ -620,20 +623,20 @@ impl CodePoint {
     ///
     /// Panics if the buffer is not large enough. A buffer of length 2 is large
     /// enough to encode any code point.
-    pub(crate) fn encode_utf16(self, dst: &mut [u16]) -> &[u16] {
+    pub(crate) fn encode_utf16(self, dst: &mut [u16]) -> &mut [u16] {
         match self {
             CodePoint::Unicode(c) => c.encode_utf16(dst),
             CodePoint::UnpairedSurrogate(surr) => {
                 dst[0] = surr;
-                &dst[0..=0]
+                &mut dst[0..=0]
             }
         }
     }
 }
 
-/// The inner representation of a [`JsString`].
+/// The raw representation of a [`JsString`] in the heap.
 #[repr(C)]
-struct Inner {
+struct RawJsString {
     /// The UTF-16 length.
     len: usize,
 
@@ -659,16 +662,16 @@ unsafe impl Trace for JsString {
 ///
 /// # Representation
 ///
-/// If the LSB of the internal [`NonNull<Inner>`] is set (1), then the pointer address represents
+/// If the LSB of the internal [`NonNull<RawJsString>`] is set (1), then the pointer address represents
 /// an index value for [`COMMON_STRINGS`], where the remaining MSBs store the index.
-/// Otherwise, the whole pointer represents the address of a heap allocated [`Inner`].
+/// Otherwise, the whole pointer represents the address of a heap allocated [`RawJsString`].
 ///
-/// It uses [`NonNull`], which guarantees that `TaggedInner` (and subsequently [`JsString`])
-/// can use the "null pointer optimization" to optimize the size of [`Option<TaggedInner>`].
+/// It uses [`NonNull`], which guarantees that [`TaggedJsString`] (and subsequently [`JsString`])
+/// can use the "null pointer optimization" to optimize the size of [`Option<TaggedJsString>`].
 ///
 /// # Provenance
 ///
-/// This struct stores a [`NonNull<Inner>`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]
+/// This struct stores a [`NonNull<RawJsString>`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]
 /// in order to preserve the provenance of our valid heap pointers.
 /// On the other hand, all index values are just casted to invalid pointers,
 /// because we don't need to preserve the provenance of [`usize`] indices.
@@ -676,21 +679,21 @@ unsafe impl Trace for JsString {
 /// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
 #[repr(transparent)]
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]
-struct TaggedInner(NonNull<Inner>);
+struct TaggedJsString(NonNull<RawJsString>);
 
-impl TaggedInner {
-    /// Creates a new `TaggedInner` from a pointer to a valid [`Inner`].
+impl TaggedJsString {
+    /// Creates a new [`TaggedJsString`] from a pointer to a valid [`RawJsString`].
     ///
     /// # Safety
     ///
-    /// `inner` must point to a valid instance of `Inner`, which should be
+    /// `inner` must point to a valid instance of [`RawJsString`], which should be
     /// deallocated only by [`JsString`].
     #[inline]
-    unsafe fn new_heap(inner: NonNull<Inner>) -> Self {
+    unsafe fn new_heap(inner: NonNull<RawJsString>) -> Self {
         Self(inner)
     }
 
-    /// Creates a new static `TaggedInner` from the index of an element inside
+    /// Creates a new static [`TaggedJsString`] from the index of an element inside
     /// [`COMMON_STRINGS`].
     ///
     /// # Safety
@@ -705,7 +708,7 @@ impl TaggedInner {
         unsafe { Self(NonNull::new_unchecked(sptr::invalid_mut((idx << 1) | 1))) }
     }
 
-    /// Checks if `TaggedInner` contains an index for [`COMMON_STRINGS`].
+    /// Checks if [`TaggedJsString`] contains an index for [`COMMON_STRINGS`].
     #[inline]
     fn is_static(self) -> bool {
         (self.0.as_ptr() as usize) & 1 == 1
@@ -716,18 +719,18 @@ impl TaggedInner {
     ///
     /// # Safety
     ///
-    /// `self` must be a heap allocated `Inner`.
+    /// `self` must be a heap allocated [`RawJsString`].
     #[inline]
-    const unsafe fn get_heap_unchecked(self) -> NonNull<Inner> {
+    const unsafe fn get_heap_unchecked(self) -> NonNull<RawJsString> {
         self.0
     }
 
     /// Returns the string inside [`COMMON_STRINGS`] corresponding to the
-    /// index inside `TaggedInner`, without checking its validity.
+    /// index inside [`TaggedJsString`], without checking its validity.
     ///
     /// # Safety
     ///
-    /// `self` must not be a pointer to a heap allocated [`Inner`], and it
+    /// `self` must not be a pointer to a heap allocated [`RawJsString`], and it
     /// must be a valid index inside [`COMMON_STRINGS`].
     #[inline]
     unsafe fn get_static_unchecked(self) -> &'static [u16] {
@@ -739,8 +742,9 @@ impl TaggedInner {
 }
 /// A UTF-16–encoded, reference counted, immutable string.
 ///
-/// This is pretty similar to a [`Rc<\[u16\]>`], but without the length metadata
-/// associated with the `Rc` fat pointer. Instead, the length of every string
+/// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][std::slice]\></code>,
+/// but without the length metadata associated with the [`Rc`][std::rc::Rc] fat pointer.
+/// Instead, the length of every string
 /// is stored on the heap, along with its reference counter and its data.
 ///
 /// We define some commonly used string constants in an interner. For these
@@ -749,51 +753,52 @@ impl TaggedInner {
 ///
 /// # Deref
 ///
-/// `JsString` implements <code>[Deref]<Target = [\[u16\]]></code>, inheriting
-/// all of [`\[u16\]`]'s methods.
+/// [`JsString`] implements <code>[Deref]<Target = [\[u16\]][std::slice]></code>, inheriting
+/// all of [`\[u16\]`][std::slice]'s methods.
 #[derive(Finalize)]
 pub struct JsString {
-    inner: TaggedInner,
+    ptr: TaggedJsString,
 }
 
-/// Enum representing either a reference to a heap allocated [`Inner`]
-/// or a static reference to a [`\[u16\]`] inside [`COMMON_STRINGS`].
-enum InnerKind<'a> {
+/// Enum representing either a reference to a heap allocated [`RawJsString`]
+/// or a static reference to a [`\[u16\]`][std::slice] inside [`COMMON_STRINGS`].
+enum JsStringPtrKind<'a> {
     // A string allocated on the heap.
-    Heap(&'a mut Inner),
+    Heap(&'a mut RawJsString),
     // A static string slice.
     Static(&'static [u16]),
 }
 
 impl JsString {
-    /// Return the inner representation.
+    /// Returns the inner pointer data, unwrapping its tagged data
+    /// if the pointer contains a static index for [`COMMON_STRINGS`].
     #[inline]
-    fn inner(&self) -> InnerKind<'_> {
+    fn ptr(&self) -> JsStringPtrKind<'_> {
         // Check the first bit to 1.
-        if self.inner.is_static() {
+        if self.ptr.is_static() {
             // Safety: We already checked.
-            InnerKind::Static(unsafe { self.inner.get_static_unchecked() })
+            JsStringPtrKind::Static(unsafe { self.ptr.get_static_unchecked() })
         } else {
             // Safety: We already checked.
-            InnerKind::Heap(unsafe { self.inner.get_heap_unchecked().as_mut() })
+            JsStringPtrKind::Heap(unsafe { self.ptr.get_heap_unchecked().as_mut() })
         }
     }
 
     // This is marked as safe because it is always valid to call this function to request
     // any number of `u16`, since this function ought to fail on an OOM error.
-    /// Allocate a new `Inner` with an internal capacity of `str_len` chars.
-    fn allocate_inner(str_len: usize) -> NonNull<Inner> {
+    /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
+    fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
         // We get the layout of the `Inner` type and we extend by the size
         // of the string array.
         let (layout, offset) = Layout::array::<u16>(str_len)
-            .and_then(|arr| Layout::new::<Inner>().extend(arr))
+            .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
             .expect("failed to create memory layout");
 
         // SAFETY:
         // - The layout size of `Inner` is never zero, since it has to store
         // the length of the string and the reference count.
-        let inner = unsafe { alloc(layout).cast::<Inner>() };
+        let inner = unsafe { alloc(layout).cast::<RawJsString>() };
 
         // We need to verify that the pointer returned by `alloc` is not null, otherwise
         // we should abort, since an allocation error is pretty unrecoverable for us
@@ -805,7 +810,7 @@ impl JsString {
         // meaning we can write to its pointed memory.
         unsafe {
             // Write the first part, the Inner.
-            inner.as_ptr().write(Inner {
+            inner.as_ptr().write(RawJsString {
                 len: str_len,
                 refcount: Cell::new(1),
                 data: [0; 0],
@@ -830,7 +835,7 @@ impl JsString {
         inner
     }
 
-    /// Create a new `JsString` from `data`, without checking if the string is
+    /// Creates a new [`JsString`] from `data`, without checking if the string is
     /// in the interner.
     fn from_slice_skip_interning(data: &[u16]) -> Self {
         let count = data.len();
@@ -849,21 +854,21 @@ impl JsString {
         }
         Self {
             // Safety: We already know it's a valid heap pointer.
-            inner: unsafe { TaggedInner::new_heap(ptr) },
+            ptr: unsafe { TaggedJsString::new_heap(ptr) },
         }
     }
 
-    /// Obtain the underlying `&[u16]` slice of a `JsString`
+    /// Obtains the underlying [`&[u16]`][std::slice] slice of a [`JsString`]
     pub fn as_slice(&self) -> &[u16] {
         self
     }
 
-    /// Create a new `JsString` from the concatenation of `x` and `y`.
+    /// Creates a new [`JsString`] from the concatenation of `x` and `y`.
     pub fn concat(x: &[u16], y: &[u16]) -> Self {
         Self::concat_array(&[x, y])
     }
 
-    /// Create a new `JsString` from the concatenation of every element of
+    /// Creates a new [`JsString`] from the concatenation of every element of
     /// `strings`.
     pub fn concat_array(strings: &[&[u16]]) -> Self {
         let full_count = strings.iter().fold(0, |len, s| len + s.len());
@@ -895,7 +900,7 @@ impl JsString {
             }
             Self {
                 // Safety: We already know it's a valid heap pointer.
-                inner: unsafe { TaggedInner::new_heap(ptr) },
+                ptr: unsafe { TaggedJsString::new_heap(ptr) },
             }
         };
 
@@ -908,18 +913,20 @@ impl JsString {
         string
     }
 
-    /// Decode a `JsString` into a [`String`], replacing invalid data with
+    /// Decodes a [`JsString`] into a [`String`], replacing invalid data with
     /// its escaped representation in 4 digit hexadecimal.
     pub fn to_std_string_escaped(&self) -> String {
         self.to_string_escaped()
     }
 
-    /// Decode a `JsString` into a [`String`], returning [`Err`] if it contains any invalid data.
+    /// Decodes a [`JsString`] into a [`String`], returning
+    /// [`FromUtf16Error`][std::string::FromUtf16Error] if it contains any invalid data.
     pub fn to_std_string(&self) -> Result<String, std::string::FromUtf16Error> {
         String::from_utf16(self)
     }
 
-    pub(crate) fn to_code_points(&self) -> impl Iterator<Item = CodePoint> + '_ {
+    /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
+    pub(crate) fn code_points(&self) -> impl Iterator<Item = CodePoint> + '_ {
         char::decode_utf16(self.iter().copied()).map(|res| match res {
             Ok(c) => CodePoint::Unicode(c),
             Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
@@ -929,7 +936,8 @@ impl JsString {
     /// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
     ///
     /// Note: Instead of returning an isize with `-1` as the "not found" value,
-    /// we make use of the type system and return Option<usize> with None as the "not found" value.
+    /// we make use of the type system and return <code>[Option]\<usize\></code>
+    /// with [`None`] as the "not found" value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1104,10 +1112,10 @@ impl Borrow<[u16]> for JsString {
 impl Clone for JsString {
     #[inline]
     fn clone(&self) -> Self {
-        if let InnerKind::Heap(inner) = self.inner() {
+        if let JsStringPtrKind::Heap(inner) = self.ptr() {
             inner.refcount.set(inner.refcount.get() + 1);
         }
-        Self { inner: self.inner }
+        Self { ptr: self.ptr }
     }
 }
 
@@ -1120,7 +1128,7 @@ impl Default for JsString {
         // The static assertion above verifies this.
         unsafe {
             Self {
-                inner: TaggedInner::new_static(0),
+                ptr: TaggedJsString::new_static(0),
             }
         }
     }
@@ -1129,7 +1137,7 @@ impl Default for JsString {
 impl Drop for JsString {
     #[inline]
     fn drop(&mut self) {
-        if let InnerKind::Heap(inner) = self.inner() {
+        if let JsStringPtrKind::Heap(inner) = self.ptr() {
             inner.refcount.set(inner.refcount.get() - 1);
             if inner.refcount.get() == 0 {
                 // Safety:
@@ -1140,7 +1148,7 @@ impl Drop for JsString {
                         inner.data.as_mut_ptr(),
                         inner.len,
                     ));
-                    dealloc((inner as *mut Inner).cast(), Layout::for_value(inner));
+                    dealloc((inner as *mut RawJsString).cast(), Layout::for_value(inner));
                 }
             }
         }
@@ -1165,8 +1173,8 @@ impl Deref for JsString {
     type Target = [u16];
 
     fn deref(&self) -> &Self::Target {
-        match self.inner() {
-            InnerKind::Heap(h) => {
+        match self.ptr() {
+            JsStringPtrKind::Heap(h) => {
                 // SAFETY:
                 // - The `Inner` type has all the necessary information
                 // to reconstruct a valid slice (length and starting pointer).
@@ -1180,7 +1188,7 @@ impl Deref for JsString {
                 // so this doesn't outlive `self`.
                 unsafe { std::slice::from_raw_parts(h.data.as_ptr(), h.len) }
             }
-            InnerKind::Static(s) => s,
+            JsStringPtrKind::Static(s) => s,
         }
     }
 }
@@ -1250,7 +1258,7 @@ impl Ord for JsString {
 
 impl PartialEq for JsString {
     fn eq(&self, other: &Self) -> bool {
-        if self.inner == other.inner {
+        if self.ptr == other.ptr {
             return true;
         }
 
@@ -1288,12 +1296,17 @@ impl PartialOrd for JsString {
     }
 }
 
+/// Utility trait that adds trimming functionality to every `UTF-16` string.
 pub(crate) trait Utf16Trim {
+    /// Trims both leading and trailing space from `self`.
     fn trim(&self) -> &Self {
         self.trim_start().trim_end()
     }
+
+    /// Trims all leading space from `self`.
     fn trim_start(&self) -> &Self;
 
+    /// Trims all trailing space from `self`.
     fn trim_end(&self) -> &Self;
 }
 
@@ -1322,7 +1335,11 @@ impl Utf16Trim for [u16] {
     }
 }
 
+/// Utility trait that adds a `UTF-16` escaped representation to every
+/// [`[u16]`][std::slice].
 pub(crate) trait ToStringEscaped {
+    /// Decodes `self` as an `UTF-16` encoded string,
+    /// escaping any unpaired surrogates by its codepoint value.
     fn to_string_escaped(&self) -> String;
 }
 
@@ -1338,7 +1355,7 @@ impl ToStringEscaped for [u16] {
 }
 #[cfg(test)]
 mod tests {
-    use super::{InnerKind, JsString};
+    use super::{JsString, JsStringPtrKind};
     use const_utf16::encode as utf16;
     use std::mem::size_of;
 
@@ -1346,9 +1363,9 @@ mod tests {
         /// Gets the number of `JsString`s which point to this allocation.
         #[inline]
         pub fn refcount(this: &Self) -> Option<usize> {
-            match this.inner() {
-                InnerKind::Heap(inner) => Some(inner.refcount.get()),
-                InnerKind::Static(_inner) => None,
+            match this.ptr() {
+                JsStringPtrKind::Heap(inner) => Some(inner.refcount.get()),
+                JsStringPtrKind::Static(_inner) => None,
             }
         }
     }
@@ -1408,13 +1425,13 @@ mod tests {
         let x = js_string!("Hello");
         let y = x.clone();
 
-        assert!(!x.inner.is_static());
+        assert!(!x.ptr.is_static());
 
-        assert_eq!(x.inner, y.inner);
+        assert_eq!(x.ptr, y.ptr);
 
         let z = js_string!("Hello");
-        assert_ne!(x.inner, z.inner);
-        assert_ne!(y.inner, z.inner);
+        assert_ne!(x.ptr, z.ptr);
+        assert_ne!(y.ptr, z.ptr);
     }
 
     #[test]
@@ -1422,13 +1439,13 @@ mod tests {
         let x = js_string!();
         let y = x.clone();
 
-        assert!(x.inner.is_static());
+        assert!(x.ptr.is_static());
 
-        assert_eq!(x.inner, y.inner);
+        assert_eq!(x.ptr, y.ptr);
 
         let z = js_string!();
-        assert_eq!(x.inner, z.inner);
-        assert_eq!(y.inner, z.inner);
+        assert_eq!(x.ptr, z.ptr);
+        assert_eq!(y.ptr, z.ptr);
     }
 
     #[test]

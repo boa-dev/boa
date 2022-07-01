@@ -876,7 +876,7 @@ impl Array {
         };
 
         // 5. Let R be the empty String.
-        let mut r = vec![];
+        let mut r = Vec::new();
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
         for k in 0..len {
