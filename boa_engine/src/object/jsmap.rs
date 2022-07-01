@@ -9,20 +9,93 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
+/// `JsMap` provides an API wrapper for Boa's implementation of the Javascript `Map` object.
+///
+/// # Examples
+///
+/// Create a `JsMap` and set a new entry
+/// ```
+/// fn main() -> JsResult<()> {
+///     // Create default `Context`
+///     let context = &mut Context::default();
+///     // Create a new empty `JsMap`.
+///     let map = JsMap::new(context);
+///
+///     // Set key-value pairs for the `JsMap`.
+///     map.set("Key-1", "Value-1", context)?;
+///     map.set("Key-2", 10, context)?;
+///
+///     assert_eq!(map.get_size(context)?, 2.into());
+/// }
+/// ```
+///
+/// Create a `JsMap` from a `JsArray`
+/// ```
+/// fn main() -> JsResult<()> {
+///     // Create a default `Context`
+///     let context = &mut Context::default();
+///
+///     // Create an array of two `[key, value]` pairs
+///     let js_array = JsArray::new(context);
+///     
+///     // Create a `[key, value]` pair of JsValues
+///     let vec_one: Vec<JsValue> = vec![JsValue::new("first-key"), JsValue::new("first-value")];
+///
+///     // We create an push our `[key, value]` pair onto our array as a `JsArray`
+///     js_array.push(JsArray::from_iter(vec_one, context), context)?;
+///
+///     // Create a `JsMap` from the `JsArray` using it's iterable property.
+///     let js_iterable_map = JsMap::from_js_iterable(&js_array.into(), context)?;
+///
+///     assert_eq!(iter_map.get("first-key", context)?, "first-value".into());
+/// }
+/// ```
+///
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsMap {
     inner: JsObject,
 }
 
 impl JsMap {
-    /// Create new Empty Map Object.
+    /// Creates a new empty [`JsMap`] object.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// fn main -> JsResult<()> {
+    ///    // Create a new context.
+    ///    let context = &mut Context::default();
+    ///
+    ///    // Create a new empty `JsMap`.
+    ///    let map = JsMap::new(context);
+    /// }
+    /// ```
     #[inline]
     pub fn new(context: &mut Context) -> Self {
         let map = Self::create_map(context);
         Self { inner: map }
     }
 
-    /// Create a new map object for any object that has a `@@Iterator` field.
+    /// Create a new [`JsMap`] object from a [`JsObject`] that has an `@@Iterator` field.
+    ///
+    /// # Examples
+    /// ```
+    /// fn main() -> JsResult<()> {
+    ///     // Create a default `Context`
+    ///     let context = &mut Context::default();
+    ///
+    ///     // Create an array of two `[key, value]` pairs
+    ///     let js_array = JsArray::new(context);
+    ///     
+    ///     // Create a `[key, value]` pair of JsValues and add it to the `JsArray` as a `JsArray`
+    ///     let vec_one: Vec<JsValue> = vec![JsValue::new("first-key"), JsValue::new("first-value")];
+    ///     js_array.push(JsArray::from_iter(vec_one, context), context)?;
+    ///
+    ///     // Create a `JsMap` from the `JsArray` using it's iterable property.
+    ///     let js_iterable_map = JsMap::from_js_iterable(&js_array.into(), context)?;
+    /// }
+    /// ```
+    ///
     #[inline]
     pub fn from_js_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Self> {
         // Create a new map object.
@@ -38,7 +111,7 @@ impl JsMap {
         Ok(Self { inner: map })
     }
 
-    /// Create a [`JsMap`] from a [`JsObject`], if the object is not a `Map`, throw a `TypeError`.
+    /// Creates a [`JsMap`] from a valid [`JsObject`], or returns a `TypeError` if the provided object is not a [`JsMap`]
     #[inline]
     pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
         if object.borrow().is_map() {
@@ -48,7 +121,7 @@ impl JsMap {
         }
     }
 
-    // Utility function to generate default Map object.
+    // Utility function to generate the default `Map` object.
     fn create_map(context: &mut Context) -> JsObject {
         // Get default Map prototype
         let prototype = context.intrinsics().constructors().map().prototype();
@@ -57,7 +130,7 @@ impl JsMap {
         JsObject::from_proto_and_data(prototype, ObjectData::map(OrderedMap::new()))
     }
 
-    /// Return a new Iterator object that contains the [key, value] pairs in order of assertion.
+    /// Returns a new [`JsMapIterator`] object that yields the `[key, value]` pairs within the [`JsMap`] in insertion order.
     #[inline]
     pub fn entries(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
@@ -66,7 +139,7 @@ impl JsMap {
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 
-    /// Return the keys Iterator object
+    /// Returns a new [`JsMapIterator`] object that yields the `key` for each element within the [`JsMap`] in insertion order.
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
@@ -75,11 +148,25 @@ impl JsMap {
         JsMapIterator::from_object(map_iterator_object.clone(), context)
     }
 
-    /// Insert a new entry into the Map object
+    /// Inserts a new entry into the [`JsMap`] object
+    ///
+    /// # Example
+    ///
+    /// ```
+    ///     let map = JsMap::new(context);
+    ///
+    ///     map.set("foo", "bar", context)?;
+    ///     map.set(2, 4, context)?;
+    ///
+    ///     assert_eq!(map.get("foo", context)?, "bar".into());
+    ///     assert_eq!(map.get(2, context)?, 4.into())
+    ///
+    /// ```
     #[inline]
-    pub fn set<T>(&self, key: T, value: T, context: &mut Context) -> JsResult<JsValue>
+    pub fn set<K, V>(&self, key: K, value: V, context: &mut Context) -> JsResult<JsValue>
     where
-        T: Into<JsValue>,
+        K: Into<JsValue>,
+        V: Into<JsValue>,
     {
         Map::set(
             &self.inner.clone().into(),
@@ -88,13 +175,37 @@ impl JsMap {
         )
     }
 
-    /// Obtains the size of the map.
+    /// Gets the size of the [`JsMap`] object.
+    ///
+    /// # Example
+    ///
+    /// ```
+    ///     let map = JsMap::new(context);
+    ///
+    ///     map.set("foo", "bar", context)?;
+    ///
+    ///     let map_size = map.get_size(context)?;
+    ///
+    ///     assert_eq!(map_size, 1.into());
+    /// ```
     #[inline]
     pub fn get_size(&self, context: &mut Context) -> JsResult<JsValue> {
         Map::get_size(&self.inner.clone().into(), &[], context)
     }
 
-    /// Remove entry from Map associated with key.
+    /// Removes element from [`JsMap`] with a matching `key` value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    ///     js_map.set("foo", "bar", context)?;
+    ///     js_map.set("hello", world, context)?;
+    ///
+    ///     js_map.delete("foo", context)?;
+    ///
+    ///     assert_eq!(js_map.get_size(context)?, 1.into());
+    ///     assert_eq!(js_map.get("foo", context)?, JsValue::undefined());
+    /// ```
     #[inline]
     pub fn delete<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -103,7 +214,17 @@ impl JsMap {
         Map::delete(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    /// Returns value associated to key or undefined.
+    /// Gets the value associated with the specified key within the [`JsMap`], or `undefined` if the key does not exist.
+    ///
+    /// # Example
+    ///
+    /// ```
+    ///     js_map.set("foo", "bar", context)?;
+    ///
+    ///     let retrieved_value = js_map.get("foo", context)?;
+    ///
+    ///     assert_eq!(retrieved_value, "bar".into());
+    /// ```
     #[inline]
     pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -112,13 +233,33 @@ impl JsMap {
         Map::get(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    /// Removes all entries from a map.
+    /// Removes all entries from the [`JsMap`].
+    ///
+    /// # Example
+    ///
+    /// ```
+    ///     js_map.set("foo", "bar", context)?;
+    ///     js_map.set("hello", world, context)?;
+    ///
+    ///     js_map.clear(context)?;
+    ///
+    ///     assert_eq!(js_map.get_size(context)?, 0.into());
     #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
         Map::clear(&self.inner.clone().into(), &[], context)
     }
 
-    /// Checks if map contains provided key.
+    /// Checks if [`JsMap`] has an entry with the provided `key` value.
+    ///
+    /// # Example
+    ///
+    /// ```
+    ///     js_map.set("foo", "bar", context)?;
+    ///
+    ///     let has_key = js_map.has("foo", context)?;
+    ///
+    ///     assert_eq!(has_key, true.into());
+    /// ```
     #[inline]
     pub fn has<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
     where
@@ -127,7 +268,7 @@ impl JsMap {
         Map::has(&self.inner.clone().into(), &[key.into()], context)
     }
 
-    /// Executes provided callback function for each key-value pair.
+    /// Executes the provided callback function for each key-value pair within the [`JsMap`].
     #[inline]
     pub fn for_each(
         &self,
@@ -142,7 +283,7 @@ impl JsMap {
         )
     }
 
-    /// Returns new Iterator object of value elements of the Map.
+    /// Returns a new [`JsMapIterator`] object that yields the `value` for each element within the [`JsMap`] in insertion order.
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsMapIterator> {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
