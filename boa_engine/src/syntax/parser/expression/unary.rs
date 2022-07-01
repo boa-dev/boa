@@ -15,8 +15,8 @@ use crate::syntax::{
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
-        expression::update::UpdateExpression, AllowAwait, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        expression::{await_expr::AwaitExpression, update::UpdateExpression},
+        AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -119,6 +119,12 @@ where
             TokenKind::Punctuator(Punctuator::Not) => {
                 cursor.next(interner)?.expect("! token vanished"); // Consume the token.
                 Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor, interner)?).into())
+            }
+            TokenKind::Keyword((Keyword::Await, true)) if self.allow_await.0 => Err(
+                ParseError::general("Keyword must not contain escaped characters", token_start),
+            ),
+            TokenKind::Keyword((Keyword::Await, false)) if self.allow_await.0 => {
+                Ok((AwaitExpression::new(self.allow_yield).parse(cursor, interner)?).into())
             }
             _ => UpdateExpression::new(self.name, self.allow_yield, self.allow_await)
                 .parse(cursor, interner),

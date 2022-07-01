@@ -59,27 +59,6 @@ impl ExponentiationExpression {
     }
 }
 
-/// Checks by looking at the next token to see whether it's a unary operator or not.
-fn is_unary_expression<R>(
-    cursor: &mut Cursor<R>,
-    interner: &mut Interner,
-) -> Result<bool, ParseError>
-where
-    R: Read,
-{
-    Ok(if let Some(tok) = cursor.peek(0, interner)? {
-        matches!(
-            tok.kind(),
-            TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, _))
-                | TokenKind::Punctuator(
-                    Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg
-                )
-        )
-    } else {
-        false
-    })
-}
-
 impl<R> TokenParser<R> for ExponentiationExpression
 where
     R: Read,
@@ -88,9 +67,21 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
-        if is_unary_expression(cursor, interner)? {
-            return UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
-                .parse(cursor, interner);
+
+        let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        match next.kind() {
+            TokenKind::Keyword((Keyword::Delete | Keyword::Void | Keyword::TypeOf, _))
+            | TokenKind::Punctuator(
+                Punctuator::Add | Punctuator::Sub | Punctuator::Not | Punctuator::Neg,
+            ) => {
+                return UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner);
+            }
+            TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
+                return UnaryExpression::new(self.name, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner);
+            }
+            _ => {}
         }
 
         let lhs = UpdateExpression::new(self.name, self.allow_yield, self.allow_await)

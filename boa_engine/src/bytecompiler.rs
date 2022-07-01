@@ -940,6 +940,20 @@ impl<'b> ByteCompiler<'b> {
                                         self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                     }
                                 },
+                                MethodDefinition::Async(expr) => match name {
+                                    PropertyName::Literal(name) => {
+                                        self.function(&expr.clone().into(), true)?;
+                                        self.emit_opcode(Opcode::Swap);
+                                        let index = self.get_or_insert_name(*name);
+                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                    }
+                                    PropertyName::Computed(name_node) => {
+                                        self.compile_stmt(name_node, true)?;
+                                        self.emit_opcode(Opcode::ToPropertyKey);
+                                        self.function(&expr.clone().into(), true)?;
+                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                    }
+                                },
                                 MethodDefinition::Generator(expr) => match name {
                                     PropertyName::Literal(name) => {
                                         self.function(&expr.clone().into(), true)?;
@@ -954,10 +968,8 @@ impl<'b> ByteCompiler<'b> {
                                         self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                                     }
                                 },
-                                // TODO: Implement async
                                 // TODO: Implement async generators
-                                MethodDefinition::Async(_)
-                                | MethodDefinition::AsyncGenerator(_) => {
+                                MethodDefinition::AsyncGenerator(_) => {
                                     // TODO: Implement async
                                     match name {
                                         PropertyName::Literal(name) => {
@@ -1119,13 +1131,19 @@ impl<'b> ByteCompiler<'b> {
                     self.emit(Opcode::Pop, &[]);
                 }
             }
-            // TODO: implement AsyncFunctionExpr
-            // TODO: implement AwaitExpr
+            Node::AwaitExpr(expr) => {
+                self.compile_expr(expr.expr(), true)?;
+                self.emit_opcode(Opcode::Await);
+                self.emit_opcode(Opcode::GeneratorNext);
+                if !use_expr {
+                    self.emit_opcode(Opcode::Pop);
+                }
+            }
             // TODO: implement AsyncGeneratorExpr
-            Node::AsyncFunctionExpr(_) | Node::AwaitExpr(_) | Node::AsyncGeneratorExpr(_) => {
+            Node::AsyncGeneratorExpr(_) => {
                 self.emit_opcode(Opcode::PushUndefined);
             }
-            Node::GeneratorExpr(_) => self.function(expr, use_expr)?,
+            Node::GeneratorExpr(_) | Node::AsyncFunctionExpr(_) => self.function(expr, use_expr)?,
             Node::Yield(r#yield) => {
                 if let Some(expr) = r#yield.expr() {
                     self.compile_expr(expr, true)?;
@@ -1919,10 +1937,9 @@ impl<'b> ByteCompiler<'b> {
                     self.pop_try_control_info(None);
                 }
             }
-            // TODO: implement AsyncFunctionDecl
-            Node::GeneratorDecl(_) => self.function(node, false)?,
+            Node::GeneratorDecl(_) | Node::AsyncFunctionDecl(_) => self.function(node, false)?,
             // TODO: implement AsyncGeneratorDecl
-            Node::AsyncFunctionDecl(_) | Node::AsyncGeneratorDecl(_) => {
+            Node::AsyncGeneratorDecl(_) => {
                 self.emit_opcode(Opcode::PushUndefined);
             }
             Node::ClassDecl(class) => self.class(class, false)?,
@@ -2052,13 +2069,22 @@ impl<'b> ByteCompiler<'b> {
 
     /// Compile a function AST Node into bytecode.
     pub(crate) fn function(&mut self, function: &Node, use_expr: bool) -> JsResult<()> {
-        let (kind, name, parameters, body, generator) = match function {
+        let (kind, name, parameters, body, generator, r#async) = match function {
             Node::FunctionDecl(function) => (
                 FunctionKind::Declaration,
                 Some(function.name()),
                 function.parameters(),
                 function.body(),
                 false,
+                false,
+            ),
+            Node::AsyncFunctionDecl(function) => (
+                FunctionKind::Declaration,
+                Some(function.name()),
+                function.parameters(),
+                function.body(),
+                false,
+                true,
             ),
             Node::GeneratorDecl(generator) => (
                 FunctionKind::Declaration,
@@ -2066,6 +2092,7 @@ impl<'b> ByteCompiler<'b> {
                 generator.parameters(),
                 generator.body(),
                 true,
+                false,
             ),
             Node::FunctionExpr(function) => (
                 FunctionKind::Expression,
@@ -2073,6 +2100,15 @@ impl<'b> ByteCompiler<'b> {
                 function.parameters(),
                 function.body(),
                 false,
+                false,
+            ),
+            Node::AsyncFunctionExpr(function) => (
+                FunctionKind::Expression,
+                function.name(),
+                function.parameters(),
+                function.body(),
+                false,
+                true,
             ),
             Node::GeneratorExpr(generator) => (
                 FunctionKind::Expression,
@@ -2080,12 +2116,14 @@ impl<'b> ByteCompiler<'b> {
                 generator.parameters(),
                 generator.body(),
                 true,
+                false,
             ),
             Node::ArrowFunctionDecl(function) => (
                 FunctionKind::Arrow,
                 function.name(),
                 function.params(),
                 function.body(),
+                false,
                 false,
             ),
             _ => unreachable!(),
@@ -2106,6 +2144,8 @@ impl<'b> ByteCompiler<'b> {
 
         if generator {
             self.emit(Opcode::GetGenerator, &[index]);
+        } else if r#async {
+            self.emit(Opcode::GetFunctionAsync, &[index]);
         } else {
             self.emit(Opcode::GetFunction, &[index]);
         }
@@ -2729,6 +2769,20 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
+                        MethodDefinition::Async(expr) => match name {
+                            PropertyName::Literal(name) => {
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::Swap);
+                                let index = self.get_or_insert_name(*name);
+                                self.emit(Opcode::DefineClassMethodByName, &[index]);
+                            }
+                            PropertyName::Computed(name_node) => {
+                                self.compile_stmt(name_node, true)?;
+                                self.emit_opcode(Opcode::ToPropertyKey);
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::DefineClassMethodByValue);
+                            }
+                        },
                         MethodDefinition::Generator(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(&expr.clone().into(), true)?;
@@ -2744,7 +2798,7 @@ impl<'b> ByteCompiler<'b> {
                             }
                         },
                         // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) | MethodDefinition::Async(_) => {}
+                        MethodDefinition::AsyncGenerator(_) => {}
                     }
                 }
                 ClassElement::PrivateStaticMethodDefinition(name, method_definition) => {
@@ -2765,13 +2819,18 @@ impl<'b> ByteCompiler<'b> {
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
+                        MethodDefinition::Async(expr) => {
+                            self.function(&expr.clone().into(), true)?;
+                            let index = self.get_or_insert_name(*name);
+                            self.emit(Opcode::SetPrivateMethod, &[index]);
+                        }
                         MethodDefinition::Generator(expr) => {
                             self.function(&expr.clone().into(), true)?;
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
                         // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) | MethodDefinition::Async(_) => {}
+                        MethodDefinition::AsyncGenerator(_) => {}
                     }
                 }
                 ClassElement::FieldDefinition(name, field) => {
@@ -2924,13 +2983,18 @@ impl<'b> ByteCompiler<'b> {
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
+                        MethodDefinition::Async(expr) => {
+                            self.function(&expr.clone().into(), true)?;
+                            let index = self.get_or_insert_name(*name);
+                            self.emit(Opcode::PushClassPrivateMethod, &[index]);
+                        }
                         MethodDefinition::Generator(expr) => {
                             self.function(&expr.clone().into(), true)?;
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
                         // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) | MethodDefinition::Async(_) => {}
+                        MethodDefinition::AsyncGenerator(_) => {}
                     }
                 }
                 ClassElement::MethodDefinition(..) => {}
@@ -2986,6 +3050,20 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
+                        MethodDefinition::Async(expr) => match name {
+                            PropertyName::Literal(name) => {
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::Swap);
+                                let index = self.get_or_insert_name(*name);
+                                self.emit(Opcode::DefineClassMethodByName, &[index]);
+                            }
+                            PropertyName::Computed(name_node) => {
+                                self.compile_stmt(name_node, true)?;
+                                self.emit_opcode(Opcode::ToPropertyKey);
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::DefineClassMethodByValue);
+                            }
+                        },
                         MethodDefinition::Generator(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(&expr.clone().into(), true)?;
@@ -3001,7 +3079,7 @@ impl<'b> ByteCompiler<'b> {
                             }
                         },
                         // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) | MethodDefinition::Async(_) => {
+                        MethodDefinition::AsyncGenerator(_) => {
                             self.emit_opcode(Opcode::Pop);
                         }
                     }

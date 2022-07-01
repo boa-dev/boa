@@ -6,10 +6,10 @@ use crate::{
     builtins::{
         function::{ConstructorKind, Function},
         iterable::IteratorRecord,
-        Array, ForInIterator, Number,
+        Array, ForInIterator, JsArgs, Number, Promise,
     },
     environments::EnvironmentSlots,
-    object::{JsFunction, JsObject, ObjectData, PrivateElement},
+    object::{FunctionBuilder, JsFunction, JsObject, ObjectData, PrivateElement},
     property::{DescriptorKind, PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey},
     value::Numeric,
     vm::{
@@ -115,6 +115,7 @@ enum ShouldExit {
     True,
     False,
     Yield,
+    Await,
 }
 
 /// Indicates if the execution of a codeblock has ended normally or has been yielded.
@@ -1686,7 +1687,13 @@ impl Context {
             Opcode::GetFunction => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let function = create_function_object(code, self);
+                let function = create_function_object(code, false, self);
+                self.vm.push(function);
+            }
+            Opcode::GetFunctionAsync => {
+                let index = self.vm.read::<u32>();
+                let code = self.vm.frame().code.functions[index as usize].clone();
+                let function = create_function_object(code, true, self);
                 self.vm.push(function);
             }
             Opcode::GetGenerator => {
@@ -2270,6 +2277,106 @@ impl Context {
                     }
                 }
             }
+            Opcode::Await => {
+                let value = self.vm.pop();
+
+                // 2. Let promise be ? PromiseResolve(%Promise%, value).
+                let promise = Promise::promise_resolve(
+                    self.intrinsics().constructors().promise().constructor(),
+                    value,
+                    self,
+                )?;
+
+                // 3. Let fulfilledClosure be a new Abstract Closure with parameters (value) that captures asyncContext and performs the following steps when called:
+                // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
+                let on_fulfilled = FunctionBuilder::closure_with_captures(
+                    self,
+                    |_this, args, captures, context| {
+                        // a. Let prevContext be the running execution context.
+                        // b. Suspend prevContext.
+                        // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
+                        // d. Resume the suspended evaluation of asyncContext using NormalCompletion(value) as the result of the operation that suspended it.
+                        // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
+                        // f. Return undefined.
+
+                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
+                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
+                        context.vm.push_frame(captures.2.clone());
+
+                        context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
+                        context.vm.push(args.get_or_undefined(0));
+                        context.run()?;
+
+                        captures.2 = *context
+                            .vm
+                            .pop_frame()
+                            .expect("generator call frame must exist");
+                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
+                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
+
+                        Ok(JsValue::undefined())
+                    },
+                    (
+                        self.realm.environments.clone(),
+                        self.vm.stack.clone(),
+                        self.vm.frame().clone(),
+                    ),
+                )
+                .name("")
+                .length(1)
+                .build();
+
+                // 5. Let rejectedClosure be a new Abstract Closure with parameters (reason) that captures asyncContext and performs the following steps when called:
+                // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
+                let on_rejected = FunctionBuilder::closure_with_captures(
+                    self,
+                    |_this, args, captures, context| {
+                        // a. Let prevContext be the running execution context.
+                        // b. Suspend prevContext.
+                        // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
+                        // d. Resume the suspended evaluation of asyncContext using ThrowCompletion(reason) as the result of the operation that suspended it.
+                        // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
+                        // f. Return undefined.
+
+                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
+                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
+                        context.vm.push_frame(captures.2.clone());
+
+                        context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
+                        context.vm.push(args.get_or_undefined(0));
+                        context.run()?;
+
+                        captures.2 = *context
+                            .vm
+                            .pop_frame()
+                            .expect("generator call frame must exist");
+                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
+                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
+
+                        Ok(JsValue::undefined())
+                    },
+                    (
+                        self.realm.environments.clone(),
+                        self.vm.stack.clone(),
+                        self.vm.frame().clone(),
+                    ),
+                )
+                .name("")
+                .length(1)
+                .build();
+
+                // 7. Perform PerformPromiseThen(promise, onFulfilled, onRejected).
+                promise
+                    .as_object()
+                    .expect("promise was not an object")
+                    .borrow_mut()
+                    .as_promise_mut()
+                    .expect("promise was not a promise")
+                    .perform_promise_then(&on_fulfilled.into(), &on_rejected.into(), None, self);
+
+                self.vm.push(JsValue::undefined());
+                return Ok(ShouldExit::Await);
+            }
         }
 
         Ok(ShouldExit::False)
@@ -2308,6 +2415,20 @@ impl Context {
         }
 
         let start_stack_size = self.vm.stack.len();
+
+        let promise_capability = self
+            .realm
+            .environments
+            .get_this_environment()
+            .as_function_slots()
+            .and_then(|slots| {
+                let slots_borrow = slots.borrow();
+                let function_object = slots_borrow.function_object();
+                let function = function_object.borrow();
+                function
+                    .as_function()
+                    .and_then(|f| f.get_promise_capability().cloned())
+            });
 
         while self.vm.frame().pc < self.vm.frame().code.code.len() {
             let result = if self.vm.trace {
@@ -2354,6 +2475,19 @@ impl Context {
 
             match result {
                 Ok(ShouldExit::True) => {
+                    let result = self.vm.pop();
+                    self.vm.stack.truncate(start_stack_size);
+
+                    if let Some(promise_capability) = promise_capability {
+                        promise_capability
+                            .resolve()
+                            .call(&JsValue::undefined(), &[result.clone()], self)
+                            .expect("cannot fail per spec");
+                    }
+
+                    return Ok((result, ReturnType::Normal));
+                }
+                Ok(ShouldExit::Await) => {
                     let result = self.vm.pop();
                     self.vm.stack.truncate(start_stack_size);
                     return Ok((result, ReturnType::Normal));
@@ -2405,6 +2539,15 @@ impl Context {
                         self.vm.push(e);
                     } else {
                         self.vm.stack.truncate(start_stack_size);
+                        if let Some(promise_capability) = promise_capability {
+                            promise_capability
+                                .reject()
+                                .call(&JsValue::undefined(), &[e.clone()], self)
+                                .expect("cannot fail per spec");
+
+                            return Ok((e, ReturnType::Normal));
+                        }
+
                         return Err(e);
                     }
                 }
@@ -2435,11 +2578,26 @@ impl Context {
         }
 
         if self.vm.stack.len() <= start_stack_size {
+            if let Some(promise_capability) = promise_capability {
+                promise_capability
+                    .resolve()
+                    .call(&JsValue::undefined(), &[], self)
+                    .expect("cannot fail per spec");
+            }
+
             return Ok((JsValue::undefined(), ReturnType::Normal));
         }
 
         let result = self.vm.pop();
         self.vm.stack.truncate(start_stack_size);
+
+        if let Some(promise_capability) = promise_capability {
+            promise_capability
+                .resolve()
+                .call(&JsValue::undefined(), &[result.clone()], self)
+                .expect("cannot fail per spec");
+        }
+
         Ok((result, ReturnType::Normal))
     }
 }

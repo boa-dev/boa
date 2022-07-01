@@ -2,6 +2,7 @@
 
 pub mod array;
 pub mod array_buffer;
+pub mod async_function;
 pub mod bigint;
 pub mod boolean;
 pub mod dataview;
@@ -38,6 +39,7 @@ pub mod intl;
 
 pub(crate) use self::{
     array::{array_iterator::ArrayIterator, Array},
+    async_function::AsyncFunction,
     bigint::BigInt,
     boolean::Boolean,
     dataview::DataView,
@@ -185,7 +187,8 @@ pub fn init(context: &mut Context) {
         Reflect,
         Generator,
         GeneratorFunction,
-        Promise
+        Promise,
+        AsyncFunction
     };
 
     #[cfg(feature = "intl")]

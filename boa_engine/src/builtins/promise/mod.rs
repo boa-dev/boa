@@ -86,7 +86,7 @@ enum ReactionType {
 }
 
 #[derive(Debug, Clone, Trace, Finalize)]
-struct PromiseCapability {
+pub struct PromiseCapability {
     promise: JsObject,
     resolve: JsFunction,
     reject: JsFunction,
@@ -99,7 +99,7 @@ impl PromiseCapability {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-newpromisecapability
-    fn new(c: &JsValue, context: &mut Context) -> JsResult<Self> {
+    pub(crate) fn new(c: &JsValue, context: &mut Context) -> JsResult<Self> {
         #[derive(Debug, Clone, Trace, Finalize)]
         struct RejectResolve {
             reject: JsValue,
@@ -193,6 +193,21 @@ impl PromiseCapability {
                 })
             }
         }
+    }
+
+    /// Returns the promise object.
+    pub(crate) fn promise(&self) -> &JsObject {
+        &self.promise
+    }
+
+    /// Returns the resolve function.
+    pub(crate) fn resolve(&self) -> &JsFunction {
+        &self.resolve
+    }
+
+    /// Returns the reject function.
+    pub(crate) fn reject(&self) -> &JsFunction {
+        &self.reject
     }
 }
 
@@ -1878,7 +1893,7 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-performpromisethen
-    fn perform_promise_then(
+    pub(crate) fn perform_promise_then(
         &mut self,
         on_fulfilled: &JsValue,
         on_rejected: &JsValue,
@@ -2000,7 +2015,11 @@ impl Promise {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-promise-resolve
-    fn promise_resolve(c: JsObject, x: JsValue, context: &mut Context) -> JsResult<JsValue> {
+    pub(crate) fn promise_resolve(
+        c: JsObject,
+        x: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         // 1. If IsPromise(x) is true, then
         if let Some(x) = x.as_promise() {
             // a. Let xConstructor be ? Get(x, "constructor").

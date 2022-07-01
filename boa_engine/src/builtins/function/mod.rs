@@ -22,7 +22,10 @@ use crate::{
     object::{ConstructorBuilder, FunctionBuilder, JsFunction, PrivateElement, Ref, RefMut},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     symbol::WellKnownSymbols,
-    syntax::{ast::node::FormalParameterList, Parser},
+    syntax::{
+        ast::node::{FormalParameterList, StatementList},
+        Parser,
+    },
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -37,6 +40,8 @@ use std::{
     ops::{Deref, DerefMut},
 };
 use tap::{Conv, Pipe};
+
+use super::promise::PromiseCapability;
 
 pub(crate) mod arguments;
 #[cfg(test)]
@@ -232,6 +237,11 @@ pub enum Function {
         /// The `[[PrivateMethods]]` internal slot.
         private_methods: Vec<(Sym, PrivateElement)>,
     },
+    Async {
+        code: Gc<crate::vm::CodeBlock>,
+        environments: DeclarativeEnvironmentStack,
+        promise_capability: PromiseCapability,
+    },
     Generator {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
@@ -251,6 +261,11 @@ unsafe impl Trace for Function {
                 for (_, elem) in private_methods {
                     mark(elem);
                 }
+            }
+            Self::Async { code, environments, promise_capability } => {
+                mark(code);
+                mark(environments);
+                mark(promise_capability);
             }
             Self::Generator { code, environments } => {
                 mark(code);
@@ -273,7 +288,7 @@ impl Function {
             Self::Native { constructor, .. } | Self::Closure { constructor, .. } => {
                 constructor.is_some()
             }
-            Self::Generator { .. } => false,
+            Self::Generator { .. } | Self::Async { .. } => false,
             Self::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
         }
     }
@@ -348,6 +363,18 @@ impl Function {
         } = self
         {
             private_methods.push((name, method));
+        }
+    }
+
+    /// Returns the promise capability if the function is an async function.
+    pub(crate) fn get_promise_capability(&self) -> Option<&PromiseCapability> {
+        if let Self::Async {
+            promise_capability, ..
+        } = self
+        {
+            Some(promise_capability)
+        } else {
+            None
         }
     }
 }
@@ -433,7 +460,7 @@ impl BuiltInFunctionObject {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::create_dynamic_function(new_target, args, context).map(Into::into)
+        Self::create_dynamic_function(new_target, args, false, context).map(Into::into)
     }
 
     /// `CreateDynamicFunction ( constructor, newTarget, kind, args )`
@@ -442,9 +469,10 @@ impl BuiltInFunctionObject {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-createdynamicfunction
-    fn create_dynamic_function(
+    pub(crate) fn create_dynamic_function(
         new_target: &JsValue,
         args: &[JsValue],
+        r#async: bool,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         let prototype =
@@ -462,7 +490,7 @@ impl BuiltInFunctionObject {
                     parameters.push(')');
 
                     let parameters = match Parser::new(parameters.as_bytes())
-                        .parse_formal_parameters(context.interner_mut(), false, false)
+                        .parse_formal_parameters(context.interner_mut(), false, r#async)
                     {
                         Ok(parameters) => parameters,
                         Err(e) => {
@@ -479,7 +507,7 @@ impl BuiltInFunctionObject {
             let body = match Parser::new(body_arg.as_bytes()).parse_function_body(
                 context.interner_mut(),
                 false,
-                false,
+                r#async,
             ) {
                 Ok(statement_list) => statement_list,
                 Err(e) => {
@@ -548,7 +576,23 @@ impl BuiltInFunctionObject {
             )?;
 
             let environments = context.realm.environments.pop_to_global();
-            let function_object = crate::vm::create_function_object(code, context);
+            let function_object = crate::vm::create_function_object(code, r#async, context);
+            context.realm.environments.extend(environments);
+
+            Ok(function_object)
+        } else if r#async {
+            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
+                crate::bytecompiler::FunctionKind::Expression,
+                Some(Sym::EMPTY_STRING),
+                &FormalParameterList::empty(),
+                &StatementList::default(),
+                false,
+                false,
+                context,
+            )?;
+
+            let environments = context.realm.environments.pop_to_global();
+            let function_object = crate::vm::create_function_object(code, r#async, context);
             context.realm.environments.extend(environments);
 
             Ok(function_object)

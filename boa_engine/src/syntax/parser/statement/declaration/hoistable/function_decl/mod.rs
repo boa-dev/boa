@@ -67,10 +67,10 @@ impl CallableDeclaration for FunctionDeclaration {
         false
     }
     fn body_allow_yield(&self) -> bool {
-        self.allow_yield.0
+        false
     }
     fn body_allow_await(&self) -> bool {
-        self.allow_await.0
+        false
     }
 }
 
