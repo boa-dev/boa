@@ -67,7 +67,9 @@
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
-    rustdoc::missing_doc_code_examples
+    // TODO deny once false positive are fixed (https://github.com/rust-lang/rust-clippy/issues/9076).
+    clippy::trait_duplication_in_bounds,
+    rustdoc::missing_doc_code_examples,
 )]
 
 extern crate static_assertions as sa;
