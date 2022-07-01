@@ -2450,22 +2450,6 @@
 <span id="2443">2443</span>
 <span id="2444">2444</span>
 <span id="2445">2445</span>
-<span id="2446">2446</span>
-<span id="2447">2447</span>
-<span id="2448">2448</span>
-<span id="2449">2449</span>
-<span id="2450">2450</span>
-<span id="2451">2451</span>
-<span id="2452">2452</span>
-<span id="2453">2453</span>
-<span id="2454">2454</span>
-<span id="2455">2455</span>
-<span id="2456">2456</span>
-<span id="2457">2457</span>
-<span id="2458">2458</span>
-<span id="2459">2459</span>
-<span id="2460">2460</span>
-<span id="2461">2461</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -4175,16 +4159,12 @@
                 <span class="ident">arguments</span>.<span class="ident">reverse</span>();
 
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
                     <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
                 };
-
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
-                    <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>();
-                }
 
                 <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.</span>
                 <span class="kw">let</span> <span class="ident">eval</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>(), <span class="prelude-val">Some</span>(<span class="ident">Function::Native</span> { .. }));
@@ -4216,7 +4196,7 @@
                 }
                 <span class="ident">arguments</span>.<span class="ident">reverse</span>();
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">rest_argument</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_arguments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -4229,10 +4209,6 @@
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
                     <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
                 };
-
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
-                    <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>();
-                }
 
                 <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.</span>
                 <span class="kw">let</span> <span class="ident">eval</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">as_function</span>(), <span class="prelude-val">Some</span>(<span class="ident">Function::Native</span> { .. }));
@@ -4264,16 +4240,12 @@
                 <span class="ident">arguments</span>.<span class="ident">reverse</span>();
 
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
                     <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
                 };
-
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
-                    <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>();
-                }
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__call__</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
 
@@ -4291,7 +4263,7 @@
                 }
                 <span class="ident">arguments</span>.<span class="ident">reverse</span>();
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">rest_argument</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_arguments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -4304,10 +4276,6 @@
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
                     <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
                 };
-
-                <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_null_or_undefined</span>() {
-                    <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>();
-                }
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__call__</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
 

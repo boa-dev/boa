@@ -3015,6 +3015,31 @@
 <span id="3008">3008</span>
 <span id="3009">3009</span>
 <span id="3010">3010</span>
+<span id="3011">3011</span>
+<span id="3012">3012</span>
+<span id="3013">3013</span>
+<span id="3014">3014</span>
+<span id="3015">3015</span>
+<span id="3016">3016</span>
+<span id="3017">3017</span>
+<span id="3018">3018</span>
+<span id="3019">3019</span>
+<span id="3020">3020</span>
+<span id="3021">3021</span>
+<span id="3022">3022</span>
+<span id="3023">3023</span>
+<span id="3024">3024</span>
+<span id="3025">3025</span>
+<span id="3026">3026</span>
+<span id="3027">3027</span>
+<span id="3028">3028</span>
+<span id="3029">3029</span>
+<span id="3030">3030</span>
+<span id="3031">3031</span>
+<span id="3032">3032</span>
+<span id="3033">3033</span>
+<span id="3034">3034</span>
+<span id="3035">3035</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
@@ -5179,10 +5204,35 @@
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Swap</span>, <span class="kw-2">&amp;</span>[]);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
             }
+            <span class="ident">Node::GetSuperField</span>(<span class="ident">get_super_field</span>) =&gt; {
+                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::This</span>);
+                }
+                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
+                <span class="kw">match</span> <span class="ident">get_super_field</span> {
+                    <span class="ident">GetSuperField::Const</span>(<span class="ident">field</span>) =&gt; {
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">field</span>);
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    }
+                    <span class="ident">GetSuperField::Expr</span>(<span class="ident">expr</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
+                    }
+                }
+            }
+            <span class="ident">Node::GetPrivateField</span>(<span class="ident">get_private_field</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">get_private_field</span>.<span class="ident">obj</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                }
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">get_private_field</span>.<span class="ident">field</span>());
+                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+            }
             <span class="ident">expr</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> <span class="op">|</span><span class="op">|</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::CallEval</span> {
-                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::This</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                 }
             }
