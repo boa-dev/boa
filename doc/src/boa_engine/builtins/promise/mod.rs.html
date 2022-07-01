@@ -2290,7 +2290,7 @@
             <span class="prelude-val">None</span>,
             <span class="ident">Attribute::CONFIGURABLE</span>,
         )
-        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::then</span>, <span class="string">&quot;then&quot;</span>, <span class="number">1</span>)
+        .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::then</span>, <span class="string">&quot;then&quot;</span>, <span class="number">2</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::catch</span>, <span class="string">&quot;catch&quot;</span>, <span class="number">1</span>)
         .<span class="ident">method</span>(<span class="ident"><span class="self">Self</span>::finally</span>, <span class="string">&quot;finally&quot;</span>, <span class="number">1</span>)
         <span class="comment">// &lt;https://tc39.es/ecma262/#sec-promise.prototype-@@tostringtag&gt;</span>
@@ -2459,14 +2459,14 @@
             <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
             <span class="ident">already_called</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">index</span>: <span class="ident">usize</span>,
-            <span class="ident">values</span>: <span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+            <span class="ident">values</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">capability_resolve</span>: <span class="ident">JsFunction</span>,
             <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
             <span class="ident">remaining_elements_count</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         }
 
         <span class="comment">// 1. Let values be a new empty List.</span>
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">GcCell::new</span>(<span class="ident">Vec::new</span>());
+        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Gc::new</span>(<span class="ident">GcCell::new</span>(<span class="ident">Vec::new</span>()));
 
         <span class="comment">// 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.</span>
         <span class="kw">let</span> <span class="ident">remaining_elements_count</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">Cell::new</span>(<span class="number">1</span>));
@@ -2499,7 +2499,7 @@
                     <span class="kw">if</span> <span class="ident">remaining_elements_count</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">0</span> {
                         <span class="comment">// 1. Let valuesArray be CreateArrayFromList(values).</span>
                         <span class="kw">let</span> <span class="ident">values_array</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::Array::create_array_from_list</span>(
-                            <span class="ident">values</span>.<span class="ident">into_inner</span>(),
+                            <span class="ident">values</span>.<span class="ident">borrow</span>().<span class="ident">iter</span>().<span class="ident">cloned</span>(),
                             <span class="ident">context</span>,
                         );
 
@@ -2577,7 +2577,7 @@
                     <span class="kw">if</span> <span class="ident">captures</span>.<span class="ident">remaining_elements_count</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">0</span> {
                         <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).</span>
                         <span class="kw">let</span> <span class="ident">values_array</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::Array::create_array_from_list</span>(
-                            <span class="ident">captures</span>.<span class="ident">values</span>.<span class="ident">clone</span>().<span class="ident">into_inner</span>(),
+                            <span class="ident">captures</span>.<span class="ident">values</span>.<span class="ident">borrow</span>().<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">cloned</span>(),
                             <span class="ident">context</span>,
                         );
 
@@ -2700,14 +2700,14 @@
             <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
             <span class="ident">already_called</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">index</span>: <span class="ident">usize</span>,
-            <span class="ident">values</span>: <span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+            <span class="ident">values</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">capability</span>: <span class="ident">JsFunction</span>,
             <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
             <span class="ident">remaining_elements</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         }
 
         <span class="comment">// 1. Let values be a new empty List.</span>
-        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">GcCell::new</span>(<span class="ident">Vec::new</span>());
+        <span class="kw">let</span> <span class="ident">values</span> <span class="op">=</span> <span class="ident">Gc::new</span>(<span class="ident">GcCell::new</span>(<span class="ident">Vec::new</span>()));
 
         <span class="comment">// 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.</span>
         <span class="kw">let</span> <span class="ident">remaining_elements_count</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">Cell::new</span>(<span class="number">1</span>));
@@ -2740,7 +2740,7 @@
                     <span class="kw">if</span> <span class="ident">remaining_elements_count</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">0</span> {
                         <span class="comment">// 1. Let valuesArray be CreateArrayFromList(values).</span>
                         <span class="kw">let</span> <span class="ident">values_array</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::Array::create_array_from_list</span>(
-                            <span class="ident">values</span>.<span class="ident">into_inner</span>(),
+                            <span class="ident">values</span>.<span class="ident">borrow</span>().<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">cloned</span>(),
                             <span class="ident">context</span>,
                         );
 
@@ -2832,7 +2832,7 @@
                     <span class="kw">if</span> <span class="ident">captures</span>.<span class="ident">remaining_elements</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">0</span> {
                         <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).</span>
                         <span class="kw">let</span> <span class="ident">values_array</span> <span class="op">=</span> <span class="ident">Array::create_array_from_list</span>(
-                            <span class="ident">captures</span>.<span class="ident">values</span>.<span class="ident">clone</span>().<span class="ident">into_inner</span>(),
+                            <span class="ident">captures</span>.<span class="ident">values</span>.<span class="ident">borrow</span>().<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">cloned</span>(),
                             <span class="ident">context</span>,
                         );
 
@@ -2912,7 +2912,7 @@
                     <span class="kw">if</span> <span class="ident">captures</span>.<span class="ident">remaining_elements</span>.<span class="ident">get</span>() <span class="op">==</span> <span class="number">0</span> {
                         <span class="comment">// a. Let valuesArray be CreateArrayFromList(values).</span>
                         <span class="kw">let</span> <span class="ident">values_array</span> <span class="op">=</span> <span class="ident">Array::create_array_from_list</span>(
-                            <span class="ident">captures</span>.<span class="ident">values</span>.<span class="ident">clone</span>().<span class="ident">into_inner</span>(),
+                            <span class="ident">captures</span>.<span class="ident">values</span>.<span class="ident">borrow</span>().<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">cloned</span>(),
                             <span class="ident">context</span>,
                         );
 
@@ -2931,7 +2931,7 @@
                     <span class="ident">already_called</span>: <span class="ident">Rc::new</span>(<span class="ident">Cell::new</span>(<span class="bool-val">false</span>)),
                     <span class="ident">index</span>,
                     <span class="ident">values</span>: <span class="ident">values</span>.<span class="ident">clone</span>(),
-                    <span class="ident">capability</span>: <span class="ident">result_capability</span>.<span class="ident">reject</span>.<span class="ident">clone</span>(),
+                    <span class="ident">capability</span>: <span class="ident">result_capability</span>.<span class="ident">resolve</span>.<span class="ident">clone</span>(),
                     <span class="ident">remaining_elements</span>: <span class="ident">remaining_elements_count</span>.<span class="ident">clone</span>(),
                 },
             )
@@ -3031,14 +3031,14 @@
             <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
             <span class="ident">already_called</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">index</span>: <span class="ident">usize</span>,
-            <span class="ident">errors</span>: <span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+            <span class="ident">errors</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">GcCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>,
             <span class="ident">capability_reject</span>: <span class="ident">JsFunction</span>,
             <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
             <span class="ident">remaining_elements_count</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">i32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         }
 
         <span class="comment">// 1. Let errors be a new empty List.</span>
-        <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">GcCell::new</span>(<span class="ident">Vec::new</span>());
+        <span class="kw">let</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">Gc::new</span>(<span class="ident">GcCell::new</span>(<span class="ident">Vec::new</span>()));
 
         <span class="comment">// 2. Let remainingElementsCount be the Record { [[Value]]: 1 }.</span>
         <span class="kw">let</span> <span class="ident">remaining_elements_count</span> <span class="op">=</span> <span class="ident">Rc::new</span>(<span class="ident">Cell::new</span>(<span class="number">1</span>));
@@ -3088,7 +3088,7 @@
                                     .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
                                     .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                                     .<span class="ident">value</span>(<span class="ident">Array::create_array_from_list</span>(
-                                        <span class="ident">errors</span>.<span class="ident">into_inner</span>(),
+                                        <span class="ident">errors</span>.<span class="ident">borrow</span>().<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">cloned</span>(),
                                         <span class="ident">context</span>,
                                     )),
                                 <span class="ident">context</span>,
@@ -3183,7 +3183,7 @@
                                     .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
                                     .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                                     .<span class="ident">value</span>(<span class="ident">Array::create_array_from_list</span>(
-                                        <span class="ident">captures</span>.<span class="ident">errors</span>.<span class="ident">clone</span>().<span class="ident">into_inner</span>(),
+                                        <span class="ident">captures</span>.<span class="ident">errors</span>.<span class="ident">borrow</span>().<span class="ident">as_slice</span>().<span class="ident">iter</span>().<span class="ident">cloned</span>(),
                                         <span class="ident">context</span>,
                                     )),
                                 <span class="ident">context</span>,
