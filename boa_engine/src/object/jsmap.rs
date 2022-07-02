@@ -164,6 +164,7 @@ impl JsMap {
     ///
     /// let some_object = JsArray::new(context);
     ///
+    /// // Some object is an Array object, not a map object
     /// assert!(JsMap::from_object(some_object.into(), context).is_err());
     ///     
     /// ```
