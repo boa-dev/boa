@@ -154,7 +154,7 @@ impl JsMap {
     /// ```
     ///
     /// Invalid Example - returns a `TypeError` with the message "object is not a Map"
-    /// ```
+    /// ```should_panic
     /// use boa_engine::{
     ///    object::{JsObject, JsArray, JsMap},
     ///    Context, JsResult, JsValue,
@@ -164,7 +164,7 @@ impl JsMap {
     ///
     /// let some_object = JsArray::new(context);
     ///
-    /// let js_map = JsMap::from_object(some_object, context).unwrap();
+    /// let js_map = JsMap::from_object(some_object.into(), context).unwrap();
     ///     
     /// ```
     #[inline]
