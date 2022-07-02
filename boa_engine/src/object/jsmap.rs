@@ -140,7 +140,7 @@ impl JsMap {
     ///    Context, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     ///
     /// // `some_object` can be any JavaScript `Map` object.
     /// let some_object = JsObject::from_proto_and_data(
@@ -160,7 +160,7 @@ impl JsMap {
     ///    Context, JsResult, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     ///
     /// let some_object = JsArray::new(context);
     ///
@@ -213,7 +213,7 @@ impl JsMap {
     ///    Context, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     ///
     /// let js_map = JsMap::new(context);
     ///
@@ -247,7 +247,7 @@ impl JsMap {
     ///    Context, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     ///
     /// let js_map = JsMap::new(context);
     ///
@@ -273,7 +273,7 @@ impl JsMap {
     ///    Context, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     ///
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context).unwrap();
@@ -303,7 +303,7 @@ impl JsMap {
     ///    Context, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context).unwrap();
     ///
@@ -330,7 +330,7 @@ impl JsMap {
     ///    Context, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     ///
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context).unwrap();
@@ -356,7 +356,7 @@ impl JsMap {
     ///    Context, JsValue,
     /// };
     ///
-    /// let context = Context::default();
+    /// let context = &mut Context::default();
     ///
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context).unwrap();
