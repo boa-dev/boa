@@ -56,7 +56,7 @@ use std::ops::Deref;
 /// // Create a `JsMap` from the `JsArray` using it's iterable property.
 /// let js_iterable_map = JsMap::from_js_iterable(&js_array.into(), context).unwrap();
 ///
-/// assert_eq!(iter_map.get("first-key", context).unwrap(), "first-value".into());
+/// assert_eq!(js_iterable_map.get("first-key", context).unwrap(), "first-value".into());
 ///
 /// ```
 ///
@@ -154,7 +154,7 @@ impl JsMap {
     /// ```
     ///
     /// Invalid Example - returns a `TypeError` with the message "object is not a Map"
-    /// ```should_panic
+    /// ```
     /// use boa_engine::{
     ///    object::{JsObject, JsArray, JsMap},
     ///    Context, JsResult, JsValue,
@@ -164,7 +164,7 @@ impl JsMap {
     ///
     /// let some_object = JsArray::new(context);
     ///
-    /// let js_map = JsMap::from_object(some_object.into(), context).unwrap();
+    /// assert!(JsMap::from_object(some_object.into(), context).is_err());
     ///     
     /// ```
     #[inline]
@@ -277,7 +277,7 @@ impl JsMap {
     ///
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context).unwrap();
-    /// js_map.set("hello", world, context).unwrap();
+    /// js_map.set("hello", "world", context).unwrap();
     ///
     /// js_map.delete("foo", context).unwrap();
     ///
@@ -334,7 +334,7 @@ impl JsMap {
     ///
     /// let js_map = JsMap::new(context);
     /// js_map.set("foo", "bar", context).unwrap();
-    /// js_map.set("hello", world, context).unwrap();
+    /// js_map.set("hello", "world", context).unwrap();
     ///
     /// js_map.clear(context).unwrap();
     ///
