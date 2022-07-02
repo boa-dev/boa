@@ -9,7 +9,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsMap` provides an API wrapper for Boa's implementation of the Javascript `Map` object.
+/// `JsMap` provides a wrapper for Boa's implementation of the Javascript `Map` object.
 ///
 /// # Examples
 ///
