@@ -15,6 +15,11 @@ use std::ops::Deref;
 ///
 /// Create a `JsMap` and set a new entry
 /// ```
+/// use boa_engine::{
+///    object::JsMap,
+///    Context, JsResult, JsValue,
+/// };
+///
 /// fn main() -> JsResult<()> {
 ///     // Create default `Context`
 ///     let context = &mut Context::default();
@@ -33,6 +38,11 @@ use std::ops::Deref;
 ///
 /// Create a `JsMap` from a `JsArray`
 /// ```
+/// use boa_engine::{
+///    object::{JsArray, JsMap},
+///    Context, JsResult, JsValue,
+/// };
+///
 /// fn main() -> JsResult<()> {
 ///     // Create a default `Context`
 ///     let context = &mut Context::default();
@@ -66,12 +76,19 @@ impl JsMap {
     /// # Example
     ///
     /// ```
+    /// use boa_engine::{
+    ///    object::JsMap,
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
     /// fn main -> JsResult<()> {
     ///    // Create a new context.
     ///    let context = &mut Context::default();
     ///
     ///    // Create a new empty `JsMap`.
     ///    let map = JsMap::new(context);
+    ///
+    ///    Ok(())
     /// }
     /// ```
     #[inline]
@@ -84,6 +101,11 @@ impl JsMap {
     ///
     /// # Examples
     /// ```
+    /// use boa_engine::{
+    ///    object::{JsArray, JsMap},
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
     /// fn main() -> JsResult<()> {
     ///     // Create a default `Context`
     ///     let context = &mut Context::default();
@@ -97,6 +119,8 @@ impl JsMap {
     ///
     ///     // Create a `JsMap` from the `JsArray` using it's iterable property.
     ///     let js_iterable_map = JsMap::from_js_iterable(&js_array.into(), context)?;
+    ///
+    ///     Ok(())
     /// }
     /// ```
     ///
@@ -121,21 +145,44 @@ impl JsMap {
     ///
     /// Valid Example - returns a `JsMap` object
     /// ```
+    /// use boa_engine::{
+    ///    builtins::map::ordered_map::OrderedMap,
+    ///    object::{JsObject, ObjectData, JsMap},
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
+    ///
     ///     // `some_object` can be any JavaScript `Map` object.
     ///     let some_object = JsObject::from_proto_and_data(
     ///         context.intrinsics().constructors().map().prototype(),
-    ///         ObjectData::map(Ordered::new())
+    ///         ObjectData::map(OrderedMap::new())
     ///     );
     ///     
     ///     // Create `JsMap` object with incoming object.
     ///     let js_map = JsMap::from_object(some_object, context)?;
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     ///
     /// Invalid Example - returns a `TypeError` with the message "object is not a Map"
     /// ```
+    /// use boa_engine::{
+    ///    object::{JsObject, JsArray, JsMap},
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
+    ///
     ///     let some_object = JsArray::new(context);
     ///
-    ///     let js_map = JsMap::from_object(some_object, context)?;
+    ///     let js_map = JsMap::from_object(some_object, context)?;   ///
+    ///     
+    ///     Ok(())
+    /// }
     /// ```
     #[inline]
     pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
@@ -178,13 +225,25 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    ///     let map = JsMap::new(context);
+    /// use boa_engine::{
+    ///    object::JsMap,
+    ///    Context, JsResult, JsValue,
+    /// };
     ///
-    ///     map.set("foo", "bar", context)?;
-    ///     map.set(2, 4, context)?;
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
     ///
-    ///     assert_eq!(map.get("foo", context)?, "bar".into());
-    ///     assert_eq!(map.get(2, context)?, 4.into())
+    ///     let js_map = JsMap::new(context);
+    ///
+    ///     js_map.set("foo", "bar", context)?;
+    ///     js_map.set(2, 4, context)?;
+    ///
+    ///     assert_eq!(js_map.get("foo", context)?, "bar".into());
+    ///     assert_eq!(js_map.get(2, context)?, 4.into())
+    ///     
+    ///     Ok(())
+    /// }
+
     ///
     /// ```
     #[inline]
@@ -205,13 +264,24 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    ///     let map = JsMap::new(context);
+    /// use boa_engine::{
+    ///    object::JsMap,
+    ///    Context, JsResult, JsValue,
+    /// };
     ///
-    ///     map.set("foo", "bar", context)?;
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
     ///
-    ///     let map_size = map.get_size(context)?;
+    ///     let js_map = JsMap::new(context);
+    ///
+    ///     js_map.set("foo", "bar", context)?;
+    ///
+    ///     let map_size = js_map.get_size(context)?;
     ///
     ///     assert_eq!(map_size, 1.into());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     #[inline]
     pub fn get_size(&self, context: &mut Context) -> JsResult<JsValue> {
@@ -223,6 +293,15 @@ impl JsMap {
     /// # Example
     ///
     /// ```
+    /// use boa_engine::{
+    ///    object::JsMap,
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
+    ///
+    ///     let js_map = JsMap::new(context);
     ///     js_map.set("foo", "bar", context)?;
     ///     js_map.set("hello", world, context)?;
     ///
@@ -230,6 +309,9 @@ impl JsMap {
     ///
     ///     assert_eq!(js_map.get_size(context)?, 1.into());
     ///     assert_eq!(js_map.get("foo", context)?, JsValue::undefined());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     #[inline]
     pub fn delete<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
@@ -244,11 +326,23 @@ impl JsMap {
     /// # Example
     ///
     /// ```
+    /// use boa_engine::{
+    ///    object::JsMap,
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
+
+    ///     let js_map = JsMap::new(context);
     ///     js_map.set("foo", "bar", context)?;
     ///
     ///     let retrieved_value = js_map.get("foo", context)?;
     ///
     ///     assert_eq!(retrieved_value, "bar".into());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     #[inline]
     pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
@@ -263,12 +357,25 @@ impl JsMap {
     /// # Example
     ///
     /// ```
+    /// use boa_engine::{
+    ///    object::JsMap,
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
+    ///
+    ///     let js_map = JsMap::new(context);
     ///     js_map.set("foo", "bar", context)?;
     ///     js_map.set("hello", world, context)?;
     ///
     ///     js_map.clear(context)?;
     ///
     ///     assert_eq!(js_map.get_size(context)?, 0.into());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
     #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
         Map::clear(&self.inner.clone().into(), &[], context)
@@ -279,11 +386,23 @@ impl JsMap {
     /// # Example
     ///
     /// ```
+    ///  use boa_engine::{
+    ///    object::JsMap,
+    ///    Context, JsResult, JsValue,
+    /// };
+    ///
+    /// fn main() -> JsResult<()> {
+    ///     let context = Context::default();
+    ///
+    ///     let js_map = JsMap::new(context);
     ///     js_map.set("foo", "bar", context)?;
     ///
     ///     let has_key = js_map.has("foo", context)?;
     ///
     ///     assert_eq!(has_key, true.into());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     #[inline]
     pub fn has<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
