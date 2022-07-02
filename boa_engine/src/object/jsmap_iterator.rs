@@ -1,11 +1,14 @@
-// API wrapper for MapIterator
+//! This module implements a wrapper for the `MapIterator` object
 use crate::{
-    builtins::map::map_iterator::MapIterator, object::JsObject, Context, JsResult, JsValue,
+    builtins::map::map_iterator::MapIterator,
+    object::{JsObject, JsObjectType},
+    Context, JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
+/// JavaScript `MapIterator` rust object
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct JsMapIterator {
     inner: JsObject,
@@ -22,6 +25,7 @@ impl JsMapIterator {
         }
     }
 
+    /// Advances the `JsMapIterator` and gets the next result in the `JsMap`
     pub fn next(&self, context: &mut Context) -> JsResult<JsValue> {
         MapIterator::next(&self.inner.clone().into(), &[], context)
     }
@@ -49,3 +53,5 @@ impl Deref for JsMapIterator {
         &self.inner
     }
 }
+
+impl JsObjectType for JsMapIterator {}
