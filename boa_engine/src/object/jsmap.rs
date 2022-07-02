@@ -26,6 +26,8 @@ use std::ops::Deref;
 ///     map.set("Key-2", 10, context)?;
 ///
 ///     assert_eq!(map.get_size(context)?, 2.into());
+///
+///     Ok(())
 /// }
 /// ```
 ///
@@ -48,6 +50,8 @@ use std::ops::Deref;
 ///     let js_iterable_map = JsMap::from_js_iterable(&js_array.into(), context)?;
 ///
 ///     assert_eq!(iter_map.get("first-key", context)?, "first-value".into());
+///
+///     Ok(())
 /// }
 /// ```
 ///
@@ -112,6 +116,27 @@ impl JsMap {
     }
 
     /// Creates a [`JsMap`] from a valid [`JsObject`], or returns a `TypeError` if the provided object is not a [`JsMap`]
+    ///
+    /// # Examples
+    ///
+    /// Valid Example - returns JsMap object
+    /// ```
+    ///     // `some_object` can be any JavaScript `Map` object.
+    ///     let some_object = JsObject::from_proto_and_data(
+    ///         context.intrinsics().constructors().map().prototype(),
+    ///         ObjectData::map(Ordered::new())
+    ///     );
+    ///     
+    ///     // Create `JsMap` object with incoming object.
+    ///     let js_map = JsMap::from_object(some_object, context)?;
+    /// ```
+    /// 
+    /// Invalid Example - returns `TypeError` with the message "object is not a Map"
+    /// ```
+    ///     let some_object = JsArray::new(context);
+    /// 
+    ///     let js_map = JsMap::from_object(some_object, context)?;
+    /// ```
     #[inline]
     pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
         if object.borrow().is_map() {
