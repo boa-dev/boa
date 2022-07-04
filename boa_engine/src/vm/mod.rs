@@ -2291,7 +2291,7 @@ impl Context {
                 // 4. Let onFulfilled be CreateBuiltinFunction(fulfilledClosure, 1, "", « »).
                 let on_fulfilled = FunctionBuilder::closure_with_captures(
                     self,
-                    |_this, args, captures, context| {
+                    |_this, args, (environment, stack, frame), context| {
                         // a. Let prevContext be the running execution context.
                         // b. Suspend prevContext.
                         // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
@@ -2299,20 +2299,20 @@ impl Context {
                         // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                         // f. Return undefined.
 
-                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
-                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
-                        context.vm.push_frame(captures.2.clone());
+                        std::mem::swap(&mut context.realm.environments, environment);
+                        std::mem::swap(&mut context.vm.stack, stack);
+                        context.vm.push_frame(frame.clone());
 
                         context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Normal;
                         context.vm.push(args.get_or_undefined(0));
                         context.run()?;
 
-                        captures.2 = *context
+                        *frame = *context
                             .vm
                             .pop_frame()
                             .expect("generator call frame must exist");
-                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
-                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
+                        std::mem::swap(&mut context.realm.environments, environment);
+                        std::mem::swap(&mut context.vm.stack, stack);
 
                         Ok(JsValue::undefined())
                     },
@@ -2330,7 +2330,7 @@ impl Context {
                 // 6. Let onRejected be CreateBuiltinFunction(rejectedClosure, 1, "", « »).
                 let on_rejected = FunctionBuilder::closure_with_captures(
                     self,
-                    |_this, args, captures, context| {
+                    |_this, args, (environment, stack, frame), context| {
                         // a. Let prevContext be the running execution context.
                         // b. Suspend prevContext.
                         // c. Push asyncContext onto the execution context stack; asyncContext is now the running execution context.
@@ -2338,20 +2338,20 @@ impl Context {
                         // e. Assert: When we reach this step, asyncContext has already been removed from the execution context stack and prevContext is the currently running execution context.
                         // f. Return undefined.
 
-                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
-                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
-                        context.vm.push_frame(captures.2.clone());
+                        std::mem::swap(&mut context.realm.environments, environment);
+                        std::mem::swap(&mut context.vm.stack, stack);
+                        context.vm.push_frame(frame.clone());
 
                         context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
                         context.vm.push(args.get_or_undefined(0));
                         context.run()?;
 
-                        captures.2 = *context
+                        *frame = *context
                             .vm
                             .pop_frame()
                             .expect("generator call frame must exist");
-                        std::mem::swap(&mut context.realm.environments, &mut captures.0);
-                        std::mem::swap(&mut context.vm.stack, &mut captures.1);
+                        std::mem::swap(&mut context.realm.environments, environment);
+                        std::mem::swap(&mut context.vm.stack, stack);
 
                         Ok(JsValue::undefined())
                     },
