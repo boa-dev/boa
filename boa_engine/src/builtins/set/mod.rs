@@ -1,4 +1,4 @@
-//! This module implements the global `Set` objest.
+//! This module implements the global `Set` object.
 //!
 //! The JavaScript `Set` class is a global object that is used in the construction of sets; which
 //! are high-level, collections of values.
@@ -162,6 +162,20 @@ impl Set {
 
         // 8.b
         Ok(set.into())
+    }
+
+    /// Utility for constructing `Set` Objects.
+    pub(crate) fn set_create(
+        prototype: Option<JsObject>,
+        context: &mut Context,
+    ) -> JsResult<JsObject> {
+        let prototype = match prototype {
+            Some(prototype) => prototype,
+            None => context.intrinsics().constructors().set().prototype(),
+        };
+
+        let set = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::new()));
+        Ok(set)
     }
 
     /// `get Set [ @@species ]`
@@ -417,8 +431,8 @@ impl Set {
         Self::get_size(this, context).map(JsValue::from)
     }
 
-    /// Helper function to get the size of the set.
-    fn get_size(set: &JsValue, context: &mut Context) -> JsResult<usize> {
+    /// Helper function to get the size of the `Set` object.
+    pub(crate) fn get_size(set: &JsValue, context: &mut Context) -> JsResult<usize> {
         set.as_object()
             .and_then(|obj| obj.borrow().as_set_ref().map(OrderedSet::size))
             .ok_or_else(|| context.construct_type_error("'this' is not a Set"))

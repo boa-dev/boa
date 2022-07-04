@@ -23,7 +23,7 @@ impl JsArray {
         Self { inner }
     }
 
-    /// Create an array from a `IntoIterator<Item = JsValue>` convertable object.
+    /// Create an array from a `IntoIterator<Item = JsValue>` convertible object.
     #[inline]
     pub fn from_iter<I>(elements: I, context: &mut Context) -> Self
     where

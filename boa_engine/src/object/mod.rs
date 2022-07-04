@@ -67,6 +67,7 @@ mod jsmap;
 mod jsmap_iterator;
 mod jsobject;
 mod jsproxy;
+mod jsset;
 mod jstypedarray;
 mod operations;
 mod property_map;
@@ -76,6 +77,7 @@ pub use jsfunction::*;
 pub use jsmap::*;
 pub use jsmap_iterator::*;
 pub use jsproxy::*;
+pub use jsset::*;
 pub use jstypedarray::*;
 
 pub(crate) trait JsObjectType:
