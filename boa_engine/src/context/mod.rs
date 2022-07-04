@@ -714,7 +714,6 @@ impl Context {
         let _timer = Profiler::global().start_event("Execution", "Main");
 
         self.vm.push_frame(CallFrame {
-            prev: None,
             code: code_block,
             pc: 0,
             catch: Vec::new(),
@@ -833,7 +832,7 @@ impl ContextBuilder {
             console: Console::default(),
             intrinsics: Intrinsics::default(),
             vm: Vm {
-                frame: None,
+                frames: Vec::with_capacity(16),
                 stack: Vec::with_capacity(1024),
                 trace: false,
                 stack_size_limit: 1024,

@@ -263,7 +263,7 @@ impl Generator {
 
         let result = context.run();
 
-        generator_context.call_frame = *context
+        generator_context.call_frame = context
             .vm
             .pop_frame()
             .expect("generator call frame must exist");
@@ -384,7 +384,7 @@ impl Generator {
                 context.run()
             }
         };
-        generator_context.call_frame = *context
+        generator_context.call_frame = context
             .vm
             .pop_frame()
             .expect("generator call frame must exist");

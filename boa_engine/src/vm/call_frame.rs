@@ -7,7 +7,6 @@ use boa_gc::{Finalize, Gc, Trace};
 
 #[derive(Clone, Debug, Finalize, Trace)]
 pub struct CallFrame {
-    pub(crate) prev: Option<Box<Self>>,
     pub(crate) code: Gc<CodeBlock>,
     pub(crate) pc: usize,
     #[unsafe_ignore_trace]
