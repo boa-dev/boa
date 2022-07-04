@@ -21,7 +21,7 @@ fn main() -> Result<(), JsValue> {
     set.add("two", context)?;
     set.add("three", context)?;
 
-    assert_eq!(set.has("one", context)?, true);
+    assert!(set.has("one", context)?);
     assert_eq!(set.has("One", context)?, false);
 
     set.delete("two", context)?;
@@ -33,7 +33,6 @@ fn main() -> Result<(), JsValue> {
     assert_eq!(set.has("one", context)?, false);
     assert_eq!(set.has("three", context)?, false);
     assert_eq!(set.size(context)?, 0);
-
 
     Ok(())
 }

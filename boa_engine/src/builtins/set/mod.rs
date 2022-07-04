@@ -174,8 +174,10 @@ impl Set {
             None => context.intrinsics().constructors().set().prototype(),
         };
 
-        let set = JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::new()));
-        Ok(set)
+        Ok(JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::set(OrderedSet::new()),
+        ))
     }
 
     /// `get Set [ @@species ]`
