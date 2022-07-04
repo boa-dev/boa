@@ -2416,6 +2416,8 @@ impl Context {
 
         let start_stack_size = self.vm.stack.len();
 
+        // If the current executing function is an async function we have to resolve/reject it's promise at the end.
+        // The relevant spec section is 3. in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         let promise_capability = self
             .realm
             .environments
@@ -2478,6 +2480,7 @@ impl Context {
                     let result = self.vm.pop();
                     self.vm.stack.truncate(start_stack_size);
 
+                    // Step 3.e in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
                     if let Some(promise_capability) = promise_capability {
                         promise_capability
                             .resolve()
@@ -2539,6 +2542,8 @@ impl Context {
                         self.vm.push(e);
                     } else {
                         self.vm.stack.truncate(start_stack_size);
+
+                        // Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
                         if let Some(promise_capability) = promise_capability {
                             promise_capability
                                 .reject()
@@ -2578,6 +2583,7 @@ impl Context {
         }
 
         if self.vm.stack.len() <= start_stack_size {
+            // Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
             if let Some(promise_capability) = promise_capability {
                 promise_capability
                     .resolve()
@@ -2591,6 +2597,7 @@ impl Context {
         let result = self.vm.pop();
         self.vm.stack.truncate(start_stack_size);
 
+        // Step 3.d in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
         if let Some(promise_capability) = promise_capability {
             promise_capability
                 .resolve()

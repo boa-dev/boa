@@ -121,7 +121,7 @@ where
                 Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor, interner)?).into())
             }
             TokenKind::Keyword((Keyword::Await, true)) if self.allow_await.0 => Err(
-                ParseError::general("Keyword must not contain escaped characters", token_start),
+                ParseError::general("Keyword 'await' must not contain escaped characters", token_start),
             ),
             TokenKind::Keyword((Keyword::Await, false)) if self.allow_await.0 => {
                 Ok((AwaitExpression::new(self.allow_yield).parse(cursor, interner)?).into())
