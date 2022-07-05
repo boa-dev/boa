@@ -1148,7 +1148,13 @@ impl Drop for JsString {
                         inner.data.as_mut_ptr(),
                         inner.len,
                     ));
-                    dealloc((inner as *mut RawJsString).cast(), Layout::for_value(inner));
+
+                    let layout = Layout::array::<u16>(inner.len)
+                        .and_then(|layout| Layout::for_value(inner).extend(layout))
+                        .expect("failed to get the string memory layout")
+                        .0
+                        .pad_to_align();
+                    dealloc((inner as *mut RawJsString).cast(), layout);
                 }
             }
         }
