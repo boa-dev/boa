@@ -223,10 +223,14 @@
 <span id="216">216</span>
 <span id="217">217</span>
 <span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array_buffer</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">boolean</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">dataview</span>;
@@ -263,6 +267,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">array</span>::{<span class="ident">array_iterator::ArrayIterator</span>, <span class="ident">Array</span>},
+    <span class="ident">async_function::AsyncFunction</span>,
     <span class="ident">bigint::BigInt</span>,
     <span class="ident">boolean::Boolean</span>,
     <span class="ident">dataview::DataView</span>,
@@ -410,7 +415,8 @@
         <span class="ident">Reflect</span>,
         <span class="ident">Generator</span>,
         <span class="ident">GeneratorFunction</span>,
-        <span class="ident">Promise</span>
+        <span class="ident">Promise</span>,
+        <span class="ident">AsyncFunction</span>
     };
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>

@@ -102,15 +102,6 @@
 <span id="95">95</span>
 <span id="96">96</span>
 <span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Exponentiation operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -172,27 +163,6 @@
     }
 }
 
-<span class="doccomment">/// Checks by looking at the next token to see whether it&#39;s a unary operator or not.</span>
-<span class="kw">fn</span> <span class="ident">is_unary_expression</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>(
-    <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-    <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">bool</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">R</span>: <span class="ident">Read</span>,
-{
-    <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-        <span class="macro">matches!</span>(
-            <span class="ident">tok</span>.<span class="ident">kind</span>(),
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Delete</span> <span class="op">|</span> <span class="ident">Keyword::Void</span> <span class="op">|</span> <span class="ident">Keyword::TypeOf</span>, <span class="kw">_</span>))
-                <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(
-                    <span class="ident">Punctuator::Add</span> <span class="op">|</span> <span class="ident">Punctuator::Sub</span> <span class="op">|</span> <span class="ident">Punctuator::Not</span> <span class="op">|</span> <span class="ident">Punctuator::Neg</span>
-                )
-        )
-    } <span class="kw">else</span> {
-        <span class="bool-val">false</span>
-    })
-}
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ExponentiationExpression</span>
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
@@ -201,9 +171,21 @@
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ExponentiationExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
-        <span class="kw">if</span> <span class="ident">is_unary_expression</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">return</span> <span class="ident">UnaryExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>);
+
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+        <span class="kw">match</span> <span class="ident">next</span>.<span class="ident">kind</span>() {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Delete</span> <span class="op">|</span> <span class="ident">Keyword::Void</span> <span class="op">|</span> <span class="ident">Keyword::TypeOf</span>, <span class="kw">_</span>))
+            <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(
+                <span class="ident">Punctuator::Add</span> <span class="op">|</span> <span class="ident">Punctuator::Sub</span> <span class="op">|</span> <span class="ident">Punctuator::Not</span> <span class="op">|</span> <span class="ident">Punctuator::Neg</span>,
+            ) =&gt; {
+                <span class="kw">return</span> <span class="ident">UnaryExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>);
+            }
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
+                <span class="kw">return</span> <span class="ident">UnaryExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>);
+            }
+            <span class="kw">_</span> =&gt; {}
         }
 
         <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">UpdateExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)

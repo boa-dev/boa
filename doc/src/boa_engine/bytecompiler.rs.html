@@ -3040,6 +3040,84 @@
 <span id="3033">3033</span>
 <span id="3034">3034</span>
 <span id="3035">3035</span>
+<span id="3036">3036</span>
+<span id="3037">3037</span>
+<span id="3038">3038</span>
+<span id="3039">3039</span>
+<span id="3040">3040</span>
+<span id="3041">3041</span>
+<span id="3042">3042</span>
+<span id="3043">3043</span>
+<span id="3044">3044</span>
+<span id="3045">3045</span>
+<span id="3046">3046</span>
+<span id="3047">3047</span>
+<span id="3048">3048</span>
+<span id="3049">3049</span>
+<span id="3050">3050</span>
+<span id="3051">3051</span>
+<span id="3052">3052</span>
+<span id="3053">3053</span>
+<span id="3054">3054</span>
+<span id="3055">3055</span>
+<span id="3056">3056</span>
+<span id="3057">3057</span>
+<span id="3058">3058</span>
+<span id="3059">3059</span>
+<span id="3060">3060</span>
+<span id="3061">3061</span>
+<span id="3062">3062</span>
+<span id="3063">3063</span>
+<span id="3064">3064</span>
+<span id="3065">3065</span>
+<span id="3066">3066</span>
+<span id="3067">3067</span>
+<span id="3068">3068</span>
+<span id="3069">3069</span>
+<span id="3070">3070</span>
+<span id="3071">3071</span>
+<span id="3072">3072</span>
+<span id="3073">3073</span>
+<span id="3074">3074</span>
+<span id="3075">3075</span>
+<span id="3076">3076</span>
+<span id="3077">3077</span>
+<span id="3078">3078</span>
+<span id="3079">3079</span>
+<span id="3080">3080</span>
+<span id="3081">3081</span>
+<span id="3082">3082</span>
+<span id="3083">3083</span>
+<span id="3084">3084</span>
+<span id="3085">3085</span>
+<span id="3086">3086</span>
+<span id="3087">3087</span>
+<span id="3088">3088</span>
+<span id="3089">3089</span>
+<span id="3090">3090</span>
+<span id="3091">3091</span>
+<span id="3092">3092</span>
+<span id="3093">3093</span>
+<span id="3094">3094</span>
+<span id="3095">3095</span>
+<span id="3096">3096</span>
+<span id="3097">3097</span>
+<span id="3098">3098</span>
+<span id="3099">3099</span>
+<span id="3100">3100</span>
+<span id="3101">3101</span>
+<span id="3102">3102</span>
+<span id="3103">3103</span>
+<span id="3104">3104</span>
+<span id="3105">3105</span>
+<span id="3106">3106</span>
+<span id="3107">3107</span>
+<span id="3108">3108</span>
+<span id="3109">3109</span>
+<span id="3110">3110</span>
+<span id="3111">3111</span>
+<span id="3112">3112</span>
+<span id="3113">3113</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
@@ -3982,6 +4060,20 @@
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
                                     }
                                 },
+                                <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
+                                    <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                                    }
+                                    <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
+                                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::ToPropertyKey</span>);
+                                        <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
+                                    }
+                                },
                                 <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                     <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                         <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -3996,10 +4088,8 @@
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineOwnPropertyByValue</span>);
                                     }
                                 },
-                                <span class="comment">// TODO: Implement async</span>
                                 <span class="comment">// TODO: Implement async generators</span>
-                                <span class="ident">MethodDefinition::Async</span>(<span class="kw">_</span>)
-                                <span class="op">|</span> <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; {
+                                <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; {
                                     <span class="comment">// TODO: Implement async</span>
                                     <span class="kw">match</span> <span class="ident">name</span> {
                                         <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
@@ -4161,13 +4251,19 @@
                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Pop</span>, <span class="kw-2">&amp;</span>[]);
                 }
             }
-            <span class="comment">// TODO: implement AsyncFunctionExpr</span>
-            <span class="comment">// TODO: implement AwaitExpr</span>
+            <span class="ident">Node::AwaitExpr</span>(<span class="ident">expr</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>.<span class="ident">expr</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Await</span>);
+                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GeneratorNext</span>);
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
+                }
+            }
             <span class="comment">// TODO: implement AsyncGeneratorExpr</span>
-            <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AwaitExpr</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncGeneratorExpr</span>(<span class="kw">_</span>) =&gt; {
+            <span class="ident">Node::AsyncGeneratorExpr</span>(<span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
             }
-            <span class="ident">Node::GeneratorExpr</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>,
+            <span class="ident">Node::GeneratorExpr</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncFunctionExpr</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>,
             <span class="ident">Node::Yield</span>(<span class="ident">r#yield</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">r#yield</span>.<span class="ident">expr</span>() {
                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -4961,10 +5057,9 @@
                     <span class="self">self</span>.<span class="ident">pop_try_control_info</span>(<span class="prelude-val">None</span>);
                 }
             }
-            <span class="comment">// TODO: implement AsyncFunctionDecl</span>
-            <span class="ident">Node::GeneratorDecl</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
+            <span class="ident">Node::GeneratorDecl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
             <span class="comment">// TODO: implement AsyncGeneratorDecl</span>
-            <span class="ident">Node::AsyncFunctionDecl</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::AsyncGeneratorDecl</span>(<span class="kw">_</span>) =&gt; {
+            <span class="ident">Node::AsyncGeneratorDecl</span>(<span class="kw">_</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
             }
             <span class="ident">Node::ClassDecl</span>(<span class="ident">class</span>) =&gt; <span class="self">self</span>.<span class="ident">class</span>(<span class="ident">class</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
@@ -5094,13 +5189,22 @@
 
     <span class="doccomment">/// Compile a function AST Node into bytecode.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">function</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>, <span class="ident">generator</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">function</span> {
+        <span class="kw">let</span> (<span class="ident">kind</span>, <span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>, <span class="ident">generator</span>, <span class="ident">r#async</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">function</span> {
             <span class="ident">Node::FunctionDecl</span>(<span class="ident">function</span>) =&gt; (
                 <span class="ident">FunctionKind::Declaration</span>,
                 <span class="prelude-val">Some</span>(<span class="ident">function</span>.<span class="ident">name</span>()),
                 <span class="ident">function</span>.<span class="ident">parameters</span>(),
                 <span class="ident">function</span>.<span class="ident">body</span>(),
                 <span class="bool-val">false</span>,
+                <span class="bool-val">false</span>,
+            ),
+            <span class="ident">Node::AsyncFunctionDecl</span>(<span class="ident">function</span>) =&gt; (
+                <span class="ident">FunctionKind::Declaration</span>,
+                <span class="prelude-val">Some</span>(<span class="ident">function</span>.<span class="ident">name</span>()),
+                <span class="ident">function</span>.<span class="ident">parameters</span>(),
+                <span class="ident">function</span>.<span class="ident">body</span>(),
+                <span class="bool-val">false</span>,
+                <span class="bool-val">true</span>,
             ),
             <span class="ident">Node::GeneratorDecl</span>(<span class="ident">generator</span>) =&gt; (
                 <span class="ident">FunctionKind::Declaration</span>,
@@ -5108,6 +5212,7 @@
                 <span class="ident">generator</span>.<span class="ident">parameters</span>(),
                 <span class="ident">generator</span>.<span class="ident">body</span>(),
                 <span class="bool-val">true</span>,
+                <span class="bool-val">false</span>,
             ),
             <span class="ident">Node::FunctionExpr</span>(<span class="ident">function</span>) =&gt; (
                 <span class="ident">FunctionKind::Expression</span>,
@@ -5115,6 +5220,15 @@
                 <span class="ident">function</span>.<span class="ident">parameters</span>(),
                 <span class="ident">function</span>.<span class="ident">body</span>(),
                 <span class="bool-val">false</span>,
+                <span class="bool-val">false</span>,
+            ),
+            <span class="ident">Node::AsyncFunctionExpr</span>(<span class="ident">function</span>) =&gt; (
+                <span class="ident">FunctionKind::Expression</span>,
+                <span class="ident">function</span>.<span class="ident">name</span>(),
+                <span class="ident">function</span>.<span class="ident">parameters</span>(),
+                <span class="ident">function</span>.<span class="ident">body</span>(),
+                <span class="bool-val">false</span>,
+                <span class="bool-val">true</span>,
             ),
             <span class="ident">Node::GeneratorExpr</span>(<span class="ident">generator</span>) =&gt; (
                 <span class="ident">FunctionKind::Expression</span>,
@@ -5122,12 +5236,14 @@
                 <span class="ident">generator</span>.<span class="ident">parameters</span>(),
                 <span class="ident">generator</span>.<span class="ident">body</span>(),
                 <span class="bool-val">true</span>,
+                <span class="bool-val">false</span>,
             ),
             <span class="ident">Node::ArrowFunctionDecl</span>(<span class="ident">function</span>) =&gt; (
                 <span class="ident">FunctionKind::Arrow</span>,
                 <span class="ident">function</span>.<span class="ident">name</span>(),
                 <span class="ident">function</span>.<span class="ident">params</span>(),
                 <span class="ident">function</span>.<span class="ident">body</span>(),
+                <span class="bool-val">false</span>,
                 <span class="bool-val">false</span>,
             ),
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
@@ -5148,6 +5264,8 @@
 
         <span class="kw">if</span> <span class="ident">generator</span> {
             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetGenerator</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">r#async</span> {
+            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetFunctionAsync</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetFunction</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
         }
@@ -5771,6 +5889,20 @@
                                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineClassMethodByValue</span>);
                             }
                         },
+                        <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
+                            <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                                <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                            }
+                            <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
+                                <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::ToPropertyKey</span>);
+                                <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineClassMethodByValue</span>);
+                            }
+                        },
                         <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -5786,7 +5918,7 @@
                             }
                         },
                         <span class="comment">// TODO: implement async</span>
-                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">MethodDefinition::Async</span>(<span class="kw">_</span>) =&gt; {}
+                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; {}
                     }
                 }
                 <span class="ident">ClassElement::PrivateStaticMethodDefinition</span>(<span class="ident">name</span>, <span class="ident">method_definition</span>) =&gt; {
@@ -5807,13 +5939,18 @@
                             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPrivateMethod</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
+                        <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; {
+                            <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPrivateMethod</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                        }
                         <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; {
                             <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPrivateMethod</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="comment">// TODO: implement async</span>
-                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">MethodDefinition::Async</span>(<span class="kw">_</span>) =&gt; {}
+                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; {}
                     }
                 }
                 <span class="ident">ClassElement::FieldDefinition</span>(<span class="ident">name</span>, <span class="ident">field</span>) =&gt; {
@@ -5966,13 +6103,18 @@
                             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushClassPrivateMethod</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
+                        <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; {
+                            <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushClassPrivateMethod</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                        }
                         <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; {
                             <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushClassPrivateMethod</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
                         <span class="comment">// TODO: implement async</span>
-                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">MethodDefinition::Async</span>(<span class="kw">_</span>) =&gt; {}
+                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; {}
                     }
                 }
                 <span class="ident">ClassElement::MethodDefinition</span>(..) =&gt; {}
@@ -6028,6 +6170,20 @@
                                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineClassMethodByValue</span>);
                             }
                         },
+                        <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
+                            <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
+                                <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                            }
+                            <span class="ident">PropertyName::Computed</span>(<span class="ident">name_node</span>) =&gt; {
+                                <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">name_node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::ToPropertyKey</span>);
+                                <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DefineClassMethodByValue</span>);
+                            }
+                        },
                         <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="kw-2">&amp;</span><span class="ident">expr</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -6043,7 +6199,7 @@
                             }
                         },
                         <span class="comment">// TODO: implement async</span>
-                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">MethodDefinition::Async</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
                         }
                     }

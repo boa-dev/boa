@@ -3677,7 +3677,7 @@
             } =&gt; {
                 <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ConstructorKind::Base</span>);
             }
-            <span class="ident">Function::Ordinary</span> { .. } <span class="op">|</span> <span class="ident">Function::Generator</span> { .. } =&gt; {
+            <span class="ident">Function::Ordinary</span> { .. } <span class="op">|</span> <span class="ident">Function::Generator</span> { .. } <span class="op">|</span> <span class="ident">Function::Async</span> { .. } =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;function must be native or closure&quot;</span>);
             }
         }
