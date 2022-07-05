@@ -1574,7 +1574,7 @@ impl<'context> FunctionBuilder<'context> {
             } => {
                 *constructor = yes.then(|| ConstructorKind::Base);
             }
-            Function::Ordinary { .. } | Function::Generator { .. } => {
+            Function::Ordinary { .. } | Function::Generator { .. } | Function::Async { .. } => {
                 unreachable!("function must be native or closure");
             }
         }

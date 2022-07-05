@@ -76,6 +76,7 @@ pub struct StandardConstructors {
     proxy: StandardConstructor,
     date: StandardConstructor,
     function: StandardConstructor,
+    async_function: StandardConstructor,
     generator: StandardConstructor,
     generator_function: StandardConstructor,
     array: StandardConstructor,
@@ -120,6 +121,7 @@ impl Default for StandardConstructors {
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
             function: StandardConstructor::default(),
+            async_function: StandardConstructor::default(),
             generator: StandardConstructor::default(),
             generator_function: StandardConstructor::default(),
             array: StandardConstructor::with_prototype(JsObject::from_proto_and_data(
@@ -203,6 +205,11 @@ impl StandardConstructors {
     #[inline]
     pub fn function(&self) -> &StandardConstructor {
         &self.function
+    }
+
+    #[inline]
+    pub fn async_function(&self) -> &StandardConstructor {
+        &self.async_function
     }
 
     #[inline]

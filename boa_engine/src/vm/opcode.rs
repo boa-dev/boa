@@ -913,6 +913,13 @@ pub enum Opcode {
     /// Stack: **=>** func
     GetFunction,
 
+    /// Get async function from the pre-compiled inner functions.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: **=>** func
+    GetFunctionAsync,
+
     /// Get generator function from the pre-compiled inner functions.
     ///
     /// Operands: address: `u32`
@@ -1125,6 +1132,13 @@ pub enum Opcode {
     /// Stack: iterator, next_method, done, received **=>** iterator, next_method, done
     GeneratorNextDelegate,
 
+    /// Stops the current async function and schedules it to resume later.
+    ///
+    /// Operands:
+    ///
+    /// Stack: promise **=>**
+    Await,
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -1269,6 +1283,7 @@ impl Opcode {
             Self::Case => "Case",
             Self::Default => "Default",
             Self::GetFunction => "GetFunction",
+            Self::GetFunctionAsync => "GetFunctionAsync",
             Self::GetGenerator => "GetGenerator",
             Self::CallEval => "CallEval",
             Self::CallEvalWithRest => "CallEvalWithRest",
@@ -1298,6 +1313,7 @@ impl Opcode {
             Self::PopOnReturnSub => "PopOnReturnSub",
             Self::Yield => "Yield",
             Self::GeneratorNext => "GeneratorNext",
+            Self::Await => "Await",
             Self::GeneratorNextDelegate => "GeneratorNextDelegate",
             Self::Nop => "Nop",
         }
@@ -1407,6 +1423,7 @@ impl Opcode {
             Self::Case => "INST - Case",
             Self::Default => "INST - Default",
             Self::GetFunction => "INST - GetFunction",
+            Self::GetFunctionAsync => "INST - GetFunctionAsync",
             Self::GetGenerator => "INST - GetGenerator",
             Self::CallEval => "INST - CallEval",
             Self::CallEvalWithRest => "INST - CallEvalWithRest",
@@ -1436,6 +1453,7 @@ impl Opcode {
             Self::PopOnReturnSub => "INST - PopOnReturnSub",
             Self::Yield => "INST - Yield",
             Self::GeneratorNext => "INST - GeneratorNext",
+            Self::Await => "INST - Await",
             Self::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
             Self::Nop => "INST - Nop",
             Self::PushClassPrototype => "INST - PushClassPrototype",
