@@ -861,7 +861,6 @@
 <span id="854">854</span>
 <span id="855">855</span>
 <span id="856">856</span>
-<span id="857">857</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
@@ -1578,7 +1577,6 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Execution&quot;</span>, <span class="string">&quot;Main&quot;</span>);
 
         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
-            <span class="ident">prev</span>: <span class="prelude-val">None</span>,
             <span class="ident">code</span>: <span class="ident">code_block</span>,
             <span class="ident">pc</span>: <span class="number">0</span>,
             <span class="ident">catch</span>: <span class="ident">Vec::new</span>(),
@@ -1697,7 +1695,7 @@
             <span class="ident">console</span>: <span class="ident">Console::default</span>(),
             <span class="ident">intrinsics</span>: <span class="ident">Intrinsics::default</span>(),
             <span class="ident">vm</span>: <span class="ident">Vm</span> {
-                <span class="ident">frame</span>: <span class="prelude-val">None</span>,
+                <span class="ident">frames</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">16</span>),
                 <span class="ident">stack</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">1024</span>),
                 <span class="ident">trace</span>: <span class="bool-val">false</span>,
                 <span class="ident">stack_size_limit</span>: <span class="number">1024</span>,

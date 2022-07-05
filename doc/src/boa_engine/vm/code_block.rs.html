@@ -1320,10 +1320,6 @@
 <span id="1313">1313</span>
 <span id="1314">1314</span>
 <span id="1315">1315</span>
-<span id="1316">1316</span>
-<span id="1317">1317</span>
-<span id="1318">1318</span>
-<span id="1319">1319</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -2049,7 +2045,6 @@
                 <span class="kw">let</span> <span class="ident">has_expressions</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>();
 
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
-                    <span class="ident">prev</span>: <span class="prelude-val">None</span>,
                     <span class="ident">code</span>,
                     <span class="ident">pc</span>: <span class="number">0</span>,
                     <span class="ident">catch</span>: <span class="ident">Vec::new</span>(),
@@ -2170,7 +2165,6 @@
                 <span class="kw">let</span> <span class="ident">has_expressions</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>();
 
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
-                    <span class="ident">prev</span>: <span class="prelude-val">None</span>,
                     <span class="ident">code</span>,
                     <span class="ident">pc</span>: <span class="number">0</span>,
                     <span class="ident">catch</span>: <span class="ident">Vec::new</span>(),
@@ -2281,7 +2275,6 @@
                 <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>();
 
                 <span class="kw">let</span> <span class="ident">call_frame</span> <span class="op">=</span> <span class="ident">CallFrame</span> {
-                    <span class="ident">prev</span>: <span class="prelude-val">None</span>,
                     <span class="ident">code</span>,
                     <span class="ident">pc</span>: <span class="number">0</span>,
                     <span class="ident">catch</span>: <span class="ident">Vec::new</span>(),
@@ -2325,7 +2318,7 @@
                         <span class="ident">state</span>: <span class="ident">GeneratorState::SuspendedStart</span>,
                         <span class="ident">context</span>: <span class="prelude-val">Some</span>(<span class="ident">Gc::new</span>(<span class="ident">Cell::new</span>(<span class="ident">GeneratorContext</span> {
                             <span class="ident">environments</span>,
-                            <span class="ident">call_frame</span>: <span class="kw-2">*</span><span class="ident">call_frame</span>,
+                            <span class="ident">call_frame</span>,
                             <span class="ident">stack</span>,
                         }))),
                     }),
@@ -2515,7 +2508,6 @@
                 <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>();
 
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
-                    <span class="ident">prev</span>: <span class="prelude-val">None</span>,
                     <span class="ident">code</span>,
                     <span class="ident">pc</span>: <span class="number">0</span>,
                     <span class="ident">catch</span>: <span class="ident">Vec::new</span>(),

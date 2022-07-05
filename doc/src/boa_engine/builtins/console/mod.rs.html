@@ -582,8 +582,6 @@
 <span id="575">575</span>
 <span id="576">576</span>
 <span id="577">577</span>
-<span id="578">578</span>
-<span id="579">579</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `console` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `console` object can be accessed from any global object.</span>
@@ -880,16 +878,14 @@
 
     <span class="kw">fn</span> <span class="ident">get_stack_trace</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack_trace</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">vec!</span>[];
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">prev_frame</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>.<span class="ident">as_ref</span>();
 
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">frame</span>) <span class="op">=</span> <span class="ident">prev_frame</span> {
+        <span class="kw">for</span> <span class="ident">frame</span> <span class="kw">in</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frames</span>.<span class="ident">iter</span>().<span class="ident">rev</span>() {
             <span class="ident">stack_trace</span>.<span class="ident">push</span>(
                 <span class="ident">context</span>
                     .<span class="ident">interner</span>()
                     .<span class="ident">resolve_expect</span>(<span class="ident">frame</span>.<span class="ident">code</span>.<span class="ident">name</span>)
                     .<span class="ident">to_owned</span>(),
             );
-            <span class="ident">prev_frame</span> <span class="op">=</span> <span class="ident">frame</span>.<span class="ident">prev</span>.<span class="ident">as_ref</span>();
         }
 
         <span class="ident">stack_trace</span>

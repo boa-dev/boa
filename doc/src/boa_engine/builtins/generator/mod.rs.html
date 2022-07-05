@@ -689,7 +689,7 @@
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">run</span>();
 
-        <span class="ident">generator_context</span>.<span class="ident">call_frame</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">context</span>
+        <span class="ident">generator_context</span>.<span class="ident">call_frame</span> <span class="op">=</span> <span class="ident">context</span>
             .<span class="ident">vm</span>
             .<span class="ident">pop_frame</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;generator call frame must exist&quot;</span>);
@@ -810,7 +810,7 @@
                 <span class="ident">context</span>.<span class="ident">run</span>()
             }
         };
-        <span class="ident">generator_context</span>.<span class="ident">call_frame</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">context</span>
+        <span class="ident">generator_context</span>.<span class="ident">call_frame</span> <span class="op">=</span> <span class="ident">context</span>
             .<span class="ident">vm</span>
             .<span class="ident">pop_frame</span>()
             .<span class="ident">expect</span>(<span class="string">&quot;generator call frame must exist&quot;</span>);

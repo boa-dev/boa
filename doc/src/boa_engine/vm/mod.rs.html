@@ -2611,10 +2611,6 @@
 <span id="2604">2604</span>
 <span id="2605">2605</span>
 <span id="2606">2606</span>
-<span id="2607">2607</span>
-<span id="2608">2608</span>
-<span id="2609">2609</span>
-<span id="2610">2610</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -2656,7 +2652,7 @@
 <span class="doccomment">/// Virtual Machine.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Vm</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">frame</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">CallFrame</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">frames</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">CallFrame</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">stack</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">trace</span>: <span class="ident">bool</span>,
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">stack_size_limit</span>: <span class="ident">usize</span>,
@@ -2698,7 +2694,7 @@
     <span class="doccomment">/// If there is no frame, then this will panic.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">frame</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">CallFrame</span> {
-        <span class="self">self</span>.<span class="ident">frame</span>.<span class="ident">as_ref</span>().<span class="ident">expect</span>(<span class="string">&quot;no frame found&quot;</span>)
+        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">last</span>().<span class="ident">expect</span>(<span class="string">&quot;no frame found&quot;</span>)
     }
 
     <span class="doccomment">/// Retrieves the VM frame mutably</span>
@@ -2708,21 +2704,17 @@
     <span class="doccomment">/// If there is no frame, then this will panic.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">frame_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="ident">CallFrame</span> {
-        <span class="self">self</span>.<span class="ident">frame</span>.<span class="ident">as_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;no frame found&quot;</span>)
+        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">last_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;no frame found&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">frame</span>: <span class="ident">CallFrame</span>) {
-        <span class="kw">let</span> <span class="ident">prev</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">frame</span>.<span class="ident">take</span>();
-        <span class="ident">frame</span>.<span class="ident">prev</span> <span class="op">=</span> <span class="ident">prev</span>;
-        <span class="self">self</span>.<span class="ident">frame</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident">frame</span>));
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">push_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">frame</span>: <span class="ident">CallFrame</span>) {
+        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">push</span>(<span class="ident">frame</span>);
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">CallFrame</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">frame</span>.<span class="ident">take</span>()<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">frame</span> <span class="op">=</span> <span class="ident">current</span>.<span class="ident">prev</span>.<span class="ident">take</span>();
-        <span class="prelude-val">Some</span>(<span class="ident">current</span>)
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">pop_frame</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">CallFrame</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">frames</span>.<span class="ident">pop</span>()
     }
 }
 
@@ -4924,7 +4916,7 @@
                         <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>));
                         <span class="ident">context</span>.<span class="ident">run</span>()<span class="question-mark">?</span>;
 
-                        <span class="kw-2">*</span><span class="ident">frame</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">context</span>
+                        <span class="kw-2">*</span><span class="ident">frame</span> <span class="op">=</span> <span class="ident">context</span>
                             .<span class="ident">vm</span>
                             .<span class="ident">pop_frame</span>()
                             .<span class="ident">expect</span>(<span class="string">&quot;generator call frame must exist&quot;</span>);
@@ -4963,7 +4955,7 @@
                         <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>));
                         <span class="ident">context</span>.<span class="ident">run</span>()<span class="question-mark">?</span>;
 
-                        <span class="kw-2">*</span><span class="ident">frame</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">context</span>
+                        <span class="kw-2">*</span><span class="ident">frame</span> <span class="op">=</span> <span class="ident">context</span>
                             .<span class="ident">vm</span>
                             .<span class="ident">pop_frame</span>()
                             .<span class="ident">expect</span>(<span class="string">&quot;generator call frame must exist&quot;</span>);
@@ -5009,7 +5001,7 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;run&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">trace</span> {
-            <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">prev</span>.<span class="ident">is_some</span>() {
+            <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frames</span>.<span class="ident">get</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frames</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>).<span class="ident">is_some</span>() {
                 <span class="string">&quot; Call Frame &quot;</span>
             } <span class="kw">else</span> {
                 <span class="string">&quot; VM Start &quot;</span>
