@@ -15,10 +15,10 @@ use std::ops::Deref;
 ///
 /// Create a `JsMap` and set a new entry
 /// ```
-/// use boa_engine::{
-///    object::JsMap,
-///    Context, JsValue,
-/// };
+/// # use boa_engine::{
+/// #  object::JsMap,
+/// #  Context, JsValue,
+/// # };
 ///
 /// // Create default `Context`
 /// let context = &mut Context::default();
@@ -36,10 +36,10 @@ use std::ops::Deref;
 ///
 /// Create a `JsMap` from a `JsArray`
 /// ```
-/// use boa_engine::{
-///    object::{JsArray, JsMap},
-///    Context, JsValue,
-/// };
+/// # use boa_engine::{
+/// #    object::{JsArray, JsMap},
+/// #    Context, JsValue,
+/// # };
 ///
 /// // Create a default `Context`
 /// let context = &mut Context::default();
@@ -71,10 +71,10 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{
-    ///    object::JsMap,
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::JsMap,
+    /// #    Context, JsValue,
+    /// # };
     ///
     /// // Create a new context.
     /// let context = &mut Context::default();
@@ -93,10 +93,10 @@ impl JsMap {
     ///
     /// # Examples
     /// ```
-    /// use boa_engine::{
-    ///    object::{JsArray, JsMap},
-    ///    Context, JsResult, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::{JsArray, JsMap},
+    /// #    Context, JsResult, JsValue,
+    /// # };
     ///
     /// // Create a default `Context`
     /// let context = &mut Context::default();
@@ -134,11 +134,11 @@ impl JsMap {
     ///
     /// Valid Example - returns a `JsMap` object
     /// ```
-    /// use boa_engine::{
-    ///    builtins::map::ordered_map::OrderedMap,
-    ///    object::{JsObject, ObjectData, JsMap},
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    builtins::map::ordered_map::OrderedMap,
+    /// #    object::{JsObject, ObjectData, JsMap},
+    /// #    Context, JsValue,
+    /// # };# 
     ///
     /// let context = &mut Context::default();
     ///
@@ -155,10 +155,10 @@ impl JsMap {
     ///
     /// Invalid Example - returns a `TypeError` with the message "object is not a Map"
     /// ```
-    /// use boa_engine::{
-    ///    object::{JsObject, JsArray, JsMap},
-    ///    Context, JsResult, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::{JsObject, JsArray, JsMap},
+    /// #    Context, JsResult, JsValue,
+    /// # };
     ///
     /// let context = &mut Context::default();
     ///
@@ -209,10 +209,10 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{
-    ///    object::JsMap,
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::JsMap,
+    /// #    Context, JsValue,
+    /// # };
     ///
     /// let context = &mut Context::default();
     ///
@@ -243,10 +243,10 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{
-    ///    object::JsMap,
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::JsMap,
+    /// #    Context, JsValue,
+    /// # };
     ///
     /// let context = &mut Context::default();
     ///
@@ -269,10 +269,10 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{
-    ///    object::JsMap,
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::JsMap,
+    /// #    Context, JsValue,
+    /// # };
     ///
     /// let context = &mut Context::default();
     ///
@@ -299,10 +299,10 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{
-    ///    object::JsMap,
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::JsMap,
+    /// #    Context, JsValue,
+    /// # };
     ///
     /// let context = &mut Context::default();
     /// let js_map = JsMap::new(context);
@@ -326,10 +326,10 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    /// use boa_engine::{
-    ///    object::JsMap,
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::JsMap,
+    /// #    Context, JsValue,
+    /// # };
     ///
     /// let context = &mut Context::default();
     ///
@@ -352,10 +352,10 @@ impl JsMap {
     /// # Example
     ///
     /// ```
-    ///  use boa_engine::{
-    ///    object::JsMap,
-    ///    Context, JsValue,
-    /// };
+    /// # use boa_engine::{
+    /// #    object::JsMap,
+    /// #    Context, JsValue,
+    /// # };
     ///
     /// let context = &mut Context::default();
     ///
