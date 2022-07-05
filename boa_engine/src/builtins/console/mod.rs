@@ -294,16 +294,14 @@ impl Console {
 
     fn get_stack_trace(context: &mut Context) -> Vec<String> {
         let mut stack_trace: Vec<String> = vec![];
-        let mut prev_frame = context.vm.frame.as_ref();
 
-        while let Some(frame) = prev_frame {
+        for frame in context.vm.frames.iter().rev() {
             stack_trace.push(
                 context
                     .interner()
                     .resolve_expect(frame.code.name)
                     .to_owned(),
             );
-            prev_frame = frame.prev.as_ref();
         }
 
         stack_trace

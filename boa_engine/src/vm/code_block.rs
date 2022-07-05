@@ -723,7 +723,6 @@ impl JsObject {
                 let has_expressions = code.params.has_expressions();
 
                 context.vm.push_frame(CallFrame {
-                    prev: None,
                     code,
                     pc: 0,
                     catch: Vec::new(),
@@ -844,7 +843,6 @@ impl JsObject {
                 let has_expressions = code.params.has_expressions();
 
                 context.vm.push_frame(CallFrame {
-                    prev: None,
                     code,
                     pc: 0,
                     catch: Vec::new(),
@@ -955,7 +953,6 @@ impl JsObject {
                 let param_count = code.params.parameters.len();
 
                 let call_frame = CallFrame {
-                    prev: None,
                     code,
                     pc: 0,
                     catch: Vec::new(),
@@ -999,7 +996,7 @@ impl JsObject {
                         state: GeneratorState::SuspendedStart,
                         context: Some(Gc::new(Cell::new(GeneratorContext {
                             environments,
-                            call_frame: *call_frame,
+                            call_frame,
                             stack,
                         }))),
                     }),
@@ -1189,7 +1186,6 @@ impl JsObject {
                 let param_count = code.params.parameters.len();
 
                 context.vm.push_frame(CallFrame {
-                    prev: None,
                     code,
                     pc: 0,
                     catch: Vec::new(),

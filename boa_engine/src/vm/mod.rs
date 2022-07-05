@@ -39,7 +39,7 @@ mod tests;
 /// Virtual Machine.
 #[derive(Debug)]
 pub struct Vm {
-    pub(crate) frame: Option<Box<CallFrame>>,
+    pub(crate) frames: Vec<CallFrame>,
     pub(crate) stack: Vec<JsValue>,
     pub(crate) trace: bool,
     pub(crate) stack_size_limit: usize,
@@ -81,7 +81,7 @@ impl Vm {
     /// If there is no frame, then this will panic.
     #[inline]
     pub(crate) fn frame(&self) -> &CallFrame {
-        self.frame.as_ref().expect("no frame found")
+        self.frames.last().expect("no frame found")
     }
 
     /// Retrieves the VM frame mutably
@@ -91,21 +91,17 @@ impl Vm {
     /// If there is no frame, then this will panic.
     #[inline]
     pub(crate) fn frame_mut(&mut self) -> &mut CallFrame {
-        self.frame.as_mut().expect("no frame found")
+        self.frames.last_mut().expect("no frame found")
     }
 
     #[inline]
-    pub(crate) fn push_frame(&mut self, mut frame: CallFrame) {
-        let prev = self.frame.take();
-        frame.prev = prev;
-        self.frame = Some(Box::new(frame));
+    pub(crate) fn push_frame(&mut self, frame: CallFrame) {
+        self.frames.push(frame);
     }
 
     #[inline]
-    pub(crate) fn pop_frame(&mut self) -> Option<Box<CallFrame>> {
-        let mut current = self.frame.take()?;
-        self.frame = current.prev.take();
-        Some(current)
+    pub(crate) fn pop_frame(&mut self) -> Option<CallFrame> {
+        self.frames.pop()
     }
 }
 
@@ -2307,7 +2303,7 @@ impl Context {
                         context.vm.push(args.get_or_undefined(0));
                         context.run()?;
 
-                        *frame = *context
+                        *frame = context
                             .vm
                             .pop_frame()
                             .expect("generator call frame must exist");
@@ -2346,7 +2342,7 @@ impl Context {
                         context.vm.push(args.get_or_undefined(0));
                         context.run()?;
 
-                        *frame = *context
+                        *frame = context
                             .vm
                             .pop_frame()
                             .expect("generator call frame must exist");
@@ -2392,7 +2388,7 @@ impl Context {
         let _timer = Profiler::global().start_event("run", "vm");
 
         if self.vm.trace {
-            let msg = if self.vm.frame().prev.is_some() {
+            let msg = if self.vm.frames.get(self.vm.frames.len() - 2).is_some() {
                 " Call Frame "
             } else {
                 " VM Start "
