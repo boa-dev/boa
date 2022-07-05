@@ -788,15 +788,13 @@ impl JsString {
     // any number of `u16`, since this function ought to fail on an OOM error.
     /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
     fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
-        // We get the layout of the `Inner` type and we extend by the size
-        // of the string array.
         let (layout, offset) = Layout::array::<u16>(str_len)
             .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
             .map(|(layout, offset)| (layout.pad_to_align(), offset))
             .expect("failed to create memory layout");
 
         // SAFETY:
-        // - The layout size of `Inner` is never zero, since it has to store
+        // The layout size of `Inner` is never zero, since it has to store
         // the length of the string and the reference count.
         let inner = unsafe { alloc(layout).cast::<RawJsString>() };
 
@@ -1140,20 +1138,22 @@ impl Drop for JsString {
         if let JsStringPtrKind::Heap(inner) = self.ptr() {
             inner.refcount.set(inner.refcount.get() - 1);
             if inner.refcount.get() == 0 {
+                // SAFETY:
+                // All the checks for the validity of the layout
+                // have already been made on `alloc_inner`, so
+                // we can skip the unwrap.
+                let layout = unsafe {
+                    Layout::for_value(inner)
+                        .extend(Layout::array::<u16>(inner.len).unwrap_unchecked())
+                        .unwrap_unchecked()
+                        .0
+                        .pad_to_align()
+                };
+
                 // Safety:
                 // If refcount is 0 and we call drop, that means this is the last `JsString`
                 // which points to this memory allocation, so deallocating it is safe.
                 unsafe {
-                    ptr::drop_in_place(ptr::slice_from_raw_parts_mut(
-                        inner.data.as_mut_ptr(),
-                        inner.len,
-                    ));
-
-                    let layout = Layout::array::<u16>(inner.len)
-                        .and_then(|layout| Layout::for_value(inner).extend(layout))
-                        .expect("failed to get the string memory layout")
-                        .0
-                        .pad_to_align();
                     dealloc((inner as *mut RawJsString).cast(), layout);
                 }
             }
