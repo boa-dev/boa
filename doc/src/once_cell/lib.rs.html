@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.12.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.13.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1272,6 +1272,41 @@
 <span id="1267">1267</span>
 <span id="1268">1268</span>
 <span id="1269">1269</span>
+<span id="1270">1270</span>
+<span id="1271">1271</span>
+<span id="1272">1272</span>
+<span id="1273">1273</span>
+<span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
+<span id="1289">1289</span>
+<span id="1290">1290</span>
+<span id="1291">1291</span>
+<span id="1292">1292</span>
+<span id="1293">1293</span>
+<span id="1294">1294</span>
+<span id="1295">1295</span>
+<span id="1296">1296</span>
+<span id="1297">1297</span>
+<span id="1298">1298</span>
+<span id="1299">1299</span>
+<span id="1300">1300</span>
+<span id="1301">1301</span>
+<span id="1302">1302</span>
+<span id="1303">1303</span>
+<span id="1304">1304</span>
 </pre><pre class="rust"><code><span class="doccomment">//! # Overview</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `once_cell` provides two new cell-like types, [`unsync::OnceCell`] and [`sync::OnceCell`]. A `OnceCell`</span>
@@ -1738,7 +1773,8 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// let mut cell: OnceCell&lt;u32&gt; = OnceCell::new();</span>
         <span class="doccomment">/// cell.set(92).unwrap();</span>
-        <span class="doccomment">/// cell = OnceCell::new();</span>
+        <span class="doccomment">/// *cell.get_mut().unwrap() = 93;</span>
+        <span class="doccomment">/// assert_eq!(cell.get(), Some(&amp;93));</span>
         <span class="doccomment">/// ```</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">T</span><span class="op">&gt;</span> {
             <span class="comment">// Safe because we have unique access</span>
@@ -2013,6 +2049,23 @@
                 <span class="prelude-val">Some</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>(),
                 <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Lazy instance has previously been poisoned&quot;</span>),
             })
+        }
+
+        <span class="doccomment">/// Gets the reference to the result of this lazy value if</span>
+        <span class="doccomment">/// it was initialized, otherwise returns `None`.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Example</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// use once_cell::unsync::Lazy;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// let lazy = Lazy::new(|| 92);</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// assert_eq!(Lazy::get(&amp;lazy), None);</span>
+        <span class="doccomment">/// assert_eq!(&amp;*lazy, &amp;92);</span>
+        <span class="doccomment">/// assert_eq!(Lazy::get(&amp;lazy), Some(&amp;92));</span>
+        <span class="doccomment">/// ```</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="ident">this</span>.<span class="ident">cell</span>.<span class="ident">get</span>()
         }
     }
 
@@ -2486,6 +2539,23 @@
                 <span class="prelude-val">Some</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>(),
                 <span class="prelude-val">None</span> =&gt; <span class="macro">panic!</span>(<span class="string">&quot;Lazy instance has previously been poisoned&quot;</span>),
             })
+        }
+
+        <span class="doccomment">/// Gets the reference to the result of this lazy value if</span>
+        <span class="doccomment">/// it was initialized, otherwise returns `None`.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Example</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// use once_cell::sync::Lazy;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// let lazy = Lazy::new(|| 92);</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// assert_eq!(Lazy::get(&amp;lazy), None);</span>
+        <span class="doccomment">/// assert_eq!(&amp;*lazy, &amp;92);</span>
+        <span class="doccomment">/// assert_eq!(Lazy::get(&amp;lazy), Some(&amp;92));</span>
+        <span class="doccomment">/// ```</span>
+        <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">F</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
+            <span class="ident">this</span>.<span class="ident">cell</span>.<span class="ident">get</span>()
         }
     }
 
