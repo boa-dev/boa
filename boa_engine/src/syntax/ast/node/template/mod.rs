@@ -47,9 +47,10 @@ impl ToInternedString for TemplateLit {
         for elt in self.elements.iter() {
             match elt {
                 TemplateElement::String(s) => interner.resolve_expect(*s).join_with_context(
+                    |s, buf| buf.push_str(s),
+                    |js, buf| buf.push_str(&js.to_string_escaped()),
                     &mut buf,
-                    String::push_str,
-                    |buf, js| buf.push_str(&js.to_string_escaped()),
+                    true,
                 ),
                 TemplateElement::Expr(n) => {
                     buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)));

@@ -493,13 +493,13 @@ impl Json {
                 // i. Set product to the string-concatenation of product and the
                 // escape sequence for C as specified in the “Escape Sequence”
                 // column of the corresponding row.
-                CodePoint::Unicode('\u{0008}') => product.extend_from_slice(utf16!(r"\b")),
-                CodePoint::Unicode('\u{0009}') => product.extend_from_slice(utf16!(r"\t")),
-                CodePoint::Unicode('\u{000A}') => product.extend_from_slice(utf16!(r"\n")),
-                CodePoint::Unicode('\u{000C}') => product.extend_from_slice(utf16!(r"\f")),
-                CodePoint::Unicode('\u{000D}') => product.extend_from_slice(utf16!(r"\r")),
-                CodePoint::Unicode('\u{0022}') => product.extend_from_slice(utf16!(r#"\""#)),
-                CodePoint::Unicode('\u{005C}') => product.extend_from_slice(utf16!(r"\\")),
+                CodePoint::Unicode('\u{0008}') => product.extend_from_slice(&utf16!(r"\b")),
+                CodePoint::Unicode('\u{0009}') => product.extend_from_slice(&utf16!(r"\t")),
+                CodePoint::Unicode('\u{000A}') => product.extend_from_slice(&utf16!(r"\n")),
+                CodePoint::Unicode('\u{000C}') => product.extend_from_slice(&utf16!(r"\f")),
+                CodePoint::Unicode('\u{000D}') => product.extend_from_slice(&utf16!(r"\r")),
+                CodePoint::Unicode('\u{0022}') => product.extend_from_slice(&utf16!(r#"\""#)),
+                CodePoint::Unicode('\u{005C}') => product.extend_from_slice(&utf16!(r"\\")),
                 // b. Else if C has a numeric value less than 0x0020 (SPACE), or
                 // if C has the same numeric value as a leading surrogate or
                 // trailing surrogate, then
@@ -613,7 +613,7 @@ impl Json {
                 //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
                 //    A comma is not inserted either before the first String or after the last String.
                 // ii. Let final be the string-concatenation of "{", properties, and "}".
-                let separator = utf16!(",");
+                let separator = &utf16!(",");
                 let result = once(&utf16!("{")[..])
                     .chain(itertools::Itertools::intersperse(
                         partial.iter().map(|v| &v[..]),
@@ -727,7 +727,7 @@ impl Json {
                 //    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).
                 //    A comma is not inserted either before the first String or after the last String.
                 // ii. Let final be the string-concatenation of "[", properties, and "]".
-                let separator = utf16!(",");
+                let separator = &utf16!(",");
                 let result = once(&utf16!("[")[..])
                     .chain(itertools::Itertools::intersperse(
                         partial.iter().map(|v| &v[..]),

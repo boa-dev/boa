@@ -130,7 +130,7 @@ fn function_prototype_call() {
         "#;
     let value = forward_val(&mut context, func).unwrap();
     assert!(value.is_string());
-    assert_eq!(value.as_string().unwrap(), utf16!("[object Error]"));
+    assert_eq!(value.as_string().unwrap(), &utf16!("[object Error]"));
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn function_prototype_call_throw() {
     let value = forward_val(&mut context, throw).unwrap_err();
     assert!(value.is_object());
     let string = value.to_string(&mut context).unwrap();
-    assert!(string.starts_with(utf16!("TypeError")));
+    assert!(string.starts_with(&utf16!("TypeError")));
 }
 
 #[test]

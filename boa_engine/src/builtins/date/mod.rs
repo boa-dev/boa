@@ -517,12 +517,12 @@ impl Date {
         let try_first = match hint.as_string() {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
-            Some(string) if string == utf16!("string") || string == utf16!("default") => {
+            Some(string) if string == &utf16!("string") || string == &utf16!("default") => {
                 PreferredType::String
             }
             // 4. Else if hint is "number", then
             // a. Let tryFirst be number.
-            Some(number) if number == utf16!("number") => PreferredType::Number,
+            Some(number) if number == &utf16!("number") => PreferredType::Number,
             // 5. Else, throw a TypeError exception.
             _ => {
                 return context

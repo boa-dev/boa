@@ -1,11 +1,19 @@
-use crate::{interned_str::InternedStr, JStrRef};
+use crate::interned_str::InternedStr;
 
-#[derive(Debug, Default)]
-pub(super) struct FixedString {
-    inner: Vec<u8>,
+#[derive(Debug)]
+pub(super) struct FixedString<Char> {
+    inner: Vec<Char>,
 }
 
-impl FixedString {
+impl<Char> Default for FixedString<Char> {
+    fn default() -> Self {
+        Self {
+            inner: Vec::default(),
+        }
+    }
+}
+
+impl<Char> FixedString<Char> {
     /// Creates a new, pinned [`FixedString`].
     pub(super) fn new(capacity: usize) -> Self {
         Self {
@@ -23,7 +31,12 @@ impl FixedString {
     pub(super) fn is_empty(&self) -> bool {
         self.inner.is_empty()
     }
+}
 
+impl<Char> FixedString<Char>
+where
+    Char: Clone,
+{
     /// Tries to push `string` to the [`FixedString`], and returns
     /// an [`InternedStr`] pointer to the stored `string`, or
     /// `None` if the capacity is not enough to store `string`.
@@ -31,29 +44,13 @@ impl FixedString {
     /// # Safety
     ///
     /// The caller is responsible for ensuring `self` outlives the returned
-    /// `InternedStr`.
-    pub(super) unsafe fn push(&mut self, string: JStrRef<'_>) -> Option<InternedStr> {
+    /// [`InternedStr`].
+    pub(super) unsafe fn push(&mut self, string: &[Char]) -> Option<InternedStr<Char>> {
         let capacity = self.inner.capacity();
-        let padding_len = match string.encoding() {
-            crate::Encoding::Utf8 => 0,
-            crate::Encoding::Utf16 => {
-                if self.inner.len() % 2 == 0 {
-                    0
-                } else {
-                    1
-                }
-            }
-        };
-        (capacity >= self.inner.len() + string.byte_len() + padding_len).then(|| {
-            for _ in 0..padding_len {
-                self.inner.push(0);
-            }
+        (capacity >= self.inner.len() + string.len()).then(|| {
             // SAFETY:
-            // - The caller is responsible for extending the lifetime
+            // The caller is responsible for extending the lifetime
             // of `self` to outlive the return value.
-            // - With the checks above, we've already ensured
-            // that, if `string` is a UTF-16 string, then the next push to
-            // `inner` will be 2-byte aligned.
             unsafe { self.push_unchecked(string) }
         })
     }
@@ -66,18 +63,16 @@ impl FixedString {
     /// # Safety
     ///
     /// The caller is responsible for ensuring that `self` outlives the returned
-    /// `InternedStr`, that it has enough capacity to store `string` without
-    /// reallocating and that, if `string` is UTF-16 encoded, then the pushed bytes
-    /// will be 2-byte aligned in `inner` .
-    pub(super) unsafe fn push_unchecked(&mut self, string: JStrRef<'_>) -> InternedStr {
-        let str_bytes = string.as_byte_slice();
+    /// [`InternedStr`] and that it has enough capacity to store `string` without
+    /// reallocating.
+    pub(super) unsafe fn push_unchecked(&mut self, string: &[Char]) -> InternedStr<Char> {
         let old_len = self.inner.len();
-        self.inner.extend_from_slice(str_bytes);
+        self.inner.extend_from_slice(string);
 
         // SAFETY: The caller is responsible for extending the lifetime
         // of `self` to outlive the return value, and for ensuring
         // the alignment of `string` is correct.
-        let ptr = std::ptr::addr_of!(self.inner[old_len]);
-        unsafe { InternedStr::new(ptr, string.slice_len(), string.encoding()) }
+        let ptr = &self.inner[old_len..self.inner.len()];
+        unsafe { InternedStr::new(ptr.into()) }
     }
 }

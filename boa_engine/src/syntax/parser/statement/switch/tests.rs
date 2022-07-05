@@ -151,9 +151,9 @@ fn check_separated_switch() {
         "#;
 
     let mut interner = Interner::default();
-    let log = interner.get_or_intern_static("log");
-    let console = interner.get_or_intern_static("console");
-    let a = interner.get_or_intern_static("a");
+    let log = interner.get_or_intern_static("log", &utf16!("log"));
+    let console = interner.get_or_intern_static("console", &utf16!("console"));
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
 
     check_parser(
         s,
@@ -195,7 +195,7 @@ fn check_separated_switch() {
                 Some(vec![Call::new(
                     GetConstField::new(Identifier::new(console), log),
                     vec![Node::from(Const::from(
-                        interner.get_or_intern_static(utf16!("Default").as_slice()),
+                        interner.get_or_intern_static("Default", &utf16!("Default")),
                     ))],
                 )
                 .into()]),

@@ -20,7 +20,10 @@ fn check_inline_with_empty_try_catch() {
         vec![Try::new(
             vec![],
             Some(Catch::new(
-                Declaration::new_with_identifier(interner.get_or_intern_static("e"), None),
+                Declaration::new_with_identifier(
+                    interner.get_or_intern_static("e", &utf16!("e")),
+                    None,
+                ),
                 vec![],
             )),
             None,
@@ -38,14 +41,17 @@ fn check_inline_with_var_decl_inside_try() {
         vec![Try::new(
             vec![DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("x"),
+                    interner.get_or_intern_static("x", &utf16!("x")),
                     Some(Const::from(1).into()),
                 )]
                 .into(),
             )
             .into()],
             Some(Catch::new(
-                Declaration::new_with_identifier(interner.get_or_intern_static("e"), None),
+                Declaration::new_with_identifier(
+                    interner.get_or_intern_static("e", &utf16!("e")),
+                    None,
+                ),
                 vec![],
             )),
             None,
@@ -63,17 +69,20 @@ fn check_inline_with_var_decl_inside_catch() {
         vec![Try::new(
             vec![DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("x"),
+                    interner.get_or_intern_static("x", &utf16!("x")),
                     Some(Const::from(1).into()),
                 )]
                 .into(),
             )
             .into()],
             Some(Catch::new(
-                Declaration::new_with_identifier(interner.get_or_intern_static("e"), None),
+                Declaration::new_with_identifier(
+                    interner.get_or_intern_static("e", &utf16!("e")),
+                    None,
+                ),
                 vec![DeclarationList::Var(
                     vec![Declaration::new_with_identifier(
-                        interner.get_or_intern_static("x"),
+                        interner.get_or_intern_static("x", &utf16!("x")),
                         Some(Const::from(1).into()),
                     )]
                     .into(),
@@ -95,7 +104,10 @@ fn check_inline_with_empty_try_catch_finally() {
         vec![Try::new(
             vec![],
             Some(Catch::new(
-                Declaration::new_with_identifier(interner.get_or_intern_static("e"), None),
+                Declaration::new_with_identifier(
+                    interner.get_or_intern_static("e", &utf16!("e")),
+                    None,
+                ),
                 vec![],
             )),
             Some(Finally::from(vec![])),
@@ -124,7 +136,7 @@ fn check_inline_with_empty_try_var_decl_in_finally() {
             None,
             Some(Finally::from(vec![DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("x"),
+                    interner.get_or_intern_static("x", &utf16!("x")),
                     Some(Const::from(1).into()),
                 )]
                 .into(),
@@ -147,7 +159,7 @@ fn check_inline_empty_try_paramless_catch() {
                 None,
                 vec![DeclarationList::Var(
                     vec![Declaration::new_with_identifier(
-                        interner.get_or_intern_static("x"),
+                        interner.get_or_intern_static("x", &utf16!("x")),
                         Some(Const::from(1).into()),
                     )]
                     .into(),
@@ -164,7 +176,7 @@ fn check_inline_empty_try_paramless_catch() {
 #[test]
 fn check_inline_with_binding_pattern_object() {
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a");
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
     check_parser(
         "try {} catch ({ a, b: c }) {}",
         vec![Try::new(
@@ -178,9 +190,9 @@ fn check_inline_with_binding_pattern_object() {
                             default_init: None,
                         },
                         BindingPatternTypeObject::SingleName {
-                            ident: interner.get_or_intern_static("c"),
+                            ident: interner.get_or_intern_static("c", &utf16!("c")),
                             property_name: PropertyName::Literal(
-                                interner.get_or_intern_static("b"),
+                                interner.get_or_intern_static("b", &utf16!("b")),
                             ),
                             default_init: None,
                         },
@@ -207,11 +219,11 @@ fn check_inline_with_binding_pattern_array() {
                 Some(Declaration::new_with_array_pattern(
                     vec![
                         BindingPatternTypeArray::SingleName {
-                            ident: interner.get_or_intern_static("a"),
+                            ident: interner.get_or_intern_static("a", &utf16!("a")),
                             default_init: None,
                         },
                         BindingPatternTypeArray::SingleName {
-                            ident: interner.get_or_intern_static("b"),
+                            ident: interner.get_or_intern_static("b", &utf16!("b")),
                             default_init: None,
                         },
                     ],
@@ -235,13 +247,15 @@ fn check_catch_with_var_redeclaration() {
             Block::from(vec![]),
             Some(Catch::new::<_, Declaration, _>(
                 Some(Declaration::new_with_identifier(
-                    Identifier::new(interner.get_or_intern_static("e")),
+                    Identifier::new(interner.get_or_intern_static("e", &utf16!("e"))),
                     None,
                 )),
                 vec![DeclarationList::Var(
                     vec![Declaration::new_with_identifier(
-                        interner.get_or_intern_static("e"),
-                        Some(Const::from(interner.get_or_intern_static(utf16!("oh"))).into()),
+                        interner.get_or_intern_static("e", &utf16!("e")),
+                        Some(
+                            Const::from(interner.get_or_intern_static("oh", &utf16!("oh"))).into(),
+                        ),
                     )]
                     .into(),
                 )

@@ -293,7 +293,7 @@ impl Context {
             let name_str = self
                 .interner()
                 .resolve_expect(name)
-                .into_common::<JsString>();
+                .into_common::<JsString>(false);
             let desc = self
                 .realm
                 .global_property_map

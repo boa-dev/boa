@@ -81,7 +81,6 @@ dependencies = [
  "boa_profiler",
  "boa_unicode",
  "chrono",
- "const-utf16",
  "criterion",
  "dyn-clone",
  "fast-float",
@@ -111,6 +110,7 @@ dependencies = [
  "sys-locale",
  "tap",
  "unicode-normalization",
+ "utf16_lit",
 ]
 
 [[package]]
@@ -134,12 +134,13 @@ dependencies = [
 name = "boa_interner"
 version = "0.16.0"
 dependencies = [
- "byte-slice-cast",
- "const-utf16",
+ "indexmap",
+ "once_cell",
  "phf",
  "rustc-hash",
  "serde",
  "static_assertions",
+ "utf16_lit",
 ]
 
 [[package]]
@@ -192,12 +193,6 @@ name = "bumpalo"
 version = "3.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1ad822118d20d2c234f427000d5acc36eabe1e29a348c89b63dd60b13f28e5d"
-
-[[package]]
-name = "byte-slice-cast"
-version = "1.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87c5fdd0166095e1d463fc6cc01aa8ce547ad77a4e84d42eb6762b084e28067e"
 
 [[package]]
 name = "byteorder"
@@ -325,12 +320,6 @@ dependencies = [
  "lazy_static",
  "winapi",
 ]
-
-[[package]]
-name = "const-utf16"
-version = "0.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90feefab165fe011746e3be2f0708b7b180fcbd9f5054ff81a454d7bd93d8285"
 
 [[package]]
 name = "core-foundation-sys"
@@ -1623,6 +1612,12 @@ name = "unsafe-libyaml"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1e5fa573d8ac5f1a856f8d7be41d390ee973daf97c806b2c1a465e4e1406e68"
+
+[[package]]
+name = "utf16_lit"
+version = "2.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14706d2a800ee8ff38c1d3edb873cd616971ea59eb7c0d046bb44ef59b06a1ae"
 
 [[package]]
 name = "utf8parse"

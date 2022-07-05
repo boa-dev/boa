@@ -15,7 +15,7 @@ fn check_string() {
     let mut interner = Interner::default();
     check_parser(
         "\"hello\"",
-        vec![Const::from(interner.get_or_intern_static(utf16!("hello"))).into()],
+        vec![Const::from(interner.get_or_intern_static("hello", &utf16!("hello"))).into()],
         interner,
     );
 }

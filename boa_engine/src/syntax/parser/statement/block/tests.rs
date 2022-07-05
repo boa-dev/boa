@@ -1,5 +1,6 @@
 //! Block statement parsing tests.
 
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -29,7 +30,7 @@ fn empty() {
 #[test]
 fn non_empty() {
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a");
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
     check_block(
         r"{
             var a = 10;
@@ -50,8 +51,8 @@ fn non_empty() {
     );
 
     let mut interner = Interner::default();
-    let hello = interner.get_or_intern_static("hello");
-    let a = interner.get_or_intern_static("a");
+    let hello = interner.get_or_intern_static("hello", &utf16!("hello"));
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
     check_block(
         r"{
             function hello() {
@@ -85,8 +86,8 @@ fn non_empty() {
 #[test]
 fn hoisting() {
     let mut interner = Interner::default();
-    let hello = interner.get_or_intern_static("hello");
-    let a = interner.get_or_intern_static("a");
+    let hello = interner.get_or_intern_static("hello", &utf16!("hello"));
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
     check_block(
         r"{
             var a = hello();
@@ -115,7 +116,7 @@ fn hoisting() {
     );
 
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a");
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
     check_block(
         r"{
             a = 10;

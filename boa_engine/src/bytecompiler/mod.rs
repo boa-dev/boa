@@ -644,7 +644,7 @@ impl<'b> ByteCompiler<'b> {
             Node::Const(c) => {
                 match c {
                     Const::String(v) => self.emit_push_literal(Literal::String(
-                        self.interner().resolve_expect(*v).into_common(),
+                        self.interner().resolve_expect(*v).into_common(false),
                     )),
                     Const::Int(v) => self.emit_push_integer(*v),
                     Const::Num(v) => self.emit_push_rational(*v),
@@ -1148,7 +1148,7 @@ impl<'b> ByteCompiler<'b> {
                 for element in template_literal.elements() {
                     match element {
                         TemplateElement::String(s) => self.emit_push_literal(Literal::String(
-                            self.interner().resolve_expect(*s).into_common(),
+                            self.interner().resolve_expect(*s).into_common(false),
                         )),
                         TemplateElement::Expr(expr) => {
                             self.compile_expr(expr, true)?;
@@ -1240,7 +1240,7 @@ impl<'b> ByteCompiler<'b> {
                 for cooked in template.cookeds() {
                     if let Some(cooked) = cooked {
                         self.emit_push_literal(Literal::String(
-                            self.interner().resolve_expect(*cooked).into_common(),
+                            self.interner().resolve_expect(*cooked).into_common(false),
                         ));
                     } else {
                         self.emit_opcode(Opcode::PushUndefined);
@@ -1252,7 +1252,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::PushNewArray);
                 for raw in template.raws() {
                     self.emit_push_literal(Literal::String(
-                        self.interner().resolve_expect(*raw).into_common(),
+                        self.interner().resolve_expect(*raw).into_common(false),
                     ));
                     self.emit_opcode(Opcode::PushValueToArray);
                 }
@@ -2336,7 +2336,7 @@ impl<'b> ByteCompiler<'b> {
 
                             for key in excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(*key).into_common(),
+                                    self.interner().resolve_expect(*key).into_common(false),
                                 ));
                             }
 
@@ -2354,7 +2354,7 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_opcode(Opcode::PushEmptyObject);
                             for key in excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(*key).into_common(),
+                                    self.interner().resolve_expect(*key).into_common(false),
                                 ));
                             }
                             self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32, 0]);
@@ -2943,7 +2943,7 @@ impl<'b> ByteCompiler<'b> {
                     match name {
                         PropertyName::Literal(name) => {
                             self.emit_push_literal(Literal::String(
-                                self.interner().resolve_expect(*name).into_common(),
+                                self.interner().resolve_expect(*name).into_common(false),
                             ));
                         }
                         PropertyName::Computed(name) => {

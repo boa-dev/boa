@@ -7,6 +7,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
+use crate::string::utf16;
 use crate::syntax::ast::op::{BinOp, CompOp};
 use boa_interner::{Interner, Sym};
 use std::{convert::TryInto, error, fmt, str::FromStr};
@@ -491,56 +492,57 @@ impl Keyword {
         }
     }
 
-    /// Gets the keyword as a string.
-    pub fn as_str(self) -> &'static str {
+    /// Gets the keyword as a tuple of strings.
+    pub fn as_str(self) -> (&'static str, &'static [u16]) {
         match self {
-            Self::Await => "await",
-            Self::Async => "async",
-            Self::Break => "break",
-            Self::Case => "case",
-            Self::Catch => "catch",
-            Self::Class => "class",
-            Self::Continue => "continue",
-            Self::Const => "const",
-            Self::Debugger => "debugger",
-            Self::Default => "default",
-            Self::Delete => "delete",
-            Self::Do => "do",
-            Self::Else => "else",
-            Self::Enum => "enum",
-            Self::Extends => "extends",
-            Self::Export => "export",
-            Self::False => "false",
-            Self::Finally => "finally",
-            Self::For => "for",
-            Self::Function => "function",
-            Self::If => "if",
-            Self::In => "in",
-            Self::InstanceOf => "instanceof",
-            Self::Import => "import",
-            Self::Let => "let",
-            Self::New => "new",
-            Self::Null => "null",
-            Self::Of => "of",
-            Self::Return => "return",
-            Self::Super => "super",
-            Self::Switch => "switch",
-            Self::This => "this",
-            Self::Throw => "throw",
-            Self::True => "true",
-            Self::Try => "try",
-            Self::TypeOf => "typeof",
-            Self::Var => "var",
-            Self::Void => "void",
-            Self::While => "while",
-            Self::With => "with",
-            Self::Yield => "yield",
+            Self::Await => ("await", &utf16!("await")),
+            Self::Async => ("async", &utf16!("async")),
+            Self::Break => ("break", &utf16!("break")),
+            Self::Case => ("case", &utf16!("case")),
+            Self::Catch => ("catch", &utf16!("catch")),
+            Self::Class => ("class", &utf16!("class")),
+            Self::Continue => ("continue", &utf16!("continue")),
+            Self::Const => ("const", &utf16!("const")),
+            Self::Debugger => ("debugger", &utf16!("debugger")),
+            Self::Default => ("default", &utf16!("default")),
+            Self::Delete => ("delete", &utf16!("delete")),
+            Self::Do => ("do", &utf16!("do")),
+            Self::Else => ("else", &utf16!("else")),
+            Self::Enum => ("enum", &utf16!("enum")),
+            Self::Extends => ("extends", &utf16!("extends")),
+            Self::Export => ("export", &utf16!("export")),
+            Self::False => ("false", &utf16!("false")),
+            Self::Finally => ("finally", &utf16!("finally")),
+            Self::For => ("for", &utf16!("for")),
+            Self::Function => ("function", &utf16!("function")),
+            Self::If => ("if", &utf16!("if")),
+            Self::In => ("in", &utf16!("in")),
+            Self::InstanceOf => ("instanceof", &utf16!("instanceof")),
+            Self::Import => ("import", &utf16!("import")),
+            Self::Let => ("let", &utf16!("let")),
+            Self::New => ("new", &utf16!("new")),
+            Self::Null => ("null", &utf16!("null")),
+            Self::Of => ("of", &utf16!("of")),
+            Self::Return => ("return", &utf16!("return")),
+            Self::Super => ("super", &utf16!("super")),
+            Self::Switch => ("switch", &utf16!("switch")),
+            Self::This => ("this", &utf16!("this")),
+            Self::Throw => ("throw", &utf16!("throw")),
+            Self::True => ("true", &utf16!("true")),
+            Self::Try => ("try", &utf16!("try")),
+            Self::TypeOf => ("typeof", &utf16!("typeof")),
+            Self::Var => ("var", &utf16!("var")),
+            Self::Void => ("void", &utf16!("void")),
+            Self::While => ("while", &utf16!("while")),
+            Self::With => ("with", &utf16!("with")),
+            Self::Yield => ("yield", &utf16!("yield")),
         }
     }
 
     /// Converts the keyword to a symbol in the given interner.
     pub fn to_sym(self, interner: &mut Interner) -> Sym {
-        interner.get_or_intern_static(self.as_str())
+        let (utf8, utf16) = self.as_str();
+        interner.get_or_intern_static(utf8, utf16)
     }
 }
 
@@ -623,6 +625,6 @@ impl FromStr for Keyword {
 
 impl fmt::Display for Keyword {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        fmt::Display::fmt(self.as_str(), f)
+        fmt::Display::fmt(self.as_str().0, f)
     }
 }

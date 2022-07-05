@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{Block, Break, Node, WhileLoop},
@@ -48,9 +49,10 @@ fn new_line_semicolon_insertion() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![
-                Break::new(interner.get_or_intern_static("test")).into()
-            ]),
+            Block::from(vec![Break::new(
+                interner.get_or_intern_static("test", &utf16!("test")),
+            )
+            .into()]),
         )
         .into()],
         interner,
@@ -79,9 +81,10 @@ fn new_line_block() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![
-                Break::new(interner.get_or_intern_static("test")).into()
-            ]),
+            Block::from(vec![Break::new(
+                interner.get_or_intern_static("test", &utf16!("test")),
+            )
+            .into()]),
         )
         .into()],
         interner,
@@ -97,9 +100,10 @@ fn reserved_label() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![
-                Break::new(interner.get_or_intern_static("await")).into()
-            ]),
+            Block::from(vec![Break::new(
+                interner.get_or_intern_static("await", &utf16!("await")),
+            )
+            .into()]),
         )
         .into()],
         interner,
@@ -112,9 +116,10 @@ fn reserved_label() {
         }",
         vec![WhileLoop::new(
             Const::from(true),
-            Block::from(vec![
-                Break::new(interner.get_or_intern_static("yield")).into()
-            ]),
+            Block::from(vec![Break::new(
+                interner.get_or_intern_static("yield", &utf16!("yield")),
+            )
+            .into()]),
         )
         .into()],
         interner,

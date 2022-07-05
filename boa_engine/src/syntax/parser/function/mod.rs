@@ -10,6 +10,7 @@
 #[cfg(test)]
 mod tests;
 
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{self, FormalParameterList},
@@ -531,11 +532,8 @@ where
                 TokenKind::StringLiteral(string)
                     if interner.resolve_expect(*string).join(
                         |s| s == "use strict",
-                        |g| {
-                            String::from_utf16(g)
-                                .map(|s| s == "use strict")
-                                .unwrap_or_default()
-                        },
+                        |g| g == utf16!("use strict"),
+                        true,
                     ) =>
                 {
                     cursor.set_strict_mode(true);

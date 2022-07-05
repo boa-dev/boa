@@ -10,6 +10,7 @@
 #[cfg(test)]
 mod tests;
 
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -539,12 +540,19 @@ where
                 Numeric::BigInt(num) => Node::Const(Const::from(num.clone())).into(),
             },
             TokenKind::Keyword((word, _)) => {
-                Node::Const(Const::from(interner.get_or_intern_static(word.as_str()))).into()
+                let (utf8, utf16) = word.as_str();
+                Node::Const(Const::from(interner.get_or_intern_static(utf8, utf16))).into()
             }
             TokenKind::NullLiteral => Node::Const(Const::from(Sym::NULL)).into(),
             TokenKind::BooleanLiteral(bool) => match bool {
-                true => Node::Const(Const::from(interner.get_or_intern_static("true"))).into(),
-                false => Node::Const(Const::from(interner.get_or_intern_static("false"))).into(),
+                true => Node::Const(Const::from(
+                    interner.get_or_intern_static("true", &utf16!("true")),
+                ))
+                .into(),
+                false => Node::Const(Const::from(
+                    interner.get_or_intern_static("false", &utf16!("false")),
+                ))
+                .into(),
             },
             _ => return Err(ParseError::AbruptEnd),
         };

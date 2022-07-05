@@ -481,7 +481,7 @@ impl Context {
                     let key = self
                         .interner()
                         .resolve_expect(binding_locator.name())
-                        .into_common();
+                        .into_common(false);
                     self.global_bindings_mut().entry(key).or_insert(
                         PropertyDescriptor::builder()
                             .value(JsValue::Undefined)
@@ -508,7 +508,7 @@ impl Context {
                     let key = self
                         .interner()
                         .resolve_expect(binding_locator.name())
-                        .into_common::<JsString>()
+                        .into_common::<JsString>(false)
                         .into();
                     crate::object::internal_methods::global::global_set_no_receiver(
                         &key, value, self,
@@ -556,7 +556,7 @@ impl Context {
                         let key: JsString = self
                             .interner()
                             .resolve_expect(binding_locator.name())
-                            .into_common();
+                            .into_common(false);
                         match self.global_bindings_mut().get(&key) {
                             Some(desc) => match desc.kind() {
                                 DescriptorKind::Data {
@@ -614,7 +614,7 @@ impl Context {
                         let key: JsString = self
                             .interner()
                             .resolve_expect(binding_locator.name())
-                            .into_common();
+                            .into_common(false);
                         match self.global_bindings_mut().get(&key) {
                             Some(desc) => match desc.kind() {
                                 DescriptorKind::Data {
@@ -658,7 +658,7 @@ impl Context {
                         let key: JsString = self
                             .interner()
                             .resolve_expect(binding_locator.name())
-                            .into_common();
+                            .into_common(false);
                         let exists = self.global_bindings_mut().contains_key(&key);
 
                         if !exists && self.vm.frame().code.strict {
@@ -754,7 +754,7 @@ impl Context {
                 let name: PropertyKey = self
                     .interner()
                     .resolve_expect(name)
-                    .into_common::<JsString>()
+                    .into_common::<JsString>(false)
                     .into();
                 let result = object.get(name, self)?;
 
@@ -804,7 +804,7 @@ impl Context {
                 let name: PropertyKey = self
                     .interner()
                     .resolve_expect(name)
-                    .into_common::<JsString>()
+                    .into_common::<JsString>(false)
                     .into();
 
                 object.set(name, value, self.vm.frame().code.strict, self)?;
@@ -822,7 +822,7 @@ impl Context {
                 let name = self
                     .interner()
                     .resolve_expect(name)
-                    .into_common::<JsString>();
+                    .into_common::<JsString>(false);
                 object.__define_own_property__(
                     name.into(),
                     PropertyDescriptor::builder()
@@ -853,7 +853,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self.interner().resolve_expect(name);
                 object.__define_own_property__(
-                    name.into_common::<JsString>().into(),
+                    name.into_common::<JsString>(false).into(),
                     PropertyDescriptor::builder()
                         .value(value)
                         .writable(true)
@@ -934,7 +934,7 @@ impl Context {
                 let name = self
                     .interner()
                     .resolve_expect(name)
-                    .into_common::<JsString>()
+                    .into_common::<JsString>(false)
                     .into();
                 let set = object
                     .__get_own_property__(&name, self)?
@@ -968,7 +968,7 @@ impl Context {
                 let name = self
                     .interner()
                     .resolve_expect(name)
-                    .into_common::<JsString>()
+                    .into_common::<JsString>(false)
                     .into();
                 let set = object
                     .__get_own_property__(&name, self)?
@@ -1046,7 +1046,7 @@ impl Context {
                 let name = self
                     .interner()
                     .resolve_expect(name)
-                    .into_common::<JsString>()
+                    .into_common::<JsString>(false)
                     .into();
                 let get = object
                     .__get_own_property__(&name, self)?
@@ -1080,7 +1080,7 @@ impl Context {
                 let name = self
                     .interner()
                     .resolve_expect(name)
-                    .into_common::<JsString>()
+                    .into_common::<JsString>(false)
                     .into();
                 let get = object
                     .__get_own_property__(&name, self)?
@@ -1387,7 +1387,7 @@ impl Context {
                 let key = self
                     .interner()
                     .resolve_expect(key)
-                    .into_common::<JsString>()
+                    .into_common::<JsString>(false)
                     .into();
                 let object = self.vm.pop();
                 let result = object.to_object(self)?.__delete__(&key, self)?;

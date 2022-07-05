@@ -12,6 +12,7 @@ pub mod error;
 mod tests;
 
 use crate::{
+    string::utf16,
     syntax::{
         ast::{
             node::{ContainsSymbol, FormalParameterList, StatementList},
@@ -270,11 +271,8 @@ impl Script {
                     TokenKind::StringLiteral(string)
                         if context.interner_mut().resolve_expect(*string).join(
                             |s| s == "use strict",
-                            |g| {
-                                String::from_utf16(g)
-                                    .map(|s| s == "use strict")
-                                    .unwrap_or_default()
-                            },
+                            |g| g == utf16!("use strict"),
+                            true,
                         ) =>
                     {
                         cursor.set_strict_mode(true);
@@ -323,7 +321,7 @@ impl Script {
                             .realm
                             .global_property_map
                             .string_property_map()
-                            .get(&name_str.into_common::<JsString>());
+                            .get(&name_str.into_common::<JsString>(false));
                         let non_configurable_binding_exists = match desc {
                             Some(desc) => !matches!(desc.configurable(), Some(true)),
                             None => false,

@@ -1968,10 +1968,10 @@ impl String {
         // into the normalization form named by f as specified in
         // https://unicode.org/reports/tr15/.
         let normalization = match f {
-            ntype if &ntype == utf16!("NFC") => Normalization::Nfc,
-            ntype if &ntype == utf16!("NFD") => Normalization::Nfd,
-            ntype if &ntype == utf16!("NFKC") => Normalization::Nfkc,
-            ntype if &ntype == utf16!("NFKD") => Normalization::Nfkd,
+            ntype if ntype == utf16!("NFC") => Normalization::Nfc,
+            ntype if ntype == utf16!("NFD") => Normalization::Nfd,
+            ntype if ntype == utf16!("NFKC") => Normalization::Nfkc,
+            ntype if ntype == utf16!("NFKD") => Normalization::Nfkd,
             // 5. If f is not one of "NFC", "NFD", "NFKC", or "NFKD", throw a RangeError exception.
             _ => {
                 return context.throw_range_error(
@@ -2213,7 +2213,7 @@ pub(crate) fn get_substitution(
                     // 1. If namedCaptures is undefined, the replacement text is the String "$<".
                     // 2. Else,
                     if named_captures.is_undefined() {
-                        result.extend_from_slice(utf16!("$<"));
+                        result.extend_from_slice(&utf16!("$<"));
                     } else {
                         // a. Assert: Type(namedCaptures) is Object.
                         let named_captures = named_captures
@@ -2237,7 +2237,7 @@ pub(crate) fn get_substitution(
                         // c. If none is found, the replacement text is the String "$<".
                         #[allow(clippy::if_not_else)]
                         if !found {
-                            result.extend_from_slice(utf16!("$<"));
+                            result.extend_from_slice(&utf16!("$<"));
                             result.extend_from_slice(&group_name);
                         // d. Else,
                         } else {

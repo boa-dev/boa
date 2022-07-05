@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -12,7 +13,7 @@ use boa_interner::Interner;
 #[test]
 fn check_generator_function_expression() {
     let mut interner = Interner::default();
-    let gen = interner.get_or_intern_static("gen");
+    let gen = interner.get_or_intern_static("gen", &utf16!("gen"));
     check_parser(
         "const gen = function*() {
             yield 1;
@@ -40,7 +41,7 @@ fn check_generator_function_expression() {
 #[test]
 fn check_generator_function_delegate_yield_expression() {
     let mut interner = Interner::default();
-    let gen = interner.get_or_intern_static("gen");
+    let gen = interner.get_or_intern_static("gen", &utf16!("gen"));
     check_parser(
         "const gen = function*() {
             yield* 1;

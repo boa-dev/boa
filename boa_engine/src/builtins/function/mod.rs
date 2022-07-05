@@ -830,20 +830,20 @@ impl BuiltInFunctionObject {
                 },
                 Some(name),
             ) => Ok(js_string!(
-                utf16!("function "),
+                &utf16!("function "),
                 &name,
-                utf16!("() {{\n  [native Code]\n}}")
+                &utf16!("() {{\n  [native Code]\n}}")
             )
             .into()),
             (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
                 Ok(js_string!("[Function (anonymous)]").into())
             }
             (Function::Ordinary { .. }, Some(name)) => {
-                Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
+                Ok(js_string!(&utf16!("[Function: "), &name, &utf16!("]")).into())
             }
             (Function::Ordinary { .. }, None) => Ok(js_string!("[Function (anonymous)]").into()),
             (Function::Generator { .. }, Some(name)) => {
-                Ok(js_string!(utf16!("[Function*: "), &name, utf16!("]")).into())
+                Ok(js_string!(&utf16!("[Function*: "), &name, &utf16!("]")).into())
             }
             (Function::Generator { .. }, None) => Ok(js_string!("[Function* (anonymous)]").into()),
             _ => Ok("TODO".into()),
@@ -944,7 +944,7 @@ fn set_function_name(
             // a. Let description be name's [[Description]] value.
             if let Some(desc) = sym.description() {
                 // c. Else, set name to the string-concatenation of "[", description, and "]".
-                js_string!(utf16!("["), &desc, utf16!("]"))
+                js_string!(&utf16!("["), &desc, &utf16!("]"))
             } else {
                 // b. If description is undefined, set name to the empty String.
                 js_string!()
@@ -964,7 +964,7 @@ fn set_function_name(
 
     // 5. If prefix is present, then
     if let Some(prefix) = prefix {
-        name = js_string!(&prefix, utf16!(" "), &name);
+        name = js_string!(&prefix, &utf16!(" "), &name);
         // b. If F has an [[InitialName]] internal slot, then
         // i. Optionally, set F.[[InitialName]] to name.
         // todo: implement [[InitialName]] for builtins

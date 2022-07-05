@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -13,7 +14,7 @@ use boa_interner::{Interner, Sym};
 #[test]
 fn check_function_expression() {
     let mut interner = Interner::default();
-    let add = interner.get_or_intern_static("add");
+    let add = interner.get_or_intern_static("add", &utf16!("add"));
     check_parser(
         "const add = function() {
             return 1;
@@ -41,8 +42,8 @@ fn check_function_expression() {
 #[test]
 fn check_nested_function_expression() {
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a");
-    let b = interner.get_or_intern_static("b");
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
+    let b = interner.get_or_intern_static("b", &utf16!("b"));
     check_parser(
         "const a = function() {
             const b = function() {
@@ -91,54 +92,56 @@ fn check_nested_function_expression() {
 
 #[test]
 fn check_function_non_reserved_keyword() {
-    let genast = |keyword, interner: &mut Interner| {
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("add"),
-                Some(
-                    FunctionExpr::new::<_, _, StatementList>(
-                        Some(interner.get_or_intern_static(keyword)),
-                        FormalParameterList::default(),
-                        vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
-                    )
-                    .into(),
-                ),
-            )]
-            .into(),
-        )
-        .into()]
-    };
+    macro_rules! genast {
+        ($keyword:literal, $interner:expr) => {
+            vec![DeclarationList::Const(
+                vec![Declaration::new_with_identifier(
+                    $interner.get_or_intern_static("add", &utf16!("add")[..]),
+                    Some(
+                        FunctionExpr::new::<_, _, StatementList>(
+                            Some($interner.get_or_intern_static($keyword, &utf16!($keyword)[..])),
+                            FormalParameterList::default(),
+                            vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
+                        )
+                        .into(),
+                    ),
+                )]
+                .into(),
+            )
+            .into()]
+        };
+    }
 
     let mut interner = Interner::default();
-    let ast = genast("as", &mut interner);
+    let ast = genast!("as", interner);
     check_parser("const add = function as() { return 1; };", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("async", &mut interner);
+    let ast = genast!("async", interner);
     check_parser("const add = function async() { return 1; };", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("from", &mut interner);
+    let ast = genast!("from", interner);
     check_parser("const add = function from() { return 1; };", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("get", &mut interner);
+    let ast = genast!("get", interner);
     check_parser("const add = function get() { return 1; };", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("meta", &mut interner);
+    let ast = genast!("meta", interner);
     check_parser("const add = function meta() { return 1; };", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("of", &mut interner);
+    let ast = genast!("of", interner);
     check_parser("const add = function of() { return 1; };", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("set", &mut interner);
+    let ast = genast!("set", interner);
     check_parser("const add = function set() { return 1; };", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("target", &mut interner);
+    let ast = genast!("target", interner);
     check_parser(
         "const add = function target() { return 1; };",
         ast,

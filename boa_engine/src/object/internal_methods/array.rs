@@ -33,7 +33,7 @@ pub(crate) fn array_exotic_define_own_property(
     // 1. Assert: IsPropertyKey(P) is true.
     match key {
         // 2. If P is "length", then
-        PropertyKey::String(ref s) if s == utf16!("length") => {
+        PropertyKey::String(ref s) if s == &utf16!("length") => {
             // a. Return ? ArraySetLength(A, Desc).
 
             array_set_length(obj, desc, context)

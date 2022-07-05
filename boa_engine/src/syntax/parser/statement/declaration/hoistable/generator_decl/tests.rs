@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::node::{FormalParameterList, GeneratorDecl},
     parser::tests::check_parser,
@@ -10,7 +11,7 @@ fn generator_function_declaration() {
     check_parser(
         "function* gen() {}",
         vec![GeneratorDecl::new(
-            interner.get_or_intern_static("gen"),
+            interner.get_or_intern_static("gen", &utf16!("gen")),
             FormalParameterList::default(),
             vec![],
         )

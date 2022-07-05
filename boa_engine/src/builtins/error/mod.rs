@@ -184,6 +184,6 @@ impl Error {
 
         // 9. Return the string-concatenation of name, the code unit 0x003A (COLON),
         // the code unit 0x0020 (SPACE), and msg.
-        Ok(js_string!(&name, utf16!(": "), &msg).into())
+        Ok(js_string!(&name, &utf16!(": "), &msg).into())
     }
 }

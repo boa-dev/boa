@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::node::{AsyncGeneratorDecl, FormalParameterList},
     parser::tests::check_parser,
@@ -10,7 +11,7 @@ fn async_generator_function_declaration() {
     check_parser(
         "async function* gen() {}",
         vec![AsyncGeneratorDecl::new(
-            interner.get_or_intern_static("gen"),
+            interner.get_or_intern_static("gen", &utf16!("gen")),
             FormalParameterList::default(),
             vec![],
         )

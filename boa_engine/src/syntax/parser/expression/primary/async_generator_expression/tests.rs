@@ -1,3 +1,4 @@
+use crate::string::utf16;
 use crate::syntax::{
     ast::{
         node::{
@@ -15,7 +16,7 @@ use boa_interner::{Interner, Sym};
 #[test]
 fn check_async_generator_expr() {
     let mut interner = Interner::default();
-    let add = interner.get_or_intern_static("add");
+    let add = interner.get_or_intern_static("add", &utf16!("add"));
     check_parser(
         "const add = async function*(){
             return 1;
@@ -43,8 +44,8 @@ fn check_async_generator_expr() {
 #[test]
 fn check_nested_async_generator_expr() {
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a");
-    let b = interner.get_or_intern_static("b");
+    let a = interner.get_or_intern_static("a", &utf16!("a"));
+    let b = interner.get_or_intern_static("b", &utf16!("b"));
     check_parser(
         "const a = async function*() {
             const b = async function*() {

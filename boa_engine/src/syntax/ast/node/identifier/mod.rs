@@ -64,9 +64,11 @@ impl Identifier {
 
 impl ToInternedString for Identifier {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        interner
-            .resolve_expect(self.ident)
-            .join(String::from, ToStringEscaped::to_string_escaped)
+        interner.resolve_expect(self.ident).join(
+            String::from,
+            ToStringEscaped::to_string_escaped,
+            true,
+        )
     }
 }
 

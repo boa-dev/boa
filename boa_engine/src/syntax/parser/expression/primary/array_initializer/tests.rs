@@ -98,7 +98,7 @@ fn check_combined() {
         "[1, \"a\", 2]",
         vec![ArrayDecl::from(vec![
             Const::from(1).into(),
-            Const::from(interner.get_or_intern_static(utf16!("a").as_slice())).into(),
+            Const::from(interner.get_or_intern_static("a", &utf16!("a"))).into(),
             Const::from(2).into(),
         ])
         .into()],
