@@ -138,7 +138,7 @@ impl JsMap {
     /// #    builtins::map::ordered_map::OrderedMap,
     /// #    object::{JsObject, ObjectData, JsMap},
     /// #    Context, JsValue,
-    /// # };#
+    /// # };
     ///
     /// let context = &mut Context::default();
     ///
