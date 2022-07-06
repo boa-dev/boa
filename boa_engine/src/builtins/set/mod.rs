@@ -165,20 +165,13 @@ impl Set {
     }
 
     /// Utility for constructing `Set` objects.
-    #[allow(clippy::unnecessary_wraps)]
-    pub(crate) fn set_create(
-        prototype: Option<JsObject>,
-        context: &mut Context,
-    ) -> JsResult<JsObject> {
+    pub(crate) fn set_create(prototype: Option<JsObject>, context: &mut Context) -> JsObject {
         let prototype = match prototype {
             Some(prototype) => prototype,
             None => context.intrinsics().constructors().set().prototype(),
         };
 
-        Ok(JsObject::from_proto_and_data(
-            prototype,
-            ObjectData::set(OrderedSet::new()),
-        ))
+        JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::new()))
     }
 
     /// Utility for constructing `Set` objects from an iterator of `JsValue`'s.
@@ -187,8 +180,7 @@ impl Set {
         I: IntoIterator<Item = JsValue>,
     {
         // Create empty Set
-        let set = Self::set_create(None, context)
-            .expect("creating an empty set with default prototype must not fail");
+        let set = Self::set_create(None, context);
         // For each element e of elements, do
         for elem in elements {
             Self::add(&set.clone().into(), &[elem], context)

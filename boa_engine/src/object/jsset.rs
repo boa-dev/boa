@@ -21,8 +21,7 @@ impl JsSet {
     /// similar to Rust initialization.
     #[inline]
     pub fn new(context: &mut Context) -> Self {
-        let inner = Set::set_create(None, context)
-            .expect("creating an empty set with the default prototype must not fail");
+        let inner = Set::set_create(None, context);
 
         Self { inner }
     }
@@ -44,14 +43,6 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
-        // let object = Set::add(&self.inner.clone().into(), &[value.into()], context)?
-        //     .as_object()
-        //     .cloned()
-        //     .expect("Set.prototype.add should always return `Set` object.");
-
-        // Self::from_object(object, context)
-
-        // TEST
         self.add_items(&[value.into()], context)
     }
 
