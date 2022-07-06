@@ -80,7 +80,7 @@ fn main() -> Result<(), JsValue> {
             println!("{message}");
             println!();
 
-            // We convert `message` into `Jsvalue` to be able to return it.
+            // We convert `message` into `JsValue` to be able to return it.
             Ok(message.into())
         },
         // Here is where we move `clone_variable` into the closure.

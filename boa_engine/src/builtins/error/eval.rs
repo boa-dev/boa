@@ -25,7 +25,7 @@ use tap::{Conv, Pipe};
 
 use super::Error;
 
-/// JavaScript `EvalError` impleentation.
+/// JavaScript `EvalError` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct EvalError;
 

@@ -8,6 +8,8 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+use super::JsFunction;
+
 // This is an wrapper for `JsSet`
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsSet {
@@ -35,32 +37,50 @@ impl JsSet {
         Set::get_size(&self.inner.clone().into(), context)
     }
 
-    /// Add an element to `Set` and returns `Set` with value appended to the end.
+    /// Appends value to the Set object.
+    /// Returns the Set object with added value.
     ///
     /// Same as JavaScript's `set.add(value)`.
     #[inline]
-    pub fn add<T>(&self, value: T, context: &mut Context) -> JsResult<Self>
+    pub fn add<T>(&self, value: T, context: &mut Context) -> JsResult<JsValue>
     where
         T: Into<JsValue>,
     {
-        let object = Set::add(&self.inner.clone().into(), &[value.into()], context)?
-            .as_object()
-            .cloned()
-            .expect("Set.prototype.add should always return `Set` object.");
+        // let object = Set::add(&self.inner.clone().into(), &[value.into()], context)?
+        //     .as_object()
+        //     .cloned()
+        //     .expect("Set.prototype.add should always return `Set` object.");
 
-        Self::from_object(object, context)
+        // Self::from_object(object, context)
+
+        // TEST
+        self.add_items(&[value.into()], context)
     }
 
-    /// Removes all the elements for the `Set` and returns `Undefined`.
+    /// Adds slice as a single element.
+    /// Returns the Set object with added slice.
+    ///
+    /// Same as JavaScript's `set.add(["one", "two", "three"])`
+    #[inline]
+    pub fn add_items(&self, items: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+        Set::add(&self.inner.clone().into(), items, context)
+    }
+
+    /// Removes all elements from the Set object.
+    /// Returns `Undefined`.
     ///
     /// Same as JavaScript's `set.clear()`.
+    #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
         Set::clear(&self.inner.clone().into(), &[JsValue::Null], context)
     }
 
-    /// Removes given value from the `Set` and returns `Bool`.
+    /// Removes the element associated to the value.
+    /// Returns a boolean asserting whether an element was
+    /// successfully removed or not.
     ///
     /// Same as JavaScript's `set.delete(value)`.
+    #[inline]
     pub fn delete<T>(&self, value: T, context: &mut Context) -> JsResult<bool>
     where
         T: Into<JsValue>,
@@ -71,9 +91,11 @@ impl JsSet {
         }
     }
 
-    /// Checks if given value is in the `Set` and returns `Bool`.
+    /// Returns a boolean asserting whether an element is present
+    /// with the given value in the Set object or not.
     ///
     /// Same as JavaScript's `set.has(value)`.
+    #[inline]
     pub fn has<T>(&self, value: T, context: &mut Context) -> JsResult<bool>
     where
         T: Into<JsValue>,
@@ -82,6 +104,24 @@ impl JsSet {
             JsValue::Boolean(bool) => Ok(bool),
             _ => Err(JsValue::Undefined),
         }
+    }
+    /// Calls callbackFn once for each value present in the Set object,
+    /// in insertion order.
+    /// Returns `Undefined`.
+    ///
+    /// Same as JavaScript's `set.forEach(values)`.
+    #[inline]
+    pub fn for_each(
+        &self,
+        callback: JsFunction,
+        this_arg: JsValue,
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
+        Set::for_each(
+            &self.inner.clone().into(),
+            &[callback.into(), this_arg],
+            context,
+        )
     }
 
     /// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
@@ -92,6 +132,16 @@ impl JsSet {
         } else {
             context.throw_error("Object is not a Set")
         }
+    }
+
+    /// Utility: Creates a `JsSet` from a `<IntoIterator<Item = JsValue>` convertible object.
+    #[inline]
+    pub fn from_iter<I>(elements: I, context: &mut Context) -> Self
+    where
+        I: IntoIterator<Item = JsValue>,
+    {
+        let inner = Set::create_set_from_list(elements, context);
+        Self { inner }
     }
 }
 

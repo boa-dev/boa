@@ -302,12 +302,12 @@ impl Date {
             let duration_hour = Duration::milliseconds(hour.checked_mul(MILLIS_PER_HOUR)?);
             let duration_minute = Duration::milliseconds(minute.checked_mul(MILLIS_PER_MINUTE)?);
             let duration_second = Duration::milliseconds(second.checked_mul(MILLIS_PER_SECOND)?);
-            let duration_milisecond = Duration::milliseconds(millisecond);
+            let duration_millisecond = Duration::milliseconds(millisecond);
 
             let duration = duration_hour
                 .checked_add(&duration_minute)?
                 .checked_add(&duration_second)?
-                .checked_add(&duration_milisecond)?;
+                .checked_add(&duration_millisecond)?;
 
             NaiveDate::from_ymd_opt(year, month + 1, day + 1)
                 .and_then(|dt| dt.and_hms(0, 0, 0).checked_add_signed(duration))

@@ -24,7 +24,7 @@ use tap::{Conv, Pipe};
 
 use super::Error;
 
-/// JavaScript `URIError` impleentation.
+/// JavaScript `URIError` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct UriError;
 

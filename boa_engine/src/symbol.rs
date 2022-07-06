@@ -214,7 +214,7 @@ impl WellKnownSymbols {
     /// The `Symbol.toPrimitive` well known symbol.
     ///
     /// A method that converts an object to a corresponding primitive value.
-    /// Called by the `ToPrimitive` (`Value::to_primitve`) abstract operation.
+    /// Called by the `ToPrimitive` (`Value::to_primitive`) abstract operation.
     #[inline]
     pub fn to_primitive() -> JsSymbol {
         WELL_KNOW_SYMBOLS.with(|symbols| symbols.to_primitive.clone())

@@ -211,13 +211,13 @@ impl JsValue {
     #[inline]
     #[allow(clippy::float_cmp)]
     pub fn is_integer(&self) -> bool {
-        // If it can fit in a i32 and the trucated version is
+        // If it can fit in a i32 and the truncated version is
         // equal to the original then it is an integer.
-        let is_racional_intiger = |n: f64| n == f64::from(n as i32);
+        let is_rational_integer = |n: f64| n == f64::from(n as i32);
 
         match *self {
             Self::Integer(_) => true,
-            Self::Rational(n) if is_racional_intiger(n) => true,
+            Self::Rational(n) if is_rational_integer(n) => true,
             _ => false,
         }
     }
@@ -979,7 +979,7 @@ impl Default for JsValue {
     }
 }
 
-/// The preffered type to convert an object to a primitive `Value`.
+/// The preferred type to convert an object to a primitive `Value`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum PreferredType {
     String,

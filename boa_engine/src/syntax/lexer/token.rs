@@ -54,7 +54,7 @@ impl Token {
     }
 }
 
-/// Represents the type differenct types of numeric literals.
+/// Represents the type different types of numeric literals.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum Numeric {

@@ -745,7 +745,7 @@ pub enum BinOp {
     /// see: [`BitOp`](enum.BitOp.html).
     Bit(BitOp),
 
-    /// Comparitive operation.
+    /// Comparative operation.
     ///
     /// see: [`CompOp`](enum.CompOp.html).
     Comp(CompOp),

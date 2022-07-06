@@ -18,7 +18,7 @@ use boa_gc::{Finalize, Trace};
 struct Person {
     /// The name of the person.
     name: String,
-    /// The age of the preson.
+    /// The age of the person.
     age: u32,
 }
 

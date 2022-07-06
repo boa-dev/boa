@@ -164,7 +164,8 @@ impl Set {
         Ok(set.into())
     }
 
-    /// Utility for constructing `Set` Objects.
+    /// Utility for constructing `Set` objects.
+    #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn set_create(
         prototype: Option<JsObject>,
         context: &mut Context,
@@ -178,6 +179,23 @@ impl Set {
             prototype,
             ObjectData::set(OrderedSet::new()),
         ))
+    }
+
+    /// Utility for constructing `Set` objects from an iterator of `JsValue`'s.
+    pub(crate) fn create_set_from_list<I>(elements: I, context: &mut Context) -> JsObject
+    where
+        I: IntoIterator<Item = JsValue>,
+    {
+        // Create empty Set
+        let set = Self::set_create(None, context)
+            .expect("creating an empty set with default prototype must not fail");
+        // For each element e of elements, do
+        for elem in elements {
+            Self::add(&set.clone().into(), &[elem], context)
+                .expect("adding new element shouldn't error out");
+        }
+
+        set
     }
 
     /// `get Set [ @@species ]`
@@ -339,6 +357,9 @@ impl Set {
 
         let callback_arg = &args[0];
         let this_arg = args.get_or_undefined(1);
+
+        // dbg!(this_arg); // REMOVE DEBUG
+
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
             context.global_object().clone().into()
@@ -353,6 +374,7 @@ impl Set {
                 .as_object()
                 .and_then(|obj| {
                     obj.borrow().as_set_ref().map(|set| {
+                        println!("SET: {:?}", set); // REMOVE DEBUG
                         set.get_index(index)
                             .map(|value| [value.clone(), value.clone(), this.clone()])
                     })

@@ -56,7 +56,7 @@ impl IntegerIndexed {
 
     /// `IntegerIndexedObjectCreate ( prototype )`
     ///
-    /// Create a new `JsObject` from a prototype and a `IntergetIndexedObject`
+    /// Create a new `JsObject` from a prototype and a `IntegerIndexedObject`
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

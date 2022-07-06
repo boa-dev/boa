@@ -86,7 +86,7 @@ impl JsBigInt {
         })
     }
 
-    /// This function takes a string and conversts it to `BigInt` type.
+    /// This function takes a string and converts it to `BigInt` type.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

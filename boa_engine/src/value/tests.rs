@@ -612,7 +612,7 @@ fn to_primitive() {
 }
 
 /// Test cyclic conversions that previously caused stack overflows
-/// Relevant mitigations for these are in `JsObject::ordinary_to_primitive` and
+/// Relevant mitigation for these are in `JsObject::ordinary_to_primitive` and
 /// `JsObject::to_json`
 mod cyclic_conversions {
     use super::*;
@@ -843,7 +843,7 @@ mod abstract_relational_comparison {
     }
 
     #[test]
-    fn negative_infnity_less_than_bigint() {
+    fn negative_infinity_less_than_bigint() {
         let mut context = Context::default();
         check_comparison!(context, "-Infinity < -10000000000n" => true);
         check_comparison!(context, "-Infinity < (-1n << 100n)" => true);
@@ -989,7 +989,7 @@ mod abstract_relational_comparison {
     }
 
     #[test]
-    fn negative_infnity_less_than_or_equal_bigint() {
+    fn negative_infinity_less_than_or_equal_bigint() {
         let mut context = Context::default();
         check_comparison!(context, "-Infinity <= -10000000000n" => true);
         check_comparison!(context, "-Infinity <= (-1n << 100n)" => true);
@@ -1138,7 +1138,7 @@ mod abstract_relational_comparison {
     }
 
     #[test]
-    fn negative_infnity_greater_than_bigint() {
+    fn negative_infinity_greater_than_bigint() {
         let mut context = Context::default();
         check_comparison!(context, "-Infinity > -10000000000n" => false);
         check_comparison!(context, "-Infinity > (-1n << 100n)" => false);
@@ -1287,7 +1287,7 @@ mod abstract_relational_comparison {
     }
 
     #[test]
-    fn negative_infnity_greater_or_equal_than_bigint() {
+    fn negative_infinity_greater_or_equal_than_bigint() {
         let mut context = Context::default();
         check_comparison!(context, "-Infinity >= -10000000000n" => false);
         check_comparison!(context, "-Infinity >= (-1n << 100n)" => false);

@@ -346,7 +346,7 @@ impl Number {
     ///   represented by these digits is rounded using string
     ///   manipulation.
     /// - Else, zeroes are appended to the string.
-    /// - Additionnally, sometimes the exponent was wrongly computed and
+    /// - Additionally, sometimes the exponent was wrongly computed and
     ///   while up-rounding we find that we need an extra digit. When this
     ///   happens, we return true so that the calling context can adjust
     ///   the exponent. The string is kept at an exact length of `precision`.
@@ -358,7 +358,7 @@ impl Number {
             let to_round = digits.split_off(precision);
             let mut digit = digits
                 .pop()
-                .expect("already checked that lenght is bigger than precision")
+                .expect("already checked that length is bigger than precision")
                 as u8;
             if let Some(first) = to_round.chars().next() {
                 if first > '4' {
@@ -601,7 +601,7 @@ impl Number {
                             // Reconstruct digit.
                             let digit_0 = (c as char)
                                 .to_digit(10)
-                                .expect("charactre was not a valid digit");
+                                .expect("character was not a valid digit");
                             if digit_0 + 1 >= u32::from(radix) {
                                 continue;
                             }
