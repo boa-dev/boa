@@ -313,7 +313,7 @@ impl JsObject {
         self.borrow().is_array_buffer()
     }
 
-    /// Checks if it is a `Map` object.pub
+    /// Checks if it is a `Map` object.
     ///
     /// # Panics
     ///
@@ -322,6 +322,17 @@ impl JsObject {
     #[track_caller]
     pub fn is_map(&self) -> bool {
         self.borrow().is_map()
+    }
+
+    /// Checks if it's a `MapIterator` object
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_map_iterator(&self) -> bool {
+        self.borrow().is_map_iterator()
     }
 
     /// Checks if it's a `String` object.
