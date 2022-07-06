@@ -112,7 +112,6 @@ pub(crate) fn string_exotic_own_property_keys(
     let mut remaining_indices: Vec<_> = obj
         .properties
         .index_property_keys()
-        .copied()
         .filter(|idx| (*idx as usize) >= len)
         .collect();
     remaining_indices.sort_unstable();

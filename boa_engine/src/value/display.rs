@@ -139,9 +139,9 @@ pub(crate) fn log_string_from(x: &JsValue, print_internals: bool, print_children
                                     .borrow()
                                     .properties()
                                     .get(&i.into())
-                                    .and_then(PropertyDescriptor::value)
+                                    .and_then(|x| x.value().cloned())
                                 {
-                                    log_string_from(value, print_internals, false)
+                                    log_string_from(&value, print_internals, false)
                                 } else {
                                     String::from("<empty>")
                                 }
