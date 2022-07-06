@@ -8,7 +8,7 @@ struct SymReplacer<'a> {
 
 impl<'a, 'ast> Visitor<'ast> for SymReplacer<'a> {
     fn visit_sym_mut(&mut self, sym: &'ast mut Sym) {
-        *sym = self.syms[sym.as_raw().get() % self.syms.len()];
+        *sym = self.syms[sym.get() % self.syms.len()];
     }
 }
 

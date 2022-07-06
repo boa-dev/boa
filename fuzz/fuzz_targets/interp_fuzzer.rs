@@ -5,13 +5,11 @@ use libfuzzer_sys::fuzz_target;
 use boa_engine::syntax::Parser;
 use boa_engine::Context;
 use boa_inputgen::*;
-use boa_interner::Interner;
 
 fn do_fuzz(data: FuzzData) -> anyhow::Result<()> {
-    let mut interner = Interner::default();
+    let mut context = Context::default();
     let source = data.get_source();
-    if let Ok(parsed) = Parser::new(source.as_bytes(), false).parse_all(&mut interner) {
-        let mut context = Context::new(interner);
+    if let Ok(parsed) = Parser::new(source.as_bytes()).parse_all(&mut context) {
         context.set_max_insns(1 << 12);
         if let Ok(compiled) = context.compile(&parsed) {
             let _ = context.execute(compiled);

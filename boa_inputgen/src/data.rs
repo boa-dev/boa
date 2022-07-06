@@ -1,6 +1,7 @@
 //! Fuzz data generation.
 
 use std::collections::HashSet;
+use std::fmt::{Debug, Formatter};
 
 use arbitrary::{size_hint, Arbitrary, Unstructured};
 use spin::lazy::Lazy;
@@ -62,9 +63,15 @@ impl Arbitrary<'_> for Name {
 }
 
 /// Fuzz data which can be arbitrarily generated and used to test boa's parser, compiler, and vm.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct FuzzData {
     source: String,
+}
+
+impl Debug for FuzzData {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.source)
+    }
 }
 
 impl<'a> Arbitrary<'a> for FuzzData {

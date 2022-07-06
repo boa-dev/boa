@@ -3,17 +3,17 @@
 
 use std::hint::black_box;
 
+use boa_engine::Context;
 use libfuzzer_sys::fuzz_target;
 
 use boa_engine::syntax::Parser;
 use boa_inputgen::*;
-use boa_interner::Interner;
 
 fn do_fuzz(data: FuzzData) {
-    let mut interner = Interner::default();
+    let mut context = Context::default();
     let source = data.get_source();
     drop(black_box(
-        Parser::new(source.as_bytes(), false).parse_all(&mut interner),
+        Parser::new(source.as_bytes()).parse_all(&mut context),
     ));
 }
 

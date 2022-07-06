@@ -107,7 +107,7 @@ impl Sym {
 
     /// Returns the internal value of the [`Sym`]
     #[inline]
-    pub(super) const fn get(self) -> usize {
+    pub const fn get(self) -> usize {
         self.value.get()
     }
 }
