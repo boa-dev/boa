@@ -2101,6 +2101,10 @@
 <span id="2094">2094</span>
 <span id="2095">2095</span>
 <span id="2096">2096</span>
+<span id="2097">2097</span>
+<span id="2098">2098</span>
+<span id="2099">2099</span>
+<span id="2100">2100</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2166,6 +2170,8 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_methods</span>;
 <span class="kw">mod</span> <span class="ident">jsarray</span>;
 <span class="kw">mod</span> <span class="ident">jsfunction</span>;
+<span class="kw">mod</span> <span class="ident">jsmap</span>;
+<span class="kw">mod</span> <span class="ident">jsmap_iterator</span>;
 <span class="kw">mod</span> <span class="ident">jsobject</span>;
 <span class="kw">mod</span> <span class="ident">jsproxy</span>;
 <span class="kw">mod</span> <span class="ident">jstypedarray</span>;
@@ -2174,6 +2180,8 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsarray</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsfunction</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap_iterator</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsproxy</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jstypedarray</span>::<span class="kw-2">*</span>;
 
