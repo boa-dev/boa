@@ -15,7 +15,7 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct SuperCall {
-    args: Box<[Node]>,
+    pub(crate) args: Box<[Node]>,
 }
 
 impl SuperCall {

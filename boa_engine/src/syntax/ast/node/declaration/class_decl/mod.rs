@@ -25,10 +25,10 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Class {
-    name: Sym,
-    super_ref: Option<Box<Node>>,
-    constructor: Option<FunctionExpr>,
-    elements: Box<[ClassElement]>,
+    pub(crate) name: Sym,
+    pub(crate) super_ref: Option<Box<Node>>,
+    pub(crate) constructor: Option<FunctionExpr>,
+    pub(crate) elements: Box<[ClassElement]>,
 }
 
 impl Class {

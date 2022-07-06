@@ -6,17 +6,10 @@ use crate::syntax::ast::node::iteration::IterableLoopInitializer;
 use crate::syntax::ast::node::object::{MethodDefinition, PropertyDefinition, PropertyName};
 use crate::syntax::ast::node::operator::assign::AssignTarget;
 use crate::syntax::ast::node::template::TemplateElement;
-use crate::syntax::ast::node::{
-    ArrayDecl, ArrowFunctionDecl, Assign, AsyncFunctionDecl, AsyncFunctionExpr, AsyncGeneratorDecl,
-    AsyncGeneratorExpr, AwaitExpr, BinOp, Block, Break, Call, Case, Catch, ConditionalOp, Continue,
-    Declaration, DeclarationList, DeclarationPattern, DoWhileLoop, Finally, ForInLoop, ForLoop,
-    ForOfLoop, FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionDecl,
-    FunctionExpr, GeneratorDecl, GeneratorExpr, GetConstField, GetField, Identifier, If, New,
-    Object, Return, Spread, StatementList, Switch, TaggedTemplate, TemplateLit, Throw, Try,
-    UnaryOp, WhileLoop, Yield,
-};
+use crate::syntax::ast::node::{ArrayDecl, ArrowFunctionDecl, Assign, AsyncFunctionDecl, AsyncFunctionExpr, AsyncGeneratorDecl, AsyncGeneratorExpr, AwaitExpr, BinOp, Block, Break, Call, Case, Catch, ConditionalOp, Continue, Declaration, DeclarationList, DeclarationPattern, DoWhileLoop, Finally, ForInLoop, ForLoop, ForOfLoop, FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionDecl, FunctionExpr, GeneratorDecl, GeneratorExpr, GetConstField, GetField, Identifier, If, New, Object, Return, Spread, StatementList, Switch, TaggedTemplate, TemplateLit, Throw, Try, UnaryOp, WhileLoop, Yield, GetPrivateField, GetSuperField, Class, SuperCall};
 use crate::syntax::ast::{op, Const, Node};
 use boa_interner::Sym;
+use crate::syntax::ast::node::declaration::class_decl::ClassElement;
 
 pub trait Visitor<'ast> {
     fn visit_node(&mut self, n: &'ast Node) {
@@ -43,7 +36,9 @@ pub trait Visitor<'ast> {
             Node::FunctionDecl(n) => self.visit_function_decl(n),
             Node::FunctionExpr(n) => self.visit_function_expr(n),
             Node::GetConstField(n) => self.visit_get_const_field(n),
+            Node::GetPrivateField(n) => self.visit_get_private_field(n),
             Node::GetField(n) => self.visit_get_field(n),
+            Node::GetSuperField(n) => self.visit_get_super_field(n),
             Node::ForLoop(n) => self.visit_for_loop(n),
             Node::ForInLoop(n) => self.visit_for_in_loop(n),
             Node::ForOfLoop(n) => self.visit_for_of_loop(n),
@@ -63,6 +58,9 @@ pub trait Visitor<'ast> {
             Node::Yield(n) => self.visit_yield(n),
             Node::GeneratorDecl(n) => self.visit_generator_decl(n),
             Node::GeneratorExpr(n) => self.visit_generator_expr(n),
+            Node::ClassDecl(n) => self.visit_class_decl(n),
+            Node::ClassExpr(n) => self.visit_class_expr(n),
+            Node::SuperCall(n) => self.visit_super_call(n),
             Node::Empty | Node::This => { /* do nothing */ }
         }
     }
@@ -186,9 +184,21 @@ pub trait Visitor<'ast> {
         self.visit_sym(&n.field);
     }
 
+    fn visit_get_private_field(&mut self, n: &'ast GetPrivateField) {
+        self.visit_node(&n.obj);
+        self.visit_sym(&n.field);
+    }
+
     fn visit_get_field(&mut self, n: &'ast GetField) {
         self.visit_node(&n.obj);
         self.visit_node(&n.field);
+    }
+
+    fn visit_get_super_field(&mut self, n: &'ast GetSuperField) {
+        match n {
+            GetSuperField::Const(sym) => self.visit_sym(sym),
+            GetSuperField::Expr(n) => self.visit_node(&n),
+        }
     }
 
     fn visit_for_loop(&mut self, n: &'ast ForLoop) {
@@ -348,6 +358,61 @@ pub trait Visitor<'ast> {
         self.visit_statement_list(&n.body);
     }
 
+    fn visit_class_decl(&mut self, n: &'ast Class) {
+        self.visit_class(n);
+    }
+
+    fn visit_class_expr(&mut self, n: &'ast Class) {
+        self.visit_class(n);
+    }
+
+    fn visit_class(&mut self, n: &'ast Class) {
+        self.visit_sym(&n.name);
+        if let Some(super_ref) = &n.super_ref {
+            self.visit_node(&super_ref)
+        }
+        if let Some(constructor) = &n.constructor {
+            self.visit_function_expr(constructor);
+        }
+        for elem in n.elements.iter() {
+            self.visit_class_element(elem);
+        }
+    }
+
+    fn visit_class_element(&mut self, n: &'ast ClassElement) {
+        match n {
+            ClassElement::MethodDefinition(pn, md) | ClassElement::StaticMethodDefinition(pn, md) => {
+                self.visit_property_name(pn);
+                self.visit_method_definition(md);
+            }
+            ClassElement::FieldDefinition(pn, fd) | ClassElement::StaticFieldDefinition(pn, fd) => {
+                self.visit_property_name(pn);
+                if let Some(n) = fd {
+                    self.visit_node(n);
+                }
+            }
+            ClassElement::PrivateMethodDefinition(s, md) | ClassElement::PrivateStaticMethodDefinition(s, md) => {
+                self.visit_sym(s);
+                self.visit_method_definition(md);
+            }
+            ClassElement::PrivateFieldDefinition(s, fd) | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
+                self.visit_sym(s);
+                if let Some(n) = fd {
+                    self.visit_node(n);
+                }
+            }
+            ClassElement::StaticBlock(sl) => {
+                self.visit_statement_list(sl);
+            }
+        }
+    }
+
+    fn visit_super_call(&mut self, n: &'ast SuperCall) {
+        for arg in n.args.iter() {
+            self.visit_node(arg);
+        }
+    }
+
     fn visit_sym(&mut self, _n: &'ast Sym) {
         /* do nothing */
     }
@@ -368,6 +433,7 @@ pub trait Visitor<'ast> {
     fn visit_assign_target(&mut self, n: &'ast AssignTarget) {
         match n {
             AssignTarget::Identifier(ident) => self.visit_identifier(ident),
+            AssignTarget::GetPrivateField(gpf) => self.visit_get_private_field(gpf),
             AssignTarget::GetConstField(gcf) => self.visit_get_const_field(gcf),
             AssignTarget::GetField(gf) => self.visit_get_field(gf),
             AssignTarget::DeclarationPattern(dp) => self.visit_declaration_pattern(dp),
@@ -529,7 +595,7 @@ pub trait Visitor<'ast> {
                 default_init,
             } => {
                 self.visit_sym(ident);
-                self.visit_sym(property_name);
+                self.visit_property_name(property_name);
                 if let Some(init) = default_init {
                     self.visit_node(init);
                 }
@@ -557,7 +623,7 @@ pub trait Visitor<'ast> {
                 pattern,
                 default_init,
             } => {
-                self.visit_sym(ident);
+                self.visit_property_name(ident);
                 self.visit_declaration_pattern(pattern);
                 if let Some(init) = default_init {
                     self.visit_node(init);
@@ -618,7 +684,9 @@ pub trait Visitor<'ast> {
             Node::FunctionDecl(n) => self.visit_function_decl_mut(n),
             Node::FunctionExpr(n) => self.visit_function_expr_mut(n),
             Node::GetConstField(n) => self.visit_get_const_field_mut(n),
+            Node::GetPrivateField(n) => self.visit_get_private_field_mut(n),
             Node::GetField(n) => self.visit_get_field_mut(n),
+            Node::GetSuperField(n) => self.visit_get_super_field_mut(n),
             Node::ForLoop(n) => self.visit_for_loop_mut(n),
             Node::ForInLoop(n) => self.visit_for_in_loop_mut(n),
             Node::ForOfLoop(n) => self.visit_for_of_loop_mut(n),
@@ -638,6 +706,9 @@ pub trait Visitor<'ast> {
             Node::Yield(n) => self.visit_yield_mut(n),
             Node::GeneratorDecl(n) => self.visit_generator_decl_mut(n),
             Node::GeneratorExpr(n) => self.visit_generator_expr_mut(n),
+            Node::ClassDecl(n) => self.visit_class_decl_mut(n),
+            Node::ClassExpr(n) => self.visit_class_expr_mut(n),
+            Node::SuperCall(n) => self.visit_super_call_mut(n),
             Node::Empty | Node::This => { /* do nothing */ }
         }
     }
@@ -761,9 +832,21 @@ pub trait Visitor<'ast> {
         self.visit_sym_mut(&mut n.field);
     }
 
+    fn visit_get_private_field_mut(&mut self, n: &'ast mut GetPrivateField) {
+        self.visit_node_mut(&mut n.obj);
+        self.visit_sym_mut(&mut n.field);
+    }
+
     fn visit_get_field_mut(&mut self, n: &'ast mut GetField) {
         self.visit_node_mut(&mut n.obj);
         self.visit_node_mut(&mut n.field);
+    }
+
+    fn visit_get_super_field_mut(&mut self, n: &'ast mut GetSuperField) {
+        match n {
+            GetSuperField::Const(sym) => self.visit_sym_mut(sym),
+            GetSuperField::Expr(n) => self.visit_node_mut(n.as_mut()),
+        }
     }
 
     fn visit_for_loop_mut(&mut self, n: &'ast mut ForLoop) {
@@ -923,6 +1006,61 @@ pub trait Visitor<'ast> {
         self.visit_statement_list_mut(&mut n.body);
     }
 
+    fn visit_class_decl_mut(&mut self, n: &'ast mut Class) {
+        self.visit_class_mut(n);
+    }
+
+    fn visit_class_expr_mut(&mut self, n: &'ast mut Class) {
+        self.visit_class_mut(n);
+    }
+
+    fn visit_class_mut(&mut self, n: &'ast mut Class) {
+        self.visit_sym_mut(&mut n.name);
+        if let Some(super_ref) = n.super_ref.as_deref_mut() {
+            self.visit_node_mut(super_ref)
+        }
+        if let Some(constructor) = &mut n.constructor {
+            self.visit_function_expr_mut(constructor);
+        }
+        for elem in n.elements.iter_mut() {
+            self.visit_class_element_mut(elem);
+        }
+    }
+
+    fn visit_class_element_mut(&mut self, n: &'ast mut ClassElement) {
+        match n {
+            ClassElement::MethodDefinition(pn, md) | ClassElement::StaticMethodDefinition(pn, md) => {
+                self.visit_property_name_mut(pn);
+                self.visit_method_definition_mut(md);
+            }
+            ClassElement::FieldDefinition(pn, fd) | ClassElement::StaticFieldDefinition(pn, fd) => {
+                self.visit_property_name_mut(pn);
+                if let Some(n) = fd {
+                    self.visit_node_mut(n);
+                }
+            }
+            ClassElement::PrivateMethodDefinition(s, md) | ClassElement::PrivateStaticMethodDefinition(s, md) => {
+                self.visit_sym_mut(s);
+                self.visit_method_definition_mut(md);
+            }
+            ClassElement::PrivateFieldDefinition(s, fd) | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
+                self.visit_sym_mut(s);
+                if let Some(n) = fd {
+                    self.visit_node_mut(n);
+                }
+            }
+            ClassElement::StaticBlock(sl) => {
+                self.visit_statement_list_mut(sl);
+            }
+        }
+    }
+
+    fn visit_super_call_mut(&mut self, n: &'ast mut SuperCall) {
+        for arg in n.args.iter_mut() {
+            self.visit_node_mut(arg);
+        }
+    }
+
     fn visit_sym_mut(&mut self, _n: &'ast mut Sym) {
         /* do nothing */
     }
@@ -943,6 +1081,7 @@ pub trait Visitor<'ast> {
     fn visit_assign_target_mut(&mut self, n: &'ast mut AssignTarget) {
         match n {
             AssignTarget::Identifier(ident) => self.visit_identifier_mut(ident),
+            AssignTarget::GetPrivateField(gpf) => self.visit_get_private_field_mut(gpf),
             AssignTarget::GetConstField(gcf) => self.visit_get_const_field_mut(gcf),
             AssignTarget::GetField(gf) => self.visit_get_field_mut(gf),
             AssignTarget::DeclarationPattern(dp) => self.visit_declaration_pattern_mut(dp),
@@ -1106,7 +1245,7 @@ pub trait Visitor<'ast> {
                 default_init,
             } => {
                 self.visit_sym_mut(ident);
-                self.visit_sym_mut(property_name);
+                self.visit_property_name_mut(property_name);
                 if let Some(init) = default_init {
                     self.visit_node_mut(init);
                 }
@@ -1134,7 +1273,7 @@ pub trait Visitor<'ast> {
                 pattern,
                 default_init,
             } => {
-                self.visit_sym_mut(ident);
+                self.visit_property_name_mut(ident);
                 self.visit_declaration_pattern_mut(pattern);
                 if let Some(init) = default_init {
                     self.visit_node_mut(init);

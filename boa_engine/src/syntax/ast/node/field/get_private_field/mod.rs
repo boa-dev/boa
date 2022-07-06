@@ -18,8 +18,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct GetPrivateField {
-    obj: Box<Node>,
-    field: Sym,
+    pub(crate) obj: Box<Node>,
+    pub(crate) field: Sym,
 }
 
 impl GetPrivateField {
