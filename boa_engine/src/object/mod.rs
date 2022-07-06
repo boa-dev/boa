@@ -68,6 +68,7 @@ mod jsmap_iterator;
 mod jsobject;
 mod jsproxy;
 mod jsset;
+mod jsset_iterator;
 mod jstypedarray;
 mod operations;
 mod property_map;
@@ -78,6 +79,7 @@ pub use jsmap::*;
 pub use jsmap_iterator::*;
 pub use jsproxy::*;
 pub use jsset::*;
+pub use jsset_iterator::*;
 pub use jstypedarray::*;
 
 pub(crate) trait JsObjectType:
@@ -749,6 +751,18 @@ impl Object {
             self.data,
             ObjectData {
                 kind: ObjectKind::Set(_),
+                ..
+            }
+        )
+    }
+
+    /// Checks if it is an `SetIterator` object.
+    #[inline]
+    pub fn is_set_iterator(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::SetIterator(_),
                 ..
             }
         )

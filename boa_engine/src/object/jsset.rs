@@ -4,11 +4,9 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     builtins::Set,
-    object::{JsObject, JsObjectType},
+    object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
     Context, JsResult, JsValue,
 };
-
-use super::JsFunction;
 
 // This is an wrapper for `JsSet`
 #[derive(Debug, Clone, Trace, Finalize)]
@@ -105,6 +103,32 @@ impl JsSet {
             _ => Err(JsValue::Undefined),
         }
     }
+
+    /// Returns a new iterator object that yields the values
+    /// for each element in the Set object in insertion order.
+    ///
+    /// Same as JavaScript's `set.values()`.
+    #[inline]
+    pub fn values(&self, context: &mut Context) -> JsResult<JsSetIterator> {
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
+            .get_iterator(context, None, None)?;
+
+        JsSetIterator::from_object(iterator_object.iterator().clone(), context)
+    }
+
+    /// Alias for `Set.prototype.values()`
+    /// Returns a new iterator object that yields the values
+    /// for each element in the Set object in insertion order.
+    ///
+    /// Same as JavaScript's `set.keys()`.
+    #[inline]
+    pub fn keys(&self, context: &mut Context) -> JsResult<JsSetIterator> {
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
+            .get_iterator(context, None, None)?;
+
+        JsSetIterator::from_object(iterator_object.iterator().clone(), context)
+    }
+
     /// Calls callbackFn once for each value present in the Set object,
     /// in insertion order.
     /// Returns `Undefined`.
