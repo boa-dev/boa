@@ -1,3 +1,4 @@
+use crate::syntax::ast::node::declaration::class_decl::ClassElement;
 use crate::syntax::ast::node::declaration::{
     BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPatternArray,
     DeclarationPatternObject,
@@ -6,10 +7,17 @@ use crate::syntax::ast::node::iteration::IterableLoopInitializer;
 use crate::syntax::ast::node::object::{MethodDefinition, PropertyDefinition, PropertyName};
 use crate::syntax::ast::node::operator::assign::AssignTarget;
 use crate::syntax::ast::node::template::TemplateElement;
-use crate::syntax::ast::node::{ArrayDecl, ArrowFunctionDecl, Assign, AsyncFunctionDecl, AsyncFunctionExpr, AsyncGeneratorDecl, AsyncGeneratorExpr, AwaitExpr, BinOp, Block, Break, Call, Case, Catch, ConditionalOp, Continue, Declaration, DeclarationList, DeclarationPattern, DoWhileLoop, Finally, ForInLoop, ForLoop, ForOfLoop, FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionDecl, FunctionExpr, GeneratorDecl, GeneratorExpr, GetConstField, GetField, Identifier, If, New, Object, Return, Spread, StatementList, Switch, TaggedTemplate, TemplateLit, Throw, Try, UnaryOp, WhileLoop, Yield, GetPrivateField, GetSuperField, Class, SuperCall};
+use crate::syntax::ast::node::{
+    ArrayDecl, ArrowFunctionDecl, Assign, AsyncFunctionDecl, AsyncFunctionExpr, AsyncGeneratorDecl,
+    AsyncGeneratorExpr, AwaitExpr, BinOp, Block, Break, Call, Case, Catch, Class, ConditionalOp,
+    Continue, Declaration, DeclarationList, DeclarationPattern, DoWhileLoop, Finally, ForInLoop,
+    ForLoop, ForOfLoop, FormalParameter, FormalParameterList, FormalParameterListFlags,
+    FunctionDecl, FunctionExpr, GeneratorDecl, GeneratorExpr, GetConstField, GetField,
+    GetPrivateField, GetSuperField, Identifier, If, New, Object, Return, Spread, StatementList,
+    SuperCall, Switch, TaggedTemplate, TemplateLit, Throw, Try, UnaryOp, WhileLoop, Yield,
+};
 use crate::syntax::ast::{op, Const, Node};
 use boa_interner::Sym;
-use crate::syntax::ast::node::declaration::class_decl::ClassElement;
 
 pub trait Visitor<'ast> {
     fn visit_node(&mut self, n: &'ast Node) {
@@ -197,7 +205,7 @@ pub trait Visitor<'ast> {
     fn visit_get_super_field(&mut self, n: &'ast GetSuperField) {
         match n {
             GetSuperField::Const(sym) => self.visit_sym(sym),
-            GetSuperField::Expr(n) => self.visit_node(&n),
+            GetSuperField::Expr(n) => self.visit_node(n),
         }
     }
 
@@ -369,7 +377,7 @@ pub trait Visitor<'ast> {
     fn visit_class(&mut self, n: &'ast Class) {
         self.visit_sym(&n.name);
         if let Some(super_ref) = &n.super_ref {
-            self.visit_node(&super_ref)
+            self.visit_node(super_ref);
         }
         if let Some(constructor) = &n.constructor {
             self.visit_function_expr(constructor);
@@ -381,7 +389,8 @@ pub trait Visitor<'ast> {
 
     fn visit_class_element(&mut self, n: &'ast ClassElement) {
         match n {
-            ClassElement::MethodDefinition(pn, md) | ClassElement::StaticMethodDefinition(pn, md) => {
+            ClassElement::MethodDefinition(pn, md)
+            | ClassElement::StaticMethodDefinition(pn, md) => {
                 self.visit_property_name(pn);
                 self.visit_method_definition(md);
             }
@@ -391,11 +400,13 @@ pub trait Visitor<'ast> {
                     self.visit_node(n);
                 }
             }
-            ClassElement::PrivateMethodDefinition(s, md) | ClassElement::PrivateStaticMethodDefinition(s, md) => {
+            ClassElement::PrivateMethodDefinition(s, md)
+            | ClassElement::PrivateStaticMethodDefinition(s, md) => {
                 self.visit_sym(s);
                 self.visit_method_definition(md);
             }
-            ClassElement::PrivateFieldDefinition(s, fd) | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
+            ClassElement::PrivateFieldDefinition(s, fd)
+            | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
                 self.visit_sym(s);
                 if let Some(n) = fd {
                     self.visit_node(n);
@@ -1017,7 +1028,7 @@ pub trait Visitor<'ast> {
     fn visit_class_mut(&mut self, n: &'ast mut Class) {
         self.visit_sym_mut(&mut n.name);
         if let Some(super_ref) = n.super_ref.as_deref_mut() {
-            self.visit_node_mut(super_ref)
+            self.visit_node_mut(super_ref);
         }
         if let Some(constructor) = &mut n.constructor {
             self.visit_function_expr_mut(constructor);
@@ -1029,7 +1040,8 @@ pub trait Visitor<'ast> {
 
     fn visit_class_element_mut(&mut self, n: &'ast mut ClassElement) {
         match n {
-            ClassElement::MethodDefinition(pn, md) | ClassElement::StaticMethodDefinition(pn, md) => {
+            ClassElement::MethodDefinition(pn, md)
+            | ClassElement::StaticMethodDefinition(pn, md) => {
                 self.visit_property_name_mut(pn);
                 self.visit_method_definition_mut(md);
             }
@@ -1039,11 +1051,13 @@ pub trait Visitor<'ast> {
                     self.visit_node_mut(n);
                 }
             }
-            ClassElement::PrivateMethodDefinition(s, md) | ClassElement::PrivateStaticMethodDefinition(s, md) => {
+            ClassElement::PrivateMethodDefinition(s, md)
+            | ClassElement::PrivateStaticMethodDefinition(s, md) => {
                 self.visit_sym_mut(s);
                 self.visit_method_definition_mut(md);
             }
-            ClassElement::PrivateFieldDefinition(s, fd) | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
+            ClassElement::PrivateFieldDefinition(s, fd)
+            | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
                 self.visit_sym_mut(s);
                 if let Some(n) = fd {
                     self.visit_node_mut(n);
