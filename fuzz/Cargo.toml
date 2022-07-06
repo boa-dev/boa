@@ -35,6 +35,12 @@ test = false
 doc = false
 
 [[bin]]
+name = "syntax_idempotency_fuzzer"
+path = "fuzz_targets/syntax_idempotency_fuzzer.rs"
+test = false
+doc = false
+
+[[bin]]
 name = "interp_fuzzer"
 path = "fuzz_targets/interp_fuzzer.rs"
 test = false
