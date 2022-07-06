@@ -259,7 +259,6 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
-<span id="255">255</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">object::JsObject</span>,
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
@@ -463,8 +462,7 @@
             .<span class="ident">borrow</span>()
             .<span class="ident">properties</span>
             .<span class="ident">index_property_keys</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">new_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">idx</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">idx</span> <span class="op">&lt;</span> <span class="ident">u32::MAX</span>)
-            .<span class="ident">copied</span>()
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">new_len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="kw-2">*</span><span class="ident">idx</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">idx</span> <span class="op">&lt;</span> <span class="ident">u32::MAX</span>)
             .<span class="ident">collect</span>();
         <span class="ident">keys</span>.<span class="ident">sort_unstable_by</span>(<span class="op">|</span><span class="ident">x</span>, <span class="ident">y</span><span class="op">|</span> <span class="ident">y</span>.<span class="ident">cmp</span>(<span class="ident">x</span>));
         <span class="ident">keys</span>

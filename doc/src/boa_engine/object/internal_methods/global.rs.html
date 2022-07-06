@@ -520,7 +520,7 @@
     <span class="comment">// 7. Set D.[[Enumerable]] to the value of X&#39;s [[Enumerable]] attribute.</span>
     <span class="comment">// 8. Set D.[[Configurable]] to the value of X&#39;s [[Configurable]] attribute.</span>
     <span class="comment">// 9. Return D.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_property_map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">cloned</span>())
+    <span class="prelude-val">Ok</span>(<span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_property_map</span>.<span class="ident">get</span>(<span class="ident">key</span>))
 }
 
 <span class="doccomment">/// Abstract operation `OrdinaryIsExtensible`.</span>
@@ -670,7 +670,7 @@
     <span class="comment">// https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor</span>
 
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
-    <span class="kw">let</span> <span class="ident">own_desc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_property_map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">cloned</span>() {
+    <span class="kw">let</span> <span class="ident">own_desc</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_property_map</span>.<span class="ident">get</span>(<span class="ident">key</span>) {
         <span class="ident">desc</span>
     }
     <span class="comment">// c. Else,</span>
@@ -718,7 +718,7 @@
         };
 
         <span class="comment">// 1. Let current be ? O.[[GetOwnProperty]](P).</span>
-        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_property_map</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">cloned</span>();
+        <span class="kw">let</span> <span class="ident">current</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_property_map</span>.<span class="ident">get</span>(<span class="ident">key</span>);
 
         <span class="comment">// 2. Let extensible be ? IsExtensible(O).</span>
         <span class="kw">let</span> <span class="ident">extensible</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">global_extensible</span>;

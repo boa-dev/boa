@@ -972,11 +972,6 @@
 <span id="965">965</span>
 <span id="966">966</span>
 <span id="967">967</span>
-<span id="968">968</span>
-<span id="969">969</span>
-<span id="970">970</span>
-<span id="971">971</span>
-<span id="972">972</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module defines the object internal methods.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1444,7 +1439,7 @@
     <span class="comment">// 7. Set D.[[Enumerable]] to the value of X&#39;s [[Enumerable]] attribute.</span>
     <span class="comment">// 8. Set D.[[Configurable]] to the value of X&#39;s [[Configurable]] attribute.</span>
     <span class="comment">// 9. Return D.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>.<span class="ident">get</span>(<span class="ident">key</span>).<span class="ident">cloned</span>())
+    <span class="prelude-val">Ok</span>(<span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>.<span class="ident">get</span>(<span class="ident">key</span>))
 }
 
 <span class="doccomment">/// Abstract operation `OrdinaryDefineOwnProperty`.</span>
@@ -1704,12 +1699,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keys</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="kw">let</span> <span class="ident">ordered_indexes</span> <span class="op">=</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indexes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">obj</span>
-            .<span class="ident">borrow</span>()
-            .<span class="ident">properties</span>
-            .<span class="ident">index_property_keys</span>()
-            .<span class="ident">copied</span>()
-            .<span class="ident">collect</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indexes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>.<span class="ident">index_property_keys</span>().<span class="ident">collect</span>();
         <span class="ident">indexes</span>.<span class="ident">sort_unstable</span>();
         <span class="ident">indexes</span>
     };

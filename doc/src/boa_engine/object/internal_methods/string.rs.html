@@ -194,7 +194,6 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
-<span id="190">190</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">object::JsObject</span>,
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
@@ -309,7 +308,6 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">remaining_indices</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">obj</span>
         .<span class="ident">properties</span>
         .<span class="ident">index_property_keys</span>()
-        .<span class="ident">copied</span>()
         .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">idx</span><span class="op">|</span> (<span class="kw-2">*</span><span class="ident">idx</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span>)
         .<span class="ident">collect</span>();
     <span class="ident">remaining_indices</span>.<span class="ident">sort_unstable</span>();
