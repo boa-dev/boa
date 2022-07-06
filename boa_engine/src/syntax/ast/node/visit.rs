@@ -19,6 +19,58 @@ use crate::syntax::ast::node::{
 use crate::syntax::ast::{op, Const, Node};
 use boa_interner::Sym;
 
+/// `Visitor`s "walk" the AST at certain nodes. Useful for when you need to modify source code, but at
+/// the API level.
+///
+/// `Visitor`s have default implementations which are "reasonable", which is to say that users merely
+/// need to implement the visitor for the specific type they wish to visit. For example, let's say
+/// we want to replace all variables named "y" with a variable named "z".
+///
+/// To do so, we implement `Visitor` over a `NameReplacer` struct, then use `NameReplacer` to, well,
+/// replace the names in a parsed source.
+///
+/// ```
+/// use boa_engine::syntax::ast::node::visit::Visitor;
+/// use boa_engine::Context;
+/// use boa_interner::Sym;
+///
+/// struct NameReplacer {
+///     find: Sym,
+///     replace: Sym,
+/// }
+/// impl<'ast> Visitor<'ast> for NameReplacer {
+///     fn visit_sym_mut(&mut self, n: &'ast mut Sym) {
+///         if *n == self.find {
+///             *n = self.replace;
+///         }
+///     }
+/// }
+///
+/// // -- snip -- //
+/// # fn main() {
+/// let source = r#"
+/// let x = 5;
+/// let y = 6;
+/// x + y;
+/// "#;
+/// let mut ctx = Context::default();
+/// let mut parsed = ctx.parse(source).unwrap();
+/// let find = ctx.interner_mut().get_or_intern_static("y");
+/// let replace = ctx.interner_mut().get_or_intern_static("z");
+/// let mut replacer = NameReplacer { find, replace };
+/// replacer.visit_statement_list_mut(&mut parsed);
+/// let replaced = parsed.to_indented_string(ctx.interner(), 0);
+/// assert_eq!(
+///     replaced,
+///     r#"
+/// let x = 5;
+/// let z = 6;
+/// x + z;
+/// "#
+///     .trim_start()
+/// );
+/// # }
+/// ```
 pub trait Visitor<'ast> {
     fn visit_node(&mut self, n: &'ast Node) {
         match n {
