@@ -1317,6 +1317,11 @@ impl Object {
         &self.properties
     }
 
+    #[inline]
+    pub(crate) fn properties_mut(&mut self) -> &mut PropertyMap {
+        &mut self.properties
+    }
+
     /// Inserts a field in the object `properties` without checking if it's writable.
     ///
     /// If a field was already in the object with the same name, then a `Some` is returned

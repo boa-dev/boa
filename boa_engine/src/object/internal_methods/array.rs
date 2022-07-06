@@ -201,8 +201,7 @@ fn array_set_length(
             .borrow()
             .properties
             .index_property_keys()
-            .filter(|idx| new_len <= **idx && **idx < u32::MAX)
-            .copied()
+            .filter(|idx| new_len <= *idx && *idx < u32::MAX)
             .collect();
         keys.sort_unstable_by(|x, y| y.cmp(x));
         keys

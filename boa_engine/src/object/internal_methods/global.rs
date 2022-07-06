@@ -52,7 +52,7 @@ pub(crate) fn global_get_own_property(
     // 7. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
     // 8. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
     // 9. Return D.
-    Ok(context.realm.global_property_map.get(key).cloned())
+    Ok(context.realm.global_property_map.get(key))
 }
 
 /// Abstract operation `OrdinaryIsExtensible`.
@@ -202,7 +202,7 @@ pub(crate) fn global_set_no_receiver(
     // https://tc39.es/ecma262/multipage/ordinary-and-exotic-objects-behaviours.html#sec-ordinarysetwithowndescriptor
 
     // 1. Assert: IsPropertyKey(P) is true.
-    let own_desc = if let Some(desc) = context.realm.global_property_map.get(key).cloned() {
+    let own_desc = if let Some(desc) = context.realm.global_property_map.get(key) {
         desc
     }
     // c. Else,
@@ -250,7 +250,7 @@ pub(crate) fn global_set_no_receiver(
         };
 
         // 1. Let current be ? O.[[GetOwnProperty]](P).
-        let current = context.realm.global_property_map.get(key).cloned();
+        let current = context.realm.global_property_map.get(key);
 
         // 2. Let extensible be ? IsExtensible(O).
         let extensible = context.realm.global_extensible;

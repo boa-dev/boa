@@ -311,7 +311,7 @@ impl JsValue {
         match self {
             Self::Object(ref object) => {
                 // TODO: had to skip `__get_own_properties__` since we don't have context here
-                let property = object.borrow().properties().get(&key).cloned();
+                let property = object.borrow().properties().get(&key);
                 if property.is_some() {
                     return property;
                 }

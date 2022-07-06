@@ -465,7 +465,7 @@ pub(crate) fn ordinary_get_own_property(
     // 7. Set D.[[Enumerable]] to the value of X's [[Enumerable]] attribute.
     // 8. Set D.[[Configurable]] to the value of X's [[Configurable]] attribute.
     // 9. Return D.
-    Ok(obj.borrow().properties.get(key).cloned())
+    Ok(obj.borrow().properties.get(key))
 }
 
 /// Abstract operation `OrdinaryDefineOwnProperty`.
@@ -725,12 +725,7 @@ pub(crate) fn ordinary_own_property_keys(
     let mut keys = Vec::new();
 
     let ordered_indexes = {
-        let mut indexes: Vec<_> = obj
-            .borrow()
-            .properties
-            .index_property_keys()
-            .copied()
-            .collect();
+        let mut indexes: Vec<_> = obj.borrow().properties.index_property_keys().collect();
         indexes.sort_unstable();
         indexes
     };

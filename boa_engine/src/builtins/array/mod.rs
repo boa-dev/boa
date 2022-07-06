@@ -266,15 +266,23 @@ impl Array {
         // 2. Let array be ! ArrayCreate(0).
         let array = Self::array_create(0, None, context)
             .expect("creating an empty array with the default prototype must not fail");
+
         // 3. Let n be 0.
         // 4. For each element e of elements, do
-        for (i, elem) in elements.into_iter().enumerate() {
-            // a. Perform ! CreateDataPropertyOrThrow(array, ! ToString(𝔽(n)), e).
-            array
-                .create_data_property_or_throw(i, elem, context)
-                .expect("new array must be extensible");
-            // b. Set n to n + 1.
-        }
+        //     a. Perform ! CreateDataPropertyOrThrow(array, ! ToString(𝔽(n)), e).
+        //     b. Set n to n + 1.
+        //
+        // NOTE: This deviates from the spec, but it should have the same behaviour.
+        let elements: Vec<_> = elements.into_iter().collect();
+        let length = elements.len();
+        array
+            .borrow_mut()
+            .properties_mut()
+            .override_indexed_properties(elements);
+        array
+            .set("length", length, true, context)
+            .expect("Should not fail");
+
         // 5. Return array.
         array
     }
