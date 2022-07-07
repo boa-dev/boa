@@ -1,6 +1,6 @@
 use crate::{
     builtins::typed_array::TypedArray,
-    object::{JsArray, JsFunction, JsObject, JsObjectType},
+    object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
     value::IntoOrUndefined,
     Context, JsResult, JsString, JsValue,
 };
@@ -330,11 +330,10 @@ macro_rules! JsTypedArrayType {
 
         impl $name {
             #[inline]
-            pub fn from_iter<I>(elements: I, context: &mut Context) -> JsResult<Self>
-            where
-                I: IntoIterator<Item = $element>,
-            {
-                let array = JsArray::from_iter(elements.into_iter().map(JsValue::new), context);
+            pub fn from_array_buffer(
+                array_buffer: JsArrayBuffer,
+                context: &mut Context,
+            ) -> JsResult<Self> {
                 let new_target = context
                     .intrinsics()
                     .constructors()
@@ -343,7 +342,39 @@ macro_rules! JsTypedArrayType {
                     .into();
                 let object = crate::builtins::typed_array::$constructor_function::constructor(
                     &new_target,
-                    &[array.into()],
+                    &[array_buffer.into()],
+                    context,
+                )?
+                .as_object()
+                .expect("object")
+                .clone();
+
+                Ok(Self {
+                    inner: JsTypedArray {
+                        inner: object.into(),
+                    },
+                })
+            }
+
+            #[inline]
+            pub fn from_iter<I>(elements: I, context: &mut Context) -> JsResult<Self>
+            where
+                I: IntoIterator<Item = $element>,
+            {
+                let bytes: Vec<_> = elements
+                    .into_iter()
+                    .flat_map(<$element>::to_ne_bytes)
+                    .collect();
+                let array_buffer = JsArrayBuffer::from_byte_block(bytes, context)?;
+                let new_target = context
+                    .intrinsics()
+                    .constructors()
+                    .$constructor_object()
+                    .constructor()
+                    .into();
+                let object = crate::builtins::typed_array::$constructor_function::constructor(
+                    &new_target,
+                    &[array_buffer.into()],
                     context,
                 )?
                 .as_object()

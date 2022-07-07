@@ -62,6 +62,7 @@ mod tests;
 
 pub(crate) mod internal_methods;
 mod jsarray;
+mod jsarraybuffer;
 mod jsfunction;
 mod jsmap;
 mod jsmap_iterator;
@@ -72,6 +73,7 @@ mod operations;
 mod property_map;
 
 pub use jsarray::*;
+pub use jsarraybuffer::*;
 pub use jsfunction::*;
 pub use jsmap::*;
 pub use jsmap_iterator::*;

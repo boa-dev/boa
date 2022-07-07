@@ -139,7 +139,7 @@ impl ArrayBuffer {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-arraybuffer.prototype.bytelength
-    fn get_byte_length(
+    pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
         context: &mut Context,
