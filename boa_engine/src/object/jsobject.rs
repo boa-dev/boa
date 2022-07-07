@@ -325,7 +325,7 @@ impl JsObject {
     }
 
     /// Checks if it's a `MapIterator` object
-    ///     
+    ///
     /// # Panics
     ///
     /// Panics if the object is currently mutably borrowed.

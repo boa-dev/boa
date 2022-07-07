@@ -166,10 +166,8 @@ impl Set {
 
     /// Utility for constructing `Set` objects.
     pub(crate) fn set_create(prototype: Option<JsObject>, context: &mut Context) -> JsObject {
-        let prototype = match prototype {
-            Some(prototype) => prototype,
-            None => context.intrinsics().constructors().set().prototype(),
-        };
+        let prototype =
+            prototype.unwrap_or_else(|| context.intrinsics().constructors().set().prototype());
 
         JsObject::from_proto_and_data(prototype, ObjectData::set(OrderedSet::new()))
     }
@@ -350,8 +348,6 @@ impl Set {
         let callback_arg = &args[0];
         let this_arg = args.get_or_undefined(1);
 
-        // dbg!(this_arg); // REMOVE DEBUG
-
         // TODO: if condition should also check that we are not in strict mode
         let this_arg = if this_arg.is_undefined() {
             context.global_object().clone().into()
@@ -366,7 +362,6 @@ impl Set {
                 .as_object()
                 .and_then(|obj| {
                     obj.borrow().as_set_ref().map(|set| {
-                        println!("SET: {:?}", set); // REMOVE DEBUG
                         set.get_index(index)
                             .map(|value| [value.clone(), value.clone(), this.clone()])
                     })
