@@ -39,15 +39,23 @@ use boa_interner::Sym;
 ///     replace: Sym,
 /// }
 /// impl<'ast> Visitor<'ast> for NameReplacer {
-///     fn visit_sym_mut(&mut self, n: &'ast mut Sym) {
+///     type Output = ();
+///     type Error = ();
+///
+///     fn visit_sym_mut(&mut self, n: &'ast mut Sym) -> Result<Self::Output, Self::Error> {
 ///         if *n == self.find {
 ///             *n = self.replace;
 ///         }
+///         Ok(())
+///     }
+///
+///     fn get_default_ok() -> Result<Self::Output, Self::Error> {
+///         Ok(())
 ///     }
 /// }
 ///
 /// // -- snip -- //
-/// # fn main() {
+/// # fn main() -> Result<(), ()>{
 /// let source = r#"
 /// let x = 5;
 /// let y = 6;
@@ -58,7 +66,7 @@ use boa_interner::Sym;
 /// let find = ctx.interner_mut().get_or_intern_static("y");
 /// let replace = ctx.interner_mut().get_or_intern_static("z");
 /// let mut replacer = NameReplacer { find, replace };
-/// replacer.visit_statement_list_mut(&mut parsed);
+/// replacer.visit_statement_list_mut(&mut parsed)?;
 /// let replaced = parsed.to_indented_string(ctx.interner(), 0);
 /// assert_eq!(
 ///     replaced,
@@ -69,10 +77,14 @@ use boa_interner::Sym;
 /// "#
 ///     .trim_start()
 /// );
+/// # Ok(())
 /// # }
 /// ```
 pub trait Visitor<'ast> {
-    fn visit_node(&mut self, n: &'ast Node) {
+    type Output;
+    type Error;
+
+    fn visit_node(&mut self, n: &'ast Node) -> Result<Self::Output, Self::Error> {
         match n {
             Node::ArrayDecl(n) => self.visit_array_decl(n),
             Node::ArrowFunctionDecl(n) => self.visit_arrow_function_decl(n),
@@ -89,7 +101,7 @@ pub trait Visitor<'ast> {
             Node::ConditionalOp(n) => self.visit_conditional_op(n),
             Node::Const(n) => self.visit_const(n),
             Node::ConstDeclList(n) | Node::LetDeclList(n) | Node::VarDeclList(n) => {
-                self.visit_declaration_list(n);
+                self.visit_declaration_list(n)
             }
             Node::Continue(n) => self.visit_continue(n),
             Node::DoWhileLoop(n) => self.visit_do_while_loop(n),
@@ -121,379 +133,473 @@ pub trait Visitor<'ast> {
             Node::ClassDecl(n) => self.visit_class_decl(n),
             Node::ClassExpr(n) => self.visit_class_expr(n),
             Node::SuperCall(n) => self.visit_super_call(n),
-            Node::Empty | Node::This => { /* do nothing */ }
+            Node::Empty | Node::This => Self::get_default_ok(),
         }
     }
 
-    fn visit_array_decl(&mut self, n: &'ast ArrayDecl) {
+    fn visit_array_decl(&mut self, n: &'ast ArrayDecl) -> Result<Self::Output, Self::Error> {
         for inner in n.arr.iter() {
-            self.visit_node(inner);
+            self.visit_node(inner)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_arrow_function_decl(&mut self, n: &'ast ArrowFunctionDecl) {
+    fn visit_arrow_function_decl(
+        &mut self,
+        n: &'ast ArrowFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.name {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
-        self.visit_formal_parameter_list(&n.params);
-        self.visit_statement_list(&n.body);
+        self.visit_formal_parameter_list(&n.params)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_assign(&mut self, n: &'ast Assign) {
-        self.visit_assign_target(&n.lhs);
-        self.visit_node(&n.rhs);
+    fn visit_assign(&mut self, n: &'ast Assign) -> Result<Self::Output, Self::Error> {
+        self.visit_assign_target(&n.lhs)?;
+        self.visit_node(&n.rhs)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_function_expr(&mut self, n: &'ast AsyncFunctionExpr) {
+    fn visit_async_function_expr(
+        &mut self,
+        n: &'ast AsyncFunctionExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.name {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_function_decl(&mut self, n: &'ast AsyncFunctionDecl) {
-        self.visit_sym(&n.name);
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+    fn visit_async_function_decl(
+        &mut self,
+        n: &'ast AsyncFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym(&n.name)?;
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_generator_expr(&mut self, n: &'ast AsyncGeneratorExpr) {
+    fn visit_async_generator_expr(
+        &mut self,
+        n: &'ast AsyncGeneratorExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.name {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_generator_decl(&mut self, n: &'ast AsyncGeneratorDecl) {
-        self.visit_sym(&n.name);
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+    fn visit_async_generator_decl(
+        &mut self,
+        n: &'ast AsyncGeneratorDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym(&n.name)?;
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_await_expr(&mut self, n: &'ast AwaitExpr) {
-        self.visit_node(&n.expr);
+    fn visit_await_expr(&mut self, n: &'ast AwaitExpr) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.expr)?;
+        Self::get_default_ok()
     }
 
-    fn visit_bin_op(&mut self, n: &'ast BinOp) {
-        self.visit_raw_binop(&n.op);
-        self.visit_node(&n.lhs);
-        self.visit_node(&n.rhs);
+    fn visit_bin_op(&mut self, n: &'ast BinOp) -> Result<Self::Output, Self::Error> {
+        self.visit_raw_binop(&n.op)?;
+        self.visit_node(&n.lhs)?;
+        self.visit_node(&n.rhs)?;
+        Self::get_default_ok()
     }
 
-    fn visit_block(&mut self, n: &'ast Block) {
-        self.visit_statement_list(&n.statements);
+    fn visit_block(&mut self, n: &'ast Block) -> Result<Self::Output, Self::Error> {
+        self.visit_statement_list(&n.statements)?;
+        Self::get_default_ok()
     }
 
-    fn visit_break(&mut self, n: &'ast Break) {
+    fn visit_break(&mut self, n: &'ast Break) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.label {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_call(&mut self, n: &'ast Call) {
-        self.visit_node(&n.expr);
+    fn visit_call(&mut self, n: &'ast Call) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.expr)?;
         for inner in n.args.iter() {
-            self.visit_node(inner);
+            self.visit_node(inner)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_conditional_op(&mut self, n: &'ast ConditionalOp) {
-        self.visit_node(&n.condition);
-        self.visit_node(&n.if_true);
-        self.visit_node(&n.if_false);
+    fn visit_conditional_op(
+        &mut self,
+        n: &'ast ConditionalOp,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.condition)?;
+        self.visit_node(&n.if_true)?;
+        self.visit_node(&n.if_false)?;
+        Self::get_default_ok()
     }
 
-    fn visit_const(&mut self, n: &'ast Const) {
+    fn visit_const(&mut self, n: &'ast Const) -> Result<Self::Output, Self::Error> {
         if let Const::String(s) = n {
-            self.visit_sym(s);
+            self.visit_sym(s)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_continue(&mut self, n: &'ast Continue) {
+    fn visit_continue(&mut self, n: &'ast Continue) -> Result<Self::Output, Self::Error> {
         if let Some(s) = &n.label {
-            self.visit_sym(s);
+            self.visit_sym(s)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_do_while_loop(&mut self, n: &'ast DoWhileLoop) {
-        self.visit_node(&n.body);
-        self.visit_node(&n.cond);
+    fn visit_do_while_loop(&mut self, n: &'ast DoWhileLoop) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.body)?;
+        self.visit_node(&n.cond)?;
         if let Some(name) = &n.label {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_function_decl(&mut self, n: &'ast FunctionDecl) {
-        self.visit_sym(&n.name);
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+    fn visit_function_decl(&mut self, n: &'ast FunctionDecl) -> Result<Self::Output, Self::Error> {
+        self.visit_sym(&n.name)?;
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_function_expr(&mut self, n: &'ast FunctionExpr) {
+    fn visit_function_expr(&mut self, n: &'ast FunctionExpr) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.name {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_const_field(&mut self, n: &'ast GetConstField) {
-        self.visit_node(&n.obj);
-        self.visit_sym(&n.field);
+    fn visit_get_const_field(
+        &mut self,
+        n: &'ast GetConstField,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.obj)?;
+        self.visit_sym(&n.field)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_private_field(&mut self, n: &'ast GetPrivateField) {
-        self.visit_node(&n.obj);
-        self.visit_sym(&n.field);
+    fn visit_get_private_field(
+        &mut self,
+        n: &'ast GetPrivateField,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.obj)?;
+        self.visit_sym(&n.field)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_field(&mut self, n: &'ast GetField) {
-        self.visit_node(&n.obj);
-        self.visit_node(&n.field);
+    fn visit_get_field(&mut self, n: &'ast GetField) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.obj)?;
+        self.visit_node(&n.field)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_super_field(&mut self, n: &'ast GetSuperField) {
+    fn visit_get_super_field(
+        &mut self,
+        n: &'ast GetSuperField,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             GetSuperField::Const(sym) => self.visit_sym(sym),
             GetSuperField::Expr(n) => self.visit_node(n),
         }
     }
 
-    fn visit_for_loop(&mut self, n: &'ast ForLoop) {
+    fn visit_for_loop(&mut self, n: &'ast ForLoop) -> Result<Self::Output, Self::Error> {
         if let Some(init) = &n.inner.init {
-            self.visit_node(init);
+            self.visit_node(init)?;
         }
         if let Some(condition) = &n.inner.condition {
-            self.visit_node(condition);
+            self.visit_node(condition)?;
         }
         if let Some(final_expr) = &n.inner.final_expr {
-            self.visit_node(final_expr);
+            self.visit_node(final_expr)?;
         }
-        self.visit_node(&n.inner.body);
+        self.visit_node(&n.inner.body)?;
         if let Some(name) = &n.label {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_for_in_loop(&mut self, n: &'ast ForInLoop) {
-        self.visit_iterable_loop_initializer(&n.init);
-        self.visit_node(&n.expr);
-        self.visit_node(&n.body);
+    fn visit_for_in_loop(&mut self, n: &'ast ForInLoop) -> Result<Self::Output, Self::Error> {
+        self.visit_iterable_loop_initializer(&n.init)?;
+        self.visit_node(&n.expr)?;
+        self.visit_node(&n.body)?;
         if let Some(name) = &n.label {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_for_of_loop(&mut self, n: &'ast ForOfLoop) {
-        self.visit_iterable_loop_initializer(&n.init);
-        self.visit_node(&n.iterable);
-        self.visit_node(&n.body);
+    fn visit_for_of_loop(&mut self, n: &'ast ForOfLoop) -> Result<Self::Output, Self::Error> {
+        self.visit_iterable_loop_initializer(&n.init)?;
+        self.visit_node(&n.iterable)?;
+        self.visit_node(&n.body)?;
         if let Some(name) = &n.label {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_if(&mut self, n: &'ast If) {
-        self.visit_node(&n.cond);
-        self.visit_node(&n.body);
+    fn visit_if(&mut self, n: &'ast If) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.cond)?;
+        self.visit_node(&n.body)?;
         if let Some(else_node) = &n.else_node {
-            self.visit_node(else_node);
+            self.visit_node(else_node)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_identifier(&mut self, n: &'ast Identifier) {
-        self.visit_sym(&n.ident);
+    fn visit_identifier(&mut self, n: &'ast Identifier) -> Result<Self::Output, Self::Error> {
+        self.visit_sym(&n.ident)?;
+        Self::get_default_ok()
     }
 
-    fn visit_new(&mut self, n: &'ast New) {
-        self.visit_call(&n.call);
+    fn visit_new(&mut self, n: &'ast New) -> Result<Self::Output, Self::Error> {
+        self.visit_call(&n.call)?;
+        Self::get_default_ok()
     }
 
-    fn visit_object(&mut self, n: &'ast Object) {
+    fn visit_object(&mut self, n: &'ast Object) -> Result<Self::Output, Self::Error> {
         for pd in n.properties.iter() {
-            self.visit_property_definition(pd);
+            self.visit_property_definition(pd)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_return(&mut self, n: &'ast Return) {
+    fn visit_return(&mut self, n: &'ast Return) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &n.expr {
-            self.visit_node(expr);
+            self.visit_node(expr)?;
         }
         if let Some(name) = &n.label {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_switch(&mut self, n: &'ast Switch) {
-        self.visit_node(&n.val);
+    fn visit_switch(&mut self, n: &'ast Switch) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.val)?;
         for case in n.cases.iter() {
-            self.visit_case(case);
+            self.visit_case(case)?;
         }
         if let Some(default) = &n.default {
-            self.visit_statement_list(default);
+            self.visit_statement_list(default)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_spread(&mut self, n: &'ast Spread) {
-        self.visit_node(&n.val);
+    fn visit_spread(&mut self, n: &'ast Spread) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.val)?;
+        Self::get_default_ok()
     }
 
-    fn visit_tagged_template(&mut self, n: &'ast TaggedTemplate) {
-        self.visit_node(&n.tag);
+    fn visit_tagged_template(
+        &mut self,
+        n: &'ast TaggedTemplate,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.tag)?;
         for raw in n.raws.iter() {
-            self.visit_sym(raw);
+            self.visit_sym(raw)?;
         }
         for cooked in n.cookeds.iter().flatten() {
-            self.visit_sym(cooked);
+            self.visit_sym(cooked)?;
         }
         for expr in n.exprs.iter() {
-            self.visit_node(expr);
+            self.visit_node(expr)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_template_lit(&mut self, n: &'ast TemplateLit) {
+    fn visit_template_lit(&mut self, n: &'ast TemplateLit) -> Result<Self::Output, Self::Error> {
         for te in n.elements.iter() {
-            self.visit_template_element(te);
+            self.visit_template_element(te)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_throw(&mut self, n: &'ast Throw) {
-        self.visit_node(&n.expr);
+    fn visit_throw(&mut self, n: &'ast Throw) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.expr)?;
+        Self::get_default_ok()
     }
 
-    fn visit_try(&mut self, n: &'ast Try) {
-        self.visit_block(&n.block);
+    fn visit_try(&mut self, n: &'ast Try) -> Result<Self::Output, Self::Error> {
+        self.visit_block(&n.block)?;
         if let Some(catch) = &n.catch {
-            self.visit_catch(catch);
+            self.visit_catch(catch)?;
         }
         if let Some(finally) = &n.finally {
-            self.visit_finally(finally);
+            self.visit_finally(finally)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_unary_op(&mut self, n: &'ast UnaryOp) {
-        self.visit_raw_unary_op(&n.op);
-        self.visit_node(&n.target);
+    fn visit_unary_op(&mut self, n: &'ast UnaryOp) -> Result<Self::Output, Self::Error> {
+        self.visit_raw_unary_op(&n.op)?;
+        self.visit_node(&n.target)?;
+        Self::get_default_ok()
     }
 
-    fn visit_declaration_list(&mut self, n: &'ast DeclarationList) {
+    fn visit_declaration_list(
+        &mut self,
+        n: &'ast DeclarationList,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             DeclarationList::Const(decls)
             | DeclarationList::Let(decls)
             | DeclarationList::Var(decls) => {
                 for decl in decls.iter() {
-                    self.visit_declaration(decl);
+                    self.visit_declaration(decl)?;
                 }
             }
         }
+        Self::get_default_ok()
     }
 
-    fn visit_while_loop(&mut self, n: &'ast WhileLoop) {
-        self.visit_node(&n.cond);
-        self.visit_node(&n.body);
+    fn visit_while_loop(&mut self, n: &'ast WhileLoop) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.cond)?;
+        self.visit_node(&n.body)?;
         if let Some(name) = &n.label {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_yield(&mut self, n: &'ast Yield) {
+    fn visit_yield(&mut self, n: &'ast Yield) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &n.expr {
-            self.visit_node(expr);
+            self.visit_node(expr)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_generator_decl(&mut self, n: &'ast GeneratorDecl) {
-        self.visit_sym(&n.name);
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+    fn visit_generator_decl(
+        &mut self,
+        n: &'ast GeneratorDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym(&n.name)?;
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_generator_expr(&mut self, n: &'ast GeneratorExpr) {
+    fn visit_generator_expr(
+        &mut self,
+        n: &'ast GeneratorExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.name {
-            self.visit_sym(name);
+            self.visit_sym(name)?;
         }
-        self.visit_formal_parameter_list(&n.parameters);
-        self.visit_statement_list(&n.body);
+        self.visit_formal_parameter_list(&n.parameters)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_class_decl(&mut self, n: &'ast Class) {
-        self.visit_class(n);
+    fn visit_class_decl(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
+        self.visit_class(n)?;
+        Self::get_default_ok()
     }
 
-    fn visit_class_expr(&mut self, n: &'ast Class) {
-        self.visit_class(n);
+    fn visit_class_expr(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
+        self.visit_class(n)?;
+        Self::get_default_ok()
     }
 
-    fn visit_class(&mut self, n: &'ast Class) {
-        self.visit_sym(&n.name);
+    fn visit_class(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
+        self.visit_sym(&n.name)?;
         if let Some(super_ref) = &n.super_ref {
-            self.visit_node(super_ref);
+            self.visit_node(super_ref)?;
         }
         if let Some(constructor) = &n.constructor {
-            self.visit_function_expr(constructor);
+            self.visit_function_expr(constructor)?;
         }
         for elem in n.elements.iter() {
-            self.visit_class_element(elem);
+            self.visit_class_element(elem)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_class_element(&mut self, n: &'ast ClassElement) {
+    fn visit_class_element(&mut self, n: &'ast ClassElement) -> Result<Self::Output, Self::Error> {
         match n {
             ClassElement::MethodDefinition(pn, md)
             | ClassElement::StaticMethodDefinition(pn, md) => {
-                self.visit_property_name(pn);
-                self.visit_method_definition(md);
+                self.visit_property_name(pn)?;
+                self.visit_method_definition(md)?;
             }
             ClassElement::FieldDefinition(pn, fd) | ClassElement::StaticFieldDefinition(pn, fd) => {
-                self.visit_property_name(pn);
+                self.visit_property_name(pn)?;
                 if let Some(n) = fd {
-                    self.visit_node(n);
+                    self.visit_node(n)?;
                 }
             }
             ClassElement::PrivateMethodDefinition(s, md)
             | ClassElement::PrivateStaticMethodDefinition(s, md) => {
-                self.visit_sym(s);
-                self.visit_method_definition(md);
+                self.visit_sym(s)?;
+                self.visit_method_definition(md)?;
             }
             ClassElement::PrivateFieldDefinition(s, fd)
             | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
-                self.visit_sym(s);
+                self.visit_sym(s)?;
                 if let Some(n) = fd {
-                    self.visit_node(n);
+                    self.visit_node(n)?;
                 }
             }
             ClassElement::StaticBlock(sl) => {
-                self.visit_statement_list(sl);
+                self.visit_statement_list(sl)?;
             }
         }
+        Self::get_default_ok()
     }
 
-    fn visit_super_call(&mut self, n: &'ast SuperCall) {
+    fn visit_super_call(&mut self, n: &'ast SuperCall) -> Result<Self::Output, Self::Error> {
         for arg in n.args.iter() {
-            self.visit_node(arg);
+            self.visit_node(arg)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_sym(&mut self, _n: &'ast Sym) {
+    fn visit_sym(&mut self, _n: &'ast Sym) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_formal_parameter_list(&mut self, n: &'ast FormalParameterList) {
+    fn visit_formal_parameter_list(
+        &mut self,
+        n: &'ast FormalParameterList,
+    ) -> Result<Self::Output, Self::Error> {
         for p in n.parameters.iter() {
-            self.visit_formal_parameter(p);
+            self.visit_formal_parameter(p)?;
         }
-        self.visit_formal_parameter_list_flags(&n.flags);
+        self.visit_formal_parameter_list_flags(&n.flags)?;
+        Self::get_default_ok()
     }
 
-    fn visit_statement_list(&mut self, n: &'ast StatementList) {
+    fn visit_statement_list(
+        &mut self,
+        n: &'ast StatementList,
+    ) -> Result<Self::Output, Self::Error> {
         for inner in n.items.iter() {
-            self.visit_node(inner);
+            self.visit_node(inner)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_assign_target(&mut self, n: &'ast AssignTarget) {
+    fn visit_assign_target(&mut self, n: &'ast AssignTarget) -> Result<Self::Output, Self::Error> {
         match n {
             AssignTarget::Identifier(ident) => self.visit_identifier(ident),
             AssignTarget::GetPrivateField(gpf) => self.visit_get_private_field(gpf),
@@ -503,30 +609,34 @@ pub trait Visitor<'ast> {
         }
     }
 
-    fn visit_raw_binop(&mut self, n: &'ast op::BinOp) {
+    fn visit_raw_binop(&mut self, n: &'ast op::BinOp) -> Result<Self::Output, Self::Error> {
         match n {
             op::BinOp::Num(op) => self.visit_raw_num_op(op),
             op::BinOp::Bit(op) => self.visit_raw_bit_op(op),
             op::BinOp::Comp(op) => self.visit_raw_comp_op(op),
             op::BinOp::Log(op) => self.visit_raw_log_op(op),
             op::BinOp::Assign(op) => self.visit_raw_assign_op(op),
-            op::BinOp::Comma => {}
+            op::BinOp::Comma => Self::get_default_ok(),
         }
     }
 
-    fn visit_declaration(&mut self, n: &'ast Declaration) {
+    fn visit_declaration(&mut self, n: &'ast Declaration) -> Result<Self::Output, Self::Error> {
         match n {
             Declaration::Identifier { ident, init } => {
-                self.visit_identifier(ident);
+                self.visit_identifier(ident)?;
                 if let Some(init) = init {
-                    self.visit_node(init);
+                    self.visit_node(init)?;
                 }
+                Self::get_default_ok()
             }
             Declaration::Pattern(dp) => self.visit_declaration_pattern(dp),
         }
     }
 
-    fn visit_iterable_loop_initializer(&mut self, n: &'ast IterableLoopInitializer) {
+    fn visit_iterable_loop_initializer(
+        &mut self,
+        n: &'ast IterableLoopInitializer,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             IterableLoopInitializer::Identifier(ident) => self.visit_identifier(ident),
             IterableLoopInitializer::Var(decl)
@@ -536,91 +646,117 @@ pub trait Visitor<'ast> {
         }
     }
 
-    fn visit_property_definition(&mut self, n: &'ast PropertyDefinition) {
+    fn visit_property_definition(
+        &mut self,
+        n: &'ast PropertyDefinition,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             PropertyDefinition::IdentifierReference(s) => self.visit_sym(s),
             PropertyDefinition::Property(pn, inner) => {
-                self.visit_property_name(pn);
-                self.visit_node(inner);
+                self.visit_property_name(pn)?;
+                self.visit_node(inner)?;
+                Self::get_default_ok()
             }
             PropertyDefinition::MethodDefinition(md, pn) => {
-                self.visit_method_definition(md);
-                self.visit_property_name(pn);
+                self.visit_method_definition(md)?;
+                self.visit_property_name(pn)?;
+                Self::get_default_ok()
             }
             PropertyDefinition::SpreadObject(inner) => self.visit_node(inner),
         }
     }
 
-    fn visit_case(&mut self, n: &'ast Case) {
-        self.visit_node(&n.condition);
-        self.visit_statement_list(&n.body);
+    fn visit_case(&mut self, n: &'ast Case) -> Result<Self::Output, Self::Error> {
+        self.visit_node(&n.condition)?;
+        self.visit_statement_list(&n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_template_element(&mut self, n: &'ast TemplateElement) {
+    fn visit_template_element(
+        &mut self,
+        n: &'ast TemplateElement,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             TemplateElement::String(s) => self.visit_sym(s),
             TemplateElement::Expr(inner) => self.visit_node(inner),
         }
     }
 
-    fn visit_catch(&mut self, n: &'ast Catch) {
+    fn visit_catch(&mut self, n: &'ast Catch) -> Result<Self::Output, Self::Error> {
         if let Some(parameter) = &n.parameter {
-            self.visit_declaration(parameter);
+            self.visit_declaration(parameter)?;
         }
-        self.visit_block(&n.block);
+        self.visit_block(&n.block)?;
+        Self::get_default_ok()
     }
 
-    fn visit_finally(&mut self, n: &'ast Finally) {
-        self.visit_block(&n.block);
+    fn visit_finally(&mut self, n: &'ast Finally) -> Result<Self::Output, Self::Error> {
+        self.visit_block(&n.block)?;
+        Self::get_default_ok()
     }
 
-    fn visit_raw_unary_op(&mut self, _n: &'ast op::UnaryOp) {
+    fn visit_raw_unary_op(&mut self, _n: &'ast op::UnaryOp) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_formal_parameter(&mut self, n: &'ast FormalParameter) {
-        self.visit_declaration(&n.declaration);
+    fn visit_formal_parameter(
+        &mut self,
+        n: &'ast FormalParameter,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_declaration(&n.declaration)?;
+        Self::get_default_ok()
     }
 
-    fn visit_formal_parameter_list_flags(&mut self, _n: &'ast FormalParameterListFlags) {
+    fn visit_formal_parameter_list_flags(
+        &mut self,
+        _n: &'ast FormalParameterListFlags,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_declaration_pattern(&mut self, n: &'ast DeclarationPattern) {
+    fn visit_declaration_pattern(
+        &mut self,
+        n: &'ast DeclarationPattern,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             DeclarationPattern::Object(o) => self.visit_declaration_pattern_object(o),
             DeclarationPattern::Array(a) => self.visit_declaration_pattern_array(a),
         }
     }
 
-    fn visit_raw_num_op(&mut self, _n: &'ast op::NumOp) {
-        /* do nothing */
+    fn visit_raw_num_op(&mut self, _n: &'ast op::NumOp) -> Result<Self::Output, Self::Error> {
+        Self::get_default_ok()
     }
 
-    fn visit_raw_bit_op(&mut self, _n: &'ast op::BitOp) {
-        /* do nothing */
+    fn visit_raw_bit_op(&mut self, _n: &'ast op::BitOp) -> Result<Self::Output, Self::Error> {
+        Self::get_default_ok()
     }
 
-    fn visit_raw_comp_op(&mut self, _n: &'ast op::CompOp) {
-        /* do nothing */
+    fn visit_raw_comp_op(&mut self, _n: &'ast op::CompOp) -> Result<Self::Output, Self::Error> {
+        Self::get_default_ok()
     }
 
-    fn visit_raw_log_op(&mut self, _n: &'ast op::LogOp) {
-        /* do nothing */
+    fn visit_raw_log_op(&mut self, _n: &'ast op::LogOp) -> Result<Self::Output, Self::Error> {
+        Self::get_default_ok()
     }
 
-    fn visit_raw_assign_op(&mut self, _n: &'ast op::AssignOp) {
-        /* do nothing */
+    fn visit_raw_assign_op(&mut self, _n: &'ast op::AssignOp) -> Result<Self::Output, Self::Error> {
+        Self::get_default_ok()
     }
 
-    fn visit_property_name(&mut self, n: &'ast PropertyName) {
+    fn visit_property_name(&mut self, n: &'ast PropertyName) -> Result<Self::Output, Self::Error> {
         match n {
             PropertyName::Literal(s) => self.visit_sym(s),
             PropertyName::Computed(inner) => self.visit_node(inner),
         }
     }
 
-    fn visit_method_definition(&mut self, n: &'ast MethodDefinition) {
+    fn visit_method_definition(
+        &mut self,
+        n: &'ast MethodDefinition,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             MethodDefinition::Get(fe)
             | MethodDefinition::Set(fe)
@@ -631,25 +767,36 @@ pub trait Visitor<'ast> {
         }
     }
 
-    fn visit_declaration_pattern_object(&mut self, n: &'ast DeclarationPatternObject) {
+    fn visit_declaration_pattern_object(
+        &mut self,
+        n: &'ast DeclarationPatternObject,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &n.bindings {
-            self.visit_binding_pattern_type_object(binding);
+            self.visit_binding_pattern_type_object(binding)?;
         }
         if let Some(init) = &n.init {
-            self.visit_node(init);
+            self.visit_node(init)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_declaration_pattern_array(&mut self, n: &'ast DeclarationPatternArray) {
+    fn visit_declaration_pattern_array(
+        &mut self,
+        n: &'ast DeclarationPatternArray,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &n.bindings {
-            self.visit_binding_pattern_type_array(binding);
+            self.visit_binding_pattern_type_array(binding)?;
         }
         if let Some(init) = &n.init {
-            self.visit_node(init);
+            self.visit_node(init)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_binding_pattern_type_object(&mut self, n: &'ast BindingPatternTypeObject) {
+    fn visit_binding_pattern_type_object(
+        &mut self,
+        n: &'ast BindingPatternTypeObject,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             BindingPatternTypeObject::Empty => {}
             BindingPatternTypeObject::SingleName {
@@ -657,28 +804,28 @@ pub trait Visitor<'ast> {
                 property_name,
                 default_init,
             } => {
-                self.visit_sym(ident);
-                self.visit_property_name(property_name);
+                self.visit_sym(ident)?;
+                self.visit_property_name(property_name)?;
                 if let Some(init) = default_init {
-                    self.visit_node(init);
+                    self.visit_node(init)?;
                 }
             }
             BindingPatternTypeObject::RestProperty {
                 ident,
                 excluded_keys,
             } => {
-                self.visit_sym(ident);
+                self.visit_sym(ident)?;
                 for key in excluded_keys.iter() {
-                    self.visit_sym(key);
+                    self.visit_sym(key)?;
                 }
             }
             BindingPatternTypeObject::RestGetConstField {
                 get_const_field,
                 excluded_keys,
             } => {
-                self.visit_get_const_field(get_const_field);
+                self.visit_get_const_field(get_const_field)?;
                 for key in excluded_keys.iter() {
-                    self.visit_sym(key);
+                    self.visit_sym(key)?;
                 }
             }
             BindingPatternTypeObject::BindingPattern {
@@ -686,44 +833,51 @@ pub trait Visitor<'ast> {
                 pattern,
                 default_init,
             } => {
-                self.visit_property_name(ident);
-                self.visit_declaration_pattern(pattern);
+                self.visit_property_name(ident)?;
+                self.visit_declaration_pattern(pattern)?;
                 if let Some(init) = default_init {
-                    self.visit_node(init);
+                    self.visit_node(init)?;
                 }
             }
         }
+        Self::get_default_ok()
     }
 
-    fn visit_binding_pattern_type_array(&mut self, n: &'ast BindingPatternTypeArray) {
+    fn visit_binding_pattern_type_array(
+        &mut self,
+        n: &'ast BindingPatternTypeArray,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             BindingPatternTypeArray::SingleName {
                 ident,
                 default_init,
             } => {
-                self.visit_sym(ident);
+                self.visit_sym(ident)?;
                 if let Some(init) = default_init {
-                    self.visit_node(init);
+                    self.visit_node(init)?;
                 }
+                Self::get_default_ok()
             }
             BindingPatternTypeArray::GetField { get_field }
             | BindingPatternTypeArray::GetFieldRest { get_field } => {
-                self.visit_get_field(get_field);
+                self.visit_get_field(get_field)
             }
             BindingPatternTypeArray::GetConstField { get_const_field }
             | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
-                self.visit_get_const_field(get_const_field);
+                self.visit_get_const_field(get_const_field)
             }
             BindingPatternTypeArray::BindingPattern { pattern }
             | BindingPatternTypeArray::BindingPatternRest { pattern } => {
-                self.visit_declaration_pattern(pattern);
+                self.visit_declaration_pattern(pattern)
             }
             BindingPatternTypeArray::SingleNameRest { ident } => self.visit_sym(ident),
-            BindingPatternTypeArray::Empty | BindingPatternTypeArray::Elision => {}
+            BindingPatternTypeArray::Empty | BindingPatternTypeArray::Elision => {
+                Self::get_default_ok()
+            }
         }
     }
 
-    fn visit_node_mut(&mut self, n: &'ast mut Node) {
+    fn visit_node_mut(&mut self, n: &'ast mut Node) -> Result<Self::Output, Self::Error> {
         match n {
             Node::ArrayDecl(n) => self.visit_array_decl_mut(n),
             Node::ArrowFunctionDecl(n) => self.visit_arrow_function_decl_mut(n),
@@ -740,7 +894,7 @@ pub trait Visitor<'ast> {
             Node::ConditionalOp(n) => self.visit_conditional_op_mut(n),
             Node::Const(n) => self.visit_const_mut(n),
             Node::ConstDeclList(n) | Node::LetDeclList(n) | Node::VarDeclList(n) => {
-                self.visit_declaration_list_mut(n);
+                self.visit_declaration_list_mut(n)
             }
             Node::Continue(n) => self.visit_continue_mut(n),
             Node::DoWhileLoop(n) => self.visit_do_while_loop_mut(n),
@@ -772,379 +926,512 @@ pub trait Visitor<'ast> {
             Node::ClassDecl(n) => self.visit_class_decl_mut(n),
             Node::ClassExpr(n) => self.visit_class_expr_mut(n),
             Node::SuperCall(n) => self.visit_super_call_mut(n),
-            Node::Empty | Node::This => { /* do nothing */ }
+            Node::Empty | Node::This => Self::get_default_ok(),
         }
     }
 
-    fn visit_array_decl_mut(&mut self, n: &'ast mut ArrayDecl) {
+    fn visit_array_decl_mut(
+        &mut self,
+        n: &'ast mut ArrayDecl,
+    ) -> Result<Self::Output, Self::Error> {
         for inner in n.arr.iter_mut() {
-            self.visit_node_mut(inner);
+            self.visit_node_mut(inner)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_arrow_function_decl_mut(&mut self, n: &'ast mut ArrowFunctionDecl) {
+    fn visit_arrow_function_decl_mut(
+        &mut self,
+        n: &'ast mut ArrowFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.name {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
-        self.visit_formal_parameter_list_mut(&mut n.params);
-        self.visit_statement_list_mut(&mut n.body);
+        self.visit_formal_parameter_list_mut(&mut n.params)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_assign_mut(&mut self, n: &'ast mut Assign) {
-        self.visit_assign_target_mut(&mut n.lhs);
-        self.visit_node_mut(&mut n.rhs);
+    fn visit_assign_mut(&mut self, n: &'ast mut Assign) -> Result<Self::Output, Self::Error> {
+        self.visit_assign_target_mut(&mut n.lhs)?;
+        self.visit_node_mut(&mut n.rhs)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_function_expr_mut(&mut self, n: &'ast mut AsyncFunctionExpr) {
+    fn visit_async_function_expr_mut(
+        &mut self,
+        n: &'ast mut AsyncFunctionExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.name {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_function_decl_mut(&mut self, n: &'ast mut AsyncFunctionDecl) {
-        self.visit_sym_mut(&mut n.name);
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+    fn visit_async_function_decl_mut(
+        &mut self,
+        n: &'ast mut AsyncFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym_mut(&mut n.name)?;
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_generator_expr_mut(&mut self, n: &'ast mut AsyncGeneratorExpr) {
+    fn visit_async_generator_expr_mut(
+        &mut self,
+        n: &'ast mut AsyncGeneratorExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.name {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_async_generator_decl_mut(&mut self, n: &'ast mut AsyncGeneratorDecl) {
-        self.visit_sym_mut(&mut n.name);
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+    fn visit_async_generator_decl_mut(
+        &mut self,
+        n: &'ast mut AsyncGeneratorDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym_mut(&mut n.name)?;
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_await_expr_mut(&mut self, n: &'ast mut AwaitExpr) {
-        self.visit_node_mut(&mut n.expr);
+    fn visit_await_expr_mut(
+        &mut self,
+        n: &'ast mut AwaitExpr,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.expr)?;
+        Self::get_default_ok()
     }
 
-    fn visit_bin_op_mut(&mut self, n: &'ast mut BinOp) {
-        self.visit_raw_binop_mut(&mut n.op);
-        self.visit_node_mut(&mut n.lhs);
-        self.visit_node_mut(&mut n.rhs);
+    fn visit_bin_op_mut(&mut self, n: &'ast mut BinOp) -> Result<Self::Output, Self::Error> {
+        self.visit_raw_binop_mut(&mut n.op)?;
+        self.visit_node_mut(&mut n.lhs)?;
+        self.visit_node_mut(&mut n.rhs)?;
+        Self::get_default_ok()
     }
 
-    fn visit_block_mut(&mut self, n: &'ast mut Block) {
-        self.visit_statement_list_mut(&mut n.statements);
+    fn visit_block_mut(&mut self, n: &'ast mut Block) -> Result<Self::Output, Self::Error> {
+        self.visit_statement_list_mut(&mut n.statements)?;
+        Self::get_default_ok()
     }
 
-    fn visit_break_mut(&mut self, n: &'ast mut Break) {
+    fn visit_break_mut(&mut self, n: &'ast mut Break) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.label {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_call_mut(&mut self, n: &'ast mut Call) {
-        self.visit_node_mut(&mut n.expr);
+    fn visit_call_mut(&mut self, n: &'ast mut Call) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.expr)?;
         for inner in n.args.iter_mut() {
-            self.visit_node_mut(inner);
+            self.visit_node_mut(inner)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_conditional_op_mut(&mut self, n: &'ast mut ConditionalOp) {
-        self.visit_node_mut(&mut n.condition);
-        self.visit_node_mut(&mut n.if_true);
-        self.visit_node_mut(&mut n.if_false);
+    fn visit_conditional_op_mut(
+        &mut self,
+        n: &'ast mut ConditionalOp,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.condition)?;
+        self.visit_node_mut(&mut n.if_true)?;
+        self.visit_node_mut(&mut n.if_false)?;
+        Self::get_default_ok()
     }
 
-    fn visit_const_mut(&mut self, n: &'ast mut Const) {
+    fn visit_const_mut(&mut self, n: &'ast mut Const) -> Result<Self::Output, Self::Error> {
         if let Const::String(s) = n {
-            self.visit_sym_mut(s);
+            self.visit_sym_mut(s)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_continue_mut(&mut self, n: &'ast mut Continue) {
+    fn visit_continue_mut(&mut self, n: &'ast mut Continue) -> Result<Self::Output, Self::Error> {
         if let Some(s) = &mut n.label {
-            self.visit_sym_mut(s);
+            self.visit_sym_mut(s)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_do_while_loop_mut(&mut self, n: &'ast mut DoWhileLoop) {
-        self.visit_node_mut(&mut n.body);
-        self.visit_node_mut(&mut n.cond);
+    fn visit_do_while_loop_mut(
+        &mut self,
+        n: &'ast mut DoWhileLoop,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.body)?;
+        self.visit_node_mut(&mut n.cond)?;
         if let Some(name) = &mut n.label {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_function_decl_mut(&mut self, n: &'ast mut FunctionDecl) {
-        self.visit_sym_mut(&mut n.name);
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+    fn visit_function_decl_mut(
+        &mut self,
+        n: &'ast mut FunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym_mut(&mut n.name)?;
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_function_expr_mut(&mut self, n: &'ast mut FunctionExpr) {
+    fn visit_function_expr_mut(
+        &mut self,
+        n: &'ast mut FunctionExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.name {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_const_field_mut(&mut self, n: &'ast mut GetConstField) {
-        self.visit_node_mut(&mut n.obj);
-        self.visit_sym_mut(&mut n.field);
+    fn visit_get_const_field_mut(
+        &mut self,
+        n: &'ast mut GetConstField,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.obj)?;
+        self.visit_sym_mut(&mut n.field)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_private_field_mut(&mut self, n: &'ast mut GetPrivateField) {
-        self.visit_node_mut(&mut n.obj);
-        self.visit_sym_mut(&mut n.field);
+    fn visit_get_private_field_mut(
+        &mut self,
+        n: &'ast mut GetPrivateField,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.obj)?;
+        self.visit_sym_mut(&mut n.field)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_field_mut(&mut self, n: &'ast mut GetField) {
-        self.visit_node_mut(&mut n.obj);
-        self.visit_node_mut(&mut n.field);
+    fn visit_get_field_mut(&mut self, n: &'ast mut GetField) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.obj)?;
+        self.visit_node_mut(&mut n.field)?;
+        Self::get_default_ok()
     }
 
-    fn visit_get_super_field_mut(&mut self, n: &'ast mut GetSuperField) {
+    fn visit_get_super_field_mut(
+        &mut self,
+        n: &'ast mut GetSuperField,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             GetSuperField::Const(sym) => self.visit_sym_mut(sym),
             GetSuperField::Expr(n) => self.visit_node_mut(n.as_mut()),
         }
     }
 
-    fn visit_for_loop_mut(&mut self, n: &'ast mut ForLoop) {
+    fn visit_for_loop_mut(&mut self, n: &'ast mut ForLoop) -> Result<Self::Output, Self::Error> {
         if let Some(init) = &mut n.inner.init {
-            self.visit_node_mut(init);
+            self.visit_node_mut(init)?;
         }
         if let Some(condition) = &mut n.inner.condition {
-            self.visit_node_mut(condition);
+            self.visit_node_mut(condition)?;
         }
         if let Some(final_expr) = &mut n.inner.final_expr {
-            self.visit_node_mut(final_expr);
+            self.visit_node_mut(final_expr)?;
         }
-        self.visit_node_mut(&mut n.inner.body);
+        self.visit_node_mut(&mut n.inner.body)?;
         if let Some(name) = &mut n.label {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_for_in_loop_mut(&mut self, n: &'ast mut ForInLoop) {
-        self.visit_iterable_loop_initializer_mut(&mut n.init);
-        self.visit_node_mut(&mut n.expr);
-        self.visit_node_mut(&mut n.body);
+    fn visit_for_in_loop_mut(
+        &mut self,
+        n: &'ast mut ForInLoop,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_iterable_loop_initializer_mut(&mut n.init)?;
+        self.visit_node_mut(&mut n.expr)?;
+        self.visit_node_mut(&mut n.body)?;
         if let Some(name) = &mut n.label {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_for_of_loop_mut(&mut self, n: &'ast mut ForOfLoop) {
-        self.visit_iterable_loop_initializer_mut(&mut n.init);
-        self.visit_node_mut(&mut n.iterable);
-        self.visit_node_mut(&mut n.body);
+    fn visit_for_of_loop_mut(
+        &mut self,
+        n: &'ast mut ForOfLoop,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_iterable_loop_initializer_mut(&mut n.init)?;
+        self.visit_node_mut(&mut n.iterable)?;
+        self.visit_node_mut(&mut n.body)?;
         if let Some(name) = &mut n.label {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_if_mut(&mut self, n: &'ast mut If) {
-        self.visit_node_mut(&mut n.cond);
-        self.visit_node_mut(&mut n.body);
+    fn visit_if_mut(&mut self, n: &'ast mut If) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.cond)?;
+        self.visit_node_mut(&mut n.body)?;
         if let Some(else_node) = &mut n.else_node {
-            self.visit_node_mut(else_node.as_mut());
+            self.visit_node_mut(else_node.as_mut())?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_identifier_mut(&mut self, n: &'ast mut Identifier) {
-        self.visit_sym_mut(&mut n.ident);
+    fn visit_identifier_mut(
+        &mut self,
+        n: &'ast mut Identifier,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym_mut(&mut n.ident)?;
+        Self::get_default_ok()
     }
 
-    fn visit_new_mut(&mut self, n: &'ast mut New) {
-        self.visit_call_mut(&mut n.call);
+    fn visit_new_mut(&mut self, n: &'ast mut New) -> Result<Self::Output, Self::Error> {
+        self.visit_call_mut(&mut n.call)?;
+        Self::get_default_ok()
     }
 
-    fn visit_object_mut(&mut self, n: &'ast mut Object) {
+    fn visit_object_mut(&mut self, n: &'ast mut Object) -> Result<Self::Output, Self::Error> {
         for pd in n.properties.iter_mut() {
-            self.visit_property_definition_mut(pd);
+            self.visit_property_definition_mut(pd)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_return_mut(&mut self, n: &'ast mut Return) {
+    fn visit_return_mut(&mut self, n: &'ast mut Return) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &mut n.expr {
-            self.visit_node_mut(expr.as_mut());
+            self.visit_node_mut(expr.as_mut())?;
         }
         if let Some(name) = &mut n.label {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_switch_mut(&mut self, n: &'ast mut Switch) {
-        self.visit_node_mut(&mut n.val);
+    fn visit_switch_mut(&mut self, n: &'ast mut Switch) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.val)?;
         for case in n.cases.iter_mut() {
-            self.visit_case_mut(case);
+            self.visit_case_mut(case)?;
         }
         if let Some(default) = &mut n.default {
-            self.visit_statement_list_mut(default);
+            self.visit_statement_list_mut(default)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_spread_mut(&mut self, n: &'ast mut Spread) {
-        self.visit_node_mut(&mut n.val);
+    fn visit_spread_mut(&mut self, n: &'ast mut Spread) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.val)?;
+        Self::get_default_ok()
     }
 
-    fn visit_tagged_template_mut(&mut self, n: &'ast mut TaggedTemplate) {
-        self.visit_node_mut(&mut n.tag);
+    fn visit_tagged_template_mut(
+        &mut self,
+        n: &'ast mut TaggedTemplate,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.tag)?;
         for raw in n.raws.iter_mut() {
-            self.visit_sym_mut(raw);
+            self.visit_sym_mut(raw)?;
         }
         for cooked in n.cookeds.iter_mut().flatten() {
-            self.visit_sym_mut(cooked);
+            self.visit_sym_mut(cooked)?;
         }
         for expr in n.exprs.iter_mut() {
-            self.visit_node_mut(expr);
+            self.visit_node_mut(expr)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_template_lit_mut(&mut self, n: &'ast mut TemplateLit) {
+    fn visit_template_lit_mut(
+        &mut self,
+        n: &'ast mut TemplateLit,
+    ) -> Result<Self::Output, Self::Error> {
         for te in n.elements.iter_mut() {
-            self.visit_template_element_mut(te);
+            self.visit_template_element_mut(te)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_throw_mut(&mut self, n: &'ast mut Throw) {
-        self.visit_node_mut(&mut n.expr);
+    fn visit_throw_mut(&mut self, n: &'ast mut Throw) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.expr)?;
+        Self::get_default_ok()
     }
 
-    fn visit_try_mut(&mut self, n: &'ast mut Try) {
-        self.visit_block_mut(&mut n.block);
+    fn visit_try_mut(&mut self, n: &'ast mut Try) -> Result<Self::Output, Self::Error> {
+        self.visit_block_mut(&mut n.block)?;
         if let Some(catch) = &mut n.catch {
-            self.visit_catch_mut(catch);
+            self.visit_catch_mut(catch)?;
         }
         if let Some(finally) = &mut n.finally {
-            self.visit_finally_mut(finally);
+            self.visit_finally_mut(finally)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_unary_op_mut(&mut self, n: &'ast mut UnaryOp) {
-        self.visit_raw_unary_op_mut(&mut n.op);
-        self.visit_node_mut(&mut n.target);
+    fn visit_unary_op_mut(&mut self, n: &'ast mut UnaryOp) -> Result<Self::Output, Self::Error> {
+        self.visit_raw_unary_op_mut(&mut n.op)?;
+        self.visit_node_mut(&mut n.target)?;
+        Self::get_default_ok()
     }
 
-    fn visit_declaration_list_mut(&mut self, n: &'ast mut DeclarationList) {
+    fn visit_declaration_list_mut(
+        &mut self,
+        n: &'ast mut DeclarationList,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             DeclarationList::Const(decls)
             | DeclarationList::Let(decls)
             | DeclarationList::Var(decls) => {
                 for decl in decls.iter_mut() {
-                    self.visit_declaration_mut(decl);
+                    self.visit_declaration_mut(decl)?;
                 }
             }
         }
+        Self::get_default_ok()
     }
 
-    fn visit_while_loop_mut(&mut self, n: &'ast mut WhileLoop) {
-        self.visit_node_mut(&mut n.cond);
-        self.visit_node_mut(&mut n.body);
+    fn visit_while_loop_mut(
+        &mut self,
+        n: &'ast mut WhileLoop,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.cond)?;
+        self.visit_node_mut(&mut n.body)?;
         if let Some(name) = &mut n.label {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_yield_mut(&mut self, n: &'ast mut Yield) {
+    fn visit_yield_mut(&mut self, n: &'ast mut Yield) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &mut n.expr {
-            self.visit_node_mut(expr.as_mut());
+            self.visit_node_mut(expr.as_mut())?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_generator_decl_mut(&mut self, n: &'ast mut GeneratorDecl) {
-        self.visit_sym_mut(&mut n.name);
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+    fn visit_generator_decl_mut(
+        &mut self,
+        n: &'ast mut GeneratorDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_sym_mut(&mut n.name)?;
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_generator_expr_mut(&mut self, n: &'ast mut GeneratorExpr) {
+    fn visit_generator_expr_mut(
+        &mut self,
+        n: &'ast mut GeneratorExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.name {
-            self.visit_sym_mut(name);
+            self.visit_sym_mut(name)?;
         }
-        self.visit_formal_parameter_list_mut(&mut n.parameters);
-        self.visit_statement_list_mut(&mut n.body);
+        self.visit_formal_parameter_list_mut(&mut n.parameters)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_class_decl_mut(&mut self, n: &'ast mut Class) {
-        self.visit_class_mut(n);
+    fn visit_class_decl_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
+        self.visit_class_mut(n)?;
+        Self::get_default_ok()
     }
 
-    fn visit_class_expr_mut(&mut self, n: &'ast mut Class) {
-        self.visit_class_mut(n);
+    fn visit_class_expr_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
+        self.visit_class_mut(n)?;
+        Self::get_default_ok()
     }
 
-    fn visit_class_mut(&mut self, n: &'ast mut Class) {
-        self.visit_sym_mut(&mut n.name);
+    fn visit_class_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
+        self.visit_sym_mut(&mut n.name)?;
         if let Some(super_ref) = n.super_ref.as_deref_mut() {
-            self.visit_node_mut(super_ref);
+            self.visit_node_mut(super_ref)?;
         }
         if let Some(constructor) = &mut n.constructor {
-            self.visit_function_expr_mut(constructor);
+            self.visit_function_expr_mut(constructor)?;
         }
         for elem in n.elements.iter_mut() {
-            self.visit_class_element_mut(elem);
+            self.visit_class_element_mut(elem)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_class_element_mut(&mut self, n: &'ast mut ClassElement) {
+    fn visit_class_element_mut(
+        &mut self,
+        n: &'ast mut ClassElement,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             ClassElement::MethodDefinition(pn, md)
             | ClassElement::StaticMethodDefinition(pn, md) => {
-                self.visit_property_name_mut(pn);
-                self.visit_method_definition_mut(md);
+                self.visit_property_name_mut(pn)?;
+                self.visit_method_definition_mut(md)?;
             }
             ClassElement::FieldDefinition(pn, fd) | ClassElement::StaticFieldDefinition(pn, fd) => {
-                self.visit_property_name_mut(pn);
+                self.visit_property_name_mut(pn)?;
                 if let Some(n) = fd {
-                    self.visit_node_mut(n);
+                    self.visit_node_mut(n)?;
                 }
             }
             ClassElement::PrivateMethodDefinition(s, md)
             | ClassElement::PrivateStaticMethodDefinition(s, md) => {
-                self.visit_sym_mut(s);
-                self.visit_method_definition_mut(md);
+                self.visit_sym_mut(s)?;
+                self.visit_method_definition_mut(md)?;
             }
             ClassElement::PrivateFieldDefinition(s, fd)
             | ClassElement::PrivateStaticFieldDefinition(s, fd) => {
-                self.visit_sym_mut(s);
+                self.visit_sym_mut(s)?;
                 if let Some(n) = fd {
-                    self.visit_node_mut(n);
+                    self.visit_node_mut(n)?;
                 }
             }
             ClassElement::StaticBlock(sl) => {
-                self.visit_statement_list_mut(sl);
+                self.visit_statement_list_mut(sl)?;
             }
         }
+        Self::get_default_ok()
     }
 
-    fn visit_super_call_mut(&mut self, n: &'ast mut SuperCall) {
+    fn visit_super_call_mut(
+        &mut self,
+        n: &'ast mut SuperCall,
+    ) -> Result<Self::Output, Self::Error> {
         for arg in n.args.iter_mut() {
-            self.visit_node_mut(arg);
+            self.visit_node_mut(arg)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_sym_mut(&mut self, _n: &'ast mut Sym) {
+    fn visit_sym_mut(&mut self, _n: &'ast mut Sym) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_formal_parameter_list_mut(&mut self, n: &'ast mut FormalParameterList) {
+    fn visit_formal_parameter_list_mut(
+        &mut self,
+        n: &'ast mut FormalParameterList,
+    ) -> Result<Self::Output, Self::Error> {
         for p in n.parameters.iter_mut() {
-            self.visit_formal_parameter_mut(p);
+            self.visit_formal_parameter_mut(p)?;
         }
-        self.visit_formal_parameter_list_flags_mut(&mut n.flags);
+        self.visit_formal_parameter_list_flags_mut(&mut n.flags)?;
+        Self::get_default_ok()
     }
 
-    fn visit_statement_list_mut(&mut self, n: &'ast mut StatementList) {
+    fn visit_statement_list_mut(
+        &mut self,
+        n: &'ast mut StatementList,
+    ) -> Result<Self::Output, Self::Error> {
         for inner in n.items.iter_mut() {
-            self.visit_node_mut(inner);
+            self.visit_node_mut(inner)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_assign_target_mut(&mut self, n: &'ast mut AssignTarget) {
+    fn visit_assign_target_mut(
+        &mut self,
+        n: &'ast mut AssignTarget,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             AssignTarget::Identifier(ident) => self.visit_identifier_mut(ident),
             AssignTarget::GetPrivateField(gpf) => self.visit_get_private_field_mut(gpf),
@@ -1154,126 +1441,185 @@ pub trait Visitor<'ast> {
         }
     }
 
-    fn visit_raw_binop_mut(&mut self, n: &'ast mut op::BinOp) {
+    fn visit_raw_binop_mut(&mut self, n: &'ast mut op::BinOp) -> Result<Self::Output, Self::Error> {
         match n {
             op::BinOp::Num(op) => self.visit_raw_num_op_mut(op),
             op::BinOp::Bit(op) => self.visit_raw_bit_op_mut(op),
             op::BinOp::Comp(op) => self.visit_raw_comp_op_mut(op),
             op::BinOp::Log(op) => self.visit_raw_log_op_mut(op),
             op::BinOp::Assign(op) => self.visit_raw_assign_op_mut(op),
-            op::BinOp::Comma => {}
+            op::BinOp::Comma => Self::get_default_ok(),
         }
     }
 
-    fn visit_declaration_mut(&mut self, n: &'ast mut Declaration) {
+    fn visit_declaration_mut(
+        &mut self,
+        n: &'ast mut Declaration,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             Declaration::Identifier { ident, init } => {
-                self.visit_identifier_mut(ident);
+                self.visit_identifier_mut(ident)?;
                 if let Some(init) = init {
-                    self.visit_node_mut(init);
+                    self.visit_node_mut(init)?;
                 }
+                Self::get_default_ok()
             }
             Declaration::Pattern(dp) => self.visit_declaration_pattern_mut(dp),
         }
     }
 
-    fn visit_iterable_loop_initializer_mut(&mut self, n: &'ast mut IterableLoopInitializer) {
+    fn visit_iterable_loop_initializer_mut(
+        &mut self,
+        n: &'ast mut IterableLoopInitializer,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             IterableLoopInitializer::Identifier(ident) => self.visit_identifier_mut(ident),
             IterableLoopInitializer::Var(decl)
             | IterableLoopInitializer::Let(decl)
             | IterableLoopInitializer::Const(decl) => self.visit_declaration_mut(decl),
             IterableLoopInitializer::DeclarationPattern(dp) => {
-                self.visit_declaration_pattern_mut(dp);
+                self.visit_declaration_pattern_mut(dp)
             }
         }
     }
 
-    fn visit_property_definition_mut(&mut self, n: &'ast mut PropertyDefinition) {
+    fn visit_property_definition_mut(
+        &mut self,
+        n: &'ast mut PropertyDefinition,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             PropertyDefinition::IdentifierReference(s) => self.visit_sym_mut(s),
             PropertyDefinition::Property(pn, inner) => {
-                self.visit_property_name_mut(pn);
-                self.visit_node_mut(inner);
+                self.visit_property_name_mut(pn)?;
+                self.visit_node_mut(inner)?;
+                Self::get_default_ok()
             }
             PropertyDefinition::MethodDefinition(md, pn) => {
-                self.visit_method_definition_mut(md);
-                self.visit_property_name_mut(pn);
+                self.visit_method_definition_mut(md)?;
+                self.visit_property_name_mut(pn)?;
+                Self::get_default_ok()
             }
             PropertyDefinition::SpreadObject(inner) => self.visit_node_mut(inner),
         }
     }
 
-    fn visit_case_mut(&mut self, n: &'ast mut Case) {
-        self.visit_node_mut(&mut n.condition);
-        self.visit_statement_list_mut(&mut n.body);
+    fn visit_case_mut(&mut self, n: &'ast mut Case) -> Result<Self::Output, Self::Error> {
+        self.visit_node_mut(&mut n.condition)?;
+        self.visit_statement_list_mut(&mut n.body)?;
+        Self::get_default_ok()
     }
 
-    fn visit_template_element_mut(&mut self, n: &'ast mut TemplateElement) {
+    fn visit_template_element_mut(
+        &mut self,
+        n: &'ast mut TemplateElement,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             TemplateElement::String(s) => self.visit_sym_mut(s),
             TemplateElement::Expr(inner) => self.visit_node_mut(inner),
         }
     }
 
-    fn visit_catch_mut(&mut self, n: &'ast mut Catch) {
+    fn visit_catch_mut(&mut self, n: &'ast mut Catch) -> Result<Self::Output, Self::Error> {
         if let Some(parameter) = &mut n.parameter {
-            self.visit_declaration_mut(parameter.as_mut());
+            self.visit_declaration_mut(parameter.as_mut())?;
         }
-        self.visit_block_mut(&mut n.block);
+        self.visit_block_mut(&mut n.block)?;
+        Self::get_default_ok()
     }
 
-    fn visit_finally_mut(&mut self, n: &'ast mut Finally) {
-        self.visit_block_mut(&mut n.block);
+    fn visit_finally_mut(&mut self, n: &'ast mut Finally) -> Result<Self::Output, Self::Error> {
+        self.visit_block_mut(&mut n.block)?;
+        Self::get_default_ok()
     }
 
-    fn visit_raw_unary_op_mut(&mut self, _n: &'ast mut op::UnaryOp) {
+    fn visit_raw_unary_op_mut(
+        &mut self,
+        _n: &'ast mut op::UnaryOp,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_formal_parameter_mut(&mut self, n: &'ast mut FormalParameter) {
-        self.visit_declaration_mut(&mut n.declaration);
+    fn visit_formal_parameter_mut(
+        &mut self,
+        n: &'ast mut FormalParameter,
+    ) -> Result<Self::Output, Self::Error> {
+        self.visit_declaration_mut(&mut n.declaration)?;
+        Self::get_default_ok()
     }
 
-    fn visit_formal_parameter_list_flags_mut(&mut self, _n: &'ast mut FormalParameterListFlags) {
+    fn visit_formal_parameter_list_flags_mut(
+        &mut self,
+        _n: &'ast mut FormalParameterListFlags,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_declaration_pattern_mut(&mut self, n: &'ast mut DeclarationPattern) {
+    fn visit_declaration_pattern_mut(
+        &mut self,
+        n: &'ast mut DeclarationPattern,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             DeclarationPattern::Object(o) => self.visit_declaration_pattern_object_mut(o),
             DeclarationPattern::Array(a) => self.visit_declaration_pattern_array_mut(a),
         }
     }
 
-    fn visit_raw_num_op_mut(&mut self, _n: &'ast mut op::NumOp) {
+    fn visit_raw_num_op_mut(
+        &mut self,
+        _n: &'ast mut op::NumOp,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_raw_bit_op_mut(&mut self, _n: &'ast mut op::BitOp) {
+    fn visit_raw_bit_op_mut(
+        &mut self,
+        _n: &'ast mut op::BitOp,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_raw_comp_op_mut(&mut self, _n: &'ast mut op::CompOp) {
+    fn visit_raw_comp_op_mut(
+        &mut self,
+        _n: &'ast mut op::CompOp,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_raw_log_op_mut(&mut self, _n: &'ast mut op::LogOp) {
+    fn visit_raw_log_op_mut(
+        &mut self,
+        _n: &'ast mut op::LogOp,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_raw_assign_op_mut(&mut self, _n: &'ast mut op::AssignOp) {
+    fn visit_raw_assign_op_mut(
+        &mut self,
+        _n: &'ast mut op::AssignOp,
+    ) -> Result<Self::Output, Self::Error> {
         /* do nothing */
+        Self::get_default_ok()
     }
 
-    fn visit_property_name_mut(&mut self, n: &'ast mut PropertyName) {
+    fn visit_property_name_mut(
+        &mut self,
+        n: &'ast mut PropertyName,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             PropertyName::Literal(s) => self.visit_sym_mut(s),
             PropertyName::Computed(inner) => self.visit_node_mut(inner),
         }
     }
 
-    fn visit_method_definition_mut(&mut self, n: &'ast mut MethodDefinition) {
+    fn visit_method_definition_mut(
+        &mut self,
+        n: &'ast mut MethodDefinition,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             MethodDefinition::Get(fe)
             | MethodDefinition::Set(fe)
@@ -1284,25 +1630,36 @@ pub trait Visitor<'ast> {
         }
     }
 
-    fn visit_declaration_pattern_object_mut(&mut self, n: &'ast mut DeclarationPatternObject) {
+    fn visit_declaration_pattern_object_mut(
+        &mut self,
+        n: &'ast mut DeclarationPatternObject,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &mut n.bindings {
-            self.visit_binding_pattern_type_object_mut(binding);
+            self.visit_binding_pattern_type_object_mut(binding)?;
         }
         if let Some(init) = &mut n.init {
-            self.visit_node_mut(init);
+            self.visit_node_mut(init)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_declaration_pattern_array_mut(&mut self, n: &'ast mut DeclarationPatternArray) {
+    fn visit_declaration_pattern_array_mut(
+        &mut self,
+        n: &'ast mut DeclarationPatternArray,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &mut n.bindings {
-            self.visit_binding_pattern_type_array_mut(binding);
+            self.visit_binding_pattern_type_array_mut(binding)?;
         }
         if let Some(init) = &mut n.init {
-            self.visit_node_mut(init);
+            self.visit_node_mut(init)?;
         }
+        Self::get_default_ok()
     }
 
-    fn visit_binding_pattern_type_object_mut(&mut self, n: &'ast mut BindingPatternTypeObject) {
+    fn visit_binding_pattern_type_object_mut(
+        &mut self,
+        n: &'ast mut BindingPatternTypeObject,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             BindingPatternTypeObject::Empty => {}
             BindingPatternTypeObject::SingleName {
@@ -1310,28 +1667,28 @@ pub trait Visitor<'ast> {
                 property_name,
                 default_init,
             } => {
-                self.visit_sym_mut(ident);
-                self.visit_property_name_mut(property_name);
+                self.visit_sym_mut(ident)?;
+                self.visit_property_name_mut(property_name)?;
                 if let Some(init) = default_init {
-                    self.visit_node_mut(init);
+                    self.visit_node_mut(init)?;
                 }
             }
             BindingPatternTypeObject::RestProperty {
                 ident,
                 excluded_keys,
             } => {
-                self.visit_sym_mut(ident);
+                self.visit_sym_mut(ident)?;
                 for key in excluded_keys.iter_mut() {
-                    self.visit_sym_mut(key);
+                    self.visit_sym_mut(key)?;
                 }
             }
             BindingPatternTypeObject::RestGetConstField {
                 get_const_field,
                 excluded_keys,
             } => {
-                self.visit_get_const_field_mut(get_const_field);
+                self.visit_get_const_field_mut(get_const_field)?;
                 for key in excluded_keys.iter_mut() {
-                    self.visit_sym_mut(key);
+                    self.visit_sym_mut(key)?;
                 }
             }
             BindingPatternTypeObject::BindingPattern {
@@ -1339,40 +1696,49 @@ pub trait Visitor<'ast> {
                 pattern,
                 default_init,
             } => {
-                self.visit_property_name_mut(ident);
-                self.visit_declaration_pattern_mut(pattern);
+                self.visit_property_name_mut(ident)?;
+                self.visit_declaration_pattern_mut(pattern)?;
                 if let Some(init) = default_init {
-                    self.visit_node_mut(init);
+                    self.visit_node_mut(init)?;
                 }
             }
         }
+        Self::get_default_ok()
     }
 
-    fn visit_binding_pattern_type_array_mut(&mut self, n: &'ast mut BindingPatternTypeArray) {
+    fn visit_binding_pattern_type_array_mut(
+        &mut self,
+        n: &'ast mut BindingPatternTypeArray,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             BindingPatternTypeArray::SingleName {
                 ident,
                 default_init,
             } => {
-                self.visit_sym_mut(ident);
+                self.visit_sym_mut(ident)?;
                 if let Some(init) = default_init {
-                    self.visit_node_mut(init);
+                    self.visit_node_mut(init)?;
                 }
+                Self::get_default_ok()
             }
             BindingPatternTypeArray::GetField { get_field }
             | BindingPatternTypeArray::GetFieldRest { get_field } => {
-                self.visit_get_field_mut(get_field);
+                self.visit_get_field_mut(get_field)
             }
             BindingPatternTypeArray::GetConstField { get_const_field }
             | BindingPatternTypeArray::GetConstFieldRest { get_const_field } => {
-                self.visit_get_const_field_mut(get_const_field);
+                self.visit_get_const_field_mut(get_const_field)
             }
             BindingPatternTypeArray::BindingPattern { pattern }
             | BindingPatternTypeArray::BindingPatternRest { pattern } => {
-                self.visit_declaration_pattern_mut(pattern);
+                self.visit_declaration_pattern_mut(pattern)
             }
             BindingPatternTypeArray::SingleNameRest { ident } => self.visit_sym_mut(ident),
-            BindingPatternTypeArray::Empty | BindingPatternTypeArray::Elision => {}
+            BindingPatternTypeArray::Empty | BindingPatternTypeArray::Elision => {
+                Self::get_default_ok()
+            }
         }
     }
+
+    fn get_default_ok() -> Result<Self::Output, Self::Error>;
 }
