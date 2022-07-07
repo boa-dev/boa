@@ -314,7 +314,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Stores both the column number and the line number.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Note that spans are of the form [begining, end) i.e. that the begining position is inclusive</span>
+<span class="doccomment">/// Note that spans are of the form [beginning, end) i.e. that the beginning position is inclusive</span>
 <span class="doccomment">/// and the end position is exclusive. See test `check_positions` from `syntax/lexer/tests.rs` for</span>
 <span class="doccomment">/// an example.</span>
 <span class="doccomment">///</span>
@@ -473,7 +473,7 @@
         <span class="macro">assert!</span>(<span class="ident">Position::new</span>(<span class="number">11</span>, <span class="number">49</span>) <span class="op">&gt;</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>));
     }
 
-    <span class="doccomment">/// Checks that the position getters actually retreive correct values.</span>
+    <span class="doccomment">/// Checks that the position getters actually retrieve correct values.</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">position_getters</span>() {
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">Position::new</span>(<span class="number">10</span>, <span class="number">50</span>);

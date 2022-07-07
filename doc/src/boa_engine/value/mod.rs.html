@@ -1301,13 +1301,13 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_integer</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="comment">// If it can fit in a i32 and the trucated version is</span>
+        <span class="comment">// If it can fit in a i32 and the truncated version is</span>
         <span class="comment">// equal to the original then it is an integer.</span>
-        <span class="kw">let</span> <span class="ident">is_racional_intiger</span> <span class="op">=</span> <span class="op">|</span><span class="ident">n</span>: <span class="ident">f64</span><span class="op">|</span> <span class="ident">n</span> <span class="op">==</span> <span class="ident">f64::from</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">i32</span>);
+        <span class="kw">let</span> <span class="ident">is_rational_integer</span> <span class="op">=</span> <span class="op">|</span><span class="ident">n</span>: <span class="ident">f64</span><span class="op">|</span> <span class="ident">n</span> <span class="op">==</span> <span class="ident">f64::from</span>(<span class="ident">n</span> <span class="kw">as</span> <span class="ident">i32</span>);
 
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
-            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">is_racional_intiger</span>(<span class="ident">n</span>) =&gt; <span class="bool-val">true</span>,
+            <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">is_rational_integer</span>(<span class="ident">n</span>) =&gt; <span class="bool-val">true</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -2069,7 +2069,7 @@
     }
 }
 
-<span class="doccomment">/// The preffered type to convert an object to a primitive `Value`.</span>
+<span class="doccomment">/// The preferred type to convert an object to a primitive `Value`.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PreferredType</span> {
     <span class="ident">String</span>,

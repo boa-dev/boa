@@ -2247,12 +2247,12 @@
             <span class="kw">let</span> <span class="ident">duration_hour</span> <span class="op">=</span> <span class="ident">Duration::milliseconds</span>(<span class="ident">hour</span>.<span class="ident">checked_mul</span>(<span class="ident">MILLIS_PER_HOUR</span>)<span class="question-mark">?</span>);
             <span class="kw">let</span> <span class="ident">duration_minute</span> <span class="op">=</span> <span class="ident">Duration::milliseconds</span>(<span class="ident">minute</span>.<span class="ident">checked_mul</span>(<span class="ident">MILLIS_PER_MINUTE</span>)<span class="question-mark">?</span>);
             <span class="kw">let</span> <span class="ident">duration_second</span> <span class="op">=</span> <span class="ident">Duration::milliseconds</span>(<span class="ident">second</span>.<span class="ident">checked_mul</span>(<span class="ident">MILLIS_PER_SECOND</span>)<span class="question-mark">?</span>);
-            <span class="kw">let</span> <span class="ident">duration_milisecond</span> <span class="op">=</span> <span class="ident">Duration::milliseconds</span>(<span class="ident">millisecond</span>);
+            <span class="kw">let</span> <span class="ident">duration_millisecond</span> <span class="op">=</span> <span class="ident">Duration::milliseconds</span>(<span class="ident">millisecond</span>);
 
             <span class="kw">let</span> <span class="ident">duration</span> <span class="op">=</span> <span class="ident">duration_hour</span>
                 .<span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="ident">duration_minute</span>)<span class="question-mark">?</span>
                 .<span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="ident">duration_second</span>)<span class="question-mark">?</span>
-                .<span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="ident">duration_milisecond</span>)<span class="question-mark">?</span>;
+                .<span class="ident">checked_add</span>(<span class="kw-2">&amp;</span><span class="ident">duration_millisecond</span>)<span class="question-mark">?</span>;
 
             <span class="ident">NaiveDate::from_ymd_opt</span>(<span class="ident">year</span>, <span class="ident">month</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">day</span> <span class="op">+</span> <span class="number">1</span>)
                 .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">dt</span><span class="op">|</span> <span class="ident">dt</span>.<span class="ident">and_hms</span>(<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>).<span class="ident">checked_add_signed</span>(<span class="ident">duration</span>))

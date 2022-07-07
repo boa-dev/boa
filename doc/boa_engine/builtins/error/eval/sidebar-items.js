@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["EvalError","JavaScript `EvalError` impleentation."]]});
+initSidebarItems({"struct":[["EvalError","JavaScript `EvalError` implementation."]]});

@@ -557,7 +557,7 @@
             };
 
             <span class="comment">// If the current object is referenced in a different branch,</span>
-            <span class="comment">// it will not cause an infinte printing loop, so it is safe to be printed again</span>
+            <span class="comment">// it will not cause an infinite printing loop, so it is safe to be printed again</span>
             <span class="ident">encounters</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="ident">addr</span>);
 
             <span class="kw">let</span> <span class="ident">closing_indent</span> <span class="op">=</span> <span class="ident">String::from_utf8</span>(<span class="macro">vec!</span>[<span class="string">b&#39; &#39;</span>; <span class="ident">indent</span>.<span class="ident">wrapping_sub</span>(<span class="number">4</span>)])
@@ -620,7 +620,7 @@
 
 <span class="doccomment">/// This is different from the ECMAScript compliant number to string, in the printing of `-0`.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This function prints `-0` as `-0` instead of pasitive `0` as the specification says.</span>
+<span class="doccomment">/// This function prints `-0` as `-0` instead of positive `0` as the specification says.</span>
 <span class="doccomment">/// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,</span>
 <span class="doccomment">/// since the REPL is not bound to the ECMAScript specification we can do this.</span>
 <span class="kw">fn</span> <span class="ident">format_rational</span>(<span class="ident">v</span>: <span class="ident">f64</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {

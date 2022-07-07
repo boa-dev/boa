@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SyntaxError","JavaScript `SyntaxError` impleentation."]]});
+initSidebarItems({"struct":[["SyntaxError","JavaScript `SyntaxError` implementation."]]});

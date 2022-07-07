@@ -571,7 +571,7 @@
     <span class="doccomment">/// The `Symbol.toPrimitive` well known symbol.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// A method that converts an object to a corresponding primitive value.</span>
-    <span class="doccomment">/// Called by the `ToPrimitive` (`Value::to_primitve`) abstract operation.</span>
+    <span class="doccomment">/// Called by the `ToPrimitive` (`Value::to_primitive`) abstract operation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_primitive</span>() -&gt; <span class="ident">JsSymbol</span> {
         <span class="ident">WELL_KNOW_SYMBOLS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">symbols</span><span class="op">|</span> <span class="ident">symbols</span>.<span class="ident">to_primitive</span>.<span class="ident">clone</span>())

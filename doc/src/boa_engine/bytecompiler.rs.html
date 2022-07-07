@@ -3482,7 +3482,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">pop_loop_control_info</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
-        <span class="kw">let</span> <span class="ident">loop_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">pop</span>().<span class="ident">expect</span>(<span class="string">&quot;no jump informatiojn found&quot;</span>);
+        <span class="kw">let</span> <span class="ident">loop_info</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_info</span>.<span class="ident">pop</span>().<span class="ident">expect</span>(<span class="string">&quot;no jump information found&quot;</span>);
 
         <span class="macro">assert!</span>(<span class="ident">loop_info</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">JumpControlInfoKind::Loop</span>);
 

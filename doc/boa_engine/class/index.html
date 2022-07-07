@@ -38,7 +38,7 @@
         <span class="prelude-val">Ok</span>(<span class="ident">animal</span>)
     }
 
-    <span class="doccomment">/// This is where the object is intitialized.</span>
+    <span class="doccomment">/// This is where the object is initialized.</span>
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">class</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ClassBuilder</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="ident">class</span>.<span class="ident">method</span>(<span class="string">&quot;speak&quot;</span>, <span class="number">0</span>, <span class="op">|</span><span class="ident">this</span>, <span class="ident">_args</span>, <span class="ident">_ctx</span><span class="op">|</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {

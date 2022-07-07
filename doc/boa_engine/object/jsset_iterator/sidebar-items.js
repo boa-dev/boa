@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["JsSetIterator","JavaScript `SetIterator` rust object"]]});

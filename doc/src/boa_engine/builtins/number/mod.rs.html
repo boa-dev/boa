@@ -1543,7 +1543,7 @@
     <span class="doccomment">///   represented by these digits is rounded using string</span>
     <span class="doccomment">///   manipulation.</span>
     <span class="doccomment">/// - Else, zeroes are appended to the string.</span>
-    <span class="doccomment">/// - Additionnally, sometimes the exponent was wrongly computed and</span>
+    <span class="doccomment">/// - Additionally, sometimes the exponent was wrongly computed and</span>
     <span class="doccomment">///   while up-rounding we find that we need an extra digit. When this</span>
     <span class="doccomment">///   happens, we return true so that the calling context can adjust</span>
     <span class="doccomment">///   the exponent. The string is kept at an exact length of `precision`.</span>
@@ -1555,7 +1555,7 @@
             <span class="kw">let</span> <span class="ident">to_round</span> <span class="op">=</span> <span class="ident">digits</span>.<span class="ident">split_off</span>(<span class="ident">precision</span>);
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">digit</span> <span class="op">=</span> <span class="ident">digits</span>
                 .<span class="ident">pop</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;already checked that lenght is bigger than precision&quot;</span>)
+                .<span class="ident">expect</span>(<span class="string">&quot;already checked that length is bigger than precision&quot;</span>)
                 <span class="kw">as</span> <span class="ident">u8</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">to_round</span>.<span class="ident">chars</span>().<span class="ident">next</span>() {
                 <span class="kw">if</span> <span class="ident">first</span> <span class="op">&gt;</span> <span class="string">&#39;4&#39;</span> {
@@ -1798,7 +1798,7 @@
                             <span class="comment">// Reconstruct digit.</span>
                             <span class="kw">let</span> <span class="ident">digit_0</span> <span class="op">=</span> (<span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>)
                                 .<span class="ident">to_digit</span>(<span class="number">10</span>)
-                                .<span class="ident">expect</span>(<span class="string">&quot;charactre was not a valid digit&quot;</span>);
+                                .<span class="ident">expect</span>(<span class="string">&quot;character was not a valid digit&quot;</span>);
                             <span class="kw">if</span> <span class="ident">digit_0</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">u32::from</span>(<span class="ident">radix</span>) {
                                 <span class="kw">continue</span>;
                             }

@@ -3873,8 +3873,8 @@
         <span class="kw">while</span> <span class="ident">lower</span> <span class="op">!</span><span class="op">=</span> <span class="ident">middle</span> {
             <span class="comment">// a. Let upper be len - lower - 1.</span>
             <span class="kw">let</span> <span class="ident">upper</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="ident">lower</span> <span class="op">-</span> <span class="number">1</span>;
-            <span class="comment">// Skiped: b. Let upperP be ! ToString(𝔽(upper)).</span>
-            <span class="comment">// Skiped: c. Let lowerP be ! ToString(𝔽(lower)).</span>
+            <span class="comment">// Skipped: b. Let upperP be ! ToString(𝔽(upper)).</span>
+            <span class="comment">// Skipped: c. Let lowerP be ! ToString(𝔽(lower)).</span>
             <span class="comment">// d. Let lowerExists be ? HasProperty(O, lowerP).</span>
             <span class="kw">let</span> <span class="ident">lower_exists</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">has_property</span>(<span class="ident">lower</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// e. If lowerExists is true, then</span>
@@ -5293,7 +5293,7 @@
                 <span class="comment">// 10. If ySmaller is true, return 1𝔽.</span>
                 <span class="comment">// 11. Return +0𝔽.</span>
 
-                <span class="comment">// NOTE: skipped IsLessThan because it just makes a lexicographic comparation</span>
+                <span class="comment">// NOTE: skipped IsLessThan because it just makes a lexicographic comparison</span>
                 <span class="comment">// when x and y are strings</span>
                 <span class="prelude-val">Ok</span>(<span class="ident">x_str</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">y_str</span>))
             };
@@ -5732,7 +5732,7 @@
             <span class="comment">// 4. Else, let k be min(relativeStart, len).</span>
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>),
 
-            <span class="comment">// Special case - postive infinity. `len` is always smaller than +inf, thus from (4)</span>
+            <span class="comment">// Special case - positive infinity. `len` is always smaller than +inf, thus from (4)</span>
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">len</span>),
         }
     }
@@ -5760,7 +5760,7 @@
                 <span class="comment">// Both `as` casts are safe as both variables are non-negative</span>
                 <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>),
 
-                <span class="comment">// Special case - postive infinity. `len` is always smaller than +inf, thus from (4)</span>
+                <span class="comment">// Special case - positive infinity. `len` is always smaller than +inf, thus from (4)</span>
                 <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">len</span>),
             }
         }

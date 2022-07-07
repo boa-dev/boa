@@ -348,7 +348,7 @@
 <span class="doccomment">//!         Ok(animal)</span>
 <span class="doccomment">//!     }</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!     /// This is where the object is intitialized.</span>
+<span class="doccomment">//!     /// This is where the object is initialized.</span>
 <span class="doccomment">//!     fn init(class: &amp;mut ClassBuilder) -&gt; JsResult&lt;()&gt; {</span>
 <span class="doccomment">//!         class.method(&quot;speak&quot;, 0, |this, _args, _ctx| {</span>
 <span class="doccomment">//!             if let Some(object) = this.as_object() {</span>
@@ -383,7 +383,7 @@
     <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>;
     <span class="doccomment">/// The amount of arguments the class `constructor` takes, default is `0`.</span>
     <span class="kw">const</span> <span class="ident">LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="doccomment">/// The attibutes the class will be binded with, default is `writable`, `enumerable`, `configurable`.</span>
+    <span class="doccomment">/// The attributes the class will be binded with, default is `writable`, `enumerable`, `configurable`.</span>
     <span class="kw">const</span> <span class="ident">ATTRIBUTES</span>: <span class="ident">Attribute</span> <span class="op">=</span> <span class="ident">Attribute::all</span>();
 
     <span class="doccomment">/// The constructor of the class.</span>
