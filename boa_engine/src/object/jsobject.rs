@@ -335,6 +335,28 @@ impl JsObject {
         self.borrow().is_map_iterator()
     }
 
+    /// Checks if it is a `Set` object
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_set(&self) -> bool {
+        self.borrow().is_set()
+    }
+
+    /// Checks if it is a `SetIterator` object
+    ///
+    /// # Panics
+    ///
+    /// Panics if the object is currently mutably borrowed.
+    #[inline]
+    #[track_caller]
+    pub fn is_set_iterator(&self) -> bool {
+        self.borrow().is_set_iterator()
+    }
+
     /// Checks if it's a `String` object.
     ///
     /// # Panics

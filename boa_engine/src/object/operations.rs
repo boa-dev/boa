@@ -42,7 +42,7 @@ impl IntegrityLevel {
 }
 
 impl JsObject {
-    /// Cehck if object is extensible.
+    /// Check if object is extensible.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

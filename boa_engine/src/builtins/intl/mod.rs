@@ -824,7 +824,7 @@ pub(crate) fn default_number_option(
 
 /// Abstract operation `CanonicalizeUnicodeLocaleId ( locale )`.
 ///
-/// This function differs sligthly from the specification by modifying in-place
+/// This function differs slightly from the specification by modifying in-place
 /// the provided [`Locale`] instead of creating a new canonicalized copy.
 ///
 /// More information:

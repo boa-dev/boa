@@ -41,7 +41,7 @@ impl TemplateString {
         self.raw
     }
 
-    /// Creats a new cooked template string. Returns a lexer error if it fails to cook the
+    /// Creates a new cooked template string. Returns a lexer error if it fails to cook the
     /// template string.
     ///
     /// More information:

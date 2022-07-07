@@ -237,7 +237,7 @@ pub(crate) fn display_obj(v: &JsValue, print_internals: bool) -> String {
             };
 
             // If the current object is referenced in a different branch,
-            // it will not cause an infinte printing loop, so it is safe to be printed again
+            // it will not cause an infinite printing loop, so it is safe to be printed again
             encounters.remove(&addr);
 
             let closing_indent = String::from_utf8(vec![b' '; indent.wrapping_sub(4)])
@@ -300,7 +300,7 @@ impl Display for ValueDisplay<'_> {
 
 /// This is different from the ECMAScript compliant number to string, in the printing of `-0`.
 ///
-/// This function prints `-0` as `-0` instead of pasitive `0` as the specification says.
+/// This function prints `-0` as `-0` instead of positive `0` as the specification says.
 /// This is done to make it easer for the user of the REPL to identify what is a `-0` vs `0`,
 /// since the REPL is not bound to the ECMAScript specification we can do this.
 fn format_rational(v: f64, f: &mut fmt::Formatter<'_>) -> fmt::Result {

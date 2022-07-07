@@ -237,7 +237,7 @@ impl String {
 
     /// Abstract operation `thisStringValue( value )`
     ///
-    /// More informacion:
+    /// More information:
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#thisstringvalue

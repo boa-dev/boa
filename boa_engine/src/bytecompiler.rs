@@ -362,7 +362,7 @@ impl<'b> ByteCompiler<'b> {
 
     #[inline]
     fn pop_loop_control_info(&mut self) {
-        let loop_info = self.jump_info.pop().expect("no jump informatiojn found");
+        let loop_info = self.jump_info.pop().expect("no jump information found");
 
         assert!(loop_info.kind == JumpControlInfoKind::Loop);
 

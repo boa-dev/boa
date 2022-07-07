@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// Stores both the column number and the line number.
 ///
-/// Note that spans are of the form [begining, end) i.e. that the begining position is inclusive
+/// Note that spans are of the form [beginning, end) i.e. that the beginning position is inclusive
 /// and the end position is exclusive. See test `check_positions` from `syntax/lexer/tests.rs` for
 /// an example.
 ///
@@ -168,7 +168,7 @@ mod tests {
         assert!(Position::new(11, 49) > Position::new(10, 50));
     }
 
-    /// Checks that the position getters actually retreive correct values.
+    /// Checks that the position getters actually retrieve correct values.
     #[test]
     fn position_getters() {
         let pos = Position::new(10, 50);

@@ -139,7 +139,7 @@ fn json_stringify_array_converts_symbol_to_null() {
     assert_eq!(actual, expected);
 }
 #[test]
-fn json_stringify_function_replacer_propogate_error() {
+fn json_stringify_function_replacer_propagate_error() {
     let mut context = Context::default();
 
     let actual = forward(

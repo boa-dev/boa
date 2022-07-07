@@ -949,8 +949,8 @@ impl Array {
         while lower != middle {
             // a. Let upper be len - lower - 1.
             let upper = len - lower - 1;
-            // Skiped: b. Let upperP be ! ToString(𝔽(upper)).
-            // Skiped: c. Let lowerP be ! ToString(𝔽(lower)).
+            // Skipped: b. Let upperP be ! ToString(𝔽(upper)).
+            // Skipped: c. Let lowerP be ! ToString(𝔽(lower)).
             // d. Let lowerExists be ? HasProperty(O, lowerP).
             let lower_exists = o.has_property(lower, context)?;
             // e. If lowerExists is true, then
@@ -2369,7 +2369,7 @@ impl Array {
                 // 10. If ySmaller is true, return 1𝔽.
                 // 11. Return +0𝔽.
 
-                // NOTE: skipped IsLessThan because it just makes a lexicographic comparation
+                // NOTE: skipped IsLessThan because it just makes a lexicographic comparison
                 // when x and y are strings
                 Ok(x_str.cmp(&y_str))
             };
@@ -2808,7 +2808,7 @@ impl Array {
             // 4. Else, let k be min(relativeStart, len).
             IntegerOrInfinity::Integer(i) => Ok(min(i, len as i64) as usize),
 
-            // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
+            // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
             IntegerOrInfinity::PositiveInfinity => Ok(len),
         }
     }
@@ -2836,7 +2836,7 @@ impl Array {
                 // Both `as` casts are safe as both variables are non-negative
                 IntegerOrInfinity::Integer(i) => Ok(min(i, len as i64) as usize),
 
-                // Special case - postive infinity. `len` is always smaller than +inf, thus from (4)
+                // Special case - positive infinity. `len` is always smaller than +inf, thus from (4)
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
             }
         }

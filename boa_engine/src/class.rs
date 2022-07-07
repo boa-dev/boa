@@ -39,7 +39,7 @@
 //!         Ok(animal)
 //!     }
 //!
-//!     /// This is where the object is intitialized.
+//!     /// This is where the object is initialized.
 //!     fn init(class: &mut ClassBuilder) -> JsResult<()> {
 //!         class.method("speak", 0, |this, _args, _ctx| {
 //!             if let Some(object) = this.as_object() {
@@ -74,7 +74,7 @@ pub trait Class: NativeObject + Sized {
     const NAME: &'static str;
     /// The amount of arguments the class `constructor` takes, default is `0`.
     const LENGTH: usize = 0;
-    /// The attibutes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
+    /// The attributes the class will be binded with, default is `writable`, `enumerable`, `configurable`.
     const ATTRIBUTES: Attribute = Attribute::all();
 
     /// The constructor of the class.

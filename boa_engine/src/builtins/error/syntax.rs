@@ -25,7 +25,7 @@ use tap::{Conv, Pipe};
 
 use super::Error;
 
-/// JavaScript `SyntaxError` impleentation.
+/// JavaScript `SyntaxError` implementation.
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct SyntaxError;
 
