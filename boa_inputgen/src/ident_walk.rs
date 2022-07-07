@@ -7,12 +7,22 @@ struct SymReplacer<'a> {
 }
 
 impl<'a, 'ast> Visitor<'ast> for SymReplacer<'a> {
-    fn visit_sym_mut(&mut self, sym: &'ast mut Sym) {
+    type Output = ();
+    type Error = ();
+
+    fn visit_sym_mut(&mut self, sym: &'ast mut Sym) -> Result<Self::Output, Self::Error> {
         *sym = self.syms[sym.get() % self.syms.len()];
+        Ok(())
+    }
+
+    fn get_default_ok() -> Result<Self::Output, Self::Error> {
+        Ok(())
     }
 }
 
 pub(crate) fn replace_syms(syms: &[Sym], sample: &mut StatementList) {
     let mut replacer = SymReplacer { syms };
-    replacer.visit_statement_list_mut(sample);
+    replacer
+        .visit_statement_list_mut(sample)
+        .expect("No error cases provided.");
 }
