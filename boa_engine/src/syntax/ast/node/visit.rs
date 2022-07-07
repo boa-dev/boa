@@ -85,6 +85,9 @@ pub trait Visitor<'ast> {
     type Error;
 
     fn visit_node(&mut self, n: &'ast Node) -> Result<Self::Output, Self::Error> {
+        self.walk_node(n)
+    }
+    fn walk_node(&mut self, n: &'ast Node) -> Result<Self::Output, Self::Error> {
         match n {
             Node::ArrayDecl(n) => self.visit_array_decl(n),
             Node::ArrowFunctionDecl(n) => self.visit_arrow_function_decl(n),
@@ -138,6 +141,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_array_decl(&mut self, n: &'ast ArrayDecl) -> Result<Self::Output, Self::Error> {
+        self.walk_array_decl(n)
+    }
+    fn walk_array_decl(&mut self, n: &'ast ArrayDecl) -> Result<Self::Output, Self::Error> {
         for inner in n.arr.iter() {
             self.visit_node(inner)?;
         }
@@ -145,6 +151,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_arrow_function_decl(
+        &mut self,
+        n: &'ast ArrowFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_arrow_function_decl(n)
+    }
+    fn walk_arrow_function_decl(
         &mut self,
         n: &'ast ArrowFunctionDecl,
     ) -> Result<Self::Output, Self::Error> {
@@ -157,12 +169,21 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_assign(&mut self, n: &'ast Assign) -> Result<Self::Output, Self::Error> {
+        self.walk_assign(n)
+    }
+    fn walk_assign(&mut self, n: &'ast Assign) -> Result<Self::Output, Self::Error> {
         self.visit_assign_target(&n.lhs)?;
         self.visit_node(&n.rhs)?;
         Self::get_default_ok()
     }
 
     fn visit_async_function_expr(
+        &mut self,
+        n: &'ast AsyncFunctionExpr,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_function_expr(n)
+    }
+    fn walk_async_function_expr(
         &mut self,
         n: &'ast AsyncFunctionExpr,
     ) -> Result<Self::Output, Self::Error> {
@@ -178,6 +199,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast AsyncFunctionDecl,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_function_decl(n)
+    }
+    fn walk_async_function_decl(
+        &mut self,
+        n: &'ast AsyncFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_sym(&n.name)?;
         self.visit_formal_parameter_list(&n.parameters)?;
         self.visit_statement_list(&n.body)?;
@@ -185,6 +212,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_async_generator_expr(
+        &mut self,
+        n: &'ast AsyncGeneratorExpr,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_generator_expr(n)
+    }
+    fn walk_async_generator_expr(
         &mut self,
         n: &'ast AsyncGeneratorExpr,
     ) -> Result<Self::Output, Self::Error> {
@@ -200,6 +233,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast AsyncGeneratorDecl,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_generator_decl(n)
+    }
+    fn walk_async_generator_decl(
+        &mut self,
+        n: &'ast AsyncGeneratorDecl,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_sym(&n.name)?;
         self.visit_formal_parameter_list(&n.parameters)?;
         self.visit_statement_list(&n.body)?;
@@ -207,11 +246,17 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_await_expr(&mut self, n: &'ast AwaitExpr) -> Result<Self::Output, Self::Error> {
+        self.walk_await_expr(n)
+    }
+    fn walk_await_expr(&mut self, n: &'ast AwaitExpr) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.expr)?;
         Self::get_default_ok()
     }
 
     fn visit_bin_op(&mut self, n: &'ast BinOp) -> Result<Self::Output, Self::Error> {
+        self.walk_bin_op(n)
+    }
+    fn walk_bin_op(&mut self, n: &'ast BinOp) -> Result<Self::Output, Self::Error> {
         self.visit_raw_binop(&n.op)?;
         self.visit_node(&n.lhs)?;
         self.visit_node(&n.rhs)?;
@@ -219,11 +264,17 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_block(&mut self, n: &'ast Block) -> Result<Self::Output, Self::Error> {
+        self.walk_block(n)
+    }
+    fn walk_block(&mut self, n: &'ast Block) -> Result<Self::Output, Self::Error> {
         self.visit_statement_list(&n.statements)?;
         Self::get_default_ok()
     }
 
     fn visit_break(&mut self, n: &'ast Break) -> Result<Self::Output, Self::Error> {
+        self.walk_break(n)
+    }
+    fn walk_break(&mut self, n: &'ast Break) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.label {
             self.visit_sym(name)?;
         }
@@ -231,6 +282,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_call(&mut self, n: &'ast Call) -> Result<Self::Output, Self::Error> {
+        self.walk_call(n)
+    }
+    fn walk_call(&mut self, n: &'ast Call) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.expr)?;
         for inner in n.args.iter() {
             self.visit_node(inner)?;
@@ -242,6 +296,9 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast ConditionalOp,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_conditional_op(n)
+    }
+    fn walk_conditional_op(&mut self, n: &'ast ConditionalOp) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.condition)?;
         self.visit_node(&n.if_true)?;
         self.visit_node(&n.if_false)?;
@@ -249,6 +306,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_const(&mut self, n: &'ast Const) -> Result<Self::Output, Self::Error> {
+        self.walk_const(n)
+    }
+    fn walk_const(&mut self, n: &'ast Const) -> Result<Self::Output, Self::Error> {
         if let Const::String(s) = n {
             self.visit_sym(s)?;
         }
@@ -256,6 +316,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_continue(&mut self, n: &'ast Continue) -> Result<Self::Output, Self::Error> {
+        self.walk_continue(n)
+    }
+    fn walk_continue(&mut self, n: &'ast Continue) -> Result<Self::Output, Self::Error> {
         if let Some(s) = &n.label {
             self.visit_sym(s)?;
         }
@@ -263,6 +326,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_do_while_loop(&mut self, n: &'ast DoWhileLoop) -> Result<Self::Output, Self::Error> {
+        self.walk_do_while_loop(n)
+    }
+    fn walk_do_while_loop(&mut self, n: &'ast DoWhileLoop) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.body)?;
         self.visit_node(&n.cond)?;
         if let Some(name) = &n.label {
@@ -272,6 +338,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_function_decl(&mut self, n: &'ast FunctionDecl) -> Result<Self::Output, Self::Error> {
+        self.walk_function_decl(n)
+    }
+    fn walk_function_decl(&mut self, n: &'ast FunctionDecl) -> Result<Self::Output, Self::Error> {
         self.visit_sym(&n.name)?;
         self.visit_formal_parameter_list(&n.parameters)?;
         self.visit_statement_list(&n.body)?;
@@ -279,6 +348,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_function_expr(&mut self, n: &'ast FunctionExpr) -> Result<Self::Output, Self::Error> {
+        self.walk_function_expr(n)
+    }
+    fn walk_function_expr(&mut self, n: &'ast FunctionExpr) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.name {
             self.visit_sym(name)?;
         }
@@ -291,6 +363,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast GetConstField,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_get_const_field(n)
+    }
+    fn walk_get_const_field(
+        &mut self,
+        n: &'ast GetConstField,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.obj)?;
         self.visit_sym(&n.field)?;
         Self::get_default_ok()
@@ -300,18 +378,33 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast GetPrivateField,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_get_private_field(n)
+    }
+    fn walk_get_private_field(
+        &mut self,
+        n: &'ast GetPrivateField,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.obj)?;
         self.visit_sym(&n.field)?;
         Self::get_default_ok()
     }
 
     fn visit_get_field(&mut self, n: &'ast GetField) -> Result<Self::Output, Self::Error> {
+        self.walk_get_field(n)
+    }
+    fn walk_get_field(&mut self, n: &'ast GetField) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.obj)?;
         self.visit_node(&n.field)?;
         Self::get_default_ok()
     }
 
     fn visit_get_super_field(
+        &mut self,
+        n: &'ast GetSuperField,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_get_super_field(n)
+    }
+    fn walk_get_super_field(
         &mut self,
         n: &'ast GetSuperField,
     ) -> Result<Self::Output, Self::Error> {
@@ -322,6 +415,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_for_loop(&mut self, n: &'ast ForLoop) -> Result<Self::Output, Self::Error> {
+        self.walk_for_loop(n)
+    }
+    fn walk_for_loop(&mut self, n: &'ast ForLoop) -> Result<Self::Output, Self::Error> {
         if let Some(init) = &n.inner.init {
             self.visit_node(init)?;
         }
@@ -339,6 +435,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_for_in_loop(&mut self, n: &'ast ForInLoop) -> Result<Self::Output, Self::Error> {
+        self.walk_for_in_loop(n)
+    }
+    fn walk_for_in_loop(&mut self, n: &'ast ForInLoop) -> Result<Self::Output, Self::Error> {
         self.visit_iterable_loop_initializer(&n.init)?;
         self.visit_node(&n.expr)?;
         self.visit_node(&n.body)?;
@@ -349,6 +448,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_for_of_loop(&mut self, n: &'ast ForOfLoop) -> Result<Self::Output, Self::Error> {
+        self.walk_for_of_loop(n)
+    }
+    fn walk_for_of_loop(&mut self, n: &'ast ForOfLoop) -> Result<Self::Output, Self::Error> {
         self.visit_iterable_loop_initializer(&n.init)?;
         self.visit_node(&n.iterable)?;
         self.visit_node(&n.body)?;
@@ -359,6 +461,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_if(&mut self, n: &'ast If) -> Result<Self::Output, Self::Error> {
+        self.walk_if(n)
+    }
+    fn walk_if(&mut self, n: &'ast If) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.cond)?;
         self.visit_node(&n.body)?;
         if let Some(else_node) = &n.else_node {
@@ -368,16 +473,25 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_identifier(&mut self, n: &'ast Identifier) -> Result<Self::Output, Self::Error> {
+        self.walk_identifier(n)
+    }
+    fn walk_identifier(&mut self, n: &'ast Identifier) -> Result<Self::Output, Self::Error> {
         self.visit_sym(&n.ident)?;
         Self::get_default_ok()
     }
 
     fn visit_new(&mut self, n: &'ast New) -> Result<Self::Output, Self::Error> {
+        self.walk_new(n)
+    }
+    fn walk_new(&mut self, n: &'ast New) -> Result<Self::Output, Self::Error> {
         self.visit_call(&n.call)?;
         Self::get_default_ok()
     }
 
     fn visit_object(&mut self, n: &'ast Object) -> Result<Self::Output, Self::Error> {
+        self.walk_object(n)
+    }
+    fn walk_object(&mut self, n: &'ast Object) -> Result<Self::Output, Self::Error> {
         for pd in n.properties.iter() {
             self.visit_property_definition(pd)?;
         }
@@ -385,6 +499,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_return(&mut self, n: &'ast Return) -> Result<Self::Output, Self::Error> {
+        self.walk_return(n)
+    }
+    fn walk_return(&mut self, n: &'ast Return) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &n.expr {
             self.visit_node(expr)?;
         }
@@ -395,6 +512,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_switch(&mut self, n: &'ast Switch) -> Result<Self::Output, Self::Error> {
+        self.walk_switch(n)
+    }
+    fn walk_switch(&mut self, n: &'ast Switch) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.val)?;
         for case in n.cases.iter() {
             self.visit_case(case)?;
@@ -406,11 +526,20 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_spread(&mut self, n: &'ast Spread) -> Result<Self::Output, Self::Error> {
+        self.walk_spread(n)
+    }
+    fn walk_spread(&mut self, n: &'ast Spread) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.val)?;
         Self::get_default_ok()
     }
 
     fn visit_tagged_template(
+        &mut self,
+        n: &'ast TaggedTemplate,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_tagged_template(n)
+    }
+    fn walk_tagged_template(
         &mut self,
         n: &'ast TaggedTemplate,
     ) -> Result<Self::Output, Self::Error> {
@@ -428,6 +557,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_template_lit(&mut self, n: &'ast TemplateLit) -> Result<Self::Output, Self::Error> {
+        self.walk_template_lit(n)
+    }
+    fn walk_template_lit(&mut self, n: &'ast TemplateLit) -> Result<Self::Output, Self::Error> {
         for te in n.elements.iter() {
             self.visit_template_element(te)?;
         }
@@ -435,11 +567,17 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_throw(&mut self, n: &'ast Throw) -> Result<Self::Output, Self::Error> {
+        self.walk_throw(n)
+    }
+    fn walk_throw(&mut self, n: &'ast Throw) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.expr)?;
         Self::get_default_ok()
     }
 
     fn visit_try(&mut self, n: &'ast Try) -> Result<Self::Output, Self::Error> {
+        self.walk_try(n)
+    }
+    fn walk_try(&mut self, n: &'ast Try) -> Result<Self::Output, Self::Error> {
         self.visit_block(&n.block)?;
         if let Some(catch) = &n.catch {
             self.visit_catch(catch)?;
@@ -451,12 +589,21 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_unary_op(&mut self, n: &'ast UnaryOp) -> Result<Self::Output, Self::Error> {
+        self.walk_unary_op(n)
+    }
+    fn walk_unary_op(&mut self, n: &'ast UnaryOp) -> Result<Self::Output, Self::Error> {
         self.visit_raw_unary_op(&n.op)?;
         self.visit_node(&n.target)?;
         Self::get_default_ok()
     }
 
     fn visit_declaration_list(
+        &mut self,
+        n: &'ast DeclarationList,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_list(n)
+    }
+    fn walk_declaration_list(
         &mut self,
         n: &'ast DeclarationList,
     ) -> Result<Self::Output, Self::Error> {
@@ -473,6 +620,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_while_loop(&mut self, n: &'ast WhileLoop) -> Result<Self::Output, Self::Error> {
+        self.walk_while_loop(n)
+    }
+    fn walk_while_loop(&mut self, n: &'ast WhileLoop) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.cond)?;
         self.visit_node(&n.body)?;
         if let Some(name) = &n.label {
@@ -482,6 +632,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_yield(&mut self, n: &'ast Yield) -> Result<Self::Output, Self::Error> {
+        self.walk_yield(n)
+    }
+    fn walk_yield(&mut self, n: &'ast Yield) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &n.expr {
             self.visit_node(expr)?;
         }
@@ -492,6 +645,9 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast GeneratorDecl,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_generator_decl(n)
+    }
+    fn walk_generator_decl(&mut self, n: &'ast GeneratorDecl) -> Result<Self::Output, Self::Error> {
         self.visit_sym(&n.name)?;
         self.visit_formal_parameter_list(&n.parameters)?;
         self.visit_statement_list(&n.body)?;
@@ -502,6 +658,9 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast GeneratorExpr,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_generator_expr(n)
+    }
+    fn walk_generator_expr(&mut self, n: &'ast GeneratorExpr) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &n.name {
             self.visit_sym(name)?;
         }
@@ -511,16 +670,25 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_class_decl(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
+        self.walk_class_decl(n)
+    }
+    fn walk_class_decl(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
         self.visit_class(n)?;
         Self::get_default_ok()
     }
 
     fn visit_class_expr(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
+        self.walk_class_expr(n)
+    }
+    fn walk_class_expr(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
         self.visit_class(n)?;
         Self::get_default_ok()
     }
 
     fn visit_class(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
+        self.walk_class(n)
+    }
+    fn walk_class(&mut self, n: &'ast Class) -> Result<Self::Output, Self::Error> {
         self.visit_sym(&n.name)?;
         if let Some(super_ref) = &n.super_ref {
             self.visit_node(super_ref)?;
@@ -535,6 +703,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_class_element(&mut self, n: &'ast ClassElement) -> Result<Self::Output, Self::Error> {
+        self.walk_class_element(n)
+    }
+    fn walk_class_element(&mut self, n: &'ast ClassElement) -> Result<Self::Output, Self::Error> {
         match n {
             ClassElement::MethodDefinition(pn, md)
             | ClassElement::StaticMethodDefinition(pn, md) => {
@@ -567,6 +738,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_super_call(&mut self, n: &'ast SuperCall) -> Result<Self::Output, Self::Error> {
+        self.walk_super_call(n)
+    }
+    fn walk_super_call(&mut self, n: &'ast SuperCall) -> Result<Self::Output, Self::Error> {
         for arg in n.args.iter() {
             self.visit_node(arg)?;
         }
@@ -582,6 +756,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast FormalParameterList,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_formal_parameter_list(n)
+    }
+    fn walk_formal_parameter_list(
+        &mut self,
+        n: &'ast FormalParameterList,
+    ) -> Result<Self::Output, Self::Error> {
         for p in n.parameters.iter() {
             self.visit_formal_parameter(p)?;
         }
@@ -593,6 +773,9 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast StatementList,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_statement_list(n)
+    }
+    fn walk_statement_list(&mut self, n: &'ast StatementList) -> Result<Self::Output, Self::Error> {
         for inner in n.items.iter() {
             self.visit_node(inner)?;
         }
@@ -600,6 +783,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_assign_target(&mut self, n: &'ast AssignTarget) -> Result<Self::Output, Self::Error> {
+        self.walk_assign_target(n)
+    }
+    fn walk_assign_target(&mut self, n: &'ast AssignTarget) -> Result<Self::Output, Self::Error> {
         match n {
             AssignTarget::Identifier(ident) => self.visit_identifier(ident),
             AssignTarget::GetPrivateField(gpf) => self.visit_get_private_field(gpf),
@@ -610,6 +796,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_raw_binop(&mut self, n: &'ast op::BinOp) -> Result<Self::Output, Self::Error> {
+        self.walk_raw_binop(n)
+    }
+    fn walk_raw_binop(&mut self, n: &'ast op::BinOp) -> Result<Self::Output, Self::Error> {
         match n {
             op::BinOp::Num(op) => self.visit_raw_num_op(op),
             op::BinOp::Bit(op) => self.visit_raw_bit_op(op),
@@ -621,6 +810,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration(&mut self, n: &'ast Declaration) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration(n)
+    }
+    fn walk_declaration(&mut self, n: &'ast Declaration) -> Result<Self::Output, Self::Error> {
         match n {
             Declaration::Identifier { ident, init } => {
                 self.visit_identifier(ident)?;
@@ -637,6 +829,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast IterableLoopInitializer,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_iterable_loop_initializer(n)
+    }
+    fn walk_iterable_loop_initializer(
+        &mut self,
+        n: &'ast IterableLoopInitializer,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             IterableLoopInitializer::Identifier(ident) => self.visit_identifier(ident),
             IterableLoopInitializer::Var(decl)
@@ -647,6 +845,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_property_definition(
+        &mut self,
+        n: &'ast PropertyDefinition,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_property_definition(n)
+    }
+    fn walk_property_definition(
         &mut self,
         n: &'ast PropertyDefinition,
     ) -> Result<Self::Output, Self::Error> {
@@ -667,12 +871,21 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_case(&mut self, n: &'ast Case) -> Result<Self::Output, Self::Error> {
+        self.walk_case(n)
+    }
+    fn walk_case(&mut self, n: &'ast Case) -> Result<Self::Output, Self::Error> {
         self.visit_node(&n.condition)?;
         self.visit_statement_list(&n.body)?;
         Self::get_default_ok()
     }
 
     fn visit_template_element(
+        &mut self,
+        n: &'ast TemplateElement,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_template_element(n)
+    }
+    fn walk_template_element(
         &mut self,
         n: &'ast TemplateElement,
     ) -> Result<Self::Output, Self::Error> {
@@ -683,6 +896,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_catch(&mut self, n: &'ast Catch) -> Result<Self::Output, Self::Error> {
+        self.walk_catch(n)
+    }
+    fn walk_catch(&mut self, n: &'ast Catch) -> Result<Self::Output, Self::Error> {
         if let Some(parameter) = &n.parameter {
             self.visit_declaration(parameter)?;
         }
@@ -691,6 +907,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_finally(&mut self, n: &'ast Finally) -> Result<Self::Output, Self::Error> {
+        self.walk_finally(n)
+    }
+    fn walk_finally(&mut self, n: &'ast Finally) -> Result<Self::Output, Self::Error> {
         self.visit_block(&n.block)?;
         Self::get_default_ok()
     }
@@ -701,6 +920,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_formal_parameter(
+        &mut self,
+        n: &'ast FormalParameter,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_formal_parameter(n)
+    }
+    fn walk_formal_parameter(
         &mut self,
         n: &'ast FormalParameter,
     ) -> Result<Self::Output, Self::Error> {
@@ -717,6 +942,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration_pattern(
+        &mut self,
+        n: &'ast DeclarationPattern,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_pattern(n)
+    }
+    fn walk_declaration_pattern(
         &mut self,
         n: &'ast DeclarationPattern,
     ) -> Result<Self::Output, Self::Error> {
@@ -747,6 +978,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_property_name(&mut self, n: &'ast PropertyName) -> Result<Self::Output, Self::Error> {
+        self.walk_property_name(n)
+    }
+    fn walk_property_name(&mut self, n: &'ast PropertyName) -> Result<Self::Output, Self::Error> {
         match n {
             PropertyName::Literal(s) => self.visit_sym(s),
             PropertyName::Computed(inner) => self.visit_node(inner),
@@ -754,6 +988,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_method_definition(
+        &mut self,
+        n: &'ast MethodDefinition,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_method_definition(n)
+    }
+    fn walk_method_definition(
         &mut self,
         n: &'ast MethodDefinition,
     ) -> Result<Self::Output, Self::Error> {
@@ -771,6 +1011,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast DeclarationPatternObject,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_pattern_object(n)
+    }
+    fn walk_declaration_pattern_object(
+        &mut self,
+        n: &'ast DeclarationPatternObject,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &n.bindings {
             self.visit_binding_pattern_type_object(binding)?;
         }
@@ -784,6 +1030,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast DeclarationPatternArray,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_pattern_array(n)
+    }
+    fn walk_declaration_pattern_array(
+        &mut self,
+        n: &'ast DeclarationPatternArray,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &n.bindings {
             self.visit_binding_pattern_type_array(binding)?;
         }
@@ -794,6 +1046,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_binding_pattern_type_object(
+        &mut self,
+        n: &'ast BindingPatternTypeObject,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_binding_pattern_type_object(n)
+    }
+    fn walk_binding_pattern_type_object(
         &mut self,
         n: &'ast BindingPatternTypeObject,
     ) -> Result<Self::Output, Self::Error> {
@@ -847,6 +1105,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast BindingPatternTypeArray,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_binding_pattern_type_array(n)
+    }
+    fn walk_binding_pattern_type_array(
+        &mut self,
+        n: &'ast BindingPatternTypeArray,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             BindingPatternTypeArray::SingleName {
                 ident,
@@ -878,6 +1142,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_node_mut(&mut self, n: &'ast mut Node) -> Result<Self::Output, Self::Error> {
+        self.walk_node_mut(n)
+    }
+    fn walk_node_mut(&mut self, n: &'ast mut Node) -> Result<Self::Output, Self::Error> {
         match n {
             Node::ArrayDecl(n) => self.visit_array_decl_mut(n),
             Node::ArrowFunctionDecl(n) => self.visit_arrow_function_decl_mut(n),
@@ -934,6 +1201,9 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut ArrayDecl,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_array_decl_mut(n)
+    }
+    fn walk_array_decl_mut(&mut self, n: &'ast mut ArrayDecl) -> Result<Self::Output, Self::Error> {
         for inner in n.arr.iter_mut() {
             self.visit_node_mut(inner)?;
         }
@@ -941,6 +1211,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_arrow_function_decl_mut(
+        &mut self,
+        n: &'ast mut ArrowFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_arrow_function_decl_mut(n)
+    }
+    fn walk_arrow_function_decl_mut(
         &mut self,
         n: &'ast mut ArrowFunctionDecl,
     ) -> Result<Self::Output, Self::Error> {
@@ -953,12 +1229,21 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_assign_mut(&mut self, n: &'ast mut Assign) -> Result<Self::Output, Self::Error> {
+        self.walk_assign_mut(n)
+    }
+    fn walk_assign_mut(&mut self, n: &'ast mut Assign) -> Result<Self::Output, Self::Error> {
         self.visit_assign_target_mut(&mut n.lhs)?;
         self.visit_node_mut(&mut n.rhs)?;
         Self::get_default_ok()
     }
 
     fn visit_async_function_expr_mut(
+        &mut self,
+        n: &'ast mut AsyncFunctionExpr,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_function_expr_mut(n)
+    }
+    fn walk_async_function_expr_mut(
         &mut self,
         n: &'ast mut AsyncFunctionExpr,
     ) -> Result<Self::Output, Self::Error> {
@@ -974,6 +1259,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut AsyncFunctionDecl,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_function_decl_mut(n)
+    }
+    fn walk_async_function_decl_mut(
+        &mut self,
+        n: &'ast mut AsyncFunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_sym_mut(&mut n.name)?;
         self.visit_formal_parameter_list_mut(&mut n.parameters)?;
         self.visit_statement_list_mut(&mut n.body)?;
@@ -981,6 +1272,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_async_generator_expr_mut(
+        &mut self,
+        n: &'ast mut AsyncGeneratorExpr,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_generator_expr_mut(n)
+    }
+    fn walk_async_generator_expr_mut(
         &mut self,
         n: &'ast mut AsyncGeneratorExpr,
     ) -> Result<Self::Output, Self::Error> {
@@ -996,6 +1293,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut AsyncGeneratorDecl,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_async_generator_decl_mut(n)
+    }
+    fn walk_async_generator_decl_mut(
+        &mut self,
+        n: &'ast mut AsyncGeneratorDecl,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_sym_mut(&mut n.name)?;
         self.visit_formal_parameter_list_mut(&mut n.parameters)?;
         self.visit_statement_list_mut(&mut n.body)?;
@@ -1006,11 +1309,17 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut AwaitExpr,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_await_expr_mut(n)
+    }
+    fn walk_await_expr_mut(&mut self, n: &'ast mut AwaitExpr) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.expr)?;
         Self::get_default_ok()
     }
 
     fn visit_bin_op_mut(&mut self, n: &'ast mut BinOp) -> Result<Self::Output, Self::Error> {
+        self.walk_bin_op_mut(n)
+    }
+    fn walk_bin_op_mut(&mut self, n: &'ast mut BinOp) -> Result<Self::Output, Self::Error> {
         self.visit_raw_binop_mut(&mut n.op)?;
         self.visit_node_mut(&mut n.lhs)?;
         self.visit_node_mut(&mut n.rhs)?;
@@ -1018,11 +1327,17 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_block_mut(&mut self, n: &'ast mut Block) -> Result<Self::Output, Self::Error> {
+        self.walk_block_mut(n)
+    }
+    fn walk_block_mut(&mut self, n: &'ast mut Block) -> Result<Self::Output, Self::Error> {
         self.visit_statement_list_mut(&mut n.statements)?;
         Self::get_default_ok()
     }
 
     fn visit_break_mut(&mut self, n: &'ast mut Break) -> Result<Self::Output, Self::Error> {
+        self.walk_break_mut(n)
+    }
+    fn walk_break_mut(&mut self, n: &'ast mut Break) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.label {
             self.visit_sym_mut(name)?;
         }
@@ -1030,6 +1345,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_call_mut(&mut self, n: &'ast mut Call) -> Result<Self::Output, Self::Error> {
+        self.walk_call_mut(n)
+    }
+    fn walk_call_mut(&mut self, n: &'ast mut Call) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.expr)?;
         for inner in n.args.iter_mut() {
             self.visit_node_mut(inner)?;
@@ -1041,6 +1359,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut ConditionalOp,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_conditional_op_mut(n)
+    }
+    fn walk_conditional_op_mut(
+        &mut self,
+        n: &'ast mut ConditionalOp,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.condition)?;
         self.visit_node_mut(&mut n.if_true)?;
         self.visit_node_mut(&mut n.if_false)?;
@@ -1048,6 +1372,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_const_mut(&mut self, n: &'ast mut Const) -> Result<Self::Output, Self::Error> {
+        self.walk_const_mut(n)
+    }
+    fn walk_const_mut(&mut self, n: &'ast mut Const) -> Result<Self::Output, Self::Error> {
         if let Const::String(s) = n {
             self.visit_sym_mut(s)?;
         }
@@ -1055,6 +1382,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_continue_mut(&mut self, n: &'ast mut Continue) -> Result<Self::Output, Self::Error> {
+        self.walk_continue_mut(n)
+    }
+    fn walk_continue_mut(&mut self, n: &'ast mut Continue) -> Result<Self::Output, Self::Error> {
         if let Some(s) = &mut n.label {
             self.visit_sym_mut(s)?;
         }
@@ -1062,6 +1392,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_do_while_loop_mut(
+        &mut self,
+        n: &'ast mut DoWhileLoop,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_do_while_loop_mut(n)
+    }
+    fn walk_do_while_loop_mut(
         &mut self,
         n: &'ast mut DoWhileLoop,
     ) -> Result<Self::Output, Self::Error> {
@@ -1077,6 +1413,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut FunctionDecl,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_function_decl_mut(n)
+    }
+    fn walk_function_decl_mut(
+        &mut self,
+        n: &'ast mut FunctionDecl,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_sym_mut(&mut n.name)?;
         self.visit_formal_parameter_list_mut(&mut n.parameters)?;
         self.visit_statement_list_mut(&mut n.body)?;
@@ -1084,6 +1426,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_function_expr_mut(
+        &mut self,
+        n: &'ast mut FunctionExpr,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_function_expr_mut(n)
+    }
+    fn walk_function_expr_mut(
         &mut self,
         n: &'ast mut FunctionExpr,
     ) -> Result<Self::Output, Self::Error> {
@@ -1099,6 +1447,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut GetConstField,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_get_const_field_mut(n)
+    }
+    fn walk_get_const_field_mut(
+        &mut self,
+        n: &'ast mut GetConstField,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.obj)?;
         self.visit_sym_mut(&mut n.field)?;
         Self::get_default_ok()
@@ -1108,18 +1462,33 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut GetPrivateField,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_get_private_field_mut(n)
+    }
+    fn walk_get_private_field_mut(
+        &mut self,
+        n: &'ast mut GetPrivateField,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.obj)?;
         self.visit_sym_mut(&mut n.field)?;
         Self::get_default_ok()
     }
 
     fn visit_get_field_mut(&mut self, n: &'ast mut GetField) -> Result<Self::Output, Self::Error> {
+        self.walk_get_field_mut(n)
+    }
+    fn walk_get_field_mut(&mut self, n: &'ast mut GetField) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.obj)?;
         self.visit_node_mut(&mut n.field)?;
         Self::get_default_ok()
     }
 
     fn visit_get_super_field_mut(
+        &mut self,
+        n: &'ast mut GetSuperField,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_get_super_field_mut(n)
+    }
+    fn walk_get_super_field_mut(
         &mut self,
         n: &'ast mut GetSuperField,
     ) -> Result<Self::Output, Self::Error> {
@@ -1130,6 +1499,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_for_loop_mut(&mut self, n: &'ast mut ForLoop) -> Result<Self::Output, Self::Error> {
+        self.walk_for_loop_mut(n)
+    }
+    fn walk_for_loop_mut(&mut self, n: &'ast mut ForLoop) -> Result<Self::Output, Self::Error> {
         if let Some(init) = &mut n.inner.init {
             self.visit_node_mut(init)?;
         }
@@ -1150,6 +1522,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut ForInLoop,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_for_in_loop_mut(n)
+    }
+    fn walk_for_in_loop_mut(
+        &mut self,
+        n: &'ast mut ForInLoop,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_iterable_loop_initializer_mut(&mut n.init)?;
         self.visit_node_mut(&mut n.expr)?;
         self.visit_node_mut(&mut n.body)?;
@@ -1163,6 +1541,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut ForOfLoop,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_for_of_loop_mut(n)
+    }
+    fn walk_for_of_loop_mut(
+        &mut self,
+        n: &'ast mut ForOfLoop,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_iterable_loop_initializer_mut(&mut n.init)?;
         self.visit_node_mut(&mut n.iterable)?;
         self.visit_node_mut(&mut n.body)?;
@@ -1173,6 +1557,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_if_mut(&mut self, n: &'ast mut If) -> Result<Self::Output, Self::Error> {
+        self.walk_if_mut(n)
+    }
+    fn walk_if_mut(&mut self, n: &'ast mut If) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.cond)?;
         self.visit_node_mut(&mut n.body)?;
         if let Some(else_node) = &mut n.else_node {
@@ -1185,16 +1572,28 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut Identifier,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_identifier_mut(n)
+    }
+    fn walk_identifier_mut(
+        &mut self,
+        n: &'ast mut Identifier,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_sym_mut(&mut n.ident)?;
         Self::get_default_ok()
     }
 
     fn visit_new_mut(&mut self, n: &'ast mut New) -> Result<Self::Output, Self::Error> {
+        self.walk_new_mut(n)
+    }
+    fn walk_new_mut(&mut self, n: &'ast mut New) -> Result<Self::Output, Self::Error> {
         self.visit_call_mut(&mut n.call)?;
         Self::get_default_ok()
     }
 
     fn visit_object_mut(&mut self, n: &'ast mut Object) -> Result<Self::Output, Self::Error> {
+        self.walk_object_mut(n)
+    }
+    fn walk_object_mut(&mut self, n: &'ast mut Object) -> Result<Self::Output, Self::Error> {
         for pd in n.properties.iter_mut() {
             self.visit_property_definition_mut(pd)?;
         }
@@ -1202,6 +1601,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_return_mut(&mut self, n: &'ast mut Return) -> Result<Self::Output, Self::Error> {
+        self.walk_return_mut(n)
+    }
+    fn walk_return_mut(&mut self, n: &'ast mut Return) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &mut n.expr {
             self.visit_node_mut(expr.as_mut())?;
         }
@@ -1212,6 +1614,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_switch_mut(&mut self, n: &'ast mut Switch) -> Result<Self::Output, Self::Error> {
+        self.walk_switch_mut(n)
+    }
+    fn walk_switch_mut(&mut self, n: &'ast mut Switch) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.val)?;
         for case in n.cases.iter_mut() {
             self.visit_case_mut(case)?;
@@ -1223,11 +1628,20 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_spread_mut(&mut self, n: &'ast mut Spread) -> Result<Self::Output, Self::Error> {
+        self.walk_spread_mut(n)
+    }
+    fn walk_spread_mut(&mut self, n: &'ast mut Spread) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.val)?;
         Self::get_default_ok()
     }
 
     fn visit_tagged_template_mut(
+        &mut self,
+        n: &'ast mut TaggedTemplate,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_tagged_template_mut(n)
+    }
+    fn walk_tagged_template_mut(
         &mut self,
         n: &'ast mut TaggedTemplate,
     ) -> Result<Self::Output, Self::Error> {
@@ -1248,6 +1662,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut TemplateLit,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_template_lit_mut(n)
+    }
+    fn walk_template_lit_mut(
+        &mut self,
+        n: &'ast mut TemplateLit,
+    ) -> Result<Self::Output, Self::Error> {
         for te in n.elements.iter_mut() {
             self.visit_template_element_mut(te)?;
         }
@@ -1255,11 +1675,17 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_throw_mut(&mut self, n: &'ast mut Throw) -> Result<Self::Output, Self::Error> {
+        self.walk_throw_mut(n)
+    }
+    fn walk_throw_mut(&mut self, n: &'ast mut Throw) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.expr)?;
         Self::get_default_ok()
     }
 
     fn visit_try_mut(&mut self, n: &'ast mut Try) -> Result<Self::Output, Self::Error> {
+        self.walk_try_mut(n)
+    }
+    fn walk_try_mut(&mut self, n: &'ast mut Try) -> Result<Self::Output, Self::Error> {
         self.visit_block_mut(&mut n.block)?;
         if let Some(catch) = &mut n.catch {
             self.visit_catch_mut(catch)?;
@@ -1271,12 +1697,21 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_unary_op_mut(&mut self, n: &'ast mut UnaryOp) -> Result<Self::Output, Self::Error> {
+        self.walk_unary_op_mut(n)
+    }
+    fn walk_unary_op_mut(&mut self, n: &'ast mut UnaryOp) -> Result<Self::Output, Self::Error> {
         self.visit_raw_unary_op_mut(&mut n.op)?;
         self.visit_node_mut(&mut n.target)?;
         Self::get_default_ok()
     }
 
     fn visit_declaration_list_mut(
+        &mut self,
+        n: &'ast mut DeclarationList,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_list_mut(n)
+    }
+    fn walk_declaration_list_mut(
         &mut self,
         n: &'ast mut DeclarationList,
     ) -> Result<Self::Output, Self::Error> {
@@ -1296,6 +1731,9 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut WhileLoop,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_while_loop_mut(n)
+    }
+    fn walk_while_loop_mut(&mut self, n: &'ast mut WhileLoop) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.cond)?;
         self.visit_node_mut(&mut n.body)?;
         if let Some(name) = &mut n.label {
@@ -1305,6 +1743,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_yield_mut(&mut self, n: &'ast mut Yield) -> Result<Self::Output, Self::Error> {
+        self.walk_yield_mut(n)
+    }
+    fn walk_yield_mut(&mut self, n: &'ast mut Yield) -> Result<Self::Output, Self::Error> {
         if let Some(expr) = &mut n.expr {
             self.visit_node_mut(expr.as_mut())?;
         }
@@ -1312,6 +1753,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_generator_decl_mut(
+        &mut self,
+        n: &'ast mut GeneratorDecl,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_generator_decl_mut(n)
+    }
+    fn walk_generator_decl_mut(
         &mut self,
         n: &'ast mut GeneratorDecl,
     ) -> Result<Self::Output, Self::Error> {
@@ -1325,6 +1772,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut GeneratorExpr,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_generator_expr_mut(n)
+    }
+    fn walk_generator_expr_mut(
+        &mut self,
+        n: &'ast mut GeneratorExpr,
+    ) -> Result<Self::Output, Self::Error> {
         if let Some(name) = &mut n.name {
             self.visit_sym_mut(name)?;
         }
@@ -1334,16 +1787,25 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_class_decl_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
+        self.walk_class_decl_mut(n)
+    }
+    fn walk_class_decl_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
         self.visit_class_mut(n)?;
         Self::get_default_ok()
     }
 
     fn visit_class_expr_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
+        self.walk_class_expr_mut(n)
+    }
+    fn walk_class_expr_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
         self.visit_class_mut(n)?;
         Self::get_default_ok()
     }
 
     fn visit_class_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
+        self.walk_class_mut(n)
+    }
+    fn walk_class_mut(&mut self, n: &'ast mut Class) -> Result<Self::Output, Self::Error> {
         self.visit_sym_mut(&mut n.name)?;
         if let Some(super_ref) = n.super_ref.as_deref_mut() {
             self.visit_node_mut(super_ref)?;
@@ -1358,6 +1820,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_class_element_mut(
+        &mut self,
+        n: &'ast mut ClassElement,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_class_element_mut(n)
+    }
+    fn walk_class_element_mut(
         &mut self,
         n: &'ast mut ClassElement,
     ) -> Result<Self::Output, Self::Error> {
@@ -1396,6 +1864,9 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut SuperCall,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_super_call_mut(n)
+    }
+    fn walk_super_call_mut(&mut self, n: &'ast mut SuperCall) -> Result<Self::Output, Self::Error> {
         for arg in n.args.iter_mut() {
             self.visit_node_mut(arg)?;
         }
@@ -1411,6 +1882,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut FormalParameterList,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_formal_parameter_list_mut(n)
+    }
+    fn walk_formal_parameter_list_mut(
+        &mut self,
+        n: &'ast mut FormalParameterList,
+    ) -> Result<Self::Output, Self::Error> {
         for p in n.parameters.iter_mut() {
             self.visit_formal_parameter_mut(p)?;
         }
@@ -1419,6 +1896,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_statement_list_mut(
+        &mut self,
+        n: &'ast mut StatementList,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_statement_list_mut(n)
+    }
+    fn walk_statement_list_mut(
         &mut self,
         n: &'ast mut StatementList,
     ) -> Result<Self::Output, Self::Error> {
@@ -1432,6 +1915,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut AssignTarget,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_assign_target_mut(n)
+    }
+    fn walk_assign_target_mut(
+        &mut self,
+        n: &'ast mut AssignTarget,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             AssignTarget::Identifier(ident) => self.visit_identifier_mut(ident),
             AssignTarget::GetPrivateField(gpf) => self.visit_get_private_field_mut(gpf),
@@ -1442,6 +1931,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_raw_binop_mut(&mut self, n: &'ast mut op::BinOp) -> Result<Self::Output, Self::Error> {
+        self.walk_raw_binop_mut(n)
+    }
+    fn walk_raw_binop_mut(&mut self, n: &'ast mut op::BinOp) -> Result<Self::Output, Self::Error> {
         match n {
             op::BinOp::Num(op) => self.visit_raw_num_op_mut(op),
             op::BinOp::Bit(op) => self.visit_raw_bit_op_mut(op),
@@ -1453,6 +1945,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration_mut(
+        &mut self,
+        n: &'ast mut Declaration,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_mut(n)
+    }
+    fn walk_declaration_mut(
         &mut self,
         n: &'ast mut Declaration,
     ) -> Result<Self::Output, Self::Error> {
@@ -1472,6 +1970,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut IterableLoopInitializer,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_iterable_loop_initializer_mut(n)
+    }
+    fn walk_iterable_loop_initializer_mut(
+        &mut self,
+        n: &'ast mut IterableLoopInitializer,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             IterableLoopInitializer::Identifier(ident) => self.visit_identifier_mut(ident),
             IterableLoopInitializer::Var(decl)
@@ -1484,6 +1988,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_property_definition_mut(
+        &mut self,
+        n: &'ast mut PropertyDefinition,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_property_definition_mut(n)
+    }
+    fn walk_property_definition_mut(
         &mut self,
         n: &'ast mut PropertyDefinition,
     ) -> Result<Self::Output, Self::Error> {
@@ -1504,12 +2014,21 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_case_mut(&mut self, n: &'ast mut Case) -> Result<Self::Output, Self::Error> {
+        self.walk_case_mut(n)
+    }
+    fn walk_case_mut(&mut self, n: &'ast mut Case) -> Result<Self::Output, Self::Error> {
         self.visit_node_mut(&mut n.condition)?;
         self.visit_statement_list_mut(&mut n.body)?;
         Self::get_default_ok()
     }
 
     fn visit_template_element_mut(
+        &mut self,
+        n: &'ast mut TemplateElement,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_template_element_mut(n)
+    }
+    fn walk_template_element_mut(
         &mut self,
         n: &'ast mut TemplateElement,
     ) -> Result<Self::Output, Self::Error> {
@@ -1520,6 +2039,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_catch_mut(&mut self, n: &'ast mut Catch) -> Result<Self::Output, Self::Error> {
+        self.walk_catch_mut(n)
+    }
+    fn walk_catch_mut(&mut self, n: &'ast mut Catch) -> Result<Self::Output, Self::Error> {
         if let Some(parameter) = &mut n.parameter {
             self.visit_declaration_mut(parameter.as_mut())?;
         }
@@ -1528,6 +2050,9 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_finally_mut(&mut self, n: &'ast mut Finally) -> Result<Self::Output, Self::Error> {
+        self.walk_finally_mut(n)
+    }
+    fn walk_finally_mut(&mut self, n: &'ast mut Finally) -> Result<Self::Output, Self::Error> {
         self.visit_block_mut(&mut n.block)?;
         Self::get_default_ok()
     }
@@ -1544,6 +2069,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut FormalParameter,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_formal_parameter_mut(n)
+    }
+    fn walk_formal_parameter_mut(
+        &mut self,
+        n: &'ast mut FormalParameter,
+    ) -> Result<Self::Output, Self::Error> {
         self.visit_declaration_mut(&mut n.declaration)?;
         Self::get_default_ok()
     }
@@ -1557,6 +2088,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_declaration_pattern_mut(
+        &mut self,
+        n: &'ast mut DeclarationPattern,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_pattern_mut(n)
+    }
+    fn walk_declaration_pattern_mut(
         &mut self,
         n: &'ast mut DeclarationPattern,
     ) -> Result<Self::Output, Self::Error> {
@@ -1610,6 +2147,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut PropertyName,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_property_name_mut(n)
+    }
+    fn walk_property_name_mut(
+        &mut self,
+        n: &'ast mut PropertyName,
+    ) -> Result<Self::Output, Self::Error> {
         match n {
             PropertyName::Literal(s) => self.visit_sym_mut(s),
             PropertyName::Computed(inner) => self.visit_node_mut(inner),
@@ -1617,6 +2160,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_method_definition_mut(
+        &mut self,
+        n: &'ast mut MethodDefinition,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_method_definition_mut(n)
+    }
+    fn walk_method_definition_mut(
         &mut self,
         n: &'ast mut MethodDefinition,
     ) -> Result<Self::Output, Self::Error> {
@@ -1634,6 +2183,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut DeclarationPatternObject,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_pattern_object_mut(n)
+    }
+    fn walk_declaration_pattern_object_mut(
+        &mut self,
+        n: &'ast mut DeclarationPatternObject,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &mut n.bindings {
             self.visit_binding_pattern_type_object_mut(binding)?;
         }
@@ -1647,6 +2202,12 @@ pub trait Visitor<'ast> {
         &mut self,
         n: &'ast mut DeclarationPatternArray,
     ) -> Result<Self::Output, Self::Error> {
+        self.walk_declaration_pattern_array_mut(n)
+    }
+    fn walk_declaration_pattern_array_mut(
+        &mut self,
+        n: &'ast mut DeclarationPatternArray,
+    ) -> Result<Self::Output, Self::Error> {
         for binding in &mut n.bindings {
             self.visit_binding_pattern_type_array_mut(binding)?;
         }
@@ -1657,6 +2218,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_binding_pattern_type_object_mut(
+        &mut self,
+        n: &'ast mut BindingPatternTypeObject,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_binding_pattern_type_object_mut(n)
+    }
+    fn walk_binding_pattern_type_object_mut(
         &mut self,
         n: &'ast mut BindingPatternTypeObject,
     ) -> Result<Self::Output, Self::Error> {
@@ -1707,6 +2274,12 @@ pub trait Visitor<'ast> {
     }
 
     fn visit_binding_pattern_type_array_mut(
+        &mut self,
+        n: &'ast mut BindingPatternTypeArray,
+    ) -> Result<Self::Output, Self::Error> {
+        self.walk_binding_pattern_type_array_mut(n)
+    }
+    fn walk_binding_pattern_type_array_mut(
         &mut self,
         n: &'ast mut BindingPatternTypeArray,
     ) -> Result<Self::Output, Self::Error> {
