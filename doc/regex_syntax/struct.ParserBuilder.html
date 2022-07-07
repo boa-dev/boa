@@ -55,7 +55,7 @@ word boundary (uttered as <code>(?-u:\B)</code> in the concrete syntax) will cau
 the parser to return an error. Namely, a negated ASCII word boundary
 can result in matching positions that aren’t valid UTF-8 boundaries.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.ignore_whitespace" class="method has-srclink"><span class="rightside"><a class="srclink" href="../src/regex_syntax/parser.rs.html#105-108">source</a></span><a href="#method.ignore_whitespace" class="anchor"></a><h4 class="code-header">pub fn <a href="#method.ignore_whitespace" class="fnname">ignore_whitespace</a>(&amp;mut self, yes: <a class="primitive" href="https://doc.rust-lang.org/1.62.0/std/primitive.bool.html">bool</a>) -&gt; &amp;mut <a class="struct" href="struct.ParserBuilder.html" title="struct regex_syntax::ParserBuilder">ParserBuilder</a></h4></section></summary><div class="docblock"><p>Enable verbose mode in the regular expression.</p>
-<p>When enabled, verbose mode permits insigificant whitespace in many
+<p>When enabled, verbose mode permits insignificant whitespace in many
 places in the regular expression, as well as comments. Comments are
 started using <code>#</code> and continue until the end of the line.</p>
 <p>By default, this is disabled. It may be selectively enabled in the

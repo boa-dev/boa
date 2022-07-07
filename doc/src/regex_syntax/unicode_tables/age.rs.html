@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.26/src/unicode_tables/age.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>age.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/unicode_tables/age.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>age.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1676,13 +1676,95 @@
 <span id="1671">1671</span>
 <span id="1672">1672</span>
 <span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
 </pre><pre class="rust"><code><span class="comment">// DO NOT EDIT THIS FILE. IT WAS AUTOMATICALLY GENERATED BY:</span>
 <span class="comment">//</span>
-<span class="comment">//   ucd-generate age ucd-13.0.0 --chars</span>
+<span class="comment">//   ucd-generate age /tmp/ucd --chars</span>
 <span class="comment">//</span>
-<span class="comment">// Unicode version: 13.0.0.</span>
+<span class="comment">// Unicode version: 14.0.0.</span>
 <span class="comment">//</span>
-<span class="comment">// ucd-generate 0.2.8 is available on crates.io.</span>
+<span class="comment">// ucd-generate 0.2.11 is available on crates.io.</span>
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">BY_NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)])] <span class="op">=</span> <span class="kw-2">&amp;</span>[
     (<span class="string">&quot;V10_0&quot;</span>, <span class="ident">V10_0</span>),
@@ -1690,6 +1772,7 @@
     (<span class="string">&quot;V12_0&quot;</span>, <span class="ident">V12_0</span>),
     (<span class="string">&quot;V12_1&quot;</span>, <span class="ident">V12_1</span>),
     (<span class="string">&quot;V13_0&quot;</span>, <span class="ident">V13_0</span>),
+    (<span class="string">&quot;V14_0&quot;</span>, <span class="ident">V14_0</span>),
     (<span class="string">&quot;V1_1&quot;</span>, <span class="ident">V1_1</span>),
     (<span class="string">&quot;V2_0&quot;</span>, <span class="ident">V2_0</span>),
     (<span class="string">&quot;V2_1&quot;</span>, <span class="ident">V2_1</span>),
@@ -1881,69 +1964,150 @@
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">V12_1</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[(<span class="string">&#39;㋿&#39;</span>, <span class="string">&#39;㋿&#39;</span>)];
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">V13_0</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
-    (<span class="string">&#39;\u{8be}&#39;</span>, <span class="string">&#39;\u{8c7}&#39;</span>),
+    (<span class="string">&#39;ࢾ&#39;</span>, <span class="string">&#39;ࣇ&#39;</span>),
     (<span class="string">&#39;\u{b55}&#39;</span>, <span class="string">&#39;\u{b55}&#39;</span>),
-    (<span class="string">&#39;\u{d04}&#39;</span>, <span class="string">&#39;\u{d04}&#39;</span>),
+    (<span class="string">&#39;ഄ&#39;</span>, <span class="string">&#39;ഄ&#39;</span>),
     (<span class="string">&#39;\u{d81}&#39;</span>, <span class="string">&#39;\u{d81}&#39;</span>),
     (<span class="string">&#39;\u{1abf}&#39;</span>, <span class="string">&#39;\u{1ac0}&#39;</span>),
-    (<span class="string">&#39;\u{2b97}&#39;</span>, <span class="string">&#39;\u{2b97}&#39;</span>),
-    (<span class="string">&#39;\u{2e50}&#39;</span>, <span class="string">&#39;\u{2e52}&#39;</span>),
-    (<span class="string">&#39;\u{31bb}&#39;</span>, <span class="string">&#39;\u{31bf}&#39;</span>),
-    (<span class="string">&#39;\u{4db6}&#39;</span>, <span class="string">&#39;\u{4dbf}&#39;</span>),
-    (<span class="string">&#39;\u{9ff0}&#39;</span>, <span class="string">&#39;\u{9ffc}&#39;</span>),
-    (<span class="string">&#39;\u{a7c7}&#39;</span>, <span class="string">&#39;\u{a7ca}&#39;</span>),
-    (<span class="string">&#39;\u{a7f5}&#39;</span>, <span class="string">&#39;\u{a7f6}&#39;</span>),
+    (<span class="string">&#39;⮗&#39;</span>, <span class="string">&#39;⮗&#39;</span>),
+    (<span class="string">&#39;⹐&#39;</span>, <span class="string">&#39;⹒&#39;</span>),
+    (<span class="string">&#39;ㆻ&#39;</span>, <span class="string">&#39;ㆿ&#39;</span>),
+    (<span class="string">&#39;䶶&#39;</span>, <span class="string">&#39;䶿&#39;</span>),
+    (<span class="string">&#39;鿰&#39;</span>, <span class="string">&#39;鿼&#39;</span>),
+    (<span class="string">&#39;Ꟈ&#39;</span>, <span class="string">&#39;ꟊ&#39;</span>),
+    (<span class="string">&#39;Ꟶ&#39;</span>, <span class="string">&#39;ꟶ&#39;</span>),
     (<span class="string">&#39;\u{a82c}&#39;</span>, <span class="string">&#39;\u{a82c}&#39;</span>),
-    (<span class="string">&#39;\u{ab68}&#39;</span>, <span class="string">&#39;\u{ab6b}&#39;</span>),
-    (<span class="string">&#39;\u{1019c}&#39;</span>, <span class="string">&#39;\u{1019c}&#39;</span>),
-    (<span class="string">&#39;\u{10e80}&#39;</span>, <span class="string">&#39;\u{10ea9}&#39;</span>),
-    (<span class="string">&#39;\u{10eab}&#39;</span>, <span class="string">&#39;\u{10ead}&#39;</span>),
-    (<span class="string">&#39;\u{10eb0}&#39;</span>, <span class="string">&#39;\u{10eb1}&#39;</span>),
-    (<span class="string">&#39;\u{10fb0}&#39;</span>, <span class="string">&#39;\u{10fcb}&#39;</span>),
-    (<span class="string">&#39;\u{11147}&#39;</span>, <span class="string">&#39;\u{11147}&#39;</span>),
-    (<span class="string">&#39;\u{111ce}&#39;</span>, <span class="string">&#39;\u{111cf}&#39;</span>),
-    (<span class="string">&#39;\u{1145a}&#39;</span>, <span class="string">&#39;\u{1145a}&#39;</span>),
-    (<span class="string">&#39;\u{11460}&#39;</span>, <span class="string">&#39;\u{11461}&#39;</span>),
-    (<span class="string">&#39;\u{11900}&#39;</span>, <span class="string">&#39;\u{11906}&#39;</span>),
-    (<span class="string">&#39;\u{11909}&#39;</span>, <span class="string">&#39;\u{11909}&#39;</span>),
-    (<span class="string">&#39;\u{1190c}&#39;</span>, <span class="string">&#39;\u{11913}&#39;</span>),
-    (<span class="string">&#39;\u{11915}&#39;</span>, <span class="string">&#39;\u{11916}&#39;</span>),
-    (<span class="string">&#39;\u{11918}&#39;</span>, <span class="string">&#39;\u{11935}&#39;</span>),
-    (<span class="string">&#39;\u{11937}&#39;</span>, <span class="string">&#39;\u{11938}&#39;</span>),
-    (<span class="string">&#39;\u{1193b}&#39;</span>, <span class="string">&#39;\u{11946}&#39;</span>),
-    (<span class="string">&#39;\u{11950}&#39;</span>, <span class="string">&#39;\u{11959}&#39;</span>),
-    (<span class="string">&#39;\u{11fb0}&#39;</span>, <span class="string">&#39;\u{11fb0}&#39;</span>),
+    (<span class="string">&#39;ꭨ&#39;</span>, <span class="string">&#39;꭫&#39;</span>),
+    (<span class="string">&#39;𐆜&#39;</span>, <span class="string">&#39;𐆜&#39;</span>),
+    (<span class="string">&#39;𐺀&#39;</span>, <span class="string">&#39;𐺩&#39;</span>),
+    (<span class="string">&#39;\u{10eab}&#39;</span>, <span class="string">&#39;𐺭&#39;</span>),
+    (<span class="string">&#39;𐺰&#39;</span>, <span class="string">&#39;𐺱&#39;</span>),
+    (<span class="string">&#39;𐾰&#39;</span>, <span class="string">&#39;𐿋&#39;</span>),
+    (<span class="string">&#39;𑅇&#39;</span>, <span class="string">&#39;𑅇&#39;</span>),
+    (<span class="string">&#39;𑇎&#39;</span>, <span class="string">&#39;\u{111cf}&#39;</span>),
+    (<span class="string">&#39;𑑚&#39;</span>, <span class="string">&#39;𑑚&#39;</span>),
+    (<span class="string">&#39;𑑠&#39;</span>, <span class="string">&#39;𑑡&#39;</span>),
+    (<span class="string">&#39;𑤀&#39;</span>, <span class="string">&#39;𑤆&#39;</span>),
+    (<span class="string">&#39;𑤉&#39;</span>, <span class="string">&#39;𑤉&#39;</span>),
+    (<span class="string">&#39;𑤌&#39;</span>, <span class="string">&#39;𑤓&#39;</span>),
+    (<span class="string">&#39;𑤕&#39;</span>, <span class="string">&#39;𑤖&#39;</span>),
+    (<span class="string">&#39;𑤘&#39;</span>, <span class="string">&#39;𑤵&#39;</span>),
+    (<span class="string">&#39;𑤷&#39;</span>, <span class="string">&#39;𑤸&#39;</span>),
+    (<span class="string">&#39;\u{1193b}&#39;</span>, <span class="string">&#39;𑥆&#39;</span>),
+    (<span class="string">&#39;𑥐&#39;</span>, <span class="string">&#39;𑥙&#39;</span>),
+    (<span class="string">&#39;𑾰&#39;</span>, <span class="string">&#39;𑾰&#39;</span>),
     (<span class="string">&#39;\u{16fe4}&#39;</span>, <span class="string">&#39;\u{16fe4}&#39;</span>),
-    (<span class="string">&#39;\u{16ff0}&#39;</span>, <span class="string">&#39;\u{16ff1}&#39;</span>),
-    (<span class="string">&#39;\u{18af3}&#39;</span>, <span class="string">&#39;\u{18cd5}&#39;</span>),
-    (<span class="string">&#39;\u{18d00}&#39;</span>, <span class="string">&#39;\u{18d08}&#39;</span>),
-    (<span class="string">&#39;\u{1f10d}&#39;</span>, <span class="string">&#39;\u{1f10f}&#39;</span>),
-    (<span class="string">&#39;\u{1f16d}&#39;</span>, <span class="string">&#39;\u{1f16f}&#39;</span>),
-    (<span class="string">&#39;\u{1f1ad}&#39;</span>, <span class="string">&#39;\u{1f1ad}&#39;</span>),
-    (<span class="string">&#39;\u{1f6d6}&#39;</span>, <span class="string">&#39;\u{1f6d7}&#39;</span>),
-    (<span class="string">&#39;\u{1f6fb}&#39;</span>, <span class="string">&#39;\u{1f6fc}&#39;</span>),
-    (<span class="string">&#39;\u{1f8b0}&#39;</span>, <span class="string">&#39;\u{1f8b1}&#39;</span>),
-    (<span class="string">&#39;\u{1f90c}&#39;</span>, <span class="string">&#39;\u{1f90c}&#39;</span>),
-    (<span class="string">&#39;\u{1f972}&#39;</span>, <span class="string">&#39;\u{1f972}&#39;</span>),
-    (<span class="string">&#39;\u{1f977}&#39;</span>, <span class="string">&#39;\u{1f978}&#39;</span>),
-    (<span class="string">&#39;\u{1f9a3}&#39;</span>, <span class="string">&#39;\u{1f9a4}&#39;</span>),
-    (<span class="string">&#39;\u{1f9ab}&#39;</span>, <span class="string">&#39;\u{1f9ad}&#39;</span>),
-    (<span class="string">&#39;\u{1f9cb}&#39;</span>, <span class="string">&#39;\u{1f9cb}&#39;</span>),
-    (<span class="string">&#39;\u{1fa74}&#39;</span>, <span class="string">&#39;\u{1fa74}&#39;</span>),
-    (<span class="string">&#39;\u{1fa83}&#39;</span>, <span class="string">&#39;\u{1fa86}&#39;</span>),
-    (<span class="string">&#39;\u{1fa96}&#39;</span>, <span class="string">&#39;\u{1faa8}&#39;</span>),
-    (<span class="string">&#39;\u{1fab0}&#39;</span>, <span class="string">&#39;\u{1fab6}&#39;</span>),
-    (<span class="string">&#39;\u{1fac0}&#39;</span>, <span class="string">&#39;\u{1fac2}&#39;</span>),
-    (<span class="string">&#39;\u{1fad0}&#39;</span>, <span class="string">&#39;\u{1fad6}&#39;</span>),
-    (<span class="string">&#39;\u{1fb00}&#39;</span>, <span class="string">&#39;\u{1fb92}&#39;</span>),
-    (<span class="string">&#39;\u{1fb94}&#39;</span>, <span class="string">&#39;\u{1fbca}&#39;</span>),
-    (<span class="string">&#39;\u{1fbf0}&#39;</span>, <span class="string">&#39;\u{1fbf9}&#39;</span>),
-    (<span class="string">&#39;\u{2a6d7}&#39;</span>, <span class="string">&#39;\u{2a6dd}&#39;</span>),
-    (<span class="string">&#39;\u{30000}&#39;</span>, <span class="string">&#39;\u{3134a}&#39;</span>),
+    (<span class="string">&#39;𖿰&#39;</span>, <span class="string">&#39;𖿱&#39;</span>),
+    (<span class="string">&#39;𘫳&#39;</span>, <span class="string">&#39;𘳕&#39;</span>),
+    (<span class="string">&#39;𘴀&#39;</span>, <span class="string">&#39;𘴈&#39;</span>),
+    (<span class="string">&#39;🄍&#39;</span>, <span class="string">&#39;🄏&#39;</span>),
+    (<span class="string">&#39;🅭&#39;</span>, <span class="string">&#39;🅯&#39;</span>),
+    (<span class="string">&#39;🆭&#39;</span>, <span class="string">&#39;🆭&#39;</span>),
+    (<span class="string">&#39;🛖&#39;</span>, <span class="string">&#39;🛗&#39;</span>),
+    (<span class="string">&#39;🛻&#39;</span>, <span class="string">&#39;🛼&#39;</span>),
+    (<span class="string">&#39;🢰&#39;</span>, <span class="string">&#39;🢱&#39;</span>),
+    (<span class="string">&#39;🤌&#39;</span>, <span class="string">&#39;🤌&#39;</span>),
+    (<span class="string">&#39;🥲&#39;</span>, <span class="string">&#39;🥲&#39;</span>),
+    (<span class="string">&#39;🥷&#39;</span>, <span class="string">&#39;🥸&#39;</span>),
+    (<span class="string">&#39;🦣&#39;</span>, <span class="string">&#39;🦤&#39;</span>),
+    (<span class="string">&#39;🦫&#39;</span>, <span class="string">&#39;🦭&#39;</span>),
+    (<span class="string">&#39;🧋&#39;</span>, <span class="string">&#39;🧋&#39;</span>),
+    (<span class="string">&#39;🩴&#39;</span>, <span class="string">&#39;🩴&#39;</span>),
+    (<span class="string">&#39;🪃&#39;</span>, <span class="string">&#39;🪆&#39;</span>),
+    (<span class="string">&#39;🪖&#39;</span>, <span class="string">&#39;🪨&#39;</span>),
+    (<span class="string">&#39;🪰&#39;</span>, <span class="string">&#39;🪶&#39;</span>),
+    (<span class="string">&#39;🫀&#39;</span>, <span class="string">&#39;🫂&#39;</span>),
+    (<span class="string">&#39;🫐&#39;</span>, <span class="string">&#39;🫖&#39;</span>),
+    (<span class="string">&#39;🬀&#39;</span>, <span class="string">&#39;🮒&#39;</span>),
+    (<span class="string">&#39;🮔&#39;</span>, <span class="string">&#39;🯊&#39;</span>),
+    (<span class="string">&#39;🯰&#39;</span>, <span class="string">&#39;🯹&#39;</span>),
+    (<span class="string">&#39;𪛗&#39;</span>, <span class="string">&#39;𪛝&#39;</span>),
+    (<span class="string">&#39;𰀀&#39;</span>, <span class="string">&#39;𱍊&#39;</span>),
+];
+
+<span class="kw">pub</span> <span class="kw">const</span> <span class="ident">V14_0</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
+    (<span class="string">&#39;؝&#39;</span>, <span class="string">&#39;؝&#39;</span>),
+    (<span class="string">&#39;ࡰ&#39;</span>, <span class="string">&#39;ࢎ&#39;</span>),
+    (<span class="string">&#39;\u{890}&#39;</span>, <span class="string">&#39;\u{891}&#39;</span>),
+    (<span class="string">&#39;\u{898}&#39;</span>, <span class="string">&#39;\u{89f}&#39;</span>),
+    (<span class="string">&#39;ࢵ&#39;</span>, <span class="string">&#39;ࢵ&#39;</span>),
+    (<span class="string">&#39;ࣈ&#39;</span>, <span class="string">&#39;\u{8d2}&#39;</span>),
+    (<span class="string">&#39;\u{c3c}&#39;</span>, <span class="string">&#39;\u{c3c}&#39;</span>),
+    (<span class="string">&#39;ౝ&#39;</span>, <span class="string">&#39;ౝ&#39;</span>),
+    (<span class="string">&#39;ೝ&#39;</span>, <span class="string">&#39;ೝ&#39;</span>),
+    (<span class="string">&#39;ᜍ&#39;</span>, <span class="string">&#39;ᜍ&#39;</span>),
+    (<span class="string">&#39;᜕&#39;</span>, <span class="string">&#39;᜕&#39;</span>),
+    (<span class="string">&#39;ᜟ&#39;</span>, <span class="string">&#39;ᜟ&#39;</span>),
+    (<span class="string">&#39;\u{180f}&#39;</span>, <span class="string">&#39;\u{180f}&#39;</span>),
+    (<span class="string">&#39;\u{1ac1}&#39;</span>, <span class="string">&#39;\u{1ace}&#39;</span>),
+    (<span class="string">&#39;ᭌ&#39;</span>, <span class="string">&#39;ᭌ&#39;</span>),
+    (<span class="string">&#39;᭽&#39;</span>, <span class="string">&#39;᭾&#39;</span>),
+    (<span class="string">&#39;\u{1dfa}&#39;</span>, <span class="string">&#39;\u{1dfa}&#39;</span>),
+    (<span class="string">&#39;⃀&#39;</span>, <span class="string">&#39;⃀&#39;</span>),
+    (<span class="string">&#39;Ⱟ&#39;</span>, <span class="string">&#39;Ⱟ&#39;</span>),
+    (<span class="string">&#39;ⱟ&#39;</span>, <span class="string">&#39;ⱟ&#39;</span>),
+    (<span class="string">&#39;⹓&#39;</span>, <span class="string">&#39;⹝&#39;</span>),
+    (<span class="string">&#39;鿽&#39;</span>, <span class="string">&#39;鿿&#39;</span>),
+    (<span class="string">&#39;Ꟁ&#39;</span>, <span class="string">&#39;ꟁ&#39;</span>),
+    (<span class="string">&#39;Ꟑ&#39;</span>, <span class="string">&#39;ꟑ&#39;</span>),
+    (<span class="string">&#39;ꟓ&#39;</span>, <span class="string">&#39;ꟓ&#39;</span>),
+    (<span class="string">&#39;ꟕ&#39;</span>, <span class="string">&#39;ꟙ&#39;</span>),
+    (<span class="string">&#39;ꟲ&#39;</span>, <span class="string">&#39;ꟴ&#39;</span>),
+    (<span class="string">&#39;﯂&#39;</span>, <span class="string">&#39;﯂&#39;</span>),
+    (<span class="string">&#39;﵀&#39;</span>, <span class="string">&#39;﵏&#39;</span>),
+    (<span class="string">&#39;﷏&#39;</span>, <span class="string">&#39;﷏&#39;</span>),
+    (<span class="string">&#39;﷾&#39;</span>, <span class="string">&#39;﷿&#39;</span>),
+    (<span class="string">&#39;𐕰&#39;</span>, <span class="string">&#39;𐕺&#39;</span>),
+    (<span class="string">&#39;𐕼&#39;</span>, <span class="string">&#39;𐖊&#39;</span>),
+    (<span class="string">&#39;𐖌&#39;</span>, <span class="string">&#39;𐖒&#39;</span>),
+    (<span class="string">&#39;𐖔&#39;</span>, <span class="string">&#39;𐖕&#39;</span>),
+    (<span class="string">&#39;𐖗&#39;</span>, <span class="string">&#39;𐖡&#39;</span>),
+    (<span class="string">&#39;𐖣&#39;</span>, <span class="string">&#39;𐖱&#39;</span>),
+    (<span class="string">&#39;𐖳&#39;</span>, <span class="string">&#39;𐖹&#39;</span>),
+    (<span class="string">&#39;𐖻&#39;</span>, <span class="string">&#39;𐖼&#39;</span>),
+    (<span class="string">&#39;𐞀&#39;</span>, <span class="string">&#39;𐞅&#39;</span>),
+    (<span class="string">&#39;𐞇&#39;</span>, <span class="string">&#39;𐞰&#39;</span>),
+    (<span class="string">&#39;𐞲&#39;</span>, <span class="string">&#39;𐞺&#39;</span>),
+    (<span class="string">&#39;𐽰&#39;</span>, <span class="string">&#39;𐾉&#39;</span>),
+    (<span class="string">&#39;\u{11070}&#39;</span>, <span class="string">&#39;𑁵&#39;</span>),
+    (<span class="string">&#39;\u{110c2}&#39;</span>, <span class="string">&#39;\u{110c2}&#39;</span>),
+    (<span class="string">&#39;𑚹&#39;</span>, <span class="string">&#39;𑚹&#39;</span>),
+    (<span class="string">&#39;𑝀&#39;</span>, <span class="string">&#39;𑝆&#39;</span>),
+    (<span class="string">&#39;𑪰&#39;</span>, <span class="string">&#39;𑪿&#39;</span>),
+    (<span class="string">&#39;𒾐&#39;</span>, <span class="string">&#39;𒿲&#39;</span>),
+    (<span class="string">&#39;𖩰&#39;</span>, <span class="string">&#39;𖪾&#39;</span>),
+    (<span class="string">&#39;𖫀&#39;</span>, <span class="string">&#39;𖫉&#39;</span>),
+    (<span class="string">&#39;𚿰&#39;</span>, <span class="string">&#39;𚿳&#39;</span>),
+    (<span class="string">&#39;𚿵&#39;</span>, <span class="string">&#39;𚿻&#39;</span>),
+    (<span class="string">&#39;𚿽&#39;</span>, <span class="string">&#39;𚿾&#39;</span>),
+    (<span class="string">&#39;𛄟&#39;</span>, <span class="string">&#39;𛄢&#39;</span>),
+    (<span class="string">&#39;\u{1cf00}&#39;</span>, <span class="string">&#39;\u{1cf2d}&#39;</span>),
+    (<span class="string">&#39;\u{1cf30}&#39;</span>, <span class="string">&#39;\u{1cf46}&#39;</span>),
+    (<span class="string">&#39;𜽐&#39;</span>, <span class="string">&#39;𜿃&#39;</span>),
+    (<span class="string">&#39;𝇩&#39;</span>, <span class="string">&#39;𝇪&#39;</span>),
+    (<span class="string">&#39;𝼀&#39;</span>, <span class="string">&#39;𝼞&#39;</span>),
+    (<span class="string">&#39;𞊐&#39;</span>, <span class="string">&#39;\u{1e2ae}&#39;</span>),
+    (<span class="string">&#39;𞟠&#39;</span>, <span class="string">&#39;𞟦&#39;</span>),
+    (<span class="string">&#39;𞟨&#39;</span>, <span class="string">&#39;𞟫&#39;</span>),
+    (<span class="string">&#39;𞟭&#39;</span>, <span class="string">&#39;𞟮&#39;</span>),
+    (<span class="string">&#39;𞟰&#39;</span>, <span class="string">&#39;𞟾&#39;</span>),
+    (<span class="string">&#39;🛝&#39;</span>, <span class="string">&#39;🛟&#39;</span>),
+    (<span class="string">&#39;🟰&#39;</span>, <span class="string">&#39;🟰&#39;</span>),
+    (<span class="string">&#39;🥹&#39;</span>, <span class="string">&#39;🥹&#39;</span>),
+    (<span class="string">&#39;🧌&#39;</span>, <span class="string">&#39;🧌&#39;</span>),
+    (<span class="string">&#39;🩻&#39;</span>, <span class="string">&#39;🩼&#39;</span>),
+    (<span class="string">&#39;🪩&#39;</span>, <span class="string">&#39;🪬&#39;</span>),
+    (<span class="string">&#39;🪷&#39;</span>, <span class="string">&#39;🪺&#39;</span>),
+    (<span class="string">&#39;🫃&#39;</span>, <span class="string">&#39;🫅&#39;</span>),
+    (<span class="string">&#39;🫗&#39;</span>, <span class="string">&#39;🫙&#39;</span>),
+    (<span class="string">&#39;🫠&#39;</span>, <span class="string">&#39;🫧&#39;</span>),
+    (<span class="string">&#39;🫰&#39;</span>, <span class="string">&#39;🫶&#39;</span>),
+    (<span class="string">&#39;𪛞&#39;</span>, <span class="string">&#39;𪛟&#39;</span>),
+    (<span class="string">&#39;𫜵&#39;</span>, <span class="string">&#39;𫜸&#39;</span>),
 ];
 
 <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">V1_1</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [(<span class="ident">char</span>, <span class="ident">char</span>)] <span class="op">=</span> <span class="kw-2">&amp;</span>[
-    (<span class="string">&#39;\u{0}&#39;</span>, <span class="string">&#39;ǵ&#39;</span>),
+    (<span class="string">&#39;\0&#39;</span>, <span class="string">&#39;ǵ&#39;</span>),
     (<span class="string">&#39;Ǻ&#39;</span>, <span class="string">&#39;ȗ&#39;</span>),
     (<span class="string">&#39;ɐ&#39;</span>, <span class="string">&#39;ʨ&#39;</span>),
     (<span class="string">&#39;ʰ&#39;</span>, <span class="string">&#39;˞&#39;</span>),

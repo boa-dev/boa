@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.26/src/hir/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/regex-syntax-0.6.27/src/hir/mod.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>mod.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../regex_syntax/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -2544,7 +2544,7 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="ident">info</span>.<span class="ident">set_match_empty</span>(<span class="bool-val">true</span>);
         <span class="ident">info</span>.<span class="ident">set_literal</span>(<span class="bool-val">false</span>);
         <span class="ident">info</span>.<span class="ident">set_alternation_literal</span>(<span class="bool-val">false</span>);
-        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Empty</span>, <span class="ident">info</span>: <span class="ident">info</span> }
+        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Empty</span>, <span class="ident">info</span> }
     }
 
     <span class="doccomment">/// Creates a literal HIR expression.</span>
@@ -2569,7 +2569,7 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="ident">info</span>.<span class="ident">set_match_empty</span>(<span class="bool-val">false</span>);
         <span class="ident">info</span>.<span class="ident">set_literal</span>(<span class="bool-val">true</span>);
         <span class="ident">info</span>.<span class="ident">set_alternation_literal</span>(<span class="bool-val">true</span>);
-        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Literal</span>(<span class="ident">lit</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Literal</span>(<span class="ident">lit</span>), <span class="ident">info</span> }
     }
 
     <span class="doccomment">/// Creates a class HIR expression.</span>
@@ -2586,7 +2586,7 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="ident">info</span>.<span class="ident">set_match_empty</span>(<span class="bool-val">false</span>);
         <span class="ident">info</span>.<span class="ident">set_literal</span>(<span class="bool-val">false</span>);
         <span class="ident">info</span>.<span class="ident">set_alternation_literal</span>(<span class="bool-val">false</span>);
-        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Class</span>(<span class="ident">class</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Class</span>(<span class="ident">class</span>), <span class="ident">info</span> }
     }
 
     <span class="doccomment">/// Creates an anchor assertion HIR expression.</span>
@@ -2619,7 +2619,7 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Anchor::EndLine</span> <span class="op">=</span> <span class="ident">anchor</span> {
             <span class="ident">info</span>.<span class="ident">set_line_anchored_end</span>(<span class="bool-val">true</span>);
         }
-        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Anchor</span>(<span class="ident">anchor</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Anchor</span>(<span class="ident">anchor</span>), <span class="ident">info</span> }
     }
 
     <span class="doccomment">/// Creates a word boundary assertion HIR expression.</span>
@@ -2646,7 +2646,7 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">WordBoundary::AsciiNegate</span> <span class="op">=</span> <span class="ident">word_boundary</span> {
             <span class="ident">info</span>.<span class="ident">set_always_utf8</span>(<span class="bool-val">false</span>);
         }
-        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::WordBoundary</span>(<span class="ident">word_boundary</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::WordBoundary</span>(<span class="ident">word_boundary</span>), <span class="ident">info</span> }
     }
 
     <span class="doccomment">/// Creates a repetition HIR expression.</span>
@@ -2673,7 +2673,7 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="ident">info</span>.<span class="ident">set_match_empty</span>(<span class="ident">rep</span>.<span class="ident">is_match_empty</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">rep</span>.<span class="ident">hir</span>.<span class="ident">is_match_empty</span>());
         <span class="ident">info</span>.<span class="ident">set_literal</span>(<span class="bool-val">false</span>);
         <span class="ident">info</span>.<span class="ident">set_alternation_literal</span>(<span class="bool-val">false</span>);
-        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Repetition</span>(<span class="ident">rep</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Repetition</span>(<span class="ident">rep</span>), <span class="ident">info</span> }
     }
 
     <span class="doccomment">/// Creates a group HIR expression.</span>
@@ -2690,7 +2690,7 @@ Defines a high-level intermediate representation for regular expressions.
         <span class="ident">info</span>.<span class="ident">set_match_empty</span>(<span class="ident">group</span>.<span class="ident">hir</span>.<span class="ident">is_match_empty</span>());
         <span class="ident">info</span>.<span class="ident">set_literal</span>(<span class="bool-val">false</span>);
         <span class="ident">info</span>.<span class="ident">set_alternation_literal</span>(<span class="bool-val">false</span>);
-        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Group</span>(<span class="ident">group</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+        <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Group</span>(<span class="ident">group</span>), <span class="ident">info</span> }
     }
 
     <span class="doccomment">/// Returns the concatenation of the given expressions.</span>
@@ -2781,7 +2781,7 @@ Defines a high-level intermediate representation for regular expressions.
                         })
                         .<span class="ident">any</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">is_line_anchored_end</span>()),
                 );
-                <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Concat</span>(<span class="ident">exprs</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+                <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Concat</span>(<span class="ident">exprs</span>), <span class="ident">info</span> }
             }
         }
     }
@@ -2843,7 +2843,7 @@ Defines a high-level intermediate representation for regular expressions.
                     <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident">info</span>.<span class="ident">is_alternation_literal</span>() <span class="op">&amp;&amp;</span> <span class="ident">e</span>.<span class="ident">is_literal</span>();
                     <span class="ident">info</span>.<span class="ident">set_alternation_literal</span>(<span class="ident">x</span>);
                 }
-                <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Alternation</span>(<span class="ident">exprs</span>), <span class="ident">info</span>: <span class="ident">info</span> }
+                <span class="ident">Hir</span> { <span class="ident">kind</span>: <span class="ident">HirKind::Alternation</span>(<span class="ident">exprs</span>), <span class="ident">info</span> }
             }
         }
     }
