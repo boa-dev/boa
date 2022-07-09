@@ -141,35 +141,21 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("PropertyDefinition", "Parsing");
 
-        // IdentifierReference[?Yield, ?Await]
-        if let Some(next_token) = cursor.peek(1, interner)? {
-            if matches!(
-                next_token.kind(),
-                TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma)
-            ) {
+        match cursor
+            .peek(1, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+        {
+            TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) => {
                 let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
                 return Ok(object::PropertyDefinition::property(ident.sym(), ident));
             }
-        }
-
-        //  CoverInitializedName[?Yield, ?Await]
-        if cursor
-            .peek(1, interner)?
-            .ok_or(ParseError::AbruptEnd)?
-            .kind()
-            == &TokenKind::Punctuator(Punctuator::Assign)
-        {
-            let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
-                .parse(cursor, interner)?;
-            cursor.next(interner).expect("token vanished");
-            let expr =
-                AssignmentExpression::new(ident.sym(), true, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-            return Ok(object::PropertyDefinition::CoverInitializedName(
-                ident.sym(),
-                expr,
-            ));
+            TokenKind::Punctuator(Punctuator::Assign) => {
+                return CoverInitializedName::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner);
+            }
+            _ => {}
         }
 
         //  ... AssignmentExpression[+In, ?Yield, ?Await]
@@ -914,6 +900,60 @@ where
         Ok((
             property_name,
             MethodDefinition::Async(AsyncFunctionExpr::new(None, params, body)),
+        ))
+    }
+}
+
+/// `CoverInitializedName` parsing.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-CoverInitializedName
+#[derive(Debug, Clone, Copy)]
+pub(in crate::syntax::parser) struct CoverInitializedName {
+    allow_yield: AllowYield,
+    allow_await: AllowAwait,
+}
+
+impl CoverInitializedName {
+    /// Creates a new `CoverInitializedName` parser.
+    pub(in crate::syntax::parser) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
+    where
+        Y: Into<AllowYield>,
+        A: Into<AllowAwait>,
+    {
+        Self {
+            allow_yield: allow_yield.into(),
+            allow_await: allow_await.into(),
+        }
+    }
+}
+
+impl<R> TokenParser<R> for CoverInitializedName
+where
+    R: Read,
+{
+    type Output = object::PropertyDefinition;
+
+    fn parse(
+        self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> Result<Self::Output, ParseError> {
+        let _timer = Profiler::global().start_event("CoverInitializedName", "Parsing");
+
+        let ident =
+            IdentifierReference::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+        cursor.expect(Punctuator::Assign, "CoverInitializedName", interner)?;
+
+        let expr = AssignmentExpression::new(ident.sym(), true, self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?;
+
+        Ok(object::PropertyDefinition::CoverInitializedName(
+            ident.sym(),
+            expr,
         ))
     }
 }

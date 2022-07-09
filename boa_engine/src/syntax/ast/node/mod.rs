@@ -254,6 +254,7 @@ pub enum Node {
     ///
     /// This is only used in the parser itself.
     /// It is not a valid AST node.
+    #[doc(hidden)]
     FormalParameterList(FormalParameterList),
 }
 

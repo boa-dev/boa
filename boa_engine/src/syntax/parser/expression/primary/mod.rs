@@ -375,21 +375,21 @@ where
         if !is_arrow {
             if let Some(span) = tailing_comma {
                 return Err(ParseError::unexpected(
-                    ",".to_string(),
+                    Punctuator::Comma.to_string(),
                     span,
                     "trailing comma in parenthesized expression",
                 ));
             }
             if expressions.is_empty() {
                 return Err(ParseError::unexpected(
-                    ")".to_string(),
+                    Punctuator::CloseParen.to_string(),
                     close_span,
                     "empty parenthesized expression",
                 ));
             }
             if expressions.len() != 1 {
                 return Err(ParseError::unexpected(
-                    ")".to_string(),
+                    Punctuator::CloseParen.to_string(),
                     close_span,
                     "multiple expressions in parenthesized expression",
                 ));
@@ -398,7 +398,7 @@ where
                 return Ok(expression.clone());
             }
             return Err(ParseError::unexpected(
-                ")".to_string(),
+                Punctuator::CloseParen.to_string(),
                 close_span,
                 "parenthesized expression with spread expressions",
             ));
