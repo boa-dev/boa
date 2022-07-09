@@ -994,6 +994,11 @@ impl<'b> ByteCompiler<'b> {
                             self.emit(Opcode::CopyDataProperties, &[0]);
                             self.emit_opcode(Opcode::Pop);
                         }
+                        PropertyDefinition::CoverInitializedName(_, _) => {
+                            return self.context.throw_syntax_error(
+                                "invalid assignment pattern in object literal",
+                            );
+                        }
                     }
                 }
 
@@ -2025,6 +2030,8 @@ impl<'b> ByteCompiler<'b> {
         let env_label = if parameters.has_expressions() {
             compiler.code_block.num_bindings = compiler.context.get_binding_number();
             compiler.context.push_compile_time_environment(true);
+            compiler.code_block.function_environment_push_location =
+                compiler.next_opcode_location();
             Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
         } else {
             None
@@ -2665,6 +2672,8 @@ impl<'b> ByteCompiler<'b> {
             let env_label = if expr.parameters().has_expressions() {
                 compiler.code_block.num_bindings = compiler.context.get_binding_number();
                 compiler.context.push_compile_time_environment(true);
+                compiler.code_block.function_environment_push_location =
+                    compiler.next_opcode_location();
                 Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
             } else {
                 None

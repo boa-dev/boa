@@ -153,6 +153,25 @@ where
             }
         }
 
+        //  CoverInitializedName[?Yield, ?Await]
+        if cursor
+            .peek(1, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind()
+            == &TokenKind::Punctuator(Punctuator::Assign)
+        {
+            let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+            cursor.next(interner).expect("token vanished");
+            let expr =
+                AssignmentExpression::new(ident.sym(), true, self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
+            return Ok(object::PropertyDefinition::CoverInitializedName(
+                ident.sym(),
+                expr,
+            ));
+        }
+
         //  ... AssignmentExpression[+In, ?Yield, ?Await]
         if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
             let node = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)

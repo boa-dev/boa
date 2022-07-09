@@ -249,6 +249,12 @@ pub enum Node {
 
     /// A call of the super constructor. [More information](./super_call/struct.SuperCall.html).
     SuperCall(SuperCall),
+
+    /// A FormalParameterList.
+    ///
+    /// This is only used in the parser itself.
+    /// It is not a valid AST node.
+    FormalParameterList(FormalParameterList),
 }
 
 impl From<Const> for Node {
@@ -358,6 +364,7 @@ impl Node {
             Self::ClassDecl(ref decl) => decl.to_indented_string(interner, indentation),
             Self::ClassExpr(ref expr) => expr.to_indented_string(interner, indentation),
             Self::SuperCall(ref super_call) => super_call.to_interned_string(interner),
+            Self::FormalParameterList(_) => unreachable!(),
         }
     }
 
@@ -740,6 +747,7 @@ impl Node {
                                 }
                             }
                         },
+                        PropertyDefinition::CoverInitializedName(_, _) => {}
                     }
                 }
             }
@@ -1189,7 +1197,6 @@ impl Node {
             Node::Object(object) => {
                 for property in object.properties() {
                     match property {
-                        PropertyDefinition::IdentifierReference(_) => {}
                         PropertyDefinition::Property(name, init) => {
                             if let Some(node) = name.computed() {
                                 if node.contains(symbol) {
@@ -1212,6 +1219,8 @@ impl Node {
                                 }
                             }
                         }
+                        PropertyDefinition::IdentifierReference(_)
+                        | PropertyDefinition::CoverInitializedName(_, _) => {}
                     }
                 }
             }
@@ -1237,6 +1246,7 @@ impl Node {
                     }
                 }
             }
+            Node::Yield(_) if symbol == ContainsSymbol::YieldExpression => return true,
             _ => {}
         }
         false
@@ -1248,6 +1258,7 @@ impl Node {
 pub(crate) enum ContainsSymbol {
     SuperProperty,
     SuperCall,
+    YieldExpression,
 }
 
 impl ToInternedString for Node {

@@ -261,6 +261,20 @@ where
         }
     }
 
+    /// Check if the peeked token is a line terminator.
+    #[inline]
+    pub(super) fn peek_expect_is_line_terminator(
+        &mut self,
+        skip_n: usize,
+        interner: &mut Interner,
+    ) -> Result<bool, ParseError> {
+        if let Some(t) = self.buffered_lexer.peek(skip_n, false, interner)? {
+            Ok(t.kind() == &TokenKind::LineTerminator)
+        } else {
+            Err(ParseError::AbruptEnd)
+        }
+    }
+
     /// Advance the cursor to the next token and retrieve it, only if it's of `kind` type.
     ///
     /// When the next token is a `kind` token, get the token, otherwise return `None`.

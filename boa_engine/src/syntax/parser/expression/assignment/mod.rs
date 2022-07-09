@@ -14,13 +14,14 @@ mod r#yield;
 
 use crate::syntax::{
     ast::{
-        node::{operator::assign::AssignTarget, Assign, BinOp, Node},
+        node::{operator::assign::AssignTarget, ArrowFunctionDecl, Assign, BinOp, Node},
         Keyword, Punctuator,
     },
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
         expression::assignment::{
-            arrow_function::ArrowFunction, conditional::ConditionalExpression,
+            arrow_function::{ArrowFunction, ConciseBody},
+            conditional::ConditionalExpression,
             r#yield::YieldExpression,
         },
         AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
@@ -103,8 +104,15 @@ where
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
+                // Because we already peeked the identifier token, there may be a line terminator before the identifier token.
+                // In that case we have to skip an additional token on the next peek.
+                let skip_n = if cursor.peek_expect_is_line_terminator(0, interner)? {
+                    2
+                } else {
+                    1
+                };
                 if let Ok(tok) =
-                    cursor.peek_expect_no_lineterminator(1, "assignment expression", interner)
+                    cursor.peek_expect_no_lineterminator(skip_n, "assignment expression", interner)
                 {
                     if tok.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
                         return ArrowFunction::new(
@@ -118,77 +126,6 @@ where
                     }
                 }
             }
-            // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> CoverParenthesizedExpressionAndArrowParameterList[?Yield, ?Await]
-            TokenKind::Punctuator(Punctuator::OpenParen) => {
-                if let Some(next_token) = cursor.peek(1, interner)? {
-                    match *next_token.kind() {
-                        TokenKind::Punctuator(Punctuator::CloseParen) => {
-                            // Need to check if the token after the close paren is an arrow, if so then this is an ArrowFunction
-                            // otherwise it is an expression of the form (b).
-                            if let Some(t) = cursor.peek(2, interner)? {
-                                if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow) {
-                                    return ArrowFunction::new(
-                                        self.name,
-                                        self.allow_in,
-                                        self.allow_yield,
-                                        self.allow_await,
-                                    )
-                                    .parse(cursor, interner)
-                                    .map(Node::ArrowFunctionDecl);
-                                }
-                            }
-                        }
-                        TokenKind::Punctuator(Punctuator::Spread) => {
-                            return ArrowFunction::new(
-                                None,
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor, interner)
-                            .map(Node::ArrowFunctionDecl);
-                        }
-                        TokenKind::Identifier(_) => {
-                            if let Some(t) = cursor.peek(2, interner)? {
-                                match *t.kind() {
-                                    TokenKind::Punctuator(Punctuator::Comma) => {
-                                        // This must be an argument list and therefore (a, b) => {}
-                                        return ArrowFunction::new(
-                                            self.name,
-                                            self.allow_in,
-                                            self.allow_yield,
-                                            self.allow_await,
-                                        )
-                                        .parse(cursor, interner)
-                                        .map(Node::ArrowFunctionDecl);
-                                    }
-                                    TokenKind::Punctuator(Punctuator::CloseParen) => {
-                                        // Need to check if the token after the close paren is an
-                                        // arrow, if so then this is an ArrowFunction otherwise it
-                                        // is an expression of the form (b).
-                                        if let Some(t) = cursor.peek(3, interner)? {
-                                            if t.kind() == &TokenKind::Punctuator(Punctuator::Arrow)
-                                            {
-                                                return ArrowFunction::new(
-                                                    self.name,
-                                                    self.allow_in,
-                                                    self.allow_yield,
-                                                    self.allow_await,
-                                                )
-                                                .parse(cursor, interner)
-                                                .map(Node::ArrowFunctionDecl);
-                                            }
-                                        }
-                                    }
-                                    _ => {}
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-
             _ => {}
         }
 
@@ -206,6 +143,49 @@ where
             self.allow_await,
         )
         .parse(cursor, interner)?;
+
+        // If the left hand side is a parameter list, we must parse an arrow function.
+        if let Node::FormalParameterList(parameters) = lhs {
+            cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
+
+            cursor.expect(
+                TokenKind::Punctuator(Punctuator::Arrow),
+                "arrow function",
+                interner,
+            )?;
+            let arrow = cursor.arrow();
+            cursor.set_arrow(true);
+            let body = ConciseBody::new(self.allow_in).parse(cursor, interner)?;
+            cursor.set_arrow(arrow);
+
+            // Early Error: ArrowFormalParameters are UniqueFormalParameters.
+            if parameters.has_duplicates() {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Duplicate parameter name not allowed in this context".into(),
+                    position,
+                )));
+            }
+
+            // Early Error: It is a Syntax Error if ConciseBodyContainsUseStrict of ConciseBody is true
+            // and IsSimpleParameterList of ArrowParameters is false.
+            if body.strict() && !parameters.is_simple() {
+                return Err(ParseError::lex(LexError::Syntax(
+                    "Illegal 'use strict' directive in function with non-simple parameter list"
+                        .into(),
+                    position,
+                )));
+            }
+
+            // It is a Syntax Error if any element of the BoundNames of ArrowParameters
+            // also occurs in the LexicallyDeclaredNames of ConciseBody.
+            // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
+            parameters.name_in_lexically_declared_names(
+                &body.lexically_declared_names_top_level(),
+                position,
+            )?;
+
+            return Ok(ArrowFunctionDecl::new(self.name, parameters, body).into());
+        }
 
         // Review if we are trying to assign to an invalid left hand side expression.
         // TODO: can we avoid cloning?

@@ -141,7 +141,7 @@ impl Punctuator {
     /// Attempts to convert a punctuator (`+`, `=`...) to a Binary Operator
     ///
     /// If there is no match, `None` will be returned.
-    pub fn as_binop(self) -> Option<BinOp> {
+    pub const fn as_binop(self) -> Option<BinOp> {
         match self {
             Self::AssignAdd => Some(BinOp::Assign(AssignOp::Add)),
             Self::AssignAnd => Some(BinOp::Assign(AssignOp::And)),

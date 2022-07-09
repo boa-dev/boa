@@ -514,7 +514,7 @@ impl DeclarationPattern {
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeclarationPatternObject {
     bindings: Vec<BindingPatternTypeObject>,
-    init: Option<Node>,
+    pub(crate) init: Option<Node>,
 }
 
 impl ToInternedString for DeclarationPatternObject {
@@ -613,7 +613,7 @@ impl DeclarationPatternObject {
 #[derive(Clone, Debug, PartialEq)]
 pub struct DeclarationPatternArray {
     bindings: Vec<BindingPatternTypeArray>,
-    init: Option<Node>,
+    pub(crate) init: Option<Node>,
 }
 
 impl ToInternedString for DeclarationPatternArray {

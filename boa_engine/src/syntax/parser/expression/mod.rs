@@ -155,13 +155,64 @@ impl Expression {
     }
 }
 
-expression!(
-    Expression,
-    AssignmentExpression,
-    [Punctuator::Comma],
-    [name, allow_in, allow_yield, allow_await],
-    None::<InputElement>
-);
+impl<R> TokenParser<R> for Expression
+where
+    R: Read,
+{
+    type Output = Node;
+
+    fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+        let _timer = Profiler::global().start_event("Expression", "Parsing");
+
+        let mut lhs =
+            AssignmentExpression::new(self.name, self.allow_in, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+        self.name = None;
+        while let Some(tok) = cursor.peek(0, interner)? {
+            match *tok.kind() {
+                TokenKind::Punctuator(Punctuator::Comma) => {
+                    if cursor
+                        .peek(1, interner)?
+                        .ok_or(ParseError::AbruptEnd)?
+                        .kind()
+                        == &TokenKind::Punctuator(Punctuator::CloseParen)
+                    {
+                        return Ok(lhs);
+                    }
+
+                    if cursor
+                        .peek(1, interner)?
+                        .ok_or(ParseError::AbruptEnd)?
+                        .kind()
+                        == &TokenKind::Punctuator(Punctuator::Spread)
+                    {
+                        return Ok(lhs);
+                    }
+
+                    let _next = cursor.next(interner).expect("token disappeared");
+
+                    lhs = BinOp::new(
+                        Punctuator::Comma
+                            .as_binop()
+                            .expect("Could not get binary operation."),
+                        lhs,
+                        AssignmentExpression::new(
+                            self.name,
+                            self.allow_in,
+                            self.allow_yield,
+                            self.allow_await,
+                        )
+                        .parse(cursor, interner)?,
+                    )
+                    .into();
+                }
+                _ => break,
+            }
+        }
+
+        Ok(lhs)
+    }
+}
 
 /// Parses a logical expression expression.
 ///
