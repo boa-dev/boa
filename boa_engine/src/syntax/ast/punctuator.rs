@@ -186,7 +186,7 @@ impl Punctuator {
     }
 
     /// Retrieves the punctuator as a static string.
-    pub fn as_str(self) -> &'static str {
+    pub const fn as_str(self) -> &'static str {
         match self {
             Self::Add => "+",
             Self::And => "&",
@@ -259,5 +259,11 @@ impl TryInto<BinOp> for Punctuator {
 impl Display for Punctuator {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         write!(f, "{}", self.as_str())
+    }
+}
+
+impl From<Punctuator> for Box<str> {
+    fn from(p: Punctuator) -> Self {
+        p.as_str().into()
     }
 }
