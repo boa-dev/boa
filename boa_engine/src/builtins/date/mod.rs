@@ -68,9 +68,10 @@ pub struct Date(Option<NaiveDateTime>);
 
 impl Display for Date {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.to_local() {
-            Some(v) => write!(f, "{}", v.format("%a %b %d %Y %H:%M:%S GMT%:z")),
-            _ => write!(f, "Invalid Date"),
+        if let Some(v) = self.to_local() {
+            write!(f, "{}", v.format("%a %b %d %Y %H:%M:%S GMT%:z"))
+        } else {
+            write!(f, "Invalid Date")
         }
     }
 }
@@ -347,6 +348,13 @@ impl Date {
             }
             .into())
         }
+    }
+
+    pub(crate) fn date_create(prototype: Option<JsObject>, context: &mut Context) -> JsObject {
+        let prototype =
+            prototype.unwrap_or_else(|| context.intrinsics().constructors().date().prototype());
+
+        Self::make_date_now(prototype)
     }
 
     /// `Date()`
