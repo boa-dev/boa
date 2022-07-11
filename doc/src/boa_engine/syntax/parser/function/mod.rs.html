@@ -560,6 +560,7 @@
 <span id="553">553</span>
 <span id="554">554</span>
 <span id="555">555</span>
+<span id="556">556</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Function definition parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -661,7 +662,10 @@
                 <span class="kw">_</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">FormalParameter::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">init</span>().<span class="ident">is_none</span>() {
+                    <span class="kw">if</span> <span class="op">!</span>(<span class="ident">flags</span>.<span class="ident">contains</span>(<span class="ident">FormalParameterListFlags::HAS_EXPRESSIONS</span>)
+                        <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">is_rest_param</span>()
+                        <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">init</span>().<span class="ident">is_some</span>())
+                    {
                         <span class="ident">length</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                     }
                     <span class="ident">param</span>
@@ -862,7 +866,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
             <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                    <span class="kw">let</span> <span class="ident">param</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                     <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">cursor</span>
@@ -882,7 +886,7 @@
 
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
                     <span class="ident">Declaration::new_with_array_pattern</span>(
-                        <span class="ident">ArrayBindingPattern::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        <span class="ident">ArrayBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
                         <span class="prelude-val">None</span>,
                     )
@@ -961,9 +965,8 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
             <span class="kw">let</span> <span class="ident">declaration</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">t</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
-                        <span class="ident">ObjectBindingPattern::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">cursor</span>
                         .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                         .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
@@ -981,9 +984,8 @@
                     <span class="ident">Declaration::new_with_object_pattern</span>(<span class="ident">bindings</span>, <span class="ident">init</span>)
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
-                        <span class="ident">ArrayBindingPattern::new</span>(<span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ArrayBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">cursor</span>
                         .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                         .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>

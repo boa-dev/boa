@@ -268,6 +268,12 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Punctuator`, which represents all punctuators used in JavaScript</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -411,7 +417,7 @@
     <span class="doccomment">/// Attempts to convert a punctuator (`+`, `=`...) to a Binary Operator</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If there is no match, `None` will be returned.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_binop</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_binop</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::AssignAdd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Add</span>)),
             <span class="ident"><span class="self">Self</span>::AssignAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::And</span>)),
@@ -456,7 +462,7 @@
     }
 
     <span class="doccomment">/// Retrieves the punctuator as a static string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="string">&quot;+&quot;</span>,
             <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="string">&quot;&amp;&quot;</span>,
@@ -529,6 +535,12 @@
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Punctuator</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="self">self</span>.<span class="ident">as_str</span>())
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Punctuator</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">p</span>: <span class="ident">Punctuator</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">p</span>.<span class="ident">as_str</span>().<span class="ident">into</span>()
     }
 }
 </code></pre></div>

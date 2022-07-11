@@ -1362,6 +1362,18 @@
 <span id="1355">1355</span>
 <span id="1356">1356</span>
 <span id="1357">1357</span>
+<span id="1358">1358</span>
+<span id="1359">1359</span>
+<span id="1360">1360</span>
+<span id="1361">1361</span>
+<span id="1362">1362</span>
+<span id="1363">1363</span>
+<span id="1364">1364</span>
+<span id="1365">1365</span>
+<span id="1366">1366</span>
+<span id="1367">1367</span>
+<span id="1368">1368</span>
+<span id="1369">1369</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">mod</span> <span class="ident">parameters</span>;
@@ -1613,6 +1625,13 @@
 
     <span class="doccomment">/// A call of the super constructor. [More information](./super_call/struct.SuperCall.html).</span>
     <span class="ident">SuperCall</span>(<span class="ident">SuperCall</span>),
+
+    <span class="doccomment">/// A FormalParameterList.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This is only used in the parser itself.</span>
+    <span class="doccomment">/// It is not a valid AST node.</span>
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="ident">FormalParameterList</span>(<span class="ident">FormalParameterList</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Const</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Node</span> {
@@ -1722,6 +1741,7 @@
             <span class="ident"><span class="self">Self</span>::ClassDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident"><span class="self">Self</span>::ClassExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident"><span class="self">Self</span>::SuperCall</span>(<span class="kw-2">ref</span> <span class="ident">super_call</span>) =&gt; <span class="ident">super_call</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::FormalParameterList</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
 
@@ -2104,6 +2124,7 @@
                                 }
                             }
                         },
+                        <span class="ident">PropertyDefinition::CoverInitializedName</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
@@ -2553,7 +2574,6 @@
             <span class="ident">Node::Object</span>(<span class="ident">object</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">property</span> <span class="kw">in</span> <span class="ident">object</span>.<span class="ident">properties</span>() {
                     <span class="kw">match</span> <span class="ident">property</span> {
-                        <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="kw">_</span>) =&gt; {}
                         <span class="ident">PropertyDefinition::Property</span>(<span class="ident">name</span>, <span class="ident">init</span>) =&gt; {
                             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">name</span>.<span class="ident">computed</span>() {
                                 <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
@@ -2576,6 +2596,8 @@
                                 }
                             }
                         }
+                        <span class="ident">PropertyDefinition::IdentifierReference</span>(<span class="kw">_</span>)
+                        <span class="op">|</span> <span class="ident">PropertyDefinition::CoverInitializedName</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
                     }
                 }
             }
@@ -2601,6 +2623,7 @@
                     }
                 }
             }
+            <span class="ident">Node::Yield</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::YieldExpression</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
             <span class="kw">_</span> =&gt; {}
         }
         <span class="bool-val">false</span>
@@ -2612,6 +2635,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ContainsSymbol</span> {
     <span class="ident">SuperProperty</span>,
     <span class="ident">SuperCall</span>,
+    <span class="ident">YieldExpression</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Node</span> {

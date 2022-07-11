@@ -908,34 +908,6 @@
 <span id="901">901</span>
 <span id="902">902</span>
 <span id="903">903</span>
-<span id="904">904</span>
-<span id="905">905</span>
-<span id="906">906</span>
-<span id="907">907</span>
-<span id="908">908</span>
-<span id="909">909</span>
-<span id="910">910</span>
-<span id="911">911</span>
-<span id="912">912</span>
-<span id="913">913</span>
-<span id="914">914</span>
-<span id="915">915</span>
-<span id="916">916</span>
-<span id="917">917</span>
-<span id="918">918</span>
-<span id="919">919</span>
-<span id="920">920</span>
-<span id="921">921</span>
-<span id="922">922</span>
-<span id="923">923</span>
-<span id="924">924</span>
-<span id="925">925</span>
-<span id="926">926</span>
-<span id="927">927</span>
-<span id="928">928</span>
-<span id="929">929</span>
-<span id="930">930</span>
-<span id="931">931</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement and declaration parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -975,8 +947,7 @@
     <span class="ident">variable::VariableStatement</span>,
 };
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">expression::PropertyName</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
-    <span class="ident">TokenParser</span>,
+    <span class="ident">expression::PropertyName</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
@@ -1317,21 +1288,18 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ObjectBindingPattern</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">ObjectBindingPattern</span> {
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectBindingPattern</span> {
     <span class="doccomment">/// Creates a new `ObjectBindingPattern` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
             <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
             <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
         }
@@ -1418,19 +1386,15 @@
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">peek_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                             <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
                                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(
-                                        <span class="self">self</span>.<span class="ident">allow_in</span>,
-                                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                        <span class="self">self</span>.<span class="ident">allow_await</span>,
-                                    )
-                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">peek_token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                                         <span class="kw">match</span> <span class="ident">peek_token</span>.<span class="ident">kind</span>() {
                                             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                                                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
                                                     <span class="prelude-val">None</span>,
-                                                    <span class="self">self</span>.<span class="ident">allow_in</span>,
+                                                    <span class="bool-val">true</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_await</span>,
                                                 )
@@ -1465,7 +1429,6 @@
                                 }
                                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
                                     <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ArrayBindingPattern::new</span>(
-                                        <span class="self">self</span>.<span class="ident">allow_in</span>,
                                         <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                         <span class="self">self</span>.<span class="ident">allow_await</span>,
                                     )
@@ -1476,7 +1439,7 @@
                                             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                                                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
                                                     <span class="prelude-val">None</span>,
-                                                    <span class="self">self</span>.<span class="ident">allow_in</span>,
+                                                    <span class="bool-val">true</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_await</span>,
                                                 )
@@ -1521,7 +1484,7 @@
                                             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                                                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
                                                     <span class="prelude-val">None</span>,
-                                                    <span class="self">self</span>.<span class="ident">allow_in</span>,
+                                                    <span class="bool-val">true</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                                     <span class="self">self</span>.<span class="ident">allow_await</span>,
                                                 )
@@ -1556,7 +1519,7 @@
                             <span class="prelude-val">Some</span>(<span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>)) =&gt; {
                                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
                                     <span class="prelude-val">Some</span>(<span class="ident">name</span>),
-                                    <span class="self">self</span>.<span class="ident">allow_in</span>,
+                                    <span class="bool-val">true</span>,
                                     <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                     <span class="self">self</span>.<span class="ident">allow_await</span>,
                                 )
@@ -1619,21 +1582,18 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">ArrayBindingPattern</span> {
-    <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ArrayBindingPattern</span> {
     <span class="doccomment">/// Creates a new `ArrayBindingPattern` parser.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
-            <span class="ident">allow_in</span>: <span class="ident">allow_in</span>.<span class="ident">into</span>(),
             <span class="ident">allow_yield</span>: <span class="ident">allow_yield</span>.<span class="ident">into</span>(),
             <span class="ident">allow_await</span>: <span class="ident">allow_await</span>.<span class="ident">into</span>(),
         }
@@ -1702,12 +1662,9 @@
                         .<span class="ident">kind</span>()
                     {
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(
-                                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                <span class="self">self</span>.<span class="ident">allow_await</span>,
-                            )
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
+                                <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                             <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPatternRest</span> {
                                 <span class="ident">pattern</span>: <span class="ident">DeclarationPattern::Object</span>(<span class="ident">DeclarationPatternObject::new</span>(
                                     <span class="ident">bindings</span>, <span class="prelude-val">None</span>,
@@ -1715,9 +1672,8 @@
                             });
                         }
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
-                                <span class="ident"><span class="self">Self</span>::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                             <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPatternRest</span> {
                                 <span class="ident">pattern</span>: <span class="ident">DeclarationPattern::Array</span>(<span class="ident">DeclarationPatternArray::new</span>(
                                     <span class="ident">bindings</span>, <span class="prelude-val">None</span>,
@@ -1744,12 +1700,8 @@
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) =&gt; {
                     <span class="ident">last_elision_or_first</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(
-                        <span class="self">self</span>.<span class="ident">allow_in</span>,
-                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                        <span class="self">self</span>.<span class="ident">allow_await</span>,
-                    )
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">ObjectBindingPattern::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                     <span class="kw">match</span> <span class="ident">cursor</span>
                         .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
@@ -1757,13 +1709,9 @@
                         .<span class="ident">kind</span>()
                     {
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">default_init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
-                                <span class="prelude-val">None</span>,
-                                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                <span class="self">self</span>.<span class="ident">allow_await</span>,
-                            )
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">default_init</span> <span class="op">=</span>
+                                <span class="ident">Initializer::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                             <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPattern</span> {
                                 <span class="ident">pattern</span>: <span class="ident">DeclarationPattern::Object</span>(<span class="ident">DeclarationPatternObject::new</span>(
                                     <span class="ident">bindings</span>,
@@ -1783,8 +1731,8 @@
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
                     <span class="ident">last_elision_or_first</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">bindings</span> <span class="op">=</span>
+                        <span class="ident"><span class="self">Self</span>::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                     <span class="kw">match</span> <span class="ident">cursor</span>
                         .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
@@ -1792,13 +1740,9 @@
                         .<span class="ident">kind</span>()
                     {
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                            <span class="kw">let</span> <span class="ident">default_init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
-                                <span class="prelude-val">None</span>,
-                                <span class="self">self</span>.<span class="ident">allow_in</span>,
-                                <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                <span class="self">self</span>.<span class="ident">allow_await</span>,
-                            )
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                            <span class="kw">let</span> <span class="ident">default_init</span> <span class="op">=</span>
+                                <span class="ident">Initializer::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                             <span class="ident">patterns</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeArray::BindingPattern</span> {
                                 <span class="ident">pattern</span>: <span class="ident">DeclarationPattern::Array</span>(<span class="ident">DeclarationPatternArray::new</span>(
                                     <span class="ident">bindings</span>,
@@ -1828,7 +1772,7 @@
                         <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                             <span class="kw">let</span> <span class="ident">default_init</span> <span class="op">=</span> <span class="ident">Initializer::new</span>(
                                 <span class="prelude-val">Some</span>(<span class="ident">ident</span>),
-                                <span class="self">self</span>.<span class="ident">allow_in</span>,
+                                <span class="bool-val">true</span>,
                                 <span class="self">self</span>.<span class="ident">allow_yield</span>,
                                 <span class="self">self</span>.<span class="ident">allow_await</span>,
                             )

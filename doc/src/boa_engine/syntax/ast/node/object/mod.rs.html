@@ -442,6 +442,21 @@
 <span id="435">435</span>
 <span id="436">436</span>
 <span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object node.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
@@ -556,6 +571,13 @@
                         },
                     )
                 }
+                <span class="ident">PropertyDefinition::CoverInitializedName</span>(<span class="ident">ident</span>, <span class="ident">expr</span>) =&gt; {
+                    <span class="macro">format!</span>(
+                        <span class="string">&quot;{indentation}{} = {},\n&quot;</span>,
+                        <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">ident</span>),
+                        <span class="ident">expr</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indent_n</span> <span class="op">+</span> <span class="number">1</span>)
+                    )
+                }
             });
         }
         <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}}}&quot;</span>, <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indent_n</span>)));
@@ -645,6 +667,14 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties</span>
     <span class="ident">SpreadObject</span>(<span class="ident">Node</span>),
+
+    <span class="doccomment">/// Cover grammar for when an object literal is used as an object biding pattern.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// More information:</span>
+    <span class="doccomment">///  - [ECMAScript reference][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-CoverInitializedName</span>
+    <span class="ident">CoverInitializedName</span>(<span class="ident">Sym</span>, <span class="ident">Node</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">PropertyDefinition</span> {
