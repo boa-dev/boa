@@ -29,13 +29,12 @@ impl Yield {
     }
 
     /// Creates a `Yield` AST node.
-    pub fn new<E, OE>(expr: OE, delegate: bool) -> Self
+    pub fn new<E>(expr: Option<E>, delegate: bool) -> Self
     where
         E: Into<Node>,
-        OE: Into<Option<E>>,
     {
         Self {
-            expr: expr.into().map(E::into).map(Box::new),
+            expr: expr.map(Into::into).map(Box::new),
             delegate,
         }
     }

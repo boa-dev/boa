@@ -446,11 +446,14 @@ impl ToInternedString for CodeBlock {
 pub(crate) fn create_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
+    prototype: Option<JsObject>,
     context: &mut Context,
 ) -> JsObject {
     let _timer = Profiler::global().start_event("JsVmFunction::new", "vm");
 
-    let function_prototype = if r#async {
+    let function_prototype = if let Some(prototype) = prototype {
+        prototype
+    } else if r#async {
         context
             .intrinsics()
             .constructors()

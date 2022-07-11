@@ -14,7 +14,7 @@ use crate::syntax::{
         Keyword, Punctuator,
     },
     lexer::TokenKind,
-    parser::{AllowAwait, AllowIn, Cursor, ParseError, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowIn, Cursor, ParseResult, TokenParser},
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -63,16 +63,18 @@ where
             interner,
         )?;
 
-        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let token = if let Some(token) = cursor.peek(0, interner)? {
+            token
+        } else {
+            return Ok(Node::Yield(Yield::new::<Node>(None, false)));
+        };
+
         match token.kind() {
             TokenKind::Punctuator(Punctuator::Mul) => {
                 cursor.next(interner)?.expect("token disappeared");
                 let expr = AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(Node::Yield(Yield::new::<Node, Option<Node>>(
-                    Some(expr),
-                    true,
-                )))
+                Ok(Node::Yield(Yield::new(Some(expr), true)))
             }
             TokenKind::Identifier(_)
             | TokenKind::Punctuator(
@@ -109,12 +111,9 @@ where
             | TokenKind::TemplateMiddle(_) => {
                 let expr = AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(Node::Yield(Yield::new::<Node, Option<Node>>(
-                    Some(expr),
-                    false,
-                )))
+                Ok(Node::Yield(Yield::new(Some(expr), false)))
             }
-            _ => Ok(Node::Yield(Yield::new::<Node, Option<Node>>(None, false))),
+            _ => Ok(Node::Yield(Yield::new::<Node>(None, false))),
         }
     }
 }
