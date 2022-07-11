@@ -183,9 +183,8 @@ where
 
         match peek_token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let bindings =
-                    ObjectBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
 
                 let init = if let Some(t) = cursor.peek(0, interner)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
@@ -208,9 +207,8 @@ where
                 Ok(Declaration::new_with_object_pattern(bindings, init))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                let bindings =
-                    ArrayBindingPattern::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)?;
 
                 let init = if let Some(t) = cursor.peek(0, interner)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {

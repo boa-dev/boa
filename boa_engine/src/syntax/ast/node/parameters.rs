@@ -1,8 +1,13 @@
-use crate::syntax::{ast::Position, parser::ParseError};
-
-use super::{Declaration, DeclarationPattern, Node};
+use crate::syntax::{
+    ast::{
+        node::{ContainsSymbol, Declaration, DeclarationPattern, Node},
+        Position,
+    },
+    parser::ParseError,
+};
 use bitflags::bitflags;
 use boa_interner::{Interner, Sym, ToInternedString};
+use rustc_hash::FxHashSet;
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -95,6 +100,65 @@ impl FormalParameterList {
             }
         }
         Ok(())
+    }
+
+    /// Check if the any of the parameters contains a yield expression.
+    pub(crate) fn contains_yield_expression(&self) -> bool {
+        for parameter in self.parameters.iter() {
+            if parameter
+                .declaration()
+                .contains(ContainsSymbol::YieldExpression)
+            {
+                return true;
+            }
+        }
+        false
+    }
+}
+
+impl From<Vec<FormalParameter>> for FormalParameterList {
+    fn from(parameters: Vec<FormalParameter>) -> Self {
+        let mut flags = FormalParameterListFlags::default();
+        let mut length = 0;
+        let mut names = FxHashSet::default();
+
+        for parameter in &parameters {
+            let parameter_names = parameter.names();
+
+            for name in parameter_names {
+                if name == Sym::ARGUMENTS {
+                    flags |= FormalParameterListFlags::HAS_ARGUMENTS;
+                }
+                if names.contains(&name) {
+                    flags |= FormalParameterListFlags::HAS_DUPLICATES;
+                } else {
+                    names.insert(name);
+                }
+            }
+
+            if parameter.is_rest_param() {
+                flags |= FormalParameterListFlags::HAS_REST_PARAMETER;
+            }
+            if parameter.init().is_some() {
+                flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
+            }
+            if parameter.is_rest_param() || parameter.init().is_some() || !parameter.is_identifier()
+            {
+                flags.remove(FormalParameterListFlags::IS_SIMPLE);
+            }
+            if !(flags.contains(FormalParameterListFlags::HAS_EXPRESSIONS)
+                || parameter.is_rest_param()
+                || parameter.init().is_some())
+            {
+                length += 1;
+            }
+        }
+
+        Self {
+            parameters: parameters.into_boxed_slice(),
+            flags,
+            length,
+        }
     }
 }
 

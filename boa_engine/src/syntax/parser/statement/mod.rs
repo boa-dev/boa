@@ -37,8 +37,7 @@ use self::{
     variable::VariableStatement,
 };
 use super::{
-    expression::PropertyName, AllowAwait, AllowIn, AllowReturn, AllowYield, Cursor, ParseError,
-    TokenParser,
+    expression::PropertyName, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
 };
 use crate::syntax::{
     ast::{
@@ -379,21 +378,18 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 #[derive(Debug, Clone, Copy)]
 pub(super) struct ObjectBindingPattern {
-    allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ObjectBindingPattern {
     /// Creates a new `ObjectBindingPattern` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -480,19 +476,15 @@ where
                         if let Some(peek_token) = cursor.peek(0, interner)? {
                             match peek_token.kind() {
                                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                                    let bindings = Self::new(
-                                        self.allow_in,
-                                        self.allow_yield,
-                                        self.allow_await,
-                                    )
-                                    .parse(cursor, interner)?;
+                                    let bindings = Self::new(self.allow_yield, self.allow_await)
+                                        .parse(cursor, interner)?;
 
                                     if let Some(peek_token) = cursor.peek(0, interner)? {
                                         match peek_token.kind() {
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
                                                     None,
-                                                    self.allow_in,
+                                                    true,
                                                     self.allow_yield,
                                                     self.allow_await,
                                                 )
@@ -527,7 +519,6 @@ where
                                 }
                                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                                     let bindings = ArrayBindingPattern::new(
-                                        self.allow_in,
                                         self.allow_yield,
                                         self.allow_await,
                                     )
@@ -538,7 +529,7 @@ where
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
                                                     None,
-                                                    self.allow_in,
+                                                    true,
                                                     self.allow_yield,
                                                     self.allow_await,
                                                 )
@@ -583,7 +574,7 @@ where
                                             TokenKind::Punctuator(Punctuator::Assign) => {
                                                 let init = Initializer::new(
                                                     None,
-                                                    self.allow_in,
+                                                    true,
                                                     self.allow_yield,
                                                     self.allow_await,
                                                 )
@@ -618,7 +609,7 @@ where
                             Some(TokenKind::Punctuator(Punctuator::Assign)) => {
                                 let init = Initializer::new(
                                     Some(name),
-                                    self.allow_in,
+                                    true,
                                     self.allow_yield,
                                     self.allow_await,
                                 )
@@ -681,21 +672,18 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 #[derive(Debug, Clone, Copy)]
 pub(super) struct ArrayBindingPattern {
-    allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ArrayBindingPattern {
     /// Creates a new `ArrayBindingPattern` parser.
-    pub(super) fn new<I, Y, A>(allow_in: I, allow_yield: Y, allow_await: A) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
-        I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
         Self {
-            allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
         }
@@ -764,12 +752,9 @@ where
                         .kind()
                     {
                         TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                            let bindings = ObjectBindingPattern::new(
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor, interner)?;
+                            let bindings =
+                                ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::BindingPatternRest {
                                 pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
                                     bindings, None,
@@ -777,9 +762,8 @@ where
                             });
                         }
                         TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                            let bindings =
-                                Self::new(self.allow_in, self.allow_yield, self.allow_await)
-                                    .parse(cursor, interner)?;
+                            let bindings = Self::new(self.allow_yield, self.allow_await)
+                                .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::BindingPatternRest {
                                 pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
                                     bindings, None,
@@ -806,12 +790,8 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     last_elision_or_first = false;
 
-                    let bindings = ObjectBindingPattern::new(
-                        self.allow_in,
-                        self.allow_yield,
-                        self.allow_await,
-                    )
-                    .parse(cursor, interner)?;
+                    let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
 
                     match cursor
                         .peek(0, interner)?
@@ -819,13 +799,9 @@ where
                         .kind()
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init = Initializer::new(
-                                None,
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor, interner)?;
+                            let default_init =
+                                Initializer::new(None, true, self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::BindingPattern {
                                 pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
                                     bindings,
@@ -845,8 +821,8 @@ where
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     last_elision_or_first = false;
 
-                    let bindings = Self::new(self.allow_in, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)?;
+                    let bindings =
+                        Self::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
                     match cursor
                         .peek(0, interner)?
@@ -854,13 +830,9 @@ where
                         .kind()
                     {
                         TokenKind::Punctuator(Punctuator::Assign) => {
-                            let default_init = Initializer::new(
-                                None,
-                                self.allow_in,
-                                self.allow_yield,
-                                self.allow_await,
-                            )
-                            .parse(cursor, interner)?;
+                            let default_init =
+                                Initializer::new(None, true, self.allow_yield, self.allow_await)
+                                    .parse(cursor, interner)?;
                             patterns.push(BindingPatternTypeArray::BindingPattern {
                                 pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
                                     bindings,
@@ -890,7 +862,7 @@ where
                         TokenKind::Punctuator(Punctuator::Assign) => {
                             let default_init = Initializer::new(
                                 Some(ident),
-                                self.allow_in,
+                                true,
                                 self.allow_yield,
                                 self.allow_await,
                             )

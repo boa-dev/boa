@@ -112,6 +112,13 @@ impl Object {
                         },
                     )
                 }
+                PropertyDefinition::CoverInitializedName(ident, expr) => {
+                    format!(
+                        "{indentation}{} = {},\n",
+                        interner.resolve_expect(*ident),
+                        expr.to_no_indent_string(interner, indent_n + 1)
+                    )
+                }
             });
         }
         buf.push_str(&format!("{}}}", "    ".repeat(indent_n)));
@@ -201,6 +208,14 @@ pub enum PropertyDefinition {
     /// [spec]: https://tc39.es/ecma262/#prod-PropertyDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties
     SpreadObject(Node),
+
+    /// Cover grammar for when an object literal is used as an object biding pattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-CoverInitializedName
+    CoverInitializedName(Sym, Node),
 }
 
 impl PropertyDefinition {

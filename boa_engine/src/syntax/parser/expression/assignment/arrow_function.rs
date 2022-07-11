@@ -158,13 +158,13 @@ where
 
 /// <https://tc39.es/ecma262/#prod-ConciseBody>
 #[derive(Debug, Clone, Copy)]
-struct ConciseBody {
+pub(in crate::syntax::parser) struct ConciseBody {
     allow_in: AllowIn,
 }
 
 impl ConciseBody {
     /// Creates a new `ConciseBody` parser.
-    fn new<I>(allow_in: I) -> Self
+    pub(in crate::syntax::parser) fn new<I>(allow_in: I) -> Self
     where
         I: Into<AllowIn>,
     {

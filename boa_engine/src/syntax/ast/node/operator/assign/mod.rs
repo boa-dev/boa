@@ -181,6 +181,68 @@ pub(crate) fn object_decl_to_declaration_pattern(
                         default_init: None,
                     });
                 }
+                (PropertyName::Literal(name), Node::Identifier(ident)) => {
+                    bindings.push(BindingPatternTypeObject::SingleName {
+                        ident: ident.sym(),
+                        property_name: PropertyName::Literal(*name),
+                        default_init: None,
+                    });
+                }
+                (PropertyName::Literal(name), Node::Object(object)) => {
+                    let pattern = object_decl_to_declaration_pattern(object, strict)?;
+                    bindings.push(BindingPatternTypeObject::BindingPattern {
+                        ident: PropertyName::Literal(*name),
+                        pattern,
+                        default_init: None,
+                    });
+                }
+                (PropertyName::Literal(name), Node::ArrayDecl(array)) => {
+                    let pattern = array_decl_to_declaration_pattern(array, strict)?;
+                    bindings.push(BindingPatternTypeObject::BindingPattern {
+                        ident: PropertyName::Literal(*name),
+                        pattern,
+                        default_init: None,
+                    });
+                }
+                (PropertyName::Literal(name), Node::Assign(assign)) => match assign.lhs() {
+                    AssignTarget::Identifier(ident) if *name == ident.sym() => {
+                        if strict && *name == Sym::EVAL {
+                            return None;
+                        }
+                        if strict && RESERVED_IDENTIFIERS_STRICT.contains(name) {
+                            return None;
+                        }
+
+                        excluded_keys.push(*name);
+                        bindings.push(BindingPatternTypeObject::SingleName {
+                            ident: *name,
+                            property_name: PropertyName::Literal(*name),
+                            default_init: Some(assign.rhs().clone()),
+                        });
+                    }
+                    AssignTarget::Identifier(ident) => {
+                        bindings.push(BindingPatternTypeObject::SingleName {
+                            ident: ident.sym(),
+                            property_name: PropertyName::Literal(*name),
+                            default_init: Some(assign.rhs().clone()),
+                        });
+                    }
+                    AssignTarget::DeclarationPattern(pattern) => {
+                        bindings.push(BindingPatternTypeObject::BindingPattern {
+                            ident: PropertyName::Literal(*name),
+                            pattern: pattern.clone(),
+                            default_init: Some(assign.rhs().clone()),
+                        });
+                    }
+                    _ => return None,
+                },
+                (PropertyName::Computed(name), Node::Identifier(ident)) => {
+                    bindings.push(BindingPatternTypeObject::SingleName {
+                        ident: ident.sym(),
+                        property_name: PropertyName::Computed(name.clone()),
+                        default_init: None,
+                    });
+                }
                 _ => return None,
             },
             PropertyDefinition::SpreadObject(spread) => {
@@ -204,6 +266,17 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 }
             }
             PropertyDefinition::MethodDefinition(_, _) => return None,
+            PropertyDefinition::CoverInitializedName(ident, expr) => {
+                if strict && (*ident == Sym::EVAL || *ident == Sym::ARGUMENTS) {
+                    return None;
+                }
+
+                bindings.push(BindingPatternTypeObject::SingleName {
+                    ident: *ident,
+                    property_name: PropertyName::Literal(*ident),
+                    default_init: Some(expr.clone()),
+                });
+            }
         }
     }
     if object.properties().is_empty() {
@@ -286,11 +359,26 @@ pub(crate) fn array_decl_to_declaration_pattern(
                         get_field: get_field.clone(),
                     });
                 }
-                AssignTarget::DeclarationPattern(pattern) => {
-                    bindings.push(BindingPatternTypeArray::BindingPattern {
-                        pattern: pattern.clone(),
-                    });
-                }
+                AssignTarget::DeclarationPattern(pattern) => match pattern {
+                    DeclarationPattern::Object(pattern) => {
+                        let mut pattern = pattern.clone();
+                        if pattern.init.is_none() {
+                            pattern.init = Some(assign.rhs().clone());
+                        }
+                        bindings.push(BindingPatternTypeArray::BindingPattern {
+                            pattern: DeclarationPattern::Object(pattern),
+                        });
+                    }
+                    DeclarationPattern::Array(pattern) => {
+                        let mut pattern = pattern.clone();
+                        if pattern.init.is_none() {
+                            pattern.init = Some(assign.rhs().clone());
+                        }
+                        bindings.push(BindingPatternTypeArray::BindingPattern {
+                            pattern: DeclarationPattern::Array(pattern),
+                        });
+                    }
+                },
                 AssignTarget::GetPrivateField(_) => return None,
             },
             Node::ArrayDecl(array) => {

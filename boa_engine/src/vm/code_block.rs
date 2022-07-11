@@ -101,6 +101,12 @@ pub struct CodeBlock {
 
     /// The `[[IsClassConstructor]]` internal slot.
     pub(crate) is_class_constructor: bool,
+
+    /// Marks the location in the code where the function environment in pushed.
+    /// This is only relevant for functions with expressions in the parameters.
+    /// We execute the parameter expressions in the function code and push the function environment afterward.
+    /// When the execution of the parameter expressions throws an error, we do not need to pop the function environment.
+    pub(crate) function_environment_push_location: u32,
 }
 
 impl CodeBlock {
@@ -121,6 +127,7 @@ impl CodeBlock {
             arguments_binding: None,
             compile_environments: Vec::new(),
             is_class_constructor: false,
+            function_environment_push_location: 0,
         }
     }
 
@@ -741,10 +748,12 @@ impl JsObject {
                 });
 
                 let result = context.run();
-                context.vm.pop_frame().expect("must have frame");
+                let frame = context.vm.pop_frame().expect("must have frame");
 
                 context.realm.environments.pop();
-                if has_expressions {
+                if has_expressions
+                    && frame.pc > frame.code.function_environment_push_location as usize
+                {
                     context.realm.environments.pop();
                 }
 
@@ -861,10 +870,12 @@ impl JsObject {
                 });
 
                 let _result = context.run();
-                context.vm.pop_frame().expect("must have frame");
+                let frame = context.vm.pop_frame().expect("must have frame");
 
                 context.realm.environments.pop();
-                if has_expressions {
+                if has_expressions
+                    && frame.pc > frame.code.function_environment_push_location as usize
+                {
                     context.realm.environments.pop();
                 }
 

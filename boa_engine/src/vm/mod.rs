@@ -2388,7 +2388,7 @@ impl Context {
         let _timer = Profiler::global().start_event("run", "vm");
 
         if self.vm.trace {
-            let msg = if self.vm.frames.get(self.vm.frames.len() - 2).is_some() {
+            let msg = if self.vm.frames.last().is_some() {
                 " Call Frame "
             } else {
                 " VM Start "

@@ -192,13 +192,13 @@ where
 
         match token.kind() {
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                let pat = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
+                let pat = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
                 Ok(node::Declaration::new_with_object_pattern(pat, None))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                let pat = ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
+                let pat = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
                 Ok(node::Declaration::new_with_array_pattern(pat, None))
             }

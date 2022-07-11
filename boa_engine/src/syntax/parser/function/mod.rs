@@ -99,7 +99,10 @@ where
                 _ => {
                     let param = FormalParameter::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    if param.init().is_none() {
+                    if !(flags.contains(FormalParameterListFlags::HAS_EXPRESSIONS)
+                        || param.is_rest_param()
+                        || param.init().is_some())
+                    {
                         length += 1;
                     }
                     param
@@ -300,7 +303,7 @@ where
         if let Some(t) = cursor.peek(0, interner)? {
             let declaration = match *t.kind() {
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                    let param = ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
+                    let param = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
 
                     let init = cursor
@@ -320,7 +323,7 @@ where
 
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     Declaration::new_with_array_pattern(
-                        ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
+                        ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
                         None,
                     )
@@ -399,9 +402,8 @@ where
         if let Some(t) = cursor.peek(0, interner)? {
             let declaration = match *t.kind() {
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
-                    let bindings =
-                        ObjectBindingPattern::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                    let bindings = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                     let init = if *cursor
                         .peek(0, interner)?
                         .ok_or(ParseError::AbruptEnd)?
@@ -419,9 +421,8 @@ where
                     Declaration::new_with_object_pattern(bindings, init)
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    let bindings =
-                        ArrayBindingPattern::new(true, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
+                    let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                     let init = if *cursor
                         .peek(0, interner)?
                         .ok_or(ParseError::AbruptEnd)?
