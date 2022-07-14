@@ -635,6 +635,22 @@ fn regex_literal() {
 }
 
 #[test]
+fn regex_equals_following_assignment() {
+    let mut lexer = Lexer::new(&b"const myRegex = /=/;"[..]);
+    let mut interner = Interner::default();
+
+    let expected = [
+        TokenKind::Keyword((Keyword::Const, false)),
+        TokenKind::identifier(interner.get_or_intern_static("myRegex")),
+        TokenKind::Punctuator(Punctuator::Assign),
+        TokenKind::regular_expression_literal(interner.get_or_intern_static("="), Sym::EMPTY_STRING),
+        TokenKind::Punctuator(Punctuator::Semicolon),
+    ];
+
+    expect_tokens(&mut lexer, &expected, &mut interner);
+}
+
+#[test]
 fn regex_literal_flags() {
     let mut lexer = Lexer::new(&br"/\/[^\/]*\/*/gmi"[..]);
     let mut interner = Interner::default();

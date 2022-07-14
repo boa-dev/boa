@@ -90,7 +90,6 @@ where
 
     fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
-        cursor.set_goal(InputElement::Div);
 
         match cursor
             .peek(0, interner)?
