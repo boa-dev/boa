@@ -15,7 +15,7 @@ use crate::{
     },
     Context,
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 
 /// Checks that the given JavaScript string gives the expected expression.
 #[allow(clippy::unwrap_used)]
@@ -72,6 +72,29 @@ fn assign_operator_precedence() {
                 Identifier::new(interner.get_or_intern_static("a")),
                 Const::from(1),
             ),
+        )
+        .into()],
+        interner,
+    );
+}
+
+#[test]
+fn assign_regex_equals() {
+    let mut interner = Interner::default();
+    check_parser(
+        "let myRegex = /=/;",
+        vec![DeclarationList::Let(
+            vec![Declaration::new_with_identifier(
+                interner.get_or_intern_static("myRegex"),
+                Node::from(New::from(Call::new(
+                    Identifier::new(Sym::REGEXP),
+                    vec![
+                        Node::from(Const::from(interner.get_or_intern_static("="))),
+                        Node::from(Const::from(Sym::EMPTY_STRING)),
+                    ],
+                ))),
+            )]
+            .into(),
         )
         .into()],
         interner,

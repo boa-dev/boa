@@ -644,8 +644,8 @@ fn regex_equals_following_assignment() {
         TokenKind::identifier(interner.get_or_intern_static("myRegex")),
         TokenKind::Punctuator(Punctuator::Assign),
         TokenKind::regular_expression_literal(
-            interner.get_or_intern_static("="), 
-            Sym::EMPTY_STRING
+            interner.get_or_intern_static("="),
+            Sym::EMPTY_STRING,
         ),
         TokenKind::Punctuator(Punctuator::Semicolon),
     ];
