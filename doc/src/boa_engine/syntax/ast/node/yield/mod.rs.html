@@ -63,7 +63,6 @@
 <span id="56">56</span>
 <span id="57">57</span>
 <span id="58">58</span>
-<span id="59">59</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::node::Node</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
@@ -95,13 +94,12 @@
     }
 
     <span class="doccomment">/// Creates a `Yield` AST node.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">E</span>, <span class="ident">OE</span><span class="op">&gt;</span>(<span class="ident">expr</span>: <span class="ident">OE</span>, <span class="ident">delegate</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>(<span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>, <span class="ident">delegate</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Node</span><span class="op">&gt;</span>,
-        <span class="ident">OE</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
-            <span class="ident">expr</span>: <span class="ident">expr</span>.<span class="ident">into</span>().<span class="ident">map</span>(<span class="ident">E::into</span>).<span class="ident">map</span>(<span class="ident">Box::new</span>),
+            <span class="ident">expr</span>: <span class="ident">expr</span>.<span class="ident">map</span>(<span class="ident">Into::into</span>).<span class="ident">map</span>(<span class="ident">Box::new</span>),
             <span class="ident">delegate</span>,
         }
     }

@@ -2627,7 +2627,7 @@
     <span class="ident">value::Numeric</span>,
     <span class="ident">vm</span>::{
         <span class="ident">call_frame::CatchAddresses</span>,
-        <span class="ident">code_block</span>::{<span class="ident">create_generator_function_object</span>, <span class="ident">initialize_instance_elements</span>, <span class="ident">Readable</span>},
+        <span class="ident">code_block</span>::{<span class="ident">initialize_instance_elements</span>, <span class="ident">Readable</span>},
     },
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
@@ -2643,7 +2643,7 @@
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> {
     <span class="ident">call_frame</span>::{<span class="ident">FinallyReturn</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">TryStackEntry</span>},
-    <span class="ident">code_block::create_function_object</span>,
+    <span class="ident">code_block</span>::{<span class="ident">create_function_object</span>, <span class="ident">create_generator_function_object</span>},
     <span class="ident">opcode::BindingOpcode</span>,
 };
 
@@ -4296,13 +4296,13 @@
             <span class="ident">Opcode::GetFunction</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">functions</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">create_function_object</span>(<span class="ident">code</span>, <span class="bool-val">false</span>, <span class="self">self</span>);
+                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">create_function_object</span>(<span class="ident">code</span>, <span class="bool-val">false</span>, <span class="prelude-val">None</span>, <span class="self">self</span>);
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">function</span>);
             }
             <span class="ident">Opcode::GetFunctionAsync</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">functions</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>].<span class="ident">clone</span>();
-                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">create_function_object</span>(<span class="ident">code</span>, <span class="bool-val">true</span>, <span class="self">self</span>);
+                <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">create_function_object</span>(<span class="ident">code</span>, <span class="bool-val">true</span>, <span class="prelude-val">None</span>, <span class="self">self</span>);
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">function</span>);
             }
             <span class="ident">Opcode::GetGenerator</span> =&gt; {

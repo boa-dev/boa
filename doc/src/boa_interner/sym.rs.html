@@ -153,6 +153,10 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::num::NonZeroUsize</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
@@ -237,6 +241,9 @@
     <span class="doccomment">/// Symbol for the `&quot;public&quot;` string.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">PUBLIC</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::new_unchecked</span>(<span class="number">22</span>) };
 
+    <span class="doccomment">/// Symbol for the `&quot;anonymous&quot;` string.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ANONYMOUS</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::new_unchecked</span>(<span class="number">23</span>) };
+
     <span class="doccomment">/// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
@@ -296,6 +303,7 @@
         <span class="string">&quot;private&quot;</span>,
         <span class="string">&quot;protected&quot;</span>,
         <span class="string">&quot;public&quot;</span>,
+        <span class="string">&quot;anonymous&quot;</span>,
     };
     <span class="comment">// A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`</span>
     <span class="macro">sa::const_assert!</span>(<span class="ident">COMMON_STRINGS</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">usize::MAX</span>);

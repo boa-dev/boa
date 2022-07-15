@@ -1331,6 +1331,9 @@
 <span id="1324">1324</span>
 <span id="1325">1325</span>
 <span id="1326">1326</span>
+<span id="1327">1327</span>
+<span id="1328">1328</span>
+<span id="1329">1329</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1779,11 +1782,14 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_function_object</span>(
     <span class="ident">code</span>: <span class="ident">Gc</span><span class="op">&lt;</span><span class="ident">CodeBlock</span><span class="op">&gt;</span>,
     <span class="ident">r#async</span>: <span class="ident">bool</span>,
+    <span class="ident">prototype</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) -&gt; <span class="ident">JsObject</span> {
     <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;JsVmFunction::new&quot;</span>, <span class="string">&quot;vm&quot;</span>);
 
-    <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">r#async</span> {
+    <span class="kw">let</span> <span class="ident">function_prototype</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prototype</span>) <span class="op">=</span> <span class="ident">prototype</span> {
+        <span class="ident">prototype</span>
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">r#async</span> {
         <span class="ident">context</span>
             .<span class="ident">intrinsics</span>()
             .<span class="ident">constructors</span>()

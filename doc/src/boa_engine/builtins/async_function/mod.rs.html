@@ -214,7 +214,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="kw">crate</span>::builtins::function::BuiltInFunctionObject::create_dynamic_function</span>(
-            <span class="ident">new_target</span>, <span class="ident">args</span>, <span class="bool-val">true</span>, <span class="ident">context</span>,
+            <span class="ident">new_target</span>, <span class="ident">args</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>, <span class="ident">context</span>,
         )
         .<span class="ident">map</span>(<span class="ident">Into::into</span>)
     }
