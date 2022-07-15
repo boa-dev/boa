@@ -100,7 +100,7 @@ impl AsyncFunction {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         crate::builtins::function::BuiltInFunctionObject::create_dynamic_function(
-            new_target, args, true, context,
+            new_target, args, true, false, context,
         )
         .map(Into::into)
     }

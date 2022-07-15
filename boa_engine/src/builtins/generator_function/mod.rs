@@ -11,17 +11,17 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/GeneratorFunction
 
 use crate::{
-    builtins::{function::Function, BuiltIn},
-    context::intrinsics::StandardConstructors,
-    object::{internal_methods::get_prototype_from_constructor, JsObject, ObjectData},
+    builtins::{
+        function::{BuiltInFunctionObject, ConstructorKind, Function},
+        BuiltIn,
+    },
+    object::ObjectData,
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult,
 };
 use boa_profiler::Profiler;
-
-use super::function::ConstructorKind;
 
 /// The internal representation on a `Generator` object.
 #[derive(Debug, Clone, Copy)]
@@ -111,25 +111,18 @@ impl BuiltIn for GeneratorFunction {
 }
 
 impl GeneratorFunction {
+    /// `GeneratorFunction ( p1, p2, … , pn, body )`
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-generatorfunction
     pub(crate) fn constructor(
         new_target: &JsValue,
-        _: &[JsValue],
+        args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        let prototype = get_prototype_from_constructor(
-            new_target,
-            StandardConstructors::generator_function,
-            context,
-        )?;
-
-        let this = JsObject::from_proto_and_data(
-            prototype,
-            ObjectData::function(Function::Native {
-                function: |_, _, _| Ok(JsValue::undefined()),
-                constructor: Some(ConstructorKind::Base),
-            }),
-        );
-
-        Ok(this.into())
+        BuiltInFunctionObject::create_dynamic_function(new_target, args, false, true, context)
+            .map(Into::into)
     }
 }

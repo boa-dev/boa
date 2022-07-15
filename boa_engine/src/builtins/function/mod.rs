@@ -460,7 +460,7 @@ impl BuiltInFunctionObject {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        Self::create_dynamic_function(new_target, args, false, context).map(Into::into)
+        Self::create_dynamic_function(new_target, args, false, false, context).map(Into::into)
     }
 
     /// `CreateDynamicFunction ( constructor, newTarget, kind, args )`
@@ -473,40 +473,56 @@ impl BuiltInFunctionObject {
         new_target: &JsValue,
         args: &[JsValue],
         r#async: bool,
+        generator: bool,
         context: &mut Context,
     ) -> JsResult<JsObject> {
-        let prototype =
-            get_prototype_from_constructor(new_target, StandardConstructors::function, context)?;
-        if let Some((body_arg, args)) = args.split_last() {
-            let parameters =
-                if args.is_empty() {
-                    FormalParameterList::empty()
-                } else {
-                    let mut parameters = Vec::with_capacity(args.len());
-                    for arg in args {
-                        parameters.push(arg.to_string(context)?);
-                    }
-                    let mut parameters = parameters.join(",");
-                    parameters.push(')');
+        let default = if r#async {
+            StandardConstructors::async_function
+        } else if generator {
+            StandardConstructors::generator_function
+        } else {
+            StandardConstructors::function
+        };
 
-                    let parameters = match Parser::new(parameters.as_bytes())
-                        .parse_formal_parameters(context.interner_mut(), false, r#async)
-                    {
-                        Ok(parameters) => parameters,
-                        Err(e) => {
-                            return context.throw_syntax_error(format!(
-                                "failed to parse function parameters: {e}"
-                            ))
-                        }
-                    };
-                    parameters
+        let prototype = get_prototype_from_constructor(new_target, default, context)?;
+        if let Some((body_arg, args)) = args.split_last() {
+            let parameters = if args.is_empty() {
+                FormalParameterList::empty()
+            } else {
+                let mut parameters = Vec::with_capacity(args.len());
+                for arg in args {
+                    parameters.push(arg.to_string(context)?);
+                }
+                let mut parameters = parameters.join(",");
+                parameters.push(')');
+
+                let parameters = match Parser::new(parameters.as_bytes()).parse_formal_parameters(
+                    context.interner_mut(),
+                    generator,
+                    r#async,
+                ) {
+                    Ok(parameters) => parameters,
+                    Err(e) => {
+                        return context.throw_syntax_error(format!(
+                            "failed to parse function parameters: {e}"
+                        ))
+                    }
                 };
+
+                if generator && parameters.contains_yield_expression() {
+                    return context.throw_syntax_error(
+                            "yield expression is not allowed in formal parameter list of generator function",
+                        );
+                }
+
+                parameters
+            };
 
             let body_arg = body_arg.to_string(context)?;
 
             let body = match Parser::new(body_arg.as_bytes()).parse_function_body(
                 context.interner_mut(),
-                false,
+                generator,
                 r#async,
             ) {
                 Ok(statement_list) => statement_list,
@@ -567,23 +583,45 @@ impl BuiltInFunctionObject {
 
             let code = crate::bytecompiler::ByteCompiler::compile_function_code(
                 crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::EMPTY_STRING),
+                Some(Sym::ANONYMOUS),
                 &parameters,
                 &body,
-                false,
+                generator,
                 false,
                 context,
             )?;
 
             let environments = context.realm.environments.pop_to_global();
-            let function_object = crate::vm::create_function_object(code, r#async, context);
+
+            let function_object = if generator {
+                crate::vm::create_generator_function_object(code, context)
+            } else {
+                crate::vm::create_function_object(code, r#async, Some(prototype), context)
+            };
+
             context.realm.environments.extend(environments);
 
             Ok(function_object)
-        } else if r#async {
+        } else if generator {
             let code = crate::bytecompiler::ByteCompiler::compile_function_code(
                 crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::EMPTY_STRING),
+                Some(Sym::ANONYMOUS),
+                &FormalParameterList::empty(),
+                &StatementList::default(),
+                true,
+                false,
+                context,
+            )?;
+
+            let environments = context.realm.environments.pop_to_global();
+            let function_object = crate::vm::create_generator_function_object(code, context);
+            context.realm.environments.extend(environments);
+
+            Ok(function_object)
+        } else {
+            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
+                crate::bytecompiler::FunctionKind::Expression,
+                Some(Sym::ANONYMOUS),
                 &FormalParameterList::empty(),
                 &StatementList::default(),
                 false,
@@ -592,20 +630,11 @@ impl BuiltInFunctionObject {
             )?;
 
             let environments = context.realm.environments.pop_to_global();
-            let function_object = crate::vm::create_function_object(code, r#async, context);
+            let function_object =
+                crate::vm::create_function_object(code, r#async, Some(prototype), context);
             context.realm.environments.extend(environments);
 
             Ok(function_object)
-        } else {
-            let this = JsObject::from_proto_and_data(
-                prototype,
-                ObjectData::function(Function::Native {
-                    function: |_, _, _| Ok(JsValue::undefined()),
-                    constructor: Some(ConstructorKind::Base),
-                }),
-            );
-
-            Ok(this)
         }
     }
 

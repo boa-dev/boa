@@ -14,7 +14,7 @@ use crate::{
     value::Numeric,
     vm::{
         call_frame::CatchAddresses,
-        code_block::{create_generator_function_object, initialize_instance_elements, Readable},
+        code_block::{initialize_instance_elements, Readable},
     },
     Context, JsBigInt, JsResult, JsString, JsValue,
 };
@@ -30,7 +30,7 @@ pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
     call_frame::{FinallyReturn, GeneratorResumeKind, TryStackEntry},
-    code_block::create_function_object,
+    code_block::{create_function_object, create_generator_function_object},
     opcode::BindingOpcode,
 };
 
@@ -1683,13 +1683,13 @@ impl Context {
             Opcode::GetFunction => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let function = create_function_object(code, false, self);
+                let function = create_function_object(code, false, None, self);
                 self.vm.push(function);
             }
             Opcode::GetFunctionAsync => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let function = create_function_object(code, true, self);
+                let function = create_function_object(code, true, None, self);
                 self.vm.push(function);
             }
             Opcode::GetGenerator => {
