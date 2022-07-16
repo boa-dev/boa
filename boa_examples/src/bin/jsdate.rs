@@ -69,5 +69,10 @@ fn main() -> Result<(), JsValue> {
         JsValue::from("23:12:59 GMT+0530")
     );
 
+    assert_eq!(
+        date.to_string(context)?,
+        JsValue::from("Mon Oct 09 2000 23:12:59 GMT+0530")
+    );
+
     Ok(())
 }

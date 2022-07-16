@@ -475,11 +475,10 @@ impl JsDate {
     /// Returns a string representing the specified Date object.
     ///
     /// Same as JavaScript's `Date.prototype.toString()`.
-    // DEBUG: there are two `to_string()` <=====================================
-    // #[inline]
-    // pub fn to_string(&self, context: &mut Context) -> JsResult<JsValue> {
-    //     Date::to_string(&self.inner.clone().into(), &[JsValue::Null], context)
-    // }
+    #[inline]
+    pub fn to_string(&self, context: &mut Context) -> JsResult<JsValue> {
+        Date::to_string(&self.inner.clone().into(), &[JsValue::Null], context)
+    }
 
     /// Returns the "time" portion of the Date as human-readable string.
     ///
