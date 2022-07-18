@@ -85,7 +85,6 @@ sourcesIndex["ppv_lite86"] = {"name":"","dirs":[{"name":"x86_64","files":["mod.r
 sourcesIndex["proc_macro2"] = {"name":"","files":["detection.rs","fallback.rs","lib.rs","marker.rs","parse.rs","wrapper.rs"]};
 sourcesIndex["proc_macro_error"] = {"name":"","dirs":[{"name":"imp","files":["fallback.rs"]}],"files":["diagnostic.rs","dummy.rs","lib.rs","macros.rs","sealed.rs"]};
 sourcesIndex["proc_macro_error_attr"] = {"name":"","files":["lib.rs","parse.rs","settings.rs"]};
-sourcesIndex["proc_macro_hack"] = {"name":"","files":["error.rs","iter.rs","lib.rs","parse.rs","quote.rs"]};
 sourcesIndex["quote"] = {"name":"","files":["ext.rs","format.rs","ident_fragment.rs","lib.rs","runtime.rs","spanned.rs","to_tokens.rs"]};
 sourcesIndex["rand"] = {"name":"","dirs":[{"name":"distributions","files":["bernoulli.rs","distribution.rs","float.rs","integer.rs","mod.rs","other.rs","slice.rs","uniform.rs","utils.rs","weighted.rs","weighted_index.rs"]},{"name":"rngs","dirs":[{"name":"adapter","files":["mod.rs","read.rs","reseeding.rs"]}],"files":["mock.rs","mod.rs","small.rs","std.rs","thread.rs","xoshiro256plusplus.rs"]},{"name":"seq","files":["index.rs","mod.rs"]}],"files":["lib.rs","prelude.rs","rng.rs"]};
 sourcesIndex["rand_chacha"] = {"name":"","files":["chacha.rs","guts.rs","lib.rs"]};
