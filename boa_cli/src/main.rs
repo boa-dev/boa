@@ -180,7 +180,7 @@ where
     Ok(())
 }
 
-pub fn main() -> Result<(), std::io::Error> {
+pub fn main() -> Result<(), io::Error> {
     let args = Opt::parse();
 
     let mut context = Context::default();
@@ -213,7 +213,8 @@ pub fn main() -> Result<(), std::io::Error> {
             })
             .build();
 
-        let mut editor = Editor::with_config(config);
+        let mut editor =
+            Editor::with_config(config).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
         editor.load_history(CLI_HISTORY).map_err(|err| match err {
             ReadlineError::Io(e) => e,
             e => io::Error::new(io::ErrorKind::Other, e),
