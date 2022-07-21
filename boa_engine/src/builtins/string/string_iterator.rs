@@ -61,7 +61,7 @@ impl StringIterator {
                 context,
             ));
         }
-        let (_, code_unit_count, _) = code_point_at(&native_string, position as usize);
+        let (_, code_unit_count, _) = code_point_at(&native_string, position as u64);
         string_iterator.next_index += i32::from(code_unit_count);
         let result_string = crate::builtins::string::String::substring(
             &string_iterator.string,

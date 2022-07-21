@@ -115,7 +115,7 @@ impl JsValue {
             Self::Object(obj) => {
                 if obj.is_array() {
                     let len = obj.length_of_array_like(context)?;
-                    let mut arr = Vec::with_capacity(len);
+                    let mut arr = Vec::with_capacity(len as usize);
 
                     let obj = obj.borrow();
 

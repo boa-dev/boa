@@ -21,12 +21,12 @@ use tap::{Conv, Pipe};
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct ArrayBuffer {
     pub array_buffer_data: Option<Vec<u8>>,
-    pub array_buffer_byte_length: usize,
+    pub array_buffer_byte_length: u64,
     pub array_buffer_detach_key: JsValue,
 }
 
 impl ArrayBuffer {
-    pub(crate) fn array_buffer_byte_length(&self) -> usize {
+    pub(crate) fn array_buffer_byte_length(&self) -> u64 {
         self.array_buffer_byte_length
     }
 }
@@ -235,7 +235,7 @@ impl ArrayBuffer {
         };
 
         // 14. Let newLen be max(final - first, 0).
-        let new_len = std::cmp::max(r#final - first, 0) as usize;
+        let new_len = std::cmp::max(r#final - first, 0) as u64;
 
         // 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).
         let ctor = obj.species_constructor(StandardConstructors::array_buffer, context)?;
@@ -299,7 +299,7 @@ impl ArrayBuffer {
                 .expect("ArrayBuffer cannot be detached here");
 
             // 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).
-            copy_data_block_bytes(to_buf, 0, from_buf, first as usize, new_len);
+            copy_data_block_bytes(to_buf, 0, from_buf, first as usize, new_len as usize);
         }
 
         // 27. Return new.
@@ -314,7 +314,7 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-allocatearraybuffer
     pub(crate) fn allocate(
         constructor: &JsValue,
-        byte_length: usize,
+        byte_length: u64,
         context: &mut Context,
     ) -> JsResult<JsObject> {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, "%ArrayBuffer.prototype%", « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).
@@ -361,8 +361,8 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer
     pub(crate) fn clone_array_buffer(
         &self,
-        src_byte_offset: usize,
-        src_length: usize,
+        src_byte_offset: u64,
+        src_length: u64,
         clone_constructor: &JsValue,
         context: &mut Context,
     ) -> JsResult<JsObject> {
@@ -392,8 +392,8 @@ impl ArrayBuffer {
                     .expect("ArrayBuffer cannot me detached here"),
                 0,
                 src_block,
-                src_byte_offset,
-                src_length,
+                src_byte_offset as usize,
+                src_length as usize,
             );
         }
 
@@ -568,7 +568,7 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-getvaluefrombuffer
     pub(crate) fn get_value_from_buffer(
         &self,
-        byte_index: usize,
+        byte_index: u64,
         t: TypedArrayKind,
         _is_typed_array: bool,
         _order: SharedMemoryOrder,
@@ -583,13 +583,14 @@ impl ArrayBuffer {
             .expect("ArrayBuffer cannot be detached here");
 
         // 4. Let elementSize be the Element Size value specified in Table 73 for Element Type type.
-        let element_size = t.element_size();
+        let element_size = t.element_size() as usize;
 
         // TODO: Shared Array Buffer
         // 5. If IsSharedArrayBuffer(arrayBuffer) is true, then
 
         // 6. Else, let rawValue be a List whose elements are bytes from block at indices byteIndex (inclusive) through byteIndex + elementSize (exclusive).
         // 7. Assert: The number of elements in rawValue is elementSize.
+        let byte_index = byte_index as usize;
         let raw_value = &block[byte_index..byte_index + element_size];
 
         // TODO: Agent Record [[LittleEndian]] filed
@@ -700,7 +701,7 @@ impl ArrayBuffer {
     /// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer
     pub(crate) fn set_value_in_buffer(
         &mut self,
-        byte_index: usize,
+        byte_index: u64,
         t: TypedArrayKind,
         value: &JsValue,
         _order: SharedMemoryOrder,
@@ -730,7 +731,7 @@ impl ArrayBuffer {
 
         // 9. Else, store the individual bytes of rawBytes into block, starting at block[byteIndex].
         for (i, raw_byte) in raw_bytes.iter().enumerate() {
-            block[byte_index + i] = *raw_byte;
+            block[byte_index as usize + i] = *raw_byte;
         }
 
         // 10. Return NormalCompletion(undefined).
@@ -744,16 +745,16 @@ impl ArrayBuffer {
 /// integer). For more information, check the [spec][spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock
-pub fn create_byte_data_block(size: usize, context: &mut Context) -> JsResult<Vec<u8>> {
+pub fn create_byte_data_block(size: u64, context: &mut Context) -> JsResult<Vec<u8>> {
     // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
     //    create such a Data Block, throw a RangeError exception.
     let mut data_block = Vec::new();
-    data_block.try_reserve(size).map_err(|e| {
+    data_block.try_reserve(size as usize).map_err(|e| {
         context.construct_range_error(format!("couldn't allocate the data block: {e}"))
     })?;
 
     // 2. Set all of the bytes of db to 0.
-    data_block.resize(size, 0);
+    data_block.resize(size as usize, 0);
 
     // 3. Return db.
     Ok(data_block)
