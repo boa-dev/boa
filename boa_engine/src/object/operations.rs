@@ -457,7 +457,7 @@ impl JsObject {
     }
 
     #[inline]
-    pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<usize> {
+    pub(crate) fn length_of_array_like(&self, context: &mut Context) -> JsResult<u64> {
         // 1. Assert: Type(obj) is Object.
         // 2. Return ℝ(? ToLength(? Get(obj, "length"))).
         self.get("length", context)?.to_length(context)
@@ -735,7 +735,7 @@ impl JsValue {
         let len = obj.length_of_array_like(context)?;
 
         // 4. Let list be a new empty List.
-        let mut list = Vec::with_capacity(len);
+        let mut list = Vec::with_capacity(len as usize);
 
         // 5. Let index be 0.
         // 6. Repeat, while index < len,

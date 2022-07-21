@@ -26,7 +26,7 @@ impl JsArrayBuffer {
                 .array_buffer()
                 .constructor()
                 .into(),
-            byte_length,
+            byte_length as u64,
             context,
         )?;
 
@@ -68,7 +68,7 @@ impl JsArrayBuffer {
         // 4. Set obj.[[ArrayBufferByteLength]] to byteLength.
         obj.borrow_mut().data = ObjectData::array_buffer(ArrayBuffer {
             array_buffer_data: Some(block),
-            array_buffer_byte_length: byte_length,
+            array_buffer_byte_length: byte_length as u64,
             array_buffer_detach_key: JsValue::Undefined,
         });
 

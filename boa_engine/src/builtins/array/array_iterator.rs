@@ -17,7 +17,7 @@ use boa_profiler::Profiler;
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct ArrayIterator {
     array: JsObject,
-    next_index: usize,
+    next_index: u64,
     kind: PropertyNameKind,
     done: bool,
 }

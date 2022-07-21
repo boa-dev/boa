@@ -812,7 +812,7 @@ impl RegExp {
         // 2. Assert: Type(S) is String.
 
         // 3. Let length be the number of code units in S.
-        let length = input.encode_utf16().count();
+        let length = input.encode_utf16().count() as u64;
 
         // 4. Let lastIndex be ℝ(? ToLength(? Get(R, "lastIndex"))).
         let mut last_index = this.get("lastIndex", context)?.to_length(context)?;
@@ -855,7 +855,10 @@ impl RegExp {
             // b. Let r be matcher(S, lastIndex).
             // Check if last_index is a valid utf8 index into input.
             let last_byte_index = match String::from_utf16(
-                &input.encode_utf16().take(last_index).collect::<Vec<u16>>(),
+                &input
+                    .encode_utf16()
+                    .take(last_index as usize)
+                    .collect::<Vec<u16>>(),
             ) {
                 Ok(s) => s.len(),
                 Err(_) => {
@@ -884,7 +887,7 @@ impl RegExp {
                 Some(m) => {
                     // c. If r is failure, then
                     #[allow(clippy::if_not_else)]
-                    if m.start() != last_index {
+                    if m.start() as u64 != last_index {
                         // i. If sticky is true, then
                         if sticky {
                             // 1. Perform ? Set(R, "lastIndex", +0𝔽, true).
@@ -925,9 +928,9 @@ impl RegExp {
         }
 
         // 16. Let n be the number of elements in r's captures List. (This is the same value as 22.2.2.1's NcapturingParens.)
-        let n = match_value.captures.len();
+        let n = match_value.captures.len() as u64;
         // 17. Assert: n < 23^2 - 1.
-        debug_assert!(n < 23usize.pow(2) - 1);
+        debug_assert!(n < 23u64.pow(2) - 1);
 
         // 18. Let A be ! ArrayCreate(n + 1).
         // 19. Assert: The mathematical value of A's "length" property is n + 1.
@@ -990,7 +993,7 @@ impl RegExp {
         // 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do
         for i in 1..=n {
             // a. Let captureI be ith element of r's captures List.
-            let capture = match_value.group(i);
+            let capture = match_value.group(i as usize);
 
             let captured_value = match capture {
                 // b. If captureI is undefined, let capturedValue be undefined.
@@ -1597,7 +1600,7 @@ impl RegExp {
         }
 
         // 15. Let size be the length of S.
-        let size = arg_str.encode_utf16().count();
+        let size = arg_str.encode_utf16().count() as u64;
 
         // 16. If size is 0, then
         if size == 0 {
@@ -1648,8 +1651,8 @@ impl RegExp {
                     let arg_str_substring = String::from_utf16_lossy(
                         &arg_str
                             .encode_utf16()
-                            .skip(p)
-                            .take(q - p)
+                            .skip(p as usize)
+                            .take((q - p) as usize)
                             .collect::<Vec<u16>>(),
                     );
 
@@ -1709,8 +1712,8 @@ impl RegExp {
         let arg_str_substring = String::from_utf16_lossy(
             &arg_str
                 .encode_utf16()
-                .skip(p)
-                .take(size - p)
+                .skip(p as usize)
+                .take((size - p) as usize)
                 .collect::<Vec<u16>>(),
         );
 
@@ -1729,7 +1732,7 @@ impl RegExp {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-advancestringindex
-fn advance_string_index(s: &JsString, index: usize, unicode: bool) -> usize {
+fn advance_string_index(s: &JsString, index: u64, unicode: bool) -> u64 {
     // Regress only works with utf8, so this function differs from the spec.
 
     // 1. Assert: index ≤ 2^53 - 1.
@@ -1740,7 +1743,7 @@ fn advance_string_index(s: &JsString, index: usize, unicode: bool) -> usize {
     }
 
     // 3. Let length be the number of code units in S.
-    let length = s.encode_utf16().count();
+    let length = s.encode_utf16().count() as u64;
 
     // 4. If index + 1 ≥ length, return index + 1.
     if index + 1 > length {
@@ -1750,5 +1753,5 @@ fn advance_string_index(s: &JsString, index: usize, unicode: bool) -> usize {
     // 5. Let cp be ! CodePointAt(S, index).
     let (_, offset, _) = crate::builtins::string::code_point_at(s, index);
 
-    index + offset as usize
+    index + u64::from(offset)
 }

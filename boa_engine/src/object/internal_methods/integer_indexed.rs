@@ -44,14 +44,16 @@ pub(crate) fn integer_indexed_exotic_get_own_property(
         // i. Let value be ! IntegerIndexedElementGet(O, numericIndex).
         // ii. If value is undefined, return undefined.
         // iii. Return the PropertyDescriptor { [[Value]]: value, [[Writable]]: true, [[Enumerable]]: true, [[Configurable]]: true }.
-        Ok(integer_indexed_element_get(obj, *index as usize).map(|v| {
-            PropertyDescriptor::builder()
-                .value(v)
-                .writable(true)
-                .enumerable(true)
-                .configurable(true)
-                .build()
-        }))
+        Ok(
+            integer_indexed_element_get(obj, u64::from(*index)).map(|v| {
+                PropertyDescriptor::builder()
+                    .value(v)
+                    .writable(true)
+                    .enumerable(true)
+                    .configurable(true)
+                    .build()
+            }),
+        )
     } else {
         // 2. Return OrdinaryGetOwnProperty(O, P).
         super::ordinary_get_own_property(obj, key, context)
@@ -74,7 +76,7 @@ pub(crate) fn integer_indexed_exotic_has_property(
     // a. Let numericIndex be ! CanonicalNumericIndexString(P).
     if let PropertyKey::Index(index) = key {
         // b. If numericIndex is not undefined, return ! IsValidIntegerIndex(O, numericIndex).
-        Ok(is_valid_integer_index(obj, *index as usize))
+        Ok(is_valid_integer_index(obj, u64::from(*index)))
     } else {
         // 2. Return ? OrdinaryHasProperty(O, P).
         super::ordinary_has_property(obj, key, context)
@@ -103,7 +105,7 @@ pub(crate) fn integer_indexed_exotic_define_own_property(
         // iii. If Desc has an [[Enumerable]] field and if Desc.[[Enumerable]] is false, return false.
         // v. If Desc has a [[Writable]] field and if Desc.[[Writable]] is false, return false.
         // iv. If ! IsAccessorDescriptor(Desc) is true, return false.
-        if !is_valid_integer_index(obj, index as usize)
+        if !is_valid_integer_index(obj, u64::from(index))
             || !desc
                 .configurable()
                 .or_else(|| desc.enumerable())
@@ -145,7 +147,7 @@ pub(crate) fn integer_indexed_exotic_get(
     // b. If numericIndex is not undefined, then
     if let PropertyKey::Index(index) = key {
         // i. Return ! IntegerIndexedElementGet(O, numericIndex).
-        Ok(integer_indexed_element_get(obj, *index as usize).unwrap_or_default())
+        Ok(integer_indexed_element_get(obj, u64::from(*index)).unwrap_or_default())
     } else {
         // 2. Return ? OrdinaryGet(O, P, Receiver).
         super::ordinary_get(obj, key, receiver, context)
@@ -198,7 +200,7 @@ pub(crate) fn integer_indexed_exotic_delete(
     // b. If numericIndex is not undefined, then
     if let PropertyKey::Index(index) = key {
         // i. If ! IsValidIntegerIndex(O, numericIndex) is false, return true; else return false.
-        Ok(!is_valid_integer_index(obj, *index as usize))
+        Ok(!is_valid_integer_index(obj, u64::from(*index)))
     } else {
         // 2. Return ? OrdinaryDelete(O, P).
         super::ordinary_delete(obj, key, context)
@@ -263,7 +265,7 @@ pub(crate) fn integer_indexed_exotic_own_property_keys(
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-isvalidintegerindex
-pub(crate) fn is_valid_integer_index(obj: &JsObject, index: usize) -> bool {
+pub(crate) fn is_valid_integer_index(obj: &JsObject, index: u64) -> bool {
     let obj = obj.borrow();
     let inner = obj.as_typed_array().expect(
         "integer indexed exotic method should only be callable from integer indexed objects",
@@ -282,7 +284,7 @@ pub(crate) fn is_valid_integer_index(obj: &JsObject, index: usize) -> bool {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-integerindexedelementget
-fn integer_indexed_element_get(obj: &JsObject, index: usize) -> Option<JsValue> {
+fn integer_indexed_element_get(obj: &JsObject, index: u64) -> Option<JsValue> {
     // 1. If ! IsValidIntegerIndex(O, index) is false, return undefined.
     if !is_valid_integer_index(obj, index) {
         return None;
@@ -349,7 +351,7 @@ fn integer_indexed_element_set(
     };
 
     // 3. If ! IsValidIntegerIndex(O, index) is true, then
-    if is_valid_integer_index(obj, index) {
+    if is_valid_integer_index(obj, index as u64) {
         // a. Let offset be O.[[ByteOffset]].
         let offset = inner.byte_offset();
 
@@ -361,7 +363,7 @@ fn integer_indexed_element_set(
         let size = elem_type.element_size();
 
         // d. Let indexedPosition be (ℝ(index) × elementSize) + offset.
-        let indexed_position = (index * size) + offset;
+        let indexed_position = (index as u64 * size) + offset;
 
         let buffer_obj = inner
             .viewed_array_buffer()

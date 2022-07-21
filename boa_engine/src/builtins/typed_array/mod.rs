@@ -819,7 +819,7 @@ impl TypedArray {
             while count_bytes > 0 {
                 // i. Let value be GetValueFromBuffer(buffer, fromByteIndex, Uint8, true, Unordered).
                 let value = buffer.get_value_from_buffer(
-                    from_byte_index as usize,
+                    from_byte_index as u64,
                     TypedArrayKind::Uint8,
                     true,
                     SharedMemoryOrder::Unordered,
@@ -828,7 +828,7 @@ impl TypedArray {
 
                 // ii. Perform SetValueInBuffer(buffer, toByteIndex, Uint8, value, true, Unordered).
                 buffer.set_value_in_buffer(
-                    to_byte_index as usize,
+                    to_byte_index as u64,
                     TypedArrayKind::Uint8,
                     &value,
                     SharedMemoryOrder::Unordered,
@@ -2061,7 +2061,7 @@ impl TypedArray {
 
         // 15. If targetOffset is +∞, throw a RangeError exception.
         let target_offset = match target_offset {
-            IntegerOrInfinity::Integer(i) if i >= 0 => i as usize,
+            IntegerOrInfinity::Integer(i) if i >= 0 => i as u64,
             IntegerOrInfinity::PositiveInfinity => {
                 return context.throw_range_error("Target offset cannot be Infinity");
             }
@@ -2254,7 +2254,7 @@ impl TypedArray {
             IntegerOrInfinity::PositiveInfinity => {
                 return context.throw_range_error("Target offset cannot be Infinity")
             }
-            IntegerOrInfinity::Integer(i) if i >= 0 => i as usize,
+            IntegerOrInfinity::Integer(i) if i >= 0 => i as u64,
             _ => unreachable!(),
         };
 
@@ -2378,7 +2378,7 @@ impl TypedArray {
         };
 
         // 12. Let count be max(final - k, 0).
-        let count = std::cmp::max(r#final - k, 0) as usize;
+        let count = std::cmp::max(r#final - k, 0) as u64;
 
         // 13. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(count) »).
         let a = Self::species_create(obj, o.typed_array_name(), &[count.into()], context)?;
@@ -2449,7 +2449,7 @@ impl TypedArray {
                 let mut target_byte_index = a_array.byte_offset();
 
                 // vii. Let srcByteIndex be (k × elementSize) + srcByteOffset.
-                let mut src_byte_index = k as usize * element_size + src_byte_offset;
+                let mut src_byte_index = k as u64 * element_size + src_byte_offset;
 
                 // viii. Let limit be targetByteIndex + count × elementSize.
                 let limit = target_byte_index + count * element_size;
@@ -2601,7 +2601,7 @@ impl TypedArray {
         };
 
         // 4. Let items be a new empty List.
-        let mut items = Vec::with_capacity(len);
+        let mut items = Vec::with_capacity(len as usize);
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -2754,7 +2754,7 @@ impl TypedArray {
         }
 
         // 11. Repeat, while j < len,
-        for j in item_count..len {
+        for j in item_count..(len as usize) {
             // a. Perform ? DeletePropertyOrThrow(obj, ! ToString(𝔽(j))).
             obj.delete_property_or_throw(j, context)?;
             // b. Set j to j + 1.
@@ -2834,7 +2834,7 @@ impl TypedArray {
         let src_byte_offset = o.byte_offset();
 
         // 18. Let beginByteOffset be srcByteOffset + beginIndex × elementSize.
-        let begin_byte_offset = src_byte_offset + begin_index as usize * element_size;
+        let begin_byte_offset = src_byte_offset + begin_index as u64 * element_size;
 
         // 19. Let argumentsList be « buffer, 𝔽(beginByteOffset), 𝔽(newLength) ».
         // 20. Return ? TypedArraySpeciesCreate(O, argumentsList).
@@ -2997,7 +2997,7 @@ impl TypedArray {
     /// <https://tc39.es/ecma262/#sec-allocatetypedarraybuffer>
     fn allocate_buffer(
         indexed: &mut IntegerIndexed,
-        length: usize,
+        length: u64,
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Assert: O.[[ViewedArrayBuffer]] is undefined.
@@ -3042,7 +3042,7 @@ impl TypedArray {
         context: &mut Context,
     ) -> JsResult<()> {
         // 1. Let len be the number of elements in values.
-        let len = values.len();
+        let len = values.len() as u64;
         {
             let mut o = o.borrow_mut();
             let o_inner = o.as_typed_array_mut().expect("expected a TypedArray");
@@ -3080,7 +3080,7 @@ impl TypedArray {
         constructor_name: TypedArrayKind,
         new_target: &JsValue,
         default_proto: P,
-        length: Option<usize>,
+        length: Option<u64>,
         context: &mut Context,
     ) -> JsResult<JsObject>
     where
@@ -3310,14 +3310,14 @@ impl TypedArray {
             }
 
             // b. Let newByteLength be bufferByteLength - offset.
-            let new_byte_length = buffer_byte_length as isize - offset as isize;
+            let new_byte_length = buffer_byte_length as i64 - offset as i64;
 
             // c. If newByteLength < 0, throw a RangeError exception.
             if new_byte_length < 0 {
                 return context.throw_range_error("Invalid length for typed array");
             }
 
-            new_byte_length as usize
+            new_byte_length as u64
         // 9. Else,
         } else {
             // 5. If length is not undefined, then
@@ -3413,7 +3413,7 @@ impl TypedArrayKind {
     ///
     /// [spec]: https://tc39.es/ecma262/#table-the-typedarray-constructors
     #[inline]
-    pub(crate) const fn element_size(self) -> usize {
+    pub(crate) const fn element_size(self) -> u64 {
         match self {
             Self::Int8 | Self::Uint8 | Self::Uint8Clamped => 1,
             Self::Int16 | Self::Uint16 => 2,

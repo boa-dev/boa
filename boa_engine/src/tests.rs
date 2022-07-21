@@ -1066,7 +1066,7 @@ fn to_length() {
     );
     assert_eq!(
         JsValue::new(f64::INFINITY).to_length(&mut context).unwrap(),
-        Number::MAX_SAFE_INTEGER as usize
+        Number::MAX_SAFE_INTEGER as u64
     );
     assert_eq!(JsValue::new(0.0).to_length(&mut context).unwrap(), 0);
     assert_eq!(JsValue::new(-0.0).to_length(&mut context).unwrap(), 0);
@@ -1075,7 +1075,7 @@ fn to_length() {
     assert_eq!(
         JsValue::new(100000000000.0)
             .to_length(&mut context)
-            .unwrap() as u64,
+            .unwrap(),
         100000000000
     );
     assert_eq!(

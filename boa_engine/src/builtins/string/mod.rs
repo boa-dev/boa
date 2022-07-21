@@ -40,12 +40,12 @@ pub(crate) enum Placement {
     End,
 }
 
-pub(crate) fn code_point_at(string: &JsString, position: usize) -> (u32, u8, bool) {
+pub(crate) fn code_point_at(string: &JsString, position: u64) -> (u32, u8, bool) {
     let mut encoded = string.encode_utf16();
-    let size = encoded.clone().count();
+    let size = encoded.clone().count() as u64;
 
     let first = encoded
-        .nth(position)
+        .nth(position as usize)
         .expect("The callers of this function must've already checked bounds.");
     if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
         return (u32::from(first), 1, false);
@@ -309,7 +309,7 @@ impl String {
         let substitutions = args.get(1..).unwrap_or_default();
 
         // 1. Let numberOfSubstitutions be the number of elements in substitutions.
-        let number_of_substitutions = substitutions.len();
+        let number_of_substitutions = substitutions.len() as u64;
 
         // 2. Let cooked be ? ToObject(template).
         let cooked = args.get_or_undefined(0).to_object(context)?;
@@ -351,7 +351,7 @@ impl String {
 
             // e. If nextIndex < numberOfSubstitutions, let next be substitutions[nextIndex].
             let next = if next_index < number_of_substitutions {
-                substitutions.get_or_undefined(next_index).clone()
+                substitutions.get_or_undefined(next_index as usize).clone()
 
             // f. Else, let next be the empty String.
             } else {
@@ -544,7 +544,7 @@ impl String {
             IntegerOrInfinity::Integer(position) if (0..size).contains(&position) => {
                 // 6. Let cp be ! CodePointAt(S, position).
                 // 7. Return 𝔽(cp.[[CodePoint]]).
-                Ok(code_point_at(&string, position as usize).0.into())
+                Ok(code_point_at(&string, position as u64).0.into())
             }
             // 5. If position < 0 or position ≥ size, return undefined.
             _ => Ok(JsValue::undefined()),
@@ -1408,7 +1408,7 @@ impl String {
         let int_max_length = max_length.to_length(context)?;
 
         // 3. Let stringLength be the length of S.
-        let string_length = string.encode_utf16().count();
+        let string_length = string.encode_utf16().count() as u64;
 
         // 4. If intMaxLength ≤ stringLength, return S.
         if int_max_length <= string_length {
@@ -1430,7 +1430,7 @@ impl String {
 
         // 8. Let fillLen be intMaxLength - stringLength.
         let fill_len = int_max_length - string_length;
-        let filler_len = filler.encode_utf16().count();
+        let filler_len = filler.encode_utf16().count() as u64;
 
         // 9. Let truncatedStringFiller be the String value consisting of repeated
         // concatenations of filler truncated to length fillLen.
@@ -1445,9 +1445,9 @@ impl String {
         };
 
         let truncated_string_filler = filler
-            .repeat(repetitions)
+            .repeat(repetitions as usize)
             .encode_utf16()
-            .take(fill_len)
+            .take(fill_len as usize)
             .collect::<Vec<_>>();
         let truncated_string_filler =
             std::string::String::from_utf16_lossy(truncated_string_filler.as_slice());
