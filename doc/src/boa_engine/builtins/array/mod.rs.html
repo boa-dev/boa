@@ -2920,8 +2920,6 @@
 <span id="2913">2913</span>
 <span id="2914">2914</span>
 <span id="2915">2915</span>
-<span id="2916">2916</span>
-<span id="2917">2917</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -3116,7 +3114,7 @@
             <span class="macro">debug_assert!</span>(<span class="ident">number_of_args</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>);
 
             <span class="comment">// b. Let array be ? ArrayCreate(numberOfArgs, proto).</span>
-            <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="ident">number_of_args</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">array</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="ident">number_of_args</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// c. Let k be 0.</span>
             <span class="comment">// d. Repeat, while k &lt; numberOfArgs,</span>
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>().<span class="ident">enumerate</span>() {
@@ -3141,12 +3139,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-arraycreate</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_create</span>(
-        <span class="ident">length</span>: <span class="ident">usize</span>,
+        <span class="ident">length</span>: <span class="ident">u64</span>,
         <span class="ident">prototype</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If length &gt; 2^32 - 1, throw a RangeError exception.</span>
-        <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="number">2usize</span>.<span class="ident">pow</span>(<span class="number">32</span>) <span class="op">-</span> <span class="number">1</span> {
+        <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="number">32</span>) <span class="op">-</span> <span class="number">1</span> {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;array exceeded max size&quot;</span>);
         }
         <span class="comment">// 7. Return A.</span>
@@ -3258,7 +3256,7 @@
     <span class="doccomment">/// see: &lt;https://tc39.es/ecma262/#sec-arrayspeciescreate&gt;</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_species_create</span>(
         <span class="ident">original_array</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
+        <span class="ident">length</span>: <span class="ident">u64</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let isArray be ? IsArray(originalArray).</span>
@@ -3497,7 +3495,7 @@
         <span class="comment">//     a. Let A be ? ArrayCreate(len).</span>
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_constructor</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">constructor</span>) =&gt; <span class="ident">constructor</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">len</span>.<span class="ident">into</span>()], <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
-            <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="ident">len</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
+            <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::array_create</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>,
         };
 
         <span class="comment">// 6. Let k be 0.</span>
@@ -3591,7 +3589,7 @@
                 <span class="comment">// ii. Let len be ? LengthOfArrayLike(E).</span>
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// iii. If n + len &gt; 2^53 - 1, throw a TypeError exception.</span>
-                <span class="kw">if</span> <span class="ident">n</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">usize</span> {
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                         <span class="string">&quot;length + number of arguments exceeds the max safe integer limit&quot;</span>,
                     );
@@ -3617,7 +3615,7 @@
             <span class="kw">else</span> {
                 <span class="comment">// i. NOTE: E is added as a single item rather than spread.</span>
                 <span class="comment">// ii. If n ≥ 2^53 - 1, throw a TypeError exception.</span>
-                <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">usize</span> {
+                <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;length exceeds the max safe integer limit&quot;</span>);
                 }
                 <span class="comment">// iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).</span>
@@ -3653,7 +3651,7 @@
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. Let argCount be the number of elements in items.</span>
         <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="comment">// 4. If len + argCount &gt; 2^53 - 1, throw a TypeError exception.</span>
@@ -4002,7 +4000,7 @@
         <span class="comment">// 1. Let O be ? ToObject(this value).</span>
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2. Let len be ? LengthOfArrayLike(O).</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. Let argCount be the number of elements in items.</span>
         <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="comment">// 4. If argCount &gt; 0, then</span>
@@ -4564,7 +4562,7 @@
         <span class="ident"><span class="self">Self</span>::flatten_into_array</span>(
             <span class="kw-2">&amp;</span><span class="ident">a</span>,
             <span class="kw-2">&amp;</span><span class="ident">o</span>,
-            <span class="ident">source_len</span> <span class="kw">as</span> <span class="ident">u64</span>,
+            <span class="ident">source_len</span>,
             <span class="number">0</span>,
             <span class="ident">depth_num</span>,
             <span class="prelude-val">None</span>,
@@ -4611,7 +4609,7 @@
         <span class="ident"><span class="self">Self</span>::flatten_into_array</span>(
             <span class="kw-2">&amp;</span><span class="ident">a</span>,
             <span class="kw-2">&amp;</span><span class="ident">o</span>,
-            <span class="ident">source_len</span> <span class="kw">as</span> <span class="ident">u64</span>,
+            <span class="ident">source_len</span>,
             <span class="number">0</span>,
             <span class="number">1</span>,
             <span class="prelude-val">Some</span>(<span class="ident">mapper_function</span>),
@@ -4705,7 +4703,7 @@
                     <span class="ident">target_index</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::flatten_into_array</span>(
                         <span class="ident">target</span>,
                         <span class="ident">element</span>,
-                        <span class="ident">element_len</span> <span class="kw">as</span> <span class="ident">u64</span>,
+                        <span class="ident">element_len</span>,
                         <span class="ident">target_index</span>,
                         <span class="ident">new_depth</span>,
                         <span class="prelude-val">None</span>,
@@ -4961,7 +4959,7 @@
         <span class="comment">// 9. Else,</span>
         } <span class="kw">else</span> {
             <span class="comment">// 9a. Let insertCount be the number of elements in items.</span>
-            <span class="ident">items</span>.<span class="ident">len</span>()
+            <span class="ident">items</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>
         };
         <span class="kw">let</span> <span class="ident">actual_delete_count</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">start</span>.<span class="ident">is_none</span>() {
             <span class="comment">// 7b. Let actualDeleteCount be 0.</span>
@@ -4980,16 +4978,14 @@
             <span class="comment">// c. Let actualDeleteCount be the result of clamping dc between 0 and len - actualStart.</span>
             <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="ident">len</span> <span class="op">-</span> <span class="ident">actual_start</span>;
             <span class="kw">match</span> <span class="ident">dc</span> {
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; {
-                    <span class="ident">usize::try_from</span>(<span class="ident">i</span>).<span class="ident">unwrap_or_default</span>().<span class="ident">clamp</span>(<span class="number">0</span>, <span class="ident">max</span>)
-                }
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">u64::try_from</span>(<span class="ident">i</span>).<span class="ident">unwrap_or_default</span>().<span class="ident">clamp</span>(<span class="number">0</span>, <span class="ident">max</span>),
                 <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">max</span>,
                 <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
             }
         };
 
         <span class="comment">// 10. If len + insertCount - actualDeleteCount &gt; 2^53 - 1, throw a TypeError exception.</span>
-        <span class="kw">if</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">insert_count</span> <span class="op">-</span> <span class="ident">actual_delete_count</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">usize</span> {
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">insert_count</span> <span class="op">-</span> <span class="ident">actual_delete_count</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Target splice exceeded max safe integer value&quot;</span>);
         }
 
@@ -5015,7 +5011,7 @@
         <span class="ident">arr</span>.<span class="ident">set</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">actual_delete_count</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 15. Let itemCount be the number of elements in items.</span>
-        <span class="kw">let</span> <span class="ident">item_count</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">item_count</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="kw">match</span> <span class="ident">item_count</span>.<span class="ident">cmp</span>(<span class="kw-2">&amp;</span><span class="ident">actual_delete_count</span>) {
             <span class="comment">// 16. If itemCount &lt; actualDeleteCount, then</span>
@@ -5088,7 +5084,7 @@
             <span class="kw">for</span> (<span class="ident">k</span>, <span class="ident">item</span>) <span class="kw">in</span> <span class="ident">items</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">enumerate</span>()
-                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">val</span>)<span class="op">|</span> (<span class="ident">i</span> <span class="op">+</span> <span class="ident">actual_start</span>, <span class="ident">val</span>))
+                .<span class="ident">map</span>(<span class="op">|</span>(<span class="ident">i</span>, <span class="ident">val</span>)<span class="op">|</span> (<span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">+</span> <span class="ident">actual_start</span>, <span class="ident">val</span>))
             {
                 <span class="comment">// a. Perform ? Set(O, ! ToString(𝔽(k)), E, true).</span>
                 <span class="ident">o</span>.<span class="ident">set</span>(<span class="ident">k</span>, <span class="ident">item</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -5305,7 +5301,7 @@
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let items be a new empty List.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">length</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
         <span class="comment">// 5. Let k be 0.</span>
         <span class="comment">// 6. Repeat, while k &lt; len,</span>
@@ -5323,7 +5319,7 @@
         }
 
         <span class="comment">// 7. Let itemCount be the number of elements in items.</span>
-        <span class="kw">let</span> <span class="ident">item_count</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">item_count</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 8. Sort items using an implementation-defined sequence of calls to SortCompare.</span>
         <span class="comment">// If any such call returns an abrupt completion, stop before performing any further</span>
@@ -5716,8 +5712,8 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_relative_start</span>(
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="ident">len</span>: <span class="ident">u64</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let relativeStart be ? ToIntegerOrInfinity(start).</span>
         <span class="kw">let</span> <span class="ident">relative_start</span> <span class="op">=</span> <span class="ident">arg</span>
             .<span class="ident">cloned</span>()
@@ -5727,10 +5723,10 @@
             <span class="comment">// 2. If relativeStart is -∞, let k be 0.</span>
             <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
             <span class="comment">// 3. Else if relativeStart &lt; 0, let k be max(len + relativeStart, 0).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">max</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">max</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">u64</span>),
             <span class="comment">// Both `as` casts are safe as both variables are non-negative</span>
             <span class="comment">// 4. Else, let k be min(relativeStart, len).</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">u64</span>),
 
             <span class="comment">// Special case - positive infinity. `len` is always smaller than +inf, thus from (4)</span>
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">len</span>),
@@ -5741,8 +5737,8 @@
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">get_relative_end</span>(
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span>,
-        <span class="ident">len</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="ident">len</span>: <span class="ident">u64</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">default_value</span> <span class="op">=</span> <span class="ident">JsValue::undefined</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">default_value</span>);
         <span class="comment">// 1. If end is undefined, let relativeEnd be len [and return it]</span>
@@ -5755,10 +5751,10 @@
                 <span class="comment">// 2. If relativeEnd is -∞, let final be 0.</span>
                 <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
                 <span class="comment">// 3. Else if relativeEnd &lt; 0, let final be max(len + relativeEnd, 0).</span>
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">max</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>),
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">max</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">u64</span>),
                 <span class="comment">// 4. Else, let final be min(relativeEnd, len).</span>
                 <span class="comment">// Both `as` casts are safe as both variables are non-negative</span>
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>),
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">min</span>(<span class="ident">i</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">u64</span>),
 
                 <span class="comment">// Special case - positive infinity. `len` is always smaller than +inf, thus from (4)</span>
                 <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">len</span>),

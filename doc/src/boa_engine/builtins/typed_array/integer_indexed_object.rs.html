@@ -190,18 +190,18 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntegerIndexed</span> {
     <span class="ident">viewed_array_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
     <span class="ident">typed_array_name</span>: <span class="ident">TypedArrayKind</span>,
-    <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-    <span class="ident">byte_length</span>: <span class="ident">usize</span>,
-    <span class="ident">array_length</span>: <span class="ident">usize</span>,
+    <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
+    <span class="ident">byte_length</span>: <span class="ident">u64</span>,
+    <span class="ident">array_length</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">IntegerIndexed</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">viewed_array_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
         <span class="ident">typed_array_name</span>: <span class="ident">TypedArrayKind</span>,
-        <span class="ident">byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">byte_length</span>: <span class="ident">usize</span>,
-        <span class="ident">array_length</span>: <span class="ident">usize</span>,
+        <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
+        <span class="ident">byte_length</span>: <span class="ident">u64</span>,
+        <span class="ident">array_length</span>: <span class="ident">u64</span>,
     ) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">viewed_array_buffer</span>,
@@ -263,12 +263,12 @@
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s byte offset.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">byte_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">byte_offset</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">byte_offset</span>
     }
 
     <span class="doccomment">/// Set the integer indexed object&#39;s byte offset.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_byte_offset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">byte_offset</span>: <span class="ident">usize</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_byte_offset</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">byte_offset</span>: <span class="ident">u64</span>) {
         <span class="self">self</span>.<span class="ident">byte_offset</span> <span class="op">=</span> <span class="ident">byte_offset</span>;
     }
 
@@ -288,22 +288,22 @@
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s byte length.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">byte_length</span>
     }
 
     <span class="doccomment">/// Set the integer indexed object&#39;s byte length.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_byte_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">byte_length</span>: <span class="ident">usize</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_byte_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">byte_length</span>: <span class="ident">u64</span>) {
         <span class="self">self</span>.<span class="ident">byte_length</span> <span class="op">=</span> <span class="ident">byte_length</span>;
     }
 
     <span class="doccomment">/// Get the integer indexed object&#39;s array length.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">array_length</span>
     }
 
     <span class="doccomment">/// Set the integer indexed object&#39;s array length.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_array_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">array_length</span>: <span class="ident">usize</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_array_length</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">array_length</span>: <span class="ident">u64</span>) {
         <span class="self">self</span>.<span class="ident">array_length</span> <span class="op">=</span> <span class="ident">array_length</span>;
     }
 }

@@ -823,6 +823,7 @@
 <span id="816">816</span>
 <span id="817">817</span>
 <span id="818">818</span>
+<span id="819">819</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -846,12 +847,12 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayBuffer</span> {
     <span class="kw">pub</span> <span class="ident">array_buffer_data</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span> <span class="ident">array_buffer_byte_length</span>: <span class="ident">usize</span>,
+    <span class="kw">pub</span> <span class="ident">array_buffer_byte_length</span>: <span class="ident">u64</span>,
     <span class="kw">pub</span> <span class="ident">array_buffer_detach_key</span>: <span class="ident">JsValue</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ArrayBuffer</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_buffer_byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_buffer_byte_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="self">self</span>.<span class="ident">array_buffer_byte_length</span>
     }
 }
@@ -1060,7 +1061,7 @@
         };
 
         <span class="comment">// 14. Let newLen be max(final - first, 0).</span>
-        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">r#final</span> <span class="op">-</span> <span class="ident">first</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">new_len</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">r#final</span> <span class="op">-</span> <span class="ident">first</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 15. Let ctor be ? SpeciesConstructor(O, %ArrayBuffer%).</span>
         <span class="kw">let</span> <span class="ident">ctor</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">species_constructor</span>(<span class="ident">StandardConstructors::array_buffer</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -1124,7 +1125,7 @@
                 .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
             <span class="comment">// 26. Perform CopyDataBlockBytes(toBuf, 0, fromBuf, first, newLen).</span>
-            <span class="ident">copy_data_block_bytes</span>(<span class="ident">to_buf</span>, <span class="number">0</span>, <span class="ident">from_buf</span>, <span class="ident">first</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">new_len</span>);
+            <span class="ident">copy_data_block_bytes</span>(<span class="ident">to_buf</span>, <span class="number">0</span>, <span class="ident">from_buf</span>, <span class="ident">first</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="ident">new_len</span> <span class="kw">as</span> <span class="ident">usize</span>);
         }
 
         <span class="comment">// 27. Return new.</span>
@@ -1139,7 +1140,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-allocatearraybuffer</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">allocate</span>(
         <span class="ident">constructor</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">byte_length</span>: <span class="ident">usize</span>,
+        <span class="ident">byte_length</span>: <span class="ident">u64</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(constructor, &quot;%ArrayBuffer.prototype%&quot;, « [[ArrayBufferData]], [[ArrayBufferByteLength]], [[ArrayBufferDetachKey]] »).</span>
@@ -1186,8 +1187,8 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-clonearraybuffer</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clone_array_buffer</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">src_byte_offset</span>: <span class="ident">usize</span>,
-        <span class="ident">src_length</span>: <span class="ident">usize</span>,
+        <span class="ident">src_byte_offset</span>: <span class="ident">u64</span>,
+        <span class="ident">src_length</span>: <span class="ident">u64</span>,
         <span class="ident">clone_constructor</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
@@ -1217,8 +1218,8 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot me detached here&quot;</span>),
                 <span class="number">0</span>,
                 <span class="ident">src_block</span>,
-                <span class="ident">src_byte_offset</span>,
-                <span class="ident">src_length</span>,
+                <span class="ident">src_byte_offset</span> <span class="kw">as</span> <span class="ident">usize</span>,
+                <span class="ident">src_length</span> <span class="kw">as</span> <span class="ident">usize</span>,
             );
         }
 
@@ -1393,7 +1394,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getvaluefrombuffer</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_value_from_buffer</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-        <span class="ident">byte_index</span>: <span class="ident">usize</span>,
+        <span class="ident">byte_index</span>: <span class="ident">u64</span>,
         <span class="ident">t</span>: <span class="ident">TypedArrayKind</span>,
         <span class="ident">_is_typed_array</span>: <span class="ident">bool</span>,
         <span class="ident">_order</span>: <span class="ident">SharedMemoryOrder</span>,
@@ -1408,13 +1409,14 @@
             .<span class="ident">expect</span>(<span class="string">&quot;ArrayBuffer cannot be detached here&quot;</span>);
 
         <span class="comment">// 4. Let elementSize be the Element Size value specified in Table 73 for Element Type type.</span>
-        <span class="kw">let</span> <span class="ident">element_size</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">element_size</span>();
+        <span class="kw">let</span> <span class="ident">element_size</span> <span class="op">=</span> <span class="ident">t</span>.<span class="ident">element_size</span>() <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// TODO: Shared Array Buffer</span>
         <span class="comment">// 5. If IsSharedArrayBuffer(arrayBuffer) is true, then</span>
 
         <span class="comment">// 6. Else, let rawValue be a List whose elements are bytes from block at indices byteIndex (inclusive) through byteIndex + elementSize (exclusive).</span>
         <span class="comment">// 7. Assert: The number of elements in rawValue is elementSize.</span>
+        <span class="kw">let</span> <span class="ident">byte_index</span> <span class="op">=</span> <span class="ident">byte_index</span> <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">let</span> <span class="ident">raw_value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">block</span>[<span class="ident">byte_index</span>..<span class="ident">byte_index</span> <span class="op">+</span> <span class="ident">element_size</span>];
 
         <span class="comment">// TODO: Agent Record [[LittleEndian]] filed</span>
@@ -1525,7 +1527,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-setvalueinbuffer</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set_value_in_buffer</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">byte_index</span>: <span class="ident">usize</span>,
+        <span class="ident">byte_index</span>: <span class="ident">u64</span>,
         <span class="ident">t</span>: <span class="ident">TypedArrayKind</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">_order</span>: <span class="ident">SharedMemoryOrder</span>,
@@ -1555,7 +1557,7 @@
 
         <span class="comment">// 9. Else, store the individual bytes of rawBytes into block, starting at block[byteIndex].</span>
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">raw_byte</span>) <span class="kw">in</span> <span class="ident">raw_bytes</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
-            <span class="ident">block</span>[<span class="ident">byte_index</span> <span class="op">+</span> <span class="ident">i</span>] <span class="op">=</span> <span class="kw-2">*</span><span class="ident">raw_byte</span>;
+            <span class="ident">block</span>[<span class="ident">byte_index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="ident">i</span>] <span class="op">=</span> <span class="kw-2">*</span><span class="ident">raw_byte</span>;
         }
 
         <span class="comment">// 10. Return NormalCompletion(undefined).</span>
@@ -1569,16 +1571,16 @@
 <span class="doccomment">/// integer). For more information, check the [spec][spec].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-createbytedatablock</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_byte_data_block</span>(<span class="ident">size</span>: <span class="ident">usize</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_byte_data_block</span>(<span class="ident">size</span>: <span class="ident">u64</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to</span>
     <span class="comment">//    create such a Data Block, throw a RangeError exception.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_block</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="ident">data_block</span>.<span class="ident">try_reserve</span>(<span class="ident">size</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+    <span class="ident">data_block</span>.<span class="ident">try_reserve</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
         <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Set all of the bytes of db to 0.</span>
-    <span class="ident">data_block</span>.<span class="ident">resize</span>(<span class="ident">size</span>, <span class="number">0</span>);
+    <span class="ident">data_block</span>.<span class="ident">resize</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="number">0</span>);
 
     <span class="comment">// 3. Return db.</span>
     <span class="prelude-val">Ok</span>(<span class="ident">data_block</span>)

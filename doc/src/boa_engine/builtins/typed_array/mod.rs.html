@@ -4308,7 +4308,7 @@
             <span class="kw">while</span> <span class="ident">count_bytes</span> <span class="op">&gt;</span> <span class="number">0</span> {
                 <span class="comment">// i. Let value be GetValueFromBuffer(buffer, fromByteIndex, Uint8, true, Unordered).</span>
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">get_value_from_buffer</span>(
-                    <span class="ident">from_byte_index</span> <span class="kw">as</span> <span class="ident">usize</span>,
+                    <span class="ident">from_byte_index</span> <span class="kw">as</span> <span class="ident">u64</span>,
                     <span class="ident">TypedArrayKind::Uint8</span>,
                     <span class="bool-val">true</span>,
                     <span class="ident">SharedMemoryOrder::Unordered</span>,
@@ -4317,7 +4317,7 @@
 
                 <span class="comment">// ii. Perform SetValueInBuffer(buffer, toByteIndex, Uint8, value, true, Unordered).</span>
                 <span class="ident">buffer</span>.<span class="ident">set_value_in_buffer</span>(
-                    <span class="ident">to_byte_index</span> <span class="kw">as</span> <span class="ident">usize</span>,
+                    <span class="ident">to_byte_index</span> <span class="kw">as</span> <span class="ident">u64</span>,
                     <span class="ident">TypedArrayKind::Uint8</span>,
                     <span class="kw-2">&amp;</span><span class="ident">value</span>,
                     <span class="ident">SharedMemoryOrder::Unordered</span>,
@@ -5550,7 +5550,7 @@
 
         <span class="comment">// 15. If targetOffset is +∞, throw a RangeError exception.</span>
         <span class="kw">let</span> <span class="ident">target_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_offset</span> {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>);
             }
@@ -5743,7 +5743,7 @@
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>)
             }
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
@@ -5867,7 +5867,7 @@
         };
 
         <span class="comment">// 12. Let count be max(final - k, 0).</span>
-        <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">r#final</span> <span class="op">-</span> <span class="ident">k</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">r#final</span> <span class="op">-</span> <span class="ident">k</span>, <span class="number">0</span>) <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 13. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(count) »).</span>
         <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::species_create</span>(<span class="ident">obj</span>, <span class="ident">o</span>.<span class="ident">typed_array_name</span>(), <span class="kw-2">&amp;</span>[<span class="ident">count</span>.<span class="ident">into</span>()], <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -5938,7 +5938,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">target_byte_index</span> <span class="op">=</span> <span class="ident">a_array</span>.<span class="ident">byte_offset</span>();
 
                 <span class="comment">// vii. Let srcByteIndex be (k × elementSize) + srcByteOffset.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src_byte_index</span> <span class="op">=</span> <span class="ident">k</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="ident">element_size</span> <span class="op">+</span> <span class="ident">src_byte_offset</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src_byte_index</span> <span class="op">=</span> <span class="ident">k</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">element_size</span> <span class="op">+</span> <span class="ident">src_byte_offset</span>;
 
                 <span class="comment">// viii. Let limit be targetByteIndex + count × elementSize.</span>
                 <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="ident">target_byte_index</span> <span class="op">+</span> <span class="ident">count</span> <span class="op">*</span> <span class="ident">element_size</span>;
@@ -6090,7 +6090,7 @@
         };
 
         <span class="comment">// 4. Let items be a new empty List.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
         <span class="comment">// 5. Let k be 0.</span>
         <span class="comment">// 6. Repeat, while k &lt; len,</span>
@@ -6243,7 +6243,7 @@
         }
 
         <span class="comment">// 11. Repeat, while j &lt; len,</span>
-        <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="ident">item_count</span>..<span class="ident">len</span> {
+        <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="ident">item_count</span>..(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>) {
             <span class="comment">// a. Perform ? DeletePropertyOrThrow(obj, ! ToString(𝔽(j))).</span>
             <span class="ident">obj</span>.<span class="ident">delete_property_or_throw</span>(<span class="ident">j</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// b. Set j to j + 1.</span>
@@ -6323,7 +6323,7 @@
         <span class="kw">let</span> <span class="ident">src_byte_offset</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">byte_offset</span>();
 
         <span class="comment">// 18. Let beginByteOffset be srcByteOffset + beginIndex × elementSize.</span>
-        <span class="kw">let</span> <span class="ident">begin_byte_offset</span> <span class="op">=</span> <span class="ident">src_byte_offset</span> <span class="op">+</span> <span class="ident">begin_index</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">*</span> <span class="ident">element_size</span>;
+        <span class="kw">let</span> <span class="ident">begin_byte_offset</span> <span class="op">=</span> <span class="ident">src_byte_offset</span> <span class="op">+</span> <span class="ident">begin_index</span> <span class="kw">as</span> <span class="ident">u64</span> <span class="op">*</span> <span class="ident">element_size</span>;
 
         <span class="comment">// 19. Let argumentsList be « buffer, 𝔽(beginByteOffset), 𝔽(newLength) ».</span>
         <span class="comment">// 20. Return ? TypedArraySpeciesCreate(O, argumentsList).</span>
@@ -6486,7 +6486,7 @@
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-allocatetypedarraybuffer&gt;</span>
     <span class="kw">fn</span> <span class="ident">allocate_buffer</span>(
         <span class="ident">indexed</span>: <span class="kw-2">&amp;mut</span> <span class="ident">IntegerIndexed</span>,
-        <span class="ident">length</span>: <span class="ident">usize</span>,
+        <span class="ident">length</span>: <span class="ident">u64</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: O.[[ViewedArrayBuffer]] is undefined.</span>
@@ -6531,7 +6531,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="comment">// 1. Let len be the number of elements in values.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">values</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
         {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">borrow_mut</span>();
             <span class="kw">let</span> <span class="ident">o_inner</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">as_typed_array_mut</span>().<span class="ident">expect</span>(<span class="string">&quot;expected a TypedArray&quot;</span>);
@@ -6569,7 +6569,7 @@
         <span class="ident">constructor_name</span>: <span class="ident">TypedArrayKind</span>,
         <span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">default_proto</span>: <span class="ident">P</span>,
-        <span class="ident">length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="ident">length</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>
     <span class="kw">where</span>
@@ -6799,14 +6799,14 @@
             }
 
             <span class="comment">// b. Let newByteLength be bufferByteLength - offset.</span>
-            <span class="kw">let</span> <span class="ident">new_byte_length</span> <span class="op">=</span> <span class="ident">buffer_byte_length</span> <span class="kw">as</span> <span class="ident">isize</span> <span class="op">-</span> <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">isize</span>;
+            <span class="kw">let</span> <span class="ident">new_byte_length</span> <span class="op">=</span> <span class="ident">buffer_byte_length</span> <span class="kw">as</span> <span class="ident">i64</span> <span class="op">-</span> <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">i64</span>;
 
             <span class="comment">// c. If newByteLength &lt; 0, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">new_byte_length</span> <span class="op">&lt;</span> <span class="number">0</span> {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
             }
 
-            <span class="ident">new_byte_length</span> <span class="kw">as</span> <span class="ident">usize</span>
+            <span class="ident">new_byte_length</span> <span class="kw">as</span> <span class="ident">u64</span>
         <span class="comment">// 9. Else,</span>
         } <span class="kw">else</span> {
             <span class="comment">// 5. If length is not undefined, then</span>
@@ -6902,7 +6902,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#table-the-typedarray-constructors</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">element_size</span>(<span class="self">self</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">element_size</span>(<span class="self">self</span>) -&gt; <span class="ident">u64</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Int8</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint8</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint8Clamped</span> =&gt; <span class="number">1</span>,
             <span class="ident"><span class="self">Self</span>::Int16</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Uint16</span> =&gt; <span class="number">2</span>,

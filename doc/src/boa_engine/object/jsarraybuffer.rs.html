@@ -156,7 +156,7 @@
                 .<span class="ident">array_buffer</span>()
                 .<span class="ident">constructor</span>()
                 .<span class="ident">into</span>(),
-            <span class="ident">byte_length</span>,
+            <span class="ident">byte_length</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="ident">context</span>,
         )<span class="question-mark">?</span>;
 
@@ -198,7 +198,7 @@
         <span class="comment">// 4. Set obj.[[ArrayBufferByteLength]] to byteLength.</span>
         <span class="ident">obj</span>.<span class="ident">borrow_mut</span>().<span class="ident">data</span> <span class="op">=</span> <span class="ident">ObjectData::array_buffer</span>(<span class="ident">ArrayBuffer</span> {
             <span class="ident">array_buffer_data</span>: <span class="prelude-val">Some</span>(<span class="ident">block</span>),
-            <span class="ident">array_buffer_byte_length</span>: <span class="ident">byte_length</span>,
+            <span class="ident">array_buffer_byte_length</span>: <span class="ident">byte_length</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="ident">array_buffer_detach_key</span>: <span class="ident">JsValue::Undefined</span>,
         });
 

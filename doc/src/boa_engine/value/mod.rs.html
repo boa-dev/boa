@@ -1876,7 +1876,7 @@
     <span class="doccomment">/// Converts a value to a non-negative integer if it is a valid integer index value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toindex&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If value is undefined, then</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_undefined</span>() {
             <span class="comment">// a. Return 0.</span>
@@ -1899,19 +1899,19 @@
         <span class="macro">debug_assert!</span>(<span class="number">0</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">clamped</span> <span class="op">&amp;&amp;</span> <span class="ident">clamped</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>);
 
         <span class="comment">// e. Return integer.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">clamped</span> <span class="kw">as</span> <span class="ident">usize</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">clamped</span> <span class="kw">as</span> <span class="ident">u64</span>)
     }
 
     <span class="doccomment">/// Converts argument to an integer suitable for use as the length of an array-like object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tolength&gt;</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_length</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let len be ? ToInteger(argument).</span>
         <span class="comment">// 2. If len ≤ +0, return +0.</span>
         <span class="comment">// 3. Return min(len, 2^53 - 1).</span>
         <span class="prelude-val">Ok</span>(<span class="self">self</span>
             .<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-            .<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>)
+            .<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">u64</span>)
     }
 
     <span class="doccomment">/// Abstract operation `ToIntegerOrInfinity ( argument )`</span>

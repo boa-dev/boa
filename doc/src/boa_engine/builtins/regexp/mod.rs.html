@@ -1759,6 +1759,9 @@
 <span id="1752">1752</span>
 <span id="1753">1753</span>
 <span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -2573,7 +2576,7 @@
         <span class="comment">// 2. Assert: Type(S) is String.</span>
 
         <span class="comment">// 3. Let length be the number of code units in S.</span>
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 4. Let lastIndex be ℝ(? ToLength(? Get(R, &quot;lastIndex&quot;))).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2616,7 +2619,10 @@
             <span class="comment">// b. Let r be matcher(S, lastIndex).</span>
             <span class="comment">// Check if last_index is a valid utf8 index into input.</span>
             <span class="kw">let</span> <span class="ident">last_byte_index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">String::from_utf16</span>(
-                <span class="kw-2">&amp;</span><span class="ident">input</span>.<span class="ident">encode_utf16</span>().<span class="ident">take</span>(<span class="ident">last_index</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+                <span class="kw-2">&amp;</span><span class="ident">input</span>
+                    .<span class="ident">encode_utf16</span>()
+                    .<span class="ident">take</span>(<span class="ident">last_index</span> <span class="kw">as</span> <span class="ident">usize</span>)
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
             ) {
                 <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">len</span>(),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
@@ -2645,7 +2651,7 @@
                 <span class="prelude-val">Some</span>(<span class="ident">m</span>) =&gt; {
                     <span class="comment">// c. If r is failure, then</span>
                     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::if_not_else</span>)]</span>
-                    <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">start</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">last_index</span> {
+                    <span class="kw">if</span> <span class="ident">m</span>.<span class="ident">start</span>() <span class="kw">as</span> <span class="ident">u64</span> <span class="op">!</span><span class="op">=</span> <span class="ident">last_index</span> {
                         <span class="comment">// i. If sticky is true, then</span>
                         <span class="kw">if</span> <span class="ident">sticky</span> {
                             <span class="comment">// 1. Perform ? Set(R, &quot;lastIndex&quot;, +0𝔽, true).</span>
@@ -2686,9 +2692,9 @@
         }
 
         <span class="comment">// 16. Let n be the number of elements in r&#39;s captures List. (This is the same value as 22.2.2.1&#39;s NcapturingParens.)</span>
-        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">captures</span>.<span class="ident">len</span>();
+        <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">captures</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="comment">// 17. Assert: n &lt; 23^2 - 1.</span>
-        <span class="macro">debug_assert!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="number">23usize</span>.<span class="ident">pow</span>(<span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">n</span> <span class="op">&lt;</span> <span class="number">23u64</span>.<span class="ident">pow</span>(<span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>);
 
         <span class="comment">// 18. Let A be ! ArrayCreate(n + 1).</span>
         <span class="comment">// 19. Assert: The mathematical value of A&#39;s &quot;length&quot; property is n + 1.</span>
@@ -2751,7 +2757,7 @@
         <span class="comment">// 27. For each integer i such that i ≥ 1 and i ≤ n, in ascending order, do</span>
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">n</span> {
             <span class="comment">// a. Let captureI be ith element of r&#39;s captures List.</span>
-            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">group</span>(<span class="ident">i</span>);
+            <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">group</span>(<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
             <span class="kw">let</span> <span class="ident">captured_value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">capture</span> {
                 <span class="comment">// b. If captureI is undefined, let capturedValue be undefined.</span>
@@ -3358,7 +3364,7 @@
         }
 
         <span class="comment">// 15. Let size be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 16. If size is 0, then</span>
         <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
@@ -3409,8 +3415,8 @@
                     <span class="kw">let</span> <span class="ident">arg_str_substring</span> <span class="op">=</span> <span class="ident">String::from_utf16_lossy</span>(
                         <span class="kw-2">&amp;</span><span class="ident">arg_str</span>
                             .<span class="ident">encode_utf16</span>()
-                            .<span class="ident">skip</span>(<span class="ident">p</span>)
-                            .<span class="ident">take</span>(<span class="ident">q</span> <span class="op">-</span> <span class="ident">p</span>)
+                            .<span class="ident">skip</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>)
+                            .<span class="ident">take</span>((<span class="ident">q</span> <span class="op">-</span> <span class="ident">p</span>) <span class="kw">as</span> <span class="ident">usize</span>)
                             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
                     );
 
@@ -3470,8 +3476,8 @@
         <span class="kw">let</span> <span class="ident">arg_str_substring</span> <span class="op">=</span> <span class="ident">String::from_utf16_lossy</span>(
             <span class="kw-2">&amp;</span><span class="ident">arg_str</span>
                 .<span class="ident">encode_utf16</span>()
-                .<span class="ident">skip</span>(<span class="ident">p</span>)
-                .<span class="ident">take</span>(<span class="ident">size</span> <span class="op">-</span> <span class="ident">p</span>)
+                .<span class="ident">skip</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>)
+                .<span class="ident">take</span>((<span class="ident">size</span> <span class="op">-</span> <span class="ident">p</span>) <span class="kw">as</span> <span class="ident">usize</span>)
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
         );
 
@@ -3490,7 +3496,7 @@
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-advancestringindex</span>
-<span class="kw">fn</span> <span class="ident">advance_string_index</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">index</span>: <span class="ident">usize</span>, <span class="ident">unicode</span>: <span class="ident">bool</span>) -&gt; <span class="ident">usize</span> {
+<span class="kw">fn</span> <span class="ident">advance_string_index</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">index</span>: <span class="ident">u64</span>, <span class="ident">unicode</span>: <span class="ident">bool</span>) -&gt; <span class="ident">u64</span> {
     <span class="comment">// Regress only works with utf8, so this function differs from the spec.</span>
 
     <span class="comment">// 1. Assert: index ≤ 2^53 - 1.</span>
@@ -3501,7 +3507,7 @@
     }
 
     <span class="comment">// 3. Let length be the number of code units in S.</span>
-    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
     <span class="comment">// 4. If index + 1 ≥ length, return index + 1.</span>
     <span class="kw">if</span> <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span> <span class="ident">length</span> {
@@ -3511,7 +3517,7 @@
     <span class="comment">// 5. Let cp be ! CodePointAt(S, index).</span>
     <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span>);
 
-    <span class="ident">index</span> <span class="op">+</span> <span class="ident">offset</span> <span class="kw">as</span> <span class="ident">usize</span>
+    <span class="ident">index</span> <span class="op">+</span> <span class="ident">u64::from</span>(<span class="ident">offset</span>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
