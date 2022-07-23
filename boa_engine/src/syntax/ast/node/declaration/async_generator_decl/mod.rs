@@ -45,8 +45,8 @@ impl AsyncGeneratorDecl {
     }
 
     /// Gets the body of the async function declaration.
-    pub fn body(&self) -> &[Node] {
-        self.body.items()
+    pub fn body(&self) -> &StatementList {
+        &self.body
     }
 
     /// Implements the display formatting with indentation.
@@ -60,7 +60,7 @@ impl AsyncGeneratorDecl {
             interner.resolve_expect(self.name),
             join_nodes(interner, &self.parameters.parameters)
         );
-        if self.body().is_empty() {
+        if self.body().items().is_empty() {
             buf.push_str(") {}");
         } else {
             buf.push_str(&format!(

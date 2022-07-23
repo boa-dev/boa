@@ -780,7 +780,31 @@ where
         let name =
             ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
+        let params_start_position = cursor
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .span()
+            .start();
+
         let params = UniqueFormalParameters::new(true, true).parse(cursor, interner)?;
+
+        // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        if params.contains_yield_expression() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "yield expression not allowed in async generator method definition parameters"
+                    .into(),
+                params_start_position,
+            )));
+        }
+
+        // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
+        if params.contains_await_expression() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "await expression not allowed in async generator method definition parameters"
+                    .into(),
+                params_start_position,
+            )));
+        }
 
         let body_start = cursor
             .expect(

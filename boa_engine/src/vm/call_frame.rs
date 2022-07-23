@@ -32,6 +32,10 @@ pub struct CallFrame {
 
     // Indicate that the last try block has thrown an exception.
     pub(crate) thrown: bool,
+
+    // When an async generator is resumed, the generator object is needed
+    // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
+    pub(crate) async_generator: Option<crate::object::JsObject>,
 }
 
 impl CallFrame {
@@ -111,7 +115,7 @@ pub(crate) enum FinallyReturn {
 }
 
 /// Indicates how a generator function that has been called/resumed should return.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum GeneratorResumeKind {
     Normal,
     Throw,

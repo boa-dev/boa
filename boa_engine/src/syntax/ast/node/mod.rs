@@ -945,6 +945,7 @@ impl Node {
                     return true;
                 }
             }
+            Node::AwaitExpr(_) if symbol == ContainsSymbol::AwaitExpression => return true,
             Node::AwaitExpr(expr) => {
                 if expr.expr().contains(symbol) {
                     return true;
@@ -1259,6 +1260,7 @@ pub(crate) enum ContainsSymbol {
     SuperProperty,
     SuperCall,
     YieldExpression,
+    AwaitExpression,
 }
 
 impl ToInternedString for Node {

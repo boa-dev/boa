@@ -72,6 +72,7 @@ pub struct ByteCompiler<'b> {
     names_map: FxHashMap<Sym, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
+    in_async_generator: bool,
     context: &'b mut Context,
 }
 
@@ -87,6 +88,7 @@ impl<'b> ByteCompiler<'b> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
+            in_async_generator: false,
             context,
         }
     }
@@ -896,98 +898,92 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                             }
                         },
-                        PropertyDefinition::MethodDefinition(kind, name) => {
-                            match kind {
-                                MethodDefinition::Get(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::SetPropertyGetterByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::SetPropertyGetterByValue);
-                                    }
-                                },
-                                MethodDefinition::Set(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::SetPropertySetterByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::SetPropertySetterByValue);
-                                    }
-                                },
-                                MethodDefinition::Ordinary(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                    }
-                                },
-                                MethodDefinition::Async(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                    }
-                                },
-                                MethodDefinition::Generator(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                    }
-                                },
-                                // TODO: Implement async generators
-                                MethodDefinition::AsyncGenerator(_) => {
-                                    // TODO: Implement async
-                                    match name {
-                                        PropertyName::Literal(name) => {
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::Swap);
-                                            let index = self.get_or_insert_name(*name);
-                                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                        }
-                                        PropertyName::Computed(name_node) => {
-                                            self.compile_stmt(name_node, true)?;
-                                            self.emit_opcode(Opcode::ToPropertyKey);
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                        }
-                                    }
+                        PropertyDefinition::MethodDefinition(kind, name) => match kind {
+                            MethodDefinition::Get(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::SetPropertyGetterByName, &[index]);
                                 }
-                            }
-                        }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::SetPropertyGetterByValue);
+                                }
+                            },
+                            MethodDefinition::Set(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::SetPropertySetterByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::SetPropertySetterByValue);
+                                }
+                            },
+                            MethodDefinition::Ordinary(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                            MethodDefinition::Async(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                            MethodDefinition::Generator(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                            MethodDefinition::AsyncGenerator(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                        },
                         PropertyDefinition::SpreadObject(expr) => {
                             self.compile_expr(expr, true)?;
                             self.emit_opcode(Opcode::Swap);
@@ -1144,11 +1140,9 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::Pop);
                 }
             }
-            // TODO: implement AsyncGeneratorExpr
-            Node::AsyncGeneratorExpr(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
+            Node::GeneratorExpr(_) | Node::AsyncFunctionExpr(_) | Node::AsyncGeneratorExpr(_) => {
+                self.function(expr, use_expr)?;
             }
-            Node::GeneratorExpr(_) | Node::AsyncFunctionExpr(_) => self.function(expr, use_expr)?,
             Node::Yield(r#yield) => {
                 if let Some(expr) = r#yield.expr() {
                     self.compile_expr(expr, true)?;
@@ -1163,6 +1157,17 @@ impl<'b> ByteCompiler<'b> {
                     let start = self.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);
                     self.emit(Opcode::Jump, &[start_address]);
                     self.patch_jump(start);
+                } else if self.in_async_generator {
+                    self.emit_opcode(Opcode::Await);
+                    self.emit_opcode(Opcode::AsyncGeneratorNext);
+                    let jump_return = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    let jump = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    self.emit_opcode(Opcode::Yield);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.patch_jump(jump);
+                    self.emit_opcode(Opcode::Await);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.patch_jump(jump_return);
                 } else {
                     self.emit_opcode(Opcode::Yield);
                     self.emit_opcode(Opcode::GeneratorNext);
@@ -1942,10 +1947,8 @@ impl<'b> ByteCompiler<'b> {
                     self.pop_try_control_info(None);
                 }
             }
-            Node::GeneratorDecl(_) | Node::AsyncFunctionDecl(_) => self.function(node, false)?,
-            // TODO: implement AsyncGeneratorDecl
-            Node::AsyncGeneratorDecl(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
+            Node::GeneratorDecl(_) | Node::AsyncFunctionDecl(_) | Node::AsyncGeneratorDecl(_) => {
+                self.function(node, false)?;
             }
             Node::ClassDecl(class) => self.class(class, false)?,
             Node::Empty => {}
@@ -1955,12 +1958,14 @@ impl<'b> ByteCompiler<'b> {
     }
 
     /// Compile a function statement list and it's parameters into bytecode.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn compile_function_code(
         kind: FunctionKind,
         name: Option<Sym>,
         parameters: &FormalParameterList,
         body: &StatementList,
         generator: bool,
+        r#async: bool,
         strict: bool,
         context: &mut Context,
     ) -> JsResult<Gc<CodeBlock>> {
@@ -1978,6 +1983,7 @@ impl<'b> ByteCompiler<'b> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
+            in_async_generator: generator && r#async,
             context,
         };
 
@@ -2101,6 +2107,14 @@ impl<'b> ByteCompiler<'b> {
                 true,
                 false,
             ),
+            Node::AsyncGeneratorDecl(generator) => (
+                FunctionKind::Declaration,
+                Some(generator.name()),
+                generator.parameters(),
+                generator.body(),
+                true,
+                true,
+            ),
             Node::FunctionExpr(function) => (
                 FunctionKind::Expression,
                 function.name(),
@@ -2125,6 +2139,14 @@ impl<'b> ByteCompiler<'b> {
                 true,
                 false,
             ),
+            Node::AsyncGeneratorExpr(generator) => (
+                FunctionKind::Expression,
+                generator.name(),
+                generator.parameters(),
+                generator.body(),
+                true,
+                true,
+            ),
             Node::ArrowFunctionDecl(function) => (
                 FunctionKind::Arrow,
                 function.name(),
@@ -2142,6 +2164,7 @@ impl<'b> ByteCompiler<'b> {
             parameters,
             body,
             generator,
+            r#async,
             self.code_block.strict,
             self.context,
         )?;
@@ -2149,7 +2172,9 @@ impl<'b> ByteCompiler<'b> {
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
 
-        if generator {
+        if generator && r#async {
+            self.emit(Opcode::GetGeneratorAsync, &[index]);
+        } else if generator {
             self.emit(Opcode::GetGenerator, &[index]);
         } else if r#async {
             self.emit(Opcode::GetFunctionAsync, &[index]);
@@ -2627,6 +2652,7 @@ impl<'b> ByteCompiler<'b> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
+            in_async_generator: false,
             context: self.context,
         };
         compiler.context.push_compile_time_environment(true);
@@ -2806,8 +2832,20 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {}
+                        MethodDefinition::AsyncGenerator(expr) => match name {
+                            PropertyName::Literal(name) => {
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::Swap);
+                                let index = self.get_or_insert_name(*name);
+                                self.emit(Opcode::DefineClassMethodByName, &[index]);
+                            }
+                            PropertyName::Computed(name_node) => {
+                                self.compile_stmt(name_node, true)?;
+                                self.emit_opcode(Opcode::ToPropertyKey);
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::DefineClassMethodByValue);
+                            }
+                        },
                     }
                 }
                 ClassElement::PrivateStaticMethodDefinition(name, method_definition) => {
@@ -2838,8 +2876,11 @@ impl<'b> ByteCompiler<'b> {
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {}
+                        MethodDefinition::AsyncGenerator(expr) => {
+                            self.function(&expr.clone().into(), true)?;
+                            let index = self.get_or_insert_name(*name);
+                            self.emit(Opcode::SetPrivateMethod, &[index]);
+                        }
                     }
                 }
                 ClassElement::FieldDefinition(name, field) => {
@@ -2861,6 +2902,7 @@ impl<'b> ByteCompiler<'b> {
                         names_map: FxHashMap::default(),
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
+                        in_async_generator: false,
                         context: self.context,
                     };
                     field_compiler.context.push_compile_time_environment(true);
@@ -2894,6 +2936,7 @@ impl<'b> ByteCompiler<'b> {
                         names_map: FxHashMap::default(),
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
+                        in_async_generator: false,
                         context: self.context,
                     };
                     field_compiler.context.push_compile_time_environment(true);
@@ -3002,8 +3045,11 @@ impl<'b> ByteCompiler<'b> {
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {}
+                        MethodDefinition::AsyncGenerator(expr) => {
+                            self.function(&expr.clone().into(), true)?;
+                            let index = self.get_or_insert_name(*name);
+                            self.emit(Opcode::PushClassPrivateMethod, &[index]);
+                        }
                     }
                 }
                 ClassElement::MethodDefinition(..) => {}
@@ -3087,10 +3133,20 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {
-                            self.emit_opcode(Opcode::Pop);
-                        }
+                        MethodDefinition::AsyncGenerator(expr) => match name {
+                            PropertyName::Literal(name) => {
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::Swap);
+                                let index = self.get_or_insert_name(*name);
+                                self.emit(Opcode::DefineClassMethodByName, &[index]);
+                            }
+                            PropertyName::Computed(name_node) => {
+                                self.compile_stmt(name_node, true)?;
+                                self.emit_opcode(Opcode::ToPropertyKey);
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::DefineClassMethodByValue);
+                            }
+                        },
                     }
                 }
                 ClassElement::PrivateMethodDefinition(..)

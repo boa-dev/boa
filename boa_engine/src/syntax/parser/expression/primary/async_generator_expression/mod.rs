@@ -107,6 +107,22 @@ where
 
         let params = FormalParameters::new(true, true).parse(cursor, interner)?;
 
+        // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+        if params.contains_yield_expression() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "yield expression not allowed in async generator expression parameters".into(),
+                params_start_position,
+            )));
+        }
+
+        // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
+        if params.contains_await_expression() {
+            return Err(ParseError::lex(LexError::Syntax(
+                "await expression not allowed in async generator expression parameters".into(),
+                params_start_position,
+            )));
+        }
+
         cursor.expect(
             Punctuator::CloseParen,
             "async generator expression",

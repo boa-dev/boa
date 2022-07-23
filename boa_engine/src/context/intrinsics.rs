@@ -72,6 +72,8 @@ impl StandardConstructor {
 /// Cached core standard constructors.
 #[derive(Debug, Clone)]
 pub struct StandardConstructors {
+    async_generator_function: StandardConstructor,
+    async_generator: StandardConstructor,
     object: StandardConstructor,
     proxy: StandardConstructor,
     date: StandardConstructor,
@@ -117,6 +119,8 @@ pub struct StandardConstructors {
 impl Default for StandardConstructors {
     fn default() -> Self {
         let result = Self {
+            async_generator_function: StandardConstructor::default(),
+            async_generator: StandardConstructor::default(),
             object: StandardConstructor::default(),
             proxy: StandardConstructor::default(),
             date: StandardConstructor::default(),
@@ -187,6 +191,16 @@ impl Default for StandardConstructors {
 }
 
 impl StandardConstructors {
+    #[inline]
+    pub fn async_generator_function(&self) -> &StandardConstructor {
+        &self.async_generator_function
+    }
+
+    #[inline]
+    pub fn async_generator(&self) -> &StandardConstructor {
+        &self.async_generator
+    }
+
     #[inline]
     pub fn object(&self) -> &StandardConstructor {
         &self.object
