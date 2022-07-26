@@ -2,7 +2,7 @@
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-use crate::vm::CodeBlock;
+use crate::{object::JsObject, vm::CodeBlock};
 use boa_gc::{Finalize, Gc, Trace};
 
 #[derive(Clone, Debug, Finalize, Trace)]
@@ -35,7 +35,7 @@ pub struct CallFrame {
 
     // When an async generator is resumed, the generator object is needed
     // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
-    pub(crate) async_generator: Option<crate::object::JsObject>,
+    pub(crate) async_generator: Option<JsObject>,
 }
 
 impl CallFrame {

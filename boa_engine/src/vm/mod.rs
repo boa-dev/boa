@@ -2208,9 +2208,7 @@ impl Context {
                     .queue
                     .pop_front()
                     .expect("must have item in queue");
-                crate::builtins::async_generator::AsyncGenerator::complete_step(
-                    &next, completion, false, self,
-                );
+                AsyncGenerator::complete_step(&next, completion, false, self);
 
                 let mut generator_object_mut = generator_object.borrow_mut();
                 let gen = generator_object_mut
