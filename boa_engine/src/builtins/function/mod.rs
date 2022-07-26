@@ -13,6 +13,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
+    bytecompiler::{FunctionCompiler, FunctionKind},
     context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
     object::{
@@ -602,16 +603,12 @@ impl BuiltInFunctionObject {
                 }
             }
 
-            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
-                crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::ANONYMOUS),
-                &parameters,
-                &body,
-                generator,
-                r#async,
-                false,
-                context,
-            )?;
+            let code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .generator(generator)
+                .r#async(r#async)
+                .kind(FunctionKind::Expression)
+                .compile(&parameters, &body, context)?;
 
             let environments = context.realm.environments.pop_to_global();
 
@@ -625,16 +622,15 @@ impl BuiltInFunctionObject {
 
             Ok(function_object)
         } else if generator {
-            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
-                crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::ANONYMOUS),
-                &FormalParameterList::empty(),
-                &StatementList::default(),
-                true,
-                false,
-                false,
-                context,
-            )?;
+            let code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .generator(true)
+                .kind(FunctionKind::Expression)
+                .compile(
+                    &FormalParameterList::empty(),
+                    &StatementList::default(),
+                    context,
+                )?;
 
             let environments = context.realm.environments.pop_to_global();
             let function_object =
@@ -643,16 +639,14 @@ impl BuiltInFunctionObject {
 
             Ok(function_object)
         } else {
-            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
-                crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::ANONYMOUS),
-                &FormalParameterList::empty(),
-                &StatementList::default(),
-                false,
-                false,
-                false,
-                context,
-            )?;
+            let code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .kind(FunctionKind::Expression)
+                .compile(
+                    &FormalParameterList::empty(),
+                    &StatementList::default(),
+                    context,
+                )?;
 
             let environments = context.realm.environments.pop_to_global();
             let function_object =
