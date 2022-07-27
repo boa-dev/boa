@@ -3051,7 +3051,8 @@ pub(crate) enum FunctionKind {
     Arrow,
 }
 
-// `FunctionCompiler` is used to compile AST functions to bytecode.
+/// `FunctionCompiler` is used to compile AST functions to bytecode.
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct FunctionCompiler {
     name: Sym,
     generator: bool,
