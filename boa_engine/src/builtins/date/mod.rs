@@ -120,12 +120,10 @@ impl BuiltIn for Date {
         .method(Self::to_date_string, "toDateString", 0)
         .method(Self::to_gmt_string, "toGMTString", 0)
         .method(Self::to_iso_string, "toISOString", 0)
-        // Why toJSON length is 1, does `method()`'s length signifies number of
-        // inputs? If so shouldn't it be 0?
         .method(Self::to_json, "toJSON", 1)
-        .method(Self::to_locale_date_string, "toLocaleDateString", 0)
-        .method(Self::to_locale_string, "toLocaleString", 0)
-        .method(Self::to_locale_time_string, "toLocaleTimeString", 0)
+        .method(Self::to_locale_date_string, "toLocaleDateString", 2)
+        .method(Self::to_locale_string, "toLocaleString", 2)
+        .method(Self::to_locale_time_string, "toLocaleTimeString", 2)
         .method(Self::to_string, "toString", 0)
         .method(Self::to_time_string, "toTimeString", 0)
         .method(Self::to_utc_string, "toUTCString", 0)
@@ -334,6 +332,7 @@ impl Date {
             .into())
         }
     }
+
     /// Utility: Returns `Date` object with current datetime
     pub(crate) fn date_create(prototype: Option<JsObject>, context: &mut Context) -> JsObject {
         let prototype =
@@ -540,13 +539,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDate
     pub fn get_date(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.day()))
         } else {
             Ok(JsValue::nan())
@@ -566,13 +559,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDay
     pub fn get_day(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.weekday().num_days_from_sunday()))
         } else {
             Ok(JsValue::nan())
@@ -595,13 +582,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.year()))
         } else {
             Ok(JsValue::nan())
@@ -624,13 +605,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.hour()))
         } else {
             Ok(JsValue::nan())
@@ -653,13 +628,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.timestamp_subsec_millis()))
         } else {
             Ok(JsValue::nan())
@@ -682,13 +651,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.minute()))
         } else {
             Ok(JsValue::nan())
@@ -712,13 +675,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.month0()))
         } else {
             Ok(JsValue::nan())
@@ -741,13 +698,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let date = Local::now()
-                .timezone()
-                .from_utc_datetime(&t)
-                .format("%Y-%m-%dT%H:%M:%S%.f%:z")
-                .to_string();
-            let local = NaiveDateTime::parse_from_str(&date, "%Y-%m-%dT%H:%M:%S%.f%:z")
-                .expect("INFALLIBLE: Converting string built from `Local::now()` to NaiveDateTime");
+            let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.second()))
         } else {
             Ok(JsValue::nan())
@@ -768,7 +719,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getYear
     pub fn get_year(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         if let Some(t) = this_time_value(this, context)?.0 {
-            let local = Local::now().timezone().from_local_datetime(&t).unwrap();
+            let local = Local::now().timezone().from_utc_datetime(&t);
             let year = JsValue::Integer(local.year());
             year.sub(&JsValue::from(1900), context)
         } else {
@@ -1751,7 +1702,7 @@ impl Date {
         _args: &[JsValue],
         _context: &mut Context,
     ) -> JsResult<JsValue> {
-        unimplemented!()
+        Err(JsValue::new("Function Unimplemented]"))
     }
 
     /// `Date.prototype.toGMTString()`
@@ -1873,7 +1824,7 @@ impl Date {
         _: &[JsValue],
         _context: &mut Context,
     ) -> JsResult<JsValue> {
-        unimplemented!()
+        Err(JsValue::new("Function Unimplemented]"))
     }
 
     /// `Date.prototype.toTimeString()`
@@ -1924,7 +1875,7 @@ impl Date {
         _args: &[JsValue],
         _context: &mut Context,
     ) -> JsResult<JsValue> {
-        unimplemented!()
+        Err(JsValue::new("Function Unimplemented]"))
     }
 
     /// `Date.prototype.toUTCString()`
@@ -2069,6 +2020,7 @@ impl Date {
             .and_then(|f| Self::time_clip(f.timestamp_millis() as f64))
             .map_or(Ok(JsValue::nan()), |time| Ok(JsValue::new(time)))
     }
+
     /// Utility: Returns an `Object` representing `Date` from string in RFC3339
     pub(crate) fn create_obj(value: &JsValue, context: &mut Context) -> JsObject {
         let prototype = context.intrinsics().constructors().date().prototype();
