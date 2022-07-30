@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.8.26/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.0/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -247,17 +247,34 @@
 <span id="242">242</span>
 <span id="243">243</span>
 <span id="244">244</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::path::Path</span>;
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::libyaml</span>::{<span class="ident">emitter</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">libyaml</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::path::Path</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de</span>, <span class="ident">ser</span>};
 <span class="kw">use</span> <span class="ident">std::error</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
 <span class="kw">use</span> <span class="ident">std::io</span>;
 <span class="kw">use</span> <span class="ident">std::result</span>;
-<span class="kw">use</span> <span class="ident">std::str</span>;
 <span class="kw">use</span> <span class="ident">std::string</span>;
 <span class="kw">use</span> <span class="ident">std::sync::Arc</span>;
-<span class="kw">use</span> <span class="ident">yaml_rust::emitter</span>;
-<span class="kw">use</span> <span class="ident">yaml_rust::scanner</span>::{<span class="self">self</span>, <span class="ident">Marker</span>, <span class="ident">ScanError</span>};
 
 <span class="doccomment">/// An error that happened serializing or deserializing YAML data.</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Error</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">ErrorImpl</span><span class="op">&gt;</span>);
@@ -266,25 +283,31 @@
 <span class="kw">pub</span> <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">Error</span><span class="op">&gt;</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorImpl</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ErrorImpl</span> {
     <span class="ident">Message</span>(<span class="ident">String</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Pos</span><span class="op">&gt;</span>),
 
-    <span class="ident">Emit</span>(<span class="ident">emitter::EmitError</span>),
-    <span class="ident">Scan</span>(<span class="ident">scanner::ScanError</span>),
+    <span class="ident">Libyaml</span>(<span class="ident">libyaml::Error</span>),
     <span class="ident">Io</span>(<span class="ident">io::Error</span>),
-    <span class="ident">Utf8</span>(<span class="ident">str::Utf8Error</span>),
     <span class="ident">FromUtf8</span>(<span class="ident">string::FromUtf8Error</span>),
 
     <span class="ident">EndOfStream</span>,
     <span class="ident">MoreThanOneDocument</span>,
-    <span class="ident">RecursionLimitExceeded</span>,
+    <span class="ident">RecursionLimitExceeded</span>(<span class="ident">libyaml::Mark</span>),
+    <span class="ident">RepetitionLimitExceeded</span>,
+    <span class="ident">BytesUnsupported</span>,
+    <span class="ident">UnknownAnchor</span>(<span class="ident">libyaml::Mark</span>),
+    <span class="ident">SerializeNestedEnum</span>,
+    <span class="ident">ScalarInMerge</span>,
+    <span class="ident">TaggedInMerge</span>,
+    <span class="ident">ScalarInMergeElement</span>,
+    <span class="ident">SequenceInMergeElement</span>,
 
     <span class="ident">Shared</span>(<span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ErrorImpl</span><span class="op">&gt;</span>),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Pos</span> {
-    <span class="ident">marker</span>: <span class="ident">Marker</span>,
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Pos</span> {
+    <span class="ident">mark</span>: <span class="ident">libyaml::Mark</span>,
     <span class="ident">path</span>: <span class="ident">String</span>,
 }
 
@@ -314,12 +337,12 @@
 
     <span class="comment">// This is to keep decoupled with the yaml crate</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_marker</span>(<span class="ident">marker</span>: <span class="kw-2">&amp;</span><span class="ident">Marker</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">from_mark</span>(<span class="ident">mark</span>: <span class="ident">libyaml::Mark</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Location</span> {
-            <span class="comment">// `col` returned from the `yaml` crate is 0-indexed but all error messages add + 1 to this value</span>
-            <span class="ident">column</span>: <span class="ident">marker</span>.<span class="ident">col</span>() <span class="op">+</span> <span class="number">1</span>,
-            <span class="ident">index</span>: <span class="ident">marker</span>.<span class="ident">index</span>(),
-            <span class="ident">line</span>: <span class="ident">marker</span>.<span class="ident">line</span>(),
+            <span class="ident">index</span>: <span class="ident">mark</span>.<span class="ident">index</span>() <span class="kw">as</span> <span class="ident">usize</span>,
+            <span class="comment">// `line` and `column` returned from libyaml are 0-indexed but all error messages add +1 to this value</span>
+            <span class="ident">line</span>: <span class="ident">mark</span>.<span class="ident">line</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>,
+            <span class="ident">column</span>: <span class="ident">mark</span>.<span class="ident">column</span>() <span class="kw">as</span> <span class="ident">usize</span> <span class="op">+</span> <span class="number">1</span>,
         }
     }
 }
@@ -343,54 +366,22 @@
     <span class="doccomment">/// assert_eq!(location.column(), 1);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">pos</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_marker</span>(<span class="kw-2">&amp;</span><span class="ident">pos</span>.<span class="ident">marker</span>)),
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">scan</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_marker</span>(<span class="ident">scan</span>.<span class="ident">marker</span>())),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">location</span>()
     }
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">end_of_stream</span>() -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::EndOfStream</span>))
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">more_than_one_document</span>() -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::MoreThanOneDocument</span>))
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">io</span>(<span class="ident">err</span>: <span class="ident">io::Error</span>) -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>)))
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">emitter</span>(<span class="ident">err</span>: <span class="ident">emitter::EmitError</span>) -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Emit</span>(<span class="ident">err</span>)))
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">scanner</span>(<span class="ident">err</span>: <span class="ident">scanner::ScanError</span>) -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>)))
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">str_utf8</span>(<span class="ident">err</span>: <span class="ident">str::Utf8Error</span>) -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>)))
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_utf8</span>(<span class="ident">err</span>: <span class="ident">string::FromUtf8Error</span>) -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>)))
-}
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">recursion_limit_exceeded</span>() -&gt; <span class="ident">Error</span> {
-    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::RecursionLimitExceeded</span>))
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">inner</span>: <span class="ident">ErrorImpl</span>) -&gt; <span class="ident">Error</span> {
+    <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">inner</span>))
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">shared</span>(<span class="ident">shared</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">ErrorImpl</span><span class="op">&gt;</span>) -&gt; <span class="ident">Error</span> {
     <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Shared</span>(<span class="ident">shared</span>)))
 }
 
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fix_marker</span>(<span class="kw-2">mut</span> <span class="ident">error</span>: <span class="ident">Error</span>, <span class="ident">marker</span>: <span class="ident">Marker</span>, <span class="ident">path</span>: <span class="ident">Path</span>) -&gt; <span class="ident">Error</span> {
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">fix_mark</span>(<span class="kw-2">mut</span> <span class="ident">error</span>: <span class="ident">Error</span>, <span class="ident">mark</span>: <span class="ident">libyaml::Mark</span>, <span class="ident">path</span>: <span class="ident">Path</span>) -&gt; <span class="ident">Error</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="ident">none</span> @ <span class="prelude-val">None</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="number">0</span>.<span class="ident">as_mut</span>() {
         <span class="kw-2">*</span><span class="ident">none</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Pos</span> {
-            <span class="ident">marker</span>,
+            <span class="ident">mark</span>,
             <span class="ident">path</span>: <span class="ident">path</span>.<span class="ident">to_string</span>(),
         });
     }
@@ -403,6 +394,21 @@
             <span class="ident">err</span>
         } <span class="kw">else</span> {
             <span class="ident">Arc::from</span>(<span class="self">self</span>.<span class="number">0</span>)
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">libyaml::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">libyaml::Error</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">Error</span>(<span class="ident">Box::new</span>(<span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>)))
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">emitter::Error</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Error</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">err</span>: <span class="ident">emitter::Error</span>) -&gt; <span class="self">Self</span> {
+        <span class="kw">match</span> <span class="ident">err</span> {
+            <span class="ident">emitter::Error::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">err</span>),
+            <span class="ident">emitter::Error::Io</span>(<span class="ident">err</span>) =&gt; <span class="ident">new</span>(<span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>)),
         }
     }
 }
@@ -440,11 +446,18 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ErrorImpl</span> {
+    <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">pos</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_mark</span>(<span class="ident">pos</span>.<span class="ident">mark</span>)),
+            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_mark</span>(<span class="ident">err</span>.<span class="ident">mark</span>())),
+            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">location</span>(),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
             <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
-            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
             <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>),
             <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">source</span>(),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
@@ -454,24 +467,41 @@
     <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">None</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">msg</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">Pos</span> { <span class="ident">marker</span>, <span class="ident">path</span> })) =&gt; {
+            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">Pos</span> { <span class="ident">mark</span>, <span class="ident">path</span> })) =&gt; {
                 <span class="kw">if</span> <span class="ident">path</span> <span class="op">==</span> <span class="string">&quot;.&quot;</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">ScanError::new</span>(<span class="kw-2">*</span><span class="ident">marker</span>, <span class="ident">msg</span>))
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} at {}&quot;</span>, <span class="ident">msg</span>, <span class="ident">mark</span>)
                 } <span class="kw">else</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: {}&quot;</span>, <span class="ident">path</span>, <span class="ident">ScanError::new</span>(<span class="kw-2">*</span><span class="ident">marker</span>, <span class="ident">msg</span>))
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: {} at {}&quot;</span>, <span class="ident">path</span>, <span class="ident">msg</span>, <span class="ident">mark</span>)
                 }
             }
-            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emitter::EmitError::FmtError</span>(<span class="kw">_</span>)) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;yaml-rust fmt error&quot;</span>),
-            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emitter::EmitError::BadHashmapKey</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;bad hash map key&quot;</span>),
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
             <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
             <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
             <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a value&quot;</span>),
             <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(
                 <span class="string">&quot;deserializing from YAML containing more than one document is not supported&quot;</span>,
             ),
-            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;recursion limit exceeded&quot;</span>),
+            <span class="ident">ErrorImpl::RecursionLimitExceeded</span>(<span class="ident">mark</span>) =&gt; {
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;recursion limit exceeded at {}&quot;</span>, <span class="ident">mark</span>)
+            }
+            <span class="ident">ErrorImpl::RepetitionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;repetition limit exceeded&quot;</span>),
+            <span class="ident">ErrorImpl::BytesUnsupported</span> =&gt; {
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;serialization and deserialization of bytes in YAML is not implemented&quot;</span>)
+            }
+            <span class="ident">ErrorImpl::UnknownAnchor</span>(<span class="ident">mark</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;unknown anchor at {}&quot;</span>, <span class="ident">mark</span>),
+            <span class="ident">ErrorImpl::SerializeNestedEnum</span> =&gt; {
+                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;serializing nested enums in YAML is not supported yet&quot;</span>)
+            }
+            <span class="ident">ErrorImpl::ScalarInMerge</span> =&gt; {
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected a mapping or list of mappings for merging, but found scalar&quot;</span>)
+            }
+            <span class="ident">ErrorImpl::TaggedInMerge</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;unexpected tagged value in merge&quot;</span>),
+            <span class="ident">ErrorImpl::ScalarInMergeElement</span> =&gt; {
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected a mapping for merging, but found scalar&quot;</span>)
+            }
+            <span class="ident">ErrorImpl::SequenceInMergeElement</span> =&gt; {
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected a mapping for merging, but found sequence&quot;</span>)
+            }
             <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">display</span>(<span class="ident">f</span>),
         }
     }
@@ -479,14 +509,22 @@
     <span class="kw">fn</span> <span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="ident">pos</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Message&quot;</span>).<span class="ident">field</span>(<span class="ident">msg</span>).<span class="ident">field</span>(<span class="ident">pos</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Emit</span>(<span class="ident">emit</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Emit&quot;</span>).<span class="ident">field</span>(<span class="ident">emit</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Scan</span>(<span class="ident">scan</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Scan&quot;</span>).<span class="ident">field</span>(<span class="ident">scan</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Libyaml&quot;</span>).<span class="ident">field</span>(<span class="ident">err</span>).<span class="ident">finish</span>(),
             <span class="ident">ErrorImpl::Io</span>(<span class="ident">io</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Io&quot;</span>).<span class="ident">field</span>(<span class="ident">io</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Utf8</span>(<span class="ident">utf8</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Utf8&quot;</span>).<span class="ident">field</span>(<span class="ident">utf8</span>).<span class="ident">finish</span>(),
             <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">from_utf8</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;FromUtf8&quot;</span>).<span class="ident">field</span>(<span class="ident">from_utf8</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;EndOfStream&quot;</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;MoreThanOneDocument&quot;</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::RecursionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;RecursionLimitExceeded&quot;</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EndOfStream&quot;</span>),
+            <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;MoreThanOneDocument&quot;</span>),
+            <span class="ident">ErrorImpl::RecursionLimitExceeded</span>(<span class="ident">mark</span>) =&gt; {
+                <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;RecursionLimitExceeded&quot;</span>).<span class="ident">field</span>(<span class="ident">mark</span>).<span class="ident">finish</span>()
+            }
+            <span class="ident">ErrorImpl::RepetitionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;RepetitionLimitExceeded&quot;</span>),
+            <span class="ident">ErrorImpl::BytesUnsupported</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;BytesUnsupported&quot;</span>),
+            <span class="ident">ErrorImpl::UnknownAnchor</span>(<span class="ident">mark</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;UnknownAnchor&quot;</span>).<span class="ident">field</span>(<span class="ident">mark</span>).<span class="ident">finish</span>(),
+            <span class="ident">ErrorImpl::SerializeNestedEnum</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;SerializeNestedEnum&quot;</span>),
+            <span class="ident">ErrorImpl::ScalarInMerge</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;ScalarInMerge&quot;</span>),
+            <span class="ident">ErrorImpl::TaggedInMerge</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;TaggedInMerge&quot;</span>),
+            <span class="ident">ErrorImpl::ScalarInMergeElement</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;ScalarInMergeElement&quot;</span>),
+            <span class="ident">ErrorImpl::SequenceInMergeElement</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;SequenceInMergeElement&quot;</span>),
             <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">debug</span>(<span class="ident">f</span>),
         }
     }
