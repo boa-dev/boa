@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.0/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.2/src/error.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>error.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -266,6 +266,29 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::libyaml</span>::{<span class="ident">emitter</span>, <span class="ident">error</span> <span class="kw">as</span> <span class="ident">libyaml</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::path::Path</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">de</span>, <span class="ident">ser</span>};
@@ -447,12 +470,7 @@
 
 <span class="kw">impl</span> <span class="ident">ErrorImpl</span> {
     <span class="kw">fn</span> <span class="ident">location</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Location</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">pos</span>)) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_mark</span>(<span class="ident">pos</span>.<span class="ident">mark</span>)),
-            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Location::from_mark</span>(<span class="ident">err</span>.<span class="ident">mark</span>())),
-            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">location</span>(),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
+        <span class="self">self</span>.<span class="ident">mark</span>().<span class="ident">map</span>(<span class="ident">Location::from_mark</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
@@ -464,33 +482,41 @@
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">mark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">libyaml::Mark</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">None</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">msg</span>, <span class="ident">f</span>),
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">Pos</span> { <span class="ident">mark</span>, <span class="ident">path</span> })) =&gt; {
-                <span class="kw">if</span> <span class="ident">path</span> <span class="op">==</span> <span class="string">&quot;.&quot;</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{} at {}&quot;</span>, <span class="ident">msg</span>, <span class="ident">mark</span>)
-                } <span class="kw">else</span> {
-                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: {} at {}&quot;</span>, <span class="ident">path</span>, <span class="ident">msg</span>, <span class="ident">mark</span>)
+            <span class="ident">ErrorImpl::Message</span>(<span class="kw">_</span>, <span class="prelude-val">Some</span>(<span class="ident">Pos</span> { <span class="ident">mark</span>, <span class="ident">path</span>: <span class="kw">_</span> }))
+            <span class="op">|</span> <span class="ident">ErrorImpl::RecursionLimitExceeded</span>(<span class="ident">mark</span>)
+            <span class="op">|</span> <span class="ident">ErrorImpl::UnknownAnchor</span>(<span class="ident">mark</span>) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span><span class="ident">mark</span>),
+            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">err</span>.<span class="ident">mark</span>()),
+            <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">mark</span>(),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">message_no_mark</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">None</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">msg</span>),
+            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="prelude-val">Some</span>(<span class="ident">Pos</span> { <span class="ident">mark</span>: <span class="kw">_</span>, <span class="ident">path</span> })) =&gt; {
+                <span class="kw">if</span> <span class="ident">path</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;.&quot;</span> {
+                    <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;{}: &quot;</span>, <span class="ident">path</span>)<span class="question-mark">?</span>;
                 }
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="ident">msg</span>)
             }
-            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
+            <span class="ident">ErrorImpl::Libyaml</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
             <span class="ident">ErrorImpl::Io</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
             <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
             <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EOF while parsing a value&quot;</span>),
             <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(
                 <span class="string">&quot;deserializing from YAML containing more than one document is not supported&quot;</span>,
             ),
-            <span class="ident">ErrorImpl::RecursionLimitExceeded</span>(<span class="ident">mark</span>) =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;recursion limit exceeded at {}&quot;</span>, <span class="ident">mark</span>)
-            }
+            <span class="ident">ErrorImpl::RecursionLimitExceeded</span>(<span class="ident">_mark</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;recursion limit exceeded&quot;</span>),
             <span class="ident">ErrorImpl::RepetitionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;repetition limit exceeded&quot;</span>),
             <span class="ident">ErrorImpl::BytesUnsupported</span> =&gt; {
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;serialization and deserialization of bytes in YAML is not implemented&quot;</span>)
             }
-            <span class="ident">ErrorImpl::UnknownAnchor</span>(<span class="ident">mark</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;unknown anchor at {}&quot;</span>, <span class="ident">mark</span>),
+            <span class="ident">ErrorImpl::UnknownAnchor</span>(<span class="ident">_mark</span>) =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;unknown anchor&quot;</span>),
             <span class="ident">ErrorImpl::SerializeNestedEnum</span> =&gt; {
-                <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;serializing nested enums in YAML is not supported yet&quot;</span>)
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;serializing nested enums in YAML is not supported yet&quot;</span>)
             }
             <span class="ident">ErrorImpl::ScalarInMerge</span> =&gt; {
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected a mapping or list of mappings for merging, but found scalar&quot;</span>)
@@ -502,30 +528,50 @@
             <span class="ident">ErrorImpl::SequenceInMergeElement</span> =&gt; {
                 <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;expected a mapping for merging, but found sequence&quot;</span>)
             }
+            <span class="ident">ErrorImpl::Shared</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">display</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="ident">Display::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
             <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">display</span>(<span class="ident">f</span>),
+            <span class="kw">_</span> =&gt; {
+                <span class="self">self</span>.<span class="ident">message_no_mark</span>(<span class="ident">f</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">mark</span>() {
+                    <span class="kw">if</span> <span class="ident">mark</span>.<span class="ident">line</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">mark</span>.<span class="ident">column</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                        <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot; at {}&quot;</span>, <span class="ident">mark</span>)<span class="question-mark">?</span>;
+                    }
+                }
+                <span class="prelude-val">Ok</span>(())
+            }
         }
     }
 
     <span class="kw">fn</span> <span class="ident">debug</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">ErrorImpl::Message</span>(<span class="ident">msg</span>, <span class="ident">pos</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Message&quot;</span>).<span class="ident">field</span>(<span class="ident">msg</span>).<span class="ident">field</span>(<span class="ident">pos</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Libyaml&quot;</span>).<span class="ident">field</span>(<span class="ident">err</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::Io</span>(<span class="ident">io</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Io&quot;</span>).<span class="ident">field</span>(<span class="ident">io</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::FromUtf8</span>(<span class="ident">from_utf8</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;FromUtf8&quot;</span>).<span class="ident">field</span>(<span class="ident">from_utf8</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::EndOfStream</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;EndOfStream&quot;</span>),
-            <span class="ident">ErrorImpl::MoreThanOneDocument</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;MoreThanOneDocument&quot;</span>),
-            <span class="ident">ErrorImpl::RecursionLimitExceeded</span>(<span class="ident">mark</span>) =&gt; {
-                <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;RecursionLimitExceeded&quot;</span>).<span class="ident">field</span>(<span class="ident">mark</span>).<span class="ident">finish</span>()
-            }
-            <span class="ident">ErrorImpl::RepetitionLimitExceeded</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;RepetitionLimitExceeded&quot;</span>),
-            <span class="ident">ErrorImpl::BytesUnsupported</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;BytesUnsupported&quot;</span>),
-            <span class="ident">ErrorImpl::UnknownAnchor</span>(<span class="ident">mark</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;UnknownAnchor&quot;</span>).<span class="ident">field</span>(<span class="ident">mark</span>).<span class="ident">finish</span>(),
-            <span class="ident">ErrorImpl::SerializeNestedEnum</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;SerializeNestedEnum&quot;</span>),
-            <span class="ident">ErrorImpl::ScalarInMerge</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;ScalarInMerge&quot;</span>),
-            <span class="ident">ErrorImpl::TaggedInMerge</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;TaggedInMerge&quot;</span>),
-            <span class="ident">ErrorImpl::ScalarInMergeElement</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;ScalarInMergeElement&quot;</span>),
-            <span class="ident">ErrorImpl::SequenceInMergeElement</span> =&gt; <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;SequenceInMergeElement&quot;</span>),
+            <span class="ident">ErrorImpl::Libyaml</span>(<span class="ident">err</span>) =&gt; <span class="ident">Debug::fmt</span>(<span class="ident">err</span>, <span class="ident">f</span>),
             <span class="ident">ErrorImpl::Shared</span>(<span class="ident">err</span>) =&gt; <span class="ident">err</span>.<span class="ident">debug</span>(<span class="ident">f</span>),
+            <span class="kw">_</span> =&gt; {
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;Error(&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">struct</span> <span class="ident">MessageNoMark</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ErrorImpl</span>);
+                <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">MessageNoMark</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+                    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+                        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">message_no_mark</span>(<span class="ident">f</span>)
+                    }
+                }
+                <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">MessageNoMark</span>(<span class="self">self</span>).<span class="ident">to_string</span>();
+                <span class="ident">Debug::fmt</span>(<span class="kw-2">&amp;</span><span class="ident">msg</span>, <span class="ident">f</span>)<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">mark</span>() {
+                    <span class="macro">write!</span>(
+                        <span class="ident">f</span>,
+                        <span class="string">&quot;, line: {}, column: {}&quot;</span>,
+                        <span class="ident">mark</span>.<span class="ident">line</span>() <span class="op">+</span> <span class="number">1</span>,
+                        <span class="ident">mark</span>.<span class="ident">column</span>() <span class="op">+</span> <span class="number">1</span>,
+                    )<span class="question-mark">?</span>;
+                }
+                <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="string">&quot;)&quot;</span>)
+            }
         }
     }
 }
