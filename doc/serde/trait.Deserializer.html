@@ -168,7 +168,7 @@ it to <code>serde_json::Value</code> by going through
 </li>
 <li>
 <p>The various <code>deserialize_*</code> methods. Non-self-describing formats like
-Bincode need to be told what is in the input in order to deserialize it.
+Postcard need to be told what is in the input in order to deserialize it.
 The <code>deserialize_*</code> methods are hints to the deserializer for how to
 interpret the next piece of input. Non-self-describing formats are not
 able to deserialize something like <code>serde_json::Value</code> which relies on
@@ -179,7 +179,7 @@ able to deserialize something like <code>serde_json::Value</code> which relies o
 <code>Deserializer::deserialize_any</code> unless you need to be told by the
 Deserializer what type is in the input. Know that relying on
 <code>Deserializer::deserialize_any</code> means your data type will be able to
-deserialize from self-describing formats only, ruling out Bincode and many
+deserialize from self-describing formats only, ruling out Postcard and many
 others.</p>
 <h2 id="lifetime"><a href="#lifetime">Lifetime</a></h2>
 <p>The <code>'de</code> lifetime of this trait is the lifetime of data that may be
@@ -196,7 +196,7 @@ on what data type is in the input.</p>
 <code>Deserializer::deserialize_any</code> unless you need to be told by the
 Deserializer what type is in the input. Know that relying on
 <code>Deserializer::deserialize_any</code> means your data type will be able to
-deserialize from self-describing formats only, ruling out Bincode and
+deserialize from self-describing formats only, ruling out Postcard and
 many others.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="tymethod.deserialize_bool" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/serde/de/mod.rs.html#925-927">source</a></div><h4 class="code-header">fn <a href="#tymethod.deserialize_bool" class="fnname">deserialize_bool</a>&lt;V&gt;(self, visitor: V) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.62.1/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;V::<a class="associatedtype" href="de/trait.Visitor.html#associatedtype.Value" title="type serde::de::Visitor::Value">Value</a>, Self::<a class="associatedtype" href="trait.Deserializer.html#associatedtype.Error" title="type serde::Deserializer::Error">Error</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;V: <a class="trait" href="de/trait.Visitor.html" title="trait serde::de::Visitor">Visitor</a>&lt;'de&gt;,&nbsp;</span></h4></div></summary><div class="docblock"><p>Hint that the <code>Deserialize</code> type is expecting a <code>bool</code> value.</p>
 </div></details><details class="rustdoc-toggle" open><summary><div id="tymethod.deserialize_i8" class="method has-srclink"><div class="rightside"><a class="srclink" href="../src/serde/de/mod.rs.html#930-932">source</a></div><h4 class="code-header">fn <a href="#tymethod.deserialize_i8" class="fnname">deserialize_i8</a>&lt;V&gt;(self, visitor: V) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.62.1/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;V::<a class="associatedtype" href="de/trait.Visitor.html#associatedtype.Value" title="type serde::de::Visitor::Value">Value</a>, Self::<a class="associatedtype" href="trait.Deserializer.html#associatedtype.Error" title="type serde::Deserializer::Error">Error</a>&gt; <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;V: <a class="trait" href="de/trait.Visitor.html" title="trait serde::de::Visitor">Visitor</a>&lt;'de&gt;,&nbsp;</span></h4></div></summary><div class="docblock"><p>Hint that the <code>Deserialize</code> type is expecting an <code>i8</code> value.</p>
@@ -269,7 +269,7 @@ deserialize their human-readable form.</p>
 <p>Some types have a human-readable form that may be somewhat expensive to
 construct, as well as a binary form that is compact and efficient.
 Generally text-based formats like JSON and YAML will prefer to use the
-human-readable one and binary formats like Bincode will prefer the
+human-readable one and binary formats like Postcard will prefer the
 compact one.</p>
 
 <div class='information'><div class='tooltip edition' data-edition="2018">ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered edition"><code><span class="kw">use</span> <span class="ident">serde::de</span>::{<span class="self">self</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>};

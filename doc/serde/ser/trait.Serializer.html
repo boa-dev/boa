@@ -161,7 +161,7 @@ serialized data, for example <code>struct S { r: u8, g: u8, b: u8 }</code>.</li>
 </li>
 </ul>
 <p>Many Serde serializers produce text or binary data as output, for example
-JSON or Bincode. This is not a requirement of the <code>Serializer</code> trait, and
+JSON or Postcard. This is not a requirement of the <code>Serializer</code> trait, and
 there are serializers that do not produce text or binary output. One example
 is the <code>serde_json::value::Serializer</code> (distinct from the main <code>serde_json</code>
 serializer) that produces a <code>serde_json::Value</code> data structure in memory as
@@ -768,7 +768,7 @@ human-readable form.</p>
 <p>Some types have a human-readable form that may be somewhat expensive to
 construct, as well as a binary form that is compact and efficient.
 Generally text-based formats like JSON and YAML will prefer to use the
-human-readable one and binary formats like Bincode will prefer the
+human-readable one and binary formats like Postcard will prefer the
 compact one.</p>
 
 <div class='information'><div class='tooltip edition' data-edition="2018">ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered edition"><code><span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Serialize</span>, <span class="ident">Serializer</span>};
