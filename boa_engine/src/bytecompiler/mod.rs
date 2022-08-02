@@ -989,7 +989,7 @@ impl<'b> ByteCompiler<'b> {
                         PropertyDefinition::SpreadObject(expr) => {
                             self.compile_expr(expr, true)?;
                             self.emit_opcode(Opcode::Swap);
-                            self.emit(Opcode::CopyDataProperties, &[0]);
+                            self.emit(Opcode::CopyDataProperties, &[0, 0]);
                             self.emit_opcode(Opcode::Pop);
                         }
                         PropertyDefinition::CoverInitializedName(_, _) => {
@@ -2195,9 +2195,13 @@ impl<'b> ByteCompiler<'b> {
 
                 self.emit_opcode(Opcode::RequireObjectCoercible);
 
+                let mut additional_excluded_keys_count = 0;
+                let rest_exits = pattern.has_rest();
+
                 for binding in pattern.bindings() {
                     use BindingPatternTypeObject::{
-                        BindingPattern, Empty, RestGetConstField, RestProperty, SingleName,
+                        AssignmentGetConstField, AssignmentGetField, AssignmentRestProperty,
+                        BindingPattern, Empty, RestProperty, SingleName,
                     };
 
                     match binding {
@@ -2218,7 +2222,11 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true)?;
                                     self.emit_opcode(Opcode::Swap);
-                                    self.emit_opcode(Opcode::GetPropertyByValue);
+                                    if rest_exits {
+                                        self.emit_opcode(Opcode::GetPropertyByValuePush);
+                                    } else {
+                                        self.emit_opcode(Opcode::GetPropertyByValue);
+                                    }
                                 }
                             }
 
@@ -2229,13 +2237,17 @@ impl<'b> ByteCompiler<'b> {
                                 self.patch_jump(skip);
                             }
                             self.emit_binding(def, *ident);
+
+                            if rest_exits && property_name.computed().is_some() {
+                                self.emit_opcode(Opcode::Swap);
+                                additional_excluded_keys_count += 1;
+                            }
                         }
                         //  BindingRestProperty : ... BindingIdentifier
                         RestProperty {
                             ident,
                             excluded_keys,
                         } => {
-                            self.emit_opcode(Opcode::Dup);
                             self.emit_opcode(Opcode::PushEmptyObject);
 
                             for key in excluded_keys {
@@ -2244,10 +2256,13 @@ impl<'b> ByteCompiler<'b> {
                                 ));
                             }
 
-                            self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
+                            self.emit(
+                                Opcode::CopyDataProperties,
+                                &[excluded_keys.len() as u32, additional_excluded_keys_count],
+                            );
                             self.emit_binding(def, *ident);
                         }
-                        RestGetConstField {
+                        AssignmentRestProperty {
                             get_const_field,
                             excluded_keys,
                         } => {
@@ -2258,7 +2273,7 @@ impl<'b> ByteCompiler<'b> {
                                     self.interner().resolve_expect(*key).into(),
                                 ));
                             }
-                            self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32]);
+                            self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32, 0]);
                             self.access_set(
                                 Access::ByName {
                                     node: get_const_field,
@@ -2266,6 +2281,84 @@ impl<'b> ByteCompiler<'b> {
                                 None,
                                 false,
                             )?;
+                        }
+                        AssignmentGetConstField {
+                            property_name,
+                            get_const_field,
+                            default_init,
+                        } => {
+                            self.emit_opcode(Opcode::Dup);
+                            match property_name {
+                                PropertyName::Literal(name) => {
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::GetPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(node) => {
+                                    self.compile_expr(node, true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    if rest_exits {
+                                        self.emit_opcode(Opcode::GetPropertyByValuePush);
+                                    } else {
+                                        self.emit_opcode(Opcode::GetPropertyByValue);
+                                    }
+                                }
+                            }
+
+                            if let Some(init) = default_init {
+                                let skip =
+                                    self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                                self.compile_expr(init, true)?;
+                                self.patch_jump(skip);
+                            }
+
+                            self.access_set(
+                                Access::ByName {
+                                    node: get_const_field,
+                                },
+                                None,
+                                false,
+                            )?;
+
+                            if rest_exits && property_name.computed().is_some() {
+                                self.emit_opcode(Opcode::Swap);
+                                additional_excluded_keys_count += 1;
+                            }
+                        }
+                        AssignmentGetField {
+                            property_name,
+                            get_field,
+                            default_init,
+                        } => {
+                            self.emit_opcode(Opcode::Dup);
+                            match property_name {
+                                PropertyName::Literal(name) => {
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::GetPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(node) => {
+                                    self.compile_expr(node, true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    if rest_exits {
+                                        self.emit_opcode(Opcode::GetPropertyByValuePush);
+                                    } else {
+                                        self.emit_opcode(Opcode::GetPropertyByValue);
+                                    }
+                                }
+                            }
+
+                            if let Some(init) = default_init {
+                                let skip =
+                                    self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                                self.compile_expr(init, true)?;
+                                self.patch_jump(skip);
+                            }
+
+                            self.access_set(Access::ByValue { node: get_field }, None, false)?;
+
+                            if rest_exits && property_name.computed().is_some() {
+                                self.emit_opcode(Opcode::Swap);
+                                additional_excluded_keys_count += 1;
+                            }
                         }
                         BindingPattern {
                             ident,
@@ -2297,7 +2390,9 @@ impl<'b> ByteCompiler<'b> {
                     }
                 }
 
-                self.emit_opcode(Opcode::Pop);
+                if !rest_exits {
+                    self.emit_opcode(Opcode::Pop);
+                }
             }
             DeclarationPattern::Array(pattern) => {
                 let skip_init = self.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);

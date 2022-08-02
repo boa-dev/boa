@@ -760,6 +760,21 @@ impl Context {
 
                 self.vm.push(value);
             }
+            Opcode::GetPropertyByValuePush => {
+                let object = self.vm.pop();
+                let key = self.vm.pop();
+                let object = if let Some(object) = object.as_object() {
+                    object.clone()
+                } else {
+                    object.to_object(self)?
+                };
+
+                let property_key = key.to_property_key(self)?;
+                let value = object.get(property_key, self)?;
+
+                self.vm.push(key);
+                self.vm.push(value);
+            }
             Opcode::SetPropertyByName => {
                 let index = self.vm.read::<u32>();
 
@@ -1353,13 +1368,21 @@ impl Context {
             }
             Opcode::CopyDataProperties => {
                 let excluded_key_count = self.vm.read::<u32>();
+                let excluded_key_count_computed = self.vm.read::<u32>();
                 let mut excluded_keys = Vec::with_capacity(excluded_key_count as usize);
                 for _ in 0..excluded_key_count {
-                    excluded_keys.push(self.vm.pop().as_string().expect("not a string").clone());
+                    let key = self.vm.pop();
+                    excluded_keys
+                        .push(key.to_property_key(self).expect("key must be property key"));
                 }
                 let value = self.vm.pop();
                 let object = value.as_object().expect("not an object");
                 let source = self.vm.pop();
+                for _ in 0..excluded_key_count_computed {
+                    let key = self.vm.pop();
+                    excluded_keys
+                        .push(key.to_property_key(self).expect("key must be property key"));
+                }
                 object.copy_data_properties(&source, excluded_keys, self)?;
                 self.vm.push(value);
             }

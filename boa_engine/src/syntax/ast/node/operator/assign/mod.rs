@@ -204,38 +204,70 @@ pub(crate) fn object_decl_to_declaration_pattern(
                         default_init: None,
                     });
                 }
-                (PropertyName::Literal(name), Node::Assign(assign)) => match assign.lhs() {
-                    AssignTarget::Identifier(ident) if *name == ident.sym() => {
-                        if strict && *name == Sym::EVAL {
-                            return None;
-                        }
-                        if strict && RESERVED_IDENTIFIERS_STRICT.contains(name) {
-                            return None;
-                        }
-
-                        excluded_keys.push(*name);
-                        bindings.push(BindingPatternTypeObject::SingleName {
-                            ident: *name,
-                            property_name: PropertyName::Literal(*name),
-                            default_init: Some(assign.rhs().clone()),
-                        });
-                    }
+                (_, Node::Assign(assign)) => match assign.lhs() {
                     AssignTarget::Identifier(ident) => {
-                        bindings.push(BindingPatternTypeObject::SingleName {
-                            ident: ident.sym(),
-                            property_name: PropertyName::Literal(*name),
-                            default_init: Some(assign.rhs().clone()),
-                        });
+                        if let Some(name) = name.literal() {
+                            if name == ident.sym() {
+                                if strict && name == Sym::EVAL {
+                                    return None;
+                                }
+                                if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name) {
+                                    return None;
+                                }
+                                excluded_keys.push(name);
+                                bindings.push(BindingPatternTypeObject::SingleName {
+                                    ident: name,
+                                    property_name: PropertyName::Literal(name),
+                                    default_init: Some(assign.rhs().clone()),
+                                });
+                            } else {
+                                bindings.push(BindingPatternTypeObject::SingleName {
+                                    ident: ident.sym(),
+                                    property_name: PropertyName::Literal(name),
+                                    default_init: Some(assign.rhs().clone()),
+                                });
+                            }
+                        } else {
+                            return None;
+                        }
                     }
                     AssignTarget::DeclarationPattern(pattern) => {
                         bindings.push(BindingPatternTypeObject::BindingPattern {
-                            ident: PropertyName::Literal(*name),
+                            ident: name.clone(),
                             pattern: pattern.clone(),
                             default_init: Some(assign.rhs().clone()),
                         });
                     }
-                    _ => return None,
+                    AssignTarget::GetConstField(field) => {
+                        bindings.push(BindingPatternTypeObject::AssignmentGetConstField {
+                            property_name: name.clone(),
+                            get_const_field: field.clone(),
+                            default_init: Some(assign.rhs().clone()),
+                        });
+                    }
+                    AssignTarget::GetField(field) => {
+                        bindings.push(BindingPatternTypeObject::AssignmentGetField {
+                            property_name: name.clone(),
+                            get_field: field.clone(),
+                            default_init: Some(assign.rhs().clone()),
+                        });
+                    }
+                    AssignTarget::GetPrivateField(_) => return None,
                 },
+                (_, Node::GetConstField(field)) => {
+                    bindings.push(BindingPatternTypeObject::AssignmentGetConstField {
+                        property_name: name.clone(),
+                        get_const_field: field.clone(),
+                        default_init: None,
+                    });
+                }
+                (_, Node::GetField(field)) => {
+                    bindings.push(BindingPatternTypeObject::AssignmentGetField {
+                        property_name: name.clone(),
+                        get_field: field.clone(),
+                        default_init: None,
+                    });
+                }
                 (PropertyName::Computed(name), Node::Identifier(ident)) => {
                     bindings.push(BindingPatternTypeObject::SingleName {
                         ident: ident.sym(),
@@ -254,7 +286,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
                         });
                     }
                     Node::GetConstField(get_const_field) => {
-                        bindings.push(BindingPatternTypeObject::RestGetConstField {
+                        bindings.push(BindingPatternTypeObject::AssignmentRestProperty {
                             get_const_field: get_const_field.clone(),
                             excluded_keys: excluded_keys.clone(),
                         });

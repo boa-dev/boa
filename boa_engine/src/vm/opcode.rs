@@ -520,6 +520,15 @@ pub enum Opcode {
     /// Stack: key, object **=>** value
     GetPropertyByValue,
 
+    /// Get a property by value from an object an push the key and value on the stack.
+    ///
+    /// Like `object[key]`
+    ///
+    /// Operands:
+    ///
+    /// Stack: key, object **=>** key, value
+    GetPropertyByValuePush,
+
     /// Sets a property by name of an object.
     ///
     /// Like `object.name = value`
@@ -747,9 +756,9 @@ pub enum Opcode {
 
     /// Copy all properties of one object to another object.
     ///
-    /// Operands: excluded_key_count: `u32`
+    /// Operands: excluded_key_count: `u32`, excluded_key_count_computed: `u32`
     ///
-    /// Stack: source, value, excluded_key_0 ... excluded_key_n **=>** value
+    /// Stack: excluded_key_computed_0 ... excluded_key_computed_n, source, value, excluded_key_0 ... excluded_key_n **=>** value
     CopyDataProperties,
 
     /// Call ToPropertyKey on the value on the stack.
@@ -1247,6 +1256,7 @@ impl Opcode {
             Self::SetName => "SetName",
             Self::GetPropertyByName => "GetPropertyByName",
             Self::GetPropertyByValue => "GetPropertyByValue",
+            Self::GetPropertyByValuePush => "GetPropertyByValuePush",
             Self::SetPropertyByName => "SetPropertyByName",
             Self::DefineOwnPropertyByName => "DefineOwnPropertyByName",
             Self::DefineClassMethodByName => "DefineClassMethodByName",
@@ -1407,6 +1417,7 @@ impl Opcode {
             Self::SetName => "INST - SetName",
             Self::GetPropertyByName => "INST - GetPropertyByName",
             Self::GetPropertyByValue => "INST - GetPropertyByValue",
+            Self::GetPropertyByValuePush => "INST - GetPropertyByValuePush",
             Self::SetPropertyByName => "INST - SetPropertyByName",
             Self::DefineOwnPropertyByName => "INST - DefineOwnPropertyByName",
             Self::SetPropertyByValue => "INST - SetPropertyByValue",

@@ -209,7 +209,6 @@ impl CodeBlock {
             | Opcode::ForInLoopInitIterator
             | Opcode::ForInLoopNext
             | Opcode::ConcatToString
-            | Opcode::CopyDataProperties
             | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
@@ -217,7 +216,8 @@ impl CodeBlock {
             }
             Opcode::TryStart
             | Opcode::PushDeclarativeEnvironment
-            | Opcode::PushFunctionEnvironment => {
+            | Opcode::PushFunctionEnvironment
+            | Opcode::CopyDataProperties => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
@@ -329,6 +329,7 @@ impl CodeBlock {
             | Opcode::Dec
             | Opcode::DecPost
             | Opcode::GetPropertyByValue
+            | Opcode::GetPropertyByValuePush
             | Opcode::SetPropertyByValue
             | Opcode::DefineOwnPropertyByValue
             | Opcode::DefineClassMethodByValue

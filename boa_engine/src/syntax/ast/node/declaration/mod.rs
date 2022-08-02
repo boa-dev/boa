@@ -333,8 +333,9 @@ impl DeclarationPattern {
                                 }
                             }
                         }
-                        BindingPatternTypeObject::RestGetConstField {
-                            get_const_field, ..
+                        BindingPatternTypeObject::AssignmentRestProperty {
+                            get_const_field,
+                            ..
                         } => {
                             if get_const_field.obj().contains_arguments() {
                                 return true;
@@ -432,8 +433,9 @@ impl DeclarationPattern {
                                 return true;
                             }
                         }
-                        BindingPatternTypeObject::RestGetConstField {
-                            get_const_field, ..
+                        BindingPatternTypeObject::AssignmentRestProperty {
+                            get_const_field,
+                            ..
                         } => {
                             if get_const_field.obj().contains(symbol) {
                                 return true;
@@ -560,6 +562,15 @@ impl DeclarationPatternObject {
         &self.bindings
     }
 
+    // Returns if the object binding pattern has a rest element.
+    #[inline]
+    pub(crate) fn has_rest(&self) -> bool {
+        matches!(
+            self.bindings.last(),
+            Some(BindingPatternTypeObject::RestProperty { .. })
+        )
+    }
+
     /// Gets the list of identifiers declared by the object binding pattern.
     #[inline]
     pub(crate) fn idents(&self) -> Vec<Sym> {
@@ -567,11 +578,11 @@ impl DeclarationPatternObject {
 
         for binding in &self.bindings {
             use BindingPatternTypeObject::{
-                BindingPattern, Empty, RestGetConstField, RestProperty, SingleName,
+                AssignmentRestProperty, BindingPattern, Empty, RestProperty, SingleName,
             };
 
             match binding {
-                Empty | RestGetConstField { .. } => {}
+                Empty | AssignmentRestProperty { .. } => {}
                 SingleName {
                     ident,
                     property_name: _,
@@ -584,6 +595,12 @@ impl DeclarationPatternObject {
                     excluded_keys: _,
                 } => {
                     idents.push(*property_name);
+                }
+                BindingPatternTypeObject::AssignmentGetConstField { property_name, .. }
+                | BindingPatternTypeObject::AssignmentGetField { property_name, .. } => {
+                    if let Some(name) = property_name.literal() {
+                        idents.push(name);
+                    }
                 }
                 BindingPattern {
                     ident: _,
@@ -737,18 +754,48 @@ pub enum BindingPatternTypeObject {
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestProperty
     RestProperty { ident: Sym, excluded_keys: Vec<Sym> },
 
-    /// RestGetConstField represents a rest property (spread operator) with a property accessor.
+    /// AssignmentRestProperty represents a rest property with a DestructuringAssignmentTarget.
     ///
     /// Note: According to the spec this is not part of an ObjectBindingPattern.
-    /// This is only used when a object literal is used as the left-hand-side of an assignment expression.
+    /// This is only used when a object literal is used to cover an AssignmentPattern.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
     ///
-    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
-    RestGetConstField {
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentRestProperty
+    AssignmentRestProperty {
         get_const_field: GetConstField,
         excluded_keys: Vec<Sym>,
+    },
+
+    /// AssignmentGetConstField represents an AssignmentProperty with a cost field member expression AssignmentElement.
+    ///
+    /// Note: According to the spec this is not part of an ObjectBindingPattern.
+    /// This is only used when a object literal is used to cover an AssignmentPattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentProperty
+    AssignmentGetConstField {
+        property_name: PropertyName,
+        get_const_field: GetConstField,
+        default_init: Option<Node>,
+    },
+
+    /// AssignmentGetField represents an AssignmentProperty with an expression field member expression AssignmentElement.
+    ///
+    /// Note: According to the spec this is not part of an ObjectBindingPattern.
+    /// This is only used when a object literal is used to cover an AssignmentPattern.
+    ///
+    /// More information:
+    ///  - [ECMAScript reference][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#prod-AssignmentProperty
+    AssignmentGetField {
+        property_name: PropertyName,
+        get_field: GetField,
+        default_init: Option<Node>,
     },
 
     /// BindingPattern represents a `BindingProperty` with a `BindingPattern` as the `BindingElement`.
@@ -806,10 +853,62 @@ impl ToInternedString for BindingPatternTypeObject {
             } => {
                 format!(" ... {}", interner.resolve_expect(*property_name))
             }
-            Self::RestGetConstField {
+            Self::AssignmentRestProperty {
                 get_const_field, ..
             } => {
                 format!(" ... {}", get_const_field.to_interned_string(interner))
+            }
+            Self::AssignmentGetConstField {
+                property_name,
+                get_const_field,
+                default_init,
+            } => {
+                let mut buf = match property_name {
+                    PropertyName::Literal(name) => {
+                        format!(
+                            " {} : {}",
+                            interner.resolve_expect(*name),
+                            get_const_field.to_interned_string(interner)
+                        )
+                    }
+                    PropertyName::Computed(node) => {
+                        format!(
+                            " [{}] : {}",
+                            node.to_interned_string(interner),
+                            get_const_field.to_interned_string(interner)
+                        )
+                    }
+                };
+                if let Some(init) = &default_init {
+                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                }
+                buf
+            }
+            Self::AssignmentGetField {
+                property_name,
+                get_field,
+                default_init,
+            } => {
+                let mut buf = match property_name {
+                    PropertyName::Literal(name) => {
+                        format!(
+                            " {} : {}",
+                            interner.resolve_expect(*name),
+                            get_field.to_interned_string(interner)
+                        )
+                    }
+                    PropertyName::Computed(node) => {
+                        format!(
+                            " [{}] : {}",
+                            node.to_interned_string(interner),
+                            get_field.to_interned_string(interner)
+                        )
+                    }
+                };
+                if let Some(init) = &default_init {
+                    buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
+                }
+                buf
             }
             Self::BindingPattern {
                 ident: property_name,
