@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.1/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.2/src/macros.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>macros.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -494,75 +494,16 @@
 <span id="489">489</span>
 <span id="490">490</span>
 <span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
 </pre><pre class="rust"><code><span class="macro">macro_rules!</span> <span class="ident">BUFFER_INIT</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>:<span class="ident">expr</span>) =&gt; {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span>:<span class="ident">expr</span>) =&gt; {{
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">start</span>);
         <span class="kw-2">*</span><span class="ident">start</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span> <span class="kw">as</span> <span class="ident">size_t</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
-        <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">start</span>).<span class="ident">is_null</span>() {
-            <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">pointer</span>);
-            <span class="kw-2">*</span><span class="ident">pointer</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">start</span>;
-            <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">last</span>);
-            <span class="kw-2">*</span><span class="ident">last</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">pointer</span>;
-            <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">end</span>);
-            <span class="kw-2">*</span><span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">start</span>.<span class="ident">wrapping_add</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
-        }
+        <span class="kw">let</span> <span class="ident">pointer</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">pointer</span>);
+        <span class="kw-2">*</span><span class="ident">pointer</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">start</span>;
+        <span class="kw">let</span> <span class="ident">last</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">last</span>);
+        <span class="kw-2">*</span><span class="ident">last</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">pointer</span>;
+        <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">end</span>);
+        <span class="kw-2">*</span><span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">buffer</span>.<span class="ident">start</span>.<span class="ident">wrapping_add</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
     }};
 }
 
@@ -589,17 +530,11 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">STRING_INIT</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>:<span class="ident">expr</span>) =&gt; {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>:<span class="ident">expr</span>) =&gt; {{
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="number">16</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span>.<span class="ident">is_null</span>() {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">pointer</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span>;
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span>.<span class="ident">wrapping_add</span>(<span class="number">16</span>);
-            <span class="ident">memset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>, <span class="number">0</span>, <span class="number">16</span>);
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
-        }
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">pointer</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span>.<span class="ident">wrapping_add</span>(<span class="number">16</span>);
+        <span class="ident">memset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>, <span class="number">0</span>, <span class="number">16</span>);
     }};
 }
 
@@ -613,19 +548,13 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">STRING_EXTEND</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">pointer</span>.<span class="ident">wrapping_add</span>(<span class="number">5</span>) <span class="op">&lt;</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">end</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">yaml_string_extend</span>(
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">pointer</span>.<span class="ident">wrapping_add</span>(<span class="number">5</span>) <span class="op">&gt;</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">end</span> {
+            <span class="ident">yaml_string_extend</span>(
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">start</span>),
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">pointer</span>),
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string</span>.<span class="ident">end</span>),
-            )
-            .<span class="ident">ok</span>
-        {
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
+            );
         }
     };
 }
@@ -642,24 +571,17 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">JOIN</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_a</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">if</span> <span class="ident">yaml_string_join</span>(
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_a</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>:<span class="ident">expr</span>) =&gt; {{
+        <span class="ident">yaml_string_join</span>(
             <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_a</span>.<span class="ident">start</span>),
             <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_a</span>.<span class="ident">pointer</span>),
             <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_a</span>.<span class="ident">end</span>),
             <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>.<span class="ident">start</span>),
             <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>.<span class="ident">pointer</span>),
             <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>.<span class="ident">end</span>),
-        )
-        .<span class="ident">ok</span>
-        {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>.<span class="ident">pointer</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>.<span class="ident">start</span>;
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
-        }
-    };
+        );
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>.<span class="ident">pointer</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">string_b</span>.<span class="ident">start</span>;
+    }};
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">CHECK_AT</span> {
@@ -921,16 +843,10 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">STACK_INIT</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {{
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="number">16</span> <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="macro-nonterminal">libc::c_ulong</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="macro-nonterminal">$</span><span class="kw">type</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">start</span>.<span class="ident">is_null</span>() {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">start</span>;
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">start</span>.<span class="ident">offset</span>(<span class="number">16_isize</span>);
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
-        }
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">start</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">start</span>.<span class="ident">offset</span>(<span class="number">16_isize</span>);
     }};
 }
 
@@ -961,27 +877,22 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">PUSH</span> {
-    (<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">push</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span> <span class="op">!</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">end</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">yaml_stack_extend</span>(
+    (<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">push</span>:<span class="ident">expr</span>) =&gt; {{
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">end</span> {
+            <span class="ident">yaml_stack_extend</span>(
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">end</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-            ).<span class="ident">ok</span>
-        {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">push</span>;
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
+            );
         }
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">push</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
+    }};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="macro">PUSH!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>, <span class="ident">ptr::copy_nonoverlapping</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span>, <span class="number">1</span>))
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="macro">PUSH!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>, <span class="ident">ptr::copy_nonoverlapping</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span>, <span class="number">1</span>))
-    };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="macro">PUSH!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>, <span class="ident">ptr::write</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>))
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="macro">PUSH!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>, <span class="ident">ptr::write</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">stack</span>.<span class="ident">top</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>))
     };
 }
 
@@ -995,17 +906,11 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">QUEUE_INIT</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {{
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="kw">type</span>:<span class="macro-nonterminal">ty</span>) =&gt; {{
         <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="number">16</span> <span class="op">*</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="kw">type</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="macro-nonterminal">libc::c_ulong</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="macro-nonterminal">$</span><span class="kw">type</span>;
-        <span class="kw">if</span> <span class="op">!</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span>.<span class="ident">is_null</span>() {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span>;
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>;
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span>.<span class="ident">offset</span>(<span class="number">16_isize</span>);
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
-        }
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span>.<span class="ident">offset</span>(<span class="number">16_isize</span>);
     }};
 }
 
@@ -1026,28 +931,23 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">ENQUEUE</span> {
-    (<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enqueue</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">!</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">yaml_queue_extend</span>(
+    (<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enqueue</span>:<span class="ident">expr</span>) =&gt; {{
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span> {
+            <span class="ident">yaml_queue_extend</span>(
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-            ).<span class="ident">ok</span>
-        {
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enqueue</span>;
-            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
+            );
         }
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">enqueue</span>;
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
+    }};
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="macro">ENQUEUE!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>, <span class="ident">ptr::copy_nonoverlapping</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>, <span class="number">1</span>))
     };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="macro">ENQUEUE!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>, <span class="ident">ptr::copy_nonoverlapping</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>, <span class="number">1</span>))
-    };
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="macro">ENQUEUE!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>, <span class="ident">ptr::write</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>))
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
+        <span class="macro">ENQUEUE!</span>(<span class="kw">do</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>, <span class="ident">ptr::write</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>))
     };
 }
 
@@ -1062,34 +962,28 @@
 }
 
 <span class="macro">macro_rules!</span> <span class="ident">QUEUE_INSERT</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {
-        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">!</span><span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span>
-            <span class="op">|</span><span class="op">|</span> <span class="ident">yaml_queue_extend</span>(
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">expr</span>) =&gt; {{
+        <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span> {
+            <span class="ident">yaml_queue_extend</span>(
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
                 <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">end</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-            )
-            .<span class="ident">ok</span>
-        {
-            <span class="ident">memmove</span>(
-                (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>)
-                    .<span class="ident">wrapping_offset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span> <span class="kw">as</span> <span class="ident">isize</span>)
-                    .<span class="ident">wrapping_offset</span>(<span class="number">1_isize</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>).<span class="ident">wrapping_offset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
-                ((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>).<span class="ident">c_offset_from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>) <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
-                    .<span class="ident">wrapping_sub</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>)
-                    .<span class="ident">wrapping_mul</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_token_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>),
             );
-            <span class="kw-2">*</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>).<span class="ident">wrapping_offset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>;
-            <span class="kw">let</span> <span class="ident">fresh14</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>);
-            <span class="kw-2">*</span><span class="ident">fresh14</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">fresh14</span>).<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
-            <span class="ident">OK</span>
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>).<span class="ident">error</span> <span class="op">=</span> <span class="ident">YAML_MEMORY_ERROR</span>;
-            <span class="ident">FAIL</span>
         }
-    };
+        <span class="ident">memmove</span>(
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>)
+                .<span class="ident">wrapping_offset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span> <span class="kw">as</span> <span class="ident">isize</span>)
+                .<span class="ident">wrapping_offset</span>(<span class="number">1_isize</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+            (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>).<span class="ident">wrapping_offset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
+            ((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>).<span class="ident">c_offset_from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>) <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
+                .<span class="ident">wrapping_sub</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span>)
+                .<span class="ident">wrapping_mul</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_token_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>),
+        );
+        <span class="kw-2">*</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">head</span>).<span class="ident">wrapping_offset</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">index</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>;
+        <span class="kw">let</span> <span class="ident">fresh14</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">queue</span>.<span class="ident">tail</span>);
+        <span class="kw-2">*</span><span class="ident">fresh14</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">fresh14</span>).<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
+    }};
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unsafe_libyaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>

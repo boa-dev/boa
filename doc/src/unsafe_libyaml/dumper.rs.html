@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.1/src/dumper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dumper.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.2/src/dumper.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>dumper.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -452,22 +452,6 @@
 <span id="447">447</span>
 <span id="448">448</span>
 <span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
-<span id="462">462</span>
-<span id="463">463</span>
-<span id="464">464</span>
-<span id="465">465</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::api</span>::{<span class="ident">yaml_free</span>, <span class="ident">yaml_malloc</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::externs</span>::{<span class="ident">memset</span>, <span class="ident">strcmp</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fmt::WriteToPtr</span>;
@@ -589,45 +573,41 @@
                         .<span class="ident">wrapping_mul</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
                             <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>),
                 ) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_anchors_t</span>;
-                <span class="kw">if</span> <span class="op">!</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">is_null</span>() {
-                    <span class="ident">memset</span>(
-                        (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                        <span class="number">0</span>,
-                        (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_anchors_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>).<span class="ident">wrapping_mul</span>(
-                            (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
-                                <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                        ),
-                    );
-                    <span class="ident">memset</span>(
-                        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                        <span class="number">0</span>,
-                        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                    );
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_START_EVENT</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">version_directive</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">version_directive</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">start</span> <span class="op">=</span>
-                        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">start</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">end</span> <span class="op">=</span>
-                        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">end</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">implicit</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">start_implicit</span>;
-                    <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">ok</span> {
-                        <span class="ident">yaml_emitter_anchor_node</span>(<span class="ident">emitter</span>, <span class="number">1</span>);
-                        <span class="kw">if</span> <span class="ident">yaml_emitter_dump_node</span>(<span class="ident">emitter</span>, <span class="number">1</span>).<span class="ident">ok</span> {
-                            <span class="ident">memset</span>(
-                                <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                                <span class="number">0</span>,
-                                <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                            );
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_END_EVENT</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_end</span>.<span class="ident">implicit</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">end_implicit</span>;
-                            <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">ok</span> {
-                                <span class="ident">yaml_emitter_delete_document_and_anchors</span>(<span class="ident">emitter</span>);
-                                <span class="kw">return</span> <span class="ident">OK</span>;
-                            }
+                <span class="ident">memset</span>(
+                    (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                    <span class="number">0</span>,
+                    (<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_anchors_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
+                        .<span class="ident">wrapping_mul</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
+                            <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>),
+                );
+                <span class="ident">memset</span>(
+                    <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                    <span class="number">0</span>,
+                    <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                );
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_START_EVENT</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">version_directive</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">version_directive</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">start</span> <span class="op">=</span>
+                    (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">start</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">end</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">end</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">implicit</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">start_implicit</span>;
+                <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">ok</span> {
+                    <span class="ident">yaml_emitter_anchor_node</span>(<span class="ident">emitter</span>, <span class="number">1</span>);
+                    <span class="kw">if</span> <span class="ident">yaml_emitter_dump_node</span>(<span class="ident">emitter</span>, <span class="number">1</span>).<span class="ident">ok</span> {
+                        <span class="ident">memset</span>(
+                            <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                            <span class="number">0</span>,
+                            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                        );
+                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_END_EVENT</span>;
+                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_end</span>.<span class="ident">implicit</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">end_implicit</span>;
+                        <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">ok</span> {
+                            <span class="ident">yaml_emitter_delete_document_and_anchors</span>(<span class="ident">emitter</span>);
+                            <span class="kw">return</span> <span class="ident">OK</span>;
                         }
                     }
                 }
@@ -731,9 +711,6 @@
     <span class="ident">anchor_id</span>: <span class="ident">libc::c_int</span>,
 ) -&gt; <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span> {
     <span class="kw">let</span> <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="number">16_u64</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
-    <span class="kw">if</span> <span class="ident">anchor</span>.<span class="ident">is_null</span>() {
-        <span class="kw">return</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
-    }
     <span class="macro">write!</span>(<span class="ident">WriteToPtr::new</span>(<span class="ident">anchor</span>), <span class="string">&quot;id{:03}\0&quot;</span>, <span class="ident">anchor_id</span>);
     <span class="ident">anchor</span>
 }
@@ -748,9 +725,6 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">anchor</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
     <span class="kw">if</span> <span class="ident">anchor_id</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
         <span class="ident">anchor</span> <span class="op">=</span> <span class="ident">yaml_emitter_generate_anchor</span>(<span class="ident">emitter</span>, <span class="ident">anchor_id</span>);
-        <span class="kw">if</span> <span class="ident">anchor</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="ident">FAIL</span>;
-        }
     }
     <span class="kw">if</span> (<span class="kw-2">*</span>(<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">anchors</span>.<span class="ident">wrapping_offset</span>((<span class="ident">index</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>)).<span class="ident">serialized</span> {
         <span class="kw">return</span> <span class="ident">yaml_emitter_dump_alias</span>(<span class="ident">emitter</span>, <span class="ident">anchor</span>);
@@ -872,10 +846,7 @@
     (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SEQUENCE_END_EVENT</span>;
     (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
     (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">fail</span> {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
-    }
-    <span class="ident">OK</span>
+    <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>)
 }
 
 <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_emitter_dump_mapping</span>(
@@ -928,10 +899,7 @@
     (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_MAPPING_END_EVENT</span>;
     (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
     (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-    <span class="kw">if</span> <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>).<span class="ident">fail</span> {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
-    }
-    <span class="ident">OK</span>
+    <span class="ident">yaml_emitter_emit</span>(<span class="ident">emitter</span>, <span class="ident">event</span>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="unsafe_libyaml" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>

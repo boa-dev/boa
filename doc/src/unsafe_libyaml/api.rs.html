@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.1/src/api.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>api.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unsafe-libyaml-0.2.2/src/api.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>api.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unsafe_libyaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1551,202 +1551,23 @@
 <span id="1546">1546</span>
 <span id="1547">1547</span>
 <span id="1548">1548</span>
-<span id="1549">1549</span>
-<span id="1550">1550</span>
-<span id="1551">1551</span>
-<span id="1552">1552</span>
-<span id="1553">1553</span>
-<span id="1554">1554</span>
-<span id="1555">1555</span>
-<span id="1556">1556</span>
-<span id="1557">1557</span>
-<span id="1558">1558</span>
-<span id="1559">1559</span>
-<span id="1560">1560</span>
-<span id="1561">1561</span>
-<span id="1562">1562</span>
-<span id="1563">1563</span>
-<span id="1564">1564</span>
-<span id="1565">1565</span>
-<span id="1566">1566</span>
-<span id="1567">1567</span>
-<span id="1568">1568</span>
-<span id="1569">1569</span>
-<span id="1570">1570</span>
-<span id="1571">1571</span>
-<span id="1572">1572</span>
-<span id="1573">1573</span>
-<span id="1574">1574</span>
-<span id="1575">1575</span>
-<span id="1576">1576</span>
-<span id="1577">1577</span>
-<span id="1578">1578</span>
-<span id="1579">1579</span>
-<span id="1580">1580</span>
-<span id="1581">1581</span>
-<span id="1582">1582</span>
-<span id="1583">1583</span>
-<span id="1584">1584</span>
-<span id="1585">1585</span>
-<span id="1586">1586</span>
-<span id="1587">1587</span>
-<span id="1588">1588</span>
-<span id="1589">1589</span>
-<span id="1590">1590</span>
-<span id="1591">1591</span>
-<span id="1592">1592</span>
-<span id="1593">1593</span>
-<span id="1594">1594</span>
-<span id="1595">1595</span>
-<span id="1596">1596</span>
-<span id="1597">1597</span>
-<span id="1598">1598</span>
-<span id="1599">1599</span>
-<span id="1600">1600</span>
-<span id="1601">1601</span>
-<span id="1602">1602</span>
-<span id="1603">1603</span>
-<span id="1604">1604</span>
-<span id="1605">1605</span>
-<span id="1606">1606</span>
-<span id="1607">1607</span>
-<span id="1608">1608</span>
-<span id="1609">1609</span>
-<span id="1610">1610</span>
-<span id="1611">1611</span>
-<span id="1612">1612</span>
-<span id="1613">1613</span>
-<span id="1614">1614</span>
-<span id="1615">1615</span>
-<span id="1616">1616</span>
-<span id="1617">1617</span>
-<span id="1618">1618</span>
-<span id="1619">1619</span>
-<span id="1620">1620</span>
-<span id="1621">1621</span>
-<span id="1622">1622</span>
-<span id="1623">1623</span>
-<span id="1624">1624</span>
-<span id="1625">1625</span>
-<span id="1626">1626</span>
-<span id="1627">1627</span>
-<span id="1628">1628</span>
-<span id="1629">1629</span>
-<span id="1630">1630</span>
-<span id="1631">1631</span>
-<span id="1632">1632</span>
-<span id="1633">1633</span>
-<span id="1634">1634</span>
-<span id="1635">1635</span>
-<span id="1636">1636</span>
-<span id="1637">1637</span>
-<span id="1638">1638</span>
-<span id="1639">1639</span>
-<span id="1640">1640</span>
-<span id="1641">1641</span>
-<span id="1642">1642</span>
-<span id="1643">1643</span>
-<span id="1644">1644</span>
-<span id="1645">1645</span>
-<span id="1646">1646</span>
-<span id="1647">1647</span>
-<span id="1648">1648</span>
-<span id="1649">1649</span>
-<span id="1650">1650</span>
-<span id="1651">1651</span>
-<span id="1652">1652</span>
-<span id="1653">1653</span>
-<span id="1654">1654</span>
-<span id="1655">1655</span>
-<span id="1656">1656</span>
-<span id="1657">1657</span>
-<span id="1658">1658</span>
-<span id="1659">1659</span>
-<span id="1660">1660</span>
-<span id="1661">1661</span>
-<span id="1662">1662</span>
-<span id="1663">1663</span>
-<span id="1664">1664</span>
-<span id="1665">1665</span>
-<span id="1666">1666</span>
-<span id="1667">1667</span>
-<span id="1668">1668</span>
-<span id="1669">1669</span>
-<span id="1670">1670</span>
-<span id="1671">1671</span>
-<span id="1672">1672</span>
-<span id="1673">1673</span>
-<span id="1674">1674</span>
-<span id="1675">1675</span>
-<span id="1676">1676</span>
-<span id="1677">1677</span>
-<span id="1678">1678</span>
-<span id="1679">1679</span>
-<span id="1680">1680</span>
-<span id="1681">1681</span>
-<span id="1682">1682</span>
-<span id="1683">1683</span>
-<span id="1684">1684</span>
-<span id="1685">1685</span>
-<span id="1686">1686</span>
-<span id="1687">1687</span>
-<span id="1688">1688</span>
-<span id="1689">1689</span>
-<span id="1690">1690</span>
-<span id="1691">1691</span>
-<span id="1692">1692</span>
-<span id="1693">1693</span>
-<span id="1694">1694</span>
-<span id="1695">1695</span>
-<span id="1696">1696</span>
-<span id="1697">1697</span>
-<span id="1698">1698</span>
-<span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
-<span id="1704">1704</span>
-<span id="1705">1705</span>
-<span id="1706">1706</span>
-<span id="1707">1707</span>
-<span id="1708">1708</span>
-<span id="1709">1709</span>
-<span id="1710">1710</span>
-<span id="1711">1711</span>
-<span id="1712">1712</span>
-<span id="1713">1713</span>
-<span id="1714">1714</span>
-<span id="1715">1715</span>
-<span id="1716">1716</span>
-<span id="1717">1717</span>
-<span id="1718">1718</span>
-<span id="1719">1719</span>
-<span id="1720">1720</span>
-<span id="1721">1721</span>
-<span id="1722">1722</span>
-<span id="1723">1723</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::externs</span>::{<span class="ident">free</span>, <span class="ident">malloc</span>, <span class="ident">memcpy</span>, <span class="ident">memmove</span>, <span class="ident">memset</span>, <span class="ident">realloc</span>, <span class="ident">strdup</span>, <span class="ident">strlen</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::success</span>::{<span class="ident">Success</span>, <span class="ident">FAIL</span>, <span class="ident">OK</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::yaml</span>::{<span class="ident">size_t</span>, <span class="ident">yaml_char_t</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">libc</span>, <span class="ident">yaml_break_t</span>, <span class="ident">yaml_document_t</span>, <span class="ident">yaml_emitter_state_t</span>, <span class="ident">yaml_emitter_t</span>, <span class="ident">yaml_encoding_t</span>,
-    <span class="ident">yaml_error_type_t</span>, <span class="ident">yaml_event_t</span>, <span class="ident">yaml_mapping_style_t</span>, <span class="ident">yaml_mark_t</span>, <span class="ident">yaml_node_item_t</span>,
-    <span class="ident">yaml_node_pair_t</span>, <span class="ident">yaml_node_t</span>, <span class="ident">yaml_parser_state_t</span>, <span class="ident">yaml_parser_t</span>, <span class="ident">yaml_read_handler_t</span>,
-    <span class="ident">yaml_scalar_style_t</span>, <span class="ident">yaml_sequence_style_t</span>, <span class="ident">yaml_simple_key_t</span>, <span class="ident">yaml_tag_directive_t</span>,
-    <span class="ident">yaml_token_t</span>, <span class="ident">yaml_version_directive_t</span>, <span class="ident">yaml_write_handler_t</span>, <span class="ident">PointerExt</span>, <span class="ident">YAML_ALIAS_EVENT</span>,
-    <span class="ident">YAML_ALIAS_TOKEN</span>, <span class="ident">YAML_ANCHOR_TOKEN</span>, <span class="ident">YAML_ANY_ENCODING</span>, <span class="ident">YAML_DOCUMENT_END_EVENT</span>,
-    <span class="ident">YAML_DOCUMENT_START_EVENT</span>, <span class="ident">YAML_MAPPING_END_EVENT</span>, <span class="ident">YAML_MAPPING_NODE</span>, <span class="ident">YAML_MAPPING_START_EVENT</span>,
-    <span class="ident">YAML_MEMORY_ERROR</span>, <span class="ident">YAML_NO_ERROR</span>, <span class="ident">YAML_SCALAR_EVENT</span>, <span class="ident">YAML_SCALAR_NODE</span>, <span class="ident">YAML_SCALAR_TOKEN</span>,
-    <span class="ident">YAML_SEQUENCE_END_EVENT</span>, <span class="ident">YAML_SEQUENCE_NODE</span>, <span class="ident">YAML_SEQUENCE_START_EVENT</span>, <span class="ident">YAML_STREAM_END_EVENT</span>,
-    <span class="ident">YAML_STREAM_START_EVENT</span>, <span class="ident">YAML_TAG_DIRECTIVE_TOKEN</span>, <span class="ident">YAML_TAG_TOKEN</span>,
+    <span class="ident">yaml_event_t</span>, <span class="ident">yaml_mapping_style_t</span>, <span class="ident">yaml_mark_t</span>, <span class="ident">yaml_node_item_t</span>, <span class="ident">yaml_node_pair_t</span>,
+    <span class="ident">yaml_node_t</span>, <span class="ident">yaml_parser_state_t</span>, <span class="ident">yaml_parser_t</span>, <span class="ident">yaml_read_handler_t</span>, <span class="ident">yaml_scalar_style_t</span>,
+    <span class="ident">yaml_sequence_style_t</span>, <span class="ident">yaml_simple_key_t</span>, <span class="ident">yaml_tag_directive_t</span>, <span class="ident">yaml_token_t</span>,
+    <span class="ident">yaml_version_directive_t</span>, <span class="ident">yaml_write_handler_t</span>, <span class="ident">PointerExt</span>, <span class="ident">YAML_ALIAS_EVENT</span>, <span class="ident">YAML_ALIAS_TOKEN</span>,
+    <span class="ident">YAML_ANCHOR_TOKEN</span>, <span class="ident">YAML_ANY_ENCODING</span>, <span class="ident">YAML_DOCUMENT_END_EVENT</span>, <span class="ident">YAML_DOCUMENT_START_EVENT</span>,
+    <span class="ident">YAML_MAPPING_END_EVENT</span>, <span class="ident">YAML_MAPPING_NODE</span>, <span class="ident">YAML_MAPPING_START_EVENT</span>, <span class="ident">YAML_SCALAR_EVENT</span>,
+    <span class="ident">YAML_SCALAR_NODE</span>, <span class="ident">YAML_SCALAR_TOKEN</span>, <span class="ident">YAML_SEQUENCE_END_EVENT</span>, <span class="ident">YAML_SEQUENCE_NODE</span>,
+    <span class="ident">YAML_SEQUENCE_START_EVENT</span>, <span class="ident">YAML_STREAM_END_EVENT</span>, <span class="ident">YAML_STREAM_START_EVENT</span>,
+    <span class="ident">YAML_TAG_DIRECTIVE_TOKEN</span>, <span class="ident">YAML_TAG_TOKEN</span>,
 };
 <span class="kw">use</span> <span class="ident">core::mem</span>::{<span class="ident">size_of</span>, <span class="ident">MaybeUninit</span>};
 <span class="kw">use</span> <span class="ident">core::ptr</span>::{<span class="self">self</span>, <span class="ident">addr_of_mut</span>};
-
-<span class="kw">struct</span> <span class="ident">api_context</span> {
-    <span class="ident">error</span>: <span class="ident">yaml_error_type_t</span>,
-}
 
 <span class="kw">const</span> <span class="ident">INPUT_RAW_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">16384</span>;
 <span class="kw">const</span> <span class="ident">INPUT_BUFFER_SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">INPUT_RAW_BUFFER_SIZE</span> <span class="op">*</span> <span class="number">3</span>;
@@ -1782,14 +1603,11 @@
     <span class="ident">start</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
     <span class="ident">pointer</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
     <span class="ident">end</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
-) -&gt; <span class="ident">Success</span> {
+) {
     <span class="kw">let</span> <span class="ident">new_start</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span> <span class="op">=</span> <span class="ident">yaml_realloc</span>(
         <span class="kw-2">*</span><span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
         ((<span class="kw-2">*</span><span class="ident">end</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="op">*</span> <span class="number">2_i64</span>) <span class="kw">as</span> <span class="ident">size_t</span>,
     ) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
-    <span class="kw">if</span> <span class="ident">new_start</span>.<span class="ident">is_null</span>() {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
-    }
     <span class="ident">memset</span>(
         <span class="ident">new_start</span>.<span class="ident">wrapping_offset</span>((<span class="kw-2">*</span><span class="ident">end</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">isize</span>)
             <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
@@ -1800,7 +1618,6 @@
     <span class="kw-2">*</span><span class="ident">end</span> <span class="op">=</span>
         <span class="ident">new_start</span>.<span class="ident">wrapping_offset</span>(((<span class="kw-2">*</span><span class="ident">end</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="op">*</span> <span class="number">2_i64</span>) <span class="kw">as</span> <span class="ident">isize</span>);
     <span class="kw-2">*</span><span class="ident">start</span> <span class="op">=</span> <span class="ident">new_start</span>;
-    <span class="ident">OK</span>
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_string_join</span>(
@@ -1810,16 +1627,14 @@
     <span class="ident">b_start</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
     <span class="ident">b_pointer</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
     <span class="ident">_b_end</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>,
-) -&gt; <span class="ident">Success</span> {
+) {
     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">b_start</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">b_pointer</span> {
-        <span class="kw">return</span> <span class="ident">OK</span>;
+        <span class="kw">return</span>;
     }
     <span class="kw">while</span> (<span class="kw-2">*</span><span class="ident">a_end</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">a_pointer</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
         <span class="op">&lt;</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">b_pointer</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">b_start</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
     {
-        <span class="kw">if</span> <span class="ident">yaml_string_extend</span>(<span class="ident">a_start</span>, <span class="ident">a_pointer</span>, <span class="ident">a_end</span>).<span class="ident">fail</span> {
-            <span class="kw">return</span> <span class="ident">FAIL</span>;
-        }
+        <span class="ident">yaml_string_extend</span>(<span class="ident">a_start</span>, <span class="ident">a_pointer</span>, <span class="ident">a_end</span>);
     }
     <span class="ident">memcpy</span>(
         <span class="kw-2">*</span><span class="ident">a_pointer</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
@@ -1828,27 +1643,18 @@
     );
     <span class="kw-2">*</span><span class="ident">a_pointer</span> <span class="op">=</span>
         (<span class="kw-2">*</span><span class="ident">a_pointer</span>).<span class="ident">wrapping_offset</span>((<span class="kw-2">*</span><span class="ident">b_pointer</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">b_start</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span> <span class="kw">as</span> <span class="ident">isize</span>);
-    <span class="ident">OK</span>
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_stack_extend</span>(
     <span class="ident">start</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
     <span class="ident">top</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
     <span class="ident">end</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-) -&gt; <span class="ident">Success</span> {
-    <span class="kw">if</span> (<span class="kw-2">*</span><span class="ident">end</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
-        <span class="op">&gt;</span><span class="op">=</span> (<span class="number">2147483647</span> <span class="op">/</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
-    {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
-    }
+) {
     <span class="kw">let</span> <span class="ident">new_start</span>: <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span> <span class="op">=</span> <span class="ident">yaml_realloc</span>(
         <span class="kw-2">*</span><span class="ident">start</span>,
         ((<span class="kw-2">*</span><span class="ident">end</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
             <span class="op">*</span> <span class="number">2_i64</span>) <span class="kw">as</span> <span class="ident">size_t</span>,
     );
-    <span class="kw">if</span> <span class="ident">new_start</span>.<span class="ident">is_null</span>() {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
-    }
     <span class="kw-2">*</span><span class="ident">top</span> <span class="op">=</span> (<span class="ident">new_start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>).<span class="ident">wrapping_offset</span>(
         (<span class="kw-2">*</span><span class="ident">top</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
             <span class="kw">as</span> <span class="ident">isize</span>,
@@ -1858,7 +1664,6 @@
             <span class="op">*</span> <span class="number">2_i64</span>) <span class="kw">as</span> <span class="ident">isize</span>,
     ) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>;
     <span class="kw-2">*</span><span class="ident">start</span> <span class="op">=</span> <span class="ident">new_start</span>;
-    <span class="ident">OK</span>
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">yaml_queue_extend</span>(
@@ -1866,16 +1671,13 @@
     <span class="ident">head</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
     <span class="ident">tail</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
     <span class="ident">end</span>: <span class="kw-2">*mut</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-) -&gt; <span class="ident">Success</span> {
+) {
     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">start</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">head</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">tail</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">end</span> {
         <span class="kw">let</span> <span class="ident">new_start</span>: <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span> <span class="op">=</span> <span class="ident">yaml_realloc</span>(
             <span class="kw-2">*</span><span class="ident">start</span>,
             ((<span class="kw-2">*</span><span class="ident">end</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
                 <span class="op">*</span> <span class="number">2_i64</span>) <span class="kw">as</span> <span class="ident">size_t</span>,
         );
-        <span class="kw">if</span> <span class="ident">new_start</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="ident">FAIL</span>;
-        }
         <span class="kw-2">*</span><span class="ident">head</span> <span class="op">=</span> (<span class="ident">new_start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>).<span class="ident">wrapping_offset</span>(
             (<span class="kw-2">*</span><span class="ident">head</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>).<span class="ident">c_offset_from</span>(<span class="kw-2">*</span><span class="ident">start</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>) <span class="kw">as</span> <span class="ident">libc::c_long</span>
                 <span class="kw">as</span> <span class="ident">isize</span>,
@@ -1905,7 +1707,6 @@
         ) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>;
         <span class="kw-2">*</span><span class="ident">head</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">start</span>;
     }
-    <span class="ident">OK</span>
 }
 
 <span class="doccomment">/// Initialize a parser.</span>
@@ -1919,38 +1720,15 @@
         <span class="number">0</span>,
         <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_parser_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
     );
-    <span class="kw">if</span> <span class="macro">BUFFER_INIT!</span>(<span class="ident">parser</span>, (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">raw_buffer</span>, <span class="ident">INPUT_RAW_BUFFER_SIZE</span>).<span class="ident">ok</span> {
-        <span class="kw">if</span> <span class="macro">BUFFER_INIT!</span>(<span class="ident">parser</span>, (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">buffer</span>, <span class="ident">INPUT_BUFFER_SIZE</span>).<span class="ident">ok</span> {
-            <span class="kw">if</span> <span class="macro">QUEUE_INIT!</span>(<span class="ident">parser</span>, (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">tokens</span>, <span class="ident">yaml_token_t</span>).<span class="ident">ok</span> {
-                <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="ident">parser</span>, (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">indents</span>, <span class="ident">libc::c_int</span>).<span class="ident">ok</span> {
-                    <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="ident">parser</span>, (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">simple_keys</span>, <span class="ident">yaml_simple_key_t</span>).<span class="ident">ok</span> {
-                        <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="ident">parser</span>, (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">states</span>, <span class="ident">yaml_parser_state_t</span>).<span class="ident">ok</span> {
-                            <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="ident">parser</span>, (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">marks</span>, <span class="ident">yaml_mark_t</span>).<span class="ident">ok</span> {
-                                <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(
-                                    <span class="ident">parser</span>,
-                                    (<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">tag_directives</span>,
-                                    <span class="ident">yaml_tag_directive_t</span>
-                                )
-                                .<span class="ident">ok</span>
-                                {
-                                    <span class="kw">return</span> <span class="ident">OK</span>;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    <span class="macro">BUFFER_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">raw_buffer</span>);
-    <span class="macro">BUFFER_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">buffer</span>);
-    <span class="macro">QUEUE_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">tokens</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">indents</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">simple_keys</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">states</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">marks</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">tag_directives</span>);
-    <span class="ident">FAIL</span>
+    <span class="macro">BUFFER_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">raw_buffer</span>, <span class="ident">INPUT_RAW_BUFFER_SIZE</span>);
+    <span class="macro">BUFFER_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">buffer</span>, <span class="ident">INPUT_BUFFER_SIZE</span>);
+    <span class="macro">QUEUE_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">tokens</span>, <span class="ident">yaml_token_t</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">indents</span>, <span class="ident">libc::c_int</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">simple_keys</span>, <span class="ident">yaml_simple_key_t</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">states</span>, <span class="ident">yaml_parser_state_t</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">marks</span>, <span class="ident">yaml_mark_t</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">parser</span>).<span class="ident">tag_directives</span>, <span class="ident">yaml_tag_directive_t</span>);
+    <span class="ident">OK</span>
 }
 
 <span class="doccomment">/// Destroy a parser.</span>
@@ -2074,27 +1852,13 @@
         <span class="number">0</span>,
         <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_emitter_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
     );
-    <span class="kw">if</span> <span class="macro">BUFFER_INIT!</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>, <span class="ident">OUTPUT_BUFFER_SIZE</span>).<span class="ident">ok</span> {
-        <span class="kw">if</span> <span class="macro">BUFFER_INIT!</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>, <span class="ident">OUTPUT_RAW_BUFFER_SIZE</span>).<span class="ident">ok</span> {
-            <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">states</span>, <span class="ident">yaml_emitter_state_t</span>).<span class="ident">ok</span> {
-                <span class="kw">if</span> <span class="macro">QUEUE_INIT!</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">events</span>, <span class="ident">yaml_event_t</span>).<span class="ident">ok</span> {
-                    <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">indents</span>, <span class="ident">libc::c_int</span>).<span class="ident">ok</span> {
-                        <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="ident">emitter</span>, (<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">tag_directives</span>, <span class="ident">yaml_tag_directive_t</span>).<span class="ident">ok</span>
-                        {
-                            <span class="kw">return</span> <span class="ident">OK</span>;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    <span class="macro">BUFFER_DEL!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>);
-    <span class="macro">BUFFER_DEL!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">states</span>);
-    <span class="macro">QUEUE_DEL!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">events</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">indents</span>);
-    <span class="macro">STACK_DEL!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">tag_directives</span>);
-    <span class="ident">FAIL</span>
+    <span class="macro">BUFFER_INIT!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">buffer</span>, <span class="ident">OUTPUT_BUFFER_SIZE</span>);
+    <span class="macro">BUFFER_INIT!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">raw_buffer</span>, <span class="ident">OUTPUT_RAW_BUFFER_SIZE</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">states</span>, <span class="ident">yaml_emitter_state_t</span>);
+    <span class="macro">QUEUE_INIT!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">events</span>, <span class="ident">yaml_event_t</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">indents</span>, <span class="ident">libc::c_int</span>);
+    <span class="macro">STACK_INIT!</span>((<span class="kw-2">*</span><span class="ident">emitter</span>).<span class="ident">tag_directives</span>, <span class="ident">yaml_tag_directive_t</span>);
+    <span class="ident">OK</span>
 }
 
 <span class="doccomment">/// Destroy an emitter.</span>
@@ -2392,10 +2156,7 @@
     <span class="ident">tag_directives_end</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_tag_directive_t</span>,
     <span class="ident">implicit</span>: <span class="ident">bool</span>,
 ) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_block</span>: <span class="ident">u64</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">api_context</span> {
-        <span class="ident">error</span>: <span class="ident">YAML_NO_ERROR</span>,
-    };
+    <span class="kw">let</span> <span class="ident">current_block</span>: <span class="ident">u64</span>;
     <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
         <span class="ident">index</span>: <span class="number">0_u64</span>,
         <span class="ident">line</span>: <span class="number">0_u64</span>,
@@ -2425,96 +2186,69 @@
     <span class="kw">if</span> <span class="op">!</span><span class="ident">version_directive</span>.<span class="ident">is_null</span>() {
         <span class="ident">version_directive_copy</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_version_directive_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
             <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_version_directive_t</span>;
-        <span class="kw">if</span> <span class="ident">version_directive_copy</span>.<span class="ident">is_null</span>() {
-            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
-        } <span class="kw">else</span> {
-            (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">major</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">major</span>;
-            (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">minor</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">minor</span>;
-            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">1394248824506584008</span>;
+        (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">major</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">major</span>;
+        (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">minor</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">minor</span>;
+    }
+    <span class="kw">if</span> <span class="ident">tag_directives_start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag_directive</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_tag_directive_t</span>;
+        <span class="macro">STACK_INIT!</span>(<span class="ident">tag_directives_copy</span>, <span class="ident">yaml_tag_directive_t</span>);
+        <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directives_start</span>;
+        <span class="kw">loop</span> {
+            <span class="kw">if</span> <span class="op">!</span>(<span class="ident">tag_directive</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span>) {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">16203760046146113240</span>;
+                <span class="kw">break</span>;
+            }
+            <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>).<span class="ident">is_null</span>());
+            <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>).<span class="ident">is_null</span>());
+            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
+                (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>,
+                <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
+            )
+            .<span class="ident">fail</span>
+            {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
+                <span class="kw">break</span>;
+            }
+            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
+                (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>,
+                <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
+            )
+            .<span class="ident">fail</span>
+            {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
+                <span class="kw">break</span>;
+            }
+            <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>);
+            <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>);
+            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">handle</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">prefix</span>.<span class="ident">is_null</span>() {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
+                <span class="kw">break</span>;
+            }
+            <span class="macro">PUSH!</span>(<span class="ident">tag_directives_copy</span>, <span class="ident">value</span>);
+            <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
+            <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
+            <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directive</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
         }
     } <span class="kw">else</span> {
-        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">1394248824506584008</span>;
+        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">16203760046146113240</span>;
     }
-    <span class="kw">match</span> <span class="ident">current_block</span> {
-        <span class="number">1394248824506584008</span> =&gt; {
-            <span class="kw">if</span> <span class="ident">tag_directives_start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span> {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag_directive</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_tag_directive_t</span>;
-                <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(
-                    <span class="macro">addr_of_mut!</span>(<span class="ident">context</span>),
-                    <span class="ident">tag_directives_copy</span>,
-                    <span class="ident">yaml_tag_directive_t</span>
-                )
-                .<span class="ident">fail</span>
-                {
-                    <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
-                } <span class="kw">else</span> {
-                    <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directives_start</span>;
-                    <span class="kw">loop</span> {
-                        <span class="kw">if</span> <span class="op">!</span>(<span class="ident">tag_directive</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span>) {
-                            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">16203760046146113240</span>;
-                            <span class="kw">break</span>;
-                        }
-                        <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>).<span class="ident">is_null</span>());
-                        <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>).<span class="ident">is_null</span>());
-                        <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
-                            (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>,
-                            <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
-                        )
-                        .<span class="ident">fail</span>
-                        {
-                            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
-                            <span class="kw">break</span>;
-                        }
-                        <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
-                            (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>,
-                            <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
-                        )
-                        .<span class="ident">fail</span>
-                        {
-                            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
-                            <span class="kw">break</span>;
-                        }
-                        <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>);
-                        <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>);
-                        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">handle</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">prefix</span>.<span class="ident">is_null</span>() {
-                            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
-                            <span class="kw">break</span>;
-                        }
-                        <span class="kw">if</span> <span class="macro">PUSH!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), <span class="ident">tag_directives_copy</span>, <span class="ident">value</span>).<span class="ident">fail</span> {
-                            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14964981520188694172</span>;
-                            <span class="kw">break</span>;
-                        }
-                        <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
-                        <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
-                        <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directive</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
-                    }
-                }
-            } <span class="kw">else</span> {
-                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">16203760046146113240</span>;
-            }
-            <span class="kw">match</span> <span class="ident">current_block</span> {
-                <span class="number">14964981520188694172</span> =&gt; {}
-                <span class="kw">_</span> =&gt; {
-                    <span class="ident">memset</span>(
-                        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                        <span class="number">0</span>,
-                        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                    );
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_START_EVENT</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    <span class="kw">let</span> <span class="ident">fresh164</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">version_directive</span>);
-                    <span class="kw-2">*</span><span class="ident">fresh164</span> <span class="op">=</span> <span class="ident">version_directive_copy</span>;
-                    <span class="kw">let</span> <span class="ident">fresh165</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">start</span>);
-                    <span class="kw-2">*</span><span class="ident">fresh165</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">start</span>;
-                    <span class="kw">let</span> <span class="ident">fresh166</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">end</span>);
-                    <span class="kw-2">*</span><span class="ident">fresh166</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">top</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
-                    <span class="kw">return</span> <span class="ident">OK</span>;
-                }
-            }
-        }
-        <span class="kw">_</span> =&gt; {}
+    <span class="kw">if</span> <span class="ident">current_block</span> <span class="op">!</span><span class="op">=</span> <span class="number">14964981520188694172</span> {
+        <span class="ident">memset</span>(
+            <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+            <span class="number">0</span>,
+            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        );
+        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_DOCUMENT_START_EVENT</span>;
+        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+        <span class="kw">let</span> <span class="ident">fresh164</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">version_directive</span>);
+        <span class="kw-2">*</span><span class="ident">fresh164</span> <span class="op">=</span> <span class="ident">version_directive_copy</span>;
+        <span class="kw">let</span> <span class="ident">fresh165</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">start</span>);
+        <span class="kw-2">*</span><span class="ident">fresh165</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">start</span>;
+        <span class="kw">let</span> <span class="ident">fresh166</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">tag_directives</span>.<span class="ident">end</span>);
+        <span class="kw-2">*</span><span class="ident">fresh166</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">top</span>;
+        (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">document_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
+        <span class="kw">return</span> <span class="ident">OK</span>;
     }
     <span class="ident">yaml_free</span>(<span class="ident">version_directive_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
     <span class="kw">while</span> <span class="op">!</span><span class="macro">STACK_EMPTY!</span>(<span class="ident">tag_directives_copy</span>) {
@@ -2628,62 +2362,54 @@
     } <span class="kw">else</span> {
         <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8515828400728868193</span>;
     }
-    <span class="kw">match</span> <span class="ident">current_block</span> {
-        <span class="number">8515828400728868193</span> =&gt; {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">tag</span>.<span class="ident">is_null</span>() {
-                <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">tag</span>, <span class="ident">strlen</span>(<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>)).<span class="ident">fail</span> {
+    <span class="kw">if</span> <span class="ident">current_block</span> <span class="op">==</span> <span class="number">8515828400728868193</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">tag</span>.<span class="ident">is_null</span>() {
+            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">tag</span>, <span class="ident">strlen</span>(<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>)).<span class="ident">fail</span> {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">16285396129609901221</span>;
+            } <span class="kw">else</span> {
+                <span class="ident">tag_copy</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>(<span class="ident">tag</span>);
+                <span class="kw">if</span> <span class="ident">tag_copy</span>.<span class="ident">is_null</span>() {
                     <span class="ident">current_block</span> <span class="op">=</span> <span class="number">16285396129609901221</span>;
                 } <span class="kw">else</span> {
-                    <span class="ident">tag_copy</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>(<span class="ident">tag</span>);
-                    <span class="kw">if</span> <span class="ident">tag_copy</span>.<span class="ident">is_null</span>() {
-                        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">16285396129609901221</span>;
-                    } <span class="kw">else</span> {
-                        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">12800627514080957624</span>;
-                    }
+                    <span class="ident">current_block</span> <span class="op">=</span> <span class="number">12800627514080957624</span>;
                 }
-            } <span class="kw">else</span> {
-                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">12800627514080957624</span>;
             }
-            <span class="kw">match</span> <span class="ident">current_block</span> {
-                <span class="number">16285396129609901221</span> =&gt; {}
-                <span class="kw">_</span> =&gt; {
-                    <span class="kw">if</span> <span class="ident">length</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                        <span class="ident">length</span> <span class="op">=</span> <span class="ident">strlen</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>) <span class="kw">as</span> <span class="ident">libc::c_int</span>;
-                    }
-                    <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">value</span>, <span class="ident">length</span> <span class="kw">as</span> <span class="ident">size_t</span>).<span class="ident">ok</span> {
-                        <span class="ident">value_copy</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>((<span class="ident">length</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">size_t</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
-                        <span class="kw">if</span> <span class="op">!</span><span class="ident">value_copy</span>.<span class="ident">is_null</span>() {
-                            <span class="ident">memcpy</span>(
-                                <span class="ident">value_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                                <span class="ident">value</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
-                                <span class="ident">length</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                            );
-                            <span class="kw-2">*</span><span class="ident">value_copy</span>.<span class="ident">wrapping_offset</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span> <span class="string">b&#39;\0&#39;</span>;
-                            <span class="ident">memset</span>(
-                                <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                                <span class="number">0</span>,
-                                <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                            );
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SCALAR_EVENT</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                            <span class="kw">let</span> <span class="ident">fresh168</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">anchor</span>);
-                            <span class="kw-2">*</span><span class="ident">fresh168</span> <span class="op">=</span> <span class="ident">anchor_copy</span>;
-                            <span class="kw">let</span> <span class="ident">fresh169</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">tag</span>);
-                            <span class="kw-2">*</span><span class="ident">fresh169</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
-                            <span class="kw">let</span> <span class="ident">fresh170</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">value</span>);
-                            <span class="kw-2">*</span><span class="ident">fresh170</span> <span class="op">=</span> <span class="ident">value_copy</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">length</span> <span class="op">=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">size_t</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">plain_implicit</span> <span class="op">=</span> <span class="ident">plain_implicit</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">quoted_implicit</span> <span class="op">=</span> <span class="ident">quoted_implicit</span>;
-                            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
-                            <span class="kw">return</span> <span class="ident">OK</span>;
-                        }
-                    }
-                }
+        } <span class="kw">else</span> {
+            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">12800627514080957624</span>;
+        }
+        <span class="kw">if</span> <span class="ident">current_block</span> <span class="op">!</span><span class="op">=</span> <span class="number">16285396129609901221</span> {
+            <span class="kw">if</span> <span class="ident">length</span> <span class="op">&lt;</span> <span class="number">0</span> {
+                <span class="ident">length</span> <span class="op">=</span> <span class="ident">strlen</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>) <span class="kw">as</span> <span class="ident">libc::c_int</span>;
+            }
+            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">value</span>, <span class="ident">length</span> <span class="kw">as</span> <span class="ident">size_t</span>).<span class="ident">ok</span> {
+                <span class="ident">value_copy</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>((<span class="ident">length</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">size_t</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
+                <span class="ident">memcpy</span>(
+                    <span class="ident">value_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                    <span class="ident">value</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
+                    <span class="ident">length</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                );
+                <span class="kw-2">*</span><span class="ident">value_copy</span>.<span class="ident">wrapping_offset</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span> <span class="string">b&#39;\0&#39;</span>;
+                <span class="ident">memset</span>(
+                    <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                    <span class="number">0</span>,
+                    <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                );
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SCALAR_EVENT</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                <span class="kw">let</span> <span class="ident">fresh168</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">anchor</span>);
+                <span class="kw-2">*</span><span class="ident">fresh168</span> <span class="op">=</span> <span class="ident">anchor_copy</span>;
+                <span class="kw">let</span> <span class="ident">fresh169</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">tag</span>);
+                <span class="kw-2">*</span><span class="ident">fresh169</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
+                <span class="kw">let</span> <span class="ident">fresh170</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">value</span>);
+                <span class="kw-2">*</span><span class="ident">fresh170</span> <span class="op">=</span> <span class="ident">value_copy</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">length</span> <span class="op">=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">size_t</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">plain_implicit</span> <span class="op">=</span> <span class="ident">plain_implicit</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">quoted_implicit</span> <span class="op">=</span> <span class="ident">quoted_implicit</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
+                <span class="kw">return</span> <span class="ident">OK</span>;
             }
         }
-        <span class="kw">_</span> =&gt; {}
     }
     <span class="ident">yaml_free</span>(<span class="ident">anchor_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
     <span class="ident">yaml_free</span>(<span class="ident">tag_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
@@ -2742,25 +2468,22 @@
             } <span class="kw">else</span> {
                 <span class="ident">current_block</span> <span class="op">=</span> <span class="number">7651349459974463963</span>;
             }
-            <span class="kw">match</span> <span class="ident">current_block</span> {
-                <span class="number">8817775685815971442</span> =&gt; {}
-                <span class="kw">_</span> =&gt; {
-                    <span class="ident">memset</span>(
-                        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                        <span class="number">0</span>,
-                        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                    );
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SEQUENCE_START_EVENT</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    <span class="kw">let</span> <span class="ident">fresh171</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">anchor</span>);
-                    <span class="kw-2">*</span><span class="ident">fresh171</span> <span class="op">=</span> <span class="ident">anchor_copy</span>;
-                    <span class="kw">let</span> <span class="ident">fresh172</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">tag</span>);
-                    <span class="kw-2">*</span><span class="ident">fresh172</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
-                    <span class="kw">return</span> <span class="ident">OK</span>;
-                }
+            <span class="kw">if</span> <span class="ident">current_block</span> <span class="op">!</span><span class="op">=</span> <span class="number">8817775685815971442</span> {
+                <span class="ident">memset</span>(
+                    <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                    <span class="number">0</span>,
+                    <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                );
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SEQUENCE_START_EVENT</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                <span class="kw">let</span> <span class="ident">fresh171</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">anchor</span>);
+                <span class="kw-2">*</span><span class="ident">fresh171</span> <span class="op">=</span> <span class="ident">anchor_copy</span>;
+                <span class="kw">let</span> <span class="ident">fresh172</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">tag</span>);
+                <span class="kw-2">*</span><span class="ident">fresh172</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
+                (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">sequence_start</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
+                <span class="kw">return</span> <span class="ident">OK</span>;
             }
         }
         <span class="kw">_</span> =&gt; {}
@@ -2824,44 +2547,38 @@
     } <span class="kw">else</span> {
         <span class="ident">current_block</span> <span class="op">=</span> <span class="number">11006700562992250127</span>;
     }
-    <span class="kw">match</span> <span class="ident">current_block</span> {
-        <span class="number">11006700562992250127</span> =&gt; {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">tag</span>.<span class="ident">is_null</span>() {
-                <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">tag</span>, <span class="ident">strlen</span>(<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>)).<span class="ident">fail</span> {
+    <span class="kw">if</span> <span class="ident">current_block</span> <span class="op">==</span> <span class="number">11006700562992250127</span> {
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">tag</span>.<span class="ident">is_null</span>() {
+            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">tag</span>, <span class="ident">strlen</span>(<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>)).<span class="ident">fail</span> {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14748279734549812740</span>;
+            } <span class="kw">else</span> {
+                <span class="ident">tag_copy</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>(<span class="ident">tag</span>);
+                <span class="kw">if</span> <span class="ident">tag_copy</span>.<span class="ident">is_null</span>() {
                     <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14748279734549812740</span>;
                 } <span class="kw">else</span> {
-                    <span class="ident">tag_copy</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>(<span class="ident">tag</span>);
-                    <span class="kw">if</span> <span class="ident">tag_copy</span>.<span class="ident">is_null</span>() {
-                        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14748279734549812740</span>;
-                    } <span class="kw">else</span> {
-                        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">7651349459974463963</span>;
-                    }
-                }
-            } <span class="kw">else</span> {
-                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">7651349459974463963</span>;
-            }
-            <span class="kw">match</span> <span class="ident">current_block</span> {
-                <span class="number">14748279734549812740</span> =&gt; {}
-                <span class="kw">_</span> =&gt; {
-                    <span class="ident">memset</span>(
-                        <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                        <span class="number">0</span>,
-                        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                    );
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_MAPPING_START_EVENT</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    <span class="kw">let</span> <span class="ident">fresh173</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">anchor</span>);
-                    <span class="kw-2">*</span><span class="ident">fresh173</span> <span class="op">=</span> <span class="ident">anchor_copy</span>;
-                    <span class="kw">let</span> <span class="ident">fresh174</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">tag</span>);
-                    <span class="kw-2">*</span><span class="ident">fresh174</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
-                    (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
-                    <span class="kw">return</span> <span class="ident">OK</span>;
+                    <span class="ident">current_block</span> <span class="op">=</span> <span class="number">7651349459974463963</span>;
                 }
             }
+        } <span class="kw">else</span> {
+            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">7651349459974463963</span>;
         }
-        <span class="kw">_</span> =&gt; {}
+        <span class="kw">if</span> <span class="ident">current_block</span> <span class="op">!</span><span class="op">=</span> <span class="number">14748279734549812740</span> {
+            <span class="ident">memset</span>(
+                <span class="ident">event</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                <span class="number">0</span>,
+                <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_event_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+            );
+            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_MAPPING_START_EVENT</span>;
+            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+            <span class="kw">let</span> <span class="ident">fresh173</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">anchor</span>);
+            <span class="kw-2">*</span><span class="ident">fresh173</span> <span class="op">=</span> <span class="ident">anchor_copy</span>;
+            <span class="kw">let</span> <span class="ident">fresh174</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">tag</span>);
+            <span class="kw-2">*</span><span class="ident">fresh174</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
+            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">implicit</span> <span class="op">=</span> <span class="ident">implicit</span>;
+            (<span class="kw-2">*</span><span class="ident">event</span>).<span class="ident">data</span>.<span class="ident">mapping_start</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
+            <span class="kw">return</span> <span class="ident">OK</span>;
+        }
     }
     <span class="ident">yaml_free</span>(<span class="ident">anchor_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
     <span class="ident">yaml_free</span>(<span class="ident">tag_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
@@ -2936,10 +2653,7 @@
     <span class="ident">start_implicit</span>: <span class="ident">bool</span>,
     <span class="ident">end_implicit</span>: <span class="ident">bool</span>,
 ) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_block</span>: <span class="ident">u64</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">api_context</span> {
-        <span class="ident">error</span>: <span class="ident">YAML_NO_ERROR</span>,
-    };
+    <span class="kw">let</span> <span class="ident">current_block</span>: <span class="ident">u64</span>;
     <span class="kw">struct</span> <span class="ident">Nodes</span> {
         <span class="ident">start</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_t</span>,
         <span class="ident">end</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_node_t</span>,
@@ -2976,108 +2690,79 @@
         <span class="op">!</span><span class="ident">tag_directives_start</span>.<span class="ident">is_null</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">tag_directives_end</span>.<span class="ident">is_null</span>()
             <span class="op">|</span><span class="op">|</span> <span class="ident">tag_directives_start</span> <span class="op">==</span> <span class="ident">tag_directives_end</span>
     );
-    <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), <span class="ident">nodes</span>, <span class="ident">yaml_node_t</span>).<span class="ident">ok</span> {
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">version_directive</span>.<span class="ident">is_null</span>() {
-            <span class="ident">version_directive_copy</span> <span class="op">=</span>
-                <span class="ident">yaml_malloc</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_version_directive_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
-                    <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_version_directive_t</span>;
-            <span class="kw">if</span> <span class="ident">version_directive_copy</span>.<span class="ident">is_null</span>() {
+    <span class="macro">STACK_INIT!</span>(<span class="ident">nodes</span>, <span class="ident">yaml_node_t</span>);
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">version_directive</span>.<span class="ident">is_null</span>() {
+        <span class="ident">version_directive_copy</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>(<span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_version_directive_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>)
+            <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_version_directive_t</span>;
+        (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">major</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">major</span>;
+        (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">minor</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">minor</span>;
+    }
+    <span class="kw">if</span> <span class="ident">tag_directives_start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag_directive</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_tag_directive_t</span>;
+        <span class="macro">STACK_INIT!</span>(<span class="ident">tag_directives_copy</span>, <span class="ident">yaml_tag_directive_t</span>);
+        <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directives_start</span>;
+        <span class="kw">loop</span> {
+            <span class="kw">if</span> <span class="op">!</span>(<span class="ident">tag_directive</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span>) {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14818589718467733107</span>;
+                <span class="kw">break</span>;
+            }
+            <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>).<span class="ident">is_null</span>());
+            <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>).<span class="ident">is_null</span>());
+            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
+                (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>,
+                <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
+            )
+            .<span class="ident">fail</span>
+            {
                 <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
-            } <span class="kw">else</span> {
-                (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">major</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">major</span>;
-                (<span class="kw-2">*</span><span class="ident">version_directive_copy</span>).<span class="ident">minor</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">version_directive</span>).<span class="ident">minor</span>;
-                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">7746791466490516765</span>;
+                <span class="kw">break</span>;
             }
-        } <span class="kw">else</span> {
-            <span class="ident">current_block</span> <span class="op">=</span> <span class="number">7746791466490516765</span>;
-        }
-        <span class="kw">match</span> <span class="ident">current_block</span> {
-            <span class="number">8142820162064489797</span> =&gt; {}
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">if</span> <span class="ident">tag_directives_start</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span> {
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag_directive</span>: <span class="kw-2">*mut</span> <span class="ident">yaml_tag_directive_t</span>;
-                    <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(
-                        <span class="macro">addr_of_mut!</span>(<span class="ident">context</span>),
-                        <span class="ident">tag_directives_copy</span>,
-                        <span class="ident">yaml_tag_directive_t</span>
-                    )
-                    .<span class="ident">fail</span>
-                    {
-                        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
-                    } <span class="kw">else</span> {
-                        <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directives_start</span>;
-                        <span class="kw">loop</span> {
-                            <span class="kw">if</span> <span class="op">!</span>(<span class="ident">tag_directive</span> <span class="op">!</span><span class="op">=</span> <span class="ident">tag_directives_end</span>) {
-                                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14818589718467733107</span>;
-                                <span class="kw">break</span>;
-                            }
-                            <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>).<span class="ident">is_null</span>());
-                            <span class="macro">__assert!</span>(<span class="op">!</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>).<span class="ident">is_null</span>());
-                            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
-                                (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>,
-                                <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
-                            )
-                            .<span class="ident">fail</span>
-                            {
-                                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
-                                <span class="kw">break</span>;
-                            }
-                            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
-                                (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>,
-                                <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
-                            )
-                            .<span class="ident">fail</span>
-                            {
-                                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
-                                <span class="kw">break</span>;
-                            }
-                            <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>);
-                            <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>);
-                            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">handle</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">prefix</span>.<span class="ident">is_null</span>() {
-                                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
-                                <span class="kw">break</span>;
-                            }
-                            <span class="kw">if</span> <span class="macro">PUSH!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), <span class="ident">tag_directives_copy</span>, <span class="ident">value</span>).<span class="ident">fail</span> {
-                                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
-                                <span class="kw">break</span>;
-                            }
-                            <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
-                            <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
-                            <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directive</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
-                        }
-                    }
-                } <span class="kw">else</span> {
-                    <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14818589718467733107</span>;
-                }
-                <span class="kw">match</span> <span class="ident">current_block</span> {
-                    <span class="number">8142820162064489797</span> =&gt; {}
-                    <span class="kw">_</span> =&gt; {
-                        <span class="ident">memset</span>(
-                            <span class="ident">document</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                            <span class="number">0</span>,
-                            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_document_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                        );
-                        <span class="kw">let</span> <span class="ident">fresh176</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>);
-                        <span class="kw-2">*</span><span class="ident">fresh176</span> <span class="op">=</span> <span class="ident">nodes</span>.<span class="ident">start</span>;
-                        <span class="kw">let</span> <span class="ident">fresh177</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">end</span>);
-                        <span class="kw-2">*</span><span class="ident">fresh177</span> <span class="op">=</span> <span class="ident">nodes</span>.<span class="ident">end</span>;
-                        <span class="kw">let</span> <span class="ident">fresh178</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>);
-                        <span class="kw-2">*</span><span class="ident">fresh178</span> <span class="op">=</span> <span class="ident">nodes</span>.<span class="ident">start</span>;
-                        <span class="kw">let</span> <span class="ident">fresh179</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">version_directive</span>);
-                        <span class="kw-2">*</span><span class="ident">fresh179</span> <span class="op">=</span> <span class="ident">version_directive_copy</span>;
-                        <span class="kw">let</span> <span class="ident">fresh180</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">start</span>);
-                        <span class="kw-2">*</span><span class="ident">fresh180</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">start</span>;
-                        <span class="kw">let</span> <span class="ident">fresh181</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">end</span>);
-                        <span class="kw-2">*</span><span class="ident">fresh181</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">top</span>;
-                        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">start_implicit</span> <span class="op">=</span> <span class="ident">start_implicit</span>;
-                        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">end_implicit</span> <span class="op">=</span> <span class="ident">end_implicit</span>;
-                        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                        <span class="kw">return</span> <span class="ident">OK</span>;
-                    }
-                }
+            <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(
+                (<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>,
+                <span class="ident">strlen</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>),
+            )
+            .<span class="ident">fail</span>
+            {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
+                <span class="kw">break</span>;
             }
+            <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">handle</span>);
+            <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>((<span class="kw-2">*</span><span class="ident">tag_directive</span>).<span class="ident">prefix</span>);
+            <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">handle</span>.<span class="ident">is_null</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">prefix</span>.<span class="ident">is_null</span>() {
+                <span class="ident">current_block</span> <span class="op">=</span> <span class="number">8142820162064489797</span>;
+                <span class="kw">break</span>;
+            }
+            <span class="macro">PUSH!</span>(<span class="ident">tag_directives_copy</span>, <span class="ident">value</span>);
+            <span class="ident">value</span>.<span class="ident">handle</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
+            <span class="ident">value</span>.<span class="ident">prefix</span> <span class="op">=</span> <span class="ident">ptr::null_mut</span>::<span class="op">&lt;</span><span class="ident">yaml_char_t</span><span class="op">&gt;</span>();
+            <span class="ident">tag_directive</span> <span class="op">=</span> <span class="ident">tag_directive</span>.<span class="ident">wrapping_offset</span>(<span class="number">1</span>);
         }
+    } <span class="kw">else</span> {
+        <span class="ident">current_block</span> <span class="op">=</span> <span class="number">14818589718467733107</span>;
+    }
+    <span class="kw">if</span> <span class="ident">current_block</span> <span class="op">!</span><span class="op">=</span> <span class="number">8142820162064489797</span> {
+        <span class="ident">memset</span>(
+            <span class="ident">document</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+            <span class="number">0</span>,
+            <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_document_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+        );
+        <span class="kw">let</span> <span class="ident">fresh176</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>);
+        <span class="kw-2">*</span><span class="ident">fresh176</span> <span class="op">=</span> <span class="ident">nodes</span>.<span class="ident">start</span>;
+        <span class="kw">let</span> <span class="ident">fresh177</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">end</span>);
+        <span class="kw-2">*</span><span class="ident">fresh177</span> <span class="op">=</span> <span class="ident">nodes</span>.<span class="ident">end</span>;
+        <span class="kw">let</span> <span class="ident">fresh178</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>);
+        <span class="kw-2">*</span><span class="ident">fresh178</span> <span class="op">=</span> <span class="ident">nodes</span>.<span class="ident">start</span>;
+        <span class="kw">let</span> <span class="ident">fresh179</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">version_directive</span>);
+        <span class="kw-2">*</span><span class="ident">fresh179</span> <span class="op">=</span> <span class="ident">version_directive_copy</span>;
+        <span class="kw">let</span> <span class="ident">fresh180</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">start</span>);
+        <span class="kw-2">*</span><span class="ident">fresh180</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">start</span>;
+        <span class="kw">let</span> <span class="ident">fresh181</span> <span class="op">=</span> <span class="macro">addr_of_mut!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">tag_directives</span>.<span class="ident">end</span>);
+        <span class="kw-2">*</span><span class="ident">fresh181</span> <span class="op">=</span> <span class="ident">tag_directives_copy</span>.<span class="ident">top</span>;
+        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">start_implicit</span> <span class="op">=</span> <span class="ident">start_implicit</span>;
+        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">end_implicit</span> <span class="op">=</span> <span class="ident">end_implicit</span>;
+        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+        (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+        <span class="kw">return</span> <span class="ident">OK</span>;
     }
     <span class="macro">STACK_DEL!</span>(<span class="ident">nodes</span>);
     <span class="ident">yaml_free</span>(<span class="ident">version_directive_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>);
@@ -3183,9 +2868,6 @@
     <span class="kw-2">mut</span> <span class="ident">length</span>: <span class="ident">libc::c_int</span>,
     <span class="ident">style</span>: <span class="ident">yaml_scalar_style_t</span>,
 ) -&gt; <span class="ident">libc::c_int</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">api_context</span> {
-        <span class="ident">error</span>: <span class="ident">YAML_NO_ERROR</span>,
-    };
     <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
         <span class="ident">index</span>: <span class="number">0_u64</span>,
         <span class="ident">line</span>: <span class="number">0_u64</span>,
@@ -3208,30 +2890,26 @@
             }
             <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">value</span>, <span class="ident">length</span> <span class="kw">as</span> <span class="ident">size_t</span>).<span class="ident">ok</span> {
                 <span class="ident">value_copy</span> <span class="op">=</span> <span class="ident">yaml_malloc</span>((<span class="ident">length</span> <span class="op">+</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">size_t</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">yaml_char_t</span>;
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">value_copy</span>.<span class="ident">is_null</span>() {
-                    <span class="ident">memcpy</span>(
-                        <span class="ident">value_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                        <span class="ident">value</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
-                        <span class="ident">length</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                    );
-                    <span class="kw-2">*</span><span class="ident">value_copy</span>.<span class="ident">wrapping_offset</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span> <span class="string">b&#39;\0&#39;</span>;
-                    <span class="ident">memset</span>(
-                        <span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                        <span class="number">0</span>,
-                        <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_node_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                    );
-                    (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SCALAR_NODE</span>;
-                    (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
-                    (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                    (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">value_copy</span>;
-                    (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">length</span> <span class="op">=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">size_t</span>;
-                    (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
-                    <span class="kw">if</span> <span class="macro">PUSH!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>, <span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">ok</span> {
-                        <span class="kw">return</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
-                            <span class="kw">as</span> <span class="ident">libc::c_int</span>;
-                    }
-                }
+                <span class="ident">memcpy</span>(
+                    <span class="ident">value_copy</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                    <span class="ident">value</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">libc::c_void</span>,
+                    <span class="ident">length</span> <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                );
+                <span class="kw-2">*</span><span class="ident">value_copy</span>.<span class="ident">wrapping_offset</span>(<span class="ident">length</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">=</span> <span class="string">b&#39;\0&#39;</span>;
+                <span class="ident">memset</span>(
+                    <span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                    <span class="number">0</span>,
+                    <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_node_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+                );
+                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SCALAR_NODE</span>;
+                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
+                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">value</span> <span class="op">=</span> <span class="ident">value_copy</span>;
+                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">length</span> <span class="op">=</span> <span class="ident">length</span> <span class="kw">as</span> <span class="ident">size_t</span>;
+                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">scalar</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
+                <span class="macro">PUSH!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>, <span class="kw-2">*</span><span class="ident">node</span>);
+                <span class="kw">return</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_int</span>;
             }
         }
     }
@@ -3251,9 +2929,6 @@
     <span class="kw-2">mut</span> <span class="ident">tag</span>: <span class="kw-2">*const</span> <span class="ident">yaml_char_t</span>,
     <span class="ident">style</span>: <span class="ident">yaml_sequence_style_t</span>,
 ) -&gt; <span class="ident">libc::c_int</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">api_context</span> {
-        <span class="ident">error</span>: <span class="ident">YAML_NO_ERROR</span>,
-    };
     <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
         <span class="ident">index</span>: <span class="number">0_u64</span>,
         <span class="ident">line</span>: <span class="number">0_u64</span>,
@@ -3279,25 +2954,22 @@
     <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">tag</span>, <span class="ident">strlen</span>(<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>)).<span class="ident">ok</span> {
         <span class="ident">tag_copy</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>(<span class="ident">tag</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">tag_copy</span>.<span class="ident">is_null</span>() {
-            <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), <span class="ident">items</span>, <span class="ident">yaml_node_item_t</span>).<span class="ident">ok</span> {
-                <span class="ident">memset</span>(
-                    <span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                    <span class="number">0</span>,
-                    <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_node_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                );
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SEQUENCE_NODE</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">start</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">end</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">top</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">start</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
-                <span class="kw">if</span> <span class="macro">PUSH!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>, <span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">ok</span> {
-                    <span class="kw">return</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
-                        <span class="kw">as</span> <span class="ident">libc::c_int</span>;
-                }
-            }
+            <span class="macro">STACK_INIT!</span>(<span class="ident">items</span>, <span class="ident">yaml_node_item_t</span>);
+            <span class="ident">memset</span>(
+                <span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                <span class="number">0</span>,
+                <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_node_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+            );
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_SEQUENCE_NODE</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">start</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">end</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">items</span>.<span class="ident">top</span> <span class="op">=</span> <span class="ident">items</span>.<span class="ident">start</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">sequence</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
+            <span class="macro">PUSH!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>, <span class="kw-2">*</span><span class="ident">node</span>);
+            <span class="kw">return</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_int</span>;
         }
     }
     <span class="macro">STACK_DEL!</span>(<span class="ident">items</span>);
@@ -3316,9 +2988,6 @@
     <span class="kw-2">mut</span> <span class="ident">tag</span>: <span class="kw-2">*const</span> <span class="ident">yaml_char_t</span>,
     <span class="ident">style</span>: <span class="ident">yaml_mapping_style_t</span>,
 ) -&gt; <span class="ident">libc::c_int</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">api_context</span> {
-        <span class="ident">error</span>: <span class="ident">YAML_NO_ERROR</span>,
-    };
     <span class="kw">let</span> <span class="ident">mark</span> <span class="op">=</span> <span class="ident">yaml_mark_t</span> {
         <span class="ident">index</span>: <span class="number">0_u64</span>,
         <span class="ident">line</span>: <span class="number">0_u64</span>,
@@ -3344,25 +3013,22 @@
     <span class="kw">if</span> <span class="ident">yaml_check_utf8</span>(<span class="ident">tag</span>, <span class="ident">strlen</span>(<span class="ident">tag</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_char</span>)).<span class="ident">ok</span> {
         <span class="ident">tag_copy</span> <span class="op">=</span> <span class="ident">yaml_strdup</span>(<span class="ident">tag</span>);
         <span class="kw">if</span> <span class="op">!</span><span class="ident">tag_copy</span>.<span class="ident">is_null</span>() {
-            <span class="kw">if</span> <span class="macro">STACK_INIT!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), <span class="ident">pairs</span>, <span class="ident">yaml_node_pair_t</span>).<span class="ident">ok</span> {
-                <span class="ident">memset</span>(
-                    <span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
-                    <span class="number">0</span>,
-                    <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_node_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
-                );
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_MAPPING_NODE</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">pairs</span>.<span class="ident">start</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">pairs</span>.<span class="ident">end</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">top</span> <span class="op">=</span> <span class="ident">pairs</span>.<span class="ident">start</span>;
-                (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
-                <span class="kw">if</span> <span class="macro">PUSH!</span>(<span class="macro">addr_of_mut!</span>(<span class="ident">context</span>), (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>, <span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">ok</span> {
-                    <span class="kw">return</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>)
-                        <span class="kw">as</span> <span class="ident">libc::c_int</span>;
-                }
-            }
+            <span class="macro">STACK_INIT!</span>(<span class="ident">pairs</span>, <span class="ident">yaml_node_pair_t</span>);
+            <span class="ident">memset</span>(
+                <span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">libc::c_void</span>,
+                <span class="number">0</span>,
+                <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">yaml_node_t</span><span class="op">&gt;</span>() <span class="kw">as</span> <span class="ident">libc::c_ulong</span>,
+            );
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">type_</span> <span class="op">=</span> <span class="ident">YAML_MAPPING_NODE</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">tag</span> <span class="op">=</span> <span class="ident">tag_copy</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">start_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">end_mark</span> <span class="op">=</span> <span class="ident">mark</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">start</span> <span class="op">=</span> <span class="ident">pairs</span>.<span class="ident">start</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">end</span> <span class="op">=</span> <span class="ident">pairs</span>.<span class="ident">end</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">pairs</span>.<span class="ident">top</span> <span class="op">=</span> <span class="ident">pairs</span>.<span class="ident">start</span>;
+            (<span class="kw-2">*</span><span class="ident">node</span>).<span class="ident">data</span>.<span class="ident">mapping</span>.<span class="ident">style</span> <span class="op">=</span> <span class="ident">style</span>;
+            <span class="macro">PUSH!</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>, <span class="kw-2">*</span><span class="ident">node</span>);
+            <span class="kw">return</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>.<span class="ident">c_offset_from</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>) <span class="kw">as</span> <span class="ident">libc::c_int</span>;
         }
     }
     <span class="macro">STACK_DEL!</span>(<span class="ident">pairs</span>);
@@ -3376,9 +3042,6 @@
     <span class="ident">sequence</span>: <span class="ident">libc::c_int</span>,
     <span class="ident">item</span>: <span class="ident">libc::c_int</span>,
 ) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">api_context</span> {
-        <span class="ident">error</span>: <span class="ident">YAML_NO_ERROR</span>,
-    };
     <span class="macro">__assert!</span>(<span class="op">!</span><span class="ident">document</span>.<span class="ident">is_null</span>());
     <span class="macro">__assert!</span>(
         <span class="ident">sequence</span> <span class="op">&gt;</span> <span class="number">0</span>
@@ -3393,18 +3056,13 @@
         <span class="ident">item</span> <span class="op">&gt;</span> <span class="number">0</span>
             <span class="op">&amp;&amp;</span> ((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>).<span class="ident">wrapping_offset</span>(<span class="ident">item</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">&lt;</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>
     );
-    <span class="kw">if</span> <span class="macro">PUSH!</span>(
-        <span class="macro">addr_of_mut!</span>(<span class="ident">context</span>),
+    <span class="macro">PUSH!</span>(
         (<span class="kw-2">*</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>).<span class="ident">wrapping_offset</span>((<span class="ident">sequence</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>))
             .<span class="ident">data</span>
             .<span class="ident">sequence</span>
             .<span class="ident">items</span>,
         <span class="ident">item</span>
-    )
-    .<span class="ident">fail</span>
-    {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
-    }
+    );
     <span class="ident">OK</span>
 }
 
@@ -3415,9 +3073,6 @@
     <span class="ident">key</span>: <span class="ident">libc::c_int</span>,
     <span class="ident">value</span>: <span class="ident">libc::c_int</span>,
 ) -&gt; <span class="ident">Success</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">api_context</span> {
-        <span class="ident">error</span>: <span class="ident">YAML_NO_ERROR</span>,
-    };
     <span class="macro">__assert!</span>(<span class="op">!</span><span class="ident">document</span>.<span class="ident">is_null</span>());
     <span class="macro">__assert!</span>(
         <span class="ident">mapping</span> <span class="op">&gt;</span> <span class="number">0</span>
@@ -3435,18 +3090,13 @@
             <span class="op">&amp;&amp;</span> ((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>).<span class="ident">wrapping_offset</span>(<span class="ident">value</span> <span class="kw">as</span> <span class="ident">isize</span>) <span class="op">&lt;</span><span class="op">=</span> (<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">top</span>
     );
     <span class="kw">let</span> <span class="ident">pair</span> <span class="op">=</span> <span class="ident">yaml_node_pair_t</span> { <span class="ident">key</span>, <span class="ident">value</span> };
-    <span class="kw">if</span> <span class="macro">PUSH!</span>(
-        <span class="macro">addr_of_mut!</span>(<span class="ident">context</span>),
+    <span class="macro">PUSH!</span>(
         (<span class="kw-2">*</span>((<span class="kw-2">*</span><span class="ident">document</span>).<span class="ident">nodes</span>.<span class="ident">start</span>).<span class="ident">wrapping_offset</span>((<span class="ident">mapping</span> <span class="op">-</span> <span class="number">1</span>) <span class="kw">as</span> <span class="ident">isize</span>))
             .<span class="ident">data</span>
             .<span class="ident">mapping</span>
             .<span class="ident">pairs</span>,
         <span class="ident">pair</span>
-    )
-    .<span class="ident">fail</span>
-    {
-        <span class="kw">return</span> <span class="ident">FAIL</span>;
-    }
+    );
     <span class="ident">OK</span>
 }
 </code></pre></div>
