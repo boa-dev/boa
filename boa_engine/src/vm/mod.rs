@@ -1561,21 +1561,18 @@ impl Context {
                 }
                 self.vm.push(result);
             }
-            Opcode::SuperCallWithRest => {
-                let argument_count = self.vm.read::<u32>();
-                let rest_argument = self.vm.pop();
-                let mut arguments = Vec::with_capacity(argument_count as usize);
-                for _ in 0..(argument_count - 1) {
-                    arguments.push(self.vm.pop());
-                }
-                arguments.reverse();
-
-                let iterator_record = rest_argument.get_iterator(self, None, None)?;
-                let mut rest_arguments = Vec::new();
-                while let Some(next) = iterator_record.step(self)? {
-                    rest_arguments.push(next.value(self)?);
-                }
-                arguments.append(&mut rest_arguments);
+            Opcode::SuperCallSpread => {
+                // Get the arguments that are stored as an array object on the stack.
+                let arguments_array = self.vm.pop();
+                let arguments_array_object = arguments_array
+                    .as_object()
+                    .expect("arguments array in call spread function must be an object");
+                let arguments = arguments_array_object
+                    .borrow()
+                    .properties()
+                    .dense_indexed_properties()
+                    .expect("arguments array in call spread function must be dense")
+                    .clone();
 
                 let (new_target, active_function) = {
                     let this_env = self
@@ -1742,26 +1739,25 @@ impl Context {
                     self.vm.push(result);
                 }
             }
-            Opcode::CallEvalWithRest => {
+            Opcode::CallEvalSpread => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argument_count = self.vm.read::<u32>();
-                let rest_argument = self.vm.pop();
-                let mut arguments = Vec::with_capacity(argument_count as usize);
-                for _ in 0..(argument_count - 1) {
-                    arguments.push(self.vm.pop());
-                }
-                arguments.reverse();
+
+                // Get the arguments that are stored as an array object on the stack.
+                let arguments_array = self.vm.pop();
+                let arguments_array_object = arguments_array
+                    .as_object()
+                    .expect("arguments array in call spread function must be an object");
+                let arguments = arguments_array_object
+                    .borrow()
+                    .properties()
+                    .dense_indexed_properties()
+                    .expect("arguments array in call spread function must be dense")
+                    .clone();
+
                 let func = self.vm.pop();
                 let this = self.vm.pop();
-
-                let iterator_record = rest_argument.get_iterator(self, None, None)?;
-                let mut rest_arguments = Vec::new();
-                while let Some(next) = iterator_record.step(self)? {
-                    rest_arguments.push(next.value(self)?);
-                }
-                arguments.append(&mut rest_arguments);
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -1809,26 +1805,25 @@ impl Context {
 
                 self.vm.push(result);
             }
-            Opcode::CallWithRest => {
+            Opcode::CallSpread => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argument_count = self.vm.read::<u32>();
-                let rest_argument = self.vm.pop();
-                let mut arguments = Vec::with_capacity(argument_count as usize);
-                for _ in 0..(argument_count - 1) {
-                    arguments.push(self.vm.pop());
-                }
-                arguments.reverse();
+
+                // Get the arguments that are stored as an array object on the stack.
+                let arguments_array = self.vm.pop();
+                let arguments_array_object = arguments_array
+                    .as_object()
+                    .expect("arguments array in call spread function must be an object");
+                let arguments = arguments_array_object
+                    .borrow()
+                    .properties()
+                    .dense_indexed_properties()
+                    .expect("arguments array in call spread function must be dense")
+                    .clone();
+
                 let func = self.vm.pop();
                 let this = self.vm.pop();
-
-                let iterator_record = rest_argument.get_iterator(self, None, None)?;
-                let mut rest_arguments = Vec::new();
-                while let Some(next) = iterator_record.step(self)? {
-                    rest_arguments.push(next.value(self)?);
-                }
-                arguments.append(&mut rest_arguments);
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
@@ -1858,25 +1853,23 @@ impl Context {
 
                 self.vm.push(result);
             }
-            Opcode::NewWithRest => {
+            Opcode::NewSpread => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
                     return self.throw_range_error("Maximum call stack size exceeded");
                 }
-                let argument_count = self.vm.read::<u32>();
-                let rest_argument = self.vm.pop();
-                let mut arguments = Vec::with_capacity(argument_count as usize);
-                for _ in 0..(argument_count - 1) {
-                    arguments.push(self.vm.pop());
-                }
-                arguments.reverse();
-                let func = self.vm.pop();
+                // Get the arguments that are stored as an array object on the stack.
+                let arguments_array = self.vm.pop();
+                let arguments_array_object = arguments_array
+                    .as_object()
+                    .expect("arguments array in call spread function must be an object");
+                let arguments = arguments_array_object
+                    .borrow()
+                    .properties()
+                    .dense_indexed_properties()
+                    .expect("arguments array in call spread function must be dense")
+                    .clone();
 
-                let iterator_record = rest_argument.get_iterator(self, None, None)?;
-                let mut rest_arguments = Vec::new();
-                while let Some(next) = iterator_record.step(self)? {
-                    rest_arguments.push(next.value(self)?);
-                }
-                arguments.append(&mut rest_arguments);
+                let func = self.vm.pop();
 
                 let result = func
                     .as_constructor()

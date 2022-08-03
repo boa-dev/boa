@@ -1234,15 +1234,30 @@ impl<'b> ByteCompiler<'b> {
             }
             Node::ClassExpr(class) => self.class(class, true)?,
             Node::SuperCall(super_call) => {
-                for arg in super_call.args() {
-                    self.compile_expr(arg, true)?;
+                let contains_spread = super_call
+                    .args()
+                    .iter()
+                    .any(|arg| matches!(arg, Node::Spread(_)));
+
+                if contains_spread {
+                    self.emit_opcode(Opcode::PushNewArray);
+                    for arg in super_call.args() {
+                        self.compile_expr(arg, true)?;
+                        if let Node::Spread(_) = arg {
+                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::PushIteratorToArray);
+                        } else {
+                            self.emit_opcode(Opcode::PushValueToArray);
+                        }
+                    }
+                } else {
+                    for arg in super_call.args() {
+                        self.compile_expr(arg, true)?;
+                    }
                 }
 
-                let last_is_rest_parameter =
-                    matches!(super_call.args().last(), Some(Node::Spread(_)));
-
-                if last_is_rest_parameter {
-                    self.emit(Opcode::SuperCallWithRest, &[super_call.args().len() as u32]);
+                if contains_spread {
+                    self.emit_opcode(Opcode::SuperCallSpread);
                 } else {
                     self.emit(Opcode::SuperCall, &[super_call.args().len() as u32]);
                 }
@@ -2144,24 +2159,31 @@ impl<'b> ByteCompiler<'b> {
             }
         }
 
-        for arg in call.args().iter() {
-            self.compile_expr(arg, true)?;
+        let contains_spread = call.args().iter().any(|arg| matches!(arg, Node::Spread(_)));
+
+        if contains_spread {
+            self.emit_opcode(Opcode::PushNewArray);
+            for arg in call.args() {
+                self.compile_expr(arg, true)?;
+                if let Node::Spread(_) = arg {
+                    self.emit_opcode(Opcode::InitIterator);
+                    self.emit_opcode(Opcode::PushIteratorToArray);
+                } else {
+                    self.emit_opcode(Opcode::PushValueToArray);
+                }
+            }
+        } else {
+            for arg in call.args() {
+                self.compile_expr(arg, true)?;
+            }
         }
 
-        let last_is_rest_parameter = matches!(call.args().last(), Some(Node::Spread(_)));
-
         match kind {
-            CallKind::CallEval if last_is_rest_parameter => {
-                self.emit(Opcode::CallEvalWithRest, &[call.args().len() as u32]);
-            }
+            CallKind::CallEval if contains_spread => self.emit_opcode(Opcode::CallEvalSpread),
             CallKind::CallEval => self.emit(Opcode::CallEval, &[call.args().len() as u32]),
-            CallKind::Call if last_is_rest_parameter => {
-                self.emit(Opcode::CallWithRest, &[call.args().len() as u32]);
-            }
+            CallKind::Call if contains_spread => self.emit_opcode(Opcode::CallSpread),
             CallKind::Call => self.emit(Opcode::Call, &[call.args().len() as u32]),
-            CallKind::New if last_is_rest_parameter => {
-                self.emit(Opcode::NewWithRest, &[call.args().len() as u32]);
-            }
+            CallKind::New if contains_spread => self.emit_opcode(Opcode::NewSpread),
             CallKind::New => self.emit(Opcode::New, &[call.args().len() as u32]),
         }
 

@@ -199,13 +199,9 @@ impl CodeBlock {
             | Opcode::LogicalOr
             | Opcode::Coalesce
             | Opcode::CallEval
-            | Opcode::CallEvalWithRest
             | Opcode::Call
-            | Opcode::CallWithRest
             | Opcode::New
-            | Opcode::NewWithRest
             | Opcode::SuperCall
-            | Opcode::SuperCallWithRest
             | Opcode::ForInLoopInitIterator
             | Opcode::ForInLoopNext
             | Opcode::ConcatToString
@@ -372,6 +368,10 @@ impl CodeBlock {
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
+            | Opcode::CallEvalSpread
+            | Opcode::CallSpread
+            | Opcode::NewSpread
+            | Opcode::SuperCallSpread
             | Opcode::Nop => String::new(),
         }
     }
