@@ -964,6 +964,18 @@
 <span id="957">957</span>
 <span id="958">958</span>
 <span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1148,7 +1160,7 @@
                 <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Mul</span>) <span class="op">=</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                    <span class="kw">let</span> (<span class="ident">property_name</span>, <span class="ident">method</span>) <span class="op">=</span>
+                    <span class="kw">let</span> (<span class="ident">class_element_name</span>, <span class="ident">method</span>) <span class="op">=</span>
                         <span class="ident">AsyncGeneratorMethod::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -1156,6 +1168,18 @@
                     <span class="kw">if</span> <span class="ident">has_direct_super</span>(<span class="ident">method</span>.<span class="ident">body</span>(), <span class="ident">method</span>.<span class="ident">parameters</span>()) {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
                     }
+
+                    <span class="kw">let</span> <span class="ident">property_name</span> <span class="op">=</span>
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">object::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) <span class="op">=</span>
+                            <span class="ident">class_element_name</span>
+                        {
+                            <span class="ident">property_name</span>
+                        } <span class="kw">else</span> {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                                <span class="string">&quot;private identifiers not allowed in object literal&quot;</span>,
+                                <span class="ident">position</span>,
+                            ));
+                        };
 
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
                         <span class="ident">method</span>,
@@ -1717,7 +1741,7 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">object::PropertyName</span>, <span class="ident">MethodDefinition</span>);
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">object::ClassElementName</span>, <span class="ident">MethodDefinition</span>);
 
     <span class="kw">fn</span> <span class="ident">parse</span>(
         <span class="self">self</span>,
@@ -1731,8 +1755,8 @@
             <span class="ident">interner</span>,
         )<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">property_name</span> <span class="op">=</span>
-            <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span>
+            <span class="ident">ClassElementName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">UniqueFormalParameters::new</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -1775,7 +1799,7 @@
         }
 
         <span class="prelude-val">Ok</span>((
-            <span class="ident">property_name</span>,
+            <span class="ident">name</span>,
             <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="ident">AsyncGeneratorExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
         ))
     }
