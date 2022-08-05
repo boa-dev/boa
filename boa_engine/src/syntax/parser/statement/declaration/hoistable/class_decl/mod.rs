@@ -4,7 +4,7 @@ use crate::syntax::{
             self,
             declaration::class_decl::ClassElement as ClassElementNode,
             function_contains_super, has_direct_super,
-            object::{MethodDefinition, PropertyName::Literal},
+            object::{ClassElementName, MethodDefinition, PropertyName::Literal},
             Class, ContainsSymbol, FormalParameterList, FunctionExpr,
         },
         Keyword, Punctuator,
@@ -736,30 +736,44 @@ where
                     TokenKind::Punctuator(Punctuator::Mul) => {
                         let token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
                         let name_position = token.span().start();
-                        if let TokenKind::Identifier(Sym::CONSTRUCTOR) = token.kind() {
-                            return Err(ParseError::general(
-                                "class constructor may not be a generator method",
-                                token.span().start(),
-                            ));
+                        match token.kind() {
+                            TokenKind::Identifier(Sym::CONSTRUCTOR)
+                            | TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) => {
+                                return Err(ParseError::general(
+                                    "class constructor may not be a generator method",
+                                    token.span().start(),
+                                ));
+                            }
+                            _ => {}
                         }
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
-                        let (property_name, method) =
+                        let (class_element_name, method) =
                             AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
                         cursor.set_strict_mode(strict);
-                        if r#static {
-                            if let Some(name) = property_name.prop_name() {
-                                if name == Sym::PROTOTYPE {
+                        match class_element_name {
+                            ClassElementName::PropertyName(property_name) if r#static => {
+                                if let Some(Sym::PROTOTYPE) = property_name.prop_name() {
                                     return Err(ParseError::general(
-                                            "class may not have static method definitions named 'prototype'",
-                                            name_position,
-                                        ));
+                                        "class may not have static method definitions named 'prototype'",
+                                        name_position,
+                                    ));
                                 }
+                                ClassElementNode::StaticMethodDefinition(property_name, method)
                             }
-                            ClassElementNode::StaticMethodDefinition(property_name, method)
-                        } else {
-                            ClassElementNode::MethodDefinition(property_name, method)
+                            ClassElementName::PropertyName(property_name) => {
+                                ClassElementNode::MethodDefinition(property_name, method)
+                            }
+                            ClassElementName::PrivateIdentifier(private_ident) if r#static => {
+                                ClassElementNode::PrivateStaticMethodDefinition(
+                                    private_ident,
+                                    method,
+                                )
+                            }
+                            ClassElementName::PrivateIdentifier(private_ident) => {
+                                ClassElementNode::PrivateMethodDefinition(private_ident, method)
+                            }
                         }
                     }
                     TokenKind::Identifier(Sym::CONSTRUCTOR) => {

@@ -182,7 +182,7 @@ where
                 let position = token.span().start();
 
                 if let TokenKind::Punctuator(Punctuator::Mul) = token.kind() {
-                    let (property_name, method) =
+                    let (class_element_name, method) =
                         AsyncGeneratorMethod::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
 
@@ -190,6 +190,18 @@ where
                     if has_direct_super(method.body(), method.parameters()) {
                         return Err(ParseError::general("invalid super usage", position));
                     }
+
+                    let property_name =
+                        if let object::ClassElementName::PropertyName(property_name) =
+                            class_element_name
+                        {
+                            property_name
+                        } else {
+                            return Err(ParseError::general(
+                                "private identifiers not allowed in object literal",
+                                position,
+                            ));
+                        };
 
                     return Ok(object::PropertyDefinition::method_definition(
                         method,
@@ -751,7 +763,7 @@ impl<R> TokenParser<R> for AsyncGeneratorMethod
 where
     R: Read,
 {
-    type Output = (object::PropertyName, MethodDefinition);
+    type Output = (object::ClassElementName, MethodDefinition);
 
     fn parse(
         self,
@@ -765,8 +777,8 @@ where
             interner,
         )?;
 
-        let property_name =
-            PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let name =
+            ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         let params = UniqueFormalParameters::new(true, true).parse(cursor, interner)?;
 
@@ -809,7 +821,7 @@ where
         }
 
         Ok((
-            property_name,
+            name,
             MethodDefinition::AsyncGenerator(AsyncGeneratorExpr::new(None, params, body)),
         ))
     }
