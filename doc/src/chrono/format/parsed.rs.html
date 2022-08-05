@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.19/src/format/parsed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parsed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.20/src/format/parsed.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parsed.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../chrono/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -1263,45 +1263,22 @@
 <span id="1258">1258</span>
 <span id="1259">1259</span>
 <span id="1260">1260</span>
-<span id="1261">1261</span>
-<span id="1262">1262</span>
-<span id="1263">1263</span>
-<span id="1264">1264</span>
-<span id="1265">1265</span>
-<span id="1266">1266</span>
-<span id="1267">1267</span>
-<span id="1268">1268</span>
-<span id="1269">1269</span>
-<span id="1270">1270</span>
-<span id="1271">1271</span>
-<span id="1272">1272</span>
-<span id="1273">1273</span>
-<span id="1274">1274</span>
-<span id="1275">1275</span>
-<span id="1276">1276</span>
-<span id="1277">1277</span>
-<span id="1278">1278</span>
-<span id="1279">1279</span>
-<span id="1280">1280</span>
-<span id="1281">1281</span>
-<span id="1282">1282</span>
-<span id="1283">1283</span>
 </pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
 
 <span class="doccomment">//! A collection of parsed date and time items.</span>
 <span class="doccomment">//! They can be constructed incrementally while being checked for consistency.</span>
 
+<span class="kw">use</span> <span class="ident">num_integer::div_rem</span>;
 <span class="kw">use</span> <span class="ident">num_traits::ToPrimitive</span>;
-<span class="kw">use</span> <span class="ident">oldtime::Duration</span> <span class="kw">as</span> <span class="ident">OldDuration</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ParseResult</span>, <span class="ident">IMPOSSIBLE</span>, <span class="ident">NOT_ENOUGH</span>, <span class="ident">OUT_OF_RANGE</span>};
-<span class="kw">use</span> <span class="ident">div::div_rem</span>;
-<span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">NaiveTime</span>};
-<span class="kw">use</span> <span class="ident">offset</span>::{<span class="ident">FixedOffset</span>, <span class="ident">LocalResult</span>, <span class="ident">Offset</span>, <span class="ident">TimeZone</span>};
-<span class="kw">use</span> <span class="ident">DateTime</span>;
-<span class="kw">use</span> <span class="ident">Weekday</span>;
-<span class="kw">use</span> {<span class="ident">Datelike</span>, <span class="ident">Timelike</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::naive</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveDateTime</span>, <span class="ident">NaiveTime</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::offset</span>::{<span class="ident">FixedOffset</span>, <span class="ident">LocalResult</span>, <span class="ident">Offset</span>, <span class="ident">TimeZone</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::oldtime::Duration</span> <span class="kw">as</span> <span class="ident">OldDuration</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::DateTime</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Weekday</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Datelike</span>, <span class="ident">Timelike</span>};
 
 <span class="doccomment">/// Parsed parts of date and time. There are two classes of methods:</span>
 <span class="doccomment">///</span>
@@ -1310,8 +1287,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// - `to_*` methods try to make a concrete date and time value out of set fields.</span>
 <span class="doccomment">///   It fully checks any remaining out-of-range conditions and inconsistent/impossible fields.</span>
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">missing_copy_implementations</span>)]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Parsed</span> {
     <span class="doccomment">/// Year.</span>
     <span class="doccomment">///</span>
@@ -1411,34 +1387,6 @@
     } <span class="kw">else</span> {
         <span class="kw-2">*</span><span class="ident">old</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">new</span>);
         <span class="prelude-val">Ok</span>(())
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Parsed</span> {
-    <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Parsed</span> {
-        <span class="ident">Parsed</span> {
-            <span class="ident">year</span>: <span class="prelude-val">None</span>,
-            <span class="ident">year_div_100</span>: <span class="prelude-val">None</span>,
-            <span class="ident">year_mod_100</span>: <span class="prelude-val">None</span>,
-            <span class="ident">isoyear</span>: <span class="prelude-val">None</span>,
-            <span class="ident">isoyear_div_100</span>: <span class="prelude-val">None</span>,
-            <span class="ident">isoyear_mod_100</span>: <span class="prelude-val">None</span>,
-            <span class="ident">month</span>: <span class="prelude-val">None</span>,
-            <span class="ident">week_from_sun</span>: <span class="prelude-val">None</span>,
-            <span class="ident">week_from_mon</span>: <span class="prelude-val">None</span>,
-            <span class="ident">isoweek</span>: <span class="prelude-val">None</span>,
-            <span class="ident">weekday</span>: <span class="prelude-val">None</span>,
-            <span class="ident">ordinal</span>: <span class="prelude-val">None</span>,
-            <span class="ident">day</span>: <span class="prelude-val">None</span>,
-            <span class="ident">hour_div_12</span>: <span class="prelude-val">None</span>,
-            <span class="ident">hour_mod_12</span>: <span class="prelude-val">None</span>,
-            <span class="ident">minute</span>: <span class="prelude-val">None</span>,
-            <span class="ident">second</span>: <span class="prelude-val">None</span>,
-            <span class="ident">nanosecond</span>: <span class="prelude-val">None</span>,
-            <span class="ident">timestamp</span>: <span class="prelude-val">None</span>,
-            <span class="ident">offset</span>: <span class="prelude-val">None</span>,
-            <span class="ident">_dummy</span>: (),
-        }
     }
 }
 
@@ -1621,7 +1569,7 @@
                 <span class="comment">// check if present quotient and/or modulo is consistent to the full year.</span>
                 <span class="comment">// since the presence of those fields means a positive full year,</span>
                 <span class="comment">// we should filter a negative full year first.</span>
-                (<span class="prelude-val">Some</span>(<span class="ident">y</span>), <span class="ident">q</span>, <span class="ident">r</span> @ <span class="prelude-val">Some</span>(<span class="number">0</span>...<span class="number">99</span>)) <span class="op">|</span> (<span class="prelude-val">Some</span>(<span class="ident">y</span>), <span class="ident">q</span>, <span class="ident">r</span> @ <span class="prelude-val">None</span>) =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">y</span>), <span class="ident">q</span>, <span class="ident">r</span> @ <span class="prelude-val">Some</span>(<span class="number">0</span>..<span class="op">=</span><span class="number">99</span>)) <span class="op">|</span> (<span class="prelude-val">Some</span>(<span class="ident">y</span>), <span class="ident">q</span>, <span class="ident">r</span> @ <span class="prelude-val">None</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">y</span> <span class="op">&lt;</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>);
                     }
@@ -1635,7 +1583,7 @@
 
                 <span class="comment">// the full year is missing but we have quotient and modulo.</span>
                 <span class="comment">// reconstruct the full year. make sure that the result is always positive.</span>
-                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">q</span>), <span class="prelude-val">Some</span>(<span class="ident">r</span> @ <span class="number">0</span>...<span class="number">99</span>)) =&gt; {
+                (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">q</span>), <span class="prelude-val">Some</span>(<span class="ident">r</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">99</span>)) =&gt; {
                     <span class="kw">if</span> <span class="ident">q</span> <span class="op">&lt;</span> <span class="number">0</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>);
                     }
@@ -1645,7 +1593,7 @@
 
                 <span class="comment">// we only have modulo. try to interpret a modulo as a conventional two-digit year.</span>
                 <span class="comment">// note: we are affected by Rust issue #18060. avoid multiple range patterns.</span>
-                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">r</span> @ <span class="number">0</span>...<span class="number">99</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">r</span> <span class="op">+</span> <span class="kw">if</span> <span class="ident">r</span> <span class="op">&lt;</span> <span class="number">70</span> { <span class="number">2000</span> } <span class="kw">else</span> { <span class="number">1900</span> })),
+                (<span class="prelude-val">None</span>, <span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">r</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">99</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">r</span> <span class="op">+</span> <span class="kw">if</span> <span class="ident">r</span> <span class="op">&lt;</span> <span class="number">70</span> { <span class="number">2000</span> } <span class="kw">else</span> { <span class="number">1900</span> })),
 
                 <span class="comment">// otherwise it is an out-of-bound or insufficient condition.</span>
                 (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>),
@@ -1816,32 +1764,32 @@
     <span class="doccomment">/// It is able to handle leap seconds when given second is 60.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_naive_time</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">NaiveTime</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">hour_div_12</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">hour_div_12</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>...<span class="number">1</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">1</span>) =&gt; <span class="ident">v</span>,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>),
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>),
         };
         <span class="kw">let</span> <span class="ident">hour_mod_12</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">hour_mod_12</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>...<span class="number">11</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">11</span>) =&gt; <span class="ident">v</span>,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>),
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>),
         };
         <span class="kw">let</span> <span class="ident">hour</span> <span class="op">=</span> <span class="ident">hour_div_12</span> <span class="op">*</span> <span class="number">12</span> <span class="op">+</span> <span class="ident">hour_mod_12</span>;
 
         <span class="kw">let</span> <span class="ident">minute</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">minute</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>...<span class="number">59</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">59</span>) =&gt; <span class="ident">v</span>,
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>),
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>),
         };
 
         <span class="comment">// we allow omitting seconds or nanoseconds, but they should be in the range.</span>
         <span class="kw">let</span> (<span class="ident">second</span>, <span class="kw-2">mut</span> <span class="ident">nano</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">second</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) {
-            <span class="ident">v</span> @ <span class="number">0</span>...<span class="number">59</span> =&gt; (<span class="ident">v</span>, <span class="number">0</span>),
+            <span class="ident">v</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">59</span> =&gt; (<span class="ident">v</span>, <span class="number">0</span>),
             <span class="number">60</span> =&gt; (<span class="number">59</span>, <span class="number">1_000_000_000</span>),
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>),
         };
         <span class="ident">nano</span> <span class="op">+</span><span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">nanosecond</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>...<span class="number">999_999_999</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">second</span>.<span class="ident">is_some</span>() =&gt; <span class="ident">v</span>,
-            <span class="prelude-val">Some</span>(<span class="number">0</span>...<span class="number">999_999_999</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>), <span class="comment">// second is missing</span>
+            <span class="prelude-val">Some</span>(<span class="ident">v</span> @ <span class="number">0</span>..<span class="op">=</span><span class="number">999_999_999</span>) <span class="kw">if</span> <span class="self">self</span>.<span class="ident">second</span>.<span class="ident">is_some</span>() =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">Some</span>(<span class="number">0</span>..<span class="op">=</span><span class="number">999_999_999</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">NOT_ENOUGH</span>), <span class="comment">// second is missing</span>
             <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>),
             <span class="prelude-val">None</span> =&gt; <span class="number">0</span>,
         };
@@ -1943,6 +1891,12 @@
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">offset</span>.<span class="ident">ok_or</span>(<span class="ident">NOT_ENOUGH</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">datetime</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_naive_datetime_with_offset</span>(<span class="ident">offset</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">FixedOffset::east_opt</span>(<span class="ident">offset</span>).<span class="ident">ok_or</span>(<span class="ident">OUT_OF_RANGE</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// this is used to prevent an overflow when calling FixedOffset::from_local_datetime</span>
+        <span class="ident">datetime</span>
+            .<span class="ident">checked_sub_signed</span>(<span class="ident">OldDuration::seconds</span>(<span class="ident">i64::from</span>(<span class="ident">offset</span>.<span class="ident">local_minus_utc</span>())))
+            .<span class="ident">ok_or</span>(<span class="ident">OUT_OF_RANGE</span>)<span class="question-mark">?</span>;
+
         <span class="kw">match</span> <span class="ident">offset</span>.<span class="ident">from_local_datetime</span>(<span class="kw-2">&amp;</span><span class="ident">datetime</span>) {
             <span class="ident">LocalResult::None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">IMPOSSIBLE</span>),
             <span class="ident">LocalResult::Single</span>(<span class="ident">t</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">t</span>),
@@ -2009,10 +1963,10 @@
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::<span class="kw">super</span></span>::{<span class="ident">IMPOSSIBLE</span>, <span class="ident">NOT_ENOUGH</span>, <span class="ident">OUT_OF_RANGE</span>};
     <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Parsed</span>;
-    <span class="kw">use</span> <span class="ident">naive</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveTime</span>, <span class="ident">MAX_DATE</span>, <span class="ident">MIN_DATE</span>};
-    <span class="kw">use</span> <span class="ident">offset</span>::{<span class="ident">FixedOffset</span>, <span class="ident">TimeZone</span>, <span class="ident">Utc</span>};
-    <span class="kw">use</span> <span class="ident">Datelike</span>;
-    <span class="kw">use</span> <span class="ident">Weekday</span>::<span class="kw-2">*</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::naive</span>::{<span class="ident">NaiveDate</span>, <span class="ident">NaiveTime</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::offset</span>::{<span class="ident">FixedOffset</span>, <span class="ident">TimeZone</span>, <span class="ident">Utc</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Datelike</span>;
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Weekday</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">test_parsed_set_fields</span>() {
@@ -2139,7 +2093,7 @@
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(<span class="ident">year_div_100</span>: <span class="number">19</span>, <span class="ident">year_mod_100</span>: <span class="op">-</span><span class="number">1</span>, <span class="ident">month</span>: <span class="number">1</span>, <span class="ident">day</span>: <span class="number">1</span>), <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>));
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(<span class="ident">year_div_100</span>: <span class="number">0</span>, <span class="ident">year_mod_100</span>: <span class="number">0</span>, <span class="ident">month</span>: <span class="number">1</span>, <span class="ident">day</span>: <span class="number">1</span>), <span class="ident">ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>));
         <span class="macro">assert_eq!</span>(<span class="macro">parse!</span>(<span class="ident">year_div_100</span>: <span class="op">-</span><span class="number">1</span>, <span class="ident">year_mod_100</span>: <span class="number">42</span>, <span class="ident">month</span>: <span class="number">1</span>, <span class="ident">day</span>: <span class="number">1</span>), <span class="prelude-val">Err</span>(<span class="ident">OUT_OF_RANGE</span>));
-        <span class="kw">let</span> <span class="ident">max_year</span> <span class="op">=</span> <span class="ident">MAX_DATE</span>.<span class="ident">year</span>();
+        <span class="kw">let</span> <span class="ident">max_year</span> <span class="op">=</span> <span class="ident">NaiveDate::MAX</span>.<span class="ident">year</span>();
         <span class="macro">assert_eq!</span>(
             <span class="macro">parse!</span>(<span class="ident">year_div_100</span>: <span class="ident">max_year</span> <span class="op">/</span> <span class="number">100</span>,
                           <span class="ident">year_mod_100</span>: <span class="ident">max_year</span> <span class="op">%</span> <span class="number">100</span>, <span class="ident">month</span>: <span class="number">1</span>, <span class="ident">day</span>: <span class="number">1</span>),
@@ -2392,14 +2346,14 @@
 
         <span class="comment">// more timestamps</span>
         <span class="kw">let</span> <span class="ident">max_days_from_year_1970</span> <span class="op">=</span>
-            <span class="ident">MAX_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
+            <span class="ident">NaiveDate::MAX</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
         <span class="kw">let</span> <span class="ident">year_0_from_year_1970</span> <span class="op">=</span>
             <span class="ident">NaiveDate::from_ymd</span>(<span class="number">0</span>, <span class="number">1</span>, <span class="number">1</span>).<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
         <span class="kw">let</span> <span class="ident">min_days_from_year_1970</span> <span class="op">=</span>
-            <span class="ident">MIN_DATE</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
+            <span class="ident">NaiveDate::MIN</span>.<span class="ident">signed_duration_since</span>(<span class="ident">NaiveDate::from_ymd</span>(<span class="number">1970</span>, <span class="number">1</span>, <span class="number">1</span>));
         <span class="macro">assert_eq!</span>(
             <span class="macro">parse!</span>(<span class="ident">timestamp</span>: <span class="ident">min_days_from_year_1970</span>.<span class="ident">num_seconds</span>()),
-            <span class="ident">ymdhms</span>(<span class="ident">MIN_DATE</span>.<span class="ident">year</span>(), <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
+            <span class="ident">ymdhms</span>(<span class="ident">NaiveDate::MIN</span>.<span class="ident">year</span>(), <span class="number">1</span>, <span class="number">1</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>)
         );
         <span class="macro">assert_eq!</span>(
             <span class="macro">parse!</span>(<span class="ident">timestamp</span>: <span class="ident">year_0_from_year_1970</span>.<span class="ident">num_seconds</span>()),
@@ -2407,7 +2361,7 @@
         );
         <span class="macro">assert_eq!</span>(
             <span class="macro">parse!</span>(<span class="ident">timestamp</span>: <span class="ident">max_days_from_year_1970</span>.<span class="ident">num_seconds</span>() <span class="op">+</span> <span class="number">86399</span>),
-            <span class="ident">ymdhms</span>(<span class="ident">MAX_DATE</span>.<span class="ident">year</span>(), <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>)
+            <span class="ident">ymdhms</span>(<span class="ident">NaiveDate::MAX</span>.<span class="ident">year</span>(), <span class="number">12</span>, <span class="number">31</span>, <span class="number">23</span>, <span class="number">59</span>, <span class="number">59</span>)
         );
 
         <span class="comment">// leap seconds #1: partial fields</span>
