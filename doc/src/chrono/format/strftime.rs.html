@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.20/src/format/strftime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>strftime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.21/src/format/strftime.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>strftime.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script src="../../../crates.js"></script><script defer src="../../../main.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../chrono/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -642,9 +642,6 @@
 <span id="637">637</span>
 <span id="638">638</span>
 <span id="639">639</span>
-<span id="640">640</span>
-<span id="641">641</span>
-<span id="642">642</span>
 </pre><pre class="rust"><code><span class="comment">// This is a part of Chrono.</span>
 <span class="comment">// See README.md and LICENSE.txt for details.</span>
 
@@ -658,9 +655,9 @@ The following specifiers are available both to formatting and parsing.
 | Spec. | Example  | Description                                                                |
 |-------|----------|----------------------------------------------------------------------------|
 |       |          | **DATE SPECIFIERS:**                                                       |
-| `%Y`  | `2001`   | The full proleptic Gregorian year, zero-padded to 4 digits. [^1]           |
-| `%C`  | `20`     | The proleptic Gregorian year divided by 100, zero-padded to 2 digits. [^2] |
-| `%y`  | `01`     | The proleptic Gregorian year modulo 100, zero-padded to 2 digits. [^2]     |
+| `%Y`  | `2001`   | The full proleptic Gregorian year, zero-padded to 4 digits. Allows negative years. |
+| `%C`  | `20`     | The proleptic Gregorian year divided by 100, zero-padded to 2 digits. [^1] |
+| `%y`  | `01`     | The proleptic Gregorian year modulo 100, zero-padded to 2 digits. [^1]     |
 |       |          |                                                                            |
 | `%m`  | `07`     | Month number (01--12), zero-padded to 2 digits.                            |
 | `%b`  | `Jul`    | Abbreviated month name. Always 3 letters.                                  |
@@ -675,12 +672,12 @@ The following specifiers are available both to formatting and parsing.
 | `%w`  | `0`      | Sunday = 0, Monday = 1, ..., Saturday = 6.                                 |
 | `%u`  | `7`      | Monday = 1, Tuesday = 2, ..., Sunday = 7. (ISO 8601)                       |
 |       |          |                                                                            |
-| `%U`  | `28`     | Week number starting with Sunday (00--53), zero-padded to 2 digits. [^3]   |
+| `%U`  | `28`     | Week number starting with Sunday (00--53), zero-padded to 2 digits. [^2]   |
 | `%W`  | `27`     | Same as `%U`, but week 1 starts with the first Monday in that year instead.|
 |       |          |                                                                            |
-| `%G`  | `2001`   | Same as `%Y` but uses the year number in ISO 8601 week date. [^4]          |
-| `%g`  | `01`     | Same as `%y` but uses the year number in ISO 8601 week date. [^4]          |
-| `%V`  | `27`     | Same as `%U` but uses the week number in ISO 8601 week date (01--53). [^4] |
+| `%G`  | `2001`   | Same as `%Y` but uses the year number in ISO 8601 week date. [^3]          |
+| `%g`  | `01`     | Same as `%y` but uses the year number in ISO 8601 week date. [^3]          |
+| `%V`  | `27`     | Same as `%U` but uses the week number in ISO 8601 week date (01--53). [^3] |
 |       |          |                                                                            |
 | `%j`  | `189`    | Day of the year (001--366), zero-padded to 3 digits.                       |
 |       |          |                                                                            |
@@ -699,15 +696,15 @@ The following specifiers are available both to formatting and parsing.
 | `%p`  | `AM`     | `AM` or `PM` in 12-hour clocks.                                            |
 |       |          |                                                                            |
 | `%M`  | `34`     | Minute number (00--59), zero-padded to 2 digits.                           |
-| `%S`  | `60`     | Second number (00--60), zero-padded to 2 digits. [^5]                      |
-| `%f`  | `026490000`   | The fractional seconds (in nanoseconds) since last whole second. [^8] |
-| `%.f` | `.026490`| Similar to `.%f` but left-aligned. These all consume the leading dot. [^8] |
-| `%.3f`| `.026`        | Similar to `.%f` but left-aligned but fixed to a length of 3. [^8]    |
-| `%.6f`| `.026490`     | Similar to `.%f` but left-aligned but fixed to a length of 6. [^8]    |
-| `%.9f`| `.026490000`  | Similar to `.%f` but left-aligned but fixed to a length of 9. [^8]    |
-| `%3f` | `026`         | Similar to `%.3f` but without the leading dot. [^8]                   |
-| `%6f` | `026490`      | Similar to `%.6f` but without the leading dot. [^8]                   |
-| `%9f` | `026490000`   | Similar to `%.9f` but without the leading dot. [^8]                   |
+| `%S`  | `60`     | Second number (00--60), zero-padded to 2 digits. [^4]                      |
+| `%f`  | `026490000`   | The fractional seconds (in nanoseconds) since last whole second. [^7] |
+| `%.f` | `.026490`| Similar to `.%f` but left-aligned. These all consume the leading dot. [^7] |
+| `%.3f`| `.026`        | Similar to `.%f` but left-aligned but fixed to a length of 3. [^7]    |
+| `%.6f`| `.026490`     | Similar to `.%f` but left-aligned but fixed to a length of 6. [^7]    |
+| `%.9f`| `.026490000`  | Similar to `.%f` but left-aligned but fixed to a length of 9. [^7]    |
+| `%3f` | `026`         | Similar to `%.3f` but without the leading dot. [^7]                   |
+| `%6f` | `026490`      | Similar to `%.6f` but without the leading dot. [^7]                   |
+| `%9f` | `026490000`   | Similar to `%.9f` but without the leading dot. [^7]                   |
 |       |               |                                                                       |
 | `%R`  | `00:34`       | Hour-minute format. Same as `%H:%M`.                                  |
 | `%T`  | `00:34:60`    | Hour-minute-second format. Same as `%H:%M:%S`.                        |
@@ -715,16 +712,16 @@ The following specifiers are available both to formatting and parsing.
 | `%r`  | `12:34:60 AM` | Hour-minute-second format in 12-hour clocks. Same as `%I:%M:%S %p`.   |
 |       |          |                                                                            |
 |       |          | **TIME ZONE SPECIFIERS:**                                                  |
-| `%Z`  | `ACST`   | Local time zone name. Skips all non-whitespace characters during parsing. [^9] |
+| `%Z`  | `ACST`   | Local time zone name. Skips all non-whitespace characters during parsing. [^8] |
 | `%z`  | `+0930`  | Offset from the local time to UTC (with UTC being `+0000`).                |
 | `%:z` | `+09:30` | Same as `%z` but with a colon.                                             |
 | `%#z` | `+09`    | *Parsing only:* Same as `%z` but allows minutes to be missing or present.  |
 |       |          |                                                                            |
 |       |          | **DATE &amp; TIME SPECIFIERS:**                                                |
 |`%c`|`Sun Jul  8 00:34:60 2001`|Locale&#39;s date and time (e.g., Thu Mar  3 23:05:25 2005).       |
-| `%+`  | `2001-07-08T00:34:60.026490+09:30` | ISO 8601 / RFC 3339 date &amp; time format. [^6]     |
+| `%+`  | `2001-07-08T00:34:60.026490+09:30` | ISO 8601 / RFC 3339 date &amp; time format. [^5]     |
 |       |               |                                                                       |
-| `%s`  | `994518299`   | UNIX timestamp, the number of seconds since 1970-01-01 00:00 UTC. [^7]|
+| `%s`  | `994518299`   | UNIX timestamp, the number of seconds since 1970-01-01 00:00 UTC. [^6]|
 |       |          |                                                                            |
 |       |          | **SPECIAL SPECIFIERS:**                                                    |
 | `%t`  |          | Literal tab (`\t`).                                                        |
@@ -742,24 +739,21 @@ Modifier | Description
 
 Notes:
 
-[^1]: `%Y`:
-   Negative years are allowed in formatting but not in parsing.
-
-[^2]: `%C`, `%y`:
+[^1]: `%C`, `%y`:
    This is floor division, so 100 BCE (year number -99) will print `-1` and `99` respectively.
 
-[^3]: `%U`:
+[^2]: `%U`:
    Week 1 starts with the first Sunday in that year.
    It is possible to have week 0 for days before the first Sunday.
 
-[^4]: `%G`, `%g`, `%V`:
+[^3]: `%G`, `%g`, `%V`:
    Week 1 is the first week with at least 4 days in that year.
    Week 0 does not exist, so this should be used with `%G` or `%g`.
 
-[^5]: `%S`:
+[^4]: `%S`:
    It accounts for leap seconds, so `60` is possible.
 
-[^6]: `%+`: Same as `%Y-%m-%dT%H:%M:%S%.f%:z`, i.e. 0, 3, 6 or 9 fractional
+[^5]: `%+`: Same as `%Y-%m-%dT%H:%M:%S%.f%:z`, i.e. 0, 3, 6 or 9 fractional
    digits for seconds and colons in the time zone offset.
    &lt;br&gt;
    &lt;br&gt;
@@ -768,12 +762,12 @@ Notes:
    stable, it is best to avoid this specifier if you want to control the exact
    output.
 
-[^7]: `%s`:
+[^6]: `%s`:
    This is not padded and can be negative.
    For the purpose of Chrono, it only accounts for non-leap seconds
    so it slightly differs from ISO C `strftime` behavior.
 
-[^8]: `%f`, `%.f`, `%.3f`, `%.6f`, `%.9f`, `%3f`, `%6f`, `%9f`:
+[^7]: `%f`, `%.f`, `%.3f`, `%.6f`, `%.9f`, `%3f`, `%6f`, `%9f`:
    &lt;br&gt;
    The default `%f` is right-aligned and always zero-padded to 9 digits
    for the compatibility with glibc and others,
@@ -804,7 +798,7 @@ Notes:
    and parsing `07`, `070000` etc. will yield the same.
    Note that they can read nothing if the fractional part is zero.
 
-[^9]: `%Z`:
+[^8]: `%Z`:
    Offset will not be populated from the parsed data, nor will it be validated.
    Timezone is completely ignored. Similar to the glibc `strptime` treatment of
    this format code.

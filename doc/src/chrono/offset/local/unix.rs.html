@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.20/src/offset/local/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/chrono-0.4.21/src/offset/local/unix.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>unix.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script src="../../../../crates.js"></script><script defer src="../../../../main.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script>
     <noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../chrono/index.html"><div class="logo-container"><img class="rust-logo" src="../../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
@@ -144,6 +144,33 @@
 <span id="139">139</span>
 <span id="140">140</span>
 <span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2012-2014 The Rust Project Developers. See the COPYRIGHT</span>
 <span class="comment">// file at the top-level directory of this distribution and at</span>
 <span class="comment">// http://rust-lang.org/COPYRIGHT.</span>
@@ -193,12 +220,19 @@
         <span class="comment">// to that in `naive_to_local`</span>
         <span class="kw">match</span> <span class="ident">env::var_os</span>(<span class="string">&quot;TZ&quot;</span>) {
             <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">to_str</span>().<span class="ident">is_some</span>() =&gt; <span class="ident">Source::Environment</span>,
-            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; <span class="ident">Source::LocalTime</span> {
-                <span class="ident">mtime</span>: <span class="ident">fs::symlink_metadata</span>(<span class="string">&quot;/etc/localtime&quot;</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;localtime should exist&quot;</span>)
-                    .<span class="ident">modified</span>()
-                    .<span class="ident">unwrap</span>(),
-                <span class="ident">last_checked</span>: <span class="ident">SystemTime::now</span>(),
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident">fs::symlink_metadata</span>(<span class="string">&quot;/etc/localtime&quot;</span>) {
+                <span class="prelude-val">Ok</span>(<span class="ident">data</span>) =&gt; <span class="ident">Source::LocalTime</span> {
+                    <span class="comment">// we have to pick a sensible default when the mtime fails</span>
+                    <span class="comment">// by picking SystemTime::now() we raise the probability of</span>
+                    <span class="comment">// the cache being invalidated if/when the mtime starts working</span>
+                    <span class="ident">mtime</span>: <span class="ident">data</span>.<span class="ident">modified</span>().<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">SystemTime::now</span>()),
+                    <span class="ident">last_checked</span>: <span class="ident">SystemTime::now</span>(),
+                },
+                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="comment">// as above, now() should be a better default than some constant</span>
+                    <span class="comment">// TODO: see if we can improve caching in the case where the fallback is a valid timezone</span>
+                    <span class="ident">Source::LocalTime</span> { <span class="ident">mtime</span>: <span class="ident">SystemTime::now</span>(), <span class="ident">last_checked</span>: <span class="ident">SystemTime::now</span>() }
+                }
             },
         }
     }
@@ -235,10 +269,30 @@
     <span class="ident">source</span>: <span class="ident">Source</span>,
 }
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>)]</span>
+<span class="kw">const</span> <span class="ident">TZDB_LOCATION</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot; /system/usr/share/zoneinfo&quot;</span>;
+
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span> <span class="comment">// keeps the cfg simpler</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;android&quot;</span>))]</span>
+<span class="kw">const</span> <span class="ident">TZDB_LOCATION</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;/usr/share/zoneinfo&quot;</span>;
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>))]</span>
+<span class="kw">fn</span> <span class="ident">fallback_timezone</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimeZone</span><span class="op">&gt;</span> {
+    <span class="prelude-val">Some</span>(<span class="ident">TimeZone::utc</span>())
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;emscripten&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;wasi&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;solaris&quot;</span>)))]</span>
+<span class="kw">fn</span> <span class="ident">fallback_timezone</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">TimeZone</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">tz_name</span> <span class="op">=</span> <span class="ident">iana_time_zone::get_timezone</span>().<span class="ident">ok</span>()<span class="question-mark">?</span>;
+    <span class="kw">let</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="ident">fs::read</span>(<span class="macro">format!</span>(<span class="string">&quot;{}/{}&quot;</span>, <span class="ident">TZDB_LOCATION</span>, <span class="ident">tz_name</span>)).<span class="ident">ok</span>()<span class="question-mark">?</span>;
+    <span class="ident">TimeZone::from_tz_data</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>).<span class="ident">ok</span>()
+}
+
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Cache</span> {
     <span class="kw">fn</span> <span class="ident">default</span>() -&gt; <span class="ident">Cache</span> {
+        <span class="comment">// default to UTC if no local timezone can be found</span>
         <span class="ident">Cache</span> {
-            <span class="ident">zone</span>: <span class="ident">TimeZone::local</span>().<span class="ident">expect</span>(<span class="string">&quot;unable to parse localtime info&quot;</span>),
+            <span class="ident">zone</span>: <span class="ident">TimeZone::local</span>().<span class="ident">ok</span>().<span class="ident">or_else</span>(<span class="ident">fallback_timezone</span>).<span class="ident">unwrap_or_else</span>(<span class="ident">TimeZone::utc</span>),
             <span class="ident">source</span>: <span class="ident">Source::default</span>(),
         }
     }
