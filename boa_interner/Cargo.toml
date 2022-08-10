@@ -12,6 +12,6 @@ license = "Unlicense/MIT"
 
 [dependencies]
 serde = { version = "1.0.143", features = ["derive"], optional = true }
-phf = { version = "0.11.0", features = ["macros"] }
+phf = { version = "0.11.1", features = ["macros"] }
 rustc-hash = "1.1.0"
 static_assertions = "1.1.0"
