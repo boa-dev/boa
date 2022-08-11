@@ -27,4 +27,4 @@ fxhash = "0.2.1"
 num-format = "0.4.0"
 gc = { version = "0.4.1", features = ["derive"] }
 rayon = "1.5.3"
-anyhow = "1.0.60"
+anyhow = "1.0.61"
