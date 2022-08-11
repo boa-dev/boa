@@ -21,7 +21,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Punctuator
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Punctuator {
     /// `+`
     Add,

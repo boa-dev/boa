@@ -27,7 +27,7 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Debug, Clone, Copy, Finalize, PartialEq)]
+#[derive(Debug, Clone, Copy, Finalize, PartialEq, Eq)]
 pub struct Identifier {
     ident: Sym,
 }

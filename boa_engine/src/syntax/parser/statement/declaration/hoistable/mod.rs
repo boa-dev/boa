@@ -133,7 +133,6 @@ trait CallableDeclaration {
 
 // This is a helper function to not duplicate code in the individual callable deceleration parsers.
 #[inline]
-#[allow(clippy::type_complexity)]
 fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,

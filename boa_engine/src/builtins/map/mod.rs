@@ -10,8 +10,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-map-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
 
-#![allow(clippy::mutable_key_type)]
-
 use self::{map_iterator::MapIterator, ordered_map::OrderedMap};
 use super::JsArgs;
 use crate::{

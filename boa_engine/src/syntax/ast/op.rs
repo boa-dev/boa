@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, Debug, Finalize, PartialEq)]
+#[derive(Clone, Copy, Debug, Finalize, PartialEq, Eq)]
 pub enum NumOp {
     /// The addition operator produces the sum of numeric operands or string concatenation.
     ///
@@ -132,7 +132,7 @@ unsafe impl Trace for NumOp {
 /// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, Debug, Finalize, PartialEq)]
+#[derive(Clone, Copy, Debug, Finalize, PartialEq, Eq)]
 pub enum UnaryOp {
     /// The increment operator increments (adds one to) its operand and returns a value.
     ///
@@ -346,7 +346,7 @@ unsafe impl Trace for UnaryOp {
 ///
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, Debug, Finalize, PartialEq)]
+#[derive(Clone, Copy, Debug, Finalize, PartialEq, Eq)]
 pub enum BitOp {
     /// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.
     ///
@@ -472,7 +472,7 @@ unsafe impl Trace for BitOp {
 /// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, Debug, Finalize, PartialEq)]
+#[derive(Clone, Copy, Debug, Finalize, PartialEq, Eq)]
 pub enum CompOp {
     /// The equality operator converts the operands if they are not of the same type, then applies
     /// strict comparison.
@@ -668,7 +668,7 @@ unsafe impl Trace for CompOp {
 /// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, Debug, Finalize, PartialEq)]
+#[derive(Clone, Copy, Debug, Finalize, PartialEq, Eq)]
 pub enum LogOp {
     /// The logical AND operator returns the value of the first operand if it can be coerced into `false`;
     /// otherwise, it returns the second operand.
@@ -733,7 +733,7 @@ unsafe impl Trace for LogOp {
 
 /// This represents a binary operation between two values.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, Debug, Finalize, PartialEq)]
+#[derive(Clone, Copy, Debug, Finalize, PartialEq, Eq)]
 pub enum BinOp {
     /// Numeric operation.
     ///
@@ -832,7 +832,7 @@ unsafe impl Trace for BinOp {
 /// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Copy, Debug, Finalize, PartialEq)]
+#[derive(Clone, Copy, Debug, Finalize, PartialEq, Eq)]
 pub enum AssignOp {
     /// The addition assignment operator adds the value of the right operand to a variable and assigns the result to the variable.
     ///

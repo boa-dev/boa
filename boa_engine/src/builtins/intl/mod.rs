@@ -473,7 +473,7 @@ fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult
             })?;
 
             // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
-            canonicalize_unicode_locale_id(&mut tag, &*context.icu().locale_canonicalizer());
+            canonicalize_unicode_locale_id(&mut tag, context.icu().locale_canonicalizer());
             seen.insert(tag);
             // vii. If canonicalizedTag is not an element of seen, append canonicalizedTag as the last element of seen.
         }

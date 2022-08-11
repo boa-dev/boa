@@ -16,7 +16,7 @@ use std::io::{self, ErrorKind, Read};
 use serde::{Deserialize, Serialize};
 
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TemplateString {
     /// The template string of template literal with argument `raw` true.
     raw: Sym,
