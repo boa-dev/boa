@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Ethiopic",""],["EthiopicDateInner",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Ethiopic",""],["EthiopicDateInner",""]]};

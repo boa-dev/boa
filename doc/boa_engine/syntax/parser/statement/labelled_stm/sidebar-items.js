@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["set_label_for_node",""]],"struct":[["LabelledStatement","Labelled Statement Parsing"]]});
+window.SIDEBAR_ITEMS = {"fn":[["set_label_for_node",""]],"struct":[["LabelledStatement","Labelled Statement Parsing"]]};

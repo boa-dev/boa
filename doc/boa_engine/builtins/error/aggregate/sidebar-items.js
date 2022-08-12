@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["AggregateError",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["AggregateError",""]]};

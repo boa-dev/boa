@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["locale_canonicalizer","The collection of code for locale canonicalization."],["provider","Data provider struct definitions for this ICU4X component."]]});
+window.SIDEBAR_ITEMS = {"mod":[["locale_canonicalizer","The collection of code for locale canonicalization."],["provider","Data provider struct definitions for this ICU4X component."]]};

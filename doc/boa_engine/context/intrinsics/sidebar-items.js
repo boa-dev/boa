@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["IntrinsicObjects","Cached intrinsic objects"],["Intrinsics",""],["StandardConstructor","Store a builtin constructor (such as `Object`) and its corresponding prototype."],["StandardConstructors","Cached core standard constructors."]]});
+window.SIDEBAR_ITEMS = {"struct":[["IntrinsicObjects","Cached intrinsic objects"],["Intrinsics",""],["StandardConstructor","Store a builtin constructor (such as `Object`) and its corresponding prototype."],["StandardConstructors","Cached core standard constructors."]]};

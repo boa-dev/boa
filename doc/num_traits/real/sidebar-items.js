@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Real","A trait for real number types that do not necessarily have floating-point-specific characteristics such as NaN and infinity."]]});
+window.SIDEBAR_ITEMS = {"trait":[["Real","A trait for real number types that do not necessarily have floating-point-specific characteristics such as NaN and infinity."]]};

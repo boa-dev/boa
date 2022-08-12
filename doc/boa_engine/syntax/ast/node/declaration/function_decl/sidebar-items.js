@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["FunctionDecl","The `function` declaration (function statement) defines a function with the specified parameters."]]});
+window.SIDEBAR_ITEMS = {"struct":[["FunctionDecl","The `function` declaration (function statement) defines a function with the specified parameters."]]};

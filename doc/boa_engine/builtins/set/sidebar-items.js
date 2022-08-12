@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["ordered_set",""],["set_iterator",""]],"struct":[["Set",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["ordered_set",""],["set_iterator",""]],"struct":[["Set",""]]};

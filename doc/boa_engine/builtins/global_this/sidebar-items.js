@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GlobalThis","The JavaScript `globalThis`."]]});
+window.SIDEBAR_ITEMS = {"struct":[["GlobalThis","The JavaScript `globalThis`."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["Finalize",""],["Trace",""]]});
+window.SIDEBAR_ITEMS = {"derive":[["Finalize",""],["Trace",""]]};

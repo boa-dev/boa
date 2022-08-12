@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["singleton_map","Serialize/deserialize an enum using a YAML map containing one entry in which the key identifies the variant name."]]});
+window.SIDEBAR_ITEMS = {"mod":[["singleton_map","Serialize/deserialize an enum using a YAML map containing one entry in which the key identifies the variant name."]]};

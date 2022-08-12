@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["PrivateIdentifier","Private Identifier lexing."]]});
+window.SIDEBAR_ITEMS = {"struct":[["PrivateIdentifier","Private Identifier lexing."]]};

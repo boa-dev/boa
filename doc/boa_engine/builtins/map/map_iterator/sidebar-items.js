@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["MapIterator","The Map Iterator object represents an iteration over a map. It implements the iterator protocol."]]});
+window.SIDEBAR_ITEMS = {"struct":[["MapIterator","The Map Iterator object represents an iteration over a map. It implements the iterator protocol."]]};

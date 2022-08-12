@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Parser","A regular expression parser."],["ParserBuilder","A builder for a regular expression parser."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Parser","A regular expression parser."],["ParserBuilder","A builder for a regular expression parser."]]};

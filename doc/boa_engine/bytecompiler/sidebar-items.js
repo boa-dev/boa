@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Access",""],["FunctionKind","`FunctionKind` describes how a function has been defined in the source code."],["JumpControlInfoKind",""],["Literal",""]],"struct":[["ByteCompiler",""],["JumpControlInfo",""],["Label",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["Access",""],["FunctionKind","`FunctionKind` describes how a function has been defined in the source code."],["JumpControlInfoKind",""],["Literal",""]],"struct":[["ByteCompiler",""],["JumpControlInfo",""],["Label",""]]};

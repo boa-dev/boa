@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["StructOpt","Generates the `StructOpt` impl."]]});
+window.SIDEBAR_ITEMS = {"derive":[["StructOpt","Generates the `StructOpt` impl."]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Speculative","Extensions to the `ParseStream` API to support speculative parsing."]]});
+window.SIDEBAR_ITEMS = {"trait":[["Speculative","Extensions to the `ParseStream` API to support speculative parsing."]]};

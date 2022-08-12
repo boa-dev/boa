@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["VarZeroVecOwned","A fully-owned [`VarZeroVec`]. This type has no lifetime but has the same internal buffer representation of [`VarZeroVec`], making it cheaply convertible to [`VarZeroVec`] and [`VarZeroSlice`]."]]});
+window.SIDEBAR_ITEMS = {"struct":[["VarZeroVecOwned","A fully-owned [`VarZeroVec`]. This type has no lifetime but has the same internal buffer representation of [`VarZeroVec`], making it cheaply convertible to [`VarZeroVec`] and [`VarZeroSlice`]."]]};

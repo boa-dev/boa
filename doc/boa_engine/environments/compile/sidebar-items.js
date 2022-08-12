@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["CompileTimeBinding","A compile time binding represents a binding at bytecode compile time in a [`CompileTimeEnvironment`]."],["CompileTimeEnvironment","A compile time environment maps bound identifiers to their binding positions."]]});
+window.SIDEBAR_ITEMS = {"struct":[["CompileTimeBinding","A compile time binding represents a binding at bytecode compile time in a [`CompileTimeEnvironment`]."],["CompileTimeEnvironment","A compile time environment maps bound identifiers to their binding positions."]]};

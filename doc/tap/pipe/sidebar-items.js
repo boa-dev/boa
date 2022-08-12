@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["Pipe","Provides universal suffix-position call syntax for any function."]]});
+window.SIDEBAR_ITEMS = {"trait":[["Pipe","Provides universal suffix-position call syntax for any function."]]};

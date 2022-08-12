@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Identifier","Identifier lexing."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Identifier","Identifier lexing."]]};

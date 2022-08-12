@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["JsObject","Garbage collected `Object`."]]});
+window.SIDEBAR_ITEMS = {"struct":[["JsObject","Garbage collected `Object`."]]};

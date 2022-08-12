@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["RegExpStringIterator",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["RegExpStringIterator",""]]};

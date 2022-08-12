@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["get_postcard_provider","Get a data provider, loading from the statically initialized postcard blob."],["get_smaller_postcard_provider","Get a small data provider that only contains the `decimal/symbols@1` key for `en` and `bn`."]]});
+window.SIDEBAR_ITEMS = {"fn":[["get_postcard_provider","Get a data provider, loading from the statically initialized postcard blob."],["get_smaller_postcard_provider","Get a small data provider that only contains the `decimal/symbols@1` key for `en` and `bn`."]]};

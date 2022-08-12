@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ExpressionStatement","Expression statement parsing."]]});
+window.SIDEBAR_ITEMS = {"struct":[["ExpressionStatement","Expression statement parsing."]]};

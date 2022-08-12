@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ExponentiationExpression","Parses an exponentiation expression."]]});
+window.SIDEBAR_ITEMS = {"struct":[["ExponentiationExpression","Parses an exponentiation expression."]]};

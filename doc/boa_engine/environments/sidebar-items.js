@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["compile",""],["runtime",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["compile",""],["runtime",""]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Drain","Draining parallel iterator that moves a range out of a vector, but keeps the total capacity."],["IntoIter","Parallel iterator that moves out of a vector."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Drain","Draining parallel iterator that moves a range out of a vector, but keeps the total capacity."],["IntoIter","Parallel iterator that moves out of a vector."]]};

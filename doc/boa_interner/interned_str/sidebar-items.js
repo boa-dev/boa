@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["InternedStr","Wrapper for an interned str pointer, required to quickly check using a hash if a string is inside an [`Interner`][`super::Interner`]."]]});
+window.SIDEBAR_ITEMS = {"struct":[["InternedStr","Wrapper for an interned str pointer, required to quickly check using a hash if a string is inside an [`Interner`][`super::Interner`]."]]};

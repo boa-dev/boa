@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["node_to_iterable_loop_initializer",""]],"struct":[["ForStatement","For statement parsing"]]});
+window.SIDEBAR_ITEMS = {"fn":[["node_to_iterable_loop_initializer",""]],"struct":[["ForStatement","For statement parsing"]]};

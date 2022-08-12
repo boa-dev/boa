@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["TaggedTemplateLiteral","Parses a tagged template."]]});
+window.SIDEBAR_ITEMS = {"struct":[["TaggedTemplateLiteral","Parses a tagged template."]]};

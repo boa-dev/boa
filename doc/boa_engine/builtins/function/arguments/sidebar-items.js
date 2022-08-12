@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Arguments",""]],"struct":[["ParameterMap","`ParameterMap` represents the `[[ParameterMap]]` internal slot on a Arguments exotic object."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Arguments",""]],"struct":[["ParameterMap","`ParameterMap` represents the `[[ParameterMap]]` internal slot on a Arguments exotic object."]]};

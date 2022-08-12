@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["assign",""],["bin_op",""],["unary_op",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["assign",""],["bin_op",""],["unary_op",""]]};

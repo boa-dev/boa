@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Math","Javascript `Math` object."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Math","Javascript `Math` object."]]};

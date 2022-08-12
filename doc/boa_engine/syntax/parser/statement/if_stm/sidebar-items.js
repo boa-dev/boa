@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["IfStatement","If statement parsing."]]});
+window.SIDEBAR_ITEMS = {"struct":[["IfStatement","If statement parsing."]]};

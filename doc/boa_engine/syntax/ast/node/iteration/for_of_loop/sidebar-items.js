@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ForOfLoop",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["ForOfLoop",""]]};

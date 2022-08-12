@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Buddhist","The Thai Solar Buddhist Calendar"]]});
+window.SIDEBAR_ITEMS = {"struct":[["Buddhist","The Thai Solar Buddhist Calendar"]]};

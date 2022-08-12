@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Catch","Catch parsing"],["CatchParameter","`CatchParameter` parsing"]]});
+window.SIDEBAR_ITEMS = {"struct":[["Catch","Catch parsing"],["CatchParameter","`CatchParameter` parsing"]]};

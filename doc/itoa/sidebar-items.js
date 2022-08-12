@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Buffer","A correctly sized stack allocation for the formatted integer to be written into."]],"trait":[["Integer","An integer that can be written into an [`itoa::Buffer`][Buffer]."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Buffer","A correctly sized stack allocation for the formatted integer to be written into."]],"trait":[["Integer","An integer that can be written into an [`itoa::Buffer`][Buffer]."]]};

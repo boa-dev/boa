@@ -1,1 +1,1 @@
-initSidebarItems({"constant":[["__wasm_bindgen_generated_evaluate__const",""]],"fn":[["evaluate",""]]});
+window.SIDEBAR_ITEMS = {"constant":[["__wasm_bindgen_generated_evaluate__const",""]],"fn":[["evaluate",""]]};

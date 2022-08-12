@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Const","Literals represent values in JavaScript."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Const","Literals represent values in JavaScript."]]};

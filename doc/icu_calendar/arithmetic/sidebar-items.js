@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["week_of",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["week_of",""]]};

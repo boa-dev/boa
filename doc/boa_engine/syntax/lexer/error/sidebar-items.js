@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Error",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["Error",""]]};

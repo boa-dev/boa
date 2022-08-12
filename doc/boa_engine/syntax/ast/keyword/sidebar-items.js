@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Keyword","Keywords are tokens that have special meaning in JavaScript."]],"struct":[["KeywordError",""]]});
+window.SIDEBAR_ITEMS = {"enum":[["Keyword","Keywords are tokens that have special meaning in JavaScript."]],"struct":[["KeywordError",""]]};

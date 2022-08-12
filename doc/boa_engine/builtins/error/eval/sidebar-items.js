@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["EvalError","JavaScript `EvalError` implementation."]]});
+window.SIDEBAR_ITEMS = {"struct":[["EvalError","JavaScript `EvalError` implementation."]]};

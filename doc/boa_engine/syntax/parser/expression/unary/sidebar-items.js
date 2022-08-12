@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["UnaryExpression","Parses a unary expression."]]});
+window.SIDEBAR_ITEMS = {"struct":[["UnaryExpression","Parses a unary expression."]]};

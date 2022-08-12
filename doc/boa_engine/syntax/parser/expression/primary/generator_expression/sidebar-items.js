@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["GeneratorExpression","Generator expression parsing."]]});
+window.SIDEBAR_ITEMS = {"struct":[["GeneratorExpression","Generator expression parsing."]]};

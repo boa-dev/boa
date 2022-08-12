@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Type","Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator."]]});
+window.SIDEBAR_ITEMS = {"enum":[["Type","Possible types of values as defined at https://tc39.es/ecma262/#sec-typeof-operator."]]};

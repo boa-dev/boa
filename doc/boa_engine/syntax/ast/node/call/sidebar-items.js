@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Call","Calling the function actually performs the specified actions with the indicated parameters."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Call","Calling the function actually performs the specified actions with the indicated parameters."]]};

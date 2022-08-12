@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Undefined","JavaScript global `undefined` property."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Undefined","JavaScript global `undefined` property."]]};

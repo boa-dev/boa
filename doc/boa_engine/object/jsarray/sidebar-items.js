@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["JsArray","JavaScript `Array` rust object."]]});
+window.SIDEBAR_ITEMS = {"struct":[["JsArray","JavaScript `Array` rust object."]]};

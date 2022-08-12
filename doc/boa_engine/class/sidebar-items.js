@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ClassBuilder","Class builder which allows adding methods and static methods to the class."]],"trait":[["Class","Native class."],["ClassConstructor","This is a wrapper around `Class::constructor` that sets the internal data of a class."]]});
+window.SIDEBAR_ITEMS = {"struct":[["ClassBuilder","Class builder which allows adding methods and static methods to the class."]],"trait":[["Class","Native class."],["ClassConstructor","This is a wrapper around `Class::constructor` that sets the internal data of a class."]]};

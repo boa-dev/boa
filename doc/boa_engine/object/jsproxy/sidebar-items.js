@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["JsProxy","JavaScript `Proxy` rust object."],["JsProxyBuilder","Utility builder to create [`JsProxy`] objects from native functions."],["JsRevocableProxy","JavaScript `Proxy` rust object that can be disabled."]]});
+window.SIDEBAR_ITEMS = {"struct":[["JsProxy","JavaScript `Proxy` rust object."],["JsProxyBuilder","Utility builder to create [`JsProxy`] objects from native functions."],["JsRevocableProxy","JavaScript `Proxy` rust object that can be disabled."]]};

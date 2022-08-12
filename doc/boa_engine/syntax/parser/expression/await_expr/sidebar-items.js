@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["AwaitExpression","Parses an await expression."]]});
+window.SIDEBAR_ITEMS = {"struct":[["AwaitExpression","Parses an await expression."]]};

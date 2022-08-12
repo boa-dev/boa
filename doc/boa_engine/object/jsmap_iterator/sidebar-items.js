@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["JsMapIterator","JavaScript `MapIterator` rust object"]]});
+window.SIDEBAR_ITEMS = {"struct":[["JsMapIterator","JavaScript `MapIterator` rust object"]]};

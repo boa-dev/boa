@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["UnaryOp","A unary operation is an operation with only one operand."]]});
+window.SIDEBAR_ITEMS = {"struct":[["UnaryOp","A unary operation is an operation with only one operand."]]};

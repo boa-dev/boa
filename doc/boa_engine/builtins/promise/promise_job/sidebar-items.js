@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["JobCapture",""],["PromiseJob",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["JobCapture",""],["PromiseJob",""]]};

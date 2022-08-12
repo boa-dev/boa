@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["year_as_gregorian",""]],"struct":[["Gregorian","The Gregorian Calendar"],["GregorianDateInner","The inner date type used for representing Date"]]});
+window.SIDEBAR_ITEMS = {"fn":[["year_as_gregorian",""]],"struct":[["Gregorian","The Gregorian Calendar"],["GregorianDateInner","The inner date type used for representing Date"]]};

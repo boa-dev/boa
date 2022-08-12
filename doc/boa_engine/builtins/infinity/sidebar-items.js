@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Infinity","JavaScript global `Infinity` property."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Infinity","JavaScript global `Infinity` property."]]};

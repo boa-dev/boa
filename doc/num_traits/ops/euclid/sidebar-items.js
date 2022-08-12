@@ -1,1 +1,1 @@
-initSidebarItems({"trait":[["CheckedEuclid",""],["Euclid",""]]});
+window.SIDEBAR_ITEMS = {"trait":[["CheckedEuclid",""],["Euclid",""]]};

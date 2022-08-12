@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["AsyncFunctionDeclaration","Async Function declaration parsing."]]});
+window.SIDEBAR_ITEMS = {"struct":[["AsyncFunctionDeclaration","Async Function declaration parsing."]]};

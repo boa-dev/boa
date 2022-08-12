@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["MapKey",""]],"struct":[["MapLock","Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed."],["OrderedMap","A structure wrapping `indexmap::IndexMap`."]]});
+window.SIDEBAR_ITEMS = {"enum":[["MapKey",""]],"struct":[["MapLock","Increases the lock count of the map for the lifetime of the guard. This should not be dropped until iteration has completed."],["OrderedMap","A structure wrapping `indexmap::IndexMap`."]]};

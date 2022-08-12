@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Literal","A single member of a set of literals extracted from a regular expression."],["Literals","A set of literal byte strings extracted from a regular expression."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Literal","A single member of a set of literals extracted from a regular expression."],["Literals","A set of literal byte strings extracted from a regular expression."]]};

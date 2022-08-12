@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Iter","An iterator over the values in a `Set`."],["Set","An immutable set constructed at compile time."]]});
+window.SIDEBAR_ITEMS = {"struct":[["Iter","An iterator over the values in a `Set`."],["Set","An immutable set constructed at compile time."]]};

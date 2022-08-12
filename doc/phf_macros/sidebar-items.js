@@ -1,1 +1,1 @@
-initSidebarItems({"macro":[["phf_map",""],["phf_ordered_map",""],["phf_ordered_set",""],["phf_set",""]]});
+window.SIDEBAR_ITEMS = {"macro":[["phf_map",""],["phf_ordered_map",""],["phf_ordered_set",""],["phf_set",""]]};

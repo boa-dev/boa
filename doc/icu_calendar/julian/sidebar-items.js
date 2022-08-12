@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["Julian","The Julian calendar"],["JulianDateInner",""]]});
+window.SIDEBAR_ITEMS = {"struct":[["Julian","The Julian calendar"],["JulianDateInner",""]]};

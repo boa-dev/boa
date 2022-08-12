@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["checked",""],["euclid",""],["inv",""],["mul_add",""],["overflowing",""],["saturating",""],["wrapping",""]]});
+window.SIDEBAR_ITEMS = {"mod":[["checked",""],["euclid",""],["inv",""],["mul_add",""],["overflowing",""],["saturating",""],["wrapping",""]]};

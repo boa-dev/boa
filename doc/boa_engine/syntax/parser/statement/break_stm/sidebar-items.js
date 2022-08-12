@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["BreakStatement","Break statement parsing"]]});
+window.SIDEBAR_ITEMS = {"struct":[["BreakStatement","Break statement parsing"]]};

@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ArrayLiteral","Parses an array literal."]]});
+window.SIDEBAR_ITEMS = {"struct":[["ArrayLiteral","Parses an array literal."]]};

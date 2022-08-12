@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["AwaitExpr","An await expression is used within an async function to pause execution and wait for a promise to resolve."]]});
+window.SIDEBAR_ITEMS = {"struct":[["AwaitExpr","An await expression is used within an async function to pause execution and wait for a promise to resolve."]]};

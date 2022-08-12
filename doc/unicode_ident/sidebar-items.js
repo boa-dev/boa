@@ -1,1 +1,1 @@
-initSidebarItems({"fn":[["is_xid_continue",""],["is_xid_start",""]]});
+window.SIDEBAR_ITEMS = {"fn":[["is_xid_continue",""],["is_xid_start",""]]};

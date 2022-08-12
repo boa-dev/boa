@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["StrftimeItems","Parsing iterator for `strftime`-like format strings."]]});
+window.SIDEBAR_ITEMS = {"struct":[["StrftimeItems","Parsing iterator for `strftime`-like format strings."]]};

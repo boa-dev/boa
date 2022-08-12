@@ -1,1 +1,1 @@
-initSidebarItems({"mod":[["array_iterator",""]],"struct":[["Array","JavaScript `Array` built-in implementation."]]});
+window.SIDEBAR_ITEMS = {"mod":[["array_iterator",""]],"struct":[["Array","JavaScript `Array` built-in implementation."]]};

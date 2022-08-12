@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SpreadLiteral","Spread literal lexing."]]});
+window.SIDEBAR_ITEMS = {"struct":[["SpreadLiteral","Spread literal lexing."]]};

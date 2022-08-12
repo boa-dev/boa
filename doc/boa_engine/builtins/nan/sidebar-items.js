@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["NaN","JavaScript global `NaN` property."]]});
+window.SIDEBAR_ITEMS = {"struct":[["NaN","JavaScript global `NaN` property."]]};

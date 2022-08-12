@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["JsBigInt","JavaScript bigint primitive rust type."],["TryFromF64Error",""]],"type":[["RawBigInt","The raw bigint type."]]});
+window.SIDEBAR_ITEMS = {"struct":[["JsBigInt","JavaScript bigint primitive rust type."],["TryFromF64Error",""]],"type":[["RawBigInt","The raw bigint type."]]};

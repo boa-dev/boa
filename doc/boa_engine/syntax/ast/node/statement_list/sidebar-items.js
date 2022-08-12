@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["StatementList","List of statements."]]});
+window.SIDEBAR_ITEMS = {"struct":[["StatementList","List of statements."]]};

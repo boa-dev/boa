@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["ZonedDateTimeFormat","The composition of `DateTimeFormat` and `TimeZoneFormat`."]]});
+window.SIDEBAR_ITEMS = {"struct":[["ZonedDateTimeFormat","The composition of `DateTimeFormat` and `TimeZoneFormat`."]]};
