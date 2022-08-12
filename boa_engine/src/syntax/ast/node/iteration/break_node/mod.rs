@@ -23,7 +23,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy, Finalize, PartialEq)]
+#[derive(Debug, Clone, Copy, Finalize, PartialEq, Eq)]
 pub struct Break {
     label: Option<Sym>,
 }

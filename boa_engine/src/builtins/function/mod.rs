@@ -89,7 +89,7 @@ impl<T> ClosureFunctionSignature for T where
 // Allows cloning Box<dyn ClosureFunctionSignature>
 dyn_clone::clone_trait_object!(ClosureFunctionSignature);
 
-#[derive(Debug, Trace, Finalize, PartialEq, Clone)]
+#[derive(Debug, Trace, Finalize, PartialEq, Eq, Clone)]
 pub enum ThisMode {
     Lexical,
     Strict,
@@ -119,7 +119,7 @@ impl ThisMode {
 ///  - [ECMAScript specification][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ecmascript-function-objects
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ConstructorKind {
     Base,
     Derived,

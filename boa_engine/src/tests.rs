@@ -1424,7 +1424,7 @@ fn multicharacter_assignment_to_non_assignable() {
     let test_cases = ["3 **= 5", "3 <<= 5", "3 >>= 5"];
 
     for case in &test_cases {
-        let string = dbg!(forward(&mut context, case));
+        let string = forward(&mut context, case);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
@@ -1448,7 +1448,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
     let test_cases = ["3 >>>= 5", "3 &&= 5", "3 ||= 5", "3 ??= 5"];
 
     for case in &test_cases {
-        let string = dbg!(forward(&mut context, case));
+        let string = forward(&mut context, case);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
         assert!(string.contains("1:3"));
@@ -1601,7 +1601,7 @@ fn test_strict_mode_reserved_name() {
         let mut context = Context::default();
         let scenario = format!("'use strict'; \n {case}");
 
-        let string = dbg!(forward(&mut context, &scenario));
+        let string = forward(&mut context, &scenario);
 
         assert!(string.starts_with("Uncaught \"SyntaxError\": "));
     }

@@ -266,7 +266,6 @@ impl From<Const> for Node {
 
 impl Node {
     /// Returns a node ordering based on the hoistability of each node.
-    #[allow(clippy::match_same_arms)]
     pub(crate) fn hoistable_order(a: &Self, b: &Self) -> Ordering {
         match (a, b) {
             (Node::FunctionDecl(_), Node::FunctionDecl(_)) => Ordering::Equal,
