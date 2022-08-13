@@ -63,11 +63,11 @@ where
             interner,
         )?;
 
-        match cursor.peek_is_line_terminator(0, interner)? {
-            Some(false) => {}
-            Some(true) | None => {
-                return Ok(Node::Yield(Yield::new::<Node>(None, false)));
-            }
+        if matches!(
+            cursor.peek_is_line_terminator(0, interner)?,
+            Some(true) | None
+        ) {
+            return Ok(Node::Yield(Yield::new::<Node>(None, false)));
         }
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
