@@ -263,15 +263,15 @@ where
 
     /// Check if the peeked token is a line terminator.
     #[inline]
-    pub(super) fn peek_expect_is_line_terminator(
+    pub(super) fn peek_is_line_terminator(
         &mut self,
         skip_n: usize,
         interner: &mut Interner,
-    ) -> Result<bool, ParseError> {
+    ) -> Result<Option<bool>, ParseError> {
         if let Some(t) = self.buffered_lexer.peek(skip_n, false, interner)? {
-            Ok(t.kind() == &TokenKind::LineTerminator)
+            Ok(Some(t.kind() == &TokenKind::LineTerminator))
         } else {
-            Err(ParseError::AbruptEnd)
+            Ok(None)
         }
     }
 

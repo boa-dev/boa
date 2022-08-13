@@ -106,7 +106,10 @@ where
             TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
                 // Because we already peeked the identifier token, there may be a line terminator before the identifier token.
                 // In that case we have to skip an additional token on the next peek.
-                let skip_n = if cursor.peek_expect_is_line_terminator(0, interner)? {
+                let skip_n = if cursor
+                    .peek_is_line_terminator(0, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
+                {
                     2
                 } else {
                     1
