@@ -26,6 +26,7 @@ use crate::{
     builtins::{
         array::array_iterator::ArrayIterator,
         array_buffer::ArrayBuffer,
+        async_generator::AsyncGenerator,
         function::arguments::Arguments,
         function::{
             arguments::ParameterMap, BoundFunction, Captures, ConstructorKind, Function,
@@ -164,6 +165,8 @@ pub struct ObjectData {
 /// Defines the different types of objects.
 #[derive(Debug, Trace, Finalize)]
 pub enum ObjectKind {
+    AsyncGenerator(AsyncGenerator),
+    AsyncGeneratorFunction(Function),
     Array,
     ArrayIterator(ArrayIterator),
     ArrayBuffer(ArrayBuffer),
@@ -199,6 +202,26 @@ pub enum ObjectKind {
 }
 
 impl ObjectData {
+    /// Create the `AsyncGenerator` object data
+    pub fn async_generator(async_generator: AsyncGenerator) -> Self {
+        Self {
+            kind: ObjectKind::AsyncGenerator(async_generator),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
+    /// Create the `AsyncGeneratorFunction` object data
+    pub fn async_generator_function(function: Function) -> Self {
+        Self {
+            internal_methods: if function.is_constructor() {
+                &CONSTRUCTOR_INTERNAL_METHODS
+            } else {
+                &FUNCTION_INTERNAL_METHODS
+            },
+            kind: ObjectKind::GeneratorFunction(function),
+        }
+    }
+
     /// Create the `Array` object data and reference its exclusive internal methods
     pub fn array() -> Self {
         Self {
@@ -474,6 +497,8 @@ impl ObjectData {
 impl Display for ObjectKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
+            Self::AsyncGenerator(_) => "AsyncGenerator",
+            Self::AsyncGeneratorFunction(_) => "AsyncGeneratorFunction",
             Self::Array => "Array",
             Self::ArrayIterator(_) => "ArrayIterator",
             Self::ArrayBuffer(_) => "ArrayBuffer",
@@ -537,6 +562,42 @@ impl Object {
     #[inline]
     pub fn kind(&self) -> &ObjectKind {
         &self.data.kind
+    }
+
+    /// Checks if it's an `AsyncGenerator` object.
+    #[inline]
+    pub fn is_async_generator(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::AsyncGenerator(_),
+                ..
+            }
+        )
+    }
+
+    /// Returns a reference to the async generator data on the object.
+    #[inline]
+    pub fn as_async_generator(&self) -> Option<&AsyncGenerator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::AsyncGenerator(ref async_generator),
+                ..
+            } => Some(async_generator),
+            _ => None,
+        }
+    }
+
+    /// Returns a mutable reference to the async generator data on the object.
+    #[inline]
+    pub fn as_async_generator_mut(&mut self) -> Option<&mut AsyncGenerator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::AsyncGenerator(ref mut async_generator),
+                ..
+            } => Some(async_generator),
+            _ => None,
+        }
     }
 
     /// Checks if it an `Array` object.
@@ -1601,7 +1662,10 @@ impl<'context> FunctionBuilder<'context> {
             } => {
                 *constructor = yes.then(|| ConstructorKind::Base);
             }
-            Function::Ordinary { .. } | Function::Generator { .. } | Function::Async { .. } => {
+            Function::Ordinary { .. }
+            | Function::Generator { .. }
+            | Function::AsyncGenerator { .. }
+            | Function::Async { .. } => {
                 unreachable!("function must be native or closure");
             }
         }

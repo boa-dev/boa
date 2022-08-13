@@ -13,6 +13,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
+    bytecompiler::{FunctionCompiler, FunctionKind},
     context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
     object::{
@@ -246,6 +247,10 @@ pub enum Function {
         code: Gc<crate::vm::CodeBlock>,
         environments: DeclarativeEnvironmentStack,
     },
+    AsyncGenerator {
+        code: Gc<crate::vm::CodeBlock>,
+        environments: DeclarativeEnvironmentStack,
+    },
 }
 
 unsafe impl Trace for Function {
@@ -267,7 +272,8 @@ unsafe impl Trace for Function {
                 mark(environments);
                 mark(promise_capability);
             }
-            Self::Generator { code, environments } => {
+            Self::Generator { code, environments }
+            | Self::AsyncGenerator { code, environments } => {
                 mark(code);
                 mark(environments);
             }
@@ -288,7 +294,7 @@ impl Function {
             Self::Native { constructor, .. } | Self::Closure { constructor, .. } => {
                 constructor.is_some()
             }
-            Self::Generator { .. } | Self::Async { .. } => false,
+            Self::Generator { .. } | Self::AsyncGenerator { .. } | Self::Async { .. } => false,
             Self::Ordinary { code, .. } => !(code.this_mode == ThisMode::Lexical),
         }
     }
@@ -476,7 +482,9 @@ impl BuiltInFunctionObject {
         generator: bool,
         context: &mut Context,
     ) -> JsResult<JsObject> {
-        let default = if r#async {
+        let default = if r#async && generator {
+            StandardConstructors::async_generator_function
+        } else if r#async {
             StandardConstructors::async_function
         } else if generator {
             StandardConstructors::generator_function
@@ -517,6 +525,20 @@ impl BuiltInFunctionObject {
 
                 parameters
             };
+
+            // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
+            if generator && r#async && parameters.contains_yield_expression() {
+                return context.throw_syntax_error(
+                    "yield expression not allowed in async generator parameters",
+                );
+            }
+
+            // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
+            if generator && r#async && parameters.contains_await_expression() {
+                return context.throw_syntax_error(
+                    "await expression not allowed in async generator parameters",
+                );
+            }
 
             let body_arg = body_arg.to_string(context)?;
 
@@ -581,20 +603,17 @@ impl BuiltInFunctionObject {
                 }
             }
 
-            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
-                crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::ANONYMOUS),
-                &parameters,
-                &body,
-                generator,
-                false,
-                context,
-            )?;
+            let code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .generator(generator)
+                .r#async(r#async)
+                .kind(FunctionKind::Expression)
+                .compile(&parameters, &body, context)?;
 
             let environments = context.realm.environments.pop_to_global();
 
             let function_object = if generator {
-                crate::vm::create_generator_function_object(code, context)
+                crate::vm::create_generator_function_object(code, r#async, context)
             } else {
                 crate::vm::create_function_object(code, r#async, Some(prototype), context)
             };
@@ -603,31 +622,31 @@ impl BuiltInFunctionObject {
 
             Ok(function_object)
         } else if generator {
-            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
-                crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::ANONYMOUS),
-                &FormalParameterList::empty(),
-                &StatementList::default(),
-                true,
-                false,
-                context,
-            )?;
+            let code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .generator(true)
+                .kind(FunctionKind::Expression)
+                .compile(
+                    &FormalParameterList::empty(),
+                    &StatementList::default(),
+                    context,
+                )?;
 
             let environments = context.realm.environments.pop_to_global();
-            let function_object = crate::vm::create_generator_function_object(code, context);
+            let function_object =
+                crate::vm::create_generator_function_object(code, r#async, context);
             context.realm.environments.extend(environments);
 
             Ok(function_object)
         } else {
-            let code = crate::bytecompiler::ByteCompiler::compile_function_code(
-                crate::bytecompiler::FunctionKind::Expression,
-                Some(Sym::ANONYMOUS),
-                &FormalParameterList::empty(),
-                &StatementList::default(),
-                false,
-                false,
-                context,
-            )?;
+            let code = FunctionCompiler::new()
+                .name(Sym::ANONYMOUS)
+                .kind(FunctionKind::Expression)
+                .compile(
+                    &FormalParameterList::empty(),
+                    &StatementList::default(),
+                    context,
+                )?;
 
             let environments = context.realm.environments.pop_to_global();
             let function_object =

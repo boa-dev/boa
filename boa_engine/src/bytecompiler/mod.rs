@@ -1,5 +1,6 @@
+mod function;
+
 use crate::{
-    builtins::function::ThisMode,
     environments::{BindingLocator, CompileTimeEnvironment},
     syntax::ast::{
         node::{
@@ -11,8 +12,7 @@ use crate::{
             object::{MethodDefinition, PropertyDefinition, PropertyName},
             operator::assign::AssignTarget,
             template::TemplateElement,
-            Class, Declaration, FormalParameterList, GetConstField, GetField, GetSuperField,
-            StatementList,
+            Class, Declaration, GetConstField, GetField, GetSuperField,
         },
         op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp, UnaryOp},
         Const, Node,
@@ -24,6 +24,8 @@ use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use rustc_hash::FxHashMap;
 use std::mem::size_of;
+
+pub(crate) use function::FunctionCompiler;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 enum Literal {
@@ -72,6 +74,7 @@ pub struct ByteCompiler<'b> {
     names_map: FxHashMap<Sym, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
+    in_async_generator: bool,
     context: &'b mut Context,
 }
 
@@ -87,6 +90,7 @@ impl<'b> ByteCompiler<'b> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
+            in_async_generator: false,
             context,
         }
     }
@@ -896,98 +900,92 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                             }
                         },
-                        PropertyDefinition::MethodDefinition(kind, name) => {
-                            match kind {
-                                MethodDefinition::Get(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::SetPropertyGetterByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::SetPropertyGetterByValue);
-                                    }
-                                },
-                                MethodDefinition::Set(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::SetPropertySetterByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::SetPropertySetterByValue);
-                                    }
-                                },
-                                MethodDefinition::Ordinary(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                    }
-                                },
-                                MethodDefinition::Async(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                    }
-                                },
-                                MethodDefinition::Generator(expr) => match name {
-                                    PropertyName::Literal(name) => {
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::Swap);
-                                        let index = self.get_or_insert_name(*name);
-                                        self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                    }
-                                    PropertyName::Computed(name_node) => {
-                                        self.compile_stmt(name_node, true)?;
-                                        self.emit_opcode(Opcode::ToPropertyKey);
-                                        self.function(&expr.clone().into(), true)?;
-                                        self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                    }
-                                },
-                                // TODO: Implement async generators
-                                MethodDefinition::AsyncGenerator(_) => {
-                                    // TODO: Implement async
-                                    match name {
-                                        PropertyName::Literal(name) => {
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::Swap);
-                                            let index = self.get_or_insert_name(*name);
-                                            self.emit(Opcode::DefineOwnPropertyByName, &[index]);
-                                        }
-                                        PropertyName::Computed(name_node) => {
-                                            self.compile_stmt(name_node, true)?;
-                                            self.emit_opcode(Opcode::ToPropertyKey);
-                                            self.emit_opcode(Opcode::PushUndefined);
-                                            self.emit_opcode(Opcode::DefineOwnPropertyByValue);
-                                        }
-                                    }
+                        PropertyDefinition::MethodDefinition(kind, name) => match kind {
+                            MethodDefinition::Get(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::SetPropertyGetterByName, &[index]);
                                 }
-                            }
-                        }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::SetPropertyGetterByValue);
+                                }
+                            },
+                            MethodDefinition::Set(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::SetPropertySetterByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::SetPropertySetterByValue);
+                                }
+                            },
+                            MethodDefinition::Ordinary(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                            MethodDefinition::Async(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                            MethodDefinition::Generator(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                            MethodDefinition::AsyncGenerator(expr) => match name {
+                                PropertyName::Literal(name) => {
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::Swap);
+                                    let index = self.get_or_insert_name(*name);
+                                    self.emit(Opcode::DefineOwnPropertyByName, &[index]);
+                                }
+                                PropertyName::Computed(name_node) => {
+                                    self.compile_stmt(name_node, true)?;
+                                    self.emit_opcode(Opcode::ToPropertyKey);
+                                    self.function(&expr.clone().into(), true)?;
+                                    self.emit_opcode(Opcode::DefineOwnPropertyByValue);
+                                }
+                            },
+                        },
                         PropertyDefinition::SpreadObject(expr) => {
                             self.compile_expr(expr, true)?;
                             self.emit_opcode(Opcode::Swap);
@@ -1144,11 +1142,9 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::Pop);
                 }
             }
-            // TODO: implement AsyncGeneratorExpr
-            Node::AsyncGeneratorExpr(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
+            Node::GeneratorExpr(_) | Node::AsyncFunctionExpr(_) | Node::AsyncGeneratorExpr(_) => {
+                self.function(expr, use_expr)?;
             }
-            Node::GeneratorExpr(_) | Node::AsyncFunctionExpr(_) => self.function(expr, use_expr)?,
             Node::Yield(r#yield) => {
                 if let Some(expr) = r#yield.expr() {
                     self.compile_expr(expr, true)?;
@@ -1163,6 +1159,17 @@ impl<'b> ByteCompiler<'b> {
                     let start = self.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);
                     self.emit(Opcode::Jump, &[start_address]);
                     self.patch_jump(start);
+                } else if self.in_async_generator {
+                    self.emit_opcode(Opcode::Await);
+                    self.emit_opcode(Opcode::AsyncGeneratorNext);
+                    let jump_return = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    let jump = self.emit_opcode_with_operand(Opcode::JumpIfFalse);
+                    self.emit_opcode(Opcode::Yield);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.patch_jump(jump);
+                    self.emit_opcode(Opcode::Await);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.patch_jump(jump_return);
                 } else {
                     self.emit_opcode(Opcode::Yield);
                     self.emit_opcode(Opcode::GeneratorNext);
@@ -1942,136 +1949,14 @@ impl<'b> ByteCompiler<'b> {
                     self.pop_try_control_info(None);
                 }
             }
-            Node::GeneratorDecl(_) | Node::AsyncFunctionDecl(_) => self.function(node, false)?,
-            // TODO: implement AsyncGeneratorDecl
-            Node::AsyncGeneratorDecl(_) => {
-                self.emit_opcode(Opcode::PushUndefined);
+            Node::GeneratorDecl(_) | Node::AsyncFunctionDecl(_) | Node::AsyncGeneratorDecl(_) => {
+                self.function(node, false)?;
             }
             Node::ClassDecl(class) => self.class(class, false)?,
             Node::Empty => {}
             expr => self.compile_expr(expr, use_expr)?,
         }
         Ok(())
-    }
-
-    /// Compile a function statement list and it's parameters into bytecode.
-    pub(crate) fn compile_function_code(
-        kind: FunctionKind,
-        name: Option<Sym>,
-        parameters: &FormalParameterList,
-        body: &StatementList,
-        generator: bool,
-        strict: bool,
-        context: &mut Context,
-    ) -> JsResult<Gc<CodeBlock>> {
-        let strict = strict || body.strict();
-        let length = parameters.length();
-        let mut code = CodeBlock::new(name.unwrap_or(Sym::EMPTY_STRING), length, strict);
-
-        if let FunctionKind::Arrow = kind {
-            code.this_mode = ThisMode::Lexical;
-        }
-
-        let mut compiler = ByteCompiler {
-            code_block: code,
-            literals_map: FxHashMap::default(),
-            names_map: FxHashMap::default(),
-            bindings_map: FxHashMap::default(),
-            jump_info: Vec::new(),
-            context,
-        };
-
-        compiler.context.push_compile_time_environment(true);
-
-        // An arguments object is added when all of the following conditions are met
-        // - If not in an arrow function (10.2.11.16)
-        // - If the parameter list does not contain `arguments` (10.2.11.17)
-        // Note: This following just means, that we add an extra environment for the arguments.
-        // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
-        if !(kind == FunctionKind::Arrow) && !parameters.has_arguments() {
-            compiler
-                .context
-                .create_mutable_binding(Sym::ARGUMENTS, false);
-            compiler.code_block.arguments_binding = Some(
-                compiler
-                    .context
-                    .initialize_mutable_binding(Sym::ARGUMENTS, false),
-            );
-        }
-
-        for parameter in parameters.parameters.iter() {
-            if parameter.is_rest_param() {
-                compiler.emit_opcode(Opcode::RestParameterInit);
-            }
-
-            match parameter.declaration() {
-                Declaration::Identifier { ident, .. } => {
-                    compiler.context.create_mutable_binding(ident.sym(), false);
-                    if let Some(init) = parameter.declaration().init() {
-                        let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                        compiler.compile_expr(init, true)?;
-                        compiler.patch_jump(skip);
-                    }
-                    compiler.emit_binding(BindingOpcode::InitArg, ident.sym());
-                }
-                Declaration::Pattern(pattern) => {
-                    for ident in pattern.idents() {
-                        compiler.context.create_mutable_binding(ident, false);
-                    }
-                    compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)?;
-                }
-            }
-        }
-
-        if !parameters.has_rest_parameter() {
-            compiler.emit_opcode(Opcode::RestParameterPop);
-        }
-
-        let env_label = if parameters.has_expressions() {
-            compiler.code_block.num_bindings = compiler.context.get_binding_number();
-            compiler.context.push_compile_time_environment(true);
-            compiler.code_block.function_environment_push_location =
-                compiler.next_opcode_location();
-            Some(compiler.emit_opcode_with_two_operands(Opcode::PushFunctionEnvironment))
-        } else {
-            None
-        };
-
-        // When a generator object is created from a generator function, the generator executes until here to init parameters.
-        if generator {
-            compiler.emit_opcode(Opcode::PushUndefined);
-            compiler.emit_opcode(Opcode::Yield);
-        }
-
-        compiler.create_declarations(body.items())?;
-        compiler.compile_statement_list(body.items(), false)?;
-
-        if let Some(env_label) = env_label {
-            let (num_bindings, compile_environment) =
-                compiler.context.pop_compile_time_environment();
-            let index_compile_environment = compiler.push_compile_environment(compile_environment);
-            compiler.patch_jump_with_target(env_label.0, num_bindings as u32);
-            compiler.patch_jump_with_target(env_label.1, index_compile_environment as u32);
-
-            let (_, compile_environment) = compiler.context.pop_compile_time_environment();
-            compiler.push_compile_environment(compile_environment);
-        } else {
-            let (num_bindings, compile_environment) =
-                compiler.context.pop_compile_time_environment();
-            compiler
-                .code_block
-                .compile_environments
-                .push(compile_environment);
-            compiler.code_block.num_bindings = num_bindings;
-        }
-
-        compiler.code_block.params = parameters.clone();
-
-        // TODO These are redundant if a function returns so may need to check if a function returns and adding these if it doesn't
-        compiler.emit(Opcode::PushUndefined, &[]);
-        compiler.emit(Opcode::Return, &[]);
-
-        Ok(Gc::new(compiler.finish()))
     }
 
     /// Compile a function AST Node into bytecode.
@@ -2101,6 +1986,14 @@ impl<'b> ByteCompiler<'b> {
                 true,
                 false,
             ),
+            Node::AsyncGeneratorDecl(generator) => (
+                FunctionKind::Declaration,
+                Some(generator.name()),
+                generator.parameters(),
+                generator.body(),
+                true,
+                true,
+            ),
             Node::FunctionExpr(function) => (
                 FunctionKind::Expression,
                 function.name(),
@@ -2125,6 +2018,14 @@ impl<'b> ByteCompiler<'b> {
                 true,
                 false,
             ),
+            Node::AsyncGeneratorExpr(generator) => (
+                FunctionKind::Expression,
+                generator.name(),
+                generator.parameters(),
+                generator.body(),
+                true,
+                true,
+            ),
             Node::ArrowFunctionDecl(function) => (
                 FunctionKind::Arrow,
                 function.name(),
@@ -2136,20 +2037,20 @@ impl<'b> ByteCompiler<'b> {
             _ => unreachable!(),
         };
 
-        let code = Self::compile_function_code(
-            kind,
-            name,
-            parameters,
-            body,
-            generator,
-            self.code_block.strict,
-            self.context,
-        )?;
+        let code = FunctionCompiler::new()
+            .name(name)
+            .generator(generator)
+            .r#async(r#async)
+            .strict(self.code_block.strict)
+            .kind(kind)
+            .compile(parameters, body, self.context)?;
 
         let index = self.code_block.functions.len() as u32;
         self.code_block.functions.push(code);
 
-        if generator {
+        if generator && r#async {
+            self.emit(Opcode::GetGeneratorAsync, &[index]);
+        } else if generator {
             self.emit(Opcode::GetGenerator, &[index]);
         } else if r#async {
             self.emit(Opcode::GetFunctionAsync, &[index]);
@@ -2627,6 +2528,7 @@ impl<'b> ByteCompiler<'b> {
             names_map: FxHashMap::default(),
             bindings_map: FxHashMap::default(),
             jump_info: Vec::new(),
+            in_async_generator: false,
             context: self.context,
         };
         compiler.context.push_compile_time_environment(true);
@@ -2806,8 +2708,20 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {}
+                        MethodDefinition::AsyncGenerator(expr) => match name {
+                            PropertyName::Literal(name) => {
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::Swap);
+                                let index = self.get_or_insert_name(*name);
+                                self.emit(Opcode::DefineClassMethodByName, &[index]);
+                            }
+                            PropertyName::Computed(name_node) => {
+                                self.compile_stmt(name_node, true)?;
+                                self.emit_opcode(Opcode::ToPropertyKey);
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::DefineClassMethodByValue);
+                            }
+                        },
                     }
                 }
                 ClassElement::PrivateStaticMethodDefinition(name, method_definition) => {
@@ -2838,8 +2752,11 @@ impl<'b> ByteCompiler<'b> {
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {}
+                        MethodDefinition::AsyncGenerator(expr) => {
+                            self.function(&expr.clone().into(), true)?;
+                            let index = self.get_or_insert_name(*name);
+                            self.emit(Opcode::SetPrivateMethod, &[index]);
+                        }
                     }
                 }
                 ClassElement::FieldDefinition(name, field) => {
@@ -2861,6 +2778,7 @@ impl<'b> ByteCompiler<'b> {
                         names_map: FxHashMap::default(),
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
+                        in_async_generator: false,
                         context: self.context,
                     };
                     field_compiler.context.push_compile_time_environment(true);
@@ -2894,6 +2812,7 @@ impl<'b> ByteCompiler<'b> {
                         names_map: FxHashMap::default(),
                         bindings_map: FxHashMap::default(),
                         jump_info: Vec::new(),
+                        in_async_generator: false,
                         context: self.context,
                     };
                     field_compiler.context.push_compile_time_environment(true);
@@ -3002,8 +2921,11 @@ impl<'b> ByteCompiler<'b> {
                             let index = self.get_or_insert_name(*name);
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {}
+                        MethodDefinition::AsyncGenerator(expr) => {
+                            self.function(&expr.clone().into(), true)?;
+                            let index = self.get_or_insert_name(*name);
+                            self.emit(Opcode::PushClassPrivateMethod, &[index]);
+                        }
                     }
                 }
                 ClassElement::MethodDefinition(..) => {}
@@ -3087,10 +3009,20 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineClassMethodByValue);
                             }
                         },
-                        // TODO: implement async
-                        MethodDefinition::AsyncGenerator(_) => {
-                            self.emit_opcode(Opcode::Pop);
-                        }
+                        MethodDefinition::AsyncGenerator(expr) => match name {
+                            PropertyName::Literal(name) => {
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::Swap);
+                                let index = self.get_or_insert_name(*name);
+                                self.emit(Opcode::DefineClassMethodByName, &[index]);
+                            }
+                            PropertyName::Computed(name_node) => {
+                                self.compile_stmt(name_node, true)?;
+                                self.emit_opcode(Opcode::ToPropertyKey);
+                                self.function(&expr.clone().into(), true)?;
+                                self.emit_opcode(Opcode::DefineClassMethodByValue);
+                            }
+                        },
                     }
                 }
                 ClassElement::PrivateMethodDefinition(..)

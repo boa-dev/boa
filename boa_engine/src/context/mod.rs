@@ -729,6 +729,7 @@ impl Context {
             arg_count: 0,
             generator_resume_kind: GeneratorResumeKind::Normal,
             thrown: false,
+            async_generator: None,
         });
 
         self.realm.set_global_binding_number();

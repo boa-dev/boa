@@ -114,6 +114,19 @@ impl FormalParameterList {
         }
         false
     }
+
+    /// Check if the any of the parameters contains a await expression.
+    pub(crate) fn contains_await_expression(&self) -> bool {
+        for parameter in self.parameters.iter() {
+            if parameter
+                .declaration()
+                .contains(ContainsSymbol::AwaitExpression)
+            {
+                return true;
+            }
+        }
+        false
+    }
 }
 
 impl From<Vec<FormalParameter>> for FormalParameterList {

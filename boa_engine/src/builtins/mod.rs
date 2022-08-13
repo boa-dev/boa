@@ -3,6 +3,8 @@
 pub mod array;
 pub mod array_buffer;
 pub mod async_function;
+pub mod async_generator;
+pub mod async_generator_function;
 pub mod bigint;
 pub mod boolean;
 pub mod dataview;
@@ -77,8 +79,9 @@ pub(crate) use self::{
 
 use crate::{
     builtins::{
-        array_buffer::ArrayBuffer, generator::Generator, generator_function::GeneratorFunction,
-        typed_array::TypedArray,
+        array_buffer::ArrayBuffer, async_generator::AsyncGenerator,
+        async_generator_function::AsyncGeneratorFunction, generator::Generator,
+        generator_function::GeneratorFunction, typed_array::TypedArray,
     },
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
@@ -188,7 +191,9 @@ pub fn init(context: &mut Context) {
         Generator,
         GeneratorFunction,
         Promise,
-        AsyncFunction
+        AsyncFunction,
+        AsyncGenerator,
+        AsyncGeneratorFunction
     };
 
     #[cfg(feature = "intl")]

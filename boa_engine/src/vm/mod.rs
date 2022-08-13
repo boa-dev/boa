@@ -4,6 +4,7 @@
 
 use crate::{
     builtins::{
+        async_generator::{AsyncGenerator, AsyncGeneratorState},
         function::{ConstructorKind, Function},
         iterable::IteratorRecord,
         Array, ForInIterator, JsArgs, Number, Promise,
@@ -1695,7 +1696,13 @@ impl Context {
             Opcode::GetGenerator => {
                 let index = self.vm.read::<u32>();
                 let code = self.vm.frame().code.functions[index as usize].clone();
-                let function = create_generator_function_object(code, self);
+                let function = create_generator_function_object(code, false, self);
+                self.vm.push(function);
+            }
+            Opcode::GetGeneratorAsync => {
+                let index = self.vm.read::<u32>();
+                let code = self.vm.frame().code.functions[index as usize].clone();
+                let function = create_generator_function_object(code, true, self);
                 self.vm.push(function);
             }
             Opcode::CallEval => {
@@ -2179,6 +2186,54 @@ impl Context {
                     return Ok(ShouldExit::True);
                 }
             },
+            Opcode::AsyncGeneratorNext => {
+                let value = self.vm.pop();
+
+                if self.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
+                    return Err(value);
+                }
+
+                let completion = Ok(value);
+                let generator_object = self
+                    .vm
+                    .frame()
+                    .async_generator
+                    .as_ref()
+                    .expect("must be in generator context here")
+                    .clone();
+                let next = generator_object
+                    .borrow_mut()
+                    .as_async_generator_mut()
+                    .expect("must be async generator object")
+                    .queue
+                    .pop_front()
+                    .expect("must have item in queue");
+                AsyncGenerator::complete_step(&next, completion, false, self);
+
+                let mut generator_object_mut = generator_object.borrow_mut();
+                let gen = generator_object_mut
+                    .as_async_generator_mut()
+                    .expect("must be async generator object");
+
+                if let Some(next) = gen.queue.front() {
+                    let (completion, r#return) = &next.completion;
+                    if *r#return {
+                        match completion {
+                            Ok(value) | Err(value) => self.vm.push(value),
+                        }
+                        self.vm.push(true);
+                    } else {
+                        self.vm.push(completion.clone()?);
+                        self.vm.push(false);
+                    }
+
+                    self.vm.push(false);
+                } else {
+                    gen.state = AsyncGeneratorState::SuspendedYield;
+                    self.vm.push(true);
+                    self.vm.push(true);
+                }
+            }
             Opcode::GeneratorNextDelegate => {
                 let done_address = self.vm.read::<u32>();
                 let received = self.vm.pop();
@@ -2483,6 +2538,24 @@ impl Context {
                             .call(&JsValue::undefined(), &[result.clone()], self)
                             .expect("cannot fail per spec");
                     }
+                    // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+                    else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
+                        let mut generator_object_mut = generator_object.borrow_mut();
+                        let generator = generator_object_mut
+                            .as_async_generator_mut()
+                            .expect("must be async generator");
+
+                        generator.state = AsyncGeneratorState::Completed;
+
+                        let next = generator
+                            .queue
+                            .pop_front()
+                            .expect("must have item in queue");
+                        drop(generator_object_mut);
+                        AsyncGenerator::complete_step(&next, Ok(result), true, self);
+                        AsyncGenerator::drain_queue(&generator_object, self);
+                        return Ok((JsValue::undefined(), ReturnType::Normal));
+                    }
 
                     return Ok((result, ReturnType::Normal));
                 }
@@ -2548,6 +2621,26 @@ impl Context {
 
                             return Ok((e, ReturnType::Normal));
                         }
+                        // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+                        else if let Some(generator_object) =
+                            self.vm.frame().async_generator.clone()
+                        {
+                            let mut generator_object_mut = generator_object.borrow_mut();
+                            let generator = generator_object_mut
+                                .as_async_generator_mut()
+                                .expect("must be async generator");
+
+                            generator.state = AsyncGeneratorState::Completed;
+
+                            let next = generator
+                                .queue
+                                .pop_front()
+                                .expect("must have item in queue");
+                            drop(generator_object_mut);
+                            AsyncGenerator::complete_step(&next, Err(e), true, self);
+                            AsyncGenerator::drain_queue(&generator_object, self);
+                            return Ok((JsValue::undefined(), ReturnType::Normal));
+                        }
 
                         return Err(e);
                     }
@@ -2586,6 +2679,23 @@ impl Context {
                     .call(&JsValue::undefined(), &[], self)
                     .expect("cannot fail per spec");
             }
+            // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+            else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
+                let mut generator_object_mut = generator_object.borrow_mut();
+                let generator = generator_object_mut
+                    .as_async_generator_mut()
+                    .expect("must be async generator");
+
+                generator.state = AsyncGeneratorState::Completed;
+
+                let next = generator
+                    .queue
+                    .pop_front()
+                    .expect("must have item in queue");
+                drop(generator_object_mut);
+                AsyncGenerator::complete_step(&next, Ok(JsValue::undefined()), true, self);
+                AsyncGenerator::drain_queue(&generator_object, self);
+            }
 
             return Ok((JsValue::undefined(), ReturnType::Normal));
         }
@@ -2599,6 +2709,24 @@ impl Context {
                 .resolve()
                 .call(&JsValue::undefined(), &[result.clone()], self)
                 .expect("cannot fail per spec");
+        }
+        // Step 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart)
+        else if let Some(generator_object) = self.vm.frame().async_generator.clone() {
+            let mut generator_object_mut = generator_object.borrow_mut();
+            let generator = generator_object_mut
+                .as_async_generator_mut()
+                .expect("must be async generator");
+
+            generator.state = AsyncGeneratorState::Completed;
+
+            let next = generator
+                .queue
+                .pop_front()
+                .expect("must have item in queue");
+            drop(generator_object_mut);
+            AsyncGenerator::complete_step(&next, Ok(result), true, self);
+            AsyncGenerator::drain_queue(&generator_object, self);
+            return Ok((JsValue::undefined(), ReturnType::Normal));
         }
 
         Ok((result, ReturnType::Normal))

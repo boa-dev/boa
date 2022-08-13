@@ -2,7 +2,7 @@
 //!
 //! This module will provides everything needed to implement the `CallFrame`
 
-use crate::vm::CodeBlock;
+use crate::{object::JsObject, vm::CodeBlock};
 use boa_gc::{Finalize, Gc, Trace};
 
 #[derive(Clone, Debug, Finalize, Trace)]
@@ -32,6 +32,10 @@ pub struct CallFrame {
 
     // Indicate that the last try block has thrown an exception.
     pub(crate) thrown: bool,
+
+    // When an async generator is resumed, the generator object is needed
+    // to fulfill the steps 4.e-j in [AsyncGeneratorStart](https://tc39.es/ecma262/#sec-asyncgeneratorstart).
+    pub(crate) async_generator: Option<JsObject>,
 }
 
 impl CallFrame {
@@ -111,7 +115,7 @@ pub(crate) enum FinallyReturn {
 }
 
 /// Indicates how a generator function that has been called/resumed should return.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub(crate) enum GeneratorResumeKind {
     Normal,
     Throw,

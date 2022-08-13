@@ -927,6 +927,13 @@ pub enum Opcode {
     /// Stack: **=>** func
     GetGenerator,
 
+    /// Get async generator function from the pre-compiled inner functions.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: **=>** func
+    GetGeneratorAsync,
+
     /// Call a function named "eval".
     ///
     /// Operands: argument_count: `u32`
@@ -1125,6 +1132,13 @@ pub enum Opcode {
     /// Stack: received **=>**
     GeneratorNext,
 
+    /// Resumes the current generator function.
+    ///
+    /// Operands:
+    ///
+    /// Stack: received **=>** Option<value>, skip_0, skip_1
+    AsyncGeneratorNext,
+
     /// Delegates the current generator function another generator.
     ///
     /// Operands: done_address: `u32`
@@ -1285,6 +1299,7 @@ impl Opcode {
             Self::GetFunction => "GetFunction",
             Self::GetFunctionAsync => "GetFunctionAsync",
             Self::GetGenerator => "GetGenerator",
+            Self::GetGeneratorAsync => "GetGeneratorAsync",
             Self::CallEval => "CallEval",
             Self::CallEvalWithRest => "CallEvalWithRest",
             Self::Call => "Call",
@@ -1313,6 +1328,7 @@ impl Opcode {
             Self::PopOnReturnSub => "PopOnReturnSub",
             Self::Yield => "Yield",
             Self::GeneratorNext => "GeneratorNext",
+            Self::AsyncGeneratorNext => "AsyncGeneratorNext",
             Self::Await => "Await",
             Self::GeneratorNextDelegate => "GeneratorNextDelegate",
             Self::Nop => "Nop",
@@ -1425,6 +1441,7 @@ impl Opcode {
             Self::GetFunction => "INST - GetFunction",
             Self::GetFunctionAsync => "INST - GetFunctionAsync",
             Self::GetGenerator => "INST - GetGenerator",
+            Self::GetGeneratorAsync => "INST - GetGeneratorAsync",
             Self::CallEval => "INST - CallEval",
             Self::CallEvalWithRest => "INST - CallEvalWithRest",
             Self::Call => "INST - Call",
@@ -1453,6 +1470,7 @@ impl Opcode {
             Self::PopOnReturnSub => "INST - PopOnReturnSub",
             Self::Yield => "INST - Yield",
             Self::GeneratorNext => "INST - GeneratorNext",
+            Self::AsyncGeneratorNext => "INST - AsyncGeneratorNext",
             Self::Await => "INST - Await",
             Self::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
             Self::Nop => "INST - Nop",

@@ -4,6 +4,7 @@
 
 use crate::{
     builtins::{
+        async_generator::{AsyncGenerator, AsyncGeneratorState},
         function::{
             arguments::Arguments, ClassFieldDefinition, ConstructorKind, Function, ThisMode,
         },
@@ -24,7 +25,7 @@ use crate::{
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
-use std::{convert::TryInto, mem::size_of};
+use std::{collections::VecDeque, convert::TryInto, mem::size_of};
 
 /// This represents whether a value can be read from [`CodeBlock`] code.
 ///
@@ -223,7 +224,10 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!("{operand1}, {operand2}")
             }
-            Opcode::GetFunction | Opcode::GetFunctionAsync | Opcode::GetGenerator => {
+            Opcode::GetFunction
+            | Opcode::GetFunctionAsync
+            | Opcode::GetGenerator
+            | Opcode::GetGeneratorAsync => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
@@ -364,6 +368,7 @@ impl CodeBlock {
             | Opcode::PopOnReturnSub
             | Opcode::Yield
             | Opcode::GeneratorNext
+            | Opcode::AsyncGeneratorNext
             | Opcode::PushClassField
             | Opcode::SuperCallDerived
             | Opcode::Await
@@ -546,13 +551,22 @@ pub(crate) fn create_function_object(
 /// Creates a new generator function object.
 pub(crate) fn create_generator_function_object(
     code: Gc<CodeBlock>,
+    r#async: bool,
     context: &mut Context,
 ) -> JsObject {
-    let function_prototype = context
-        .intrinsics()
-        .constructors()
-        .generator_function()
-        .prototype();
+    let function_prototype = if r#async {
+        context
+            .intrinsics()
+            .constructors()
+            .async_generator_function()
+            .prototype()
+    } else {
+        context
+            .intrinsics()
+            .constructors()
+            .generator_function()
+            .prototype()
+    };
 
     let name_property = PropertyDescriptor::builder()
         .value(context.interner().resolve_expect(code.name))
@@ -569,17 +583,34 @@ pub(crate) fn create_generator_function_object(
         .build();
 
     let prototype = JsObject::from_proto_and_data(
-        context.intrinsics().constructors().generator().prototype(),
+        if r#async {
+            context
+                .intrinsics()
+                .constructors()
+                .async_generator()
+                .prototype()
+        } else {
+            context.intrinsics().constructors().generator().prototype()
+        },
         ObjectData::ordinary(),
     );
 
-    let function = Function::Generator {
-        code,
-        environments: context.realm.environments.clone(),
+    let constructor = if r#async {
+        let function = Function::AsyncGenerator {
+            code,
+            environments: context.realm.environments.clone(),
+        };
+        JsObject::from_proto_and_data(
+            function_prototype,
+            ObjectData::async_generator_function(function),
+        )
+    } else {
+        let function = Function::Generator {
+            code,
+            environments: context.realm.environments.clone(),
+        };
+        JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
-
-    let constructor =
-        JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function));
 
     let prototype_property = PropertyDescriptor::builder()
         .value(prototype)
@@ -748,6 +779,7 @@ impl JsObject {
                     arg_count,
                     generator_resume_kind: GeneratorResumeKind::Normal,
                     thrown: false,
+                    async_generator: None,
                 });
 
                 let result = context.run();
@@ -870,6 +902,7 @@ impl JsObject {
                     arg_count,
                     generator_resume_kind: GeneratorResumeKind::Normal,
                     thrown: false,
+                    async_generator: None,
                 });
 
                 let _result = context.run();
@@ -982,6 +1015,7 @@ impl JsObject {
                     arg_count,
                     generator_resume_kind: GeneratorResumeKind::Normal,
                     thrown: false,
+                    async_generator: None,
                 };
                 let mut stack = args;
 
@@ -1015,6 +1049,155 @@ impl JsObject {
                         }))),
                     }),
                 );
+
+                init_result?;
+
+                Ok(generator.into())
+            }
+            Function::AsyncGenerator { code, environments } => {
+                let code = code.clone();
+                let mut environments = environments.clone();
+                drop(object);
+
+                std::mem::swap(&mut environments, &mut context.realm.environments);
+
+                let lexical_this_mode = code.this_mode == ThisMode::Lexical;
+
+                let this = if lexical_this_mode {
+                    None
+                } else if code.strict {
+                    Some(this.clone())
+                } else if this.is_null_or_undefined() {
+                    Some(context.global_object().clone().into())
+                } else {
+                    Some(
+                        this.to_object(context)
+                            .expect("conversion cannot fail")
+                            .into(),
+                    )
+                };
+
+                if code.params.has_expressions() {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[1].clone(),
+                        this,
+                        self.clone(),
+                        None,
+                        lexical_this_mode,
+                    );
+                } else {
+                    context.realm.environments.push_function(
+                        code.num_bindings,
+                        code.compile_environments[0].clone(),
+                        this,
+                        self.clone(),
+                        None,
+                        lexical_this_mode,
+                    );
+                }
+
+                if let Some(binding) = code.arguments_binding {
+                    let arguments_obj = if code.strict || !code.params.is_simple() {
+                        Arguments::create_unmapped_arguments_object(args, context)
+                    } else {
+                        let env = context.realm.environments.current();
+                        Arguments::create_mapped_arguments_object(
+                            &this_function_object,
+                            &code.params,
+                            args,
+                            &env,
+                            context,
+                        )
+                    };
+                    context.realm.environments.put_value(
+                        binding.environment_index(),
+                        binding.binding_index(),
+                        arguments_obj.into(),
+                    );
+                }
+
+                let arg_count = args.len();
+
+                // Push function arguments to the stack.
+                let mut args = if code.params.parameters.len() > args.len() {
+                    let mut v = args.to_vec();
+                    v.extend(vec![
+                        JsValue::Undefined;
+                        code.params.parameters.len() - args.len()
+                    ]);
+                    v
+                } else {
+                    args.to_vec()
+                };
+                args.reverse();
+
+                let param_count = code.params.parameters.len();
+
+                let call_frame = CallFrame {
+                    code,
+                    pc: 0,
+                    catch: Vec::new(),
+                    finally_return: FinallyReturn::None,
+                    finally_jump: Vec::new(),
+                    pop_on_return: 0,
+                    loop_env_stack: Vec::from([0]),
+                    try_env_stack: Vec::from([crate::vm::TryStackEntry {
+                        num_env: 0,
+                        num_loop_stack_entries: 0,
+                    }]),
+                    param_count,
+                    arg_count,
+                    generator_resume_kind: GeneratorResumeKind::Normal,
+                    thrown: false,
+                    async_generator: None,
+                };
+                let mut stack = args;
+
+                std::mem::swap(&mut context.vm.stack, &mut stack);
+                context.vm.push_frame(call_frame);
+
+                let init_result = context.run();
+
+                let call_frame = context.vm.pop_frame().expect("frame must exist");
+                std::mem::swap(&mut environments, &mut context.realm.environments);
+                std::mem::swap(&mut context.vm.stack, &mut stack);
+
+                let prototype = if let Some(prototype) = this_function_object
+                    .get("prototype", context)
+                    .expect("AsyncGeneratorFunction must have a prototype property")
+                    .as_object()
+                {
+                    prototype.clone()
+                } else {
+                    context
+                        .intrinsics()
+                        .constructors()
+                        .async_generator()
+                        .prototype()
+                };
+
+                let generator = Self::from_proto_and_data(
+                    prototype,
+                    ObjectData::async_generator(AsyncGenerator {
+                        state: AsyncGeneratorState::SuspendedStart,
+                        context: Some(Gc::new(Cell::new(GeneratorContext {
+                            environments,
+                            call_frame,
+                            stack,
+                        }))),
+                        queue: VecDeque::new(),
+                    }),
+                );
+
+                {
+                    let mut generator_mut = generator.borrow_mut();
+                    let gen = generator_mut
+                        .as_async_generator_mut()
+                        .expect("must be object here");
+                    let mut gen_context = gen.context.as_ref().expect("must exist").borrow_mut();
+                    gen_context.call_frame.async_generator = Some(generator.clone());
+                }
 
                 init_result?;
 
@@ -1215,6 +1398,7 @@ impl JsObject {
                     arg_count,
                     generator_resume_kind: GeneratorResumeKind::Normal,
                     thrown: false,
+                    async_generator: None,
                 });
 
                 let result = context.run();
@@ -1253,7 +1437,9 @@ impl JsObject {
                     }
                 }
             }
-            Function::Generator { .. } | Function::Async { .. } => {
+            Function::Generator { .. }
+            | Function::Async { .. }
+            | Function::AsyncGenerator { .. } => {
                 unreachable!("not a constructor")
             }
         }

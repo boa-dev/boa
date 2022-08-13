@@ -40,19 +40,21 @@ macro_rules! if_abrupt_reject_promise {
             Err(value) => {
                 // a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
                 $context.call(
-                    &$capability.reject.clone().into(),
+                    &$capability.reject().clone().into(),
                     &JsValue::undefined(),
                     &[value],
                 )?;
 
                 // b. Return capability.[[Promise]].
-                return Ok($capability.promise.clone().into());
+                return Ok($capability.promise().clone().into());
             }
             // 2. Else if value is a Completion Record, set value to value.[[Value]].
             Ok(value) => value,
         };
     };
 }
+
+pub(crate) use if_abrupt_reject_promise;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum PromiseState {

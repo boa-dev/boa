@@ -14,6 +14,8 @@ use boa_profiler::Profiler;
 pub struct IteratorPrototypes {
     /// %IteratorPrototype%
     iterator_prototype: JsObject,
+    /// %AsyncIteratorPrototype%
+    async_iterator_prototype: JsObject,
     /// %MapIteratorPrototype%
     array_iterator: JsObject,
     /// %SetIteratorPrototype%
@@ -33,6 +35,7 @@ impl IteratorPrototypes {
         let _timer = Profiler::global().start_event("IteratorPrototypes::init", "init");
 
         let iterator_prototype = create_iterator_prototype(context);
+        let async_iterator_prototype = create_async_iterator_prototype(context);
         Self {
             array_iterator: ArrayIterator::create_prototype(iterator_prototype.clone(), context),
             set_iterator: SetIterator::create_prototype(iterator_prototype.clone(), context),
@@ -44,6 +47,7 @@ impl IteratorPrototypes {
             map_iterator: MapIterator::create_prototype(iterator_prototype.clone(), context),
             for_in_iterator: ForInIterator::create_prototype(iterator_prototype.clone(), context),
             iterator_prototype,
+            async_iterator_prototype,
         }
     }
 
@@ -55,6 +59,11 @@ impl IteratorPrototypes {
     #[inline]
     pub fn iterator_prototype(&self) -> JsObject {
         self.iterator_prototype.clone()
+    }
+
+    #[inline]
+    pub fn async_iterator_prototype(&self) -> JsObject {
+        self.async_iterator_prototype.clone()
     }
 
     #[inline]
@@ -506,3 +515,24 @@ macro_rules! if_abrupt_close_iterator {
 
 // Export macro to crate level
 pub(crate) use if_abrupt_close_iterator;
+
+/// Create the `%AsyncIteratorPrototype%` object
+///
+/// More information:
+///  - [ECMA reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype
+#[inline]
+fn create_async_iterator_prototype(context: &mut Context) -> JsObject {
+    let _timer = Profiler::global().start_event("AsyncIteratorPrototype", "init");
+
+    let symbol_iterator = WellKnownSymbols::async_iterator();
+    let iterator_prototype = ObjectInitializer::new(context)
+        .function(
+            |v, _, _| Ok(v.clone()),
+            (symbol_iterator, "[Symbol.asyncIterator]"),
+            0,
+        )
+        .build();
+    iterator_prototype
+}
