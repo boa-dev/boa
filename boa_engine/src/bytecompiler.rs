@@ -3062,7 +3062,7 @@ pub(crate) struct FunctionCompiler {
 }
 
 impl FunctionCompiler {
-    // Create a new `FunctionCompiler`.
+    /// Create a new `FunctionCompiler`.
     #[inline]
     pub(crate) fn new() -> Self {
         Self {
@@ -3074,7 +3074,7 @@ impl FunctionCompiler {
         }
     }
 
-    // Set the name of the function.
+    /// Set the name of the function.
     #[inline]
     pub(crate) fn name<N>(mut self, name: N) -> Self
     where
@@ -3087,28 +3087,28 @@ impl FunctionCompiler {
         self
     }
 
-    // Indicate if the function is a generator function.
+    /// Indicate if the function is a generator function.
     #[inline]
     pub(crate) fn generator(mut self, generator: bool) -> Self {
         self.generator = generator;
         self
     }
 
-    // Indicate if the function is an async function.
+    /// Indicate if the function is an async function.
     #[inline]
     pub(crate) fn r#async(mut self, r#async: bool) -> Self {
         self.r#async = r#async;
         self
     }
 
-    // Indicate if the function is in a strict context.
+    /// Indicate if the function is in a strict context.
     #[inline]
     pub(crate) fn strict(mut self, strict: bool) -> Self {
         self.strict = strict;
         self
     }
 
-    // Indicate if the function is a declaration, expression or arrow function.
+    /// Indicate if the function is a declaration, expression or arrow function.
     #[inline]
     pub(crate) fn kind(mut self, kind: FunctionKind) -> Self {
         self.kind = kind;
