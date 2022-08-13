@@ -46,9 +46,7 @@ pub use attribute::Attribute;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 #[derive(Default, Debug, Clone, Trace, Finalize)]
 pub struct PropertyDescriptor {
-    #[unsafe_ignore_trace]
     enumerable: Option<bool>,
-    #[unsafe_ignore_trace]
     configurable: Option<bool>,
     kind: DescriptorKind,
 }
