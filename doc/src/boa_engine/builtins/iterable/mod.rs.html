@@ -514,6 +514,36 @@
 <span id="506">506</span>
 <span id="507">507</span>
 <span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
@@ -530,6 +560,8 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorPrototypes</span> {
     <span class="doccomment">/// %IteratorPrototype%</span>
     <span class="ident">iterator_prototype</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %AsyncIteratorPrototype%</span>
+    <span class="ident">async_iterator_prototype</span>: <span class="ident">JsObject</span>,
     <span class="doccomment">/// %MapIteratorPrototype%</span>
     <span class="ident">array_iterator</span>: <span class="ident">JsObject</span>,
     <span class="doccomment">/// %SetIteratorPrototype%</span>
@@ -549,6 +581,7 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;IteratorPrototypes::init&quot;</span>, <span class="string">&quot;init&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">async_iterator_prototype</span> <span class="op">=</span> <span class="ident">create_async_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="self">Self</span> {
             <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
             <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
@@ -560,6 +593,7 @@
             <span class="ident">map_iterator</span>: <span class="ident">MapIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
             <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
             <span class="ident">iterator_prototype</span>,
+            <span class="ident">async_iterator_prototype</span>,
         }
     }
 
@@ -571,6 +605,11 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
+        <span class="self">self</span>.<span class="ident">async_iterator_prototype</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -1022,6 +1061,27 @@
 
 <span class="comment">// Export macro to crate level</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">if_abrupt_close_iterator</span>;
+
+<span class="doccomment">/// Create the `%AsyncIteratorPrototype%` object</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMA reference][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-asynciteratorprototype</span>
+<span class="attribute">#[<span class="ident">inline</span>]</span>
+<span class="kw">fn</span> <span class="ident">create_async_iterator_prototype</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
+    <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AsyncIteratorPrototype&quot;</span>, <span class="string">&quot;init&quot;</span>);
+
+    <span class="kw">let</span> <span class="ident">symbol_iterator</span> <span class="op">=</span> <span class="ident">WellKnownSymbols::async_iterator</span>();
+    <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">ObjectInitializer::new</span>(<span class="ident">context</span>)
+        .<span class="ident">function</span>(
+            <span class="op">|</span><span class="ident">v</span>, <span class="kw">_</span>, <span class="kw">_</span><span class="op">|</span> <span class="prelude-val">Ok</span>(<span class="ident">v</span>.<span class="ident">clone</span>()),
+            (<span class="ident">symbol_iterator</span>, <span class="string">&quot;[Symbol.asyncIterator]&quot;</span>),
+            <span class="number">0</span>,
+        )
+        .<span class="ident">build</span>();
+    <span class="ident">iterator_prototype</span>
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
 </body></html>

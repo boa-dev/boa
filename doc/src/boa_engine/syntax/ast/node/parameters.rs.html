@@ -294,6 +294,19 @@
 <span id="286">286</span>
 <span id="287">287</span>
 <span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
+<span id="301">301</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{<span class="ident">ContainsSymbol</span>, <span class="ident">Declaration</span>, <span class="ident">DeclarationPattern</span>, <span class="ident">Node</span>},
@@ -404,6 +417,19 @@
             <span class="kw">if</span> <span class="ident">parameter</span>
                 .<span class="ident">declaration</span>()
                 .<span class="ident">contains</span>(<span class="ident">ContainsSymbol::YieldExpression</span>)
+            {
+                <span class="kw">return</span> <span class="bool-val">true</span>;
+            }
+        }
+        <span class="bool-val">false</span>
+    }
+
+    <span class="doccomment">/// Check if the any of the parameters contains a await expression.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_await_expression</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+            <span class="kw">if</span> <span class="ident">parameter</span>
+                .<span class="ident">declaration</span>()
+                .<span class="ident">contains</span>(<span class="ident">ContainsSymbol::AwaitExpression</span>)
             {
                 <span class="kw">return</span> <span class="bool-val">true</span>;
             }

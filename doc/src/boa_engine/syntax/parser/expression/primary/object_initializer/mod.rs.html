@@ -977,6 +977,30 @@
 <span id="969">969</span>
 <span id="970">970</span>
 <span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1759,7 +1783,31 @@
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span>
             <span class="ident">ClassElementName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="ident">params_start_position</span> <span class="op">=</span> <span class="ident">cursor</span>
+            .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+            .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+            .<span class="ident">span</span>()
+            .<span class="ident">start</span>();
+
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">UniqueFormalParameters::new</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.</span>
+        <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">contains_yield_expression</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;yield expression not allowed in async generator method definition parameters&quot;</span>
+                    .<span class="ident">into</span>(),
+                <span class="ident">params_start_position</span>,
+            )));
+        }
+
+        <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.</span>
+        <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">contains_await_expression</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;await expression not allowed in async generator method definition parameters&quot;</span>
+                    .<span class="ident">into</span>(),
+                <span class="ident">params_start_position</span>,
+            )));
+        }
 
         <span class="kw">let</span> <span class="ident">body_start</span> <span class="op">=</span> <span class="ident">cursor</span>
             .<span class="ident">expect</span>(

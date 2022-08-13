@@ -862,6 +862,7 @@
 <span id="854">854</span>
 <span id="855">855</span>
 <span id="856">856</span>
+<span id="857">857</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
@@ -1593,6 +1594,7 @@
             <span class="ident">arg_count</span>: <span class="number">0</span>,
             <span class="ident">generator_resume_kind</span>: <span class="ident">GeneratorResumeKind::Normal</span>,
             <span class="ident">thrown</span>: <span class="bool-val">false</span>,
+            <span class="ident">async_generator</span>: <span class="prelude-val">None</span>,
         });
 
         <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">set_global_binding_number</span>();

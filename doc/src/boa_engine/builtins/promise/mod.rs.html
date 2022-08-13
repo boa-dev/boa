@@ -2078,6 +2078,8 @@
 <span id="2070">2070</span>
 <span id="2071">2071</span>
 <span id="2072">2072</span>
+<span id="2073">2073</span>
+<span id="2074">2074</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Promise` object.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -2120,19 +2122,21 @@
             <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; {
                 <span class="comment">// a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).</span>
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>.<span class="ident">call</span>(
-                    <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">capability</span>.<span class="ident">reject</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
+                    <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">capability</span>.<span class="ident">reject</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
                     <span class="kw-2">&amp;</span>[<span class="ident">value</span>],
                 )<span class="question-mark">?</span>;
 
                 <span class="comment">// b. Return capability.[[Promise]].</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">capability</span>.<span class="ident">promise</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">capability</span>.<span class="ident">promise</span>().<span class="ident">clone</span>().<span class="ident">into</span>());
             }
             <span class="comment">// 2. Else if value is a Completion Record, set value to value.[[Value]].</span>
             <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>,
         };
     };
 }
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">if_abrupt_reject_promise</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">enum</span> <span class="ident">PromiseState</span> {

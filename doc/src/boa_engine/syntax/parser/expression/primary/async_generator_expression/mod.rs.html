@@ -170,6 +170,22 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Expression Parser</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Implements `TokenParser` fo`AsyncGeneratorExpression`on and outputs</span>
@@ -278,6 +294,22 @@
             .<span class="ident">end</span>();
 
         <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span> <span class="ident">FormalParameters::new</span>(<span class="bool-val">true</span>, <span class="bool-val">true</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// It is a Syntax Error if FormalParameters Contains YieldExpression is true.</span>
+        <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">contains_yield_expression</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;yield expression not allowed in async generator expression parameters&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">params_start_position</span>,
+            )));
+        }
+
+        <span class="comment">// It is a Syntax Error if FormalParameters Contains AwaitExpression is true.</span>
+        <span class="kw">if</span> <span class="ident">params</span>.<span class="ident">contains_await_expression</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;await expression not allowed in async generator expression parameters&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">params_start_position</span>,
+            )));
+        }
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
             <span class="ident">Punctuator::CloseParen</span>,

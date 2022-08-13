@@ -2129,6 +2129,70 @@
 <span id="2121">2121</span>
 <span id="2122">2122</span>
 <span id="2123">2123</span>
+<span id="2124">2124</span>
+<span id="2125">2125</span>
+<span id="2126">2126</span>
+<span id="2127">2127</span>
+<span id="2128">2128</span>
+<span id="2129">2129</span>
+<span id="2130">2130</span>
+<span id="2131">2131</span>
+<span id="2132">2132</span>
+<span id="2133">2133</span>
+<span id="2134">2134</span>
+<span id="2135">2135</span>
+<span id="2136">2136</span>
+<span id="2137">2137</span>
+<span id="2138">2138</span>
+<span id="2139">2139</span>
+<span id="2140">2140</span>
+<span id="2141">2141</span>
+<span id="2142">2142</span>
+<span id="2143">2143</span>
+<span id="2144">2144</span>
+<span id="2145">2145</span>
+<span id="2146">2146</span>
+<span id="2147">2147</span>
+<span id="2148">2148</span>
+<span id="2149">2149</span>
+<span id="2150">2150</span>
+<span id="2151">2151</span>
+<span id="2152">2152</span>
+<span id="2153">2153</span>
+<span id="2154">2154</span>
+<span id="2155">2155</span>
+<span id="2156">2156</span>
+<span id="2157">2157</span>
+<span id="2158">2158</span>
+<span id="2159">2159</span>
+<span id="2160">2160</span>
+<span id="2161">2161</span>
+<span id="2162">2162</span>
+<span id="2163">2163</span>
+<span id="2164">2164</span>
+<span id="2165">2165</span>
+<span id="2166">2166</span>
+<span id="2167">2167</span>
+<span id="2168">2168</span>
+<span id="2169">2169</span>
+<span id="2170">2170</span>
+<span id="2171">2171</span>
+<span id="2172">2172</span>
+<span id="2173">2173</span>
+<span id="2174">2174</span>
+<span id="2175">2175</span>
+<span id="2176">2176</span>
+<span id="2177">2177</span>
+<span id="2178">2178</span>
+<span id="2179">2179</span>
+<span id="2180">2180</span>
+<span id="2181">2181</span>
+<span id="2182">2182</span>
+<span id="2183">2183</span>
+<span id="2184">2184</span>
+<span id="2185">2185</span>
+<span id="2186">2186</span>
+<span id="2187">2187</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2157,6 +2221,7 @@
     <span class="ident">builtins</span>::{
         <span class="ident">array::array_iterator::ArrayIterator</span>,
         <span class="ident">array_buffer::ArrayBuffer</span>,
+        <span class="ident">async_generator::AsyncGenerator</span>,
         <span class="ident">function::arguments::Arguments</span>,
         <span class="ident">function</span>::{
             <span class="ident">arguments::ParameterMap</span>, <span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">ConstructorKind</span>, <span class="ident">Function</span>,
@@ -2295,6 +2360,8 @@
 <span class="doccomment">/// Defines the different types of objects.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ObjectKind</span> {
+    <span class="ident">AsyncGenerator</span>(<span class="ident">AsyncGenerator</span>),
+    <span class="ident">AsyncGeneratorFunction</span>(<span class="ident">Function</span>),
     <span class="ident">Array</span>,
     <span class="ident">ArrayIterator</span>(<span class="ident">ArrayIterator</span>),
     <span class="ident">ArrayBuffer</span>(<span class="ident">ArrayBuffer</span>),
@@ -2330,6 +2397,26 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectData</span> {
+    <span class="doccomment">/// Create the `AsyncGenerator` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_generator</span>(<span class="ident">async_generator</span>: <span class="ident">AsyncGenerator</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::AsyncGenerator</span>(<span class="ident">async_generator</span>),
+            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+        }
+    }
+
+    <span class="doccomment">/// Create the `AsyncGeneratorFunction` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_generator_function</span>(<span class="ident">function</span>: <span class="ident">Function</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">internal_methods</span>: <span class="kw">if</span> <span class="ident">function</span>.<span class="ident">is_constructor</span>() {
+                <span class="kw-2">&amp;</span><span class="ident">CONSTRUCTOR_INTERNAL_METHODS</span>
+            } <span class="kw">else</span> {
+                <span class="kw-2">&amp;</span><span class="ident">FUNCTION_INTERNAL_METHODS</span>
+            },
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::GeneratorFunction</span>(<span class="ident">function</span>),
+        }
+    }
+
     <span class="doccomment">/// Create the `Array` object data and reference its exclusive internal methods</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -2605,6 +2692,8 @@
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectKind</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncGenerator&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::AsyncGeneratorFunction</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncGeneratorFunction&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Array</span> =&gt; <span class="string">&quot;Array&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ArrayIterator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;ArrayIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ArrayBuffer</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;ArrayBuffer&quot;</span>,
@@ -2668,6 +2757,42 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ObjectKind</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">kind</span>
+    }
+
+    <span class="doccomment">/// Checks if it&#39;s an `AsyncGenerator` object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_async_generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::AsyncGenerator</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Returns a reference to the async generator data on the object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_async_generator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AsyncGenerator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::AsyncGenerator</span>(<span class="kw-2">ref</span> <span class="ident">async_generator</span>),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">async_generator</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="doccomment">/// Returns a mutable reference to the async generator data on the object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_async_generator_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="ident">AsyncGenerator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::AsyncGenerator</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">async_generator</span>),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">async_generator</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="doccomment">/// Checks if it an `Array` object.</span>
@@ -3732,7 +3857,10 @@
             } =&gt; {
                 <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ConstructorKind::Base</span>);
             }
-            <span class="ident">Function::Ordinary</span> { .. } <span class="op">|</span> <span class="ident">Function::Generator</span> { .. } <span class="op">|</span> <span class="ident">Function::Async</span> { .. } =&gt; {
+            <span class="ident">Function::Ordinary</span> { .. }
+            <span class="op">|</span> <span class="ident">Function::Generator</span> { .. }
+            <span class="op">|</span> <span class="ident">Function::AsyncGenerator</span> { .. }
+            <span class="op">|</span> <span class="ident">Function::Async</span> { .. } =&gt; {
                 <span class="macro">unreachable!</span>(<span class="string">&quot;function must be native or closure&quot;</span>);
             }
         }

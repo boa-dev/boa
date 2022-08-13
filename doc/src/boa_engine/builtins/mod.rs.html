@@ -227,11 +227,18 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Builtins live here, such as Object, String, Math, etc.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">array_buffer</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_function</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_generator</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">async_generator_function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">boolean</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">dataview</span>;
@@ -306,8 +313,9 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
-        <span class="ident">array_buffer::ArrayBuffer</span>, <span class="ident">generator::Generator</span>, <span class="ident">generator_function::GeneratorFunction</span>,
-        <span class="ident">typed_array::TypedArray</span>,
+        <span class="ident">array_buffer::ArrayBuffer</span>, <span class="ident">async_generator::AsyncGenerator</span>,
+        <span class="ident">async_generator_function::AsyncGeneratorFunction</span>, <span class="ident">generator::Generator</span>,
+        <span class="ident">generator_function::GeneratorFunction</span>, <span class="ident">typed_array::TypedArray</span>,
     },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
@@ -417,7 +425,9 @@
         <span class="ident">Generator</span>,
         <span class="ident">GeneratorFunction</span>,
         <span class="ident">Promise</span>,
-        <span class="ident">AsyncFunction</span>
+        <span class="ident">AsyncFunction</span>,
+        <span class="ident">AsyncGenerator</span>,
+        <span class="ident">AsyncGeneratorFunction</span>
     };
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>

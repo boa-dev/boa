@@ -1531,6 +1531,24 @@
 <span id="1523">1523</span>
 <span id="1524">1524</span>
 <span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
+<span id="1541">1541</span>
+<span id="1542">1542</span>
+<span id="1543">1543</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -2460,6 +2478,13 @@
     <span class="doccomment">/// Stack: **=&gt;** func</span>
     <span class="ident">GetGenerator</span>,
 
+    <span class="doccomment">/// Get async generator function from the pre-compiled inner functions.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: address: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: **=&gt;** func</span>
+    <span class="ident">GetGeneratorAsync</span>,
+
     <span class="doccomment">/// Call a function named &quot;eval&quot;.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: argument_count: `u32`</span>
@@ -2658,6 +2683,13 @@
     <span class="doccomment">/// Stack: received **=&gt;**</span>
     <span class="ident">GeneratorNext</span>,
 
+    <span class="doccomment">/// Resumes the current generator function.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: received **=&gt;** Option&lt;value&gt;, skip_0, skip_1</span>
+    <span class="ident">AsyncGeneratorNext</span>,
+
     <span class="doccomment">/// Delegates the current generator function another generator.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: done_address: `u32`</span>
@@ -2818,6 +2850,7 @@
             <span class="ident"><span class="self">Self</span>::GetFunction</span> =&gt; <span class="string">&quot;GetFunction&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetFunctionAsync</span> =&gt; <span class="string">&quot;GetFunctionAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetGenerator</span> =&gt; <span class="string">&quot;GetGenerator&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GetGeneratorAsync</span> =&gt; <span class="string">&quot;GetGeneratorAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::CallEval</span> =&gt; <span class="string">&quot;CallEval&quot;</span>,
             <span class="ident"><span class="self">Self</span>::CallEvalWithRest</span> =&gt; <span class="string">&quot;CallEvalWithRest&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Call</span> =&gt; <span class="string">&quot;Call&quot;</span>,
@@ -2846,6 +2879,7 @@
             <span class="ident"><span class="self">Self</span>::PopOnReturnSub</span> =&gt; <span class="string">&quot;PopOnReturnSub&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Yield</span> =&gt; <span class="string">&quot;Yield&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GeneratorNext</span> =&gt; <span class="string">&quot;GeneratorNext&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::AsyncGeneratorNext</span> =&gt; <span class="string">&quot;AsyncGeneratorNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Await</span> =&gt; <span class="string">&quot;Await&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GeneratorNextDelegate</span> =&gt; <span class="string">&quot;GeneratorNextDelegate&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Nop</span> =&gt; <span class="string">&quot;Nop&quot;</span>,
@@ -2958,6 +2992,7 @@
             <span class="ident"><span class="self">Self</span>::GetFunction</span> =&gt; <span class="string">&quot;INST - GetFunction&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetFunctionAsync</span> =&gt; <span class="string">&quot;INST - GetFunctionAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetGenerator</span> =&gt; <span class="string">&quot;INST - GetGenerator&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GetGeneratorAsync</span> =&gt; <span class="string">&quot;INST - GetGeneratorAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::CallEval</span> =&gt; <span class="string">&quot;INST - CallEval&quot;</span>,
             <span class="ident"><span class="self">Self</span>::CallEvalWithRest</span> =&gt; <span class="string">&quot;INST - CallEvalWithRest&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Call</span> =&gt; <span class="string">&quot;INST - Call&quot;</span>,
@@ -2986,6 +3021,7 @@
             <span class="ident"><span class="self">Self</span>::PopOnReturnSub</span> =&gt; <span class="string">&quot;INST - PopOnReturnSub&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Yield</span> =&gt; <span class="string">&quot;INST - Yield&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GeneratorNext</span> =&gt; <span class="string">&quot;INST - GeneratorNext&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::AsyncGeneratorNext</span> =&gt; <span class="string">&quot;INST - AsyncGeneratorNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Await</span> =&gt; <span class="string">&quot;INST - Await&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GeneratorNextDelegate</span> =&gt; <span class="string">&quot;INST - GeneratorNextDelegate&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Nop</span> =&gt; <span class="string">&quot;INST - Nop&quot;</span>,
