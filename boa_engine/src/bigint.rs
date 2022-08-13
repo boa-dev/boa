@@ -1,7 +1,6 @@
 //! This module implements the JavaScript bigint primitive rust type.
 
 use crate::{builtins::Number, Context, JsValue};
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use num_integer::Integer;
 use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
 use std::{
@@ -18,15 +17,9 @@ use serde::{Deserialize, Serialize};
 
 /// JavaScript bigint primitive rust type.
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Debug, Finalize, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JsBigInt {
     inner: Rc<RawBigInt>,
-}
-
-// Safety: BigInt does not contain any objects which needs to be traced,
-// so this is safe.
-unsafe impl Trace for JsBigInt {
-    unsafe_empty_trace!();
 }
 
 impl JsBigInt {

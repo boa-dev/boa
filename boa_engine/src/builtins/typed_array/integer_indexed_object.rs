@@ -13,24 +13,20 @@ use crate::{
     object::{JsObject, ObjectData},
     Context,
 };
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 
 /// Type of the array content.
-#[derive(Debug, Clone, Copy, Finalize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum ContentType {
     Number,
     BigInt,
-}
-
-unsafe impl Trace for ContentType {
-    // safe because `ContentType` is `Copy`
-    unsafe_empty_trace!();
 }
 
 /// <https://tc39.es/ecma262/#integer-indexed-exotic-object>
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct IntegerIndexed {
     viewed_array_buffer: Option<JsObject>,
+    #[unsafe_ignore_trace]
     typed_array_name: TypedArrayKind,
     byte_offset: u64,
     byte_length: u64,

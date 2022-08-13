@@ -1,5 +1,4 @@
 use crate::syntax::ast::Node;
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -23,7 +22,7 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Debug, Clone, Copy, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Break {
     label: Option<Sym>,
 }
@@ -43,10 +42,6 @@ impl Break {
     pub fn label(&self) -> Option<Sym> {
         self.label
     }
-}
-
-unsafe impl Trace for Break {
-    unsafe_empty_trace!();
 }
 
 impl ToInternedString for Break {

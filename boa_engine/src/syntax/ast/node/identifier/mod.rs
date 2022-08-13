@@ -4,7 +4,6 @@ use crate::syntax::{
     ast::{node::Node, Position},
     parser::ParseError,
 };
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg(feature = "deser")]
@@ -27,7 +26,7 @@ use serde::{Deserialize, Serialize};
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Debug, Clone, Copy, Finalize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Identifier {
     ident: Sym,
 }
@@ -66,10 +65,6 @@ impl ToInternedString for Identifier {
     fn to_interned_string(&self, interner: &Interner) -> String {
         interner.resolve_expect(self.ident).to_owned()
     }
-}
-
-unsafe impl Trace for Identifier {
-    unsafe_empty_trace!();
 }
 
 impl From<Sym> for Identifier {

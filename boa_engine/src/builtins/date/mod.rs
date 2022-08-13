@@ -12,7 +12,6 @@ use crate::{
     value::{JsValue, PreferredType},
     Context, JsResult, JsString,
 };
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use chrono::{prelude::*, Duration, LocalResult};
 use std::fmt::Display;
@@ -61,7 +60,7 @@ macro_rules! getter_method {
     }};
 }
 
-#[derive(Debug, Finalize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Date(Option<NaiveDateTime>);
 
 impl Display for Date {
@@ -71,12 +70,6 @@ impl Display for Date {
             _ => write!(f, "Invalid Date"),
         }
     }
-}
-
-unsafe impl Trace for Date {
-    // Date is a stack value, it doesn't require tracing.
-    // only safe if `chrono` never implements `Trace` for `NaiveDateTime`
-    unsafe_empty_trace!();
 }
 
 impl Default for Date {

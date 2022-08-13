@@ -29,7 +29,6 @@ use crate::{
     value::{IntegerOrInfinity, JsValue},
     Context, JsResult, JsString,
 };
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use num_traits::{Signed, Zero};
 use std::cmp::Ordering;
@@ -3388,7 +3387,7 @@ impl TypedArray {
 }
 
 /// Names of all the typed arrays.
-#[derive(Debug, Clone, Copy, Finalize, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) enum TypedArrayKind {
     Int8,
     Uint8,
@@ -3401,11 +3400,6 @@ pub(crate) enum TypedArrayKind {
     BigUint64,
     Float32,
     Float64,
-}
-
-unsafe impl Trace for TypedArrayKind {
-    // Safe because `TypedArrayName` is `Copy`
-    unsafe_empty_trace!();
 }
 
 impl TypedArrayKind {
