@@ -262,6 +262,9 @@
 <span id="254">254</span>
 <span id="255">255</span>
 <span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -370,7 +373,10 @@
             <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="comment">// Because we already peeked the identifier token, there may be a line terminator before the identifier token.</span>
                 <span class="comment">// In that case we have to skip an additional token on the next peek.</span>
-                <span class="kw">let</span> <span class="ident">skip_n</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">peek_expect_is_line_terminator</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
+                <span class="kw">let</span> <span class="ident">skip_n</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cursor</span>
+                    .<span class="ident">peek_is_line_terminator</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                {
                     <span class="number">2</span>
                 } <span class="kw">else</span> {
                     <span class="number">1</span>
