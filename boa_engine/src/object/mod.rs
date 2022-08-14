@@ -33,6 +33,7 @@ use crate::{
             NativeFunctionSignature,
         },
         generator::Generator,
+        iterable::AsyncFromSyncIterator,
         map::map_iterator::MapIterator,
         map::ordered_map::OrderedMap,
         object::for_in_iterator::ForInIterator,
@@ -165,6 +166,7 @@ pub struct ObjectData {
 /// Defines the different types of objects.
 #[derive(Debug, Finalize)]
 pub enum ObjectKind {
+    AsyncFromSyncIterator(AsyncFromSyncIterator),
     AsyncGenerator(AsyncGenerator),
     AsyncGeneratorFunction(Function),
     Array,
@@ -204,6 +206,7 @@ pub enum ObjectKind {
 unsafe impl Trace for ObjectKind {
     custom_trace! {this, {
         match this {
+            Self::AsyncFromSyncIterator(a) => mark(a),
             Self::ArrayIterator(i) => mark(i),
             Self::ArrayBuffer(b) => mark(b),
             Self::Map(m) => mark(m),
@@ -241,6 +244,14 @@ unsafe impl Trace for ObjectKind {
 }
 
 impl ObjectData {
+    /// Create the `AsyncFromSyncIterator` object data
+    pub fn async_from_sync_iterator(async_from_sync_iterator: AsyncFromSyncIterator) -> Self {
+        Self {
+            kind: ObjectKind::AsyncFromSyncIterator(async_from_sync_iterator),
+            internal_methods: &ORDINARY_INTERNAL_METHODS,
+        }
+    }
+
     /// Create the `AsyncGenerator` object data
     pub fn async_generator(async_generator: AsyncGenerator) -> Self {
         Self {
@@ -536,6 +547,7 @@ impl ObjectData {
 impl Display for ObjectKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(match self {
+            Self::AsyncFromSyncIterator(_) => "AsyncFromSyncIterator",
             Self::AsyncGenerator(_) => "AsyncGenerator",
             Self::AsyncGeneratorFunction(_) => "AsyncGeneratorFunction",
             Self::Array => "Array",
@@ -601,6 +613,30 @@ impl Object {
     #[inline]
     pub fn kind(&self) -> &ObjectKind {
         &self.data.kind
+    }
+
+    /// Checks if it's an `AsyncFromSyncIterator` object.
+    #[inline]
+    pub fn is_async_from_sync_iterator(&self) -> bool {
+        matches!(
+            self.data,
+            ObjectData {
+                kind: ObjectKind::AsyncFromSyncIterator(_),
+                ..
+            }
+        )
+    }
+
+    /// Returns a reference to the `AsyncFromSyncIterator` data on the object.
+    #[inline]
+    pub fn as_async_from_sync_iterator(&self) -> Option<&AsyncFromSyncIterator> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::AsyncFromSyncIterator(ref async_from_sync_iterator),
+                ..
+            } => Some(async_from_sync_iterator),
+            _ => None,
+        }
     }
 
     /// Checks if it's an `AsyncGenerator` object.

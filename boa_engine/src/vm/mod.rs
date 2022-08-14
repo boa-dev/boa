@@ -6,7 +6,7 @@ use crate::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         function::{ConstructorKind, Function},
-        iterable::IteratorRecord,
+        iterable::{IteratorHint, IteratorRecord},
         Array, ForInIterator, JsArgs, Number, Promise,
     },
     environments::EnvironmentSlots,
@@ -2014,6 +2014,13 @@ impl Context {
             Opcode::InitIterator => {
                 let object = self.vm.pop();
                 let iterator = object.get_iterator(self, None, None)?;
+                self.vm.push(iterator.iterator().clone());
+                self.vm.push(iterator.next_method().clone());
+                self.vm.push(iterator.done());
+            }
+            Opcode::InitIteratorAsync => {
+                let object = self.vm.pop();
+                let iterator = object.get_iterator(self, Some(IteratorHint::Async), None)?;
                 self.vm.push(iterator.iterator().clone());
                 self.vm.push(iterator.next_method().clone());
                 self.vm.push(iterator.done());
