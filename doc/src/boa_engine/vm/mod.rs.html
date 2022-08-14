@@ -2740,6 +2740,29 @@
 <span id="2732">2732</span>
 <span id="2733">2733</span>
 <span id="2734">2734</span>
+<span id="2735">2735</span>
+<span id="2736">2736</span>
+<span id="2737">2737</span>
+<span id="2738">2738</span>
+<span id="2739">2739</span>
+<span id="2740">2740</span>
+<span id="2741">2741</span>
+<span id="2742">2742</span>
+<span id="2743">2743</span>
+<span id="2744">2744</span>
+<span id="2745">2745</span>
+<span id="2746">2746</span>
+<span id="2747">2747</span>
+<span id="2748">2748</span>
+<span id="2749">2749</span>
+<span id="2750">2750</span>
+<span id="2751">2751</span>
+<span id="2752">2752</span>
+<span id="2753">2753</span>
+<span id="2754">2754</span>
+<span id="2755">2755</span>
+<span id="2756">2756</span>
+<span id="2757">2757</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -3502,6 +3525,21 @@
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
             }
+            <span class="ident">Opcode::GetPropertyByValuePush</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
+                    <span class="ident">object</span>.<span class="ident">clone</span>()
+                } <span class="kw">else</span> {
+                    <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>
+                };
+
+                <span class="kw">let</span> <span class="ident">property_key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="ident">property_key</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
+
+                <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">key</span>);
+                <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
+            }
             <span class="ident">Opcode::SetPropertyByName</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
 
@@ -4095,13 +4133,21 @@
             }
             <span class="ident">Opcode::CopyDataProperties</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">excluded_key_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
+                <span class="kw">let</span> <span class="ident">excluded_key_count_computed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">excluded_keys</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">excluded_key_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
                 <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">excluded_key_count</span> {
-                    <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>().<span class="ident">as_string</span>().<span class="ident">expect</span>(<span class="string">&quot;not a string&quot;</span>).<span class="ident">clone</span>());
+                    <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                    <span class="ident">excluded_keys</span>
+                        .<span class="ident">push</span>(<span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="self">self</span>).<span class="ident">expect</span>(<span class="string">&quot;key must be property key&quot;</span>));
                 }
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">expect</span>(<span class="string">&quot;not an object&quot;</span>);
                 <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">excluded_key_count_computed</span> {
+                    <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                    <span class="ident">excluded_keys</span>
+                        .<span class="ident">push</span>(<span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="self">self</span>).<span class="ident">expect</span>(<span class="string">&quot;key must be property key&quot;</span>));
+                }
                 <span class="ident">object</span>.<span class="ident">copy_data_properties</span>(<span class="kw-2">&amp;</span><span class="ident">source</span>, <span class="ident">excluded_keys</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
             }

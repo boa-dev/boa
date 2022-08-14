@@ -1521,6 +1521,7 @@
 <span id="1513">1513</span>
 <span id="1514">1514</span>
 <span id="1515">1515</span>
+<span id="1516">1516</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1732,7 +1733,6 @@
             <span class="op">|</span> <span class="ident">Opcode::ForInLoopInitIterator</span>
             <span class="op">|</span> <span class="ident">Opcode::ForInLoopNext</span>
             <span class="op">|</span> <span class="ident">Opcode::ConcatToString</span>
-            <span class="op">|</span> <span class="ident">Opcode::CopyDataProperties</span>
             <span class="op">|</span> <span class="ident">Opcode::GeneratorNextDelegate</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>).<span class="ident">to_string</span>();
                 <span class="kw-2">*</span><span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
@@ -1740,7 +1740,8 @@
             }
             <span class="ident">Opcode::TryStart</span>
             <span class="op">|</span> <span class="ident">Opcode::PushDeclarativeEnvironment</span>
-            <span class="op">|</span> <span class="ident">Opcode::PushFunctionEnvironment</span> =&gt; {
+            <span class="op">|</span> <span class="ident">Opcode::PushFunctionEnvironment</span>
+            <span class="op">|</span> <span class="ident">Opcode::CopyDataProperties</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">operand1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>);
                 <span class="kw-2">*</span><span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="ident">operand2</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>);
@@ -1852,6 +1853,7 @@
             <span class="op">|</span> <span class="ident">Opcode::Dec</span>
             <span class="op">|</span> <span class="ident">Opcode::DecPost</span>
             <span class="op">|</span> <span class="ident">Opcode::GetPropertyByValue</span>
+            <span class="op">|</span> <span class="ident">Opcode::GetPropertyByValuePush</span>
             <span class="op">|</span> <span class="ident">Opcode::SetPropertyByValue</span>
             <span class="op">|</span> <span class="ident">Opcode::DefineOwnPropertyByValue</span>
             <span class="op">|</span> <span class="ident">Opcode::DefineClassMethodByValue</span>

@@ -1549,6 +1549,17 @@
 <span id="1541">1541</span>
 <span id="1542">1542</span>
 <span id="1543">1543</span>
+<span id="1544">1544</span>
+<span id="1545">1545</span>
+<span id="1546">1546</span>
+<span id="1547">1547</span>
+<span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
+<span id="1551">1551</span>
+<span id="1552">1552</span>
+<span id="1553">1553</span>
+<span id="1554">1554</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -2071,6 +2082,15 @@
     <span class="doccomment">/// Stack: key, object **=&gt;** value</span>
     <span class="ident">GetPropertyByValue</span>,
 
+    <span class="doccomment">/// Get a property by value from an object an push the key and value on the stack.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Like `object[key]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: key, object **=&gt;** key, value</span>
+    <span class="ident">GetPropertyByValuePush</span>,
+
     <span class="doccomment">/// Sets a property by name of an object.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Like `object.name = value`</span>
@@ -2298,9 +2318,9 @@
 
     <span class="doccomment">/// Copy all properties of one object to another object.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands: excluded_key_count: `u32`</span>
+    <span class="doccomment">/// Operands: excluded_key_count: `u32`, excluded_key_count_computed: `u32`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: source, value, excluded_key_0 ... excluded_key_n **=&gt;** value</span>
+    <span class="doccomment">/// Stack: excluded_key_computed_0 ... excluded_key_computed_n, source, value, excluded_key_0 ... excluded_key_n **=&gt;** value</span>
     <span class="ident">CopyDataProperties</span>,
 
     <span class="doccomment">/// Call ToPropertyKey on the value on the stack.</span>
@@ -2798,6 +2818,7 @@
             <span class="ident"><span class="self">Self</span>::SetName</span> =&gt; <span class="string">&quot;SetName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetPropertyByName</span> =&gt; <span class="string">&quot;GetPropertyByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetPropertyByValue</span> =&gt; <span class="string">&quot;GetPropertyByValue&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GetPropertyByValuePush</span> =&gt; <span class="string">&quot;GetPropertyByValuePush&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPropertyByName</span> =&gt; <span class="string">&quot;SetPropertyByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineOwnPropertyByName</span> =&gt; <span class="string">&quot;DefineOwnPropertyByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineClassMethodByName</span> =&gt; <span class="string">&quot;DefineClassMethodByName&quot;</span>,
@@ -2958,6 +2979,7 @@
             <span class="ident"><span class="self">Self</span>::SetName</span> =&gt; <span class="string">&quot;INST - SetName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetPropertyByName</span> =&gt; <span class="string">&quot;INST - GetPropertyByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetPropertyByValue</span> =&gt; <span class="string">&quot;INST - GetPropertyByValue&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::GetPropertyByValuePush</span> =&gt; <span class="string">&quot;INST - GetPropertyByValuePush&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPropertyByName</span> =&gt; <span class="string">&quot;INST - SetPropertyByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::DefineOwnPropertyByName</span> =&gt; <span class="string">&quot;INST - DefineOwnPropertyByName&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SetPropertyByValue</span> =&gt; <span class="string">&quot;INST - SetPropertyByValue&quot;</span>,

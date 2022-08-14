@@ -414,6 +414,38 @@
 <span id="406">406</span>
 <span id="407">407</span>
 <span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast::node</span>::{
         <span class="ident">declaration</span>::{
@@ -620,38 +652,70 @@
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                     });
                 }
-                (<span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>), <span class="ident">Node::Assign</span>(<span class="ident">assign</span>)) =&gt; <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">lhs</span>() {
-                    <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">==</span> <span class="ident">ident</span>.<span class="ident">sym</span>() =&gt; {
-                        <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="kw-2">*</span><span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::EVAL</span> {
-                            <span class="kw">return</span> <span class="prelude-val">None</span>;
-                        }
-                        <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="ident">RESERVED_IDENTIFIERS_STRICT</span>.<span class="ident">contains</span>(<span class="ident">name</span>) {
-                            <span class="kw">return</span> <span class="prelude-val">None</span>;
-                        }
-
-                        <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">name</span>);
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
-                            <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">name</span>,
-                            <span class="ident">property_name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
-                            <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
-                        });
-                    }
+                (<span class="kw">_</span>, <span class="ident">Node::Assign</span>(<span class="ident">assign</span>)) =&gt; <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">lhs</span>() {
                     <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
-                            <span class="ident">ident</span>: <span class="ident">ident</span>.<span class="ident">sym</span>(),
-                            <span class="ident">property_name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
-                            <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
-                        });
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">name</span>.<span class="ident">literal</span>() {
+                            <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">ident</span>.<span class="ident">sym</span>() {
+                                <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::EVAL</span> {
+                                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                                }
+                                <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> <span class="ident">RESERVED_IDENTIFIERS_STRICT</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+                                    <span class="kw">return</span> <span class="prelude-val">None</span>;
+                                }
+                                <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="ident">name</span>);
+                                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
+                                    <span class="ident">ident</span>: <span class="ident">name</span>,
+                                    <span class="ident">property_name</span>: <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>),
+                                    <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
+                                });
+                            } <span class="kw">else</span> {
+                                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
+                                    <span class="ident">ident</span>: <span class="ident">ident</span>.<span class="ident">sym</span>(),
+                                    <span class="ident">property_name</span>: <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>),
+                                    <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
+                                });
+                            }
+                        } <span class="kw">else</span> {
+                            <span class="kw">return</span> <span class="prelude-val">None</span>;
+                        }
                     }
                     <span class="ident">AssignTarget::DeclarationPattern</span>(<span class="ident">pattern</span>) =&gt; {
                         <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::BindingPattern</span> {
-                            <span class="ident">ident</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
+                            <span class="ident">ident</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
                             <span class="ident">pattern</span>: <span class="ident">pattern</span>.<span class="ident">clone</span>(),
                             <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
                         });
                     }
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
+                    <span class="ident">AssignTarget::GetConstField</span>(<span class="ident">field</span>) =&gt; {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::AssignmentGetConstField</span> {
+                            <span class="ident">property_name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
+                            <span class="ident">get_const_field</span>: <span class="ident">field</span>.<span class="ident">clone</span>(),
+                            <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
+                        });
+                    }
+                    <span class="ident">AssignTarget::GetField</span>(<span class="ident">field</span>) =&gt; {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::AssignmentGetField</span> {
+                            <span class="ident">property_name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
+                            <span class="ident">get_field</span>: <span class="ident">field</span>.<span class="ident">clone</span>(),
+                            <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
+                        });
+                    }
+                    <span class="ident">AssignTarget::GetPrivateField</span>(<span class="kw">_</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
                 },
+                (<span class="kw">_</span>, <span class="ident">Node::GetConstField</span>(<span class="ident">field</span>)) =&gt; {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::AssignmentGetConstField</span> {
+                        <span class="ident">property_name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
+                        <span class="ident">get_const_field</span>: <span class="ident">field</span>.<span class="ident">clone</span>(),
+                        <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
+                    });
+                }
+                (<span class="kw">_</span>, <span class="ident">Node::GetField</span>(<span class="ident">field</span>)) =&gt; {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::AssignmentGetField</span> {
+                        <span class="ident">property_name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
+                        <span class="ident">get_field</span>: <span class="ident">field</span>.<span class="ident">clone</span>(),
+                        <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
+                    });
+                }
                 (<span class="ident">PropertyName::Computed</span>(<span class="ident">name</span>), <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>)) =&gt; {
                     <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::SingleName</span> {
                         <span class="ident">ident</span>: <span class="ident">ident</span>.<span class="ident">sym</span>(),
@@ -670,7 +734,7 @@
                         });
                     }
                     <span class="ident">Node::GetConstField</span>(<span class="ident">get_const_field</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::RestGetConstField</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">BindingPatternTypeObject::AssignmentRestProperty</span> {
                             <span class="ident">get_const_field</span>: <span class="ident">get_const_field</span>.<span class="ident">clone</span>(),
                             <span class="ident">excluded_keys</span>: <span class="ident">excluded_keys</span>.<span class="ident">clone</span>(),
                         });
