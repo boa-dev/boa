@@ -14,7 +14,7 @@ use crate::syntax::{
         Keyword, Punctuator,
     },
     lexer::TokenKind,
-    parser::{AllowAwait, AllowIn, Cursor, ParseResult, TokenParser},
+    parser::{AllowAwait, AllowIn, Cursor, ParseError, ParseResult, TokenParser},
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -63,12 +63,14 @@ where
             interner,
         )?;
 
-        let token = if let Some(token) = cursor.peek(0, interner)? {
-            token
-        } else {
+        if matches!(
+            cursor.peek_is_line_terminator(0, interner)?,
+            Some(true) | None
+        ) {
             return Ok(Node::Yield(Yield::new::<Node>(None, false)));
-        };
+        }
 
+        let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         match token.kind() {
             TokenKind::Punctuator(Punctuator::Mul) => {
                 cursor.next(interner)?.expect("token disappeared");

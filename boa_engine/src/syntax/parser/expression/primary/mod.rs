@@ -366,7 +366,9 @@ where
         let is_arrow = if let Some(TokenKind::Punctuator(Punctuator::Arrow)) =
             cursor.peek(0, interner)?.map(Token::kind)
         {
-            !cursor.peek_expect_is_line_terminator(0, interner)?
+            !cursor
+                .peek_is_line_terminator(0, interner)?
+                .ok_or(ParseError::AbruptEnd)?
         } else {
             false
         };
