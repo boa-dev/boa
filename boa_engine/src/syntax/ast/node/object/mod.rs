@@ -390,7 +390,7 @@ pub enum PropertyName {
 
 impl PropertyName {
     /// Returns the literal property name if it exists.
-    pub(in crate::syntax) fn literal(&self) -> Option<Sym> {
+    pub(crate) fn literal(&self) -> Option<Sym> {
         if let Self::Literal(sym) = self {
             Some(*sym)
         } else {
@@ -399,7 +399,7 @@ impl PropertyName {
     }
 
     /// Returns the expression node if the property name is computed.
-    pub(in crate::syntax) fn computed(&self) -> Option<&Node> {
+    pub(crate) fn computed(&self) -> Option<&Node> {
         if let Self::Computed(node) = self {
             Some(node)
         } else {
