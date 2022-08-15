@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.4/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.9/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -1806,6 +1806,26 @@
 <span id="1800">1800</span>
 <span id="1801">1801</span>
 <span id="1802">1802</span>
+<span id="1803">1803</span>
+<span id="1804">1804</span>
+<span id="1805">1805</span>
+<span id="1806">1806</span>
+<span id="1807">1807</span>
+<span id="1808">1808</span>
+<span id="1809">1809</span>
+<span id="1810">1810</span>
+<span id="1811">1811</span>
+<span id="1812">1812</span>
+<span id="1813">1813</span>
+<span id="1814">1814</span>
+<span id="1815">1815</span>
+<span id="1816">1816</span>
+<span id="1817">1817</span>
+<span id="1818">1818</span>
+<span id="1819">1819</span>
+<span id="1820">1820</span>
+<span id="1821">1821</span>
+<span id="1822">1822</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="self">self</span>, <span class="ident">Error</span>, <span class="ident">ErrorImpl</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::libyaml::error::Mark</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::libyaml::parser</span>::{<span class="ident">MappingStart</span>, <span class="ident">Scalar</span>, <span class="ident">ScalarStyle</span>, <span class="ident">SequenceStart</span>};
@@ -2344,7 +2364,11 @@
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
         <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">recursion_check</span>(<span class="ident">mark</span>, <span class="op">|</span><span class="ident">de</span><span class="op">|</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">SeqAccess</span> { <span class="ident">de</span>, <span class="ident">len</span>: <span class="number">0</span> };
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">SeqAccess</span> {
+                <span class="ident">empty</span>: <span class="bool-val">false</span>,
+                <span class="ident">de</span>,
+                <span class="ident">len</span>: <span class="number">0</span>,
+            };
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">visitor</span>.<span class="ident">visit_seq</span>(<span class="kw-2">&amp;mut</span> <span class="ident">seq</span>)<span class="question-mark">?</span>;
             <span class="prelude-val">Ok</span>((<span class="ident">value</span>, <span class="ident">seq</span>.<span class="ident">len</span>))
         })<span class="question-mark">?</span>;
@@ -2358,6 +2382,7 @@
     {
         <span class="kw">let</span> (<span class="ident">value</span>, <span class="ident">len</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">recursion_check</span>(<span class="ident">mark</span>, <span class="op">|</span><span class="ident">de</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">MapAccess</span> {
+                <span class="ident">empty</span>: <span class="bool-val">false</span>,
                 <span class="ident">de</span>,
                 <span class="ident">len</span>: <span class="number">0</span>,
                 <span class="ident">key</span>: <span class="prelude-val">None</span>,
@@ -2371,7 +2396,11 @@
 
     <span class="kw">fn</span> <span class="ident">end_sequence</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">SeqAccess</span> { <span class="ident">de</span>: <span class="self">self</span>, <span class="ident">len</span> };
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">SeqAccess</span> {
+                <span class="ident">empty</span>: <span class="bool-val">false</span>,
+                <span class="ident">de</span>: <span class="self">self</span>,
+                <span class="ident">len</span>,
+            };
             <span class="kw">while</span> <span class="ident">de::SeqAccess::next_element</span>::<span class="op">&lt;</span><span class="ident">IgnoredAny</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="ident">seq</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {}
             <span class="ident">seq</span>.<span class="ident">len</span>
         };
@@ -2399,6 +2428,7 @@
     <span class="kw">fn</span> <span class="ident">end_mapping</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">total</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">MapAccess</span> {
+                <span class="ident">empty</span>: <span class="bool-val">false</span>,
                 <span class="ident">de</span>: <span class="self">self</span>,
                 <span class="ident">len</span>,
                 <span class="ident">key</span>: <span class="prelude-val">None</span>,
@@ -2444,6 +2474,7 @@
 }
 
 <span class="kw">struct</span> <span class="ident">SeqAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;seq</span><span class="op">&gt;</span> {
+    <span class="ident">empty</span>: <span class="ident">bool</span>,
     <span class="ident">de</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;seq</span> <span class="kw-2">mut</span> <span class="ident">DeserializerFromEvents</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span><span class="op">&gt;</span>,
     <span class="ident">len</span>: <span class="ident">usize</span>,
 }
@@ -2455,6 +2486,9 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">empty</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">de</span>.<span class="ident">peek_event</span>()<span class="question-mark">?</span> {
             <span class="ident">Event::SequenceEnd</span> <span class="op">|</span> <span class="ident">Event::Void</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             <span class="kw">_</span> =&gt; {
@@ -2477,6 +2511,7 @@
 }
 
 <span class="kw">struct</span> <span class="ident">MapAccess</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span>, <span class="lifetime">&#39;map</span><span class="op">&gt;</span> {
+    <span class="ident">empty</span>: <span class="ident">bool</span>,
     <span class="ident">de</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;map</span> <span class="kw-2">mut</span> <span class="ident">DeserializerFromEvents</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span>, <span class="lifetime">&#39;document</span><span class="op">&gt;</span>,
     <span class="ident">len</span>: <span class="ident">usize</span>,
     <span class="ident">key</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;document</span> [<span class="ident">u8</span>]<span class="op">&gt;</span>,
@@ -2489,6 +2524,9 @@
     <span class="kw">where</span>
         <span class="ident">K</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">empty</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
+        }
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">de</span>.<span class="ident">peek_event</span>()<span class="question-mark">?</span> {
             <span class="ident">Event::MappingEnd</span> <span class="op">|</span> <span class="ident">Event::Void</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
             <span class="ident">Event::Scalar</span>(<span class="ident">scalar</span>) =&gt; {
@@ -3372,12 +3410,23 @@
         <span class="kw">match</span> <span class="ident">next</span> {
             <span class="ident">Event::Alias</span>(<span class="kw-2">mut</span> <span class="ident">pos</span>) =&gt; <span class="self">self</span>.<span class="ident">jump</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pos</span>)<span class="question-mark">?</span>.<span class="ident">deserialize_seq</span>(<span class="ident">visitor</span>),
             <span class="ident">Event::SequenceStart</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_sequence</span>(<span class="ident">visitor</span>, <span class="ident">mark</span>),
-            <span class="ident">Event::Void</span> =&gt; {
-                <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">SeqAccess</span> { <span class="ident">de</span>: <span class="self">self</span>, <span class="ident">len</span>: <span class="number">0</span> };
-                <span class="ident">visitor</span>.<span class="ident">visit_seq</span>(<span class="kw-2">&amp;mut</span> <span class="ident">seq</span>)
+            <span class="ident">other</span> =&gt; {
+                <span class="kw">if</span> <span class="kw">match</span> <span class="ident">other</span> {
+                    <span class="ident">Event::Void</span> =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">Event::Scalar</span>(<span class="ident">scalar</span>) =&gt; {
+                        <span class="ident">scalar</span>.<span class="ident">value</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">scalar</span>.<span class="ident">style</span> <span class="op">==</span> <span class="ident">ScalarStyle::Plain</span>
+                    }
+                    <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                } {
+                    <span class="ident">visitor</span>.<span class="ident">visit_seq</span>(<span class="ident">SeqAccess</span> {
+                        <span class="ident">empty</span>: <span class="bool-val">true</span>,
+                        <span class="ident">de</span>: <span class="self">self</span>,
+                        <span class="ident">len</span>: <span class="number">0</span>,
+                    })
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">invalid_type</span>(<span class="ident">other</span>, <span class="kw-2">&amp;</span><span class="ident">visitor</span>))
+                }
             }
-            <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">invalid_type</span>(<span class="ident">other</span>, <span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
         }
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">error::fix_mark</span>(<span class="ident">err</span>, <span class="ident">mark</span>, <span class="self">self</span>.<span class="ident">path</span>))
     }
@@ -3409,47 +3458,38 @@
         <span class="kw">match</span> <span class="ident">next</span> {
             <span class="ident">Event::Alias</span>(<span class="kw-2">mut</span> <span class="ident">pos</span>) =&gt; <span class="self">self</span>.<span class="ident">jump</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pos</span>)<span class="question-mark">?</span>.<span class="ident">deserialize_map</span>(<span class="ident">visitor</span>),
             <span class="ident">Event::MappingStart</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_mapping</span>(<span class="ident">visitor</span>, <span class="ident">mark</span>),
-            <span class="ident">Event::Void</span> =&gt; {
-                <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">MapAccess</span> {
-                    <span class="ident">de</span>: <span class="self">self</span>,
-                    <span class="ident">len</span>: <span class="number">0</span>,
-                    <span class="ident">key</span>: <span class="prelude-val">None</span>,
-                };
-                <span class="ident">visitor</span>.<span class="ident">visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="ident">seq</span>)
+            <span class="ident">other</span> =&gt; {
+                <span class="kw">if</span> <span class="kw">match</span> <span class="ident">other</span> {
+                    <span class="ident">Event::Void</span> =&gt; <span class="bool-val">true</span>,
+                    <span class="ident">Event::Scalar</span>(<span class="ident">scalar</span>) =&gt; {
+                        <span class="ident">scalar</span>.<span class="ident">value</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">scalar</span>.<span class="ident">style</span> <span class="op">==</span> <span class="ident">ScalarStyle::Plain</span>
+                    }
+                    <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                } {
+                    <span class="ident">visitor</span>.<span class="ident">visit_map</span>(<span class="ident">MapAccess</span> {
+                        <span class="ident">empty</span>: <span class="bool-val">true</span>,
+                        <span class="ident">de</span>: <span class="self">self</span>,
+                        <span class="ident">len</span>: <span class="number">0</span>,
+                        <span class="ident">key</span>: <span class="prelude-val">None</span>,
+                    })
+                } <span class="kw">else</span> {
+                    <span class="prelude-val">Err</span>(<span class="ident">invalid_type</span>(<span class="ident">other</span>, <span class="kw-2">&amp;</span><span class="ident">visitor</span>))
+                }
             }
-            <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">invalid_type</span>(<span class="ident">other</span>, <span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
         }
         .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">error::fix_mark</span>(<span class="ident">err</span>, <span class="ident">mark</span>, <span class="self">self</span>.<span class="ident">path</span>))
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_struct</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
         <span class="self">self</span>,
-        <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-        <span class="ident">fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>],
+        <span class="ident">_name</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
+        <span class="ident">_fields</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>],
         <span class="ident">visitor</span>: <span class="ident">V</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">let</span> (<span class="ident">next</span>, <span class="ident">mark</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_event_mark</span>()<span class="question-mark">?</span>;
-        <span class="kw">match</span> <span class="ident">next</span> {
-            <span class="ident">Event::Alias</span>(<span class="kw-2">mut</span> <span class="ident">pos</span>) =&gt; <span class="self">self</span>
-                .<span class="ident">jump</span>(<span class="kw-2">&amp;mut</span> <span class="ident">pos</span>)<span class="question-mark">?</span>
-                .<span class="ident">deserialize_struct</span>(<span class="ident">name</span>, <span class="ident">fields</span>, <span class="ident">visitor</span>),
-            <span class="ident">Event::MappingStart</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">visit_mapping</span>(<span class="ident">visitor</span>, <span class="ident">mark</span>),
-            <span class="ident">Event::Void</span> =&gt; {
-                <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">pos</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">seq</span> <span class="op">=</span> <span class="ident">MapAccess</span> {
-                    <span class="ident">de</span>: <span class="self">self</span>,
-                    <span class="ident">len</span>: <span class="number">0</span>,
-                    <span class="ident">key</span>: <span class="prelude-val">None</span>,
-                };
-                <span class="ident">visitor</span>.<span class="ident">visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="ident">seq</span>)
-            }
-            <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">invalid_type</span>(<span class="ident">other</span>, <span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
-        }
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> <span class="ident">error::fix_mark</span>(<span class="ident">err</span>, <span class="ident">mark</span>, <span class="self">self</span>.<span class="ident">path</span>))
+        <span class="self">self</span>.<span class="ident">deserialize_map</span>(<span class="ident">visitor</span>)
     }
 
     <span class="doccomment">/// Parses an enum as a single key:value pair where the key identifies the</span>

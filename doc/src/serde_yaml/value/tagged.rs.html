@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.4/src/value/tagged.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tagged.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.9/src/value/tagged.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tagged.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -308,6 +308,81 @@
 <span id="302">302</span>
 <span id="303">303</span>
 <span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value::de</span>::{<span class="ident">MapDeserializer</span>, <span class="ident">MapRefDeserializer</span>, <span class="ident">SeqDeserializer</span>, <span class="ident">SeqRefDeserializer</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value::Value</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::Error</span>;
@@ -317,8 +392,9 @@
 };
 <span class="kw">use</span> <span class="ident">serde::ser</span>::{<span class="ident">Serialize</span>, <span class="ident">SerializeMap</span>, <span class="ident">Serializer</span>};
 <span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
-<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>};
+<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Debug</span>, <span class="ident">Display</span>};
 <span class="kw">use</span> <span class="ident">std::hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>};
+<span class="kw">use</span> <span class="ident">std::mem</span>;
 
 <span class="doccomment">/// A representation of YAML&#39;s `!Tag` syntax, used for enums.</span>
 <span class="doccomment">///</span>
@@ -377,10 +453,12 @@
     <span class="doccomment">/// let tag = Tag::new(&quot;Thing&quot;);</span>
     <span class="doccomment">/// assert!(tag == &quot;Thing&quot;);</span>
     <span class="doccomment">/// assert!(tag == &quot;!Thing&quot;);</span>
+    <span class="doccomment">/// assert!(tag.to_string() == &quot;!Thing&quot;);</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let tag = Tag::new(&quot;!Thing&quot;);</span>
     <span class="doccomment">/// assert!(tag == &quot;Thing&quot;);</span>
     <span class="doccomment">/// assert!(tag == &quot;!Thing&quot;);</span>
+    <span class="doccomment">/// assert!(tag.to_string() == &quot;!Thing&quot;);</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Such a tag would serialize to `!Thing` in YAML regardless of whether a</span>
@@ -457,9 +535,15 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Tag</span> {
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">Tag</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="macro">write!</span>(<span class="ident">formatter</span>, <span class="string">&quot;!{}&quot;</span>, <span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">string</span>))
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Debug</span> <span class="kw">for</span> <span class="ident">Tag</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="ident">Display::fmt</span>(<span class="self">self</span>, <span class="ident">formatter</span>)
     }
 }
 
@@ -468,8 +552,19 @@
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Serializer</span>,
     {
+        <span class="kw">struct</span> <span class="ident">SerializeTag</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Tag</span>);
+
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">Serialize</span> <span class="kw">for</span> <span class="ident">SerializeTag</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">serialize</span><span class="op">&lt;</span><span class="ident">S</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">serializer</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">S::Ok</span>, <span class="ident">S::Error</span><span class="op">&gt;</span>
+            <span class="kw">where</span>
+                <span class="ident">S</span>: <span class="ident">Serializer</span>,
+            {
+                <span class="ident">serializer</span>.<span class="ident">collect_str</span>(<span class="self">self</span>.<span class="number">0</span>)
+            }
+        }
+
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">serializer</span>.<span class="ident">serialize_map</span>(<span class="prelude-val">Some</span>(<span class="number">1</span>))<span class="question-mark">?</span>;
-        <span class="ident">map</span>.<span class="ident">serialize_entry</span>(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>(<span class="string">&quot;!{}&quot;</span>, <span class="ident">nobang</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tag</span>.<span class="ident">string</span>)), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
+        <span class="ident">map</span>.<span class="ident">serialize_entry</span>(<span class="kw-2">&amp;</span><span class="ident">SerializeTag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">tag</span>), <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">value</span>)<span class="question-mark">?</span>;
         <span class="ident">map</span>.<span class="ident">end</span>()
     }
 }
@@ -610,6 +705,61 @@
         } <span class="kw">else</span> {
             <span class="prelude-val">Err</span>(<span class="ident">Error::invalid_type</span>(<span class="self">self</span>.<span class="ident">unexpected</span>(), <span class="kw-2">&amp;</span><span class="string">&quot;struct variant&quot;</span>))
         }
+    }
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
+    <span class="ident">Tag</span>(<span class="ident">String</span>),
+    <span class="ident">NotTag</span>(<span class="ident">T</span>),
+}
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">check_for_tag</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">MaybeTag</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Display</span>,
+{
+    <span class="kw">enum</span> <span class="ident">CheckForTag</span> {
+        <span class="ident">Empty</span>,
+        <span class="ident">Bang</span>,
+        <span class="ident">Tag</span>(<span class="ident">String</span>),
+        <span class="ident">NotTag</span>(<span class="ident">String</span>),
+    }
+
+    <span class="kw">impl</span> <span class="ident">fmt::Write</span> <span class="kw">for</span> <span class="ident">CheckForTag</span> {
+        <span class="kw">fn</span> <span class="ident">write_str</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">fmt::Result</span> {
+            <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">is_empty</span>() {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
+            }
+            <span class="kw">match</span> <span class="self">self</span> {
+                <span class="ident">CheckForTag::Empty</span> =&gt; {
+                    <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;!&quot;</span> {
+                        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::Bang</span>;
+                    } <span class="kw">else</span> {
+                        <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::NotTag</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>());
+                    }
+                }
+                <span class="ident">CheckForTag::Bang</span> =&gt; {
+                    <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::Tag</span>(<span class="ident">s</span>.<span class="ident">to_owned</span>());
+                }
+                <span class="ident">CheckForTag::Tag</span>(<span class="ident">string</span>) =&gt; {
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">mem::take</span>(<span class="ident">string</span>);
+                    <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
+                    <span class="kw-2">*</span><span class="self">self</span> <span class="op">=</span> <span class="ident">CheckForTag::NotTag</span>(<span class="ident">string</span>);
+                }
+                <span class="ident">CheckForTag::NotTag</span>(<span class="ident">string</span>) =&gt; {
+                    <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
+                }
+            }
+            <span class="prelude-val">Ok</span>(())
+        }
+    }
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">check_for_tag</span> <span class="op">=</span> <span class="ident">CheckForTag::Empty</span>;
+    <span class="ident">fmt::write</span>(<span class="kw-2">&amp;mut</span> <span class="ident">check_for_tag</span>, <span class="macro">format_args!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">value</span>)).<span class="ident">unwrap</span>();
+    <span class="kw">match</span> <span class="ident">check_for_tag</span> {
+        <span class="ident">CheckForTag::Empty</span> =&gt; <span class="ident">MaybeTag::NotTag</span>(<span class="ident">String::new</span>()),
+        <span class="ident">CheckForTag::Bang</span> =&gt; <span class="ident">MaybeTag::NotTag</span>(<span class="string">&quot;!&quot;</span>.<span class="ident">to_owned</span>()),
+        <span class="ident">CheckForTag::Tag</span>(<span class="ident">string</span>) =&gt; <span class="ident">MaybeTag::Tag</span>(<span class="ident">string</span>),
+        <span class="ident">CheckForTag::NotTag</span>(<span class="ident">string</span>) =&gt; <span class="ident">MaybeTag::NotTag</span>(<span class="ident">string</span>),
     }
 }
 </code></pre></div>

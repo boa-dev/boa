@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.4/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_yaml-0.9.9/src/value/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../serde_yaml/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div>
@@ -1244,6 +1244,8 @@
 <span id="1238">1238</span>
 <span id="1239">1239</span>
 <span id="1240">1240</span>
+<span id="1241">1241</span>
+<span id="1242">1242</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::value</span>::{<span class="ident">tagged</span>, <span class="ident">Tag</span>, <span class="ident">TaggedValue</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">number</span>, <span class="ident">Error</span>, <span class="ident">Mapping</span>, <span class="ident">Sequence</span>, <span class="ident">Value</span>};
 <span class="kw">use</span> <span class="ident">serde::de::value</span>::{<span class="ident">BorrowedStrDeserializer</span>, <span class="ident">StrDeserializer</span>};
@@ -1430,7 +1432,7 @@
     <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">mapping</span>.<span class="ident">len</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">deserializer</span> <span class="op">=</span> <span class="ident">MapRefDeserializer::new</span>(<span class="ident">mapping</span>);
     <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">visitor</span>.<span class="ident">visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="ident">deserializer</span>)<span class="question-mark">?</span>;
-    <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">deserializer</span>.<span class="ident">iter</span>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="ident">remaining</span> <span class="op">=</span> <span class="ident">deserializer</span>.<span class="ident">iter</span>.<span class="ident">unwrap</span>().<span class="ident">len</span>();
     <span class="kw">if</span> <span class="ident">remaining</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">map</span>)
     } <span class="kw">else</span> {
@@ -1636,6 +1638,7 @@
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">untag</span>() {
             <span class="ident">Value::Sequence</span>(<span class="ident">v</span>) =&gt; <span class="ident">visit_sequence</span>(<span class="ident">v</span>, <span class="ident">visitor</span>),
+            <span class="ident">Value::Null</span> =&gt; <span class="ident">visit_sequence</span>(<span class="ident">Sequence::new</span>(), <span class="ident">visitor</span>),
             <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
         }
     }
@@ -1665,6 +1668,7 @@
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">untag</span>() {
             <span class="ident">Value::Mapping</span>(<span class="ident">v</span>) =&gt; <span class="ident">visit_mapping</span>(<span class="ident">v</span>, <span class="ident">visitor</span>),
+            <span class="ident">Value::Null</span> =&gt; <span class="ident">visit_mapping</span>(<span class="ident">Mapping::new</span>(), <span class="ident">visitor</span>),
             <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
         }
     }
@@ -1678,10 +1682,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">untag</span>() {
-            <span class="ident">Value::Mapping</span>(<span class="ident">v</span>) =&gt; <span class="ident">visit_mapping</span>(<span class="ident">v</span>, <span class="ident">visitor</span>),
-            <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
-        }
+        <span class="self">self</span>.<span class="ident">deserialize_map</span>(<span class="ident">visitor</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -2152,8 +2153,10 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
+        <span class="kw">static</span> <span class="ident">EMPTY</span>: <span class="ident">Sequence</span> <span class="op">=</span> <span class="ident">Sequence::new</span>();
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">untag_ref</span>() {
             <span class="ident">Value::Sequence</span>(<span class="ident">v</span>) =&gt; <span class="ident">visit_sequence_ref</span>(<span class="ident">v</span>, <span class="ident">visitor</span>),
+            <span class="ident">Value::Null</span> =&gt; <span class="ident">visit_sequence_ref</span>(<span class="kw-2">&amp;</span><span class="ident">EMPTY</span>, <span class="ident">visitor</span>),
             <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
         }
     }
@@ -2183,6 +2186,10 @@
     {
         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">untag_ref</span>() {
             <span class="ident">Value::Mapping</span>(<span class="ident">v</span>) =&gt; <span class="ident">visit_mapping_ref</span>(<span class="ident">v</span>, <span class="ident">visitor</span>),
+            <span class="ident">Value::Null</span> =&gt; <span class="ident">visitor</span>.<span class="ident">visit_map</span>(<span class="kw-2">&amp;mut</span> <span class="ident">MapRefDeserializer</span> {
+                <span class="ident">iter</span>: <span class="prelude-val">None</span>,
+                <span class="ident">value</span>: <span class="prelude-val">None</span>,
+            }),
             <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
         }
     }
@@ -2196,10 +2203,7 @@
     <span class="kw">where</span>
         <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">untag_ref</span>() {
-            <span class="ident">Value::Mapping</span>(<span class="ident">v</span>) =&gt; <span class="ident">visit_mapping_ref</span>(<span class="ident">v</span>, <span class="ident">visitor</span>),
-            <span class="ident">other</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">other</span>.<span class="ident">invalid_type</span>(<span class="kw-2">&amp;</span><span class="ident">visitor</span>)),
-        }
+        <span class="self">self</span>.<span class="ident">deserialize_map</span>(<span class="ident">visitor</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">deserialize_enum</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(
@@ -2390,14 +2394,14 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">MapRefDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> {
-    <span class="ident">iter</span>: <span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">Mapping</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span>,
+    <span class="ident">iter</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">Mapping</span> <span class="kw">as</span> <span class="ident">IntoIterator</span><span class="op">&gt;</span><span class="ident">::IntoIter</span><span class="op">&gt;</span>,
     <span class="ident">value</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">Value</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> <span class="ident">MapRefDeserializer</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">map</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;de</span> <span class="ident">Mapping</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">MapRefDeserializer</span> {
-            <span class="ident">iter</span>: <span class="ident">map</span>.<span class="ident">iter</span>(),
+            <span class="ident">iter</span>: <span class="prelude-val">Some</span>(<span class="ident">map</span>.<span class="ident">iter</span>()),
             <span class="ident">value</span>: <span class="prelude-val">None</span>,
         }
     }
@@ -2410,7 +2414,7 @@
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">DeserializeSeed</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
     {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>() {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_mut</span>().<span class="ident">and_then</span>(<span class="ident">Iterator::next</span>) {
             <span class="prelude-val">Some</span>((<span class="ident">key</span>, <span class="ident">value</span>)) =&gt; {
                 <span class="self">self</span>.<span class="ident">value</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>);
                 <span class="ident">seed</span>.<span class="ident">deserialize</span>(<span class="ident">key</span>).<span class="ident">map</span>(<span class="prelude-val">Some</span>)
@@ -2430,7 +2434,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>() {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">as_ref</span>()<span class="question-mark">?</span>.<span class="ident">size_hint</span>() {
             (<span class="ident">lower</span>, <span class="prelude-val">Some</span>(<span class="ident">upper</span>)) <span class="kw">if</span> <span class="ident">lower</span> <span class="op">==</span> <span class="ident">upper</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">upper</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
