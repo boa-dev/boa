@@ -211,7 +211,7 @@ unsafe impl Trace for ObjectKind {
             Self::RegExpStringIterator(i) => mark(i),
             Self::DataView(v) => mark(v),
             Self::ForInIterator(i) => mark(i),
-            Self::Function(f) | Self::GeneratorFunction(f) => mark(f),
+            Self::Function(f) | Self::GeneratorFunction(f) | Self::AsyncGeneratorFunction(f) => mark(f),
             Self::BoundFunction(f) => mark(f),
             Self::Generator(g) => mark(g),
             Self::Set(s) => mark(s),
@@ -224,6 +224,7 @@ unsafe impl Trace for ObjectKind {
             #[cfg(feature = "intl")]
             Self::DateTimeFormat(f) => mark(f),
             Self::Promise(p) => mark(p),
+            Self::AsyncGenerator(g) => mark(g),
             Self::RegExp(_)
             | Self::BigInt(_)
             | Self::Boolean(_)
