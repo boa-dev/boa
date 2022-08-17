@@ -1,5 +1,7 @@
 use crate::{
-    builtins::{error::r#type::create_throw_type_error, iterable::IteratorPrototypes},
+    builtins::{
+        array::Array, error::r#type::create_throw_type_error, iterable::IteratorPrototypes,
+    },
     object::{JsObject, ObjectData},
     property::PropertyDescriptorBuilder,
     Context,
@@ -407,6 +409,10 @@ impl StandardConstructors {
 pub struct IntrinsicObjects {
     /// %ThrowTypeError% intrinsic object
     throw_type_error: JsObject,
+
+    /// %Array.prototype.values%
+    array_prototype_values: JsObject,
+
     /// Cached iterator prototypes.
     iterator_prototypes: IteratorPrototypes,
 }
@@ -416,6 +422,7 @@ impl IntrinsicObjects {
     pub fn init(context: &mut Context) -> Self {
         Self {
             throw_type_error: create_throw_type_error(context),
+            array_prototype_values: Array::create_array_prototype_values(context).into(),
             iterator_prototypes: IteratorPrototypes::init(context),
         }
     }
@@ -424,6 +431,12 @@ impl IntrinsicObjects {
     #[inline]
     pub fn throw_type_error(&self) -> JsObject {
         self.throw_type_error.clone()
+    }
+
+    /// Get the `%Array.prototype.values%` intrinsic object.
+    #[inline]
+    pub fn array_prototype_values(&self) -> JsObject {
+        self.array_prototype_values.clone()
     }
 
     /// Get the cached iterator prototypes.

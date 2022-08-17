@@ -1,5 +1,4 @@
 use crate::{
-    builtins::Array,
     environments::DeclarativeEnvironment,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
@@ -111,10 +110,11 @@ impl Arguments {
         // 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
         // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
         // [[Configurable]]: true }).
+        let values_function = context.intrinsics().objects().array_prototype_values();
         obj.define_property_or_throw(
             symbol::WellKnownSymbols::iterator(),
             PropertyDescriptor::builder()
-                .value(Array::values_intrinsic(context))
+                .value(values_function)
                 .writable(true)
                 .enumerable(false)
                 .configurable(true),
@@ -263,10 +263,11 @@ impl Arguments {
         // 20. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {
         // [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,
         // [[Configurable]]: true }).
+        let values_function = context.intrinsics().objects().array_prototype_values();
         obj.define_property_or_throw(
             WellKnownSymbols::iterator(),
             PropertyDescriptor::builder()
-                .value(Array::values_intrinsic(context))
+                .value(values_function)
                 .writable(true)
                 .enumerable(false)
                 .configurable(true),

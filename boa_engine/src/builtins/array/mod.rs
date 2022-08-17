@@ -52,7 +52,7 @@ impl BuiltIn for Array {
             .constructor(false)
             .build();
 
-        let values_function = Self::values_intrinsic(context);
+        let values_function = context.intrinsics().objects().array_prototype_values();
         let unscopables_object = Self::unscopables_intrinsic(context);
 
         ConstructorBuilder::with_standard_constructor(
@@ -2738,6 +2738,15 @@ impl Array {
         ))
     }
 
+    /// Creates an `Array.prototype.values( )` function object.
+    pub(crate) fn create_array_prototype_values(context: &mut Context) -> JsFunction {
+        FunctionBuilder::native(context, Self::values)
+            .name("values")
+            .length(0)
+            .constructor(false)
+            .build()
+    }
+
     /// `Array.prototype.keys( )`
     ///
     /// The keys method returns an iterable that iterates over the indexes in the array.
@@ -2838,14 +2847,6 @@ impl Array {
                 IntegerOrInfinity::PositiveInfinity => Ok(len),
             }
         }
-    }
-
-    pub(crate) fn values_intrinsic(context: &mut Context) -> JsFunction {
-        FunctionBuilder::native(context, Self::values)
-            .name("values")
-            .length(0)
-            .constructor(false)
-            .build()
     }
 
     /// `Array.prototype [ @@unscopables ]`
