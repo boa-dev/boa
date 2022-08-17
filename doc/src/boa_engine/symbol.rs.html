@@ -354,8 +354,6 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
-<span id="349">349</span>
-<span id="350">350</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The data type symbol is a primitive data type.</span>
@@ -606,9 +604,15 @@
 }
 
 <span class="doccomment">/// This represents a JavaScript symbol primitive.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsSymbol</span> {
     <span class="ident">inner</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">Inner</span><span class="op">&gt;</span>,
+}
+
+<span class="comment">// Safety: JsSymbol does not contain any objects which needs to be traced,</span>
+<span class="comment">// so this is safe.</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
+    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">JsSymbol</span> {
@@ -657,14 +661,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">descriptive_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsString</span> {
         <span class="self">self</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()
     }
-}
-
-<span class="kw">impl</span> <span class="ident">Finalize</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {}
-
-<span class="comment">// Safety: `JsSymbol` does not contain any object that require trace,</span>
-<span class="comment">// so this is safe.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {

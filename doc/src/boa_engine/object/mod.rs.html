@@ -2193,6 +2193,45 @@
 <span id="2185">2185</span>
 <span id="2186">2186</span>
 <span id="2187">2187</span>
+<span id="2188">2188</span>
+<span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
+<span id="2194">2194</span>
+<span id="2195">2195</span>
+<span id="2196">2196</span>
+<span id="2197">2197</span>
+<span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2244,7 +2283,7 @@
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
 
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -2358,7 +2397,7 @@
 }
 
 <span class="doccomment">/// Defines the different types of objects.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ObjectKind</span> {
     <span class="ident">AsyncGenerator</span>(<span class="ident">AsyncGenerator</span>),
     <span class="ident">AsyncGeneratorFunction</span>(<span class="ident">Function</span>),
@@ -2394,6 +2433,45 @@
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
     <span class="ident">DateTimeFormat</span>(<span class="ident">Box</span><span class="op">&lt;</span><span class="ident">DateTimeFormat</span><span class="op">&gt;</span>),
     <span class="ident">Promise</span>(<span class="ident">Promise</span>),
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ObjectKind</span> {
+    <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
+        <span class="kw">match</span> <span class="ident">this</span> {
+            <span class="ident"><span class="self">Self</span>::ArrayIterator</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
+            <span class="ident"><span class="self">Self</span>::ArrayBuffer</span>(<span class="ident">b</span>) =&gt; <span class="ident">mark</span>(<span class="ident">b</span>),
+            <span class="ident"><span class="self">Self</span>::Map</span>(<span class="ident">m</span>) =&gt; <span class="ident">mark</span>(<span class="ident">m</span>),
+            <span class="ident"><span class="self">Self</span>::MapIterator</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
+            <span class="ident"><span class="self">Self</span>::RegExpStringIterator</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
+            <span class="ident"><span class="self">Self</span>::DataView</span>(<span class="ident">v</span>) =&gt; <span class="ident">mark</span>(<span class="ident">v</span>),
+            <span class="ident"><span class="self">Self</span>::ForInIterator</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
+            <span class="ident"><span class="self">Self</span>::Function</span>(<span class="ident">f</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::GeneratorFunction</span>(<span class="ident">f</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::AsyncGeneratorFunction</span>(<span class="ident">f</span>) =&gt; <span class="ident">mark</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::BoundFunction</span>(<span class="ident">f</span>) =&gt; <span class="ident">mark</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">mark</span>(<span class="ident">g</span>),
+            <span class="ident"><span class="self">Self</span>::Set</span>(<span class="ident">s</span>) =&gt; <span class="ident">mark</span>(<span class="ident">s</span>),
+            <span class="ident"><span class="self">Self</span>::SetIterator</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
+            <span class="ident"><span class="self">Self</span>::StringIterator</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
+            <span class="ident"><span class="self">Self</span>::Proxy</span>(<span class="ident">p</span>) =&gt; <span class="ident">mark</span>(<span class="ident">p</span>),
+            <span class="ident"><span class="self">Self</span>::Arguments</span>(<span class="ident">a</span>) =&gt; <span class="ident">mark</span>(<span class="ident">a</span>),
+            <span class="ident"><span class="self">Self</span>::NativeObject</span>(<span class="ident">o</span>) =&gt; <span class="ident">mark</span>(<span class="ident">o</span>),
+            <span class="ident"><span class="self">Self</span>::IntegerIndexed</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;intl&quot;</span>)]</span>
+            <span class="ident"><span class="self">Self</span>::DateTimeFormat</span>(<span class="ident">f</span>) =&gt; <span class="ident">mark</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::Promise</span>(<span class="ident">p</span>) =&gt; <span class="ident">mark</span>(<span class="ident">p</span>),
+            <span class="ident"><span class="self">Self</span>::AsyncGenerator</span>(<span class="ident">g</span>) =&gt; <span class="ident">mark</span>(<span class="ident">g</span>),
+            <span class="ident"><span class="self">Self</span>::RegExp</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Date</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Array</span>
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Error</span>
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Ordinary</span>
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Global</span>
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Number</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; {}
+        }
+    }}
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectData</span> {

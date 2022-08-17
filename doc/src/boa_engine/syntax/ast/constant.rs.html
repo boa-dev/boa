@@ -170,13 +170,6 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
-<span id="168">168</span>
-<span id="169">169</span>
-<span id="170">170</span>
-<span id="171">171</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Const` structure, which represents the primitive values in JavaScript.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -186,7 +179,6 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals</span>
 
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 <span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
@@ -203,7 +195,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Const</span> {
     <span class="doccomment">/// A string literal is zero or more characters enclosed in double (`&quot;`) or single (`&#39;`) quotation marks.</span>
     <span class="doccomment">///</span>
@@ -289,12 +281,6 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-undefined</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/undefined</span>
     <span class="ident">Undefined</span>,
-}
-
-<span class="comment">// Safety: Const does not contain any objects which needs to be traced,</span>
-<span class="comment">// so this is safe.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">Const</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Const</span> {

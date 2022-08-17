@@ -1089,6 +1089,14 @@
 <span id="1081">1081</span>
 <span id="1082">1082</span>
 <span id="1083">1083</span>
+<span id="1084">1084</span>
+<span id="1085">1085</span>
+<span id="1086">1086</span>
+<span id="1087">1087</span>
+<span id="1088">1088</span>
+<span id="1089">1089</span>
+<span id="1090">1090</span>
+<span id="1091">1091</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1106,7 +1114,7 @@
     <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
 <span class="kw">use</span> <span class="ident">num_integer::Integer</span>;
@@ -1147,7 +1155,7 @@
 });
 
 <span class="doccomment">/// A Javascript value</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">JsValue</span> {
     <span class="doccomment">/// `null` - A null value, for when a value doesn&#39;t exist.</span>
     <span class="ident">Null</span>,
@@ -1167,6 +1175,14 @@
     <span class="ident">Object</span>(<span class="ident">JsObject</span>),
     <span class="doccomment">/// `Symbol` - A Symbol Primitive type.</span>
     <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
+}
+
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
+    <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident"><span class="self">Self</span>::Object</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">this</span> {
+            <span class="ident">mark</span>(<span class="ident">o</span>);
+        }
+    }}
 }
 
 <span class="kw">impl</span> <span class="ident">JsValue</span> {

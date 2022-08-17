@@ -1052,7 +1052,6 @@
 <span id="1044">1044</span>
 <span id="1045">1045</span>
 <span id="1046">1046</span>
-<span id="1047">1047</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -1208,8 +1207,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ClassFieldDefinition</span> {
     <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
         <span class="kw">match</span> <span class="ident">this</span> {
-            <span class="ident"><span class="self">Self</span>::Public</span>(<span class="ident">key</span>, <span class="ident">func</span>) =&gt; {
-                <span class="ident">mark</span>(<span class="ident">key</span>);
+            <span class="ident"><span class="self">Self</span>::Public</span>(<span class="ident">_key</span>, <span class="ident">func</span>) =&gt; {
                 <span class="ident">mark</span>(<span class="ident">func</span>);
             }
             <span class="ident"><span class="self">Self</span>::Private</span>(<span class="kw">_</span>, <span class="ident">func</span>) =&gt; {

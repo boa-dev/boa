@@ -150,6 +150,7 @@
 <span id="142">142</span>
 <span id="143">143</span>
 <span id="144">144</span>
+<span id="145">145</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ordered_map::MapLock</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>, <span class="ident">Array</span>, <span class="ident">JsValue</span>},
@@ -171,6 +172,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">MapIterator</span> {
     <span class="ident">iterated_map</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
     <span class="ident">map_next_index</span>: <span class="ident">usize</span>,
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="ident">map_iteration_kind</span>: <span class="ident">PropertyNameKind</span>,
     <span class="ident">lock</span>: <span class="ident">MapLock</span>,
 }

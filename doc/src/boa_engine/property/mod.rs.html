@@ -687,10 +687,6 @@
 <span id="679">679</span>
 <span id="680">680</span>
 <span id="681">681</span>
-<span id="682">682</span>
-<span id="683">683</span>
-<span id="684">684</span>
-<span id="685">685</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Property Descriptor.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The Property Descriptor type is used to explain the manipulation and reification of `Object`</span>
@@ -709,7 +705,7 @@
 <span class="doccomment">//! [section]: https://tc39.es/ecma262/#sec-property-attributes</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="kw">mod</span> <span class="ident">attribute</span>;
@@ -1181,7 +1177,7 @@
 <span class="doccomment">/// - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-ispropertykey</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Trace</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PropertyKey</span> {
     <span class="ident">String</span>(<span class="ident">JsString</span>),
     <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
@@ -1366,15 +1362,11 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">PropertyNameKind</span> {
     <span class="ident">Key</span>,
     <span class="ident">Value</span>,
     <span class="ident">KeyAndValue</span>,
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">PropertyNameKind</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>

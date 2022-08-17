@@ -151,6 +151,7 @@
 <span id="143">143</span>
 <span id="144">144</span>
 <span id="145">145</span>
+<span id="146">146</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>, <span class="ident">Array</span>, <span class="ident">JsValue</span>},
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
@@ -171,6 +172,7 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayIterator</span> {
     <span class="ident">array</span>: <span class="ident">JsObject</span>,
     <span class="ident">next_index</span>: <span class="ident">u64</span>,
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="ident">kind</span>: <span class="ident">PropertyNameKind</span>,
     <span class="ident">done</span>: <span class="ident">bool</span>,
 }

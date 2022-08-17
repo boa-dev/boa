@@ -108,21 +108,9 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
-<span id="106">106</span>
-<span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Attribute` struct which contains the attibutes for property descriptors.</span>
 
 <span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
@@ -137,7 +125,6 @@
     <span class="doccomment">///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property,</span>
     <span class="doccomment">/// change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`,</span>
     <span class="doccomment">/// or changing `[[Writable]]` to `false`) will fail.</span>
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>
     <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Attribute</span>: <span class="ident">u8</span> {
         <span class="doccomment">/// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.</span>
         <span class="kw">const</span> <span class="ident">WRITABLE</span> <span class="op">=</span> <span class="number">0b0000_0001</span>;
@@ -157,15 +144,6 @@
         <span class="doccomment">/// The property descriptor cannot be changed.</span>
         <span class="kw">const</span> <span class="ident">PERMANENT</span> <span class="op">=</span> <span class="number">0b0000_0000</span>;
     }
-}
-
-<span class="comment">// We implement `Trace` manualy rather that wih derive, beacuse `rust-gc`,</span>
-<span class="comment">// derive `Trace` does not allow `Copy` and `Trace` to be both implemented.</span>
-<span class="comment">//</span>
-<span class="comment">// SAFETY: The `Attribute` struct only contains an `u8`</span>
-<span class="comment">// and therefore it should be safe to implement an empty trace.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">Attribute</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">Attribute</span> {

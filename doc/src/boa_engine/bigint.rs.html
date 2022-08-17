@@ -452,17 +452,9 @@
 <span id="444">444</span>
 <span id="445">445</span>
 <span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript bigint primitive rust type.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">builtins::Number</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>};
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">num_integer::Integer</span>;
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">pow::Pow</span>, <span class="ident">FromPrimitive</span>, <span class="ident">One</span>, <span class="ident">ToPrimitive</span>, <span class="ident">Zero</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -479,15 +471,9 @@
 
 <span class="doccomment">/// JavaScript bigint primitive rust type.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsBigInt</span> {
     <span class="ident">inner</span>: <span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">RawBigInt</span><span class="op">&gt;</span>,
-}
-
-<span class="comment">// Safety: BigInt does not contain any objects which needs to be traced,</span>
-<span class="comment">// so this is safe.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsBigInt</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">JsBigInt</span> {

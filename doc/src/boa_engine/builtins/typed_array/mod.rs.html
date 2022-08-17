@@ -3482,12 +3482,6 @@
 <span id="3474">3474</span>
 <span id="3475">3475</span>
 <span id="3476">3476</span>
-<span id="3477">3477</span>
-<span id="3478">3478</span>
-<span id="3479">3479</span>
-<span id="3480">3480</span>
-<span id="3481">3481</span>
-<span id="3482">3482</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -3519,7 +3513,6 @@
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">Signed</span>, <span class="ident">Zero</span>};
 <span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
@@ -6878,7 +6871,7 @@
 }
 
 <span class="doccomment">/// Names of all the typed arrays.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">TypedArrayKind</span> {
     <span class="ident">Int8</span>,
     <span class="ident">Uint8</span>,
@@ -6891,11 +6884,6 @@
     <span class="ident">BigUint64</span>,
     <span class="ident">Float32</span>,
     <span class="ident">Float64</span>,
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">TypedArrayKind</span> {
-    <span class="comment">// Safe because `TypedArrayName` is `Copy`</span>
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">TypedArrayKind</span> {

@@ -1870,6 +1870,12 @@
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="ident">Rc</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
+<span class="comment">// Safety: JsString does not contain any objects which needs to be traced,</span>
+<span class="comment">// so this is safe.</span>
+<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsString</span> {
+    <span class="macro">unsafe_empty_trace!</span>();
+}
+
 <span class="doccomment">/// This struct uses a technique called tagged pointer to benefit from the fact that newly</span>
 <span class="doccomment">/// allocated pointers are always word aligned on 64-bits platforms, making it impossible</span>
 <span class="doccomment">/// to have a LSB equal to 1. More details about this technique on the article of Wikipedia</span>
@@ -2175,12 +2181,6 @@
             <span class="ident">string</span> =&gt; <span class="ident">fast_float::parse</span>(<span class="ident">string</span>).<span class="ident">unwrap_or</span>(<span class="ident">f64::NAN</span>),
         }
     }
-}
-
-<span class="comment">// Safety: [`JsString`] does not contain any objects which recquire trace,</span>
-<span class="comment">// so this is safe.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">JsString</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">Clone</span> <span class="kw">for</span> <span class="ident">JsString</span> {

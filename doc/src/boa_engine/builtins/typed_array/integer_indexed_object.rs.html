@@ -153,10 +153,6 @@
 <span id="145">145</span>
 <span id="146">146</span>
 <span id="147">147</span>
-<span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Integer-Indexed` exotic object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! An `Integer-Indexed` exotic object is an exotic object that performs</span>
@@ -172,24 +168,20 @@
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">Context</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="doccomment">/// Type of the array content.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ContentType</span> {
     <span class="ident">Number</span>,
     <span class="ident">BigInt</span>,
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ContentType</span> {
-    <span class="comment">// safe because `ContentType` is `Copy`</span>
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="doccomment">/// &lt;https://tc39.es/ecma262/#integer-indexed-exotic-object&gt;</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntegerIndexed</span> {
     <span class="ident">viewed_array_buffer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span>,
+    <span class="attribute">#[<span class="ident">unsafe_ignore_trace</span>]</span>
     <span class="ident">typed_array_name</span>: <span class="ident">TypedArrayKind</span>,
     <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
     <span class="ident">byte_length</span>: <span class="ident">u64</span>,

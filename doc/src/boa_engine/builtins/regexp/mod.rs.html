@@ -1757,12 +1757,6 @@
 <span id="1749">1749</span>
 <span id="1750">1750</span>
 <span id="1751">1751</span>
-<span id="1752">1752</span>
-<span id="1753">1753</span>
-<span id="1754">1754</span>
-<span id="1755">1755</span>
-<span id="1756">1756</span>
-<span id="1757">1757</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -1791,7 +1785,6 @@
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">regress::Regex</span>;
 <span class="kw">use</span> <span class="ident">std::str::FromStr</span>;
@@ -1801,18 +1794,13 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="doccomment">/// The internal representation on a `RegExp` object.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">RegExp</span> {
     <span class="doccomment">/// Regex matcher.</span>
     <span class="ident">matcher</span>: <span class="ident">Regex</span>,
     <span class="ident">flags</span>: <span class="ident">RegExpFlags</span>,
     <span class="ident">original_source</span>: <span class="ident">JsString</span>,
     <span class="ident">original_flags</span>: <span class="ident">JsString</span>,
-}
-
-<span class="comment">// Only safe while regress::Regex doesn&#39;t implement Trace itself.</span>
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">RegExp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">RegExp</span> {

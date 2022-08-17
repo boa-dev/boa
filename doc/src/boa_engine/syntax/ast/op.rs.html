@@ -1031,38 +1031,8 @@
 <span id="1023">1023</span>
 <span id="1024">1024</span>
 <span id="1025">1025</span>
-<span id="1026">1026</span>
-<span id="1027">1027</span>
-<span id="1028">1028</span>
-<span id="1029">1029</span>
-<span id="1030">1030</span>
-<span id="1031">1031</span>
-<span id="1032">1032</span>
-<span id="1033">1033</span>
-<span id="1034">1034</span>
-<span id="1035">1035</span>
-<span id="1036">1036</span>
-<span id="1037">1037</span>
-<span id="1038">1038</span>
-<span id="1039">1039</span>
-<span id="1040">1040</span>
-<span id="1041">1041</span>
-<span id="1042">1042</span>
-<span id="1043">1043</span>
-<span id="1044">1044</span>
-<span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
-<span id="1051">1051</span>
-<span id="1052">1052</span>
-<span id="1053">1053</span>
-<span id="1054">1054</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements various structure for logic handling.</span>
 
-<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="ident">Display</span>, <span class="ident">Formatter</span>, <span class="prelude-ty">Result</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
@@ -1076,7 +1046,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Arithmetic</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">NumOp</span> {
     <span class="doccomment">/// The addition operator produces the sum of numeric operands or string concatenation.</span>
     <span class="doccomment">///</span>
@@ -1177,10 +1147,6 @@
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">NumOp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
-}
-
 <span class="doccomment">/// A unary operator is one that takes a single operand/argument and performs an operation.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A unary operation is an operation with only one operand. This operand comes either</span>
@@ -1194,7 +1160,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-UnaryExpression</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Unary</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">UnaryOp</span> {
     <span class="doccomment">/// The increment operator increments (adds one to) its operand and returns a value.</span>
     <span class="doccomment">///</span>
@@ -1396,10 +1362,6 @@
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">UnaryOp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
-}
-
 <span class="doccomment">/// A bitwise operator is an operator used to perform bitwise operations</span>
 <span class="doccomment">/// on bit patterns or binary numerals that involve the manipulation of individual bits.</span>
 <span class="doccomment">///</span>
@@ -1408,7 +1370,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Bitwise</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BitOp</span> {
     <span class="doccomment">/// Performs the AND operation on each pair of bits. a AND b yields 1 only if both a and b are 1.</span>
     <span class="doccomment">///</span>
@@ -1514,10 +1476,6 @@
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">BitOp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
-}
-
 <span class="doccomment">/// A comparison operator compares its operands and returns a logical value based on whether the comparison is true.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The operands can be numerical, string, logical, or object values. Strings are compared based on standard</span>
@@ -1534,7 +1492,7 @@
 <span class="doccomment">/// [spec]: tc39.es/ecma262/#sec-testing-and-comparison-operations</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Comparison</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">CompOp</span> {
     <span class="doccomment">/// The equality operator converts the operands if they are not of the same type, then applies</span>
     <span class="doccomment">/// strict comparison.</span>
@@ -1714,10 +1672,6 @@
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">CompOp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
-}
-
 <span class="doccomment">/// Logical operators are typically used with Boolean (logical) values; when they are, they return a Boolean value.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// However, the `&amp;&amp;` and `||` operators actually return the value of one of the specified operands,</span>
@@ -1730,7 +1684,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-binary-logical-operators</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Logical</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LogOp</span> {
     <span class="doccomment">/// The logical AND operator returns the value of the first operand if it can be coerced into `false`;</span>
     <span class="doccomment">/// otherwise, it returns the second operand.</span>
@@ -1789,13 +1743,9 @@
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">LogOp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
-}
-
 <span class="doccomment">/// This represents a binary operation between two values.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">BinOp</span> {
     <span class="doccomment">/// Numeric operation.</span>
     <span class="doccomment">///</span>
@@ -1876,10 +1826,6 @@
     }
 }
 
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">BinOp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
-}
-
 <span class="doccomment">/// An assignment operator assigns a value to its left operand based on the value of its right operand.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The simple assignment operator is equal (`=`), which assigns the value of its right operand to its</span>
@@ -1894,7 +1840,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentOperator</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Assignment</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssignOp</span> {
     <span class="doccomment">/// The addition assignment operator adds the value of the right operand to a variable and assigns the result to the variable.</span>
     <span class="doccomment">///</span>
@@ -2080,10 +2026,6 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_nullish_assignment</span>
     <span class="ident">Coalesce</span>,
-}
-
-<span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">AssignOp</span> {
-    <span class="macro">unsafe_empty_trace!</span>();
 }
 
 <span class="kw">impl</span> <span class="ident">AssignOp</span> {
