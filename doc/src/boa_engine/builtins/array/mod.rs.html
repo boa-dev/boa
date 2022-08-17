@@ -2921,6 +2921,7 @@
 <span id="2913">2913</span>
 <span id="2914">2914</span>
 <span id="2915">2915</span>
+<span id="2916">2916</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -2975,7 +2976,7 @@
             .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
             .<span class="ident">build</span>();
 
-        <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::values_intrinsic</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">objects</span>().<span class="ident">array_prototype_values</span>();
         <span class="kw">let</span> <span class="ident">unscopables_object</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::unscopables_intrinsic</span>(<span class="ident">context</span>);
 
         <span class="ident">ConstructorBuilder::with_standard_constructor</span>(
@@ -5661,6 +5662,15 @@
         ))
     }
 
+    <span class="doccomment">/// Creates an `Array.prototype.values( )` function object.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_array_prototype_values</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsFunction</span> {
+        <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::values</span>)
+            .<span class="ident">name</span>(<span class="string">&quot;values&quot;</span>)
+            .<span class="ident">length</span>(<span class="number">0</span>)
+            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
+            .<span class="ident">build</span>()
+    }
+
     <span class="doccomment">/// `Array.prototype.keys( )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The keys method returns an iterable that iterates over the indexes in the array.</span>
@@ -5761,14 +5771,6 @@
                 <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">len</span>),
             }
         }
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">values_intrinsic</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsFunction</span> {
-        <span class="ident">FunctionBuilder::native</span>(<span class="ident">context</span>, <span class="ident"><span class="self">Self</span>::values</span>)
-            .<span class="ident">name</span>(<span class="string">&quot;values&quot;</span>)
-            .<span class="ident">length</span>(<span class="number">0</span>)
-            .<span class="ident">constructor</span>(<span class="bool-val">false</span>)
-            .<span class="ident">build</span>()
     }
 
     <span class="doccomment">/// `Array.prototype [ @@unscopables ]`</span>

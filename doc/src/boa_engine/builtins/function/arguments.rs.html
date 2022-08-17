@@ -299,8 +299,8 @@
 <span id="291">291</span>
 <span id="292">292</span>
 <span id="293">293</span>
+<span id="294">294</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::Array</span>,
     <span class="ident">environments::DeclarativeEnvironment</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
@@ -412,10 +412,11 @@
         <span class="comment">// 7. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {</span>
         <span class="comment">// [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,</span>
         <span class="comment">// [[Configurable]]: true }).</span>
+        <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">objects</span>().<span class="ident">array_prototype_values</span>();
         <span class="ident">obj</span>.<span class="ident">define_property_or_throw</span>(
             <span class="ident">symbol::WellKnownSymbols::iterator</span>(),
             <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">Array::values_intrinsic</span>(<span class="ident">context</span>))
+                .<span class="ident">value</span>(<span class="ident">values_function</span>)
                 .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                 .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
                 .<span class="ident">configurable</span>(<span class="bool-val">true</span>),
@@ -564,10 +565,11 @@
         <span class="comment">// 20. Perform ! DefinePropertyOrThrow(obj, @@iterator, PropertyDescriptor {</span>
         <span class="comment">// [[Value]]: %Array.prototype.values%, [[Writable]]: true, [[Enumerable]]: false,</span>
         <span class="comment">// [[Configurable]]: true }).</span>
+        <span class="kw">let</span> <span class="ident">values_function</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">objects</span>().<span class="ident">array_prototype_values</span>();
         <span class="ident">obj</span>.<span class="ident">define_property_or_throw</span>(
             <span class="ident">WellKnownSymbols::iterator</span>(),
             <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">Array::values_intrinsic</span>(<span class="ident">context</span>))
+                .<span class="ident">value</span>(<span class="ident">values_function</span>)
                 .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                 .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
                 .<span class="ident">configurable</span>(<span class="bool-val">true</span>),

@@ -769,6 +769,15 @@
 <span id="761">761</span>
 <span id="762">762</span>
 <span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">property::PropertyDescriptorBuilder</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>};
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -1041,6 +1050,15 @@
     <span class="doccomment">/// Overrides all the indexed properties, setting it to dense storage.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">override_indexed_properties</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">properties</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">indexed_properties</span> <span class="op">=</span> <span class="ident">IndexedProperties::Dense</span>(<span class="ident">properties</span>);
+    }
+
+    <span class="doccomment">/// Returns the vec of dense indexed properties if they exist.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">dense_indexed_properties</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IndexedProperties::Dense</span>(<span class="ident">properties</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">indexed_properties</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">properties</span>)
+        } <span class="kw">else</span> {
+            <span class="prelude-val">None</span>
+        }
     }
 
     <span class="doccomment">/// An iterator visiting all key-value pairs in arbitrary order. The iterator element type is `(PropertyKey, &amp;&#39;a Property)`.</span>

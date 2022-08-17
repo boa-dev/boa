@@ -2756,13 +2756,6 @@
 <span id="2748">2748</span>
 <span id="2749">2749</span>
 <span id="2750">2750</span>
-<span id="2751">2751</span>
-<span id="2752">2752</span>
-<span id="2753">2753</span>
-<span id="2754">2754</span>
-<span id="2755">2755</span>
-<span id="2756">2756</span>
-<span id="2757">2757</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -4349,21 +4342,18 @@
                 }
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
-            <span class="ident">Opcode::SuperCallWithRest</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">rest_argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">argument_count</span> <span class="op">-</span> <span class="number">1</span>) {
-                    <span class="ident">arguments</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>());
-                }
-                <span class="ident">arguments</span>.<span class="ident">reverse</span>();
-
-                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">rest_argument</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_arguments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="self">self</span>)<span class="question-mark">?</span> {
-                    <span class="ident">rest_arguments</span>.<span class="ident">push</span>(<span class="ident">next</span>.<span class="ident">value</span>(<span class="self">self</span>)<span class="question-mark">?</span>);
-                }
-                <span class="ident">arguments</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rest_arguments</span>);
+            <span class="ident">Opcode::SuperCallSpread</span> =&gt; {
+                <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
+                <span class="kw">let</span> <span class="ident">arguments_array</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">arguments_array_object</span> <span class="op">=</span> <span class="ident">arguments_array</span>
+                    .<span class="ident">as_object</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be an object&quot;</span>);
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">arguments_array_object</span>
+                    .<span class="ident">borrow</span>()
+                    .<span class="ident">properties</span>()
+                    .<span class="ident">dense_indexed_properties</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
+                    .<span class="ident">clone</span>();
 
                 <span class="kw">let</span> (<span class="ident">new_target</span>, <span class="ident">active_function</span>) <span class="op">=</span> {
                     <span class="kw">let</span> <span class="ident">this_env</span> <span class="op">=</span> <span class="self">self</span>
@@ -4530,26 +4520,25 @@
                     <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
                 }
             }
-            <span class="ident">Opcode::CallEvalWithRest</span> =&gt; {
+            <span class="ident">Opcode::CallEvalSpread</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
                 }
-                <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">rest_argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">argument_count</span> <span class="op">-</span> <span class="number">1</span>) {
-                    <span class="ident">arguments</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>());
-                }
-                <span class="ident">arguments</span>.<span class="ident">reverse</span>();
+
+                <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
+                <span class="kw">let</span> <span class="ident">arguments_array</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">arguments_array_object</span> <span class="op">=</span> <span class="ident">arguments_array</span>
+                    .<span class="ident">as_object</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be an object&quot;</span>);
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">arguments_array_object</span>
+                    .<span class="ident">borrow</span>()
+                    .<span class="ident">properties</span>()
+                    .<span class="ident">dense_indexed_properties</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
+                    .<span class="ident">clone</span>();
+
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-
-                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">rest_argument</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_arguments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="self">self</span>)<span class="question-mark">?</span> {
-                    <span class="ident">rest_arguments</span>.<span class="ident">push</span>(<span class="ident">next</span>.<span class="ident">value</span>(<span class="self">self</span>)<span class="question-mark">?</span>);
-                }
-                <span class="ident">arguments</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rest_arguments</span>);
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
@@ -4597,26 +4586,25 @@
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
-            <span class="ident">Opcode::CallWithRest</span> =&gt; {
+            <span class="ident">Opcode::CallSpread</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
                 }
-                <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">rest_argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">argument_count</span> <span class="op">-</span> <span class="number">1</span>) {
-                    <span class="ident">arguments</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>());
-                }
-                <span class="ident">arguments</span>.<span class="ident">reverse</span>();
+
+                <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
+                <span class="kw">let</span> <span class="ident">arguments_array</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">arguments_array_object</span> <span class="op">=</span> <span class="ident">arguments_array</span>
+                    .<span class="ident">as_object</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be an object&quot;</span>);
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">arguments_array_object</span>
+                    .<span class="ident">borrow</span>()
+                    .<span class="ident">properties</span>()
+                    .<span class="ident">dense_indexed_properties</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
+                    .<span class="ident">clone</span>();
+
                 <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-
-                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">rest_argument</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_arguments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="self">self</span>)<span class="question-mark">?</span> {
-                    <span class="ident">rest_arguments</span>.<span class="ident">push</span>(<span class="ident">next</span>.<span class="ident">value</span>(<span class="self">self</span>)<span class="question-mark">?</span>);
-                }
-                <span class="ident">arguments</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rest_arguments</span>);
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
@@ -4646,25 +4634,23 @@
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
-            <span class="ident">Opcode::NewWithRest</span> =&gt; {
+            <span class="ident">Opcode::NewSpread</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
                 }
-                <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-                <span class="kw">let</span> <span class="ident">rest_argument</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
-                <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">argument_count</span> <span class="op">-</span> <span class="number">1</span>) {
-                    <span class="ident">arguments</span>.<span class="ident">push</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>());
-                }
-                <span class="ident">arguments</span>.<span class="ident">reverse</span>();
-                <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
+                <span class="kw">let</span> <span class="ident">arguments_array</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">arguments_array_object</span> <span class="op">=</span> <span class="ident">arguments_array</span>
+                    .<span class="ident">as_object</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be an object&quot;</span>);
+                <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">arguments_array_object</span>
+                    .<span class="ident">borrow</span>()
+                    .<span class="ident">properties</span>()
+                    .<span class="ident">dense_indexed_properties</span>()
+                    .<span class="ident">expect</span>(<span class="string">&quot;arguments array in call spread function must be dense&quot;</span>)
+                    .<span class="ident">clone</span>();
 
-                <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span> <span class="ident">rest_argument</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rest_arguments</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">iterator_record</span>.<span class="ident">step</span>(<span class="self">self</span>)<span class="question-mark">?</span> {
-                    <span class="ident">rest_arguments</span>.<span class="ident">push</span>(<span class="ident">next</span>.<span class="ident">value</span>(<span class="self">self</span>)<span class="question-mark">?</span>);
-                }
-                <span class="ident">arguments</span>.<span class="ident">append</span>(<span class="kw-2">&amp;mut</span> <span class="ident">rest_arguments</span>);
+                <span class="kw">let</span> <span class="ident">func</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">func</span>
                     .<span class="ident">as_constructor</span>()

@@ -440,8 +440,23 @@
 <span id="432">432</span>
 <span id="433">433</span>
 <span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">error</span>::<span class="ident">r#type</span><span class="ident">::create_throw_type_error</span>, <span class="ident">iterable::IteratorPrototypes</span>},
+    <span class="ident">builtins</span>::{
+        <span class="ident">array::Array</span>, <span class="ident">error</span>::<span class="ident">r#type</span><span class="ident">::create_throw_type_error</span>, <span class="ident">iterable::IteratorPrototypes</span>,
+    },
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptorBuilder</span>,
     <span class="ident">Context</span>,
@@ -849,6 +864,10 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IntrinsicObjects</span> {
     <span class="doccomment">/// %ThrowTypeError% intrinsic object</span>
     <span class="ident">throw_type_error</span>: <span class="ident">JsObject</span>,
+
+    <span class="doccomment">/// %Array.prototype.values%</span>
+    <span class="ident">array_prototype_values</span>: <span class="ident">JsObject</span>,
+
     <span class="doccomment">/// Cached iterator prototypes.</span>
     <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes</span>,
 }
@@ -858,6 +877,7 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">throw_type_error</span>: <span class="ident">create_throw_type_error</span>(<span class="ident">context</span>),
+            <span class="ident">array_prototype_values</span>: <span class="ident">Array::create_array_prototype_values</span>(<span class="ident">context</span>).<span class="ident">into</span>(),
             <span class="ident">iterator_prototypes</span>: <span class="ident">IteratorPrototypes::init</span>(<span class="ident">context</span>),
         }
     }
@@ -866,6 +886,12 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_type_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">throw_type_error</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="doccomment">/// Get the `%Array.prototype.values%` intrinsic object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">array_prototype_values</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
+        <span class="self">self</span>.<span class="ident">array_prototype_values</span>.<span class="ident">clone</span>()
     }
 
     <span class="doccomment">/// Get the cached iterator prototypes.</span>

@@ -1723,13 +1723,9 @@
             <span class="op">|</span> <span class="ident">Opcode::LogicalOr</span>
             <span class="op">|</span> <span class="ident">Opcode::Coalesce</span>
             <span class="op">|</span> <span class="ident">Opcode::CallEval</span>
-            <span class="op">|</span> <span class="ident">Opcode::CallEvalWithRest</span>
             <span class="op">|</span> <span class="ident">Opcode::Call</span>
-            <span class="op">|</span> <span class="ident">Opcode::CallWithRest</span>
             <span class="op">|</span> <span class="ident">Opcode::New</span>
-            <span class="op">|</span> <span class="ident">Opcode::NewWithRest</span>
             <span class="op">|</span> <span class="ident">Opcode::SuperCall</span>
-            <span class="op">|</span> <span class="ident">Opcode::SuperCallWithRest</span>
             <span class="op">|</span> <span class="ident">Opcode::ForInLoopInitIterator</span>
             <span class="op">|</span> <span class="ident">Opcode::ForInLoopNext</span>
             <span class="op">|</span> <span class="ident">Opcode::ConcatToString</span>
@@ -1897,6 +1893,10 @@
             <span class="op">|</span> <span class="ident">Opcode::PushClassField</span>
             <span class="op">|</span> <span class="ident">Opcode::SuperCallDerived</span>
             <span class="op">|</span> <span class="ident">Opcode::Await</span>
+            <span class="op">|</span> <span class="ident">Opcode::CallEvalSpread</span>
+            <span class="op">|</span> <span class="ident">Opcode::CallSpread</span>
+            <span class="op">|</span> <span class="ident">Opcode::NewSpread</span>
+            <span class="op">|</span> <span class="ident">Opcode::SuperCallSpread</span>
             <span class="op">|</span> <span class="ident">Opcode::Nop</span> =&gt; <span class="ident">String::new</span>(),
         }
     }

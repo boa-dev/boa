@@ -2448,12 +2448,12 @@
     <span class="doccomment">/// Stack: argument_1, ... argument_n **=&gt;**</span>
     <span class="ident">SuperCall</span>,
 
-    <span class="doccomment">/// Execute the `super()` method where the last argument is a rest parameter.</span>
+    <span class="doccomment">/// Execute the `super()` method where the arguments contain spreads.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: argument_1, ... argument_n **=&gt;**</span>
-    <span class="ident">SuperCallWithRest</span>,
+    <span class="doccomment">/// Stack: arguments_array **=&gt;**</span>
+    <span class="ident">SuperCallSpread</span>,
 
     <span class="doccomment">/// Execute the `super()` method when no constructor of the class is defined.</span>
     <span class="doccomment">///</span>
@@ -2512,12 +2512,12 @@
     <span class="doccomment">/// Stack: func, this, argument_1, ... argument_n **=&gt;** result</span>
     <span class="ident">CallEval</span>,
 
-    <span class="doccomment">/// Call a function named &quot;eval&quot; where the last argument is a rest parameter.</span>
+    <span class="doccomment">/// Call a function named &quot;eval&quot; where the arguments contain spreads.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: func, this, argument_1, ... argument_n **=&gt;** result</span>
-    <span class="ident">CallEvalWithRest</span>,
+    <span class="doccomment">/// Stack: arguments_array, func, this **=&gt;** result</span>
+    <span class="ident">CallEvalSpread</span>,
 
     <span class="doccomment">/// Call a function.</span>
     <span class="doccomment">///</span>
@@ -2526,12 +2526,12 @@
     <span class="doccomment">/// Stack: func, this, argument_1, ... argument_n **=&gt;** result</span>
     <span class="ident">Call</span>,
 
-    <span class="doccomment">/// Call a function where the last argument is a rest parameter.</span>
+    <span class="doccomment">/// Call a function where the arguments contain spreads.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: func, this, argument_1, ... argument_n **=&gt;** result</span>
-    <span class="ident">CallWithRest</span>,
+    <span class="doccomment">/// Stack: arguments_array, func, this **=&gt;** result</span>
+    <span class="ident">CallSpread</span>,
 
     <span class="doccomment">/// Call construct on a function.</span>
     <span class="doccomment">///</span>
@@ -2540,12 +2540,12 @@
     <span class="doccomment">/// Stack: func, argument_1, ... argument_n **=&gt;** result</span>
     <span class="ident">New</span>,
 
-    <span class="doccomment">/// Call construct on a function where the last argument is a rest parameter.</span>
+    <span class="doccomment">/// Call construct on a function where the arguments contain spreads.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Operands: argument_count: `u32`</span>
+    <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: func, argument_1, ... argument_n **=&gt;** result</span>
-    <span class="ident">NewWithRest</span>,
+    <span class="doccomment">/// Stack: arguments_array, func **=&gt;** result</span>
+    <span class="ident">NewSpread</span>,
 
     <span class="doccomment">/// Return from a function.</span>
     <span class="doccomment">///</span>
@@ -2864,7 +2864,7 @@
             <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="string">&quot;This&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Super</span> =&gt; <span class="string">&quot;Super&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SuperCall</span> =&gt; <span class="string">&quot;SuperCall&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::SuperCallWithRest</span> =&gt; <span class="string">&quot;SuperCallWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCallSpread</span> =&gt; <span class="string">&quot;SuperCallWithRest&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SuperCallDerived</span> =&gt; <span class="string">&quot;SuperCallDerived&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Case</span> =&gt; <span class="string">&quot;Case&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Default</span> =&gt; <span class="string">&quot;Default&quot;</span>,
@@ -2873,11 +2873,11 @@
             <span class="ident"><span class="self">Self</span>::GetGenerator</span> =&gt; <span class="string">&quot;GetGenerator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetGeneratorAsync</span> =&gt; <span class="string">&quot;GetGeneratorAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::CallEval</span> =&gt; <span class="string">&quot;CallEval&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::CallEvalWithRest</span> =&gt; <span class="string">&quot;CallEvalWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::CallEvalSpread</span> =&gt; <span class="string">&quot;CallEvalSpread&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Call</span> =&gt; <span class="string">&quot;Call&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::CallWithRest</span> =&gt; <span class="string">&quot;CallWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::CallSpread</span> =&gt; <span class="string">&quot;CallSpread&quot;</span>,
             <span class="ident"><span class="self">Self</span>::New</span> =&gt; <span class="string">&quot;New&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::NewWithRest</span> =&gt; <span class="string">&quot;NewWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::NewSpread</span> =&gt; <span class="string">&quot;NewSpread&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Return</span> =&gt; <span class="string">&quot;Return&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushDeclarativeEnvironment</span> =&gt; <span class="string">&quot;PushDeclarativeEnvironment&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushFunctionEnvironment</span> =&gt; <span class="string">&quot;PushFunctionEnvironment&quot;</span>,
@@ -3007,7 +3007,7 @@
             <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="string">&quot;INST - This&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Super</span> =&gt; <span class="string">&quot;INST - Super&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SuperCall</span> =&gt; <span class="string">&quot;INST - SuperCall&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::SuperCallWithRest</span> =&gt; <span class="string">&quot;INST - SuperCallWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::SuperCallSpread</span> =&gt; <span class="string">&quot;INST - SuperCallWithRest&quot;</span>,
             <span class="ident"><span class="self">Self</span>::SuperCallDerived</span> =&gt; <span class="string">&quot;INST - SuperCallDerived&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Case</span> =&gt; <span class="string">&quot;INST - Case&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Default</span> =&gt; <span class="string">&quot;INST - Default&quot;</span>,
@@ -3016,11 +3016,11 @@
             <span class="ident"><span class="self">Self</span>::GetGenerator</span> =&gt; <span class="string">&quot;INST - GetGenerator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GetGeneratorAsync</span> =&gt; <span class="string">&quot;INST - GetGeneratorAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::CallEval</span> =&gt; <span class="string">&quot;INST - CallEval&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::CallEvalWithRest</span> =&gt; <span class="string">&quot;INST - CallEvalWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::CallEvalSpread</span> =&gt; <span class="string">&quot;INST - CallEvalSpread&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Call</span> =&gt; <span class="string">&quot;INST - Call&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::CallWithRest</span> =&gt; <span class="string">&quot;INST - CallWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::CallSpread</span> =&gt; <span class="string">&quot;INST - CallSpread&quot;</span>,
             <span class="ident"><span class="self">Self</span>::New</span> =&gt; <span class="string">&quot;INST - New&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::NewWithRest</span> =&gt; <span class="string">&quot;INST - NewWithRest&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::NewSpread</span> =&gt; <span class="string">&quot;INST - NewSpread&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Return</span> =&gt; <span class="string">&quot;INST - Return&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushDeclarativeEnvironment</span> =&gt; <span class="string">&quot;INST - PushDeclarativeEnvironment&quot;</span>,
             <span class="ident"><span class="self">Self</span>::PushFunctionEnvironment</span> =&gt; <span class="string">&quot;INST - PushFunctionEnvironment&quot;</span>,
