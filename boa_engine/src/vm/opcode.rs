@@ -886,12 +886,12 @@ pub enum Opcode {
     /// Stack: argument_1, ... argument_n **=>**
     SuperCall,
 
-    /// Execute the `super()` method where the last argument is a rest parameter.
+    /// Execute the `super()` method where the arguments contain spreads.
     ///
-    /// Operands: argument_count: `u32`
+    /// Operands:
     ///
-    /// Stack: argument_1, ... argument_n **=>**
-    SuperCallWithRest,
+    /// Stack: arguments_array **=>**
+    SuperCallSpread,
 
     /// Execute the `super()` method when no constructor of the class is defined.
     ///
@@ -950,12 +950,12 @@ pub enum Opcode {
     /// Stack: func, this, argument_1, ... argument_n **=>** result
     CallEval,
 
-    /// Call a function named "eval" where the last argument is a rest parameter.
+    /// Call a function named "eval" where the arguments contain spreads.
     ///
-    /// Operands: argument_count: `u32`
+    /// Operands:
     ///
-    /// Stack: func, this, argument_1, ... argument_n **=>** result
-    CallEvalWithRest,
+    /// Stack: arguments_array, func, this **=>** result
+    CallEvalSpread,
 
     /// Call a function.
     ///
@@ -964,12 +964,12 @@ pub enum Opcode {
     /// Stack: func, this, argument_1, ... argument_n **=>** result
     Call,
 
-    /// Call a function where the last argument is a rest parameter.
+    /// Call a function where the arguments contain spreads.
     ///
-    /// Operands: argument_count: `u32`
+    /// Operands:
     ///
-    /// Stack: func, this, argument_1, ... argument_n **=>** result
-    CallWithRest,
+    /// Stack: arguments_array, func, this **=>** result
+    CallSpread,
 
     /// Call construct on a function.
     ///
@@ -978,12 +978,12 @@ pub enum Opcode {
     /// Stack: func, argument_1, ... argument_n **=>** result
     New,
 
-    /// Call construct on a function where the last argument is a rest parameter.
+    /// Call construct on a function where the arguments contain spreads.
     ///
-    /// Operands: argument_count: `u32`
+    /// Operands:
     ///
-    /// Stack: func, argument_1, ... argument_n **=>** result
-    NewWithRest,
+    /// Stack: arguments_array, func **=>** result
+    NewSpread,
 
     /// Return from a function.
     ///
@@ -1302,7 +1302,7 @@ impl Opcode {
             Self::This => "This",
             Self::Super => "Super",
             Self::SuperCall => "SuperCall",
-            Self::SuperCallWithRest => "SuperCallWithRest",
+            Self::SuperCallSpread => "SuperCallWithRest",
             Self::SuperCallDerived => "SuperCallDerived",
             Self::Case => "Case",
             Self::Default => "Default",
@@ -1311,11 +1311,11 @@ impl Opcode {
             Self::GetGenerator => "GetGenerator",
             Self::GetGeneratorAsync => "GetGeneratorAsync",
             Self::CallEval => "CallEval",
-            Self::CallEvalWithRest => "CallEvalWithRest",
+            Self::CallEvalSpread => "CallEvalSpread",
             Self::Call => "Call",
-            Self::CallWithRest => "CallWithRest",
+            Self::CallSpread => "CallSpread",
             Self::New => "New",
-            Self::NewWithRest => "NewWithRest",
+            Self::NewSpread => "NewSpread",
             Self::Return => "Return",
             Self::PushDeclarativeEnvironment => "PushDeclarativeEnvironment",
             Self::PushFunctionEnvironment => "PushFunctionEnvironment",
@@ -1445,7 +1445,7 @@ impl Opcode {
             Self::This => "INST - This",
             Self::Super => "INST - Super",
             Self::SuperCall => "INST - SuperCall",
-            Self::SuperCallWithRest => "INST - SuperCallWithRest",
+            Self::SuperCallSpread => "INST - SuperCallWithRest",
             Self::SuperCallDerived => "INST - SuperCallDerived",
             Self::Case => "INST - Case",
             Self::Default => "INST - Default",
@@ -1454,11 +1454,11 @@ impl Opcode {
             Self::GetGenerator => "INST - GetGenerator",
             Self::GetGeneratorAsync => "INST - GetGeneratorAsync",
             Self::CallEval => "INST - CallEval",
-            Self::CallEvalWithRest => "INST - CallEvalWithRest",
+            Self::CallEvalSpread => "INST - CallEvalSpread",
             Self::Call => "INST - Call",
-            Self::CallWithRest => "INST - CallWithRest",
+            Self::CallSpread => "INST - CallSpread",
             Self::New => "INST - New",
-            Self::NewWithRest => "INST - NewWithRest",
+            Self::NewSpread => "INST - NewSpread",
             Self::Return => "INST - Return",
             Self::PushDeclarativeEnvironment => "INST - PushDeclarativeEnvironment",
             Self::PushFunctionEnvironment => "INST - PushFunctionEnvironment",

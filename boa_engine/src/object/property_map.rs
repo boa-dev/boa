@@ -272,6 +272,15 @@ impl PropertyMap {
         self.indexed_properties = IndexedProperties::Dense(properties);
     }
 
+    /// Returns the vec of dense indexed properties if they exist.
+    pub(crate) fn dense_indexed_properties(&self) -> Option<&Vec<JsValue>> {
+        if let IndexedProperties::Dense(properties) = &self.indexed_properties {
+            Some(properties)
+        } else {
+            None
+        }
+    }
+
     /// An iterator visiting all key-value pairs in arbitrary order. The iterator element type is `(PropertyKey, &'a Property)`.
     ///
     /// This iterator does not recurse down the prototype chain.
