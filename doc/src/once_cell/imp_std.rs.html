@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.13.0/src/imp_std.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp_std.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/once_cell-1.13.1/src/imp_std.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>imp_std.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../once_cell/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -388,6 +388,57 @@
 <span id="382">382</span>
 <span id="383">383</span>
 <span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
 </pre><pre class="rust"><code><span class="comment">// There&#39;s a lot of scary concurrent code in this module, but it is copied from</span>
 <span class="comment">// `std::sync::Once` with two changes:</span>
 <span class="comment">//   * no poisoning</span>
@@ -398,7 +449,7 @@
     <span class="ident">hint::unreachable_unchecked</span>,
     <span class="ident">marker::PhantomData</span>,
     <span class="ident">panic</span>::{<span class="ident">RefUnwindSafe</span>, <span class="ident">UnwindSafe</span>},
-    <span class="ident">sync::atomic</span>::{<span class="ident">AtomicBool</span>, <span class="ident">AtomicUsize</span>, <span class="ident">Ordering</span>},
+    <span class="ident">sync::atomic</span>::{<span class="ident">AtomicBool</span>, <span class="ident">AtomicPtr</span>, <span class="ident">Ordering</span>},
     <span class="ident">thread</span>::{<span class="self">self</span>, <span class="ident">Thread</span>},
 };
 
@@ -414,7 +465,7 @@
     <span class="comment">//</span>
     <span class="comment">// State is encoded in two low bits. Only `INCOMPLETE` and `RUNNING` states</span>
     <span class="comment">// allow waiters.</span>
-    <span class="ident">queue</span>: <span class="ident">AtomicUsize</span>,
+    <span class="ident">queue</span>: <span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>,
     <span class="ident">_marker</span>: <span class="ident">PhantomData</span><span class="op">&lt;</span><span class="kw-2">*mut</span> <span class="ident">Waiter</span><span class="op">&gt;</span>,
     <span class="ident">value</span>: <span class="ident">UnsafeCell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
@@ -433,7 +484,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">OnceCell</span> {
-            <span class="ident">queue</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">INCOMPLETE</span>),
+            <span class="ident">queue</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">INCOMPLETE_PTR</span>),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">None</span>),
         }
@@ -441,7 +492,7 @@
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">with_value</span>(<span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">OnceCell</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident">OnceCell</span> {
-            <span class="ident">queue</span>: <span class="ident">AtomicUsize::new</span>(<span class="ident">COMPLETE</span>),
+            <span class="ident">queue</span>: <span class="ident">AtomicPtr::new</span>(<span class="ident">COMPLETE_PTR</span>),
             <span class="ident">_marker</span>: <span class="ident">PhantomData</span>,
             <span class="ident">value</span>: <span class="ident">UnsafeCell::new</span>(<span class="prelude-val">Some</span>(<span class="ident">value</span>)),
         }
@@ -454,7 +505,7 @@
         <span class="comment">// operations visible to us, and, this being a fast path, weaker</span>
         <span class="comment">// ordering helps with performance. This `Acquire` synchronizes with</span>
         <span class="comment">// `SeqCst` operations on the slow path.</span>
-        <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">==</span> <span class="ident">COMPLETE</span>
+        <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>) <span class="op">==</span> <span class="ident">COMPLETE_PTR</span>
     }
 
     <span class="doccomment">/// Safety: synchronizes with store to value via SeqCst read from state,</span>
@@ -535,6 +586,8 @@
 <span class="kw">const</span> <span class="ident">INCOMPLETE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x0</span>;
 <span class="kw">const</span> <span class="ident">RUNNING</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x1</span>;
 <span class="kw">const</span> <span class="ident">COMPLETE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="number">0x2</span>;
+<span class="kw">const</span> <span class="ident">INCOMPLETE_PTR</span>: <span class="kw-2">*mut</span> <span class="ident">Waiter</span> <span class="op">=</span> <span class="ident">INCOMPLETE</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Waiter</span>;
+<span class="kw">const</span> <span class="ident">COMPLETE_PTR</span>: <span class="kw-2">*mut</span> <span class="ident">Waiter</span> <span class="op">=</span> <span class="ident">COMPLETE</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Waiter</span>;
 
 <span class="comment">// Mask to learn about the state. All other bits are the queue of waiters if</span>
 <span class="comment">// this is in the RUNNING state.</span>
@@ -546,23 +599,24 @@
 <span class="kw">struct</span> <span class="ident">Waiter</span> {
     <span class="ident">thread</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Thread</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     <span class="ident">signaled</span>: <span class="ident">AtomicBool</span>,
-    <span class="ident">next</span>: <span class="kw-2">*const</span> <span class="ident">Waiter</span>,
+    <span class="ident">next</span>: <span class="kw-2">*mut</span> <span class="ident">Waiter</span>,
 }
 
 <span class="doccomment">/// Drains and notifies the queue of waiters on drop.</span>
 <span class="kw">struct</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-    <span class="ident">queue</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AtomicUsize</span>,
-    <span class="ident">new_queue</span>: <span class="ident">usize</span>,
+    <span class="ident">queue</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>,
+    <span class="ident">new_queue</span>: <span class="kw-2">*mut</span> <span class="ident">Waiter</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Drop</span> <span class="kw">for</span> <span class="ident">Guard</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
     <span class="kw">fn</span> <span class="ident">drop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) {
         <span class="kw">let</span> <span class="ident">queue</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">queue</span>.<span class="ident">swap</span>(<span class="self">self</span>.<span class="ident">new_queue</span>, <span class="ident">Ordering::AcqRel</span>);
 
-        <span class="macro">assert_eq!</span>(<span class="ident">queue</span> <span class="op">&amp;</span> <span class="ident">STATE_MASK</span>, <span class="ident">RUNNING</span>);
+        <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">strict::addr</span>(<span class="ident">queue</span>) <span class="op">&amp;</span> <span class="ident">STATE_MASK</span>;
+        <span class="macro">assert_eq!</span>(<span class="ident">state</span>, <span class="ident">RUNNING</span>);
 
         <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiter</span> <span class="op">=</span> (<span class="ident">queue</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_MASK</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Waiter</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">waiter</span> <span class="op">=</span> <span class="ident">strict::map_addr</span>(<span class="ident">queue</span>, <span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_MASK</span>);
             <span class="kw">while</span> <span class="op">!</span><span class="ident">waiter</span>.<span class="ident">is_null</span>() {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">waiter</span>).<span class="ident">next</span>;
                 <span class="kw">let</span> <span class="ident">thread</span> <span class="op">=</span> (<span class="kw-2">*</span><span class="ident">waiter</span>).<span class="ident">thread</span>.<span class="ident">take</span>().<span class="ident">unwrap</span>();
@@ -581,17 +635,17 @@
 <span class="comment">//</span>
 <span class="comment">// Note: this is intentionally monomorphic</span>
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
-<span class="kw">fn</span> <span class="ident">initialize_or_wait</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="kw-2">mut</span> <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>() -&gt; <span class="ident">bool</span><span class="op">&gt;</span>) {
+<span class="kw">fn</span> <span class="ident">initialize_or_wait</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;mut</span> <span class="kw">dyn</span> <span class="ident">FnMut</span>() -&gt; <span class="ident">bool</span><span class="op">&gt;</span>) {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">curr_queue</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">load</span>(<span class="ident">Ordering::Acquire</span>);
 
     <span class="kw">loop</span> {
-        <span class="kw">let</span> <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">curr_queue</span> <span class="op">&amp;</span> <span class="ident">STATE_MASK</span>;
+        <span class="kw">let</span> <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">strict::addr</span>(<span class="ident">curr_queue</span>) <span class="op">&amp;</span> <span class="ident">STATE_MASK</span>;
         <span class="kw">match</span> (<span class="ident">curr_state</span>, <span class="kw-2">&amp;mut</span> <span class="ident">init</span>) {
             (<span class="ident">COMPLETE</span>, <span class="kw">_</span>) =&gt; <span class="kw">return</span>,
             (<span class="ident">INCOMPLETE</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>)) =&gt; {
                 <span class="kw">let</span> <span class="ident">exchange</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">compare_exchange</span>(
                     <span class="ident">curr_queue</span>,
-                    (<span class="ident">curr_queue</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_MASK</span>) <span class="op">|</span> <span class="ident">RUNNING</span>,
+                    <span class="ident">strict::map_addr</span>(<span class="ident">curr_queue</span>, <span class="op">|</span><span class="ident">q</span><span class="op">|</span> (<span class="ident">q</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_MASK</span>) <span class="op">|</span> <span class="ident">RUNNING</span>),
                     <span class="ident">Ordering::Acquire</span>,
                     <span class="ident">Ordering::Acquire</span>,
                 );
@@ -599,9 +653,9 @@
                     <span class="ident">curr_queue</span> <span class="op">=</span> <span class="ident">new_queue</span>;
                     <span class="kw">continue</span>;
                 }
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">Guard</span> { <span class="ident">queue</span>, <span class="ident">new_queue</span>: <span class="ident">INCOMPLETE</span> };
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">guard</span> <span class="op">=</span> <span class="ident">Guard</span> { <span class="ident">queue</span>, <span class="ident">new_queue</span>: <span class="ident">INCOMPLETE_PTR</span> };
                 <span class="kw">if</span> <span class="ident">init</span>() {
-                    <span class="ident">guard</span>.<span class="ident">new_queue</span> <span class="op">=</span> <span class="ident">COMPLETE</span>;
+                    <span class="ident">guard</span>.<span class="ident">new_queue</span> <span class="op">=</span> <span class="ident">COMPLETE_PTR</span>;
                 }
                 <span class="kw">return</span>;
             }
@@ -614,24 +668,24 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">wait</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicUsize</span>, <span class="kw-2">mut</span> <span class="ident">curr_queue</span>: <span class="ident">usize</span>) {
-    <span class="kw">let</span> <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">curr_queue</span> <span class="op">&amp;</span> <span class="ident">STATE_MASK</span>;
+<span class="kw">fn</span> <span class="ident">wait</span>(<span class="ident">queue</span>: <span class="kw-2">&amp;</span><span class="ident">AtomicPtr</span><span class="op">&lt;</span><span class="ident">Waiter</span><span class="op">&gt;</span>, <span class="kw-2">mut</span> <span class="ident">curr_queue</span>: <span class="kw-2">*mut</span> <span class="ident">Waiter</span>) {
+    <span class="kw">let</span> <span class="ident">curr_state</span> <span class="op">=</span> <span class="ident">strict::addr</span>(<span class="ident">curr_queue</span>) <span class="op">&amp;</span> <span class="ident">STATE_MASK</span>;
     <span class="kw">loop</span> {
         <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">Waiter</span> {
             <span class="ident">thread</span>: <span class="ident">Cell::new</span>(<span class="prelude-val">Some</span>(<span class="ident">thread::current</span>())),
             <span class="ident">signaled</span>: <span class="ident">AtomicBool::new</span>(<span class="bool-val">false</span>),
-            <span class="ident">next</span>: (<span class="ident">curr_queue</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_MASK</span>) <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Waiter</span>,
+            <span class="ident">next</span>: <span class="ident">strict::map_addr</span>(<span class="ident">curr_queue</span>, <span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span> <span class="op">&amp;</span> <span class="op">!</span><span class="ident">STATE_MASK</span>),
         };
-        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Waiter</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">me</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">node</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">Waiter</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Waiter</span>;
 
         <span class="kw">let</span> <span class="ident">exchange</span> <span class="op">=</span> <span class="ident">queue</span>.<span class="ident">compare_exchange</span>(
             <span class="ident">curr_queue</span>,
-            <span class="ident">me</span> <span class="op">|</span> <span class="ident">curr_state</span>,
+            <span class="ident">strict::map_addr</span>(<span class="ident">me</span>, <span class="op">|</span><span class="ident">q</span><span class="op">|</span> <span class="ident">q</span> <span class="op">|</span> <span class="ident">curr_state</span>),
             <span class="ident">Ordering::Release</span>,
             <span class="ident">Ordering::Relaxed</span>,
         );
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">new_queue</span>) <span class="op">=</span> <span class="ident">exchange</span> {
-            <span class="kw">if</span> <span class="ident">new_queue</span> <span class="op">&amp;</span> <span class="ident">STATE_MASK</span> <span class="op">!</span><span class="op">=</span> <span class="ident">curr_state</span> {
+            <span class="kw">if</span> <span class="ident">strict::addr</span>(<span class="ident">new_queue</span>) <span class="op">&amp;</span> <span class="ident">STATE_MASK</span> <span class="op">!</span><span class="op">=</span> <span class="ident">curr_state</span> {
                 <span class="kw">return</span>;
             }
             <span class="ident">curr_queue</span> <span class="op">=</span> <span class="ident">new_queue</span>;
@@ -642,6 +696,54 @@
             <span class="ident">thread::park</span>();
         }
         <span class="kw">break</span>;
+    }
+}
+
+<span class="comment">// Polyfill of strict provenance from https://crates.io/crates/sptr.</span>
+<span class="comment">//</span>
+<span class="comment">// Use free-standing function rather than a trait to keep things simple and</span>
+<span class="comment">// avoid any potential conflicts with future stabile std API.</span>
+<span class="kw">mod</span> <span class="ident">strict</span> {
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">addr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>) -&gt; <span class="ident">usize</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Sized</span>,
+    {
+        <span class="comment">// FIXME(strict_provenance_magic): I am magic and should be a compiler intrinsic.</span>
+        <span class="comment">// SAFETY: Pointer-to-integer transmutes are valid (if you are okay with losing the</span>
+        <span class="comment">// provenance).</span>
+        <span class="kw">unsafe</span> { <span class="ident">core::mem::transmute</span>(<span class="ident">ptr</span>) }
+    }
+
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">with_addr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>, <span class="ident">addr</span>: <span class="ident">usize</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">T</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Sized</span>,
+    {
+        <span class="comment">// FIXME(strict_provenance_magic): I am magic and should be a compiler intrinsic.</span>
+        <span class="comment">//</span>
+        <span class="comment">// In the mean-time, this operation is defined to be &quot;as if&quot; it was</span>
+        <span class="comment">// a wrapping_offset, so we can emulate it as such. This should properly</span>
+        <span class="comment">// restore pointer provenance even under today&#39;s compiler.</span>
+        <span class="kw">let</span> <span class="ident">self_addr</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::addr</span>(<span class="ident">ptr</span>) <span class="kw">as</span> <span class="ident">isize</span>;
+        <span class="kw">let</span> <span class="ident">dest_addr</span> <span class="op">=</span> <span class="ident">addr</span> <span class="kw">as</span> <span class="ident">isize</span>;
+        <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">dest_addr</span>.<span class="ident">wrapping_sub</span>(<span class="ident">self_addr</span>);
+
+        <span class="comment">// This is the canonical desugarring of this operation,</span>
+        <span class="comment">// but `pointer::cast` was only stabilized in 1.38.</span>
+        <span class="comment">// self.cast::&lt;u8&gt;().wrapping_offset(offset).cast::&lt;T&gt;()</span>
+        (<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>).<span class="ident">wrapping_offset</span>(<span class="ident">offset</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">T</span>
+    }
+
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">map_addr</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">ptr</span>: <span class="kw-2">*mut</span> <span class="ident">T</span>, <span class="ident">f</span>: <span class="kw">impl</span> <span class="ident">FnOnce</span>(<span class="ident">usize</span>) -&gt; <span class="ident">usize</span>) -&gt; <span class="kw-2">*mut</span> <span class="ident">T</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Sized</span>,
+    {
+        <span class="ident"><span class="self">self</span>::with_addr</span>(<span class="ident">ptr</span>, <span class="ident">f</span>(<span class="ident">addr</span>(<span class="ident">ptr</span>)))
     }
 }
 
