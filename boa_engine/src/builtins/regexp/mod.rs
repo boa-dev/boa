@@ -26,7 +26,6 @@ use crate::{
     value::{IntegerOrInfinity, JsValue},
     Context, JsResult, JsString,
 };
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use regress::Regex;
 use std::str::FromStr;
@@ -36,18 +35,13 @@ use tap::{Conv, Pipe};
 mod tests;
 
 /// The internal representation on a `RegExp` object.
-#[derive(Debug, Clone, Finalize)]
+#[derive(Debug, Clone)]
 pub struct RegExp {
     /// Regex matcher.
     matcher: Regex,
     flags: RegExpFlags,
     original_source: JsString,
     original_flags: JsString,
-}
-
-// Only safe while regress::Regex doesn't implement Trace itself.
-unsafe impl Trace for RegExp {
-    unsafe_empty_trace!();
 }
 
 impl BuiltIn for RegExp {

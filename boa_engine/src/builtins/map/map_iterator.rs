@@ -19,6 +19,7 @@ use boa_profiler::Profiler;
 pub struct MapIterator {
     iterated_map: Option<JsObject>,
     map_next_index: usize,
+    #[unsafe_ignore_trace]
     map_iteration_kind: PropertyNameKind,
     lock: MapLock,
 }

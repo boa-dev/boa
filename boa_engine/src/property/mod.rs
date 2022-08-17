@@ -16,7 +16,7 @@
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
 use crate::{JsString, JsSymbol, JsValue};
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
+use boa_gc::{Finalize, Trace};
 use std::fmt;
 
 mod attribute;
@@ -488,7 +488,7 @@ impl From<PropertyDescriptorBuilder> for PropertyDescriptor {
 /// - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ispropertykey
-#[derive(Trace, Finalize, PartialEq, Debug, Clone, Eq, Hash)]
+#[derive(PartialEq, Debug, Clone, Eq, Hash)]
 pub enum PropertyKey {
     String(JsString),
     Symbol(JsSymbol),
@@ -673,13 +673,9 @@ impl PartialEq<&str> for PropertyKey {
     }
 }
 
-#[derive(Debug, Clone, Copy, Finalize)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) enum PropertyNameKind {
     Key,
     Value,
     KeyAndValue,
-}
-
-unsafe impl Trace for PropertyNameKind {
-    unsafe_empty_trace!();
 }

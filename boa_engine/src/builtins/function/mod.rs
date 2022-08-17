@@ -153,8 +153,7 @@ pub enum ClassFieldDefinition {
 unsafe impl Trace for ClassFieldDefinition {
     custom_trace! {this, {
         match this {
-            Self::Public(key, func) => {
-                mark(key);
+            Self::Public(_key, func) => {
                 mark(func);
             }
             Self::Private(_, func) => {

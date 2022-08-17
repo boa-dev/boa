@@ -15,7 +15,7 @@ use crate::{
     symbol::{JsSymbol, WellKnownSymbols},
     Context, JsBigInt, JsResult, JsString,
 };
-use boa_gc::{Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, Trace};
 use boa_profiler::Profiler;
 use num_bigint::BigInt;
 use num_integer::Integer;
@@ -56,7 +56,7 @@ static TWO_E_63: Lazy<BigInt> = Lazy::new(|| {
 });
 
 /// A Javascript value
-#[derive(Trace, Finalize, Debug, Clone)]
+#[derive(Finalize, Debug, Clone)]
 pub enum JsValue {
     /// `null` - A null value, for when a value doesn't exist.
     Null,
@@ -76,6 +76,14 @@ pub enum JsValue {
     Object(JsObject),
     /// `Symbol` - A Symbol Primitive type.
     Symbol(JsSymbol),
+}
+
+unsafe impl Trace for JsValue {
+    custom_trace! {this, {
+        if let Self::Object(o) = this {
+            mark(o);
+        }
+    }}
 }
 
 impl JsValue {

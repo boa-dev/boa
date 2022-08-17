@@ -635,6 +635,12 @@ pub struct JsString {
     _marker: PhantomData<Rc<str>>,
 }
 
+// Safety: JsString does not contain any objects which needs to be traced,
+// so this is safe.
+unsafe impl Trace for JsString {
+    unsafe_empty_trace!();
+}
+
 /// This struct uses a technique called tagged pointer to benefit from the fact that newly
 /// allocated pointers are always word aligned on 64-bits platforms, making it impossible
 /// to have a LSB equal to 1. More details about this technique on the article of Wikipedia
@@ -940,12 +946,6 @@ impl JsString {
             string => fast_float::parse(string).unwrap_or(f64::NAN),
         }
     }
-}
-
-// Safety: [`JsString`] does not contain any objects which recquire trace,
-// so this is safe.
-unsafe impl Trace for JsString {
-    unsafe_empty_trace!();
 }
 
 impl Clone for JsString {

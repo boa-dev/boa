@@ -7,7 +7,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use num_bigint::BigInt;
 #[cfg(feature = "deser")]
@@ -24,7 +23,7 @@ use serde::{Deserialize, Serialize};
 /// [spec]: https://tc39.es/ecma262/#sec-primary-expression-literals
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types#Literals
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[derive(Clone, Debug, Finalize, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Const {
     /// A string literal is zero or more characters enclosed in double (`"`) or single (`'`) quotation marks.
     ///
@@ -110,12 +109,6 @@ pub enum Const {
     /// [spec]: https://tc39.es/ecma262/#sec-undefined
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/undefined
     Undefined,
-}
-
-// Safety: Const does not contain any objects which needs to be traced,
-// so this is safe.
-unsafe impl Trace for Const {
-    unsafe_empty_trace!();
 }
 
 impl From<Sym> for Const {

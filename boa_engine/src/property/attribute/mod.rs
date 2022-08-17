@@ -1,7 +1,6 @@
 //! This module implements the `Attribute` struct which contains the attibutes for property descriptors.
 
 use bitflags::bitflags;
-use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 
 #[cfg(test)]
 mod tests;
@@ -16,7 +15,6 @@ bitflags! {
     ///  - `[[Configurable]]` (`CONFIGURABLE`) - If `false`, attempts to delete the property,
     /// change the property to be an `accessor property`, or change its attributes (other than `[[Value]]`,
     /// or changing `[[Writable]]` to `false`) will fail.
-    #[derive(Finalize)]
     pub struct Attribute: u8 {
         /// The `Writable` attribute decides whether the value associated with the property can be changed or not, from its initial value.
         const WRITABLE = 0b0000_0001;
@@ -36,15 +34,6 @@ bitflags! {
         /// The property descriptor cannot be changed.
         const PERMANENT = 0b0000_0000;
     }
-}
-
-// We implement `Trace` manualy rather that wih derive, beacuse `rust-gc`,
-// derive `Trace` does not allow `Copy` and `Trace` to be both implemented.
-//
-// SAFETY: The `Attribute` struct only contains an `u8`
-// and therefore it should be safe to implement an empty trace.
-unsafe impl Trace for Attribute {
-    unsafe_empty_trace!();
 }
 
 impl Attribute {

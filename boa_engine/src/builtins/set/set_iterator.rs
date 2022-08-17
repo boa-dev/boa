@@ -18,6 +18,7 @@ use boa_profiler::Profiler;
 pub struct SetIterator {
     iterated_set: JsValue,
     next_index: usize,
+    #[unsafe_ignore_trace]
     iteration_kind: PropertyNameKind,
 }
 

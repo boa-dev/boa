@@ -248,9 +248,15 @@ struct Inner {
 }
 
 /// This represents a JavaScript symbol primitive.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Finalize)]
 pub struct JsSymbol {
     inner: Rc<Inner>,
+}
+
+// Safety: JsSymbol does not contain any objects which needs to be traced,
+// so this is safe.
+unsafe impl Trace for JsSymbol {
+    unsafe_empty_trace!();
 }
 
 impl JsSymbol {
@@ -299,14 +305,6 @@ impl JsSymbol {
     pub fn descriptive_string(&self) -> JsString {
         self.to_string().into()
     }
-}
-
-impl Finalize for JsSymbol {}
-
-// Safety: `JsSymbol` does not contain any object that require trace,
-// so this is safe.
-unsafe impl Trace for JsSymbol {
-    unsafe_empty_trace!();
 }
 
 impl Display for JsSymbol {

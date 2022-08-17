@@ -49,7 +49,7 @@ use crate::{
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
 
-use boa_gc::{Finalize, Trace};
+use boa_gc::{custom_trace, Finalize, Trace};
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
 use std::{
@@ -163,7 +163,7 @@ pub struct ObjectData {
 }
 
 /// Defines the different types of objects.
-#[derive(Debug, Trace, Finalize)]
+#[derive(Debug, Finalize)]
 pub enum ObjectKind {
     AsyncGenerator(AsyncGenerator),
     AsyncGeneratorFunction(Function),
@@ -199,6 +199,45 @@ pub enum ObjectKind {
     #[cfg(feature = "intl")]
     DateTimeFormat(Box<DateTimeFormat>),
     Promise(Promise),
+}
+
+unsafe impl Trace for ObjectKind {
+    custom_trace! {this, {
+        match this {
+            Self::ArrayIterator(i) => mark(i),
+            Self::ArrayBuffer(b) => mark(b),
+            Self::Map(m) => mark(m),
+            Self::MapIterator(i) => mark(i),
+            Self::RegExpStringIterator(i) => mark(i),
+            Self::DataView(v) => mark(v),
+            Self::ForInIterator(i) => mark(i),
+            Self::Function(f) | Self::GeneratorFunction(f) | Self::AsyncGeneratorFunction(f) => mark(f),
+            Self::BoundFunction(f) => mark(f),
+            Self::Generator(g) => mark(g),
+            Self::Set(s) => mark(s),
+            Self::SetIterator(i) => mark(i),
+            Self::StringIterator(i) => mark(i),
+            Self::Proxy(p) => mark(p),
+            Self::Arguments(a) => mark(a),
+            Self::NativeObject(o) => mark(o),
+            Self::IntegerIndexed(i) => mark(i),
+            #[cfg(feature = "intl")]
+            Self::DateTimeFormat(f) => mark(f),
+            Self::Promise(p) => mark(p),
+            Self::AsyncGenerator(g) => mark(g),
+            Self::RegExp(_)
+            | Self::BigInt(_)
+            | Self::Boolean(_)
+            | Self::String(_)
+            | Self::Date(_)
+            | Self::Array
+            | Self::Error
+            | Self::Ordinary
+            | Self::Global
+            | Self::Number(_)
+            | Self::Symbol(_) => {}
+        }
+    }}
 }
 
 impl ObjectData {

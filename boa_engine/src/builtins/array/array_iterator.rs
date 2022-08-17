@@ -18,6 +18,7 @@ use boa_profiler::Profiler;
 pub struct ArrayIterator {
     array: JsObject,
     next_index: u64,
+    #[unsafe_ignore_trace]
     kind: PropertyNameKind,
     done: bool,
 }
