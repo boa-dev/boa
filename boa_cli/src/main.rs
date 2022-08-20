@@ -63,7 +63,7 @@ use boa_engine::{syntax::ast::node::StatementList, Context};
 use clap::{ArgEnum, Parser};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
-use std::{fs::read, io, path::PathBuf};
+use std::{fs::read, fs::OpenOptions, io, path::PathBuf};
 mod helper;
 
 #[cfg(all(target_arch = "x86_64", target_os = "linux", target_env = "gnu"))]
@@ -215,6 +215,8 @@ pub fn main() -> Result<(), io::Error> {
 
         let mut editor =
             Editor::with_config(config).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
+            // Check if the history file exists. If it does, create it.
+        OpenOptions::new().read(true).write(true).create(true).open(CLI_HISTORY)?;
         editor.load_history(CLI_HISTORY).map_err(|err| match err {
             ReadlineError::Io(e) => e,
             e => io::Error::new(io::ErrorKind::Other, e),
