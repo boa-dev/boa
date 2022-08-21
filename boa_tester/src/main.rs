@@ -73,6 +73,7 @@ use self::{
 };
 use anyhow::{bail, Context};
 use bitflags::bitflags;
+use clap::Parser;
 use colored::Colorize;
 use fxhash::{FxHashMap, FxHashSet};
 use once_cell::sync::Lazy;
@@ -81,7 +82,6 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
-use structopt::StructOpt;
 
 /// Structure to allow defining ignored tests, features and files that should
 /// be ignored even when reading.
@@ -193,49 +193,49 @@ static IGNORED: Lazy<Ignored> = Lazy::new(|| {
 });
 
 /// Boa test262 tester
-#[derive(StructOpt, Debug)]
-#[structopt(name = "Boa test262 tester")]
+#[derive(Debug, Parser)]
+#[clap(author, version, about, name = "Boa test262 tester")]
 enum Cli {
     /// Run the test suite.
     Run {
         /// Whether to show verbose output.
-        #[structopt(short, long, parse(from_occurrences))]
+        #[clap(short, long, parse(from_occurrences))]
         verbose: u8,
 
         /// Path to the Test262 suite.
-        #[structopt(long, parse(from_os_str), default_value = "./test262")]
+        #[clap(long, parse(from_os_str), default_value = "./test262")]
         test262_path: PathBuf,
 
         /// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. "test/language/types/number"
-        #[structopt(short, long, parse(from_os_str), default_value = "test")]
+        #[clap(short, long, parse(from_os_str), default_value = "test")]
         suite: PathBuf,
 
         /// Optional output folder for the full results information.
-        #[structopt(short, long, parse(from_os_str))]
+        #[clap(short, long, parse(from_os_str))]
         output: Option<PathBuf>,
 
         /// Execute tests serially
-        #[structopt(short, long)]
+        #[clap(short, long)]
         disable_parallelism: bool,
     },
     Compare {
         /// Base results of the suite.
-        #[structopt(parse(from_os_str))]
+        #[clap(parse(from_os_str))]
         base: PathBuf,
 
         /// New results to compare.
-        #[structopt(parse(from_os_str))]
+        #[clap(parse(from_os_str))]
         new: PathBuf,
 
         /// Whether to use markdown output
-        #[structopt(short, long)]
+        #[clap(short, long)]
         markdown: bool,
     },
 }
 
 /// Program entry point.
 fn main() {
-    match Cli::from_args() {
+    match Cli::parse() {
         Cli::Run {
             verbose,
             test262_path,

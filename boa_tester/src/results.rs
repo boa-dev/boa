@@ -246,7 +246,18 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
     let test_diff = compute_result_diff(Path::new(""), &base_results.results, &new_results.results);
 
     if markdown {
-        use num_format::{Locale, ToFormattedString};
+        /// Simple function to add commas as thousands separator for integers.
+        fn pretty_int(i: isize) -> String {
+            let mut res = String::new();
+
+            for (idx, val) in i.to_string().chars().rev().enumerate() {
+                if idx != 0 && idx % 3 == 0 {
+                    res.insert(0, ',');
+                }
+                res.insert(0, val);
+            }
+            res
+        }
 
         /// Generates a proper diff format, with some bold text if things change.
         fn diff_format(diff: isize) -> String {
@@ -254,7 +265,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
                 "{}{}{}{}",
                 if diff == 0 { "" } else { "**" },
                 if diff > 0 { "+" } else { "" },
-                diff.to_formatted_string(&Locale::en),
+                pretty_int(diff),
                 if diff == 0 { "" } else { "**" }
             )
         }
@@ -265,32 +276,32 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
         println!("| :---------: | :----------: | :------: | :--------: |");
         println!(
             "| Total | {} | {} | {} |",
-            base_total.to_formatted_string(&Locale::en),
-            new_total.to_formatted_string(&Locale::en),
+            pretty_int(base_total),
+            pretty_int(new_total),
             diff_format(total_diff),
         );
         println!(
             "| Passed | {} | {} | {} |",
-            base_passed.to_formatted_string(&Locale::en),
-            new_passed.to_formatted_string(&Locale::en),
+            pretty_int(base_passed),
+            pretty_int(new_passed),
             diff_format(passed_diff),
         );
         println!(
             "| Ignored | {} | {} | {} |",
-            base_ignored.to_formatted_string(&Locale::en),
-            new_ignored.to_formatted_string(&Locale::en),
+            pretty_int(base_ignored),
+            pretty_int(new_ignored),
             diff_format(ignored_diff),
         );
         println!(
             "| Failed | {} | {} | {} |",
-            base_failed.to_formatted_string(&Locale::en),
-            new_failed.to_formatted_string(&Locale::en),
+            pretty_int(base_failed),
+            pretty_int(new_failed),
             diff_format(failed_diff),
         );
         println!(
             "| Panics | {} | {} | {} |",
-            base_panics.to_formatted_string(&Locale::en),
-            new_panics.to_formatted_string(&Locale::en),
+            pretty_int(base_panics),
+            pretty_int(new_panics),
             diff_format(panic_diff),
         );
         println!(
