@@ -7,6 +7,22 @@ feature:SharedArrayBuffer
 feature:resizable-arraybuffer
 feature:Temporal
 feature:tail-call-optimization
+feature:ShadowRealm
+feature:FinalizationRegistry
+feature:Atomics
+feature:dynamic_import
+feature:decorators
+
+// Non-implemented Intl features
+feature:intl-normative-optional
+feature:Intl.DurationFormat
+feature:Intl.NumberFormat-v3
+feature:Intl.NumberFormat-unified
+feature:Intl.ListFormat
+feature:Intl.DisplayNames
+feature:Intl.RelativeTimeFormat
+feature:Intl.Segmenter
+feature:Intl.Locale
 
 // Non-standard
 feature:caller
