@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/strsim-0.8.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../strsim/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/strsim-0.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../strsim/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../strsim/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -790,32 +790,264 @@
 <span id="784">784</span>
 <span id="785">785</span>
 <span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
+<span id="881">881</span>
+<span id="882">882</span>
+<span id="883">883</span>
+<span id="884">884</span>
+<span id="885">885</span>
+<span id="886">886</span>
+<span id="887">887</span>
+<span id="888">888</span>
+<span id="889">889</span>
+<span id="890">890</span>
+<span id="891">891</span>
+<span id="892">892</span>
+<span id="893">893</span>
+<span id="894">894</span>
+<span id="895">895</span>
+<span id="896">896</span>
+<span id="897">897</span>
+<span id="898">898</span>
+<span id="899">899</span>
+<span id="900">900</span>
+<span id="901">901</span>
+<span id="902">902</span>
+<span id="903">903</span>
+<span id="904">904</span>
+<span id="905">905</span>
+<span id="906">906</span>
+<span id="907">907</span>
+<span id="908">908</span>
+<span id="909">909</span>
+<span id="910">910</span>
+<span id="911">911</span>
+<span id="912">912</span>
+<span id="913">913</span>
+<span id="914">914</span>
+<span id="915">915</span>
+<span id="916">916</span>
+<span id="917">917</span>
+<span id="918">918</span>
+<span id="919">919</span>
+<span id="920">920</span>
+<span id="921">921</span>
+<span id="922">922</span>
+<span id="923">923</span>
+<span id="924">924</span>
+<span id="925">925</span>
+<span id="926">926</span>
+<span id="927">927</span>
+<span id="928">928</span>
+<span id="929">929</span>
+<span id="930">930</span>
+<span id="931">931</span>
+<span id="932">932</span>
+<span id="933">933</span>
+<span id="934">934</span>
+<span id="935">935</span>
+<span id="936">936</span>
+<span id="937">937</span>
+<span id="938">938</span>
+<span id="939">939</span>
+<span id="940">940</span>
+<span id="941">941</span>
+<span id="942">942</span>
+<span id="943">943</span>
+<span id="944">944</span>
+<span id="945">945</span>
+<span id="946">946</span>
+<span id="947">947</span>
+<span id="948">948</span>
+<span id="949">949</span>
+<span id="950">950</span>
+<span id="951">951</span>
+<span id="952">952</span>
+<span id="953">953</span>
+<span id="954">954</span>
+<span id="955">955</span>
+<span id="956">956</span>
+<span id="957">957</span>
+<span id="958">958</span>
+<span id="959">959</span>
+<span id="960">960</span>
+<span id="961">961</span>
+<span id="962">962</span>
+<span id="963">963</span>
+<span id="964">964</span>
+<span id="965">965</span>
+<span id="966">966</span>
+<span id="967">967</span>
+<span id="968">968</span>
+<span id="969">969</span>
+<span id="970">970</span>
+<span id="971">971</span>
+<span id="972">972</span>
+<span id="973">973</span>
+<span id="974">974</span>
+<span id="975">975</span>
+<span id="976">976</span>
+<span id="977">977</span>
+<span id="978">978</span>
+<span id="979">979</span>
+<span id="980">980</span>
+<span id="981">981</span>
+<span id="982">982</span>
+<span id="983">983</span>
+<span id="984">984</span>
+<span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
+<span id="989">989</span>
+<span id="990">990</span>
+<span id="991">991</span>
+<span id="992">992</span>
+<span id="993">993</span>
+<span id="994">994</span>
+<span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
+<span id="1003">1003</span>
+<span id="1004">1004</span>
+<span id="1005">1005</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This library implements string similarity metrics.</span>
+
+<span class="attribute">#![<span class="ident">forbid</span>(<span class="ident">unsafe_code</span>)]</span>
 
 <span class="kw">use</span> <span class="ident">std::char</span>;
 <span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
 <span class="kw">use</span> <span class="ident">std::collections::HashMap</span>;
+<span class="kw">use</span> <span class="ident">std::error::Error</span>;
+<span class="kw">use</span> <span class="ident">std::fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>, <span class="ident">Formatter</span>};
+<span class="kw">use</span> <span class="ident">std::hash::Hash</span>;
+<span class="kw">use</span> <span class="ident">std::str::Chars</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StrSimError</span> {
-    <span class="ident">DifferentLengthArgs</span>
+    <span class="ident">DifferentLengthArgs</span>,
 }
+
+<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">StrSimError</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">fmt</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">fmt::Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">text</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">StrSimError::DifferentLengthArgs</span> =&gt; <span class="string">&quot;Differing length arguments provided&quot;</span>,
+        };
+
+        <span class="macro">write!</span>(<span class="ident">fmt</span>, <span class="string">&quot;{}&quot;</span>, <span class="ident">text</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">StrSimError</span> {}
 
 <span class="kw">pub</span> <span class="kw">type</span> <span class="ident">HammingResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">usize</span>, <span class="ident">StrSimError</span><span class="op">&gt;</span>;
 
-<span class="doccomment">/// Calculates the number of positions in the two strings where the characters</span>
-<span class="doccomment">/// differ. Returns an error if the strings have different lengths.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// ```</span>
-<span class="doccomment">/// use strsim::hamming;</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// match hamming(&quot;hamming&quot;, &quot;hammers&quot;) {</span>
-<span class="doccomment">///     Ok(distance) =&gt; assert_eq!(3, distance),</span>
-<span class="doccomment">///     Err(why) =&gt; panic!(&quot;{:?}&quot;, why)</span>
-<span class="doccomment">/// }</span>
-<span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hamming</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">HammingResult</span> {
-    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">ita</span>, <span class="kw-2">mut</span> <span class="ident">itb</span>, <span class="kw-2">mut</span> <span class="ident">count</span>) <span class="op">=</span> (<span class="ident">a</span>.<span class="ident">chars</span>(), <span class="ident">b</span>.<span class="ident">chars</span>(), <span class="number">0</span>);
+<span class="doccomment">/// Calculates the number of positions in the two sequences where the elements</span>
+<span class="doccomment">/// differ. Returns an error if the sequences have different lengths.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generic_hamming</span><span class="op">&lt;</span><span class="ident">Iter1</span>, <span class="ident">Iter2</span>, <span class="ident">Elem1</span>, <span class="ident">Elem2</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="ident">Iter1</span>, <span class="ident">b</span>: <span class="ident">Iter2</span>) -&gt; <span class="ident">HammingResult</span>
+    <span class="kw">where</span> <span class="ident">Iter1</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem1</span><span class="op">&gt;</span>,
+          <span class="ident">Iter2</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem2</span><span class="op">&gt;</span>,
+          <span class="ident">Elem1</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Elem2</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">ita</span>, <span class="kw-2">mut</span> <span class="ident">itb</span>) <span class="op">=</span> (<span class="ident">a</span>.<span class="ident">into_iter</span>(), <span class="ident">b</span>.<span class="ident">into_iter</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">count</span> <span class="op">=</span> <span class="number">0</span>;
     <span class="kw">loop</span> {
         <span class="kw">match</span> (<span class="ident">ita</span>.<span class="ident">next</span>(), <span class="ident">itb</span>.<span class="ident">next</span>()){
             (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="kw">if</span> <span class="ident">x</span> <span class="op">!</span><span class="op">=</span> <span class="ident">y</span> { <span class="ident">count</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span> },
@@ -825,25 +1057,37 @@
     }
 }
 
-<span class="doccomment">/// Calculates the Jaro similarity between two strings. The returned value</span>
-<span class="doccomment">/// is between 0.0 and 1.0 (higher value means more similar).</span>
+<span class="doccomment">/// Calculates the number of positions in the two strings where the characters</span>
+<span class="doccomment">/// differ. Returns an error if the strings have different lengths.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
-<span class="doccomment">/// use strsim::jaro;</span>
+<span class="doccomment">/// use strsim::{hamming, StrSimError::DifferentLengthArgs};</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// assert!((0.392 - jaro(&quot;Friedrich Nietzsche&quot;, &quot;Jean-Paul Sartre&quot;)).abs() &lt;</span>
-<span class="doccomment">///         0.001);</span>
+<span class="doccomment">/// assert_eq!(Ok(3), hamming(&quot;hamming&quot;, &quot;hammers&quot;));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(Err(DifferentLengthArgs), hamming(&quot;hamming&quot;, &quot;ham&quot;));</span>
 <span class="doccomment">/// ```</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">jaro</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">1.0</span>; }
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">hamming</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">HammingResult</span> {
+    <span class="ident">generic_hamming</span>(<span class="ident">a</span>.<span class="ident">chars</span>(), <span class="ident">b</span>.<span class="ident">chars</span>())
+}
 
-    <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-    <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
+<span class="doccomment">/// Calculates the Jaro similarity between two sequences. The returned value</span>
+<span class="doccomment">/// is between 0.0 and 1.0 (higher value means more similar).</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generic_jaro</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Iter1</span>, <span class="ident">Iter2</span>, <span class="ident">Elem1</span>, <span class="ident">Elem2</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Iter1</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Iter2</span>) -&gt; <span class="ident">f64</span>
+    <span class="kw">where</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Iter1</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem1</span><span class="op">&gt;</span>,
+          <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Iter2</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem2</span><span class="op">&gt;</span>,
+          <span class="ident">Elem1</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Elem2</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">into_iter</span>().<span class="ident">count</span>();
+    <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">into_iter</span>().<span class="ident">count</span>();
 
     <span class="comment">// The check for lengths of one here is to prevent integer overflow when</span>
     <span class="comment">// calculating the search range.</span>
-    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> (<span class="ident">a_len</span> <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">1</span>) {
+    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">return</span> <span class="number">1.0</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> {
         <span class="kw">return</span> <span class="number">0.0</span>;
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">1</span> {
+        <span class="kw">return</span> <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">into_iter</span>().<span class="ident">eq</span>(<span class="ident">b</span>.<span class="ident">into_iter</span>()) { <span class="number">1.0</span>} <span class="kw">else</span> { <span class="number">0.0</span> };
     }
 
     <span class="kw">let</span> <span class="ident">search_range</span> <span class="op">=</span> (<span class="ident">max</span>(<span class="ident">a_len</span>, <span class="ident">b_len</span>) <span class="op">/</span> <span class="number">2</span>) <span class="op">-</span> <span class="number">1</span>;
@@ -857,7 +1101,7 @@
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">transpositions</span> <span class="op">=</span> <span class="number">0.0</span>;
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b_match_index</span> <span class="op">=</span> <span class="number">0</span>;
 
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">a_char</span>) <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
+    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">a_elem</span>) <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
         <span class="kw">let</span> <span class="ident">min_bound</span> <span class="op">=</span>
             <span class="comment">// prevent integer wrapping</span>
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="ident">search_range</span> {
@@ -872,9 +1116,9 @@
             <span class="kw">continue</span>;
         }
 
-        <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">b_char</span>) <span class="kw">in</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">if</span> <span class="ident">min_bound</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">j</span> <span class="op">&amp;&amp;</span> <span class="ident">j</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_bound</span> <span class="op">&amp;&amp;</span> <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">b_char</span> <span class="op">&amp;&amp;</span>
-               <span class="op">!</span><span class="ident">b_consumed</span>[<span class="ident">j</span>] {
+        <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">b_elem</span>) <span class="kw">in</span> <span class="ident">b</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">if</span> <span class="ident">min_bound</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">j</span> <span class="op">&amp;&amp;</span> <span class="ident">j</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">max_bound</span> <span class="op">&amp;&amp;</span> <span class="ident">a_elem</span> <span class="op">==</span> <span class="ident">b_elem</span> <span class="op">&amp;&amp;</span>
+                <span class="op">!</span><span class="ident">b_consumed</span>[<span class="ident">j</span>] {
                 <span class="ident">b_consumed</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="ident">matches</span> <span class="op">+</span><span class="op">=</span> <span class="number">1.0</span>;
 
@@ -892,8 +1136,55 @@
         <span class="number">0.0</span>
     } <span class="kw">else</span> {
         (<span class="number">1.0</span> <span class="op">/</span> <span class="number">3.0</span>) <span class="op">*</span> ((<span class="ident">matches</span> <span class="op">/</span> <span class="ident">a_len</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">+</span>
-                       (<span class="ident">matches</span> <span class="op">/</span> <span class="ident">b_len</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">+</span>
-                       ((<span class="ident">matches</span> <span class="op">-</span> <span class="ident">transpositions</span>) <span class="op">/</span> <span class="ident">matches</span>))
+            (<span class="ident">matches</span> <span class="op">/</span> <span class="ident">b_len</span> <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">+</span>
+            ((<span class="ident">matches</span> <span class="op">-</span> <span class="ident">transpositions</span>) <span class="op">/</span> <span class="ident">matches</span>))
+    }
+}
+
+<span class="kw">struct</span> <span class="ident">StringWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>);
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span><span class="op">&gt;</span> <span class="ident">IntoIterator</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">StringWrapper</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span> {
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">char</span>;
+    <span class="kw">type</span> <span class="ident">IntoIter</span> <span class="op">=</span> <span class="ident">Chars</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>;
+
+    <span class="kw">fn</span> <span class="ident">into_iter</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::IntoIter</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">chars</span>()
+    }
+}
+
+<span class="doccomment">/// Calculates the Jaro similarity between two strings. The returned value</span>
+<span class="doccomment">/// is between 0.0 and 1.0 (higher value means more similar).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use strsim::jaro;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert!((0.392 - jaro(&quot;Friedrich Nietzsche&quot;, &quot;Jean-Paul Sartre&quot;)).abs() &lt;</span>
+<span class="doccomment">///         0.001);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">jaro</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
+    <span class="ident">generic_jaro</span>(<span class="kw-2">&amp;</span><span class="ident">StringWrapper</span>(<span class="ident">a</span>), <span class="kw-2">&amp;</span><span class="ident">StringWrapper</span>(<span class="ident">b</span>))
+}
+
+<span class="doccomment">/// Like Jaro but gives a boost to sequences that have a common prefix.</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generic_jaro_winkler</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Iter1</span>, <span class="ident">Iter2</span>, <span class="ident">Elem1</span>, <span class="ident">Elem2</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Iter1</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Iter2</span>) -&gt; <span class="ident">f64</span>
+    <span class="kw">where</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Iter1</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem1</span><span class="op">&gt;</span>,
+          <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Iter2</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem2</span><span class="op">&gt;</span>,
+          <span class="ident">Elem1</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Elem2</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">jaro_distance</span> <span class="op">=</span> <span class="ident">generic_jaro</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+
+    <span class="comment">// Don&#39;t limit the length of the common prefix</span>
+    <span class="kw">let</span> <span class="ident">prefix_length</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">into_iter</span>()
+        .<span class="ident">zip</span>(<span class="ident">b</span>.<span class="ident">into_iter</span>())
+        .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="kw-2">ref</span> <span class="ident">a_elem</span>, <span class="kw-2">ref</span> <span class="ident">b_elem</span>)<span class="op">|</span> <span class="ident">a_elem</span> <span class="op">==</span> <span class="ident">b_elem</span>)
+        .<span class="ident">count</span>();
+
+    <span class="kw">let</span> <span class="ident">jaro_winkler_distance</span> <span class="op">=</span>
+        <span class="ident">jaro_distance</span> <span class="op">+</span> (<span class="number">0.1</span> <span class="op">*</span> <span class="ident">prefix_length</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">jaro_distance</span>));
+
+    <span class="kw">if</span> <span class="ident">jaro_winkler_distance</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1.0</span> {
+        <span class="ident">jaro_winkler_distance</span>
+    } <span class="kw">else</span> {
+        <span class="number">1.0</span>
     }
 }
 
@@ -906,22 +1197,43 @@
 <span class="doccomment">///         0.001);</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">jaro_winkler</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
-    <span class="kw">let</span> <span class="ident">jaro_distance</span> <span class="op">=</span> <span class="ident">jaro</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+    <span class="ident">generic_jaro_winkler</span>(<span class="kw-2">&amp;</span><span class="ident">StringWrapper</span>(<span class="ident">a</span>), <span class="kw-2">&amp;</span><span class="ident">StringWrapper</span>(<span class="ident">b</span>))
+}
 
-    <span class="comment">// Don&#39;t limit the length of the common prefix</span>
-    <span class="kw">let</span> <span class="ident">prefix_length</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>()
-                         .<span class="ident">zip</span>(<span class="ident">b</span>.<span class="ident">chars</span>())
-                         .<span class="ident">take_while</span>(<span class="op">|</span><span class="kw-2">&amp;</span>(<span class="ident">a_char</span>, <span class="ident">b_char</span>)<span class="op">|</span> <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">b_char</span>)
-                         .<span class="ident">count</span>();
+<span class="doccomment">/// Calculates the minimum number of insertions, deletions, and substitutions</span>
+<span class="doccomment">/// required to change one sequence into the other.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use strsim::generic_levenshtein;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(3, generic_levenshtein(&amp;[1,2,3], &amp;[1,2,3,4,5,6]));</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generic_levenshtein</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="lifetime">&#39;b</span>, <span class="ident">Iter1</span>, <span class="ident">Iter2</span>, <span class="ident">Elem1</span>, <span class="ident">Elem2</span><span class="op">&gt;</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Iter1</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Iter2</span>) -&gt; <span class="ident">usize</span>
+    <span class="kw">where</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">Iter1</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem1</span><span class="op">&gt;</span>,
+          <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">Iter2</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span><span class="ident">Elem2</span><span class="op">&gt;</span>,
+          <span class="ident">Elem1</span>: <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Elem2</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">into_iter</span>().<span class="ident">count</span>();
 
-    <span class="kw">let</span> <span class="ident">jaro_winkler_distance</span> <span class="op">=</span>
-        <span class="ident">jaro_distance</span> <span class="op">+</span> (<span class="number">0.1</span> <span class="op">*</span> <span class="ident">prefix_length</span> <span class="kw">as</span> <span class="ident">f64</span> <span class="op">*</span> (<span class="number">1.0</span> <span class="op">-</span> <span class="ident">jaro_distance</span>));
+    <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">into_iter</span>().<span class="ident">next</span>().<span class="ident">is_none</span>() { <span class="kw">return</span> <span class="ident">b_len</span>; }
 
-    <span class="kw">if</span> <span class="ident">jaro_winkler_distance</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1.0</span> {
-        <span class="ident">jaro_winkler_distance</span>
-    } <span class="kw">else</span> {
-        <span class="number">1.0</span>
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">1</span>..<span class="ident">b_len</span><span class="op">+</span><span class="number">1</span>).<span class="ident">collect</span>();
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
+
+    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">a_elem</span>) <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
+        <span class="ident">result</span> <span class="op">=</span> <span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distance_b</span> <span class="op">=</span> <span class="ident">i</span>;
+
+        <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">b_elem</span>) <span class="kw">in</span> <span class="ident">b</span>.<span class="ident">into_iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">let</span> <span class="ident">cost</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a_elem</span> <span class="op">==</span> <span class="ident">b_elem</span> { <span class="number">0usize</span> } <span class="kw">else</span> { <span class="number">1usize</span> };
+            <span class="kw">let</span> <span class="ident">distance_a</span> <span class="op">=</span> <span class="ident">distance_b</span> <span class="op">+</span> <span class="ident">cost</span>;
+            <span class="ident">distance_b</span> <span class="op">=</span> <span class="ident">cache</span>[<span class="ident">j</span>];
+            <span class="ident">result</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">result</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">min</span>(<span class="ident">distance_a</span>, <span class="ident">distance_b</span> <span class="op">+</span> <span class="number">1</span>));
+            <span class="ident">cache</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="ident">result</span>;
+        }
     }
+
+    <span class="ident">result</span>
 }
 
 <span class="doccomment">/// Calculates the minimum number of insertions, deletions, and substitutions</span>
@@ -933,34 +1245,7 @@
 <span class="doccomment">/// assert_eq!(3, levenshtein(&quot;kitten&quot;, &quot;sitting&quot;));</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
-
-    <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-    <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">count</span>();
-
-    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
-    <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cache</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> (<span class="number">1</span>..<span class="ident">b_len</span><span class="op">+</span><span class="number">1</span>).<span class="ident">collect</span>();
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="number">0</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distance_a</span>;
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distance_b</span>;
-
-    <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">a_char</span>) <span class="kw">in</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
-        <span class="ident">result</span> <span class="op">=</span> <span class="ident">i</span>;
-        <span class="ident">distance_b</span> <span class="op">=</span> <span class="ident">i</span>;
-
-        <span class="kw">for</span> (<span class="ident">j</span>, <span class="ident">b_char</span>) <span class="kw">in</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">enumerate</span>() {
-            <span class="kw">let</span> <span class="ident">cost</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">b_char</span> { <span class="number">0</span> } <span class="kw">else</span> { <span class="number">1</span> };
-            <span class="ident">distance_a</span> <span class="op">=</span> <span class="ident">distance_b</span> <span class="op">+</span> <span class="ident">cost</span>;
-            <span class="ident">distance_b</span> <span class="op">=</span> <span class="ident">cache</span>[<span class="ident">j</span>];
-            <span class="ident">result</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">result</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">min</span>(<span class="ident">distance_a</span>, <span class="ident">distance_b</span> <span class="op">+</span> <span class="number">1</span>));
-            <span class="ident">cache</span>[<span class="ident">j</span>] <span class="op">=</span> <span class="ident">result</span>;
-        }
-    }
-
-    <span class="ident">result</span>
+    <span class="ident">generic_levenshtein</span>(<span class="kw-2">&amp;</span><span class="ident">StringWrapper</span>(<span class="ident">a</span>), <span class="kw-2">&amp;</span><span class="ident">StringWrapper</span>(<span class="ident">b</span>))
 }
 
 <span class="doccomment">/// Calculates a normalized score of the Levenshtein algorithm between 0.0 and</span>
@@ -1019,7 +1304,7 @@
                                         <span class="ident">min</span>(<span class="ident">prev_distances</span>[<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">+</span> <span class="number">1</span>,
                                             <span class="ident">prev_distances</span>[<span class="ident">j</span>] <span class="op">+</span> <span class="ident">cost</span>));
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">j</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">a_char</span> <span class="op">!</span><span class="op">=</span> <span class="ident">b_char</span> <span class="op">&amp;&amp;</span>
-               <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">prev_b_char</span> <span class="op">&amp;&amp;</span> <span class="ident">b_char</span> <span class="op">==</span> <span class="ident">prev_a_char</span> {
+                <span class="ident">a_char</span> <span class="op">==</span> <span class="ident">prev_b_char</span> <span class="op">&amp;&amp;</span> <span class="ident">b_char</span> <span class="op">==</span> <span class="ident">prev_a_char</span> {
                 <span class="ident">curr_distances</span>[<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span> <span class="ident">min</span>(<span class="ident">curr_distances</span>[<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>],
                                             <span class="ident">prev_two_distances</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">+</span> <span class="number">1</span>);
             }
@@ -1036,6 +1321,75 @@
 
 }
 
+<span class="comment">/* Returns the final index for a value in a single vector that represents a fixed
+   2d grid */</span>
+<span class="kw">fn</span> <span class="ident">flat_index</span>(<span class="ident">i</span>: <span class="ident">usize</span>, <span class="ident">j</span>: <span class="ident">usize</span>, <span class="ident">width</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
+    <span class="ident">j</span> <span class="op">*</span> <span class="ident">width</span> <span class="op">+</span> <span class="ident">i</span>
+}
+
+<span class="doccomment">/// Like optimal string alignment, but substrings can be edited an unlimited</span>
+<span class="doccomment">/// number of times, and the triangle inequality holds.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use strsim::generic_damerau_levenshtein;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(2, generic_damerau_levenshtein(&amp;[1,2], &amp;[2,3,1]));</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">generic_damerau_levenshtein</span><span class="op">&lt;</span><span class="ident">Elem</span><span class="op">&gt;</span>(<span class="ident">a_elems</span>: <span class="kw-2">&amp;</span>[<span class="ident">Elem</span>], <span class="ident">b_elems</span>: <span class="kw-2">&amp;</span>[<span class="ident">Elem</span>]) -&gt; <span class="ident">usize</span>
+    <span class="kw">where</span> <span class="ident">Elem</span>: <span class="ident">Eq</span> <span class="op">+</span> <span class="ident">Hash</span> <span class="op">+</span> <span class="ident">Clone</span> {
+    <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a_elems</span>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b_elems</span>.<span class="ident">len</span>();
+
+    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
+    <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
+
+    <span class="kw">let</span> <span class="ident">width</span> <span class="op">=</span> <span class="ident">a_len</span> <span class="op">+</span> <span class="number">2</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distances</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="number">0</span>; (<span class="ident">a_len</span> <span class="op">+</span> <span class="number">2</span>) <span class="op">*</span> (<span class="ident">b_len</span> <span class="op">+</span> <span class="number">2</span>)];
+    <span class="kw">let</span> <span class="ident">max_distance</span> <span class="op">=</span> <span class="ident">a_len</span> <span class="op">+</span> <span class="ident">b_len</span>;
+    <span class="ident">distances</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">max_distance</span>;
+
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">a_len</span> <span class="op">+</span> <span class="number">1</span>) {
+        <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>, <span class="number">0</span>, <span class="ident">width</span>)] <span class="op">=</span> <span class="ident">max_distance</span>;
+        <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>, <span class="number">1</span>, <span class="ident">width</span>)] <span class="op">=</span> <span class="ident">i</span>;
+    }
+
+    <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>) {
+        <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="number">0</span>, <span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">width</span>)] <span class="op">=</span> <span class="ident">max_distance</span>;
+        <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="number">1</span>, <span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">width</span>)] <span class="op">=</span> <span class="ident">j</span>;
+    }
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elems</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">Elem</span>, <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::with_capacity</span>(<span class="number">64</span>);
+
+    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..(<span class="ident">a_len</span> <span class="op">+</span> <span class="number">1</span>) {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">db</span> <span class="op">=</span> <span class="number">0</span>;
+
+        <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">1</span>..(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>) {
+            <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">elems</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">b_elems</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>]) {
+                <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>) =&gt; <span class="ident">value</span>,
+                <span class="prelude-val">None</span> =&gt; <span class="number">0</span>
+            };
+
+            <span class="kw">let</span> <span class="ident">insertion_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">i</span>, <span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">width</span>)] <span class="op">+</span> <span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">deletion_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">j</span>, <span class="ident">width</span>)] <span class="op">+</span> <span class="number">1</span>;
+            <span class="kw">let</span> <span class="ident">transposition_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">k</span>, <span class="ident">db</span>, <span class="ident">width</span>)] <span class="op">+</span>
+                (<span class="ident">i</span> <span class="op">-</span> <span class="ident">k</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span> <span class="op">+</span> (<span class="ident">j</span> <span class="op">-</span> <span class="ident">db</span> <span class="op">-</span> <span class="number">1</span>);
+
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">substitution_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">i</span>, <span class="ident">j</span>, <span class="ident">width</span>)] <span class="op">+</span> <span class="number">1</span>;
+            <span class="kw">if</span> <span class="ident">a_elems</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="ident">b_elems</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>] {
+                <span class="ident">db</span> <span class="op">=</span> <span class="ident">j</span>;
+                <span class="ident">substitution_cost</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+            }
+
+            <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">width</span>)] <span class="op">=</span> <span class="ident">min</span>(<span class="ident">substitution_cost</span>,
+                <span class="ident">min</span>(<span class="ident">insertion_cost</span>, <span class="ident">min</span>(<span class="ident">deletion_cost</span>, <span class="ident">transposition_cost</span>)));
+        }
+
+        <span class="ident">elems</span>.<span class="ident">insert</span>(<span class="ident">a_elems</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>].<span class="ident">clone</span>(), <span class="ident">i</span>);
+    }
+
+    <span class="ident">distances</span>[<span class="ident">flat_index</span>(<span class="ident">a_len</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>, <span class="ident">width</span>)]
+}
+
 <span class="doccomment">/// Like optimal string alignment, but substrings can be edited an unlimited</span>
 <span class="doccomment">/// number of times, and the triangle inequality holds.</span>
 <span class="doccomment">///</span>
@@ -1045,65 +1399,8 @@
 <span class="doccomment">/// assert_eq!(2, damerau_levenshtein(&quot;ab&quot;, &quot;bca&quot;));</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">damerau_levenshtein</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
-    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> { <span class="kw">return</span> <span class="number">0</span>; }
-
-    <span class="kw">let</span> <span class="ident">a_chars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">collect</span>();
-    <span class="kw">let</span> <span class="ident">b_chars</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">char</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">collect</span>();
-    <span class="kw">let</span> <span class="ident">a_len</span> <span class="op">=</span> <span class="ident">a_chars</span>.<span class="ident">len</span>();
-    <span class="kw">let</span> <span class="ident">b_len</span> <span class="op">=</span> <span class="ident">b_chars</span>.<span class="ident">len</span>();
-
-    <span class="kw">if</span> <span class="ident">a_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">b_len</span>; }
-    <span class="kw">if</span> <span class="ident">b_len</span> <span class="op">==</span> <span class="number">0</span> { <span class="kw">return</span> <span class="ident">a_len</span>; }
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">distances</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="macro">vec!</span>[<span class="number">0</span>; <span class="ident">b_len</span> <span class="op">+</span> <span class="number">2</span>]; <span class="ident">a_len</span> <span class="op">+</span> <span class="number">2</span>];
-    <span class="kw">let</span> <span class="ident">max_distance</span> <span class="op">=</span> <span class="ident">a_len</span> <span class="op">+</span> <span class="ident">b_len</span>;
-    <span class="ident">distances</span>[<span class="number">0</span>][<span class="number">0</span>] <span class="op">=</span> <span class="ident">max_distance</span>;
-
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">a_len</span> <span class="op">+</span> <span class="number">1</span>) {
-        <span class="ident">distances</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>][<span class="number">0</span>] <span class="op">=</span> <span class="ident">max_distance</span>;
-        <span class="ident">distances</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>][<span class="number">1</span>] <span class="op">=</span> <span class="ident">i</span>;
-    }
-
-    <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">0</span>..(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>) {
-        <span class="ident">distances</span>[<span class="number">0</span>][<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span> <span class="ident">max_distance</span>;
-        <span class="ident">distances</span>[<span class="number">1</span>][<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span> <span class="ident">j</span>;
-    }
-
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span>: <span class="ident">HashMap</span><span class="op">&lt;</span><span class="ident">char</span>, <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
-
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..(<span class="ident">a_len</span> <span class="op">+</span> <span class="number">1</span>) {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">db</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="kw">for</span> <span class="ident">j</span> <span class="kw">in</span> <span class="number">1</span>..(<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>) {
-            <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">b_chars</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>]) {
-                <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">clone</span>(),
-                <span class="prelude-val">None</span> =&gt; <span class="number">0</span>
-            };
-
-            <span class="kw">let</span> <span class="ident">l</span> <span class="op">=</span> <span class="ident">db</span>;
-
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cost</span> <span class="op">=</span> <span class="number">1</span>;
-            <span class="kw">if</span> <span class="ident">a_chars</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>] <span class="op">==</span> <span class="ident">b_chars</span>[<span class="ident">j</span> <span class="op">-</span> <span class="number">1</span>] {
-                <span class="ident">cost</span> <span class="op">=</span> <span class="number">0</span>;
-                <span class="ident">db</span> <span class="op">=</span> <span class="ident">j</span>;
-            }
-
-            <span class="kw">let</span> <span class="ident">substitution_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">i</span>][<span class="ident">j</span>] <span class="op">+</span> <span class="ident">cost</span>;
-            <span class="kw">let</span> <span class="ident">insertion_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">i</span>][<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">+</span> <span class="number">1</span>;
-            <span class="kw">let</span> <span class="ident">deletion_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>][<span class="ident">j</span>] <span class="op">+</span> <span class="number">1</span>;
-            <span class="kw">let</span> <span class="ident">transposition_cost</span> <span class="op">=</span> <span class="ident">distances</span>[<span class="ident">k</span>][<span class="ident">l</span>] <span class="op">+</span> (<span class="ident">i</span> <span class="op">-</span> <span class="ident">k</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">+</span> <span class="number">1</span> <span class="op">+</span>
-                                     (<span class="ident">j</span> <span class="op">-</span> <span class="ident">l</span> <span class="op">-</span> <span class="number">1</span>);
-
-            <span class="ident">distances</span>[<span class="ident">i</span> <span class="op">+</span> <span class="number">1</span>][<span class="ident">j</span> <span class="op">+</span> <span class="number">1</span>] <span class="op">=</span> <span class="ident">min</span>(<span class="ident">substitution_cost</span>,
-                                      <span class="ident">min</span>(<span class="ident">insertion_cost</span>,
-                                      <span class="ident">min</span>(<span class="ident">deletion_cost</span>,
-                                          <span class="ident">transposition_cost</span>)));
-        }
-
-        <span class="ident">chars</span>.<span class="ident">insert</span>(<span class="ident">a_chars</span>[<span class="ident">i</span> <span class="op">-</span> <span class="number">1</span>], <span class="ident">i</span>);
-    }
-
-    <span class="ident">distances</span>[<span class="ident">a_len</span> <span class="op">+</span> <span class="number">1</span>][<span class="ident">b_len</span> <span class="op">+</span> <span class="number">1</span>]
+    <span class="kw">let</span> (<span class="ident">x</span>, <span class="ident">y</span>): (<span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span>) <span class="op">=</span> (<span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">collect</span>(), <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">collect</span>());
+    <span class="ident">generic_damerau_levenshtein</span>(<span class="ident">x</span>.<span class="ident">as_slice</span>(), <span class="ident">y</span>.<span class="ident">as_slice</span>())
 }
 
 <span class="doccomment">/// Calculates a normalized score of the Damerau–Levenshtein algorithm between</span>
@@ -1125,61 +1422,133 @@
     <span class="number">1.0</span> <span class="op">-</span> (<span class="ident">damerau_levenshtein</span>(<span class="ident">a</span>, <span class="ident">b</span>) <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">/</span> (<span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">count</span>().<span class="ident">max</span>(<span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">count</span>()) <span class="kw">as</span> <span class="ident">f64</span>)
 }
 
+<span class="doccomment">/// Returns an Iterator of char tuples.</span>
+<span class="kw">fn</span> <span class="ident">bigrams</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span><span class="op">=</span>(<span class="ident">char</span>, <span class="ident">char</span>)<span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span> {
+    <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">zip</span>(<span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">skip</span>(<span class="number">1</span>))
+}
+
+
+<span class="doccomment">/// Calculates a Sørensen-Dice similarity distance using bigrams.</span>
+<span class="doccomment">/// See http://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use strsim::sorensen_dice;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(1.0, sorensen_dice(&quot;&quot;, &quot;&quot;));</span>
+<span class="doccomment">/// assert_eq!(0.0, sorensen_dice(&quot;&quot;, &quot;a&quot;));</span>
+<span class="doccomment">/// assert_eq!(0.0, sorensen_dice(&quot;french&quot;, &quot;quebec&quot;));</span>
+<span class="doccomment">/// assert_eq!(1.0, sorensen_dice(&quot;ferris&quot;, &quot;ferris&quot;));</span>
+<span class="doccomment">/// assert_eq!(1.0, sorensen_dice(&quot;ferris&quot;, &quot;ferris&quot;));</span>
+<span class="doccomment">/// assert_eq!(0.8888888888888888, sorensen_dice(&quot;feris&quot;, &quot;ferris&quot;));</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">sorensen_dice</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">f64</span> {
+    <span class="comment">// implementation guided by</span>
+    <span class="comment">// https://github.com/aceakash/string-similarity/blob/f83ba3cd7bae874c20c429774e911ae8cff8bced/src/index.js#L6</span>
+
+    <span class="kw">let</span> <span class="ident">a</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">chars</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><span class="ident">char::is_whitespace</span>(<span class="ident">x</span>)).<span class="ident">collect</span>();
+    <span class="kw">let</span> <span class="ident">b</span>: <span class="ident">String</span> <span class="op">=</span> <span class="ident">b</span>.<span class="ident">chars</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="kw-2">&amp;</span><span class="ident">x</span><span class="op">|</span> <span class="op">!</span><span class="ident">char::is_whitespace</span>(<span class="ident">x</span>)).<span class="ident">collect</span>();
+
+    <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">return</span> <span class="number">1.0</span>;
+    }
+
+    <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">0</span> {
+        <span class="kw">return</span> <span class="number">0.0</span>;
+    }
+
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span> {
+        <span class="kw">return</span> <span class="number">1.0</span>;
+    }
+
+    <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> <span class="op">&amp;&amp;</span> <span class="ident">b</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="number">1</span> {
+        <span class="kw">return</span> <span class="number">0.0</span>;
+    }
+
+    <span class="kw">if</span> <span class="ident">a</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="number">2</span> {
+        <span class="kw">return</span> <span class="number">0.0</span>;
+    }
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a_bigrams</span>: <span class="ident">HashMap</span><span class="op">&lt;</span>(<span class="ident">char</span>, <span class="ident">char</span>), <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">HashMap::new</span>();
+
+    <span class="kw">for</span> <span class="ident">bigram</span> <span class="kw">in</span> <span class="ident">bigrams</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>) {
+        <span class="kw-2">*</span><span class="ident">a_bigrams</span>.<span class="ident">entry</span>(<span class="ident">bigram</span>).<span class="ident">or_insert</span>(<span class="number">0</span>) <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+    }
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">intersection_size</span> <span class="op">=</span> <span class="number">0</span>;
+
+    <span class="kw">for</span> <span class="ident">bigram</span> <span class="kw">in</span> <span class="ident">bigrams</span>(<span class="kw-2">&amp;</span><span class="ident">b</span>) {
+        <span class="ident">a_bigrams</span>.<span class="ident">entry</span>(<span class="ident">bigram</span>).<span class="ident">and_modify</span>(<span class="op">|</span><span class="ident">bi</span><span class="op">|</span> {
+            <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">bi</span> <span class="op">&gt;</span> <span class="number">0</span> {
+                <span class="kw-2">*</span><span class="ident">bi</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
+                <span class="ident">intersection_size</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+            }
+        });
+    }
+
+    (<span class="number">2</span> <span class="op">*</span> <span class="ident">intersection_size</span>) <span class="kw">as</span> <span class="ident">f64</span> <span class="op">/</span> (<span class="ident">a</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">b</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">2</span>) <span class="kw">as</span> <span class="ident">f64</span>
+}
+
+
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">bigrams_iterator</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bi</span> <span class="op">=</span> <span class="ident">bigrams</span>(<span class="string">&quot;abcde&quot;</span>);
+
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>((<span class="string">&#39;a&#39;</span>, <span class="string">&#39;b&#39;</span>)), <span class="ident">bi</span>.<span class="ident">next</span>());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>((<span class="string">&#39;b&#39;</span>, <span class="string">&#39;c&#39;</span>)), <span class="ident">bi</span>.<span class="ident">next</span>());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>((<span class="string">&#39;c&#39;</span>, <span class="string">&#39;d&#39;</span>)), <span class="ident">bi</span>.<span class="ident">next</span>());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Some</span>((<span class="string">&#39;d&#39;</span>, <span class="string">&#39;e&#39;</span>)), <span class="ident">bi</span>.<span class="ident">next</span>());
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">None</span>, <span class="ident">bi</span>.<span class="ident">next</span>());
+    }
+
+    <span class="kw">fn</span> <span class="ident">assert_hamming_dist</span>(<span class="ident">dist</span>: <span class="ident">usize</span>, <span class="ident">str1</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">str2</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="ident">dist</span>), <span class="ident">hamming</span>(<span class="ident">str1</span>, <span class="ident">str2</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_empty</span>() {
-        <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
-        }
+        <span class="ident">assert_hamming_dist</span>(<span class="number">0</span>, <span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_same</span>() {
-        <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hamming&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">0</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
-        }
+        <span class="ident">assert_hamming_dist</span>(<span class="number">0</span>, <span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hamming&quot;</span>)
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">hamming_numbers</span>() {
+        <span class="macro">assert_eq!</span>(<span class="prelude-val">Ok</span>(<span class="number">1</span>), <span class="ident">generic_hamming</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">4</span>], <span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>]));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_diff</span>() {
-        <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hammers&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">3</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
-        }
+        <span class="ident">assert_hamming_dist</span>(<span class="number">3</span>, <span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;hammers&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_diff_multibyte</span>() {
-        <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;h香mmüng&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">2</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
-        }
+        <span class="ident">assert_hamming_dist</span>(<span class="number">2</span>, <span class="string">&quot;hamming&quot;</span>, <span class="string">&quot;h香mmüng&quot;</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_unequal_length</span>() {
-        <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;ham&quot;</span>, <span class="string">&quot;hamming&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; { <span class="macro">panic!</span>(); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="ident">why</span>, <span class="ident">StrSimError::DifferentLengthArgs</span>); }
-        }
+        <span class="macro">assert_eq!</span>(
+            <span class="prelude-val">Err</span>(<span class="ident">StrSimError::DifferentLengthArgs</span>),
+            <span class="ident">generic_hamming</span>(<span class="string">&quot;ham&quot;</span>.<span class="ident">chars</span>(), <span class="string">&quot;hamming&quot;</span>.<span class="ident">chars</span>())
+        );
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">hamming_names</span>() {
-        <span class="kw">match</span> <span class="ident">hamming</span>(<span class="string">&quot;Friedrich Nietzs&quot;</span>, <span class="string">&quot;Jean-Paul Sartre&quot;</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">distance</span>) =&gt; { <span class="macro">assert_eq!</span>(<span class="number">14</span>, <span class="ident">distance</span>); },
-            <span class="prelude-val">Err</span>(<span class="ident">why</span>) =&gt; { <span class="macro">panic!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">why</span>); }
-        }
+        <span class="ident">assert_hamming_dist</span>(<span class="number">14</span>, <span class="string">&quot;Friedrich Nietzs&quot;</span>, <span class="string">&quot;Jean-Paul Sartre&quot;</span>)
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_both_empty</span>() {
-       <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1211,6 +1580,16 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_diff_one_character</span>() {
         <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">jaro_same_one_character</span>() {
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">generic_jaro_diff</span>() {
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">generic_jaro</span>(<span class="kw-2">&amp;</span>[<span class="number">1</span>, <span class="number">2</span>], <span class="kw-2">&amp;</span>[<span class="number">3</span>, <span class="number">4</span>]));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1262,9 +1641,9 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_multibyte</span>() {
         <span class="macro">assert!</span>((<span class="number">0.89</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;testabctest&quot;</span>, <span class="string">&quot;testöঙ香test&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
-                <span class="number">0.001</span>);
+            <span class="number">0.001</span>);
         <span class="macro">assert!</span>((<span class="number">0.89</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;testöঙ香test&quot;</span>, <span class="string">&quot;testabctest&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
-                <span class="number">0.001</span>);
+            <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1276,6 +1655,11 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_diff_one_character</span>() {
         <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>));
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">jaro_winkler_same_one_character</span>() {
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">jaro_winkler</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>));
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1297,7 +1681,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">jaro_winkler_long_prefix</span>() {
         <span class="macro">assert!</span>((<span class="number">0.911</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;cheeseburger&quot;</span>, <span class="string">&quot;cheese fries&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
-                <span class="number">0.001</span>);
+            <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1314,7 +1698,7 @@
     <span class="kw">fn</span> <span class="ident">jaro_winkler_very_long_prefix</span>() {
         <span class="macro">assert!</span>((<span class="number">1.0</span> <span class="op">-</span> <span class="ident">jaro_winkler</span>(<span class="string">&quot;thequickbrownfoxjumpedoverx&quot;</span>,
                                     <span class="string">&quot;thequickbrownfoxjumpedovery&quot;</span>)).<span class="ident">abs</span>() <span class="op">&lt;</span>
-                <span class="number">0.001</span>);
+            <span class="number">0.001</span>);
     }
 
     <span class="attribute">#[<span class="ident">test</span>]</span>
@@ -1574,6 +1958,60 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">normalized_damerau_levenshtein_identical_strings</span>() {
         <span class="macro">assert!</span>((<span class="ident">normalized_damerau_levenshtein</span>(<span class="string">&quot;sunglasses&quot;</span>, <span class="string">&quot;sunglasses&quot;</span>) <span class="op">-</span> <span class="number">1.0</span>).<span class="ident">abs</span>() <span class="op">&lt;</span> <span class="number">0.00001</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">sorensen_dice_all</span>() {
+        <span class="comment">// test cases taken from</span>
+        <span class="comment">// https://github.com/aceakash/string-similarity/blob/f83ba3cd7bae874c20c429774e911ae8cff8bced/src/spec/index.spec.js#L11</span>
+
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;a&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;b&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;a&quot;</span>, <span class="string">&quot;&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;&quot;</span>, <span class="string">&quot;a&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;apple event&quot;</span>, <span class="string">&quot;apple    event&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.9090909090909091</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;iphone&quot;</span>, <span class="string">&quot;iphone x&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;french&quot;</span>, <span class="string">&quot;quebec&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">1.0</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;france&quot;</span>, <span class="string">&quot;france&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.2</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;fRaNce&quot;</span>, <span class="string">&quot;france&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="number">0.8</span>, <span class="ident">sorensen_dice</span>(<span class="string">&quot;healed&quot;</span>, <span class="string">&quot;sealed&quot;</span>));
+        <span class="macro">assert_eq!</span>(
+            <span class="number">0.7878787878787878</span>,
+            <span class="ident">sorensen_dice</span>(<span class="string">&quot;web applications&quot;</span>, <span class="string">&quot;applications of the web&quot;</span>)
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="number">0.92</span>,
+            <span class="ident">sorensen_dice</span>(
+                <span class="string">&quot;this will have a typo somewhere&quot;</span>,
+                <span class="string">&quot;this will huve a typo somewhere&quot;</span>
+            )
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="number">0.6060606060606061</span>,
+            <span class="ident">sorensen_dice</span>(
+                <span class="string">&quot;Olive-green table for sale, in extremely good condition.&quot;</span>,
+                <span class="string">&quot;For sale: table in very good  condition, olive green in colour.&quot;</span>
+            )
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="number">0.2558139534883721</span>,
+            <span class="ident">sorensen_dice</span>(
+                <span class="string">&quot;Olive-green table for sale, in extremely good condition.&quot;</span>,
+                <span class="string">&quot;For sale: green Subaru Impreza, 210,000 miles&quot;</span>
+            )
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="number">0.1411764705882353</span>,
+            <span class="ident">sorensen_dice</span>(
+                <span class="string">&quot;Olive-green table for sale, in extremely good condition.&quot;</span>,
+                <span class="string">&quot;Wanted: mountain bike with at least 21 gears.&quot;</span>
+            )
+        );
+        <span class="macro">assert_eq!</span>(
+            <span class="number">0.7741935483870968</span>,
+            <span class="ident">sorensen_dice</span>(<span class="string">&quot;this has one extra word&quot;</span>, <span class="string">&quot;this has one word&quot;</span>)
+        );
     }
 }
 </code></pre></div>

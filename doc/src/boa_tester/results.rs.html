@@ -506,6 +506,17 @@
 <span id="498">498</span>
 <span id="499">499</span>
 <span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SuiteResult</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -754,7 +765,18 @@
     <span class="kw">let</span> <span class="ident">test_diff</span> <span class="op">=</span> <span class="ident">compute_result_diff</span>(<span class="ident">Path::new</span>(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">base_results</span>.<span class="ident">results</span>, <span class="kw-2">&amp;</span><span class="ident">new_results</span>.<span class="ident">results</span>);
 
     <span class="kw">if</span> <span class="ident">markdown</span> {
-        <span class="kw">use</span> <span class="ident">num_format</span>::{<span class="ident">Locale</span>, <span class="ident">ToFormattedString</span>};
+        <span class="doccomment">/// Simple function to add commas as thousands separator for integers.</span>
+        <span class="kw">fn</span> <span class="ident">pretty_int</span>(<span class="ident">i</span>: <span class="ident">isize</span>) -&gt; <span class="ident">String</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">res</span> <span class="op">=</span> <span class="ident">String::new</span>();
+
+            <span class="kw">for</span> (<span class="ident">idx</span>, <span class="ident">val</span>) <span class="kw">in</span> <span class="ident">i</span>.<span class="ident">to_string</span>().<span class="ident">chars</span>().<span class="ident">rev</span>().<span class="ident">enumerate</span>() {
+                <span class="kw">if</span> <span class="ident">idx</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">idx</span> <span class="op">%</span> <span class="number">3</span> <span class="op">==</span> <span class="number">0</span> {
+                    <span class="ident">res</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="string">&#39;,&#39;</span>);
+                }
+                <span class="ident">res</span>.<span class="ident">insert</span>(<span class="number">0</span>, <span class="ident">val</span>);
+            }
+            <span class="ident">res</span>
+        }
 
         <span class="doccomment">/// Generates a proper diff format, with some bold text if things change.</span>
         <span class="kw">fn</span> <span class="ident">diff_format</span>(<span class="ident">diff</span>: <span class="ident">isize</span>) -&gt; <span class="ident">String</span> {
@@ -762,7 +784,7 @@
                 <span class="string">&quot;{}{}{}{}&quot;</span>,
                 <span class="kw">if</span> <span class="ident">diff</span> <span class="op">==</span> <span class="number">0</span> { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;**&quot;</span> },
                 <span class="kw">if</span> <span class="ident">diff</span> <span class="op">&gt;</span> <span class="number">0</span> { <span class="string">&quot;+&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;&quot;</span> },
-                <span class="ident">diff</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
+                <span class="ident">pretty_int</span>(<span class="ident">diff</span>),
                 <span class="kw">if</span> <span class="ident">diff</span> <span class="op">==</span> <span class="number">0</span> { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;**&quot;</span> }
             )
         }
@@ -773,32 +795,32 @@
         <span class="macro">println!</span>(<span class="string">&quot;| :---------: | :----------: | :------: | :--------: |&quot;</span>);
         <span class="macro">println!</span>(
             <span class="string">&quot;| Total | {} | {} | {} |&quot;</span>,
-            <span class="ident">base_total</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
-            <span class="ident">new_total</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">base_total</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">new_total</span>),
             <span class="ident">diff_format</span>(<span class="ident">total_diff</span>),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Passed | {} | {} | {} |&quot;</span>,
-            <span class="ident">base_passed</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
-            <span class="ident">new_passed</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">base_passed</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">new_passed</span>),
             <span class="ident">diff_format</span>(<span class="ident">passed_diff</span>),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Ignored | {} | {} | {} |&quot;</span>,
-            <span class="ident">base_ignored</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
-            <span class="ident">new_ignored</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">base_ignored</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">new_ignored</span>),
             <span class="ident">diff_format</span>(<span class="ident">ignored_diff</span>),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Failed | {} | {} | {} |&quot;</span>,
-            <span class="ident">base_failed</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
-            <span class="ident">new_failed</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">base_failed</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">new_failed</span>),
             <span class="ident">diff_format</span>(<span class="ident">failed_diff</span>),
         );
         <span class="macro">println!</span>(
             <span class="string">&quot;| Panics | {} | {} | {} |&quot;</span>,
-            <span class="ident">base_panics</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
-            <span class="ident">new_panics</span>.<span class="ident">to_formatted_string</span>(<span class="kw-2">&amp;</span><span class="ident">Locale::en</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">base_panics</span>),
+            <span class="ident">pretty_int</span>(<span class="ident">new_panics</span>),
             <span class="ident">diff_format</span>(<span class="ident">panic_diff</span>),
         );
         <span class="macro">println!</span>(
