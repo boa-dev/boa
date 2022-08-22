@@ -130,7 +130,11 @@ fn init_builtin<B: BuiltIn>(context: &mut Context) {
             .build();
         context
             .global_bindings_mut()
-            .insert(B::NAME.into(), property);
+            .insert(B::NAME.into(), property.clone());
+        context
+            .global_object()
+            .borrow_mut()
+            .insert(B::NAME, property);
     }
 }
 
