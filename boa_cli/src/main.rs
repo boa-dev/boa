@@ -83,7 +83,7 @@ const READLINE_COLOR: Color = Color::Cyan;
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
 #[allow(clippy::option_option)]
 #[derive(Debug, Parser)]
-#[clap(author, about, name = "boa")]
+#[clap(author, version, about, name = "boa")]
 struct Opt {
     /// The JavaScript file(s) to be evaluated.
     #[clap(name = "FILE", parse(from_os_str))]
