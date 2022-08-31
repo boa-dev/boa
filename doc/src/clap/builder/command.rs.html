@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.17/src/builder/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.19/src/builder/command.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>command.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
@@ -5170,6 +5170,31 @@
 <span id="5162">5162</span>
 <span id="5163">5163</span>
 <span id="5164">5164</span>
+<span id="5165">5165</span>
+<span id="5166">5166</span>
+<span id="5167">5167</span>
+<span id="5168">5168</span>
+<span id="5169">5169</span>
+<span id="5170">5170</span>
+<span id="5171">5171</span>
+<span id="5172">5172</span>
+<span id="5173">5173</span>
+<span id="5174">5174</span>
+<span id="5175">5175</span>
+<span id="5176">5176</span>
+<span id="5177">5177</span>
+<span id="5178">5178</span>
+<span id="5179">5179</span>
+<span id="5180">5180</span>
+<span id="5181">5181</span>
+<span id="5182">5182</span>
+<span id="5183">5183</span>
+<span id="5184">5184</span>
+<span id="5185">5185</span>
+<span id="5186">5186</span>
+<span id="5187">5187</span>
+<span id="5188">5188</span>
+<span id="5189">5189</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 
 <span class="comment">// Std</span>
@@ -5916,7 +5941,7 @@
     <span class="doccomment">/// [`io::stdout()`]: std::io::stdout()</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_help</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">_build_self</span>();
-        <span class="kw">let</span> <span class="ident">color</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_color</span>();
+        <span class="kw">let</span> <span class="ident">color</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">color_help</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="ident">Stream::Stdout</span>, <span class="ident">color</span>);
         <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">Usage::new</span>(<span class="self">self</span>);
@@ -5941,7 +5966,7 @@
     <span class="doccomment">/// [`--help` (long)]: Arg::long_help()</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">print_long_help</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">_build_self</span>();
-        <span class="kw">let</span> <span class="ident">color</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_color</span>();
+        <span class="kw">let</span> <span class="ident">color</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">color_help</span>();
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">Colorizer::new</span>(<span class="ident">Stream::Stdout</span>, <span class="ident">color</span>);
         <span class="kw">let</span> <span class="ident">usage</span> <span class="op">=</span> <span class="ident">Usage::new</span>(<span class="self">self</span>);
@@ -6820,6 +6845,14 @@
     <span class="doccomment">/// strings. After this setting is set, this will be *the only* usage string</span>
     <span class="doccomment">/// displayed to the user!</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// **NOTE:** Multiple usage lines may be present in the usage argument, but</span>
+    <span class="doccomment">/// some rules need to be followed to ensure the usage lines are formatted</span>
+    <span class="doccomment">/// correctly by the default help formatter:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// - Do not indent the first usage line.</span>
+    <span class="doccomment">/// - Indent all subsequent usage lines with four spaces.</span>
+    <span class="doccomment">/// - The last line must not end with a newline.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```no_run</span>
@@ -6828,6 +6861,20 @@
     <span class="doccomment">///     .override_usage(&quot;myapp [-clDas] &lt;some_file&gt;&quot;)</span>
     <span class="doccomment">/// # ;</span>
     <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Or for multiple usage lines:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```no_run</span>
+    <span class="doccomment">/// # use clap::{Command, Arg};</span>
+    <span class="doccomment">/// Command::new(&quot;myprog&quot;)</span>
+    <span class="doccomment">///     .override_usage(</span>
+    <span class="doccomment">///         &quot;myapp -X [-a] [-b] &lt;file&gt;\n    \</span>
+    <span class="doccomment">///          myapp -Y [-c] &lt;file1&gt; &lt;file2&gt;\n    \</span>
+    <span class="doccomment">///          myapp -Z [-d|-e]&quot;</span>
+    <span class="doccomment">///     )</span>
+    <span class="doccomment">/// # ;</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// [`ArgMatches::usage`]: ArgMatches::usage()</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">override_usage</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">usage</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
@@ -9486,7 +9533,8 @@
         <span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mid_string</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot; &quot;</span>);
-        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_subcommand_negates_reqs_set</span>() {
+        <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_subcommand_negates_reqs_set</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_args_conflicts_with_subcommands_set</span>()
+        {
             <span class="kw">let</span> <span class="ident">reqs</span> <span class="op">=</span> <span class="ident">Usage::new</span>(<span class="self">self</span>).<span class="ident">get_required_usage_from</span>(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, <span class="bool-val">true</span>); <span class="comment">// maybe Some(m)</span>
 
             <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">reqs</span> {
@@ -9569,7 +9617,9 @@
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_set</span>(<span class="ident">AppSettings::BinNameBuilt</span>) {
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">mid_string</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot; &quot;</span>);
-            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_subcommand_negates_reqs_set</span>() {
+            <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_subcommand_negates_reqs_set</span>()
+                <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_args_conflicts_with_subcommands_set</span>()
+            {
                 <span class="kw">let</span> <span class="ident">reqs</span> <span class="op">=</span> <span class="ident">Usage::new</span>(<span class="self">self</span>).<span class="ident">get_required_usage_from</span>(<span class="kw-2">&amp;</span>[], <span class="prelude-val">None</span>, <span class="bool-val">true</span>); <span class="comment">// maybe Some(m)</span>
 
                 <span class="kw">for</span> <span class="ident">s</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">reqs</span> {
