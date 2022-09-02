@@ -138,16 +138,16 @@ pub enum ArgAction {
 <span class="macro">assert!</span>(<span class="ident">matches</span>.<span class="ident">contains_id</span>(<span class="string">&quot;flag&quot;</span>));
 <span class="macro">assert_eq!</span>(<span class="ident">matches</span>.<span class="ident">occurrences_of</span>(<span class="string">&quot;flag&quot;</span>), <span class="number">0</span>);
 <span class="macro">assert_eq!</span>(
-    <span class="ident">matches</span>.<span class="ident">get_one</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="string">&quot;flag&quot;</span>).<span class="ident">copied</span>(),
-    <span class="prelude-val">Some</span>(<span class="number">2</span>)
+    <span class="ident">matches</span>.<span class="ident">get_count</span>(<span class="string">&quot;flag&quot;</span>),
+    <span class="number">2</span>
 );
 
 <span class="kw">let</span> <span class="ident">matches</span> <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">try_get_matches_from</span>([<span class="string">&quot;mycmd&quot;</span>]).<span class="ident">unwrap</span>();
 <span class="macro">assert!</span>(<span class="ident">matches</span>.<span class="ident">contains_id</span>(<span class="string">&quot;flag&quot;</span>));
 <span class="macro">assert_eq!</span>(<span class="ident">matches</span>.<span class="ident">occurrences_of</span>(<span class="string">&quot;flag&quot;</span>), <span class="number">0</span>);
 <span class="macro">assert_eq!</span>(
-    <span class="ident">matches</span>.<span class="ident">get_one</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="string">&quot;flag&quot;</span>).<span class="ident">copied</span>(),
-    <span class="prelude-val">Some</span>(<span class="number">0</span>)
+    <span class="ident">matches</span>.<span class="ident">get_count</span>(<span class="string">&quot;flag&quot;</span>),
+    <span class="number">0</span>
 );</code></pre></div>
 </div><h3 id="variant.Help" class="variant small-section-header"><a href="#variant.Help" class="anchor field"></a><code>Help</code></h3><div class="docblock"><p>When encountered, display <a href="builder/struct.App.html#method.print_help" title="super::App::print_help"><code>Command::print_help</code></a></p>
 <p>Depending on the flag, <a href="builder/struct.App.html#method.print_long_help" title="super::App::print_long_help"><code>Command::print_long_help</code></a> may be shown</p>

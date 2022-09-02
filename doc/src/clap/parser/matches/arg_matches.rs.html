@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.19/src/parser/matches/arg_matches.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.20/src/parser/matches/arg_matches.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg_matches.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../../storage.js"></script><script defer src="../../../../source-script.js"></script><script defer src="../../../../source-files.js"></script><script defer src="../../../../main.js"></script><noscript><link rel="stylesheet" href="../../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../../clap/index.html"><div class="logo-container">
@@ -1839,6 +1839,69 @@
 <span id="1831">1831</span>
 <span id="1832">1832</span>
 <span id="1833">1833</span>
+<span id="1834">1834</span>
+<span id="1835">1835</span>
+<span id="1836">1836</span>
+<span id="1837">1837</span>
+<span id="1838">1838</span>
+<span id="1839">1839</span>
+<span id="1840">1840</span>
+<span id="1841">1841</span>
+<span id="1842">1842</span>
+<span id="1843">1843</span>
+<span id="1844">1844</span>
+<span id="1845">1845</span>
+<span id="1846">1846</span>
+<span id="1847">1847</span>
+<span id="1848">1848</span>
+<span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
 </pre><pre class="rust"><code><span class="comment">// Std</span>
 <span class="kw">use</span> <span class="ident">std::any::Any</span>;
 <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
@@ -1958,6 +2021,69 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_one</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Any</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">internal_id</span> <span class="op">=</span> <span class="ident">Id::from</span>(<span class="ident">id</span>);
         <span class="ident">MatchesError::unwrap</span>(<span class="kw-2">&amp;</span><span class="ident">internal_id</span>, <span class="self">self</span>.<span class="ident">try_get_one</span>(<span class="ident">id</span>))
+    }
+
+    <span class="doccomment">/// Gets the value of a specific [`ArgAction::Count`][crate::ArgAction::Count] flag</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panic</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the argument&#39;s action is not [`ArgAction::Count`][crate::ArgAction::Count]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # use clap::Command;</span>
+    <span class="doccomment">/// # use clap::Arg;</span>
+    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
+    <span class="doccomment">///     .arg(</span>
+    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .action(clap::ArgAction::Count)</span>
+    <span class="doccomment">///     );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     matches.get_count(&quot;flag&quot;),</span>
+    <span class="doccomment">///     2</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_count</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">u8</span> {
+        <span class="kw-2">*</span><span class="self">self</span>
+            .<span class="ident">get_one</span>::<span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>(<span class="ident">id</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;ArgAction::Count is defaulted&quot;</span>)
+    }
+
+    <span class="doccomment">/// Gets the value of a specific [`ArgAction::SetTrue`][crate::ArgAction::SetTrue] or [`ArgAction::SetFalse`][crate::ArgAction::SetFalse] flag</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panic</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the argument&#39;s action is not [`ArgAction::SetTrue`][crate::ArgAction::SetTrue] or [`ArgAction::SetFalse`][crate::ArgAction::SetFalse]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # use clap::Command;</span>
+    <span class="doccomment">/// # use clap::Arg;</span>
+    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
+    <span class="doccomment">///     .arg(</span>
+    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .action(clap::ArgAction::SetTrue)</span>
+    <span class="doccomment">///     );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
+    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     matches.get_flag(&quot;flag&quot;),</span>
+    <span class="doccomment">///     true</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_flag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw-2">*</span><span class="self">self</span>
+            .<span class="ident">get_one</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>(<span class="ident">id</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;ArgAction::SetTrue / ArgAction::SetFalse is defaulted&quot;</span>)
     }
 
     <span class="doccomment">/// Iterate over values of a specific option or positional argument.</span>
