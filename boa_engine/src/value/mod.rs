@@ -549,7 +549,7 @@ impl JsValue {
             // Fast path:
             Self::String(string) => string.clone().into(),
             Self::Symbol(symbol) => symbol.clone().into(),
-            Self::Integer(num) => num.clone().into(),
+            Self::Integer(integer) => (*integer).into(),
             // Slow path:
             _ => match self.to_primitive(context, PreferredType::String)? {
                 Self::String(ref string) => string.clone().into(),
