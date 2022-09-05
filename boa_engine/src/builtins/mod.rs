@@ -32,6 +32,7 @@ pub mod string;
 pub mod symbol;
 pub mod typed_array;
 pub mod undefined;
+pub mod uri;
 
 #[cfg(feature = "console")]
 pub mod console;

@@ -40,7 +40,15 @@ pub(crate) enum Placement {
     End,
 }
 
-pub(crate) fn code_point_at(string: &JsString, position: u64) -> (u32, u8, bool) {
+/// Code point information for the `code_point_at()` function.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CodePointInfo {
+    pub(crate) code_point: u32,
+    pub(crate) code_unit_count: u8,
+    pub(crate) is_unpaired_surrogate: bool,
+}
+
+pub(crate) fn code_point_at(string: &JsString, position: u64) -> CodePointInfo {
     let mut encoded = string.encode_utf16();
     let size = encoded.clone().count() as u64;
 
@@ -48,21 +56,37 @@ pub(crate) fn code_point_at(string: &JsString, position: u64) -> (u32, u8, bool)
         .nth(position as usize)
         .expect("The callers of this function must've already checked bounds.");
     if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
-        return (u32::from(first), 1, false);
+        return CodePointInfo {
+            code_point: u32::from(first),
+            code_unit_count: 1,
+            is_unpaired_surrogate: false,
+        };
     }
 
     if is_trailing_surrogate(first) || position + 1 == size {
-        return (u32::from(first), 1, true);
+        return CodePointInfo {
+            code_point: u32::from(first),
+            code_unit_count: 1,
+            is_unpaired_surrogate: true,
+        };
     }
 
     let second = encoded
         .next()
         .expect("The callers of this function must've already checked bounds.");
     if !is_trailing_surrogate(second) {
-        return (u32::from(first), 1, true);
+        return CodePointInfo {
+            code_point: u32::from(first),
+            code_unit_count: 1,
+            is_unpaired_surrogate: true,
+        };
     }
     let cp = (u32::from(first) - 0xD800) * 0x400 + (u32::from(second) - 0xDC00) + 0x10000;
-    (cp, 2, false)
+    CodePointInfo {
+        code_point: cp,
+        code_unit_count: 2,
+        is_unpaired_surrogate: false,
+    }
 }
 
 /// Helper function to check if a `char` is trimmable.
@@ -544,7 +568,7 @@ impl String {
             IntegerOrInfinity::Integer(position) if (0..size).contains(&position) => {
                 // 6. Let cp be ! CodePointAt(S, position).
                 // 7. Return 𝔽(cp.[[CodePoint]]).
-                Ok(code_point_at(&string, position as u64).0.into())
+                Ok(code_point_at(&string, position as u64).code_point.into())
             }
             // 5. If position < 0 or position ≥ size, return undefined.
             _ => Ok(JsValue::undefined()),
