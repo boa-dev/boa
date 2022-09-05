@@ -110,7 +110,8 @@ pub(super) const URI_RESERVED_HASH: [u16; 11] = [
 ///  - [`uriReserved` in ECMAScript spec][uri_reserved]
 ///  - [`uriUnescaped` in ECMAScript spec][uri_unescaped]
 ///
-/// [uri_reserved]: https://tc39.es/ecma262/#prod-uriUnescaped
+/// [uri_reserved]: https://tc39.es/ecma262/#prod-uriReserved
+/// [uri_unescaped]: https://tc39.es/ecma262/#prod-uriUnescaped
 pub(super) const URI_RESERVED_UNESCAPED_HASH: [u16; 82] = [
     // uriAlpha
     b'a' as u16,
