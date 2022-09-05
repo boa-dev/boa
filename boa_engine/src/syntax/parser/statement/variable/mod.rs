@@ -8,10 +8,8 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::statement::{ArrayBindingPattern, ObjectBindingPattern},
     parser::{
-        cursor::Cursor,
-        expression::Initializer,
-        statement::BindingIdentifier,
-        AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
+        cursor::Cursor, expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn,
+        AllowYield, ParseError, TokenParser,
     },
 };
 use boa_interner::Interner;
