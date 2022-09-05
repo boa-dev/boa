@@ -8,10 +8,8 @@ use crate::syntax::{
     lexer::TokenKind,
     parser::statement::{ArrayBindingPattern, ObjectBindingPattern},
     parser::{
-        cursor::{Cursor, SemicolonResult},
-        expression::Initializer,
-        statement::BindingIdentifier,
-        AllowAwait, AllowIn, AllowYield, ParseError, TokenParser,
+        cursor::Cursor, expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn,
+        AllowYield, ParseError, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -125,13 +123,8 @@ where
                     .parse(cursor, interner)?,
             );
 
-            match cursor.peek_semicolon(interner)? {
-                SemicolonResult::NotFound(tk)
-                    if tk.kind() == &TokenKind::Punctuator(Punctuator::Comma) =>
-                {
-                    let _next = cursor.next(interner).expect("token disappeared");
-                }
-                _ => break,
+            if cursor.next_if(Punctuator::Comma, interner)?.is_none() {
+                break;
             }
         }
 
