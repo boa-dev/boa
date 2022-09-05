@@ -10,101 +10,21 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-number-object
 
+mod consts;
+
 use super::BuiltIn;
 use crate::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsResult, JsString,
     JsValue,
 };
-
-/// Constant with all the unescaped URI characters.
-///
-/// Contains `uriAlpha`, `DecimalDigit` and `uriMark`
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: hhttps://tc39.es/ecma262/#prod-uriUnescaped
-const URI_UNESCAPED: [u16; 69] = [
-    // uriAlpha
-    b'a' as u16,
-    b'b' as u16,
-    b'c' as u16,
-    b'd' as u16,
-    b'e' as u16,
-    b'f' as u16,
-    b'g' as u16,
-    b'h' as u16,
-    b'i' as u16,
-    b'j' as u16,
-    b'k' as u16,
-    b'l' as u16,
-    b'm' as u16,
-    b'n' as u16,
-    b'o' as u16,
-    b'p' as u16,
-    b'q' as u16,
-    b'r' as u16,
-    b's' as u16,
-    b't' as u16,
-    b'u' as u16,
-    b'v' as u16,
-    b'w' as u16,
-    b'x' as u16,
-    b'y' as u16,
-    b'z' as u16,
-    b'A' as u16,
-    b'B' as u16,
-    b'C' as u16,
-    b'D' as u16,
-    b'E' as u16,
-    b'F' as u16,
-    b'G' as u16,
-    b'H' as u16,
-    b'I' as u16,
-    b'J' as u16,
-    b'K' as u16,
-    b'L' as u16,
-    b'M' as u16,
-    b'N' as u16,
-    b'O' as u16,
-    b'P' as u16,
-    b'Q' as u16,
-    b'R' as u16,
-    b'S' as u16,
-    b'T' as u16,
-    b'U' as u16,
-    b'V' as u16,
-    b'W' as u16,
-    b'X' as u16,
-    b'Y' as u16,
-    // DecimalDigit
-    b'0' as u16,
-    b'1' as u16,
-    b'2' as u16,
-    b'3' as u16,
-    b'4' as u16,
-    b'5' as u16,
-    b'6' as u16,
-    b'7' as u16,
-    b'8' as u16,
-    b'9' as u16,
-    // uriMark
-    b'-' as u16,
-    b'_' as u16,
-    b'.' as u16,
-    b'!' as u16,
-    b'~' as u16,
-    b'*' as u16,
-    b'\'' as u16,
-    b'(' as u16,
-];
+use consts::*;
 
 /// URI Handling Functions
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct Uri;
 
 impl BuiltIn for Uri {
-    const NAME: &'static str = "Number";
+    const NAME: &'static str = "Uri";
 
     fn init(context: &mut Context) -> Option<JsValue> {
         let decode_uri = FunctionBuilder::native(context, Self::decode_uri)
@@ -126,7 +46,7 @@ impl BuiltIn for Uri {
             .build();
 
         context.register_global_property(
-            "encodeURI",
+            "decodeURIComponent",
             decode_uri_component,
             Attribute::WRITABLE | Attribute::NON_ENUMERABLE | Attribute::CONFIGURABLE,
         );
@@ -184,7 +104,7 @@ impl Uri {
         let uri_string = encoded_uri.to_string(context)?;
 
         // 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus "#".
-        let reserved_uri_set = &URI_UNESCAPED; // TODO: add #
+        let reserved_uri_set = &URI_RESERVED_HASH;
 
         // 3. Return ? Decode(uriString, reservedURISet).
         Ok(JsValue::from(decode(
@@ -250,7 +170,7 @@ impl Uri {
         let uri_string = uri.to_string(context)?;
 
         // 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus "#".
-        let unescaped_uri_set = &URI_UNESCAPED; // TODO: add #
+        let unescaped_uri_set = &URI_RESERVED_UNESCAPED_HASH;
 
         // 3. Return ? Encode(uriString, unescapedURISet).
         Ok(JsValue::from(encode(
@@ -336,10 +256,12 @@ fn encode(context: &mut Context, string: &JsString, unescaped_set: &[u16]) -> Js
             // d. Else,
             // i. Let cp be CodePointAt(string, k).
             let cp = crate::builtins::string::code_point_at(string, k as u64);
+
             // ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
             if cp.is_unpaired_surrogate {
                 context.throw_uri_error("trying to encode an invalid string")?;
             }
+
             // iii. Set k to k + cp.[[CodeUnitCount]].
             k += cp.code_unit_count as usize;
 
@@ -440,7 +362,7 @@ fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsR
                     // 3. Else,
                     // a. Let S be the substring of string from start to k + 1.
                     let mut s = Vec::new();
-                    s.extend_from_slice(&code_units[start..k + 1]);
+                    s.extend_from_slice(&code_units[start..=k]);
                     s
                 }
             } else {
@@ -493,13 +415,18 @@ fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsR
                 assert_eq!(octets.len(), n);
 
                 // 7. If Octets does not contain a valid UTF-8 encoding of a Unicode code point, throw a URIError exception.
-                todo!();
+                match String::from_utf8(octets) {
+                    Err(_) => {
+                        return Err(context.construct_uri_error("invalid UTF-8 encoding found"))
+                    }
+                    Ok(v) => {
+                        // 8. Let V be the code point obtained by applying the UTF-8 transformation to Octets, that is, from a List of octets into a 21-bit value.
 
-                // 8. Let V be the code point obtained by applying the UTF-8 transformation to Octets, that is, from a List of octets into a 21-bit value.
-                todo!();
-
-                // 9. Let S be UTF16EncodeCodePoint(V).
-                todo!()
+                        // 9. Let S be UTF16EncodeCodePoint(V).
+                        // utf16_encode_codepoint(v)
+                        v.encode_utf16().collect::<Vec<_>>()
+                    }
+                }
             }
         };
 
@@ -524,8 +451,28 @@ fn is_hexdigit(code_unit: u16) -> bool {
 
 /// Decodes a byte from two unicode code units. It expects both to be hexadecimal characters.
 fn decode_byte(high: u16, low: u16) -> u8 {
-    let high = high as u8 - b'0';
-    let low = low as u8 - b'0';
+    let high = u8::try_from(high).expect("invalid ASCII character found");
+    let low = u8::try_from(low).expect("invalid ASCII character found");
+
+    let high = if (b'0'..=b'9').contains(&high) {
+        high - b'0'
+    } else if (b'A'..=b'Z').contains(&high) {
+        high - b'A' + 0x0A
+    } else if (b'a'..=b'z').contains(&high) {
+        high - b'a' + 0x0A
+    } else {
+        panic!("invalid ASCII hexadecimal digit found");
+    };
+
+    let low = if (b'0'..=b'9').contains(&low) {
+        low - b'0'
+    } else if (b'A'..=b'Z').contains(&low) {
+        low - b'A' + 0x0A
+    } else if (b'a'..=b'z').contains(&low) {
+        low - b'a' + 0x0A
+    } else {
+        panic!("invalid ASCII hexadecimal digit found");
+    };
 
     (high << 4) + low
 }
@@ -545,11 +492,82 @@ fn leading_one_bits(byte: u8) -> usize {
         4
     } else if byte & 0b1110_0000 == 0b1110_0000 {
         3
-    } else if byte & 0b1100_1100 == 0b1100_0000 {
+    } else if byte & 0b1100_0000 == 0b1100_0000 {
         2
     } else if byte & 0b1000_0000 == 0b1000_0000 {
         1
     } else {
         0
+    }
+}
+
+// /// Generates the string representation of
+// fn utf16_encode_codepoint(cp: u16) -> String {
+//     // 1. Assert: 0 ≤ cp ≤ 0x10FFFF.
+//     assert!(cp <= 0x10FFFF);
+
+//     // 2. If cp ≤ 0xFFFF, return the String value consisting of the code unit whose value is cp.
+//     if cp <= 0xFFFF {
+//         return String::from_utf16(&[cp]).expect("invalid UTF-16 code units found");
+//     }
+
+//     // 3. Let cu1 be the code unit whose value is floor((cp - 0x10000) / 0x400) + 0xD800.
+//     let cu1 = ((cp - 0x10000) as f64 / 0x400 as f64).floor() as u16 + 0xD800;
+
+//     // 4. Let cu2 be the code unit whose value is ((cp - 0x10000) modulo 0x400) + 0xDC00.
+//     let cu2 = ((cp - 0x10000) % 0x400) + 0xD800;
+
+//     // 5. Return the string-concatenation of cu1 and cu2.
+//     String::from_utf16(&[cu1, cu2]).expect("invalid UTF-16 code units found")
+// }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Checks if the `leading_one_bits()` function works as expected.
+    #[test]
+    fn ut_leading_one_bits() {
+        assert_eq!(leading_one_bits(0b1111_1111), 8);
+        assert_eq!(leading_one_bits(0b1111_1110), 7);
+
+        assert_eq!(leading_one_bits(0b1111_1100), 6);
+        assert_eq!(leading_one_bits(0b1111_1101), 6);
+
+        assert_eq!(leading_one_bits(0b1111_1011), 5);
+        assert_eq!(leading_one_bits(0b1111_1000), 5);
+
+        assert_eq!(leading_one_bits(0b1111_0000), 4);
+        assert_eq!(leading_one_bits(0b1111_0111), 4);
+
+        assert_eq!(leading_one_bits(0b1110_0000), 3);
+        assert_eq!(leading_one_bits(0b1110_1111), 3);
+
+        assert_eq!(leading_one_bits(0b1100_0000), 2);
+        assert_eq!(leading_one_bits(0b1101_1111), 2);
+
+        assert_eq!(leading_one_bits(0b1000_0000), 1);
+        assert_eq!(leading_one_bits(0b1011_1111), 1);
+
+        assert_eq!(leading_one_bits(0b0000_0000), 0);
+        assert_eq!(leading_one_bits(0b0111_1111), 0);
+    }
+
+    /// Checks that the `decode_byte()` function works as expected.
+    #[test]
+    fn ut_decode_byte() {
+        assert_eq!(decode_byte(u16::from(b'2'), u16::from(b'0')), 0x20);
+        assert_eq!(decode_byte(u16::from(b'2'), u16::from(b'A')), 0x2A);
+        assert_eq!(decode_byte(u16::from(b'3'), u16::from(b'C')), 0x3C);
+        assert_eq!(decode_byte(u16::from(b'4'), u16::from(b'0')), 0x40);
+        assert_eq!(decode_byte(u16::from(b'7'), u16::from(b'E')), 0x7E);
+        assert_eq!(decode_byte(u16::from(b'0'), u16::from(b'0')), 0x00);
+    }
+
+    /// Checks that the `decode_byte()` panics with invalid ASCII characters.
+    #[test]
+    #[should_panic]
+    fn ut_decode_byte_rainy() {
+        decode_byte(u16::from(b'-'), u16::from(b'0'));
     }
 }

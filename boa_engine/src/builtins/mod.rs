@@ -82,7 +82,7 @@ use crate::{
     builtins::{
         array_buffer::ArrayBuffer, async_generator::AsyncGenerator,
         async_generator_function::AsyncGeneratorFunction, generator::Generator,
-        generator_function::GeneratorFunction, typed_array::TypedArray,
+        generator_function::GeneratorFunction, typed_array::TypedArray, uri::Uri,
     },
     property::{Attribute, PropertyDescriptor},
     Context, JsValue,
@@ -194,7 +194,8 @@ pub fn init(context: &mut Context) {
         Promise,
         AsyncFunction,
         AsyncGenerator,
-        AsyncGeneratorFunction
+        AsyncGeneratorFunction,
+        Uri
     };
 
     #[cfg(feature = "intl")]
