@@ -252,13 +252,6 @@
 <span id="244">244</span>
 <span id="245">245</span>
 <span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
-<span id="249">249</span>
-<span id="250">250</span>
-<span id="251">251</span>
-<span id="252">252</span>
-<span id="253">253</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable statement parsing.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
@@ -269,10 +262,8 @@
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser::statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">ObjectBindingPattern</span>},
     <span class="ident">parser</span>::{
-        <span class="ident">cursor</span>::{<span class="ident">Cursor</span>, <span class="ident">SemicolonResult</span>},
-        <span class="ident">expression::Initializer</span>,
-        <span class="ident">statement::BindingIdentifier</span>,
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">cursor::Cursor</span>, <span class="ident">expression::Initializer</span>, <span class="ident">statement::BindingIdentifier</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>,
+        <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
@@ -386,13 +377,8 @@
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
             );
 
-            <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek_semicolon</span>(<span class="ident">interner</span>)<span class="question-mark">?</span> {
-                <span class="ident">SemicolonResult::NotFound</span>(<span class="ident">tk</span>)
-                    <span class="kw">if</span> <span class="ident">tk</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Comma</span>) =&gt;
-                {
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                }
-                <span class="kw">_</span> =&gt; <span class="kw">break</span>,
+            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Comma</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_none</span>() {
+                <span class="kw">break</span>;
             }
         }
 
