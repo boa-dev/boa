@@ -17,7 +17,7 @@ use crate::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsResult, JsString,
     JsValue,
 };
-use consts::*;
+use consts::{URI_RESERVED_HASH, URI_RESERVED_UNESCAPED_HASH, URI_UNESCAPED};
 
 /// URI Handling Functions
 #[derive(Debug, Clone, Copy)]
@@ -500,26 +500,6 @@ fn leading_one_bits(byte: u8) -> usize {
         0
     }
 }
-
-// /// Generates the string representation of
-// fn utf16_encode_codepoint(cp: u16) -> String {
-//     // 1. Assert: 0 ≤ cp ≤ 0x10FFFF.
-//     assert!(cp <= 0x10FFFF);
-
-//     // 2. If cp ≤ 0xFFFF, return the String value consisting of the code unit whose value is cp.
-//     if cp <= 0xFFFF {
-//         return String::from_utf16(&[cp]).expect("invalid UTF-16 code units found");
-//     }
-
-//     // 3. Let cu1 be the code unit whose value is floor((cp - 0x10000) / 0x400) + 0xD800.
-//     let cu1 = ((cp - 0x10000) as f64 / 0x400 as f64).floor() as u16 + 0xD800;
-
-//     // 4. Let cu2 be the code unit whose value is ((cp - 0x10000) modulo 0x400) + 0xDC00.
-//     let cu2 = ((cp - 0x10000) % 0x400) + 0xD800;
-
-//     // 5. Return the string-concatenation of cu1 and cu2.
-//     String::from_utf16(&[cu1, cu2]).expect("invalid UTF-16 code units found")
-// }
 
 #[cfg(test)]
 mod tests {
