@@ -611,6 +611,57 @@ fn to_primitive() {
     ]);
 }
 
+#[test]
+fn object_to_property_key() {
+    let src = r#"
+    let obj = {};
+
+    let to_primitive_42 = {
+        [Symbol.toPrimitive]() {
+            return 42;
+        }
+    };
+    obj[to_primitive_42] = 1;
+
+    let to_primitive_true = {
+        [Symbol.toPrimitive]() {
+            return true;
+        }
+    };
+    obj[to_primitive_true] = 2;
+
+    let to_primitive_str = {
+        [Symbol.toPrimitive]() {
+            return "str1";
+        }
+    };
+    obj[to_primitive_str] = 3;
+
+    let mysymbol = Symbol("test");
+    let to_primitive_symbol = {
+        [Symbol.toPrimitive]() {
+            return mysymbol;
+        }
+    };
+    obj[to_primitive_symbol] = 4;
+
+    let to_str = {
+        toString: function() {
+            return "str2";
+        }
+    };
+    obj[to_str] = 5;
+    "#;
+    check_output(&[
+        TestAction::Execute(src),
+        TestAction::TestEq("obj[42]", "1"),
+        TestAction::TestEq("obj[true]", "2"),
+        TestAction::TestEq("obj['str1']", "3"),
+        TestAction::TestEq("obj[mysymbol]", "4"),
+        TestAction::TestEq("obj['str2']", "5"),
+    ]);
+}
+
 /// Test cyclic conversions that previously caused stack overflows
 /// Relevant mitigation for these are in `JsObject::ordinary_to_primitive` and
 /// `JsObject::to_json`
