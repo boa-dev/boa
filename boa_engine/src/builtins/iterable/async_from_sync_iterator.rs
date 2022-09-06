@@ -206,13 +206,13 @@ impl AsyncFromSyncIterator {
             // 7. If return is undefined, then
             (None, _) => {
                 // a. Let iterResult be CreateIterResultObject(value, true).
-                let iterator_result =
+                let iter_result =
                     create_iter_result_object(args.get_or_undefined(0).clone(), true, context);
 
                 // b. Perform ! Call(promiseCapability.[[Resolve]], undefined, « iterResult »).
                 promise_capability
                     .resolve()
-                    .call(&JsValue::Undefined, &[iterator_result], context)
+                    .call(&JsValue::Undefined, &[iter_result], context)
                     .expect("cannot fail according to spec");
 
                 // c. Return promiseCapability.[[Promise]].
@@ -371,7 +371,9 @@ impl AsyncFromSyncIterator {
         promise_capability: &PromiseCapability,
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. NOTE: Because promiseCapability is derived from the intrinsic %Promise%, the calls to promiseCapability.[[Reject]] entailed by the use IfAbruptRejectPromise below are guaranteed not to throw.
+        // 1. NOTE: Because promiseCapability is derived from the intrinsic %Promise%,
+        // the calls to promiseCapability.[[Reject]] entailed by the
+        // use IfAbruptRejectPromise below are guaranteed not to throw.
 
         // 2. Let done be Completion(IteratorComplete(result)).
         let done = result.complete(context);
@@ -395,7 +397,8 @@ impl AsyncFromSyncIterator {
         // 7. IfAbruptRejectPromise(valueWrapper, promiseCapability).
         if_abrupt_reject_promise!(value_wrapper, promise_capability, context);
 
-        // 8. Let unwrap be a new Abstract Closure with parameters (value) that captures done and performs the following steps when called:
+        // 8. Let unwrap be a new Abstract Closure with parameters (value)
+        // that captures done and performs the following steps when called:
         // 9. Let onFulfilled be CreateBuiltinFunction(unwrap, 1, "", « »).
         let on_fulfilled = FunctionBuilder::closure_with_captures(
             context,
@@ -413,7 +416,9 @@ impl AsyncFromSyncIterator {
         .length(1)
         .build();
 
-        // 10. NOTE: onFulfilled is used when processing the "value" property of an IteratorResult object in order to wait for its value if it is a promise and re-package the result in a new "unwrapped" IteratorResult object.
+        // 10. NOTE: onFulfilled is used when processing the "value" property of an
+        // IteratorResult object in order to wait for its value if it is a promise and
+        // re-package the result in a new "unwrapped" IteratorResult object.
 
         // 11. Perform PerformPromiseThen(valueWrapper, onFulfilled, undefined, promiseCapability).
         value_wrapper
