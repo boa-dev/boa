@@ -1,3 +1,74 @@
+//! URI handling function constants
+//!
+//! This module contains a few constants used to handle decoding and encoding for URI handling
+//! functions. They make it easier and more performant to compare different ranges and code points.
+
+use std::ops::RangeInclusive;
+
+/// A range containing all the lowercase `uriAlpha` code points.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-uriAlpha
+const URI_ALPHA_LOWER: RangeInclusive<u16> = b'a' as u16..=b'z' as u16;
+
+/// A range containing all the uppercase `uriAlpha` code points.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-uriAlpha
+const URI_ALPHA_UPPER: RangeInclusive<u16> = b'A' as u16..=b'Z' as u16;
+
+/// A range containing all the `DecimalDigit` code points.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-DecimalDigit
+const DECIMAL_DIGIT: RangeInclusive<u16> = b'0' as u16..=b'9' as u16;
+
+/// An array containing all the `uriMark` code points.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-uriMark
+const URI_MARK: [u16; 9] = [
+    b'-' as u16,
+    b'_' as u16,
+    b'.' as u16,
+    b'!' as u16,
+    b'~' as u16,
+    b'*' as u16,
+    b'\'' as u16,
+    b'(' as u16,
+    b')' as u16,
+];
+
+/// An array containing all the `uriReserved` code points.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-uriReserved
+const URI_RESERVED: [u16; 10] = [
+    b';' as u16,
+    b'/' as u16,
+    b'?' as u16,
+    b':' as u16,
+    b'@' as u16,
+    b'&' as u16,
+    b'=' as u16,
+    b'+' as u16,
+    b'$' as u16,
+    b',' as u16,
+];
+
+/// The number sign (`#`) symbol as a UTF-16 code potint.
+const NUMBER_SIGN: u16 = b'#' as u16;
+
 /// Constant with all the unescaped URI characters.
 ///
 /// Contains `uriAlpha`, `DecimalDigit` and `uriMark`.
@@ -6,105 +77,24 @@
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-uriUnescaped
-pub(super) const URI_UNESCAPED: [u16; 71] = [
-    // uriAlpha
-    b'a' as u16,
-    b'b' as u16,
-    b'c' as u16,
-    b'd' as u16,
-    b'e' as u16,
-    b'f' as u16,
-    b'g' as u16,
-    b'h' as u16,
-    b'i' as u16,
-    b'j' as u16,
-    b'k' as u16,
-    b'l' as u16,
-    b'm' as u16,
-    b'n' as u16,
-    b'o' as u16,
-    b'p' as u16,
-    b'q' as u16,
-    b'r' as u16,
-    b's' as u16,
-    b't' as u16,
-    b'u' as u16,
-    b'v' as u16,
-    b'w' as u16,
-    b'x' as u16,
-    b'y' as u16,
-    b'z' as u16,
-    b'A' as u16,
-    b'B' as u16,
-    b'C' as u16,
-    b'D' as u16,
-    b'E' as u16,
-    b'F' as u16,
-    b'G' as u16,
-    b'H' as u16,
-    b'I' as u16,
-    b'J' as u16,
-    b'K' as u16,
-    b'L' as u16,
-    b'M' as u16,
-    b'N' as u16,
-    b'O' as u16,
-    b'P' as u16,
-    b'Q' as u16,
-    b'R' as u16,
-    b'S' as u16,
-    b'T' as u16,
-    b'U' as u16,
-    b'V' as u16,
-    b'W' as u16,
-    b'X' as u16,
-    b'Y' as u16,
-    b'Z' as u16,
-    // DecimalDigit
-    b'0' as u16,
-    b'1' as u16,
-    b'2' as u16,
-    b'3' as u16,
-    b'4' as u16,
-    b'5' as u16,
-    b'6' as u16,
-    b'7' as u16,
-    b'8' as u16,
-    b'9' as u16,
-    // uriMark
-    b'-' as u16,
-    b'_' as u16,
-    b'.' as u16,
-    b'!' as u16,
-    b'~' as u16,
-    b'*' as u16,
-    b'\'' as u16,
-    b'(' as u16,
-    b')' as u16,
-];
+pub(super) fn is_uri_unescaped(code_point: u16) -> bool {
+    URI_ALPHA_LOWER.contains(&code_point)
+        || URI_ALPHA_UPPER.contains(&code_point)
+        || DECIMAL_DIGIT.contains(&code_point)
+        || URI_MARK.contains(&code_point)
+}
 
-/// Constant with all the reserved URI characters, plus the hashtag symbol (`#`).
+/// Constant with all the reserved URI characters, plus the number sign symbol (`#`).
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-uriReserved
-pub(super) const URI_RESERVED_HASH: [u16; 11] = [
-    b';' as u16,
-    b'/' as u16,
-    b'?' as u16,
-    b':' as u16,
-    b'@' as u16,
-    b'&' as u16,
-    b'=' as u16,
-    b'+' as u16,
-    b'$' as u16,
-    b',' as u16,
-    // Extra: # symbol
-    b'#' as u16,
-];
+pub(super) fn is_uri_reserved_or_number_sign(code_point: u16) -> bool {
+    code_point == NUMBER_SIGN || URI_RESERVED.contains(&code_point)
+}
 
-/// Constant with all the reserved and unescaped URI characters, plus the hashtag symbol (`#`).
+/// Constant with all the reserved and unescaped URI characters, plus the number sign symbol (`#`).
 ///
 /// More information:
 ///  - [`uriReserved` in ECMAScript spec][uri_reserved]
@@ -112,92 +102,6 @@ pub(super) const URI_RESERVED_HASH: [u16; 11] = [
 ///
 /// [uri_reserved]: https://tc39.es/ecma262/#prod-uriReserved
 /// [uri_unescaped]: https://tc39.es/ecma262/#prod-uriUnescaped
-pub(super) const URI_RESERVED_UNESCAPED_HASH: [u16; 82] = [
-    // uriAlpha
-    b'a' as u16,
-    b'b' as u16,
-    b'c' as u16,
-    b'd' as u16,
-    b'e' as u16,
-    b'f' as u16,
-    b'g' as u16,
-    b'h' as u16,
-    b'i' as u16,
-    b'j' as u16,
-    b'k' as u16,
-    b'l' as u16,
-    b'm' as u16,
-    b'n' as u16,
-    b'o' as u16,
-    b'p' as u16,
-    b'q' as u16,
-    b'r' as u16,
-    b's' as u16,
-    b't' as u16,
-    b'u' as u16,
-    b'v' as u16,
-    b'w' as u16,
-    b'x' as u16,
-    b'y' as u16,
-    b'z' as u16,
-    b'A' as u16,
-    b'B' as u16,
-    b'C' as u16,
-    b'D' as u16,
-    b'E' as u16,
-    b'F' as u16,
-    b'G' as u16,
-    b'H' as u16,
-    b'I' as u16,
-    b'J' as u16,
-    b'K' as u16,
-    b'L' as u16,
-    b'M' as u16,
-    b'N' as u16,
-    b'O' as u16,
-    b'P' as u16,
-    b'Q' as u16,
-    b'R' as u16,
-    b'S' as u16,
-    b'T' as u16,
-    b'U' as u16,
-    b'V' as u16,
-    b'W' as u16,
-    b'X' as u16,
-    b'Y' as u16,
-    b'Z' as u16,
-    // DecimalDigit
-    b'0' as u16,
-    b'1' as u16,
-    b'2' as u16,
-    b'3' as u16,
-    b'4' as u16,
-    b'5' as u16,
-    b'6' as u16,
-    b'7' as u16,
-    b'8' as u16,
-    b'9' as u16,
-    // uriMark
-    b'-' as u16,
-    b'_' as u16,
-    b'.' as u16,
-    b'!' as u16,
-    b'~' as u16,
-    b'*' as u16,
-    b'\'' as u16,
-    b'(' as u16,
-    b')' as u16,
-    // uriReserved
-    b';' as u16,
-    b'/' as u16,
-    b'?' as u16,
-    b':' as u16,
-    b'@' as u16,
-    b'&' as u16,
-    b'=' as u16,
-    b'+' as u16,
-    b'$' as u16,
-    b',' as u16,
-    // Extra: # symbol
-    b'#' as u16,
-];
+pub(super) fn is_uri_reserved_or_uri_unescaped_or_number_sign(code_point: u16) -> bool {
+    code_point == NUMBER_SIGN || is_uri_unescaped(code_point) || URI_RESERVED.contains(&code_point)
+}

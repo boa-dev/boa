@@ -8,16 +8,20 @@
 //! More information:
 //!  - [ECMAScript reference][spec]
 //!
-//! [spec]: https://tc39.es/ecma262/#sec-number-object
+//! [spec]: https://tc39.es/ecma262/#sec-uri-handling-functions
 
 mod consts;
+
+use self::consts::{
+    is_uri_reserved_or_number_sign, is_uri_reserved_or_uri_unescaped_or_number_sign,
+    is_uri_unescaped,
+};
 
 use super::BuiltIn;
 use crate::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsResult, JsString,
     JsValue,
 };
-use consts::{URI_RESERVED_HASH, URI_RESERVED_UNESCAPED_HASH, URI_UNESCAPED};
 
 /// URI Handling Functions
 #[derive(Debug, Clone, Copy)]
@@ -104,7 +108,7 @@ impl Uri {
         let uri_string = encoded_uri.to_string(context)?;
 
         // 2. Let reservedURISet be a String containing one instance of each code unit valid in uriReserved plus "#".
-        let reserved_uri_set = &URI_RESERVED_HASH;
+        let reserved_uri_set = is_uri_reserved_or_number_sign;
 
         // 3. Return ? Decode(uriString, reservedURISet).
         Ok(JsValue::from(decode(
@@ -137,7 +141,7 @@ impl Uri {
         let component_string = encoded_uri_component.to_string(context)?;
 
         // 2. Let reservedURIComponentSet be the empty String.
-        let reserved_uri_component_set = &[];
+        let reserved_uri_component_set = |_: u16| false;
 
         // 3. Return ? Decode(componentString, reservedURIComponentSet).
         Ok(JsValue::from(decode(
@@ -170,7 +174,7 @@ impl Uri {
         let uri_string = uri.to_string(context)?;
 
         // 2. Let unescapedURISet be a String containing one instance of each code unit valid in uriReserved and uriUnescaped plus "#".
-        let unescaped_uri_set = &URI_RESERVED_UNESCAPED_HASH;
+        let unescaped_uri_set = is_uri_reserved_or_uri_unescaped_or_number_sign;
 
         // 3. Return ? Encode(uriString, unescapedURISet).
         Ok(JsValue::from(encode(
@@ -203,7 +207,7 @@ impl Uri {
         let component_string = uri_component.to_string(context)?;
 
         // 2. Let unescapedURIComponentSet be a String containing one instance of each code unit valid in uriUnescaped.
-        let unescaped_uri_component_set = &URI_UNESCAPED;
+        let unescaped_uri_component_set = is_uri_unescaped;
 
         // 3. Return ? Encode(componentString, unescapedURIComponentSet).
         Ok(JsValue::from(encode(
@@ -224,7 +228,10 @@ impl Uri {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-encode
-fn encode(context: &mut Context, string: &JsString, unescaped_set: &[u16]) -> JsResult<String> {
+fn encode<F>(context: &mut Context, string: &JsString, unescaped_set: F) -> JsResult<String>
+where
+    F: Fn(u16) -> bool,
+{
     let code_units = string.encode_utf16().collect::<Vec<_>>();
 
     // 1. Let strLen be the length of string.
@@ -246,7 +253,7 @@ fn encode(context: &mut Context, string: &JsString, unescaped_set: &[u16]) -> Js
         let c = code_units[k];
 
         // c. If C is in unescapedSet, then
-        if unescaped_set.contains(&c) {
+        if unescaped_set(c) {
             // i. Set k to k + 1.
             k += 1;
 
@@ -297,7 +304,10 @@ fn encode(context: &mut Context, string: &JsString, unescaped_set: &[u16]) -> Js
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-decode
 #[allow(clippy::many_single_char_names)]
-fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsResult<String> {
+fn decode<F>(context: &mut Context, string: &JsString, reserved_set: F) -> JsResult<String>
+where
+    F: Fn(u16) -> bool,
+{
     let code_units = string.encode_utf16().collect::<Vec<_>>();
 
     // 1. Let strLen be the length of string.
@@ -321,7 +331,7 @@ fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsR
         #[allow(clippy::if_not_else)]
         let s = if c != 0x0025_u16 {
             // i. Let S be the String value containing only the code unit C.
-            vec![c]
+            Vec::from([c])
         } else {
             // d. Else,
             // i. Let start be k.
@@ -334,14 +344,8 @@ fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsR
 
             // iii. If the code units at index (k + 1) and (k + 2) within string do not represent
             // hexadecimal digits, throw a URIError exception.
-            let unit_k_1 = code_units[k + 1];
-            let unit_k_2 = code_units[k + 2];
-            if !is_hexdigit(unit_k_1) || !is_hexdigit(unit_k_2) {
-                context.throw_uri_error("invalid escape character found")?;
-            }
-
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-            let b = decode_byte(unit_k_1, unit_k_2);
+            let b = decode_byte(code_units[k + 1], code_units[k + 2], context)?;
 
             // v. Set k to k + 2.
             k += 2;
@@ -355,30 +359,28 @@ fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsR
                 let c = u16::from(b);
 
                 // 2. If C is not in reservedSet, then
-                if !reserved_set.contains(&c) {
+                if !reserved_set(c) {
                     // a. Let S be the String value containing only the code unit C.
-                    vec![c]
+                    Vec::from([c])
                 } else {
                     // 3. Else,
                     // a. Let S be the substring of string from start to k + 1.
-                    let mut s = Vec::new();
-                    s.extend_from_slice(&code_units[start..=k]);
-                    s
+                    Vec::from(&code_units[start..=k])
                 }
             } else {
                 // viii. Else,
                 // 1. If n = 1 or n > 4, throw a URIError exception.
                 if n == 1 || n > 4 {
-                    context.throw_uri_error("TO-DO")?;
+                    context.throw_uri_error("invalid escaped character found")?;
                 }
 
                 // 2. If k + (3 × (n - 1)) ≥ strLen, throw a URIError exception.
                 if k + (3 * (n - 1)) > str_len {
-                    context.throw_uri_error("TO-DO")?;
+                    context.throw_uri_error("non-terminated escape character found")?;
                 }
 
                 // 3. Let Octets be « B ».
-                let mut octets = vec![b];
+                let mut octets = Vec::from([b]);
 
                 // 4. Let j be 1.
                 // 5. Repeat, while j < n,
@@ -393,14 +395,8 @@ fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsR
                     }
 
                     // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
-                    let unit_k_1 = code_units[k + 1];
-                    let unit_k_2 = code_units[k + 2];
-                    if !is_hexdigit(unit_k_1) || !is_hexdigit(unit_k_2) {
-                        context.throw_uri_error("invalid escape character")?;
-                    }
-
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-                    let b = decode_byte(unit_k_1, unit_k_2);
+                    let b = decode_byte(code_units[k + 1], code_units[k + 2], context)?;
 
                     // e. Set k to k + 2.
                     k += 2;
@@ -439,6 +435,7 @@ fn decode(context: &mut Context, string: &JsString, reserved_set: &[u16]) -> JsR
 }
 
 /// Checks if a given code unit is an hexadecimal digit represented in UTF-16.
+#[inline]
 fn is_hexdigit(code_unit: u16) -> bool {
     use std::ops::RangeInclusive;
 
@@ -450,9 +447,15 @@ fn is_hexdigit(code_unit: u16) -> bool {
 }
 
 /// Decodes a byte from two unicode code units. It expects both to be hexadecimal characters.
-fn decode_byte(high: u16, low: u16) -> u8 {
-    let high = u8::try_from(high).expect("invalid ASCII character found");
-    let low = u8::try_from(low).expect("invalid ASCII character found");
+fn decode_byte(high: u16, low: u16, context: &mut Context) -> JsResult<u8> {
+    // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
+    if !is_hexdigit(high) || !is_hexdigit(low) {
+        context.throw_uri_error("invalid escape character")?;
+    }
+
+    // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
+    let high = high as u8;
+    let low = low as u8;
 
     let high = if (b'0'..=b'9').contains(&high) {
         high - b'0'
@@ -461,7 +464,7 @@ fn decode_byte(high: u16, low: u16) -> u8 {
     } else if (b'a'..=b'z').contains(&high) {
         high - b'a' + 0x0A
     } else {
-        panic!("invalid ASCII hexadecimal digit found");
+        unreachable!("invalid ASCII hexadecimal digit found");
     };
 
     let low = if (b'0'..=b'9').contains(&low) {
@@ -471,13 +474,14 @@ fn decode_byte(high: u16, low: u16) -> u8 {
     } else if (b'a'..=b'z').contains(&low) {
         low - b'a' + 0x0A
     } else {
-        panic!("invalid ASCII hexadecimal digit found");
+        unreachable!("invalid ASCII hexadecimal digit found");
     };
 
-    (high << 4) + low
+    Ok((high << 4) + low)
 }
 
 /// Counts the number of leading 1 bits in a given byte.
+#[inline]
 fn leading_one_bits(byte: u8) -> usize {
     // This uses a value table for speed
     if byte == u8::MAX {
@@ -504,6 +508,38 @@ fn leading_one_bits(byte: u8) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Checks that the `is_hexdigit()` function works as expected.
+    #[test]
+    fn ut_is_hexdigit() {
+        for b in b'0'..=b'9' {
+            assert!(is_hexdigit(u16::from(b)), "failed: {b}");
+        }
+
+        for b in b'a'..=b'f' {
+            assert!(is_hexdigit(u16::from(b)), "failed: {b}");
+        }
+
+        for b in b'A'..=b'F' {
+            assert!(is_hexdigit(u16::from(b)), "failed: {b}");
+        }
+
+        for b in 0x00..b'0' {
+            assert!(!is_hexdigit(u16::from(b)), "failed: {b}");
+        }
+
+        for b in b'9' + 1..b'A' {
+            assert!(!is_hexdigit(u16::from(b)), "failed: {b}");
+        }
+
+        for b in b'F' + 1..b'a' {
+            assert!(!is_hexdigit(u16::from(b)), "failed: {b}");
+        }
+
+        for b in b'f' + 1..=0xFF {
+            assert!(!is_hexdigit(u16::from(b)), "failed: {b}");
+        }
+    }
 
     /// Checks if the `leading_one_bits()` function works as expected.
     #[test]
@@ -536,18 +572,38 @@ mod tests {
     /// Checks that the `decode_byte()` function works as expected.
     #[test]
     fn ut_decode_byte() {
-        assert_eq!(decode_byte(u16::from(b'2'), u16::from(b'0')), 0x20);
-        assert_eq!(decode_byte(u16::from(b'2'), u16::from(b'A')), 0x2A);
-        assert_eq!(decode_byte(u16::from(b'3'), u16::from(b'C')), 0x3C);
-        assert_eq!(decode_byte(u16::from(b'4'), u16::from(b'0')), 0x40);
-        assert_eq!(decode_byte(u16::from(b'7'), u16::from(b'E')), 0x7E);
-        assert_eq!(decode_byte(u16::from(b'0'), u16::from(b'0')), 0x00);
-    }
+        let mut context = Context::default();
 
-    /// Checks that the `decode_byte()` panics with invalid ASCII characters.
-    #[test]
-    #[should_panic]
-    fn ut_decode_byte_rainy() {
-        decode_byte(u16::from(b'-'), u16::from(b'0'));
+        // Sunny day tests
+        assert_eq!(
+            decode_byte(u16::from(b'2'), u16::from(b'0'), &mut context).unwrap(),
+            0x20
+        );
+        assert_eq!(
+            decode_byte(u16::from(b'2'), u16::from(b'A'), &mut context).unwrap(),
+            0x2A
+        );
+        assert_eq!(
+            decode_byte(u16::from(b'3'), u16::from(b'C'), &mut context).unwrap(),
+            0x3C
+        );
+        assert_eq!(
+            decode_byte(u16::from(b'4'), u16::from(b'0'), &mut context).unwrap(),
+            0x40
+        );
+        assert_eq!(
+            decode_byte(u16::from(b'7'), u16::from(b'E'), &mut context).unwrap(),
+            0x7E
+        );
+        assert_eq!(
+            decode_byte(u16::from(b'0'), u16::from(b'0'), &mut context).unwrap(),
+            0x00
+        );
+
+        // Rainy day tests
+        assert!(decode_byte(u16::from(b'-'), u16::from(b'0'), &mut context).is_err());
+        assert!(decode_byte(u16::from(b'f'), u16::from(b'~'), &mut context).is_err());
+        assert!(decode_byte(u16::from(b'A'), 0_u16, &mut context).is_err());
+        assert!(decode_byte(u16::from(b'%'), u16::from(b'&'), &mut context).is_err());
     }
 }
