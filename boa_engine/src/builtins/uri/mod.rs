@@ -17,7 +17,7 @@ use self::consts::{
     is_uri_unescaped,
 };
 
-use super::BuiltIn;
+use super::{string::code_point_at, BuiltIn};
 use crate::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsResult, JsString,
     JsValue,
@@ -262,7 +262,7 @@ where
         } else {
             // d. Else,
             // i. Let cp be CodePointAt(string, k).
-            let cp = crate::builtins::string::code_point_at(string, k as u64);
+            let cp = code_point_at(string, k as u64);
 
             // ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
             if cp.is_unpaired_surrogate {
