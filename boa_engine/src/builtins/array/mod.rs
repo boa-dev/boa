@@ -423,8 +423,7 @@ impl Array {
             // b. Else,
             //     i. Let A be ? ArrayCreate(0en).
             let a = match this.as_constructor() {
-                Some(constructor) => constructor
-                    .construct(&[], None, context)?,
+                Some(constructor) => constructor.construct(&[], None, context)?,
                 _ => Self::array_create(0, None, context)?,
             };
 
@@ -497,8 +496,7 @@ impl Array {
             // 10. Else,
             //     a. Let A be ? ArrayCreate(len).
             let a = match this.as_constructor() {
-                Some(constructor) => constructor
-                    .construct(&[len.into()], None, context)?,
+                Some(constructor) => constructor.construct(&[len.into()], None, context)?,
                 _ => Self::array_create(len, None, context)?,
             };
 
@@ -574,8 +572,7 @@ impl Array {
         // 5. Else,
         //     a. Let A be ? ArrayCreate(len).
         let a = match this.as_constructor() {
-            Some(constructor) => constructor
-                .construct(&[len.into()], None, context)?,
+            Some(constructor) => constructor.construct(&[len.into()], None, context)?,
             _ => Self::array_create(len as u64, None, context)?,
         };
 

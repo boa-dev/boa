@@ -54,9 +54,11 @@ impl PromiseJob {
                         }
                     },
                     //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
-                    Some(handler) => {
-                        handler.call_job_callback(&JsValue::undefined(), &[argument.clone()], context)
-                    }
+                    Some(handler) => handler.call_job_callback(
+                        &JsValue::undefined(),
+                        &[argument.clone()],
+                        context,
+                    ),
                 };
 
                 match promise_capability {
@@ -83,13 +85,21 @@ impl PromiseJob {
                             // h. If handlerResult is an abrupt completion, then
                             Err(value) => {
                                 // i. Return ? Call(promiseCapability.[[Reject]], undefined, « handlerResult.[[Value]] »).
-                                context.call(&reject.clone().into(), &JsValue::undefined(), &[value])
+                                context.call(
+                                    &reject.clone().into(),
+                                    &JsValue::undefined(),
+                                    &[value],
+                                )
                             }
 
                             // i. Else,
                             Ok(value) => {
                                 // i. Return ? Call(promiseCapability.[[Resolve]], undefined, « handlerResult.[[Value]] »).
-                                context.call(&resolve.clone().into(), &JsValue::undefined(), &[value])
+                                context.call(
+                                    &resolve.clone().into(),
+                                    &JsValue::undefined(),
+                                    &[value],
+                                )
                             }
                         }
                     }

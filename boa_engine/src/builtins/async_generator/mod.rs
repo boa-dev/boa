@@ -374,11 +374,7 @@ impl AsyncGenerator {
             // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « exception »).
             promise_capability
                 .reject()
-                .call(
-                    &JsValue::undefined(),
-                    &[args.get_or_undefined(0)],
-                    context,
-                )
+                .call(&JsValue::undefined(), &[args.get_or_undefined(0)], context)
                 .expect("cannot fail per spec");
 
             // b. Return promiseCapability.[[Promise]].

@@ -5,7 +5,8 @@ use boa_gc::{Finalize, Trace};
 use crate::{
     builtins::Set,
     object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
-    Context, JsResult, JsValue, value::JsVariant,
+    value::JsVariant,
+    Context, JsResult, JsValue,
 };
 
 // This is an wrapper for `JsSet`
@@ -89,7 +90,7 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
-        match Set::has(&self.inner.clone().into(), &[value.into()], context)?.variant()  {
+        match Set::has(&self.inner.clone().into(), &[value.into()], context)?.variant() {
             JsVariant::Boolean(bool) => Ok(bool),
             _ => Err(JsValue::undefined()),
         }

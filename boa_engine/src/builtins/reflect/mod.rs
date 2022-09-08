@@ -104,8 +104,7 @@ impl Reflect {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If IsConstructor(target) is false, throw a TypeError exception.
-        let target = args
-            .get_or_undefined(0);
+        let target = args.get_or_undefined(0);
         let target = target
             .as_constructor()
             .ok_or_else(|| context.construct_type_error("target must be a constructor"))?;

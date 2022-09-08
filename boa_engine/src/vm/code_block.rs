@@ -18,9 +18,10 @@ use crate::{
     },
     property::PropertyDescriptor,
     syntax::ast::node::FormalParameterList,
+    value::JsVariant,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
-    Context, JsResult, JsValue, value::JsVariant,
+    Context, JsResult, JsValue,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -1241,7 +1242,9 @@ impl JsObject {
                 match function(this_target, args, context)?.variant() {
                     JsVariant::Object(o) => Ok(o.clone()),
                     val => {
-                        if constructor.expect("hmm").is_base() || matches!(val, JsVariant::Undefined) {
+                        if constructor.expect("hmm").is_base()
+                            || matches!(val, JsVariant::Undefined)
+                        {
                             create_this(context)
                         } else {
                             context.throw_type_error(
@@ -1265,7 +1268,9 @@ impl JsObject {
                 match (function)(this_target, args, captures, context)?.variant() {
                     JsVariant::Object(o) => Ok(o.clone()),
                     val => {
-                        if constructor.expect("hmma").is_base() || matches!(val, JsVariant::Undefined) {
+                        if constructor.expect("hmma").is_base()
+                            || matches!(val, JsVariant::Undefined)
+                        {
                             create_this(context)
                         } else {
                             context.throw_type_error(

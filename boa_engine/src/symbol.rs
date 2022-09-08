@@ -270,7 +270,6 @@ unsafe impl Trace for JsSymbol {
     unsafe_empty_trace!();
 }
 
-
 impl JsSymbol {
     /// Create a new symbol.
     #[inline]

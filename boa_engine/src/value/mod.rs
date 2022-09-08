@@ -454,12 +454,12 @@ impl JsValue {
             JsVariant::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::String)?;
                 match primitive.variant() {
-                JsVariant::String(string) => string.clone().into(),
-                JsVariant::Symbol(symbol) => symbol.clone().into(),
-                JsVariant::Integer32(integer) => integer.into(),
-                _ => primitive.to_string(context)?.into(),
+                    JsVariant::String(string) => string.clone().into(),
+                    JsVariant::Symbol(symbol) => symbol.clone().into(),
+                    JsVariant::Integer32(integer) => integer.into(),
+                    _ => primitive.to_string(context)?.into(),
+                }
             }
-        },
             _ => self.to_string(context)?.into(),
         })
     }

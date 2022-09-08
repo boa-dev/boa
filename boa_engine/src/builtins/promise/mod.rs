@@ -1710,11 +1710,7 @@ impl Promise {
         // 1. Let promise be the this value.
         let promise = this;
         // 2. Return ? Invoke(promise, "then", « undefined, onRejected »).
-        promise.invoke(
-            "then",
-            &[JsValue::undefined(), on_rejected],
-            context,
-        )
+        promise.invoke("then", &[JsValue::undefined(), on_rejected], context)
     }
 
     /// `Promise.prototype.finally ( onFinally )`
@@ -1778,9 +1774,7 @@ impl Promise {
                             // 1. Return value.
                             Ok(captures.value.clone())
                         },
-                        ReturnValueCaptures {
-                            value,
-                        },
+                        ReturnValueCaptures { value },
                     );
 
                     // iv. Let valueThunk be CreateBuiltinFunction(returnValue, 0, "", « »).
@@ -1823,9 +1817,7 @@ impl Promise {
                             // 1. Return ThrowCompletion(reason).
                             Err(captures.reason.clone())
                         },
-                        ThrowReasonCaptures {
-                            reason,
-                        },
+                        ThrowReasonCaptures { reason },
                     );
 
                     // iv. Let thrower be CreateBuiltinFunction(throwReason, 0, "", « »).
@@ -1834,10 +1826,7 @@ impl Promise {
                     // v. Return ? Invoke(promise, "then", « thrower »).
                     promise.invoke("then", &[thrower.into()], context)
                 },
-                FinallyCaptures {
-                    on_finally,
-                    c,
-                },
+                FinallyCaptures { on_finally, c },
             );
 
             // d. Let catchFinally be CreateBuiltinFunction(catchFinallyClosure, 1, "", « »).
@@ -1887,7 +1876,12 @@ impl Promise {
         promise_obj
             .as_promise_mut()
             .expect("IsPromise(promise) is false")
-            .perform_promise_then(&on_fulfilled, &on_rejected, Some(result_capability), context)
+            .perform_promise_then(
+                &on_fulfilled,
+                &on_rejected,
+                Some(result_capability),
+                context,
+            )
             .pipe(Ok)
     }
 
