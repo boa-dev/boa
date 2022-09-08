@@ -111,6 +111,8 @@ where
             TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => {
                 Ok(Identifier::new(Sym::AWAIT))
             }
+            TokenKind::Keyword((Keyword::Async, _)) => Ok(Identifier::new(Sym::ASYNC)),
+            TokenKind::Keyword((Keyword::Of, _)) => Ok(Identifier::new(Sym::OF)),
             _ => Err(ParseError::unexpected(
                 token.to_string(interner),
                 token.span(),
@@ -217,6 +219,8 @@ where
                 ))
             }
             TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => Ok(Sym::AWAIT),
+            TokenKind::Keyword((Keyword::Async, _)) => Ok(Sym::ASYNC),
+            TokenKind::Keyword((Keyword::Of, _)) => Ok(Sym::OF),
             _ => Err(ParseError::expected(
                 ["identifier".to_owned()],
                 next_token.to_string(interner),

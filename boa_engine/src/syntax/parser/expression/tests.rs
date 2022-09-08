@@ -590,3 +590,31 @@ fn check_logical_expressions() {
     check_invalid("a ?? b || c");
     check_invalid("a || b ?? c");
 }
+
+#[track_caller]
+fn check_non_reserved_identifier(keyword: &'static str) {
+    let mut interner = Interner::default();
+    check_parser(
+        format!("({})", keyword).as_str(),
+        vec![Identifier::new(interner.get_or_intern_static(keyword)).into()],
+        interner,
+    );
+}
+
+#[test]
+fn check_non_reserved_identifiers() {
+    // https://tc39.es/ecma262/#sec-keywords-and-reserved-words
+    // Those that are always allowed as identifiers, but also appear as
+    // keywords within certain syntactic productions, at places where
+    // Identifier is not allowed: as, async, from, get, meta, of, set,
+    // and target.
+
+    check_non_reserved_identifier("as");
+    check_non_reserved_identifier("async");
+    check_non_reserved_identifier("from");
+    check_non_reserved_identifier("get");
+    check_non_reserved_identifier("meta");
+    check_non_reserved_identifier("of");
+    check_non_reserved_identifier("set");
+    check_non_reserved_identifier("target");
+}

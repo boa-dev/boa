@@ -3,7 +3,7 @@ use crate::syntax::{
         node::{
             object::{MethodDefinition, PropertyDefinition},
             AsyncFunctionExpr, AsyncGeneratorExpr, Declaration, DeclarationList, FormalParameter,
-            FormalParameterList, FormalParameterListFlags, FunctionExpr, Identifier, Object,
+            FormalParameterList, FormalParameterListFlags, FunctionExpr, Identifier, Node, Object,
         },
         Const,
     },
@@ -445,5 +445,61 @@ fn check_async_gen_method_lineterminator() {
             * vroom() {}
         };
         ",
+    );
+}
+
+#[test]
+fn check_async_ordinary_method() {
+    let mut interner = Interner::default();
+
+    let object_properties = vec![PropertyDefinition::method_definition(
+        MethodDefinition::Ordinary(FunctionExpr::new(
+            None,
+            FormalParameterList::default(),
+            vec![],
+        )),
+        Node::Const(Const::from(interner.get_or_intern_static("async"))),
+    )];
+
+    check_parser(
+        "const x = {
+            async() {}
+         };
+        ",
+        vec![DeclarationList::Const(
+            vec![Declaration::new_with_identifier(
+                interner.get_or_intern_static("x"),
+                Some(Object::from(object_properties).into()),
+            )]
+            .into(),
+        )
+        .into()],
+        interner,
+    );
+}
+
+#[test]
+fn check_async_property() {
+    let mut interner = Interner::default();
+
+    let object_properties = vec![PropertyDefinition::property(
+        Node::Const(Const::from(interner.get_or_intern_static("async"))),
+        Const::from(true),
+    )];
+
+    check_parser(
+        "const x = {
+            async: true
+         };
+        ",
+        vec![DeclarationList::Const(
+            vec![Declaration::new_with_identifier(
+                interner.get_or_intern_static("x"),
+                Some(Object::from(object_properties).into()),
+            )]
+            .into(),
+        )
+        .into()],
+        interner,
     );
 }

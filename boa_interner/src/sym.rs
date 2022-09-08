@@ -85,6 +85,12 @@ impl Sym {
     /// Symbol for the `"anonymous"` string.
     pub const ANONYMOUS: Self = unsafe { Self::new_unchecked(23) };
 
+    /// Symbol for the `"async"` string.
+    pub const ASYNC: Self = unsafe { Self::new_unchecked(24) };
+
+    /// Symbol for the `"of"` string.
+    pub const OF: Self = unsafe { Self::new_unchecked(25) };
+
     /// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
     #[inline]
     pub(super) fn new(value: usize) -> Option<Self> {
@@ -145,6 +151,8 @@ pub(super) static COMMON_STRINGS: phf::OrderedSet<&'static str> = {
         "protected",
         "public",
         "anonymous",
+        "async",
+        "of",
     };
     // A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`
     sa::const_assert!(COMMON_STRINGS.len() < usize::MAX);

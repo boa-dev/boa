@@ -67,9 +67,11 @@ where
             .ok_or(ParseError::AbruptEnd)?
             .kind()
         {
-            TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
-                Some(BindingIdentifier::new(false, false).parse(cursor, interner)?)
-            }
+            TokenKind::Identifier(_)
+            | TokenKind::Keyword((
+                Keyword::Yield | Keyword::Await | Keyword::Async | Keyword::Of,
+                _,
+            )) => Some(BindingIdentifier::new(false, false).parse(cursor, interner)?),
             _ => self.name,
         };
 

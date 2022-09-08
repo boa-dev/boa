@@ -84,6 +84,30 @@ where
     }
 
     #[inline]
+    pub(super) fn peek_or_abrupt(
+        &mut self,
+        skip_n: usize,
+        interner: &mut Interner,
+    ) -> Result<&Token, ParseError> {
+        self.buffered_lexer
+            .peek(skip_n, true, interner)?
+            .ok_or(ParseError::AbruptEnd)
+    }
+
+    #[inline]
+    pub(super) fn peek_kind(
+        &mut self,
+        skip_n: usize,
+        interner: &mut Interner,
+    ) -> Result<&TokenKind, ParseError> {
+        Ok(self
+            .buffered_lexer
+            .peek(skip_n, true, interner)?
+            .ok_or(ParseError::AbruptEnd)?
+            .kind())
+    }
+
+    #[inline]
     pub(super) fn strict_mode(&self) -> bool {
         self.buffered_lexer.strict_mode()
     }
