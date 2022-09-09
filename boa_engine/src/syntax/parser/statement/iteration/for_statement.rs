@@ -168,6 +168,14 @@ where
                 return Ok(ForInLoop::new(init, expr, body).into());
             }
             (Some(init), TokenKind::Keyword((Keyword::Of, false))) => {
+                if let Node::Identifier(identifier) = init {
+                    if identifier.sym() == Sym::ASYNC {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "invalid left-hand side expression 'async' of a for-of loop".into(),
+                            init_position,
+                        )));
+                    }
+                }
                 let init =
                     node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
 
