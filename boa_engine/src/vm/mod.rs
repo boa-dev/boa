@@ -1521,7 +1521,12 @@ impl Context {
                     let function = function_object
                         .as_function()
                         .expect("must be function object");
-                    function.get_home_object().cloned()
+                    let mut home_object = function.get_home_object().cloned();
+
+                    if home_object == None {
+                        home_object = self.vm.stack.last().expect("stack is empty").as_object().cloned();
+                    }
+                    home_object
                 } else {
                     return self.throw_range_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor");
                 };
