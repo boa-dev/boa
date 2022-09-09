@@ -7,6 +7,9 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Left-hand-side_expressions
 //! [spec]: https://tc39.es/ecma262/#sec-left-hand-side-expressions
 
+#[cfg(test)]
+mod tests;
+
 mod arguments;
 mod call;
 mod member;

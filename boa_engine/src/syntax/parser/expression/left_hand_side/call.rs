@@ -11,10 +11,10 @@ use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
         node::{
-            field::{GetConstField, GetField},
+            field::{get_private_field::GetPrivateField, GetConstField, GetField},
             Call, Node,
         },
-        Punctuator,
+        Keyword, Punctuator,
     },
     lexer::TokenKind,
     parser::{
@@ -96,6 +96,25 @@ where
                         }
                         TokenKind::Keyword((kw, _)) => {
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
+                        }
+                        TokenKind::BooleanLiteral(bool) => {
+                            match bool {
+                                true => {
+                                    lhs = GetConstField::new(lhs, Keyword::True.to_sym(interner))
+                                        .into();
+                                }
+                                false => {
+                                    lhs = GetConstField::new(lhs, Keyword::False.to_sym(interner))
+                                        .into();
+                                }
+                            };
+                        }
+                        TokenKind::NullLiteral => {
+                            lhs = GetConstField::new(lhs, Keyword::Null.to_sym(interner)).into();
+                        }
+                        TokenKind::PrivateIdentifier(name) => {
+                            cursor.push_used_private_identifier(*name, token.span().start())?;
+                            lhs = GetPrivateField::new(lhs, *name).into();
                         }
                         _ => {
                             return Err(ParseError::expected(
