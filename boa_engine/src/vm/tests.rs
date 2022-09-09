@@ -137,3 +137,29 @@ fn finally_block_binding_env() {
         Ok(JsValue::from("Hey hey people"))
     );
 }
+
+#[test]
+fn run_super_method_in_object() {
+    let source = r#"
+        let obj = {
+            v() {
+                return super.m();
+            }
+        };
+
+        let proto = {
+            m() {
+                return "super";
+            }
+        };
+
+        Object.setPrototypeOf(obj, proto);
+
+        obj.v();
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::from("super"))
+    )
+}
