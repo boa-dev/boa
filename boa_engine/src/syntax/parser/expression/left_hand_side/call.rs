@@ -14,7 +14,7 @@ use crate::syntax::{
             field::{get_private_field::GetPrivateField, GetConstField, GetField},
             Call, Node,
         },
-        Keyword, Punctuator,
+        Punctuator,
     },
     lexer::TokenKind,
     parser::{
@@ -22,7 +22,7 @@ use crate::syntax::{
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -98,19 +98,12 @@ where
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
                         TokenKind::BooleanLiteral(bool) => {
-                            match bool {
-                                true => {
-                                    lhs = GetConstField::new(lhs, Keyword::True.to_sym(interner))
-                                        .into();
-                                }
-                                false => {
-                                    lhs = GetConstField::new(lhs, Keyword::False.to_sym(interner))
-                                        .into();
-                                }
-                            };
+                            lhs =
+                                GetConstField::new(lhs, if *bool { Sym::TRUE } else { Sym::FALSE })
+                                    .into();
                         }
                         TokenKind::NullLiteral => {
-                            lhs = GetConstField::new(lhs, Keyword::Null.to_sym(interner)).into();
+                            lhs = GetConstField::new(lhs, Sym::NULL).into();
                         }
                         TokenKind::PrivateIdentifier(name) => {
                             cursor.push_used_private_identifier(*name, token.span().start())?;

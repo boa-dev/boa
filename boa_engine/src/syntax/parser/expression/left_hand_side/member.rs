@@ -95,15 +95,9 @@ where
                         let field = match token.kind() {
                             TokenKind::Identifier(name) => GetSuperField::from(*name),
                             TokenKind::Keyword((kw, _)) => GetSuperField::from(kw.to_sym(interner)),
-                            TokenKind::BooleanLiteral(true) => {
-                                GetSuperField::from(Keyword::True.to_sym(interner))
-                            }
-                            TokenKind::BooleanLiteral(false) => {
-                                GetSuperField::from(Keyword::False.to_sym(interner))
-                            }
-                            TokenKind::NullLiteral => {
-                                GetSuperField::from(Keyword::Null.to_sym(interner))
-                            }
+                            TokenKind::BooleanLiteral(true) => GetSuperField::from(Sym::TRUE),
+                            TokenKind::BooleanLiteral(false) => GetSuperField::from(Sym::FALSE),
+                            TokenKind::NullLiteral => GetSuperField::from(Sym::NULL),
                             TokenKind::PrivateIdentifier(_) => {
                                 return Err(ParseError::general(
                                     "unexpected private identifier",
@@ -154,19 +148,12 @@ where
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
                         TokenKind::BooleanLiteral(bool) => {
-                            match bool {
-                                true => {
-                                    lhs = GetConstField::new(lhs, Keyword::True.to_sym(interner))
-                                        .into();
-                                }
-                                false => {
-                                    lhs = GetConstField::new(lhs, Keyword::False.to_sym(interner))
-                                        .into();
-                                }
-                            };
+                            lhs =
+                                GetConstField::new(lhs, if *bool { Sym::TRUE } else { Sym::FALSE })
+                                    .into();
                         }
                         TokenKind::NullLiteral => {
-                            lhs = GetConstField::new(lhs, Keyword::Null.to_sym(interner)).into();
+                            lhs = GetConstField::new(lhs, Sym::NULL).into();
                         }
                         TokenKind::PrivateIdentifier(name) => {
                             cursor.push_used_private_identifier(*name, token.span().start())?;
