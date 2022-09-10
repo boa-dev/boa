@@ -244,6 +244,10 @@
 <span id="236">236</span>
 <span id="237">237</span>
 <span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Identifiers parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -357,6 +361,8 @@
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
                 <span class="prelude-val">Ok</span>(<span class="ident">Identifier::new</span>(<span class="ident">Sym::AWAIT</span>))
             }
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Identifier::new</span>(<span class="ident">Sym::ASYNC</span>)),
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Of</span>, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Identifier::new</span>(<span class="ident">Sym::OF</span>)),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
                 <span class="ident">token</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
                 <span class="ident">token</span>.<span class="ident">span</span>(),
@@ -463,6 +469,8 @@
                 ))
             }
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Sym::AWAIT</span>),
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Sym::ASYNC</span>),
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Of</span>, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Sym::OF</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
                 [<span class="string">&quot;identifier&quot;</span>.<span class="ident">to_owned</span>()],
                 <span class="ident">next_token</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),

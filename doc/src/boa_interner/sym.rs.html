@@ -166,6 +166,14 @@
 <span id="158">158</span>
 <span id="159">159</span>
 <span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::num::NonZeroUsize</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
@@ -259,6 +267,12 @@
     <span class="doccomment">/// Symbol for the `&quot;false&quot;` string.</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">FALSE</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::new_unchecked</span>(<span class="number">25</span>) };
 
+    <span class="doccomment">/// Symbol for the `&quot;async&quot;` string.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">ASYNC</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::new_unchecked</span>(<span class="number">26</span>) };
+
+    <span class="doccomment">/// Symbol for the `&quot;of&quot;` string.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="ident">OF</span>: <span class="self">Self</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::new_unchecked</span>(<span class="number">27</span>) };
+
     <span class="doccomment">/// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">value</span>: <span class="ident">usize</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
@@ -321,6 +335,8 @@
         <span class="string">&quot;anonymous&quot;</span>,
         <span class="string">&quot;true&quot;</span>,
         <span class="string">&quot;false&quot;</span>,
+        <span class="string">&quot;async&quot;</span>,
+        <span class="string">&quot;of&quot;</span>,
     };
     <span class="comment">// A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`</span>
     <span class="macro">sa::const_assert!</span>(<span class="ident">COMMON_STRINGS</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">usize::MAX</span>);

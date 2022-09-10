@@ -1280,116 +1280,10 @@
 <span id="1272">1272</span>
 <span id="1273">1273</span>
 <span id="1274">1274</span>
-<span id="1275">1275</span>
-<span id="1276">1276</span>
-<span id="1277">1277</span>
-<span id="1278">1278</span>
-<span id="1279">1279</span>
-<span id="1280">1280</span>
-<span id="1281">1281</span>
-<span id="1282">1282</span>
-<span id="1283">1283</span>
-<span id="1284">1284</span>
-<span id="1285">1285</span>
-<span id="1286">1286</span>
-<span id="1287">1287</span>
-<span id="1288">1288</span>
-<span id="1289">1289</span>
-<span id="1290">1290</span>
-<span id="1291">1291</span>
-<span id="1292">1292</span>
-<span id="1293">1293</span>
-<span id="1294">1294</span>
-<span id="1295">1295</span>
-<span id="1296">1296</span>
-<span id="1297">1297</span>
-<span id="1298">1298</span>
-<span id="1299">1299</span>
-<span id="1300">1300</span>
-<span id="1301">1301</span>
-<span id="1302">1302</span>
-<span id="1303">1303</span>
-<span id="1304">1304</span>
-<span id="1305">1305</span>
-<span id="1306">1306</span>
-<span id="1307">1307</span>
-<span id="1308">1308</span>
-<span id="1309">1309</span>
-<span id="1310">1310</span>
-<span id="1311">1311</span>
-<span id="1312">1312</span>
-<span id="1313">1313</span>
-<span id="1314">1314</span>
-<span id="1315">1315</span>
-<span id="1316">1316</span>
-<span id="1317">1317</span>
-<span id="1318">1318</span>
-<span id="1319">1319</span>
-<span id="1320">1320</span>
-<span id="1321">1321</span>
-<span id="1322">1322</span>
-<span id="1323">1323</span>
-<span id="1324">1324</span>
-<span id="1325">1325</span>
-<span id="1326">1326</span>
-<span id="1327">1327</span>
-<span id="1328">1328</span>
-<span id="1329">1329</span>
-<span id="1330">1330</span>
-<span id="1331">1331</span>
-<span id="1332">1332</span>
-<span id="1333">1333</span>
-<span id="1334">1334</span>
-<span id="1335">1335</span>
-<span id="1336">1336</span>
-<span id="1337">1337</span>
-<span id="1338">1338</span>
-<span id="1339">1339</span>
-<span id="1340">1340</span>
-<span id="1341">1341</span>
-<span id="1342">1342</span>
-<span id="1343">1343</span>
-<span id="1344">1344</span>
-<span id="1345">1345</span>
-<span id="1346">1346</span>
-<span id="1347">1347</span>
-<span id="1348">1348</span>
-<span id="1349">1349</span>
-<span id="1350">1350</span>
-<span id="1351">1351</span>
-<span id="1352">1352</span>
-<span id="1353">1353</span>
-<span id="1354">1354</span>
-<span id="1355">1355</span>
-<span id="1356">1356</span>
-<span id="1357">1357</span>
-<span id="1358">1358</span>
-<span id="1359">1359</span>
-<span id="1360">1360</span>
-<span id="1361">1361</span>
-<span id="1362">1362</span>
-<span id="1363">1363</span>
-<span id="1364">1364</span>
-<span id="1365">1365</span>
-<span id="1366">1366</span>
-<span id="1367">1367</span>
-<span id="1368">1368</span>
-<span id="1369">1369</span>
-<span id="1370">1370</span>
-<span id="1371">1371</span>
-<span id="1372">1372</span>
-<span id="1373">1373</span>
-<span id="1374">1374</span>
-<span id="1375">1375</span>
-<span id="1376">1376</span>
-<span id="1377">1377</span>
-<span id="1378">1378</span>
-<span id="1379">1379</span>
-<span id="1380">1380</span>
-<span id="1381">1381</span>
-<span id="1382">1382</span>
-<span id="1383">1383</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
+</pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">node</span>::{
             <span class="self">self</span>,
@@ -1406,10 +1300,7 @@
             <span class="ident">AssignmentExpression</span>, <span class="ident">AsyncGeneratorMethod</span>, <span class="ident">AsyncMethod</span>, <span class="ident">BindingIdentifier</span>,
             <span class="ident">GeneratorMethod</span>, <span class="ident">LeftHandSideExpression</span>, <span class="ident">PropertyName</span>,
         },
-        <span class="ident">function</span>::{
-            <span class="ident">FormalParameter</span>, <span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>,
-            <span class="ident">FUNCTION_BREAK_TOKENS</span>,
-        },
+        <span class="ident">function</span>::{<span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>, <span class="ident">FUNCTION_BREAK_TOKENS</span>},
         <span class="ident">statement::StatementList</span>,
         <span class="ident">AllowAwait</span>, <span class="ident">AllowDefault</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
     },
@@ -1962,11 +1853,9 @@
                     <span class="op">|</span> <span class="ident">TokenKind::NullLiteral</span>
                     <span class="op">|</span> <span class="ident">TokenKind::PrivateIdentifier</span>(<span class="kw">_</span>)
                     <span class="op">|</span> <span class="ident">TokenKind::Punctuator</span>(
-                        <span class="ident">Punctuator::OpenBracket</span>
-                        <span class="op">|</span> <span class="ident">Punctuator::Mul</span>
-                        <span class="op">|</span> <span class="ident">Punctuator::OpenBlock</span>
-                        <span class="op">|</span> <span class="ident">Punctuator::Semicolon</span>,
+                        <span class="ident">Punctuator::OpenBracket</span> <span class="op">|</span> <span class="ident">Punctuator::Mul</span> <span class="op">|</span> <span class="ident">Punctuator::OpenBlock</span>,
                     ) =&gt; {
+                        <span class="comment">// this &quot;static&quot; is a keyword.</span>
                         <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
                         <span class="bool-val">true</span>
                     }
@@ -1975,6 +1864,19 @@
             }
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         };
+
+        <span class="kw">let</span> <span class="ident">is_keyword</span> <span class="op">=</span> <span class="op">!</span><span class="macro">matches!</span>(
+            <span class="ident">cursor</span>
+                .<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                .<span class="ident">kind</span>(),
+            <span class="ident">TokenKind::Punctuator</span>(
+                <span class="ident">Punctuator::Assign</span>
+                    <span class="op">|</span> <span class="ident">Punctuator::CloseBlock</span>
+                    <span class="op">|</span> <span class="ident">Punctuator::OpenParen</span>
+                    <span class="op">|</span> <span class="ident">Punctuator::Semicolon</span>
+            )
+        );
 
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
@@ -2003,10 +1905,6 @@
                 <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict</span>);
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>((<span class="prelude-val">Some</span>(<span class="ident">FunctionExpr::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>)), <span class="prelude-val">None</span>));
-            }
-            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Semicolon</span>) <span class="kw">if</span> <span class="ident">r#static</span> =&gt; {
-                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="ident">ClassElementNode::FieldDefinition</span>(<span class="ident">Sym::STATIC</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>)
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>) <span class="kw">if</span> <span class="ident">r#static</span> =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
@@ -2113,13 +2011,13 @@
                     }
                 }
             }
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">true</span>)) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">true</span>)) <span class="kw">if</span> <span class="ident">is_keyword</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
                     <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                 ));
             }
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>)) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>)) <span class="kw">if</span> <span class="ident">is_keyword</span> =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
                 <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;Async object methods&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
@@ -2197,64 +2095,10 @@
                     }
                 }
             }
-            <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::GET</span>) =&gt; {
+            <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::GET</span>) <span class="kw">if</span> <span class="ident">is_keyword</span> =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
                 <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                 <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                        <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(
-                            <span class="ident">Sym::GET</span>,
-                            <span class="bool-val">true</span>,
-                            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                            <span class="self">self</span>.<span class="ident">allow_await</span>,
-                        )
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">cursor</span>.<span class="ident">expect_semicolon</span>(<span class="string">&quot;expected semicolon&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict</span>);
-                        <span class="kw">if</span> <span class="ident">r#static</span> {
-                            <span class="ident">ClassElementNode::StaticFieldDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::GET</span>), <span class="prelude-val">Some</span>(<span class="ident">rhs</span>))
-                        } <span class="kw">else</span> {
-                            <span class="ident">ClassElementNode::FieldDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::GET</span>), <span class="prelude-val">Some</span>(<span class="ident">rhs</span>))
-                        }
-                    }
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                        <span class="kw">let</span> <span class="ident">params</span> <span class="op">=</span>
-                            <span class="ident">UniqueFormalParameters::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">cursor</span>.<span class="ident">expect</span>(
-                            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>),
-                            <span class="string">&quot;method definition&quot;</span>,
-                            <span class="ident">interner</span>,
-                        )<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">FunctionBody::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">expect</span>(
-                            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>),
-                            <span class="string">&quot;method definition&quot;</span>,
-                            <span class="ident">interner</span>,
-                        )<span class="question-mark">?</span>;
-
-                        <span class="comment">// Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true</span>
-                        <span class="comment">// and IsSimpleParameterList of UniqueFormalParameters is false.</span>
-                        <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">strict</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">params</span>.<span class="ident">is_simple</span>() {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                            <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>
-                                .<span class="ident">into</span>(),
-                                <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
-                        )));
-                        }
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict</span>);
-                        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span>
-                            <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">FunctionExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>));
-                        <span class="kw">if</span> <span class="ident">r#static</span> {
-                            <span class="ident">ClassElementNode::StaticMethodDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::GET</span>), <span class="ident">method</span>)
-                        } <span class="kw">else</span> {
-                            <span class="ident">ClassElementNode::MethodDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::GET</span>), <span class="ident">method</span>)
-                        }
-                    }
                     <span class="ident">TokenKind::PrivateIdentifier</span>(<span class="ident">Sym::CONSTRUCTOR</span>) =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;class constructor may not be a private method&quot;</span>,
@@ -2366,72 +2210,10 @@
                     }
                 }
             }
-            <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::SET</span>) =&gt; {
+            <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::SET</span>) <span class="kw">if</span> <span class="ident">is_keyword</span> =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
                 <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                 <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
-                        <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(
-                            <span class="ident">Sym::SET</span>,
-                            <span class="bool-val">true</span>,
-                            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                            <span class="self">self</span>.<span class="ident">allow_await</span>,
-                        )
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">cursor</span>.<span class="ident">expect_semicolon</span>(<span class="string">&quot;expected semicolon&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict</span>);
-                        <span class="kw">if</span> <span class="ident">r#static</span> {
-                            <span class="ident">ClassElementNode::StaticFieldDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::SET</span>), <span class="prelude-val">Some</span>(<span class="ident">rhs</span>))
-                        } <span class="kw">else</span> {
-                            <span class="ident">ClassElementNode::FieldDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::SET</span>), <span class="prelude-val">Some</span>(<span class="ident">rhs</span>))
-                        }
-                    }
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) =&gt; {
-                        <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                        <span class="kw">let</span> <span class="ident">parameters</span>: <span class="ident">FormalParameterList</span> <span class="op">=</span> <span class="ident">FormalParameter::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                            .<span class="ident">into</span>();
-                        <span class="ident">cursor</span>.<span class="ident">expect</span>(
-                            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseParen</span>),
-                            <span class="string">&quot;class setter method definition&quot;</span>,
-                            <span class="ident">interner</span>,
-                        )<span class="question-mark">?</span>;
-
-                        <span class="ident">cursor</span>.<span class="ident">expect</span>(
-                            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBlock</span>),
-                            <span class="string">&quot;method definition&quot;</span>,
-                            <span class="ident">interner</span>,
-                        )<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">FunctionBody::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">expect</span>(
-                            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span>),
-                            <span class="string">&quot;method definition&quot;</span>,
-                            <span class="ident">interner</span>,
-                        )<span class="question-mark">?</span>;
-
-                        <span class="comment">// Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true</span>
-                        <span class="comment">// and IsSimpleParameterList of UniqueFormalParameters is false.</span>
-                        <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">strict</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">is_simple</span>() {
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                            <span class="string">&quot;Illegal &#39;use strict&#39; directive in function with non-simple parameter list&quot;</span>
-                                .<span class="ident">into</span>(),
-                                <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
-                        )));
-                        }
-                        <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict</span>);
-                        <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span>
-                            <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">FunctionExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">parameters</span>, <span class="ident">body</span>));
-                        <span class="kw">if</span> <span class="ident">r#static</span> {
-                            <span class="ident">ClassElementNode::StaticMethodDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::SET</span>), <span class="ident">method</span>)
-                        } <span class="kw">else</span> {
-                            <span class="ident">ClassElementNode::MethodDefinition</span>(<span class="ident">Literal</span>(<span class="ident">Sym::SET</span>), <span class="ident">method</span>)
-                        }
-                    }
                     <span class="ident">TokenKind::PrivateIdentifier</span>(<span class="ident">Sym::CONSTRUCTOR</span>) =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;class constructor may not be a private method&quot;</span>,

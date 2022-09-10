@@ -369,6 +369,24 @@
 <span id="361">361</span>
 <span id="362">362</span>
 <span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -472,6 +490,24 @@
                 <span class="ident">Declaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
             ),
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>)) =&gt; {
+                <span class="kw">match</span> <span class="ident">cursor</span>
+                    .<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                    .<span class="ident">kind</span>()
+                {
+                    <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Of</span>, <span class="kw">_</span>)) =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                            <span class="string">&quot;invalid left-hand side expression &#39;async&#39; of a for-of loop&quot;</span>.<span class="ident">into</span>(),
+                            <span class="ident">init_position</span>,
+                        )));
+                    }
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(
+                        <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                    ),
+                }
+            }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Semicolon</span>) =&gt; <span class="prelude-val">None</span>,
             <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(
                 <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)

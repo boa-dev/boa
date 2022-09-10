@@ -145,6 +145,8 @@
 <span id="137">137</span>
 <span id="138">138</span>
 <span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Function expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -214,9 +216,11 @@
             .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
             .<span class="ident">kind</span>()
         {
-            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) =&gt; {
-                <span class="prelude-val">Some</span>(<span class="ident">BindingIdentifier::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>)
-            }
+            <span class="ident">TokenKind::Identifier</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">TokenKind::Keyword</span>((
+                <span class="ident">Keyword::Yield</span> <span class="op">|</span> <span class="ident">Keyword::Await</span> <span class="op">|</span> <span class="ident">Keyword::Async</span> <span class="op">|</span> <span class="ident">Keyword::Of</span>,
+                <span class="kw">_</span>,
+            )) =&gt; <span class="prelude-val">Some</span>(<span class="ident">BindingIdentifier::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>),
             <span class="kw">_</span> =&gt; <span class="self">self</span>.<span class="ident">name</span>,
         };
 

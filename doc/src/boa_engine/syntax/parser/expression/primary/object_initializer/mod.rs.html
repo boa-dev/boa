@@ -1001,6 +1001,13 @@
 <span id="993">993</span>
 <span id="994">994</span>
 <span id="995">995</span>
+<span id="996">996</span>
+<span id="997">997</span>
+<span id="998">998</span>
+<span id="999">999</span>
+<span id="1000">1000</span>
+<span id="1001">1001</span>
+<span id="1002">1002</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1169,15 +1176,22 @@
         }
 
         <span class="comment">//Async [AsyncMethod, AsyncGeneratorMethod] object methods</span>
+        <span class="kw">let</span> <span class="ident">is_keyword</span> <span class="op">=</span> <span class="op">!</span><span class="macro">matches!</span>(
+            <span class="ident">cursor</span>
+                .<span class="ident">peek</span>(<span class="number">1</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
+                .<span class="ident">kind</span>(),
+            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span> <span class="op">|</span> <span class="ident">Punctuator::Colon</span>)
+        );
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">true</span>)) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">true</span>)) <span class="kw">if</span> <span class="ident">is_keyword</span> =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
                     <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                 ));
             }
-            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>)) =&gt; {
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>)) <span class="kw">if</span> <span class="ident">is_keyword</span> =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
                 <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;Async object methods&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
