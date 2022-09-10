@@ -97,10 +97,11 @@ where
                         TokenKind::Keyword((kw, _)) => {
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
                         }
-                        TokenKind::BooleanLiteral(bool) => {
-                            lhs =
-                                GetConstField::new(lhs, if *bool { Sym::TRUE } else { Sym::FALSE })
-                                    .into();
+                        TokenKind::BooleanLiteral(true) => {
+                            lhs = GetConstField::new(lhs, Sym::TRUE).into();
+                        }
+                        TokenKind::BooleanLiteral(false) => {
+                            lhs = GetConstField::new(lhs, Sym::FALSE).into();
                         }
                         TokenKind::NullLiteral => {
                             lhs = GetConstField::new(lhs, Sym::NULL).into();
