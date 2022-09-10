@@ -98,11 +98,12 @@ where
         // TODO: tok currently consumes the token instead of peeking, so the token
         // isn't passed and consumed by parsers according to spec (EX: GeneratorExpression)
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
+        let tok_position = tok.span().start();
 
         match tok.kind() {
             TokenKind::Keyword((Keyword::This, true)) => Err(ParseError::general(
                 "Keyword must not contain escaped characters",
-                tok.span().start(),
+                tok_position,
             )),
             TokenKind::Keyword((Keyword::This, false)) => {
                 cursor.next(interner).expect("token disappeared");
@@ -128,42 +129,26 @@ where
             }
             TokenKind::Keyword((Keyword::Async, contain_escaped_char)) => {
                 let contain_escaped_char = *contain_escaped_char;
-                let is_generator = match cursor.peek(2, interner) {
-                    Ok(Some(token)) => token.kind() == &TokenKind::Punctuator(Punctuator::Mul),
-                    _ => false,
-                };
-
-                // FIXME: even if the next character is OpenParen, it could be an identifier.
-                // e.g.) async();
-                match cursor.peek(1, interner) {
-                    Ok(Some(token)) => match token.kind() {
-                        TokenKind::Keyword((Keyword::Function, _))
-                        | TokenKind::Punctuator(Punctuator::OpenParen)
-                            if contain_escaped_char =>
-                        {
-                            let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-                            Err(ParseError::general(
-                                "Keyword must not contain escaped characters",
-                                tok.span().start(),
-                            ))
-                        }
-                        TokenKind::Keyword((Keyword::Function, _))
-                        | TokenKind::Punctuator(Punctuator::OpenParen) => {
-                            cursor.next(interner).expect("token disappeared");
-                            if is_generator {
+                match cursor.peek(1, interner)?.map(Token::kind) {
+                    Some(TokenKind::Keyword((Keyword::Function, _))) if contain_escaped_char => {
+                        Err(ParseError::general(
+                            "Keyword must not contain escaped characters",
+                            tok_position,
+                        ))
+                    }
+                    Some(TokenKind::Keyword((Keyword::Function, _))) => {
+                        cursor.next(interner).expect("token disappeared");
+                        match cursor.peek(1, interner)?.map(Token::kind) {
+                            Some(TokenKind::Punctuator(Punctuator::Mul)) => {
                                 AsyncGeneratorExpression::new(self.name)
                                     .parse(cursor, interner)
                                     .map(Node::from)
-                            } else {
-                                AsyncFunctionExpression::new(self.name, self.allow_yield)
-                                    .parse(cursor, interner)
-                                    .map(Node::from)
                             }
+                            _ => AsyncFunctionExpression::new(self.name, self.allow_yield)
+                                .parse(cursor, interner)
+                                .map(Node::from),
                         }
-                        _ => IdentifierReference::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)
-                            .map(Node::from),
-                    },
+                    }
                     _ => IdentifierReference::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
                         .map(Node::from),
