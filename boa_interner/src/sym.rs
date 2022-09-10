@@ -85,11 +85,17 @@ impl Sym {
     /// Symbol for the `"anonymous"` string.
     pub const ANONYMOUS: Self = unsafe { Self::new_unchecked(23) };
 
+    /// Symbol for the `"true"` string.
+    pub const TRUE: Self = unsafe { Self::new_unchecked(24) };
+
+    /// Symbol for the `"false"` string.
+    pub const FALSE: Self = unsafe { Self::new_unchecked(25) };
+
     /// Symbol for the `"async"` string.
-    pub const ASYNC: Self = unsafe { Self::new_unchecked(24) };
+    pub const ASYNC: Self = unsafe { Self::new_unchecked(26) };
 
     /// Symbol for the `"of"` string.
-    pub const OF: Self = unsafe { Self::new_unchecked(25) };
+    pub const OF: Self = unsafe { Self::new_unchecked(27) };
 
     /// Creates a new [`Sym`] from the provided `value`, or returns `None` if `index` is zero.
     #[inline]
@@ -151,6 +157,8 @@ pub(super) static COMMON_STRINGS: phf::OrderedSet<&'static str> = {
         "protected",
         "public",
         "anonymous",
+        "true",
+        "false",
         "async",
         "of",
     };

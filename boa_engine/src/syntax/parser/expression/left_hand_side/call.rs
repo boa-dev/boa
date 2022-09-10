@@ -11,7 +11,7 @@ use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
         node::{
-            field::{GetConstField, GetField},
+            field::{get_private_field::GetPrivateField, GetConstField, GetField},
             Call, Node,
         },
         Punctuator,
@@ -22,7 +22,7 @@ use crate::syntax::{
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -96,6 +96,19 @@ where
                         }
                         TokenKind::Keyword((kw, _)) => {
                             lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
+                        }
+                        TokenKind::BooleanLiteral(true) => {
+                            lhs = GetConstField::new(lhs, Sym::TRUE).into();
+                        }
+                        TokenKind::BooleanLiteral(false) => {
+                            lhs = GetConstField::new(lhs, Sym::FALSE).into();
+                        }
+                        TokenKind::NullLiteral => {
+                            lhs = GetConstField::new(lhs, Sym::NULL).into();
+                        }
+                        TokenKind::PrivateIdentifier(name) => {
+                            cursor.push_used_private_identifier(*name, token.span().start())?;
+                            lhs = GetPrivateField::new(lhs, *name).into();
                         }
                         _ => {
                             return Err(ParseError::expected(
