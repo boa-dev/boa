@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests;
+
 use crate::syntax::{
     ast::{
         node::{
@@ -15,10 +18,7 @@ use crate::syntax::{
             AssignmentExpression, AsyncGeneratorMethod, AsyncMethod, BindingIdentifier,
             GeneratorMethod, LeftHandSideExpression, PropertyName,
         },
-        function::{
-            FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters,
-            FUNCTION_BREAK_TOKENS,
-        },
+        function::{FormalParameters, FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
         statement::StatementList,
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
     },
@@ -571,11 +571,9 @@ where
                     | TokenKind::NullLiteral
                     | TokenKind::PrivateIdentifier(_)
                     | TokenKind::Punctuator(
-                        Punctuator::OpenBracket
-                        | Punctuator::Mul
-                        | Punctuator::OpenBlock
-                        | Punctuator::Semicolon,
+                        Punctuator::OpenBracket | Punctuator::Mul | Punctuator::OpenBlock,
                     ) => {
+                        // this "static" is a keyword.
                         cursor.next(interner).expect("token disappeared");
                         true
                     }
@@ -584,6 +582,19 @@ where
             }
             _ => false,
         };
+
+        let is_keyword = !matches!(
+            cursor
+                .peek(1, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .kind(),
+            TokenKind::Punctuator(
+                Punctuator::Assign
+                    | Punctuator::CloseBlock
+                    | Punctuator::OpenParen
+                    | Punctuator::Semicolon
+            )
+        );
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let position = token.span().start();
@@ -612,10 +623,6 @@ where
                 cursor.set_strict_mode(strict);
 
                 return Ok((Some(FunctionExpr::new(self.name, parameters, body)), None));
-            }
-            TokenKind::Punctuator(Punctuator::Semicolon) if r#static => {
-                cursor.next(interner).expect("token disappeared");
-                ClassElementNode::FieldDefinition(Sym::STATIC.into(), None)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) if r#static => {
                 cursor.next(interner).expect("token disappeared");
@@ -722,13 +729,13 @@ where
                     }
                 }
             }
-            TokenKind::Keyword((Keyword::Async, true)) => {
+            TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
                 return Err(ParseError::general(
                     "Keyword must not contain escaped characters",
                     token.span().start(),
                 ));
             }
-            TokenKind::Keyword((Keyword::Async, false)) => {
+            TokenKind::Keyword((Keyword::Async, false)) if is_keyword => {
                 cursor.next(interner).expect("token disappeared");
                 cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
                 let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -806,64 +813,10 @@ where
                     }
                 }
             }
-            TokenKind::Identifier(Sym::GET) => {
+            TokenKind::Identifier(Sym::GET) if is_keyword => {
                 cursor.next(interner).expect("token disappeared");
                 let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
                 match token.kind() {
-                    TokenKind::Punctuator(Punctuator::Assign) => {
-                        cursor.next(interner).expect("token disappeared");
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
-                        let rhs = AssignmentExpression::new(
-                            Sym::GET,
-                            true,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?;
-                        cursor.expect_semicolon("expected semicolon", interner)?;
-                        cursor.set_strict_mode(strict);
-                        if r#static {
-                            ClassElementNode::StaticFieldDefinition(Literal(Sym::GET), Some(rhs))
-                        } else {
-                            ClassElementNode::FieldDefinition(Literal(Sym::GET), Some(rhs))
-                        }
-                    }
-                    TokenKind::Punctuator(Punctuator::OpenParen) => {
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
-                        let params =
-                            UniqueFormalParameters::new(false, false).parse(cursor, interner)?;
-                        cursor.expect(
-                            TokenKind::Punctuator(Punctuator::OpenBlock),
-                            "method definition",
-                            interner,
-                        )?;
-                        let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                        let token = cursor.expect(
-                            TokenKind::Punctuator(Punctuator::CloseBlock),
-                            "method definition",
-                            interner,
-                        )?;
-
-                        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
-                        // and IsSimpleParameterList of UniqueFormalParameters is false.
-                        if body.strict() && !params.is_simple() {
-                            return Err(ParseError::lex(LexError::Syntax(
-                            "Illegal 'use strict' directive in function with non-simple parameter list"
-                                .into(),
-                                token.span().start(),
-                        )));
-                        }
-                        cursor.set_strict_mode(strict);
-                        let method =
-                            MethodDefinition::Ordinary(FunctionExpr::new(None, params, body));
-                        if r#static {
-                            ClassElementNode::StaticMethodDefinition(Literal(Sym::GET), method)
-                        } else {
-                            ClassElementNode::MethodDefinition(Literal(Sym::GET), method)
-                        }
-                    }
                     TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) => {
                         return Err(ParseError::general(
                             "class constructor may not be a private method",
@@ -975,72 +928,10 @@ where
                     }
                 }
             }
-            TokenKind::Identifier(Sym::SET) => {
+            TokenKind::Identifier(Sym::SET) if is_keyword => {
                 cursor.next(interner).expect("token disappeared");
                 let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
                 match token.kind() {
-                    TokenKind::Punctuator(Punctuator::Assign) => {
-                        cursor.next(interner).expect("token disappeared");
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
-                        let rhs = AssignmentExpression::new(
-                            Sym::SET,
-                            true,
-                            self.allow_yield,
-                            self.allow_await,
-                        )
-                        .parse(cursor, interner)?;
-                        cursor.expect_semicolon("expected semicolon", interner)?;
-                        cursor.set_strict_mode(strict);
-                        if r#static {
-                            ClassElementNode::StaticFieldDefinition(Literal(Sym::SET), Some(rhs))
-                        } else {
-                            ClassElementNode::FieldDefinition(Literal(Sym::SET), Some(rhs))
-                        }
-                    }
-                    TokenKind::Punctuator(Punctuator::OpenParen) => {
-                        cursor.next(interner).expect("token disappeared");
-                        let strict = cursor.strict_mode();
-                        cursor.set_strict_mode(true);
-                        let parameters: FormalParameterList = FormalParameter::new(false, false)
-                            .parse(cursor, interner)?
-                            .into();
-                        cursor.expect(
-                            TokenKind::Punctuator(Punctuator::CloseParen),
-                            "class setter method definition",
-                            interner,
-                        )?;
-
-                        cursor.expect(
-                            TokenKind::Punctuator(Punctuator::OpenBlock),
-                            "method definition",
-                            interner,
-                        )?;
-                        let body = FunctionBody::new(false, false).parse(cursor, interner)?;
-                        let token = cursor.expect(
-                            TokenKind::Punctuator(Punctuator::CloseBlock),
-                            "method definition",
-                            interner,
-                        )?;
-
-                        // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of FunctionBody is true
-                        // and IsSimpleParameterList of UniqueFormalParameters is false.
-                        if body.strict() && !parameters.is_simple() {
-                            return Err(ParseError::lex(LexError::Syntax(
-                            "Illegal 'use strict' directive in function with non-simple parameter list"
-                                .into(),
-                                token.span().start(),
-                        )));
-                        }
-                        cursor.set_strict_mode(strict);
-                        let method =
-                            MethodDefinition::Ordinary(FunctionExpr::new(None, parameters, body));
-                        if r#static {
-                            ClassElementNode::StaticMethodDefinition(Literal(Sym::SET), method)
-                        } else {
-                            ClassElementNode::MethodDefinition(Literal(Sym::SET), method)
-                        }
-                    }
                     TokenKind::PrivateIdentifier(Sym::CONSTRUCTOR) => {
                         return Err(ParseError::general(
                             "class constructor may not be a private method",

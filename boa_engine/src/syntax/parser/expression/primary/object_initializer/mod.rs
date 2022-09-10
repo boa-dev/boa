@@ -166,15 +166,22 @@ where
         }
 
         //Async [AsyncMethod, AsyncGeneratorMethod] object methods
+        let is_keyword = !matches!(
+            cursor
+                .peek(1, interner)?
+                .ok_or(ParseError::AbruptEnd)?
+                .kind(),
+            TokenKind::Punctuator(Punctuator::OpenParen | Punctuator::Colon)
+        );
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         match token.kind() {
-            TokenKind::Keyword((Keyword::Async, true)) => {
+            TokenKind::Keyword((Keyword::Async, true)) if is_keyword => {
                 return Err(ParseError::general(
                     "Keyword must not contain escaped characters",
                     token.span().start(),
                 ));
             }
-            TokenKind::Keyword((Keyword::Async, false)) => {
+            TokenKind::Keyword((Keyword::Async, false)) if is_keyword => {
                 cursor.next(interner)?.expect("token disappeared");
                 cursor.peek_expect_no_lineterminator(0, "Async object methods", interner)?;
 

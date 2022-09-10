@@ -359,10 +359,20 @@ where
 
         match *tok.kind() {
             TokenKind::Keyword((
-                Keyword::Function | Keyword::Async | Keyword::Class | Keyword::Const | Keyword::Let,
+                Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Let,
                 _,
             )) => {
                 Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
+            }
+            TokenKind::Keyword((Keyword::Async, _)) => {
+                match cursor.peek(1, interner)?.map(Token::kind) {
+                    Some(TokenKind::Keyword((Keyword::Function, _))) => {
+                        Declaration::new(self.allow_yield, self.allow_await, true)
+                            .parse(cursor, interner)
+                    }
+                    _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                        .parse(cursor, interner),
+                }
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                 .parse(cursor, interner),

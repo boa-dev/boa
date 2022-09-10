@@ -44,6 +44,8 @@ fn class_declaration_elements() {
             }
             set e(value) {}
             get e() {}
+            set(a, b) {}
+            get(a, b) {}
         };
         "#,
     );
