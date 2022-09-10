@@ -101,6 +101,9 @@
 <span id="93">93</span>
 <span id="94">94</span>
 <span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Left hand side expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -109,6 +112,9 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Left-hand-side_expressions</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-left-hand-side-expressions</span>
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">mod</span> <span class="ident">arguments</span>;
 <span class="kw">mod</span> <span class="ident">call</span>;
