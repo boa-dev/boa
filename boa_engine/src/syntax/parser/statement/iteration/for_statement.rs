@@ -101,6 +101,24 @@ where
                 Declaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)?,
             ),
+            TokenKind::Keyword((Keyword::Async, false)) => {
+                match cursor
+                    .peek(1, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
+                    .kind()
+                {
+                    TokenKind::Keyword((Keyword::Of, _)) => {
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "invalid left-hand side expression 'async' of a for-of loop".into(),
+                            init_position,
+                        )));
+                    }
+                    _ => Some(
+                        Expression::new(None, false, self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)?,
+                    ),
+                }
+            }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
                 Expression::new(None, false, self.allow_yield, self.allow_await)
@@ -168,14 +186,6 @@ where
                 return Ok(ForInLoop::new(init, expr, body).into());
             }
             (Some(init), TokenKind::Keyword((Keyword::Of, false))) => {
-                if let Node::Identifier(identifier) = init {
-                    if identifier.sym() == Sym::ASYNC {
-                        return Err(ParseError::lex(LexError::Syntax(
-                            "invalid left-hand side expression 'async' of a for-of loop".into(),
-                            init_position,
-                        )));
-                    }
-                }
                 let init =
                     node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
 
