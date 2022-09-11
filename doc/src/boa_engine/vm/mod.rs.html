@@ -2756,6 +2756,16 @@
 <span id="2748">2748</span>
 <span id="2749">2749</span>
 <span id="2750">2750</span>
+<span id="2751">2751</span>
+<span id="2752">2752</span>
+<span id="2753">2753</span>
+<span id="2754">2754</span>
+<span id="2755">2755</span>
+<span id="2756">2756</span>
+<span id="2757">2757</span>
+<span id="2758">2758</span>
+<span id="2759">2759</span>
+<span id="2760">2760</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -4279,7 +4289,17 @@
                     <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">function_object</span>
                         .<span class="ident">as_function</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;must be function object&quot;</span>);
-                    <span class="ident">function</span>.<span class="ident">get_home_object</span>().<span class="ident">cloned</span>()
+                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">home_object</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">get_home_object</span>().<span class="ident">cloned</span>();
+
+                    <span class="kw">if</span> <span class="ident">home_object</span>.<span class="ident">is_none</span>() {
+                        <span class="ident">home_object</span> <span class="op">=</span> <span class="ident">env</span>
+                            .<span class="ident">get_this_binding</span>()
+                            .<span class="ident">expect</span>(<span class="string">&quot;can not get `this` object&quot;</span>)
+                            .<span class="ident">as_object</span>()
+                            .<span class="ident">cloned</span>();
+                    }
+
+                    <span class="ident">home_object</span>
                 } <span class="kw">else</span> {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Must call super constructor in derived class before accessing &#39;this&#39; or returning from derived constructor&quot;</span>);
                 };
