@@ -137,3 +137,48 @@ fn finally_block_binding_env() {
         Ok(JsValue::from("Hey hey people"))
     );
 }
+
+#[test]
+fn run_super_method_in_object() {
+    let source = r#"
+        let obj = {
+            v() { return super.m(); }
+        };
+        let proto = {
+            m() { return "super"; }
+        };
+        Object.setPrototypeOf(obj, proto);
+        obj.v();
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::from("super"))
+    )
+}
+
+#[test]
+fn get_reference_by_super() {
+    let source = r#"
+        var fromA, fromB;
+        var A = { fromA: 'a', fromB: 'a' };
+        var B = { fromB: 'b' };
+        Object.setPrototypeOf(B, A);
+        var obj = {
+            fromA: 'c',
+            fromB: 'c',
+            method() {
+                fromA = (() => { return super.fromA; })();
+                fromB = (() => { return super.fromB; })();
+            }
+        };
+        Object.setPrototypeOf(obj, B);
+        obj.method();
+        fromA + fromB
+    "#;
+
+    assert_eq!(
+        Context::default().eval(source.as_bytes()),
+        Ok(JsValue::from("ab"))
+    )
+}
