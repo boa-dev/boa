@@ -1523,7 +1523,7 @@ impl Context {
                         .expect("must be function object");
                     let mut home_object = function.get_home_object().cloned();
 
-                    if home_object == None {
+                    if home_object.is_none() {
                         home_object = env
                             .get_this_binding()
                             .expect("can not get `this` object")
