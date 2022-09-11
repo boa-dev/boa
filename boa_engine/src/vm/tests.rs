@@ -141,11 +141,11 @@ fn finally_block_binding_env() {
 #[test]
 fn run_super_method_in_object() {
     let source = r#"
-        let obj = {
-            v() { return super.m(); }
-        };
         let proto = {
             m() { return "super"; }
+        };
+        let obj = {
+            v() { return super.m(); }
         };
         Object.setPrototypeOf(obj, proto);
         obj.v();
