@@ -214,6 +214,15 @@
 <span id="206">206</span>
 <span id="207">207</span>
 <span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for regex literals used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Span</span>, <span class="ident">Tokenizer</span>};
@@ -257,6 +266,7 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;RegexLiteral&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_class_char</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
         <span class="comment">// Lex RegularExpressionBody.</span>
         <span class="kw">loop</span> {
@@ -270,7 +280,15 @@
                 }
                 <span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; {
                     <span class="kw">match</span> <span class="ident">b</span> {
-                        <span class="string">b&#39;/&#39;</span> =&gt; <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.</span>
+                        <span class="string">b&#39;/&#39;</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">is_class_char</span> =&gt; <span class="kw">break</span>, <span class="comment">// RegularExpressionBody finished.</span>
+                        <span class="string">b&#39;[&#39;</span> =&gt; {
+                            <span class="ident">is_class_char</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                            <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>);
+                        }
+                        <span class="string">b&#39;]&#39;</span> <span class="kw">if</span> <span class="ident">is_class_char</span> =&gt; {
+                            <span class="ident">is_class_char</span> <span class="op">=</span> <span class="bool-val">false</span>;
+                            <span class="ident">body</span>.<span class="ident">push</span>(<span class="ident">b</span>);
+                        }
                         <span class="string">b&#39;\n&#39;</span> <span class="op">|</span> <span class="string">b&#39;\r&#39;</span> =&gt; {
                             <span class="comment">// Not allowed in Regex literal.</span>
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
