@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.20/src/builder/arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.21/src/builder/arg.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>arg.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
@@ -5500,6 +5500,130 @@
 <span id="5492">5492</span>
 <span id="5493">5493</span>
 <span id="5494">5494</span>
+<span id="5495">5495</span>
+<span id="5496">5496</span>
+<span id="5497">5497</span>
+<span id="5498">5498</span>
+<span id="5499">5499</span>
+<span id="5500">5500</span>
+<span id="5501">5501</span>
+<span id="5502">5502</span>
+<span id="5503">5503</span>
+<span id="5504">5504</span>
+<span id="5505">5505</span>
+<span id="5506">5506</span>
+<span id="5507">5507</span>
+<span id="5508">5508</span>
+<span id="5509">5509</span>
+<span id="5510">5510</span>
+<span id="5511">5511</span>
+<span id="5512">5512</span>
+<span id="5513">5513</span>
+<span id="5514">5514</span>
+<span id="5515">5515</span>
+<span id="5516">5516</span>
+<span id="5517">5517</span>
+<span id="5518">5518</span>
+<span id="5519">5519</span>
+<span id="5520">5520</span>
+<span id="5521">5521</span>
+<span id="5522">5522</span>
+<span id="5523">5523</span>
+<span id="5524">5524</span>
+<span id="5525">5525</span>
+<span id="5526">5526</span>
+<span id="5527">5527</span>
+<span id="5528">5528</span>
+<span id="5529">5529</span>
+<span id="5530">5530</span>
+<span id="5531">5531</span>
+<span id="5532">5532</span>
+<span id="5533">5533</span>
+<span id="5534">5534</span>
+<span id="5535">5535</span>
+<span id="5536">5536</span>
+<span id="5537">5537</span>
+<span id="5538">5538</span>
+<span id="5539">5539</span>
+<span id="5540">5540</span>
+<span id="5541">5541</span>
+<span id="5542">5542</span>
+<span id="5543">5543</span>
+<span id="5544">5544</span>
+<span id="5545">5545</span>
+<span id="5546">5546</span>
+<span id="5547">5547</span>
+<span id="5548">5548</span>
+<span id="5549">5549</span>
+<span id="5550">5550</span>
+<span id="5551">5551</span>
+<span id="5552">5552</span>
+<span id="5553">5553</span>
+<span id="5554">5554</span>
+<span id="5555">5555</span>
+<span id="5556">5556</span>
+<span id="5557">5557</span>
+<span id="5558">5558</span>
+<span id="5559">5559</span>
+<span id="5560">5560</span>
+<span id="5561">5561</span>
+<span id="5562">5562</span>
+<span id="5563">5563</span>
+<span id="5564">5564</span>
+<span id="5565">5565</span>
+<span id="5566">5566</span>
+<span id="5567">5567</span>
+<span id="5568">5568</span>
+<span id="5569">5569</span>
+<span id="5570">5570</span>
+<span id="5571">5571</span>
+<span id="5572">5572</span>
+<span id="5573">5573</span>
+<span id="5574">5574</span>
+<span id="5575">5575</span>
+<span id="5576">5576</span>
+<span id="5577">5577</span>
+<span id="5578">5578</span>
+<span id="5579">5579</span>
+<span id="5580">5580</span>
+<span id="5581">5581</span>
+<span id="5582">5582</span>
+<span id="5583">5583</span>
+<span id="5584">5584</span>
+<span id="5585">5585</span>
+<span id="5586">5586</span>
+<span id="5587">5587</span>
+<span id="5588">5588</span>
+<span id="5589">5589</span>
+<span id="5590">5590</span>
+<span id="5591">5591</span>
+<span id="5592">5592</span>
+<span id="5593">5593</span>
+<span id="5594">5594</span>
+<span id="5595">5595</span>
+<span id="5596">5596</span>
+<span id="5597">5597</span>
+<span id="5598">5598</span>
+<span id="5599">5599</span>
+<span id="5600">5600</span>
+<span id="5601">5601</span>
+<span id="5602">5602</span>
+<span id="5603">5603</span>
+<span id="5604">5604</span>
+<span id="5605">5605</span>
+<span id="5606">5606</span>
+<span id="5607">5607</span>
+<span id="5608">5608</span>
+<span id="5609">5609</span>
+<span id="5610">5610</span>
+<span id="5611">5611</span>
+<span id="5612">5612</span>
+<span id="5613">5613</span>
+<span id="5614">5614</span>
+<span id="5615">5615</span>
+<span id="5616">5616</span>
+<span id="5617">5617</span>
+<span id="5618">5618</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 
 <span class="comment">// Std</span>
@@ -5636,10 +5760,18 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Deprecated, replaced with [`Arg::id`]</span>
+    <span class="doccomment">/// Deprecated, replaced with [`Arg::id`] to avoid confusion with [`Arg::value_name`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replaced `arg.name(...)` with `arg.id(...)`</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::id`&quot;</span>)
+        <span class="ident">deprecated</span>(
+            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>,
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::id` to avoid confusion with `Arg::value_name`
+
+Builder: replaced `arg.name(...)` with `arg.id(...)`
+&quot;</span>
+        )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span><span class="op">&lt;</span><span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;help</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">n</span>: <span class="ident">S</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">id</span>(<span class="ident">n</span>)
@@ -6292,7 +6424,13 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::action` (Issue #3772)&quot;</span>)
+        <span class="ident">deprecated</span>(
+            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::action` (Issue #3772)
+
+Builder: replace `arg.multiple_occurrences(true)` with `arg.action(ArgAction::Append)` when taking a value and `arg.action(ArgAction::Count)` with `matches.get_count` when not
+&quot;</span>
+        )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">multiple_occurrences</span>(<span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">if</span> <span class="ident">yes</span> {
@@ -6302,14 +6440,23 @@
         }
     }
 
-    <span class="doccomment">/// Deprecated, for flags this is replaced with `action(ArgAction::Count).value_parser(value_parser!(u8).range(..max))`</span>
+    <span class="doccomment">/// Deprecated, for flags, this is replaced with `RangedI64ValueParser::range`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: `#[clap(action = ArgAction::Count, value_parser = value_parser!(u8).range(..max))]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: `arg.action(ArgAction::Count).value_parser(value_parser!(u8).range(..max))`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
         <span class="ident">deprecated</span>(
             <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;For flags, replaced with `action(ArgAction::Count).value_parser(value_parser!(u8).range(..max))`&quot;</span>
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;For flags, this is replaced with `RangedI64ValueParser::range`
+
+Derive: `#[clap(action = ArgAction::Count, value_parser = value_parser!(u8).range(..max))]`
+
+Builder: `arg.action(ArgAction::Count).value_parser(value_parser!(u8).range(..max))`
+&quot;</span>
         )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">max_occurrences</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">qty</span>: <span class="ident">usize</span>) -&gt; <span class="self">Self</span> {
@@ -7018,11 +7165,25 @@
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Arg::value_parser(...)`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(validator = ...)]` with `#[clap(value_parser = ...)]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.validator(...)` with `arg.value_parser(...)` and `matches.value_of` with</span>
+    <span class="doccomment">/// `matches.get_one::&lt;T&gt;` or `matches.values_of` with `matches.get_many::&lt;T&gt;`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(...)`&quot;</span>)
+        <span class="ident">deprecated</span>(
+            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(...)`
+
+Derive: replace `#[clap(validator = &lt;fn&gt;)]` with `#[clap(value_parser = &lt;fn&gt;)]`
+
+Builder: replace `arg.validator(&lt;fn&gt;)` with `arg.value_parser(&lt;fn&gt;)` and `matches.value_of` with
+`matches.get_one::&lt;T&gt;` or `matches.values_of` with `matches.get_many::&lt;T&gt;`
+&quot;</span>
+        )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validator</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
@@ -7039,7 +7200,16 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(...)`&quot;</span>)
+        <span class="ident">deprecated</span>(
+            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(...)`
+
+Derive: replace `#[clap(validator = &lt;fn&gt;)]` with `#[clap(value_parser = &lt;TypedValueParser&gt;)]`
+
+Builder: replace `arg.validator(&lt;fn&gt;)` with `arg.value_parser(&lt;TypedValueParser&gt;)` and `matches.value_of_os` with
+`matches.get_one::&lt;T&gt;` or `matches.values_of_os` with `matches.get_many::&lt;T&gt;`
+&quot;</span>
+        )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">validator_os</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">O</span>, <span class="ident">E</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
@@ -7053,11 +7223,20 @@
     }
 
     <span class="doccomment">/// Deprecated in [Issue #3743](https://github.com/clap-rs/clap/issues/3743), replaced with [`Arg::value_parser(...)`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(validator_regex = ...)]` with `#[clap(value_parser = |s: &amp;str| regex.is_match(s).then(|| s.to_owned()).ok_or_else(|| ...))]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.validator_regex(...)` with `arg.value_parser(|s: &amp;str| regex.is_match(s).then(|| s.to_owned()).ok_or_else(|| ...))`</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
         <span class="ident">deprecated</span>(
             <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Deprecated in Issue #3743; eplaced with `Arg::value_parser(...)`&quot;</span>
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Deprecated in Issue #3743; replaced with `Arg::value_parser(...)`
+
+Derive: replace `#[clap(validator_regex = ...)]` with `#[clap(value_parser = |s: &amp;str| regex.is_match(s).then(|| s.to_owned()).ok_or_else(|| ...))]`
+
+Builder: replace `arg.validator_regex(...)` with `arg.value_parser(|s: &amp;str| regex.is_match(s).then(|| s.to_owned()).ok_or_else(|| ...))`
+&quot;</span>
         )
     )]</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;regex&quot;</span>)]</span>
@@ -7078,11 +7257,22 @@
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Arg::value_parser(PossibleValuesParser::new(...))`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(possible_value = &lt;1&gt;, possible_value = &lt;2&gt;, ...)]` with `#[clap(value_parser = [&lt;1&gt;, &lt;2&gt;])]`.</span>
+    <span class="doccomment">/// If the field is not a `String`, instead do `#[clap(value_parser = PossibleValueParser::new([&lt;1&gt;, &lt;2&gt;]).map(T::from_str))]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.possible_value(&lt;1&gt;).possible_value(&lt;2&gt;) with `arg.value_parser([&lt;1&gt;, &lt;2&gt;])`</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
         <span class="ident">deprecated</span>(
             <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(PossibleValuesParser::new(...)).takes_value(true)`&quot;</span>
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(PossibleValuesParser::new(...)).takes_value(true)`
+
+Derive: replace `#[clap(possible_value = &lt;1&gt;, possible_value = &lt;2&gt;, ...)]` with `#[clap(value_parser = [&lt;1&gt;, &lt;2&gt;])]`.
+If the field is not a `String`, instead do `#[clap(value_parser = PossibleValueParser::new([&lt;1&gt;, &lt;2&gt;]).map(T::from_str))]`
+
+Builder: replace `arg.possible_value(&lt;1&gt;).possible_value(&lt;2&gt;) with `arg.value_parser([&lt;1&gt;, &lt;2&gt;])`
+&quot;</span>
         )
     )]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
@@ -7095,11 +7285,22 @@
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Arg::value_parser(PossibleValuesParser::new(...))`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(possible_values = [&lt;1&gt;, &lt;2&gt;])]` with `#[clap(value_parser = [&lt;1&gt;, &lt;2&gt;])]`.</span>
+    <span class="doccomment">/// If the field is not a `String`, instead do `#[clap(value_parser = PossibleValueParser::new([&lt;1&gt;, &lt;2&gt;]).map(T::from_str))]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.possible_values([&lt;1&gt;, &lt;2&gt;) with `arg.value_parser([&lt;1&gt;, &lt;2&gt;])`</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
         <span class="ident">deprecated</span>(
             <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(PossibleValuesParser::new(...)).takes_value(true)`&quot;</span>
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(PossibleValuesParser::new(...)).takes_value(true)`
+
+Derive: replace `#[clap(possible_values = [&lt;1&gt;, &lt;2&gt;])]` with `#[clap(value_parser = [&lt;1&gt;, &lt;2&gt;])]`.
+If the field is not a `String`, instead do `#[clap(value_parser = PossibleValueParser::new([&lt;1&gt;, &lt;2&gt;]).map(T::from_str))]`
+
+Builder: replace `arg.possible_values([&lt;1&gt;, &lt;2&gt;) with `arg.value_parser([&lt;1&gt;, &lt;2&gt;])`
+&quot;</span>
         )
     )]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
@@ -7231,15 +7432,29 @@
         }
     }
 
-    <span class="doccomment">/// Deprecated, replaced with [`Arg::value_parser(...)`] with either [`ValueParser::os_string()`][crate::builder::ValueParser::os_string]</span>
-    <span class="doccomment">/// or [`ValueParser::path_buf()`][crate::builder::ValueParser::path_buf]</span>
+    <span class="doccomment">/// Deprecated, replaced with [`value_parser`][Arg::value_parser]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(allow_invalid_utf8 = true)]` with `#[clap(action)]` (which opts-in to the</span>
+    <span class="doccomment">/// new clap v4 behavior which gets the type via `value_parser!`)</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.allow_invalid_utf8(true)` with `arg.value_parser(value_parser!(T))` where</span>
+    <span class="doccomment">/// `T` is the type of interest, like `OsString` or `PathBuf`, and `matches.value_of_os` with</span>
+    <span class="doccomment">/// `matches.get_one::&lt;T&gt;` or `matches.values_of_os` with `matches.get_many::&lt;T&gt;`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
         <span class="ident">deprecated</span>(
             <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(...)` with either `ValueParser::os_string()` or `ValueParser::path_buf()`&quot;</span>
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `value_parser`
+
+Derive: replace `#[clap(allow_invalid_utf8 = true)]` with `#[clap(action)]` (which opts-in to the
+new clap v4 behavior which gets the type via `value_parser!`)
+
+Builder: replace `arg.allow_invalid_utf8(true)` with `arg.value_parser(value_parser!(T))` where
+`T` is the type of interest, like `OsString` or `PathBuf`, and `matches.value_of_os` with
+`matches.get_one::&lt;T&gt;` or `matches.values_of_os` with `matches.get_many::&lt;T&gt;`
+&quot;</span>
         )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allow_invalid_utf8</span>(<span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
@@ -7251,13 +7466,22 @@
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Arg::value_parser(NonEmptyStringValueParser::new())`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(forbid_empty_values = true)]` with `#[clap(value_parser = NonEmptyStringValueParser::new())]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.forbid_empty_values(true)` with `arg.value_parser(NonEmptyStringValueParser::new())`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
         <span class="ident">deprecated</span>(
             <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(NonEmptyStringValueParser::new())`&quot;</span>
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::value_parser(NonEmptyStringValueParser::new())`
+
+Derive: replace `#[clap(forbid_empty_values = true)]` with `#[clap(value_parser = NonEmptyStringValueParser::new())]`
+
+Builder: replace `arg.forbid_empty_values(true)` with `arg.value_parser(NonEmptyStringValueParser::new())`
+&quot;</span>
         )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">forbid_empty_values</span>(<span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
@@ -7383,11 +7607,23 @@
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Arg::use_value_delimiter`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(use_delimiter = true)]` with `#[clap(use_value_delimiter = true)]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.use_delimiter(true)` with `arg.use_value_delimiter(true)`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::use_value_delimiter`&quot;</span>)
+        <span class="ident">deprecated</span>(
+            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>,
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::use_value_delimiter`
+
+Derive: replace `#[clap(use_delimiter = true)]` with `#[clap(use_value_delimiter = true)]`
+
+Builder: replace `arg.use_delimiter(true)` with `arg.use_value_delimiter(true)`
+&quot;</span>
+        )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">use_delimiter</span>(<span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">use_value_delimiter</span>(<span class="ident">yes</span>)
@@ -7510,11 +7746,23 @@
     }
 
     <span class="doccomment">/// Deprecated, replaced with [`Arg::require_value_delimiter`]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Derive: replace `#[clap(require_delimiter = true)]` with `#[clap(require_value_delimiter = true)]`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Builder: replace `arg.require_delimiter(true)` with `arg.require_value_delimiter(true)`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="attribute">#[<span class="ident">cfg_attr</span>(
         <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::require_value_delimiter`&quot;</span>)
+        <span class="ident">deprecated</span>(
+            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>,
+            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `Arg::require_value_delimiter`
+
+Derive: replace `#[clap(require_delimiter = true)]` with `#[clap(require_value_delimiter = true)]`
+
+Builder: replace `arg.require_delimiter(true)` with `arg.require_value_delimiter(true)`
+&quot;</span>
+        )
     )]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_delimiter</span>(<span class="self">self</span>, <span class="ident">yes</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">require_value_delimiter</span>(<span class="ident">yes</span>)
