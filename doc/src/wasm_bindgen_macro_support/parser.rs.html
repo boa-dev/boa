@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-macro-support-0.2.82/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../wasm_bindgen_macro_support/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-macro-support-0.2.83/src/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../wasm_bindgen_macro_support/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../wasm_bindgen_macro_support/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -1655,9 +1655,7 @@
 <span id="1649">1649</span>
 <span id="1650">1650</span>
 <span id="1651">1651</span>
-<span id="1652">1652</span>
-<span id="1653">1653</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cell::Cell</span>;
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cell</span>::{<span class="ident">Cell</span>, <span class="ident">RefCell</span>};
 <span class="kw">use</span> <span class="ident">std::char</span>;
 <span class="kw">use</span> <span class="ident">std::str::Chars</span>;
 
@@ -1700,6 +1698,7 @@
 <span class="kw">struct</span> <span class="ident">AttributeParseState</span> {
     <span class="ident">parsed</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
     <span class="ident">checks</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="ident">unused_attrs</span>: <span class="ident">RefCell</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Ident</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// Parsed attributes from a `#[wasm_bindgen(..)]`.</span>
@@ -1753,35 +1752,24 @@
     ($((<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>:<span class="ident">ident</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>:<span class="ident">tt</span>)<span class="kw-2">*</span>)),)<span class="kw-2">*</span>) =&gt; {
         $(<span class="macro">methods!</span>(@<span class="ident">method</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">contents</span>)<span class="kw-2">*</span>));)<span class="op">*</span>
 
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;strict-macro&quot;</span>)]</span>
-        <span class="kw">fn</span> <span class="ident">check_used</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
+        <span class="kw">fn</span> <span class="ident">check_used</span>(<span class="self">self</span>) {
             <span class="comment">// Account for the fact this method was called</span>
-            <span class="ident">ATTRS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">set</span>(<span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>));
+            <span class="ident">ATTRS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
+                <span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">set</span>(<span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>);
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">errors</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-            <span class="kw">for</span> (<span class="ident">used</span>, <span class="ident">attr</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">attrs</span>.<span class="ident">iter</span>() {
-                <span class="kw">if</span> <span class="ident">used</span>.<span class="ident">get</span>() {
-                    <span class="kw">continue</span>
-                }
-                <span class="comment">// The check below causes rustc to crash on powerpc64 platforms</span>
-                <span class="comment">// with an LLVM error. To avoid this, we instead use #[cfg()]</span>
-                <span class="comment">// and duplicate the function below. See #58516 for details.</span>
-                <span class="comment">/*if !cfg!(feature = &quot;strict-macro&quot;) {
-                    continue
-                }*/</span>
-                <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">attr</span> {
-                    $(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">span</span>, ..) =&gt; <span class="ident">span</span>,)<span class="op">*</span>
-                };
-                <span class="ident">errors</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::span_error</span>(<span class="kw-2">*</span><span class="ident">span</span>, <span class="string">&quot;unused #[wasm_bindgen] attribute&quot;</span>));
-            }
-            <span class="ident">Diagnostic::from_vec</span>(<span class="ident">errors</span>)
-        }
-
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;strict-macro&quot;</span>))]</span>
-        <span class="kw">fn</span> <span class="ident">check_used</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
-            <span class="comment">// Account for the fact this method was called</span>
-            <span class="ident">ATTRS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> <span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">set</span>(<span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">get</span>() <span class="op">+</span> <span class="number">1</span>));
-            <span class="prelude-val">Ok</span>(())
+                <span class="ident">state</span>.<span class="ident">unused_attrs</span>.<span class="ident">borrow_mut</span>().<span class="ident">extend</span>(
+                    <span class="self">self</span>.<span class="ident">attrs</span>
+                    .<span class="ident">iter</span>()
+                    .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="ident">used</span>, <span class="ident">attr</span>)<span class="op">|</span> <span class="kw">if</span> <span class="ident">used</span>.<span class="ident">get</span>() { <span class="prelude-val">None</span> } <span class="kw">else</span> { <span class="prelude-val">Some</span>(<span class="ident">attr</span>) })
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">attr</span><span class="op">|</span> {
+                        <span class="kw">match</span> <span class="ident">attr</span> {
+                            $(<span class="ident">BindgenAttr</span>::<span class="macro-nonterminal">$</span><span class="macro-nonterminal">variant</span>(<span class="ident">span</span>, ..) =&gt; {
+                                <span class="macro">syn::parse_quote_spanned!</span>(<span class="kw-2">*</span><span class="ident">span</span> =&gt; <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>)
+                            })<span class="op">*</span>
+                        }
+                    })
+                );
+            });
         }
     };
 
@@ -1877,7 +1865,7 @@
             }
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attrs</span>: <span class="ident">BindgenAttrs</span> <span class="op">=</span> <span class="ident">syn::parse2</span>(<span class="ident">group</span>.<span class="ident">stream</span>())<span class="question-mark">?</span>;
             <span class="ident">ret</span>.<span class="ident">attrs</span>.<span class="ident">extend</span>(<span class="ident">attrs</span>.<span class="ident">attrs</span>.<span class="ident">drain</span>(..));
-            <span class="ident">attrs</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+            <span class="ident">attrs</span>.<span class="ident">check_used</span>();
         }
     }
 
@@ -2012,7 +2000,11 @@
 
         <span class="macro">attrgen!</span>(<span class="ident">parsers</span>);
 
-        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">original</span>.<span class="ident">error</span>(<span class="string">&quot;unknown attribute&quot;</span>));
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">original</span>.<span class="ident">error</span>(<span class="kw">if</span> <span class="ident">attr_string</span>.<span class="ident">starts_with</span>(<span class="string">&quot;_&quot;</span>) {
+            <span class="string">&quot;unknown attribute: it&#39;s safe to remove unused attributes entirely.&quot;</span>
+        } <span class="kw">else</span> {
+            <span class="string">&quot;unknown attribute&quot;</span>
+        }));
     }
 }
 
@@ -2070,7 +2062,7 @@
 
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;mut</span> <span class="ident">field</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="ident">attrs</span>.<span class="ident">skip</span>().<span class="ident">is_some</span>() {
-                <span class="ident">attrs</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+                <span class="ident">attrs</span>.<span class="ident">check_used</span>();
                 <span class="kw">continue</span>;
             }
 
@@ -2095,11 +2087,11 @@
                 <span class="ident">generate_typescript</span>: <span class="ident">attrs</span>.<span class="ident">skip_typescript</span>().<span class="ident">is_none</span>(),
                 <span class="ident">getter_with_clone</span>: <span class="ident">getter_with_clone</span> <span class="op">|</span><span class="op">|</span> <span class="ident">attrs</span>.<span class="ident">getter_with_clone</span>().<span class="ident">is_some</span>(),
             });
-            <span class="ident">attrs</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+            <span class="ident">attrs</span>.<span class="ident">check_used</span>();
         }
         <span class="kw">let</span> <span class="ident">generate_typescript</span> <span class="op">=</span> <span class="ident">attrs</span>.<span class="ident">skip_typescript</span>().<span class="ident">is_none</span>();
         <span class="kw">let</span> <span class="ident">comments</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">extract_doc_comments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>);
-        <span class="ident">attrs</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">attrs</span>.<span class="ident">check_used</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">ast::Struct</span> {
             <span class="ident">rust_name</span>: <span class="self">self</span>.<span class="ident">ident</span>.<span class="ident">clone</span>(),
             <span class="ident">js_name</span>,
@@ -2127,12 +2119,12 @@
     <span class="ident">expr</span>
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ConvertToAst</span><span class="op">&lt;</span>(<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportModule</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ForeignItemFn</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ConvertToAst</span><span class="op">&lt;</span>(<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::ImportModule</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ForeignItemFn</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">ast::ImportKind</span>;
 
     <span class="kw">fn</span> <span class="ident">convert</span>(
         <span class="self">self</span>,
-        (<span class="ident">opts</span>, <span class="ident">module</span>): (<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportModule</span>),
+        (<span class="ident">opts</span>, <span class="ident">module</span>): (<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::ImportModule</span><span class="op">&gt;</span>),
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">wasm</span> <span class="op">=</span> <span class="ident">function_from_decl</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">ident</span>,
@@ -2321,7 +2313,7 @@
             <span class="ident">shim</span>: <span class="ident">Ident::new</span>(<span class="kw-2">&amp;</span><span class="ident">shim</span>, <span class="ident">Span::call_site</span>()),
             <span class="ident">doc_comment</span>,
         });
-        <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">opts</span>.<span class="ident">check_used</span>();
 
         <span class="prelude-val">Ok</span>(<span class="ident">ret</span>)
     }
@@ -2354,7 +2346,7 @@
                 <span class="kw">_</span> =&gt; {}
             }
         }
-        <span class="ident">attrs</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">attrs</span>.<span class="ident">check_used</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">ast::ImportKind::Type</span>(<span class="ident">ast::ImportType</span> {
             <span class="ident">vis</span>: <span class="self">self</span>.<span class="ident">vis</span>,
             <span class="ident">attrs</span>: <span class="self">self</span>.<span class="ident">attrs</span>,
@@ -2371,12 +2363,12 @@
     }
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ConvertToAst</span><span class="op">&lt;</span>(<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportModule</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ForeignItemStatic</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">ConvertToAst</span><span class="op">&lt;</span>(<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::ImportModule</span><span class="op">&gt;</span>)<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ForeignItemStatic</span> {
     <span class="kw">type</span> <span class="ident">Target</span> <span class="op">=</span> <span class="ident">ast::ImportKind</span>;
 
     <span class="kw">fn</span> <span class="ident">convert</span>(
         <span class="self">self</span>,
-        (<span class="ident">opts</span>, <span class="ident">module</span>): (<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">ast::ImportModule</span>),
+        (<span class="ident">opts</span>, <span class="ident">module</span>): (<span class="ident">BindgenAttrs</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::ImportModule</span><span class="op">&gt;</span>),
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Target</span>, <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mutability</span>.<span class="ident">is_some</span>() {
             <span class="macro">bail_span!</span>(<span class="self">self</span>.<span class="ident">mutability</span>, <span class="string">&quot;cannot import mutable globals yet&quot;</span>)
@@ -2393,7 +2385,7 @@
             <span class="self">self</span>.<span class="ident">ident</span>,
             <span class="ident">ShortHash</span>((<span class="kw-2">&amp;</span><span class="ident">js_name</span>, <span class="ident">module</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">ident</span>)),
         );
-        <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">opts</span>.<span class="ident">check_used</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">ast::ImportKind::Static</span>(<span class="ident">ast::ImportStatic</span> {
             <span class="ident">ty</span>: <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">ty</span>,
             <span class="ident">vis</span>: <span class="self">self</span>.<span class="ident">vis</span>,
@@ -2418,9 +2410,6 @@
                 <span class="string">&quot;can only #[wasm_bindgen] non-const functions&quot;</span>
             );
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">unsafety</span>.<span class="ident">is_some</span>() {
-            <span class="macro">bail_span!</span>(<span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">unsafety</span>, <span class="string">&quot;can only #[wasm_bindgen] safe functions&quot;</span>);
-        }
 
         <span class="kw">let</span> <span class="ident">ret</span> <span class="op">=</span> <span class="ident">function_from_decl</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">ident</span>,
@@ -2432,7 +2421,7 @@
             <span class="prelude-val">None</span>,
             <span class="bool-val">false</span>,
         )<span class="question-mark">?</span>;
-        <span class="ident">attrs</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">attrs</span>.<span class="ident">check_used</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">ret</span>.<span class="number">0</span>)
     }
 }
@@ -2711,7 +2700,7 @@
             }
         }
         <span class="ident">Diagnostic::from_vec</span>(<span class="ident">errors</span>)<span class="question-mark">?</span>;
-        <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">opts</span>.<span class="ident">check_used</span>();
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -2792,9 +2781,6 @@
                 <span class="string">&quot;can only #[wasm_bindgen] non-const functions&quot;</span>,
             );
         }
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">unsafety</span>.<span class="ident">is_some</span>() {
-            <span class="macro">bail_span!</span>(<span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">unsafety</span>, <span class="string">&quot;can only bindgen safe functions&quot;</span>,);
-        }
 
         <span class="kw">let</span> <span class="ident">opts</span> <span class="op">=</span> <span class="ident">BindgenAttrs::find</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">attrs</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">comments</span> <span class="op">=</span> <span class="ident">extract_doc_comments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">attrs</span>);
@@ -2825,7 +2811,7 @@
             <span class="ident">rust_name</span>: <span class="self">self</span>.<span class="ident">sig</span>.<span class="ident">ident</span>.<span class="ident">clone</span>(),
             <span class="ident">start</span>: <span class="bool-val">false</span>,
         });
-        <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">opts</span>.<span class="ident">check_used</span>();
         <span class="prelude-val">Ok</span>(())
     }
 }
@@ -2862,7 +2848,7 @@
     }
 
     <span class="ident">program</span>.<span class="ident">imports</span>.<span class="ident">push</span>(<span class="ident">ast::Import</span> {
-        <span class="ident">module</span>: <span class="ident">ast::ImportModule::None</span>,
+        <span class="ident">module</span>: <span class="prelude-val">None</span>,
         <span class="ident">js_namespace</span>: <span class="prelude-val">None</span>,
         <span class="ident">kind</span>: <span class="ident">ast::ImportKind::Enum</span>(<span class="ident">ast::ImportEnum</span> {
             <span class="ident">vis</span>: <span class="ident">enum_</span>.<span class="ident">vis</span>,
@@ -2894,7 +2880,7 @@
                     <span class="ident">attrs</span>: <span class="kw">_</span>,
                     <span class="ident">lit</span>: <span class="ident">syn::Lit::Str</span>(<span class="kw">_</span>),
                 }) =&gt; {
-                    <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+                    <span class="ident">opts</span>.<span class="ident">check_used</span>();
                     <span class="kw">return</span> <span class="ident">import_enum</span>(<span class="self">self</span>, <span class="ident">program</span>);
                 }
                 <span class="kw">_</span> =&gt; {}
@@ -2904,7 +2890,7 @@
             .<span class="ident">js_name</span>()
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="number">0</span>)
             .<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">ident</span>.<span class="ident">to_string</span>(), <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">to_string</span>());
-        <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">opts</span>.<span class="ident">check_used</span>();
 
         <span class="kw">let</span> <span class="ident">has_discriminant</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">variants</span>[<span class="number">0</span>].<span class="ident">discriminant</span>.<span class="ident">is_some</span>();
 
@@ -3018,7 +3004,7 @@
             }
         }
 
-        <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">opts</span>.<span class="ident">check_used</span>();
 
         <span class="prelude-val">Ok</span>(())
     }
@@ -3046,19 +3032,19 @@
                 <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;cannot specify both `module` and `raw_module`&quot;</span>;
                 <span class="ident">errors</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::span_error</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
             }
-            <span class="ident">ast::ImportModule::Named</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">span</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">ast::ImportModule::Named</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">span</span>))
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="ident">span</span>)) <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">raw_module</span>() {
             <span class="kw">if</span> <span class="ident">opts</span>.<span class="ident">inline_js</span>().<span class="ident">is_some</span>() {
                 <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="string">&quot;cannot specify both `raw_module` and `inline_js`&quot;</span>;
                 <span class="ident">errors</span>.<span class="ident">push</span>(<span class="ident">Diagnostic::span_error</span>(<span class="ident">span</span>, <span class="ident">msg</span>));
             }
-            <span class="ident">ast::ImportModule::RawNamed</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">span</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">ast::ImportModule::RawNamed</span>(<span class="ident">name</span>.<span class="ident">to_string</span>(), <span class="ident">span</span>))
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">js</span>, <span class="ident">span</span>)) <span class="op">=</span> <span class="ident">opts</span>.<span class="ident">inline_js</span>() {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">program</span>.<span class="ident">inline_js</span>.<span class="ident">len</span>();
             <span class="ident">program</span>.<span class="ident">inline_js</span>.<span class="ident">push</span>(<span class="ident">js</span>.<span class="ident">to_string</span>());
-            <span class="ident">ast::ImportModule::Inline</span>(<span class="ident">i</span>, <span class="ident">span</span>)
+            <span class="prelude-val">Some</span>(<span class="ident">ast::ImportModule::Inline</span>(<span class="ident">i</span>, <span class="ident">span</span>))
         } <span class="kw">else</span> {
-            <span class="ident">ast::ImportModule::None</span>
+            <span class="prelude-val">None</span>
         };
         <span class="kw">for</span> <span class="ident">item</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">items</span>.<span class="ident">into_iter</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">item</span>.<span class="ident">macro_parse</span>(<span class="ident">program</span>, <span class="ident">module</span>.<span class="ident">clone</span>()) {
@@ -3066,16 +3052,16 @@
             }
         }
         <span class="ident">Diagnostic::from_vec</span>(<span class="ident">errors</span>)<span class="question-mark">?</span>;
-        <span class="ident">opts</span>.<span class="ident">check_used</span>()<span class="question-mark">?</span>;
+        <span class="ident">opts</span>.<span class="ident">check_used</span>();
         <span class="prelude-val">Ok</span>(())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">MacroParse</span><span class="op">&lt;</span><span class="ident">ast::ImportModule</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ForeignItem</span> {
+<span class="kw">impl</span> <span class="ident">MacroParse</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::ImportModule</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">syn::ForeignItem</span> {
     <span class="kw">fn</span> <span class="ident">macro_parse</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>,
         <span class="ident">program</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ast::Program</span>,
-        <span class="ident">module</span>: <span class="ident">ast::ImportModule</span>,
+        <span class="ident">module</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ast::ImportModule</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">Diagnostic</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">item_opts</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">attrs</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
@@ -3282,12 +3268,22 @@
     <span class="ident">ATTRS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
         <span class="ident">state</span>.<span class="ident">parsed</span>.<span class="ident">set</span>(<span class="number">0</span>);
         <span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">set</span>(<span class="number">0</span>);
+        <span class="ident">state</span>.<span class="ident">unused_attrs</span>.<span class="ident">borrow_mut</span>().<span class="ident">clear</span>();
     })
 }
 
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">assert_all_attrs_checked</span>() {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">check_unused_attrs</span>(<span class="ident">tokens</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStream</span>) {
     <span class="ident">ATTRS</span>.<span class="ident">with</span>(<span class="op">|</span><span class="ident">state</span><span class="op">|</span> {
         <span class="macro">assert_eq!</span>(<span class="ident">state</span>.<span class="ident">parsed</span>.<span class="ident">get</span>(), <span class="ident">state</span>.<span class="ident">checks</span>.<span class="ident">get</span>());
+        <span class="kw">let</span> <span class="ident">unused_attrs</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">state</span>.<span class="ident">unused_attrs</span>.<span class="ident">borrow</span>();
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">unused_attrs</span>.<span class="ident">is_empty</span>() {
+            <span class="ident">tokens</span>.<span class="ident">extend</span>(<span class="macro">quote::quote!</span> {
+                <span class="comment">// Anonymous scope to prevent name clashes.</span>
+                <span class="kw">const</span> <span class="kw">_</span>: () <span class="op">=</span> {
+                    #(<span class="kw">let</span> #<span class="ident">unused_attrs</span>: ();)<span class="op">*</span>
+                };
+            });
+        }
     })
 }
 

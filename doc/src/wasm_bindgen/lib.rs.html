@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.82/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../wasm_bindgen/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-0.2.83/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../wasm_bindgen/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../wasm_bindgen/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -1718,6 +1718,92 @@
 <span id="1712">1712</span>
 <span id="1713">1713</span>
 <span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
+<span id="1742">1742</span>
+<span id="1743">1743</span>
+<span id="1744">1744</span>
+<span id="1745">1745</span>
+<span id="1746">1746</span>
+<span id="1747">1747</span>
+<span id="1748">1748</span>
+<span id="1749">1749</span>
+<span id="1750">1750</span>
+<span id="1751">1751</span>
+<span id="1752">1752</span>
+<span id="1753">1753</span>
+<span id="1754">1754</span>
+<span id="1755">1755</span>
+<span id="1756">1756</span>
+<span id="1757">1757</span>
+<span id="1758">1758</span>
+<span id="1759">1759</span>
+<span id="1760">1760</span>
+<span id="1761">1761</span>
+<span id="1762">1762</span>
+<span id="1763">1763</span>
+<span id="1764">1764</span>
+<span id="1765">1765</span>
+<span id="1766">1766</span>
+<span id="1767">1767</span>
+<span id="1768">1768</span>
+<span id="1769">1769</span>
+<span id="1770">1770</span>
+<span id="1771">1771</span>
+<span id="1772">1772</span>
+<span id="1773">1773</span>
+<span id="1774">1774</span>
+<span id="1775">1775</span>
+<span id="1776">1776</span>
+<span id="1777">1777</span>
+<span id="1778">1778</span>
+<span id="1779">1779</span>
+<span id="1780">1780</span>
+<span id="1781">1781</span>
+<span id="1782">1782</span>
+<span id="1783">1783</span>
+<span id="1784">1784</span>
+<span id="1785">1785</span>
+<span id="1786">1786</span>
+<span id="1787">1787</span>
+<span id="1788">1788</span>
+<span id="1789">1789</span>
+<span id="1790">1790</span>
+<span id="1791">1791</span>
+<span id="1792">1792</span>
+<span id="1793">1793</span>
+<span id="1794">1794</span>
+<span id="1795">1795</span>
+<span id="1796">1796</span>
+<span id="1797">1797</span>
+<span id="1798">1798</span>
+<span id="1799">1799</span>
+<span id="1800">1800</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Runtime support for the `wasm-bindgen` tool</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate contains the runtime support necessary for `wasm-bindgen` the</span>
@@ -1738,7 +1824,7 @@
 };
 <span class="kw">use</span> <span class="ident">core::u32</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::convert</span>::{<span class="ident">FromWasmAbi</span>, <span class="ident">WasmOptionalF64</span>, <span class="ident">WasmSlice</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::convert</span>::{<span class="ident">FromWasmAbi</span>, <span class="ident">WasmSlice</span>};
 
 <span class="macro">macro_rules!</span> <span class="ident">if_std</span> {
     ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">i</span>:<span class="ident">item</span>)<span class="kw-2">*</span>) =&gt; ($(
@@ -1788,6 +1874,7 @@
 
 <span class="kw">mod</span> <span class="ident">cast</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::cast</span>::{<span class="ident">JsCast</span>, <span class="ident">JsObject</span>};
+<span class="kw">use</span> <span class="ident">convert::WasmOption</span>;
 
 <span class="macro">if_std!</span> {
     <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">std</span>;
@@ -1874,7 +1961,7 @@
     <span class="doccomment">/// allocated large integer) and returns a handle to the JS version of it.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">bigint_from_str</span>(<span class="ident">s</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">JsValue</span> {
-        <span class="kw">unsafe</span> { <span class="ident">JsValue::_new</span>(<span class="ident">__wbindgen_bigint_new</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>(), <span class="ident">s</span>.<span class="ident">len</span>())) }
+        <span class="kw">unsafe</span> { <span class="ident">JsValue::_new</span>(<span class="ident">__wbindgen_bigint_from_str</span>(<span class="ident">s</span>.<span class="ident">as_ptr</span>(), <span class="ident">s</span>.<span class="ident">len</span>())) }
     }
 
     <span class="doccomment">/// Creates a new JS value which is a boolean.</span>
@@ -1921,6 +2008,14 @@
     <span class="doccomment">/// Creates a new `JsValue` from the JSON serialization of the object `t`</span>
     <span class="doccomment">/// provided.</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// **This function is deprecated**, due to [creating a dependency cycle in</span>
+    <span class="doccomment">/// some circumstances][dep-cycle-issue]. Use [`serde-wasm-bindgen`] or</span>
+    <span class="doccomment">/// [`gloo_utils::format::JsValueSerdeExt`] instead.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [dep-cycle-issue]: https://github.com/rustwasm/wasm-bindgen/issues/2770</span>
+    <span class="doccomment">/// [`serde-wasm-bindgen`]: https://docs.rs/serde-wasm-bindgen</span>
+    <span class="doccomment">/// [`gloo_utils::format::JsValueSerdeExt`]: https://docs.rs/gloo-utils/latest/gloo_utils/format/trait.JsValueSerdeExt.html</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// This function will serialize the provided value `t` to a JSON string,</span>
     <span class="doccomment">/// send the JSON string to JS, parse it into a JS object, and then return</span>
     <span class="doccomment">/// a handle to the JS object. This is unlikely to be super speedy so it&#39;s</span>
@@ -1934,6 +2029,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns any error encountered when serializing `T` into JSON.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde-serialize&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;causes dependency cycles, use `serde-wasm-bindgen` or `gloo_utils::format::JsValueSerdeExt` instead&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_serde</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">t</span>: <span class="kw-2">&amp;</span><span class="ident">T</span>) -&gt; <span class="ident">serde_json::Result</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="ident">serde::ser::Serialize</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
@@ -1944,6 +2040,14 @@
 
     <span class="doccomment">/// Invokes `JSON.stringify` on this value and then parses the resulting</span>
     <span class="doccomment">/// JSON into an arbitrary Rust value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **This function is deprecated**, due to [creating a dependency cycle in</span>
+    <span class="doccomment">/// some circumstances][dep-cycle-issue]. Use [`serde-wasm-bindgen`] or</span>
+    <span class="doccomment">/// [`gloo_utils::format::JsValueSerdeExt`] instead.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [dep-cycle-issue]: https://github.com/rustwasm/wasm-bindgen/issues/2770</span>
+    <span class="doccomment">/// [`serde-wasm-bindgen`]: https://docs.rs/serde-wasm-bindgen</span>
+    <span class="doccomment">/// [`gloo_utils::format::JsValueSerdeExt`]: https://docs.rs/gloo-utils/latest/gloo_utils/format/trait.JsValueSerdeExt.html</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function will first call `JSON.stringify` on the `JsValue` itself.</span>
     <span class="doccomment">/// The resulting string is then passed into Rust which then parses it as</span>
@@ -1956,6 +2060,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Returns any error encountered when parsing the JSON into a `T`.</span>
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde-serialize&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">deprecated</span> <span class="op">=</span> <span class="string">&quot;causes dependency cycles, use `serde-wasm-bindgen` or `gloo_utils::format::JsValueSerdeExt` instead&quot;</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_serde</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">serde_json::Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">T</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="ident">serde::de::Deserialize</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
@@ -2570,7 +2675,7 @@
 <span class="macro">numbers!</span> { <span class="ident">i8</span> <span class="ident">u8</span> <span class="ident">i16</span> <span class="ident">u16</span> <span class="ident">i32</span> <span class="ident">u32</span> <span class="ident">f32</span> <span class="ident">f64</span> }
 
 <span class="macro">macro_rules!</span> <span class="ident">big_numbers</span> {
-    ($(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">ident</span>)<span class="kw-2">*</span>) =&gt; ($(
+    (<span class="op">|</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>:<span class="ident">ident</span><span class="op">|</span>, $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>:<span class="ident">ident</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">handle</span>:<span class="ident">expr</span>,)<span class="kw-2">*</span>) =&gt; ($(
         <span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
             <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>) -&gt; <span class="ident">bool</span> {
@@ -2580,14 +2685,76 @@
 
         <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsValue</span> {
             <span class="attribute">#[<span class="ident">inline</span>]</span>
-            <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">n</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>) -&gt; <span class="ident">JsValue</span> {
-                <span class="ident">JsValue::bigint_from_str</span>(<span class="kw-2">&amp;</span><span class="ident">n</span>.<span class="ident">to_string</span>())
+            <span class="kw">fn</span> <span class="ident">from</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">arg</span>: <span class="macro-nonterminal">$</span><span class="macro-nonterminal">n</span>) -&gt; <span class="ident">JsValue</span> {
+                <span class="kw">unsafe</span> { <span class="ident">JsValue::_new</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">handle</span>) }
             }
         }
     )<span class="kw-2">*</span>)
 }
 
-<span class="macro">big_numbers!</span> { <span class="ident">i64</span> <span class="ident">u64</span> <span class="ident">i128</span> <span class="ident">u128</span> }
+<span class="kw">fn</span> <span class="ident">bigint_get_as_i64</span>(<span class="ident">v</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span> {
+    <span class="kw">unsafe</span> { <span class="ident">Option::from_abi</span>(<span class="ident">__wbindgen_bigint_get_as_i64</span>(<span class="ident">v</span>.<span class="ident">idx</span>)) }
+}
+
+<span class="macro">macro_rules!</span> <span class="ident">try_from_for_num64</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) =&gt; {
+        <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
+            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">JsValue</span>;
+
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">v</span>: <span class="ident">JsValue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+                <span class="ident">bigint_get_as_i64</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>)
+                    <span class="comment">// Reinterpret bits; ABI-wise this is safe to do and allows us to avoid</span>
+                    <span class="comment">// having separate intrinsics per signed/unsigned types.</span>
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">as_i64</span><span class="op">|</span> <span class="ident">as_i64</span> <span class="kw">as</span> <span class="self">Self</span>)
+                    <span class="comment">// Double-check that we didn&#39;t truncate the bigint to 64 bits.</span>
+                    .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">as_self</span><span class="op">|</span> <span class="ident">v</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">as_self</span>)
+                    <span class="comment">// Not a bigint or not in range.</span>
+                    .<span class="ident">ok_or</span>(<span class="ident">v</span>)
+            }
+        }
+    };
+}
+
+<span class="macro">try_from_for_num64!</span>(<span class="ident">i64</span>);
+<span class="macro">try_from_for_num64!</span>(<span class="ident">u64</span>);
+
+<span class="macro">macro_rules!</span> <span class="ident">try_from_for_num128</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">hi_ty</span>:<span class="ident">ty</span>) =&gt; {
+        <span class="kw">impl</span> <span class="ident">TryFrom</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> {
+            <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">JsValue</span>;
+
+            <span class="attribute">#[<span class="ident">inline</span>]</span>
+            <span class="kw">fn</span> <span class="ident">try_from</span>(<span class="ident">v</span>: <span class="ident">JsValue</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+                <span class="comment">// Truncate the bigint to 64 bits, this will give us the lower part.</span>
+                <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">bigint_get_as_i64</span>(<span class="kw-2">&amp;</span><span class="ident">v</span>) {
+                    <span class="comment">// The lower part must be interpreted as unsigned in both i128 and u128.</span>
+                    <span class="prelude-val">Some</span>(<span class="ident">lo</span>) =&gt; <span class="ident">lo</span> <span class="kw">as</span> <span class="ident">u64</span>,
+                    <span class="comment">// Not a bigint.</span>
+                    <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">v</span>),
+                };
+                <span class="comment">// Now we know it&#39;s a bigint, so we can safely use `&gt;&gt; 64n` without</span>
+                <span class="comment">// worrying about a JS exception on type mismatch.</span>
+                <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="ident">v</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">JsValue::from</span>(<span class="number">64_u64</span>);
+                <span class="comment">// The high part is the one we want checked against a 64-bit range.</span>
+                <span class="comment">// If it fits, then our original number is in the 128-bit range.</span>
+                <span class="kw">let</span> <span class="ident">hi</span> <span class="op">=</span> <span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">hi_ty</span><span class="op">&gt;</span><span class="ident">::try_from</span>(<span class="ident">hi</span>)<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">hi</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">64</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">lo</span>))
+            }
+        }
+    };
+}
+
+<span class="macro">try_from_for_num128!</span>(<span class="ident">i128</span>, <span class="ident">i64</span>);
+<span class="macro">try_from_for_num128!</span>(<span class="ident">u128</span>, <span class="ident">u64</span>);
+
+<span class="macro">big_numbers!</span> {
+    <span class="op">|</span><span class="ident">n</span><span class="op">|</span>,
+    <span class="ident">i64</span> <span class="op">=</span> <span class="ident">__wbindgen_bigint_from_i64</span>(<span class="ident">n</span>),
+    <span class="ident">u64</span> <span class="op">=</span> <span class="ident">__wbindgen_bigint_from_u64</span>(<span class="ident">n</span>),
+    <span class="ident">i128</span> <span class="op">=</span> <span class="ident">__wbindgen_bigint_from_i128</span>((<span class="ident">n</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">64</span>) <span class="kw">as</span> <span class="ident">i64</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>),
+    <span class="ident">u128</span> <span class="op">=</span> <span class="ident">__wbindgen_bigint_from_u128</span>((<span class="ident">n</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">64</span>) <span class="kw">as</span> <span class="ident">u64</span>, <span class="ident">n</span> <span class="kw">as</span> <span class="ident">u64</span>),
+}
 
 <span class="comment">// `usize` and `isize` have to be treated a bit specially, because we know that</span>
 <span class="comment">// they&#39;re 32-bit but the compiler conservatively assumes they might be bigger.</span>
@@ -2628,7 +2795,11 @@
 
         <span class="kw">fn</span> <span class="ident">__wbindgen_string_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u32</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_number_new</span>(<span class="ident">f</span>: <span class="ident">f64</span>) -&gt; <span class="ident">u32</span>;
-        <span class="kw">fn</span> <span class="ident">__wbindgen_bigint_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_bigint_from_str</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_bigint_from_i64</span>(<span class="ident">n</span>: <span class="ident">i64</span>) -&gt; <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_bigint_from_u64</span>(<span class="ident">n</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_bigint_from_i128</span>(<span class="ident">hi</span>: <span class="ident">i64</span>, <span class="ident">lo</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u32</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_bigint_from_u128</span>(<span class="ident">hi</span>: <span class="ident">u64</span>, <span class="ident">lo</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u32</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_named_new</span>(<span class="ident">ptr</span>: <span class="kw-2">*const</span> <span class="ident">u8</span>, <span class="ident">len</span>: <span class="ident">usize</span>) -&gt; <span class="ident">u32</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_symbol_anonymous_new</span>() -&gt; <span class="ident">u32</span>;
 
@@ -2668,9 +2839,10 @@
         <span class="kw">fn</span> <span class="ident">__wbindgen_ge</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_gt</span>(<span class="ident">a</span>: <span class="ident">u32</span>, <span class="ident">b</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span>;
 
-        <span class="kw">fn</span> <span class="ident">__wbindgen_number_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) -&gt; <span class="ident">WasmOptionalF64</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_number_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) -&gt; <span class="ident">WasmOption</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_boolean_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span>;
         <span class="kw">fn</span> <span class="ident">__wbindgen_string_get</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) -&gt; <span class="ident">WasmSlice</span>;
+        <span class="kw">fn</span> <span class="ident">__wbindgen_bigint_get_as_i64</span>(<span class="ident">idx</span>: <span class="ident">u32</span>) -&gt; <span class="ident">WasmOption</span><span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>;
 
         <span class="kw">fn</span> <span class="ident">__wbindgen_debug_string</span>(<span class="ident">ret</span>: <span class="kw-2">*mut</span> [<span class="ident">usize</span>; <span class="number">2</span>], <span class="ident">idx</span>: <span class="ident">u32</span>) -&gt; ();
 
