@@ -41,6 +41,7 @@ impl<R> Tokenizer<R> for RegexLiteral {
         let _timer = Profiler::global().start_event("RegexLiteral", "Lexing");
 
         let mut body = Vec::new();
+        let mut is_class_char = false;
 
         // Lex RegularExpressionBody.
         loop {
@@ -54,7 +55,15 @@ impl<R> Tokenizer<R> for RegexLiteral {
                 }
                 Some(b) => {
                     match b {
-                        b'/' => break, // RegularExpressionBody finished.
+                        b'/' if !is_class_char => break, // RegularExpressionBody finished.
+                        b'[' => {
+                            is_class_char = true;
+                            body.push(b);
+                        }
+                        b']' if is_class_char => {
+                            is_class_char = false;
+                            body.push(b);
+                        }
                         b'\n' | b'\r' => {
                             // Not allowed in Regex literal.
                             return Err(Error::syntax(
