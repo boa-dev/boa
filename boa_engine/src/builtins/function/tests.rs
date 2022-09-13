@@ -129,7 +129,7 @@ fn function_prototype_call() {
         "#;
     let value = forward_val(&mut context, func).unwrap();
     assert!(value.is_string());
-    assert_eq!(value.as_string().unwrap(), "[object Error]");
+    assert_eq!(*value.as_string().unwrap(), "[object Error]");
 }
 
 #[test]
@@ -246,7 +246,7 @@ fn closure_capture_clone() {
                 object
                     .__get_own_property__(&"key".into(), context)?
                     .and_then(|prop| prop.value().cloned())
-                    .and_then(|val| val.as_string().cloned())
+                    .and_then(|val| val.as_string().as_deref().cloned())
                     .ok_or_else(|| context.construct_type_error("invalid `key` property"))?,
             );
             Ok(hw.into())

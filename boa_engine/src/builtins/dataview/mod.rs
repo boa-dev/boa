@@ -100,8 +100,8 @@ impl DataView {
     ) -> JsResult<JsValue> {
         let byte_length = args.get_or_undefined(2);
 
-        let buffer_obj = args
-            .get_or_undefined(0)
+        let buffer_obj = args.get_or_undefined(0);
+        let buffer_obj = buffer_obj
             .as_object()
             .ok_or_else(|| context.construct_type_error("buffer must be an ArrayBuffer"))?;
 
@@ -194,7 +194,8 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let dataview = this.as_object().map(JsObject::borrow);
+        let dataview = this.as_object();
+        let dataview = dataview.as_deref().map(JsObject::borrow);
         let dataview = dataview
             .as_ref()
             .and_then(|obj| obj.as_data_view())
@@ -223,7 +224,8 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let dataview = this.as_object().map(JsObject::borrow);
+        let dataview = this.as_object();
+        let dataview = dataview.as_deref().map(JsObject::borrow);
         let dataview = dataview
             .as_ref()
             .and_then(|obj| obj.as_data_view())
@@ -262,7 +264,8 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
-        let dataview = this.as_object().map(JsObject::borrow);
+        let dataview = this.as_object();
+        let dataview = dataview.as_deref().map(JsObject::borrow);
         let dataview = dataview
             .as_ref()
             .and_then(|obj| obj.as_data_view())
@@ -302,7 +305,8 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view.as_object().map(JsObject::borrow);
+        let view = view.as_object();
+        let view = view.as_deref().map(JsObject::borrow);
         let view = view
             .as_ref()
             .and_then(|obj| obj.as_data_view())
@@ -373,8 +377,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::BigInt64,
             context,
         )
@@ -402,8 +406,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::BigUint64,
             context,
         )
@@ -431,8 +435,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Float32,
             context,
         )
@@ -460,8 +464,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Float64,
             context,
         )
@@ -489,8 +493,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Int8,
             context,
         )
@@ -518,8 +522,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Int16,
             context,
         )
@@ -547,8 +551,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Int32,
             context,
         )
@@ -576,8 +580,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Uint8,
             context,
         )
@@ -605,8 +609,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Uint16,
             context,
         )
@@ -634,8 +638,8 @@ impl DataView {
         // 2. Return ? GetViewValue(v, byteOffset, littleEndian, BigInt64).
         Self::get_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Uint32,
             context,
         )
@@ -661,7 +665,8 @@ impl DataView {
     ) -> JsResult<JsValue> {
         // 1. Perform ? RequireInternalSlot(view, [[DataView]]).
         // 2. Assert: view has a [[ViewedArrayBuffer]] internal slot.
-        let view = view.as_object().map(JsObject::borrow);
+        let view = view.as_object();
+        let view = view.as_deref().map(JsObject::borrow);
         let view = view
             .as_ref()
             .and_then(|obj| obj.as_data_view())
@@ -742,10 +747,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::BigInt64,
-            value,
+            &value,
             context,
         )
     }
@@ -773,10 +778,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, BigUint64, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::BigUint64,
-            value,
+            &value,
             context,
         )
     }
@@ -804,10 +809,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float32, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Float32,
-            value,
+            &value,
             context,
         )
     }
@@ -835,10 +840,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Float64, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Float64,
-            value,
+            &value,
             context,
         )
     }
@@ -866,10 +871,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int8, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Int8,
-            value,
+            &value,
             context,
         )
     }
@@ -897,10 +902,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int16, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Int16,
-            value,
+            &value,
             context,
         )
     }
@@ -928,10 +933,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Int32, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Int32,
-            value,
+            &value,
             context,
         )
     }
@@ -959,10 +964,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint8, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Uint8,
-            value,
+            &value,
             context,
         )
     }
@@ -990,10 +995,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint16, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Uint16,
-            value,
+            &value,
             context,
         )
     }
@@ -1021,10 +1026,10 @@ impl DataView {
         // 2. Return ? SetViewValue(v, byteOffset, littleEndian, Uint32, value).
         Self::set_view_value(
             this,
-            byte_offset,
-            is_little_endian,
+            &byte_offset,
+            &is_little_endian,
             TypedArrayKind::Uint32,
-            value,
+            &value,
             context,
         )
     }

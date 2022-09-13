@@ -120,7 +120,7 @@ impl Error {
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
-        Self::install_error_cause(&o, args.get_or_undefined(1), context)?;
+        Self::install_error_cause(&o, &args.get_or_undefined(1), context)?;
 
         // 5. Return O.
         Ok(o.into())

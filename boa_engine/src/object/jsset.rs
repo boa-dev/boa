@@ -5,6 +5,7 @@ use boa_gc::{Finalize, Trace};
 use crate::{
     builtins::Set,
     object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
+    value::JsVariant,
     Context, JsResult, JsValue,
 };
 
@@ -61,7 +62,7 @@ impl JsSet {
     /// Same as JavaScript's `set.clear()`.
     #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
-        Set::clear(&self.inner.clone().into(), &[JsValue::Null], context)
+        Set::clear(&self.inner.clone().into(), &[JsValue::null()], context)
     }
 
     /// Removes the element associated to the value.
@@ -74,9 +75,9 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
-        match Set::delete(&self.inner.clone().into(), &[value.into()], context)? {
-            JsValue::Boolean(bool) => Ok(bool),
-            _ => Err(JsValue::Undefined),
+        match Set::delete(&self.inner.clone().into(), &[value.into()], context)?.variant() {
+            JsVariant::Boolean(bool) => Ok(bool),
+            _ => Err(JsValue::undefined()),
         }
     }
 
@@ -89,9 +90,9 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
-        match Set::has(&self.inner.clone().into(), &[value.into()], context)? {
-            JsValue::Boolean(bool) => Ok(bool),
-            _ => Err(JsValue::Undefined),
+        match Set::has(&self.inner.clone().into(), &[value.into()], context)?.variant() {
+            JsVariant::Boolean(bool) => Ok(bool),
+            _ => Err(JsValue::undefined()),
         }
     }
 
@@ -101,7 +102,7 @@ impl JsSet {
     /// Same as JavaScript's `set.values()`.
     #[inline]
     pub fn values(&self, context: &mut Context) -> JsResult<JsSetIterator> {
-        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(context, None, None)?;
 
         JsSetIterator::from_object(iterator_object.iterator().clone(), context)
@@ -114,7 +115,7 @@ impl JsSet {
     /// Same as JavaScript's `set.keys()`.
     #[inline]
     pub fn keys(&self, context: &mut Context) -> JsResult<JsSetIterator> {
-        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
+        let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::null()], context)?
             .get_iterator(context, None, None)?;
 
         JsSetIterator::from_object(iterator_object.iterator().clone(), context)

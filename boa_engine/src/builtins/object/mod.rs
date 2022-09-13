@@ -23,7 +23,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::JsValue,
+    value::{JsValue, JsVariant},
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
@@ -155,7 +155,7 @@ impl Object {
         // 2. Return ? O.[[GetPrototypeOf]]().
         let proto = obj.__get_prototype_of__(context)?;
 
-        Ok(proto.map_or(JsValue::Null, JsValue::new))
+        Ok(proto.map_or(JsValue::null(), JsValue::new))
     }
 
     /// `set Object.prototype.__proto__`
@@ -178,16 +178,17 @@ impl Object {
         let this = this.require_object_coercible(context)?;
 
         // 2. If Type(proto) is neither Object nor Null, return undefined.
-        let proto = match args.get_or_undefined(0) {
-            JsValue::Object(proto) => Some(proto.clone()),
-            JsValue::Null => None,
+        let proto = match args.get_or_undefined(0).variant() {
+            JsVariant::Object(proto) => Some(proto.clone()),
+            JsVariant::Null => None,
             _ => return Ok(JsValue::undefined()),
         };
 
         // 3. If Type(O) is not Object, return undefined.
-        let object = match this {
-            JsValue::Object(object) => object,
-            _ => return Ok(JsValue::undefined()),
+        let object = if let Some(o) = this.as_object() {
+            o
+        } else {
+            return Ok(JsValue::undefined());
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
@@ -389,9 +390,9 @@ impl Object {
         let prototype = args.get_or_undefined(0);
         let properties = args.get_or_undefined(1);
 
-        let obj = match prototype {
-            JsValue::Object(_) | JsValue::Null => JsObject::from_proto_and_data(
-                prototype.as_object().cloned(),
+        let obj = match prototype.variant() {
+            JsVariant::Object(_) | JsVariant::Null => JsObject::from_proto_and_data(
+                prototype.as_object().as_deref().cloned(),
                 ObjectData::ordinary(),
             ),
             _ => {
@@ -403,7 +404,7 @@ impl Object {
         };
 
         if !properties.is_undefined() {
-            object_define_properties(&obj, properties, context)?;
+            object_define_properties(&obj, &properties, context)?;
             return Ok(obj.into());
         }
 
@@ -480,7 +481,7 @@ impl Object {
         }
 
         // 5. Return descriptors.
-        Ok(descriptors.into())
+        Ok(JsValue::new(descriptors))
     }
 
     /// The abstract operation `FromPropertyDescriptor`.
@@ -553,7 +554,7 @@ impl Object {
         let x = args.get_or_undefined(0);
         let y = args.get_or_undefined(1);
 
-        Ok(JsValue::same_value(x, y).into())
+        Ok(JsValue::same_value(&x, &y).into())
     }
 
     /// Get the `prototype` of an object.
@@ -574,7 +575,7 @@ impl Object {
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
             .__get_prototype_of__(ctx)?
-            .map_or(JsValue::Null, JsValue::new))
+            .map_or(JsValue::null(), JsValue::new))
     }
 
     /// Set the `prototype` of an object.
@@ -582,9 +583,13 @@ impl Object {
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
-    pub fn set_prototype_of(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
+    pub fn set_prototype_of(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if args.len() < 2 {
-            return ctx.throw_type_error(format!(
+            return context.throw_type_error(format!(
                 "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
                 args.len()
             ));
@@ -595,16 +600,19 @@ impl Object {
             .get(0)
             .cloned()
             .unwrap_or_default()
-            .require_object_coercible(ctx)?
+            .require_object_coercible(context)?
             .clone();
 
-        let proto = match args.get_or_undefined(1) {
-            JsValue::Object(obj) => Some(obj.clone()),
-            JsValue::Null => None,
+        let proto = args.get_or_undefined(1);
+        let proto = match proto.variant() {
+            JsVariant::Object(obj) => Some(obj.clone()),
+            JsVariant::Null => None,
             // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
-            val => {
-                return ctx
-                    .throw_type_error(format!("expected an object or null, got {}", val.type_of()))
+            _ => {
+                return context.throw_type_error(format!(
+                    "expected an object or null, got {}",
+                    proto.type_of()
+                ))
             }
         };
 
@@ -616,11 +624,11 @@ impl Object {
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = obj.__set_prototype_of__(proto, ctx)?;
+        let status = obj.__set_prototype_of__(proto, context)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
-            return ctx.throw_type_error("can't set prototype of this object");
+            return context.throw_type_error("can't set prototype of this object");
         }
 
         // 6. Return O.
@@ -646,7 +654,7 @@ impl Object {
         if !v.is_object() {
             return Ok(JsValue::new(false));
         }
-        let mut v = v.clone();
+        let mut v = v;
         let o = JsValue::new(this.to_object(context)?);
         loop {
             v = Self::get_prototype_of(this, &[v], context)?;
@@ -666,14 +674,14 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let object = args.get_or_undefined(0);
-        if let JsValue::Object(object) = object {
+        if let Some(object) = object.as_object() {
             let key = args
                 .get(1)
-                .unwrap_or(&JsValue::Undefined)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_key(context)?;
             let desc = args
                 .get(2)
-                .unwrap_or(&JsValue::Undefined)
+                .unwrap_or(&JsValue::undefined())
                 .to_property_descriptor(context)?;
 
             object.define_property_or_throw(key, desc, context)?;
@@ -700,9 +708,9 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         let arg = args.get_or_undefined(0);
-        if let JsValue::Object(obj) = arg {
+        if let Some(ref obj) = arg.as_object() {
             let props = args.get_or_undefined(1);
-            object_define_properties(obj, props, context)?;
+            object_define_properties(obj, &props, context)?;
             Ok(arg.clone())
         } else {
             context.throw_type_error("Expected an object")
@@ -778,7 +786,8 @@ impl Object {
         let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
+        let tag_str = tag.as_string();
+        let tag_str = tag_str.as_deref().map_or(builtin_tag, JsString::as_str);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
         Ok(format!("[object {tag_str}]").into())
@@ -1152,7 +1161,7 @@ impl Object {
     ) -> JsResult<JsValue> {
         // 1. Return ? GetOwnPropertyKeys(O, string).
         let o = args.get_or_undefined(0);
-        get_own_property_keys(o, PropertyKeyType::String, context)
+        get_own_property_keys(&o, PropertyKeyType::String, context)
     }
 
     /// `Object.getOwnPropertySymbols( object )`
@@ -1170,7 +1179,7 @@ impl Object {
     ) -> JsResult<JsValue> {
         // 1. Return ? GetOwnPropertyKeys(O, symbol).
         let o = args.get_or_undefined(0);
-        get_own_property_keys(o, PropertyKeyType::Symbol, context)
+        get_own_property_keys(&o, PropertyKeyType::Symbol, context)
     }
 
     /// `Object.hasOwn( object, property )`
@@ -1202,7 +1211,8 @@ impl Object {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries
     pub fn from_entries(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Perform ? RequireObjectCoercible(iterable).
-        let iterable = args.get_or_undefined(0).require_object_coercible(context)?;
+        let iterable = args.get_or_undefined(0);
+        let iterable = iterable.require_object_coercible(context)?;
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.

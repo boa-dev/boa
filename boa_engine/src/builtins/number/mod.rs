@@ -21,7 +21,7 @@ use crate::{
         JsObject, ObjectData,
     },
     property::Attribute,
-    value::{AbstractRelation, IntegerOrInfinity, JsValue},
+    value::{AbstractRelation, IntegerOrInfinity, JsValue, JsVariant},
     Context, JsResult,
 };
 use boa_profiler::Profiler;
@@ -220,7 +220,8 @@ impl Number {
         // 1. Let x be ? thisNumberValue(this value).
         let this_num = Self::this_number_value(this, context)?;
         let precision = match args.get(0) {
-            None | Some(JsValue::Undefined) => None,
+            None => None,
+            Some(n) if n.is_undefined() => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
             Some(n) => Some(n.to_integer_or_infinity(context)?),
         };
@@ -992,9 +993,9 @@ impl Number {
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
         Ok(JsValue::new(if let Some(val) = args.get(0) {
-            match val {
-                JsValue::Integer(_) => true,
-                JsValue::Rational(number) => number.is_finite(),
+            match val.variant() {
+                JsVariant::Float64(number) => number.is_finite(),
+                JsVariant::Integer32(_) => true,
                 _ => false,
             }
         } else {
@@ -1041,13 +1042,7 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(
-            if let Some(&JsValue::Rational(number)) = args.get(0) {
-                number.is_nan()
-            } else {
-                false
-            },
-        ))
+        Ok(JsValue::new(args.get(0).map_or(false, JsValue::is_nan)))
     }
 
     /// `Number.isSafeInteger( number )`
@@ -1070,9 +1065,9 @@ impl Number {
         args: &[JsValue],
         _ctx: &mut Context,
     ) -> JsResult<JsValue> {
-        Ok(JsValue::new(match args.get(0) {
-            Some(JsValue::Integer(_)) => true,
-            Some(JsValue::Rational(number)) if Self::is_float_integer(*number) => {
+        Ok(JsValue::new(match args.get(0).map(JsValue::variant) {
+            Some(JsVariant::Integer32(_)) => true,
+            Some(JsVariant::Float64(number)) if Self::is_float_integer(number) => {
                 number.abs() <= Self::MAX_SAFE_INTEGER
             }
             _ => false,
@@ -1087,9 +1082,9 @@ impl Number {
     /// [spec]: https://tc39.es/ecma262/#sec-isinteger
     #[inline]
     pub(crate) fn is_integer(val: &JsValue) -> bool {
-        match val {
-            JsValue::Integer(_) => true,
-            JsValue::Rational(number) => Self::is_float_integer(*number),
+        match val.variant() {
+            JsVariant::Integer32(_) => true,
+            JsVariant::Float64(number) => Self::is_float_integer(number),
             _ => false,
         }
     }

@@ -50,7 +50,7 @@ impl Eval {
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
     fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue, JsValue> {
         // 1. Return ? PerformEval(x, false, false).
-        Self::perform_eval(args.get_or_undefined(0), false, false, context)
+        Self::perform_eval(&args.get_or_undefined(0), false, false, context)
     }
 
     /// `19.2.1.1 PerformEval ( x, strictCaller, direct )`

@@ -29,7 +29,7 @@ use crate::{
     },
     property::{Attribute, PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::{IntegerOrInfinity, JsValue},
+    value::{IntegerOrInfinity, JsValue, JsVariant},
     Context, JsResult, JsString,
 };
 use std::cmp::{max, min, Ordering};
@@ -374,7 +374,7 @@ impl Array {
         // 7. If IsConstructor(C) is false, throw a TypeError exception.
         if let Some(c) = c.as_constructor() {
             // 8. Return ? Construct(C, « 𝔽(length) »).
-            c.construct(&[JsValue::new(length)], Some(c), context)
+            c.construct(&[JsValue::new(length)], Some(&c), context)
         } else {
             context.throw_type_error("Symbol.species must be a constructor")
         }
@@ -404,9 +404,9 @@ impl Array {
         // 3. Else,
         //     a. If IsCallable(mapfn) is false, throw a TypeError exception.
         //     b. Let mapping be true.
-        let mapping = match mapfn {
-            JsValue::Undefined => None,
-            JsValue::Object(o) if o.is_callable() => Some(o),
+        let mapping = match mapfn.variant() {
+            JsVariant::Undefined => None,
+            JsVariant::Object(o) if o.is_callable() => Some(o),
             _ => return context.throw_type_error(format!("{} is not a function", mapfn.type_of())),
         };
 
@@ -455,9 +455,9 @@ impl Array {
                 let next_value = next.value(context)?;
 
                 // vi. If mapping is true, then
-                let mapped_value = if let Some(mapfn) = mapping {
+                let mapped_value = if let Some(ref mapfn) = mapping {
                     // 1. Let mappedValue be Call(mapfn, thisArg, « nextValue, 𝔽(k) »).
-                    let mapped_value = mapfn.call(this_arg, &[next_value, k.into()], context);
+                    let mapped_value = mapfn.call(&this_arg, &[next_value, k.into()], context);
 
                     // 2. IfAbruptCloseIterator(mappedValue, iteratorRecord).
                     if_abrupt_close_iterator!(mapped_value, iterator_record, context)
@@ -509,10 +509,10 @@ impl Array {
                 // b. Let kValue be ? Get(arrayLike, Pk).
                 let k_value = array_like.get(k, context)?;
 
-                let mapped_value = if let Some(mapfn) = mapping {
+                let mapped_value = if let Some(ref mapfn) = mapping {
                     // c. If mapping is true, then
                     //     i. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
-                    mapfn.call(this_arg, &[k_value, k.into()], context)?
+                    mapfn.call(&this_arg, &[k_value, k.into()], context)?
                 } else {
                     // d. Else, let mappedValue be kValue.
                     k_value
@@ -810,7 +810,8 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.forEach: invalid callback function")
         })?;
         // 4. Let k be 0.
@@ -826,7 +827,7 @@ impl Array {
                 let k_value = o.get(pk, context)?;
                 // ii. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let this_arg = args.get_or_undefined(1);
-                callback.call(this_arg, &[k_value, k.into(), o.clone().into()], context)?;
+                callback.call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?;
             }
             // d. Set k to k + 1.
         }
@@ -1151,7 +1152,8 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.every: callback is not callable")
         })?;
 
@@ -1169,7 +1171,7 @@ impl Array {
                 let k_value = o.get(k, context)?;
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
                 let test_result = callback
-                    .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                    .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
                     .to_boolean();
                 // iii. If testResult is false, return false.
                 if !test_result {
@@ -1203,7 +1205,8 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.map: Callbackfn is not callable")
         })?;
 
@@ -1224,7 +1227,7 @@ impl Array {
                 let k_value = o.get(k, context)?;
                 // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let mapped_value =
-                    callback.call(this_arg, &[k_value, k.into(), this.into()], context)?;
+                    callback.call(&this_arg, &[k_value, k.into(), this.into()], context)?;
                 // iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
                 a.create_data_property_or_throw(k, mapped_value, context)?;
             }
@@ -1376,7 +1379,7 @@ impl Array {
                 let element_k = o.get(k, context)?;
                 // ii. Let same be IsStrictlyEqual(searchElement, elementK).
                 // iii. If same is true, return 𝔽(k).
-                if JsValue::strict_equals(search_element, &element_k) {
+                if JsValue::strict_equals(&search_element, &element_k) {
                     return Ok(JsValue::new(k));
                 }
             }
@@ -1411,7 +1414,8 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let predicate = args.get_or_undefined(0);
+        let predicate = predicate.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.find: predicate is not callable")
         })?;
 
@@ -1428,7 +1432,7 @@ impl Array {
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
                 .call(
-                    this_arg,
+                    &this_arg,
                     &[k_value.clone(), k.into(), o.clone().into()],
                     context,
                 )?
@@ -1468,7 +1472,8 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let predicate = args.get_or_undefined(0);
+        let predicate = predicate.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.findIndex: predicate is not callable")
         })?;
 
@@ -1484,7 +1489,7 @@ impl Array {
             let k_value = o.get(pk, context)?;
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
-                .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
                 .to_boolean();
             // d. If testResult is true, return 𝔽(k).
             if test_result {
@@ -1519,7 +1524,8 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let predicate = args.get_or_undefined(0);
+        let predicate = predicate.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.findLast: predicate is not callable")
         })?;
 
@@ -1534,7 +1540,7 @@ impl Array {
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
                 .call(
-                    this_arg,
+                    &this_arg,
                     &[k_value.clone(), k.into(), this.clone()],
                     context,
                 )?
@@ -1571,7 +1577,8 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let predicate = args.get_or_undefined(0);
+        let predicate = predicate.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.findLastIndex: predicate is not callable")
         })?;
 
@@ -1585,7 +1592,7 @@ impl Array {
             let k_value = o.get(k, context)?;
             // c. Let testResult be ! ToBoolean(? Call(predicate, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = predicate
-                .call(this_arg, &[k_value, k.into(), this.clone()], context)?
+                .call(&this_arg, &[k_value, k.into(), this.clone()], context)?
                 .to_boolean();
             // d. If testResult is true, return 𝔽(k).
             if test_result {
@@ -1676,7 +1683,8 @@ impl Array {
         let source_len = o.length_of_array_like(context)?;
 
         // 3. If ! IsCallable(mapperFunction) is false, throw a TypeError exception.
-        let mapper_function = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let mapper_function = args.get_or_undefined(0);
+        let mapper_function = mapper_function.as_callable().ok_or_else(|| {
             context.construct_type_error("flatMap mapper function is not callable")
         })?;
 
@@ -1690,8 +1698,8 @@ impl Array {
             source_len,
             0,
             1,
-            Some(mapper_function),
-            args.get_or_undefined(1),
+            Some(&mapper_function),
+            &args.get_or_undefined(1),
             context,
         )?;
 
@@ -1780,7 +1788,7 @@ impl Array {
                     // 4. Set targetIndex to ? FlattenIntoArray(target, element, elementLen, targetIndex, newDepth)
                     target_index = Self::flatten_into_array(
                         target,
-                        element,
+                        &element,
                         element_len,
                         target_index,
                         new_depth,
@@ -1924,7 +1932,7 @@ impl Array {
             // a. Let elementK be ? Get(O, ! ToString(𝔽(k))).
             let element_k = o.get(k, context)?;
             // b. If SameValueZero(searchElement, elementK) is true, return true.
-            if JsValue::same_value_zero(search_element, &element_k) {
+            if JsValue::same_value_zero(&search_element, &element_k) {
                 return Ok(JsValue::new(true));
             }
             // c. Set k to k + 1.
@@ -2205,7 +2213,8 @@ impl Array {
         let length = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.filter: `callback` must be callable")
         })?;
         let this_arg = args.get_or_undefined(1);
@@ -2228,7 +2237,7 @@ impl Array {
                 let args = [element.clone(), JsValue::new(idx), JsValue::new(o.clone())];
 
                 // ii. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
-                let selected = callback.call(this_arg, &args, context)?.to_boolean();
+                let selected = callback.call(&this_arg, &args, context)?.to_boolean();
 
                 // iii. If selected is true, then
                 if selected {
@@ -2269,7 +2278,8 @@ impl Array {
         // 2. Let len be ? LengthOfArrayLike(O).
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
             context.construct_type_error("Array.prototype.some: callback is not callable")
         })?;
 
@@ -2286,7 +2296,7 @@ impl Array {
                 // ii. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
                 let this_arg = args.get_or_undefined(1);
                 let test_result = callback
-                    .call(this_arg, &[k_value, k.into(), o.clone().into()], context)?
+                    .call(&this_arg, &[k_value, k.into(), o.clone().into()], context)?
                     .to_boolean();
                 // iii. If testResult is true, return true.
                 if test_result {
@@ -2317,9 +2327,10 @@ impl Array {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let comparefn = match args.get_or_undefined(0) {
-            JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
-            JsValue::Undefined => None,
+        let comparefn = args.get_or_undefined(0);
+        let comparefn = match comparefn.variant() {
+            JsVariant::Object(obj) if obj.is_callable() => Some(obj),
+            JsVariant::Undefined => None,
             _ => {
                 return context.throw_type_error(
                     "The comparison function must be either a function or undefined",
@@ -2346,11 +2357,11 @@ impl Array {
                 }
 
                 // 4. If comparefn is not undefined, then
-                if let Some(cmp) = comparefn {
+                if let Some(ref cmp) = comparefn {
                     let args = [x.clone(), y.clone()];
                     // a. Let v be ? ToNumber(? Call(comparefn, undefined, « x, y »)).
                     let v = cmp
-                        .call(&JsValue::Undefined, &args, context)?
+                        .call(&JsValue::undefined(), &args, context)?
                         .to_number(context)?;
                     // b. If v is NaN, return +0𝔽.
                     // c. Return v.
@@ -2454,7 +2465,8 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
             context
                 .construct_type_error("Array.prototype.reduce: callback function is not callable")
         })?;
@@ -2549,7 +2561,8 @@ impl Array {
         let len = o.length_of_array_like(context)?;
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
+        let callback = args.get_or_undefined(0);
+        let callback = callback.as_callable().ok_or_else(|| {
             context.construct_type_error(
                 "Array.prototype.reduceRight: callback function is not callable",
             )

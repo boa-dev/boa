@@ -569,7 +569,7 @@ impl Console {
     #[allow(clippy::unnecessary_wraps)]
     pub(crate) fn dir(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         logger(
-            LogMessage::Info(display_obj(args.get_or_undefined(0), true)),
+            LogMessage::Info(display_obj(&args.get_or_undefined(0), true)),
             context.console(),
         );
         Ok(JsValue::undefined())

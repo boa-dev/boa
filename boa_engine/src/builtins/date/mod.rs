@@ -9,7 +9,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     symbol::WellKnownSymbols,
-    value::{JsValue, PreferredType},
+    value::{JsValue, JsVariant, PreferredType},
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
@@ -390,24 +390,25 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         let value = &args[0];
-        let tv = match this_time_value(value, context) {
-            Ok(dt) => dt.0,
-            _ => match value.to_primitive(context, PreferredType::Default)? {
-                JsValue::String(ref str) => match chrono::DateTime::parse_from_rfc3339(str) {
+        let tv = if let Ok(dt) = this_time_value(value, context) {
+            dt.0
+        } else {
+            let tv = value.to_primitive(context, PreferredType::Default)?;
+            if let JsVariant::String(ref str) = tv.variant() {
+                match chrono::DateTime::parse_from_rfc3339(str) {
                     Ok(dt) => Some(dt.naive_utc()),
                     _ => None,
-                },
-                tv => {
-                    let tv = tv.to_number(context)?;
-                    if tv.is_nan() {
-                        None
-                    } else {
-                        let secs = (tv / 1_000f64) as i64;
-                        let nano_secs = ((tv % 1_000f64) * 1_000_000f64) as u32;
-                        NaiveDateTime::from_timestamp_opt(secs, nano_secs)
-                    }
                 }
-            },
+            } else {
+                let tv = tv.to_number(context)?;
+                if tv.is_nan() {
+                    None
+                } else {
+                    let secs = (tv / 1_000f64) as i64;
+                    let nano_secs = ((tv % 1_000f64) * 1_000_000f64) as u32;
+                    NaiveDateTime::from_timestamp_opt(secs, nano_secs)
+                }
+            }
         };
 
         let tv = tv.filter(|time| Self::time_clip(time.timestamp_millis() as f64).is_some());
@@ -512,7 +513,7 @@ impl Date {
 
         let hint = args.get_or_undefined(0);
 
-        let try_first = match hint.as_string().map(JsString::as_str) {
+        let try_first = match hint.as_string().as_deref().map(JsString::as_str) {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
             Some("string" | "default") => PreferredType::String,
@@ -1848,7 +1849,7 @@ impl Date {
 
         match DateTime::parse_from_rfc3339(&args[0].to_string(context)?) {
             Ok(v) => Ok(JsValue::new(v.naive_utc().timestamp_millis() as f64)),
-            _ => Ok(JsValue::new(f64::NAN)),
+            _ => Ok(JsValue::nan()),
         }
     }
 

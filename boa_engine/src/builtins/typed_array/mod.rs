@@ -26,7 +26,7 @@ use crate::{
     },
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
-    value::{IntegerOrInfinity, JsValue},
+    value::{IntegerOrInfinity, JsValue, JsVariant},
     Context, JsResult, JsString,
 };
 use boa_profiler::Profiler;
@@ -161,7 +161,7 @@ macro_rules! typed_array {
                     // ii. If firstArgument has a [[TypedArrayName]] internal slot, then
                     if first_argument.is_typed_array() {
                         // 1. Perform ? InitializeTypedArrayFromTypedArray(O, firstArgument).
-                        TypedArray::initialize_from_typed_array(&o, first_argument, context)?;
+                        TypedArray::initialize_from_typed_array(&o, &first_argument, context)?;
                     } else if first_argument.is_array_buffer() {
                         // iii. Else if firstArgument has an [[ArrayBufferData]] internal slot, then
 
@@ -175,8 +175,8 @@ macro_rules! typed_array {
                         TypedArray::initialize_from_array_buffer(
                             &o,
                             first_argument.clone(),
-                            byte_offset,
-                            length,
+                            &byte_offset,
+                            &length,
                             context,
                         )?;
                     } else {
@@ -407,7 +407,9 @@ impl TypedArray {
 
         let mapping = match args.get(1) {
             // 3. If mapfn is undefined, let mapping be false.
-            None | Some(JsValue::Undefined) => None,
+            None => None,
+            Some(v) if v.is_undefined() => None,
+
             // 4. Else,
             Some(v) => match v.as_object() {
                 // b. Let mapping be true.
@@ -429,11 +431,11 @@ impl TypedArray {
         // 6. If usingIterator is not undefined, then
         if let Some(using_iterator) = using_iterator {
             // a. Let values be ? IterableToList(source, usingIterator).
-            let values = iterable_to_list(context, source, Some(using_iterator.into()))?;
+            let values = iterable_to_list(context, &source, Some(using_iterator.into()))?;
 
             // b. Let len be the number of elements in values.
             // c. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-            let target_obj = Self::create(constructor, &[values.len().into()], context)?;
+            let target_obj = Self::create(&constructor, &[values.len().into()], context)?;
 
             // d. Let k be 0.
             // e. Repeat, while k < len,
@@ -443,7 +445,7 @@ impl TypedArray {
                 // iii. If mapping is true, then
                 let mapped_value = if let Some(map_fn) = &mapping {
                     // 1. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
-                    map_fn.call(this_arg, &[k_value.clone(), k.into()], context)?
+                    map_fn.call(&this_arg, &[k_value.clone(), k.into()], context)?
                 }
                 // iv. Else, let mappedValue be kValue.
                 else {
@@ -469,7 +471,7 @@ impl TypedArray {
         let len = array_like.length_of_array_like(context)?;
 
         // 10. Let targetObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let target_obj = Self::create(constructor, &[len.into()], context)?;
+        let target_obj = Self::create(&constructor, &[len.into()], context)?;
 
         // 11. Let k be 0.
         // 12. Repeat, while k < len,
@@ -481,7 +483,7 @@ impl TypedArray {
             // c. If mapping is true, then
             let mapped_value = if let Some(map_fn) = &mapping {
                 // i. Let mappedValue be ? Call(mapfn, thisArg, « kValue, 𝔽(k) »).
-                map_fn.call(this_arg, &[k_value, k.into()], context)?
+                map_fn.call(&this_arg, &[k_value, k.into()], context)?
             }
             // d. Else, let mappedValue be kValue.
             else {
@@ -515,7 +517,7 @@ impl TypedArray {
         };
 
         // 4. Let newObj be ? TypedArrayCreate(C, « 𝔽(len) »).
-        let new_obj = Self::create(constructor, &[args.len().into()], context)?;
+        let new_obj = Self::create(&constructor, &[args.len().into()], context)?;
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -612,7 +614,7 @@ impl TypedArray {
         // 5. Return buffer.
         Ok(typed_array
             .viewed_array_buffer()
-            .map_or_else(JsValue::undefined, |buffer| buffer.clone().into()))
+            .map_or(JsValue::undefined(), |buffer| buffer.clone().into()))
     }
 
     /// `23.2.3.3 get %TypedArray%.prototype.byteLength`
@@ -906,7 +908,8 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
+        let callback_fn = args.get_or_undefined(0);
+        let callback_fn = match callback_fn.as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
                 return context.throw_type_error(
@@ -925,7 +928,7 @@ impl TypedArray {
             // c. Let testResult be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).
             let test_result = callback_fn
                 .call(
-                    args.get_or_undefined(1),
+                    &args.get_or_undefined(1),
                     &[k_value, k.into(), this.clone()],
                     context,
                 )?
@@ -1053,7 +1056,8 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
+        let callback_fn = args.get_or_undefined(0);
+        let callback_fn = match callback_fn.as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
                 return context.throw_type_error(
@@ -1078,7 +1082,7 @@ impl TypedArray {
             // c. Let selected be ! ToBoolean(? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »)).#
             let selected = callback_fn
                 .call(
-                    args.get_or_undefined(1),
+                    &args.get_or_undefined(1),
                     &[k_value.clone(), k.into(), this.clone()],
                     context,
                 )?
@@ -1095,7 +1099,7 @@ impl TypedArray {
         }
 
         // 9. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(captured) »).
-        let a = Self::species_create(obj, o.typed_array_name(), &[captured.into()], context)?;
+        let a = Self::species_create(&obj, o.typed_array_name(), &[captured.into()], context)?;
 
         // 10. Let n be 0.
         // 11. For each element e of kept, do
@@ -1138,7 +1142,8 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate = match args.get_or_undefined(0).as_object() {
+        let predicate = args.get_or_undefined(0);
+        let predicate = match predicate.as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
                 return context.throw_type_error(
@@ -1158,7 +1163,7 @@ impl TypedArray {
             // d. If testResult is true, return kValue.
             if predicate
                 .call(
-                    args.get_or_undefined(1),
+                    &args.get_or_undefined(1),
                     &[k_value.clone(), k.into(), this.clone()],
                     context,
                 )?
@@ -1200,8 +1205,9 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(predicate) is false, throw a TypeError exception.
+        let predicate = args.get_or_undefined(0);
         let predicate =
-            match args.get_or_undefined(0).as_object() {
+            match predicate.as_object() {
                 Some(obj) if obj.is_callable() => obj,
                 _ => return context.throw_type_error(
                     "TypedArray.prototype.findindex called with non-callable predicate function",
@@ -1219,7 +1225,7 @@ impl TypedArray {
             // d. If testResult is true, return 𝔽(k).
             if predicate
                 .call(
-                    args.get_or_undefined(1),
+                    &args.get_or_undefined(1),
                     &[k_value.clone(), k.into(), this.clone()],
                     context,
                 )?
@@ -1261,7 +1267,8 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
+        let callback_fn = args.get_or_undefined(0);
+        let callback_fn = match callback_fn.as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
                 return context.throw_type_error(
@@ -1279,7 +1286,7 @@ impl TypedArray {
 
             // c. Perform ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
             callback_fn.call(
-                args.get_or_undefined(1),
+                &args.get_or_undefined(1),
                 &[k_value, k.into(), this.clone()],
                 context,
             )?;
@@ -1354,7 +1361,7 @@ impl TypedArray {
             let element_k = obj.get(k, context).expect("Get cannot fail here");
 
             // b. If SameValueZero(searchElement, elementK) is true, return true.
-            if JsValue::same_value_zero(args.get_or_undefined(0), &element_k) {
+            if JsValue::same_value_zero(&args.get_or_undefined(0), &element_k) {
                 return Ok(true.into());
             }
 
@@ -1680,7 +1687,8 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
+        let callback_fn = args.get_or_undefined(0);
+        let callback_fn = match callback_fn.as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
                 return context.throw_type_error(
@@ -1690,7 +1698,7 @@ impl TypedArray {
         };
 
         // 5. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(len) »).
-        let a = Self::species_create(obj, o.typed_array_name(), &[len.into()], context)?;
+        let a = Self::species_create(&obj, o.typed_array_name(), &[len.into()], context)?;
 
         // 6. Let k be 0.
         // 7. Repeat, while k < len,
@@ -1701,7 +1709,7 @@ impl TypedArray {
 
             // c. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
             let mapped_value = callback_fn.call(
-                args.get_or_undefined(1),
+                &args.get_or_undefined(1),
                 &[k_value, k.into(), this.clone()],
                 context,
             )?;
@@ -1742,7 +1750,8 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
+        let callback_fn = args.get_or_undefined(0);
+        let callback_fn = match callback_fn.as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
                 return context.throw_type_error(
@@ -1823,8 +1832,9 @@ impl TypedArray {
         let len = o.array_length() as i64;
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
+        let callback_fn = args.get_or_undefined(0);
         let callback_fn =
-            match args.get_or_undefined(0).as_object() {
+            match callback_fn.as_object() {
                 Some(obj) if obj.is_callable() => obj,
                 _ => return context.throw_type_error(
                     "TypedArray.prototype.reduceright called with non-callable callback function",
@@ -1974,16 +1984,16 @@ impl TypedArray {
         }
 
         let source = args.get_or_undefined(0);
-        match source {
+        match source.variant() {
             // 6. If source is an Object that has a [[TypedArrayName]] internal slot, then
-            JsValue::Object(source) if source.is_typed_array() => {
+            JsVariant::Object(source) if source.is_typed_array() => {
                 // a. Perform ? SetTypedArrayFromTypedArray(target, targetOffset, source).
-                Self::set_typed_array_from_typed_array(target, target_offset, source, context)?;
+                Self::set_typed_array_from_typed_array(&target, target_offset, &source, context)?;
             }
             // 7. Else,
             _ => {
                 // a. Perform ? SetTypedArrayFromArrayLike(target, targetOffset, source).
-                Self::set_typed_array_from_array_like(target, target_offset, source, context)?;
+                Self::set_typed_array_from_array_like(&target, target_offset, &source, context)?;
             }
         }
 
@@ -2380,7 +2390,7 @@ impl TypedArray {
         let count = std::cmp::max(r#final - k, 0) as u64;
 
         // 13. Let A be ? TypedArraySpeciesCreate(O, « 𝔽(count) »).
-        let a = Self::species_create(obj, o.typed_array_name(), &[count.into()], context)?;
+        let a = Self::species_create(&obj, o.typed_array_name(), &[count.into()], context)?;
         let a_borrow = a.borrow();
         let a_array = a_borrow
             .as_typed_array()
@@ -2517,7 +2527,8 @@ impl TypedArray {
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
+        let callback_fn = args.get_or_undefined(0);
+        let callback_fn = match callback_fn.as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
                 return context.throw_type_error(
@@ -2537,7 +2548,7 @@ impl TypedArray {
             // d. If testResult is true, return true.
             if callback_fn
                 .call(
-                    args.get_or_undefined(1),
+                    &args.get_or_undefined(1),
                     &[k_value, k.into(), this.clone()],
                     context,
                 )?
@@ -2563,9 +2574,9 @@ impl TypedArray {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. If comparefn is not undefined and IsCallable(comparefn) is false, throw a TypeError exception.
-        let compare_fn = match args.get(0) {
-            None | Some(JsValue::Undefined) => None,
-            Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
+        let compare_fn = match args.get(0).map(JsValue::variant) {
+            None | Some(JsVariant::Undefined) => None,
+            Some(JsVariant::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
                 return context
                     .throw_type_error("TypedArray.sort called with non-callable comparefn")
@@ -2649,7 +2660,7 @@ impl TypedArray {
                 return Ok(v.partial_cmp(&0.0).unwrap_or(Ordering::Equal));
             }
 
-            if let (JsValue::BigInt(x), JsValue::BigInt(y)) = (x, y) {
+            if let (Some(x), Some(y)) = (x.as_bigint(), y.as_bigint()) {
                 // 6. If x < y, return -1𝔽.
                 if x < y {
                     return Ok(Ordering::Less);
@@ -2734,7 +2745,7 @@ impl TypedArray {
         let mut sort_err = Ok(());
         items.sort_by(|x, y| {
             if sort_err.is_ok() {
-                sort_compare(x, y, compare_fn, context).unwrap_or_else(|err| {
+                sort_compare(x, y, compare_fn.as_deref(), context).unwrap_or_else(|err| {
                     sort_err = Err(err);
                     Ordering::Equal
                 })
@@ -2838,7 +2849,7 @@ impl TypedArray {
         // 19. Let argumentsList be « buffer, 𝔽(beginByteOffset), 𝔽(newLength) ».
         // 20. Return ? TypedArraySpeciesCreate(O, argumentsList).
         Ok(Self::species_create(
-            obj,
+            &obj,
             o.typed_array_name(),
             &[
                 buffer.clone().into(),
@@ -2901,7 +2912,7 @@ impl TypedArray {
                     .as_typed_array()
                     .map(|o| o.typed_array_name().name().into())
             })
-            .unwrap_or(JsValue::Undefined))
+            .unwrap_or(JsValue::undefined()))
     }
 
     /// `23.2.4.1 TypedArraySpeciesCreate ( exemplar, argumentList )`

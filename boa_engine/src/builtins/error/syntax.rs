@@ -86,7 +86,7 @@ impl SyntaxError {
         }
 
         // 4. Perform ? InstallErrorCause(O, options).
-        Error::install_error_cause(&o, args.get_or_undefined(1), context)?;
+        Error::install_error_cause(&o, &args.get_or_undefined(1), context)?;
 
         // 5. Return O.
         Ok(o.into())

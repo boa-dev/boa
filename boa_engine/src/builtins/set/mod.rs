@@ -142,7 +142,7 @@ impl Set {
         })?;
 
         // 7. Let iteratorRecord be ? GetIterator(iterable).
-        let iterator_record = iterable.clone().get_iterator(context, None, None)?;
+        let iterator_record = iterable.get_iterator(context, None, None)?;
 
         // 8. Repeat,
         //     a. Let next be ? IteratorStep(iteratorRecord).
@@ -224,9 +224,9 @@ impl Set {
         if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
                 set.add(if value.as_number().map_or(false, |n| n == -0f64) {
-                    JsValue::Integer(0)
+                    JsValue::new(0)
                 } else {
-                    value.clone()
+                    value
                 });
             } else {
                 return context.throw_type_error("'this' is not a Set");
@@ -281,7 +281,7 @@ impl Set {
 
         let res = if let Some(object) = this.as_object() {
             if let Some(set) = object.borrow_mut().as_set_mut() {
-                set.delete(value)
+                set.delete(&value)
             } else {
                 return context.throw_type_error("'this' is not a Set");
             }
@@ -352,7 +352,7 @@ impl Set {
         let this_arg = if this_arg.is_undefined() {
             context.global_object().clone().into()
         } else {
-            this_arg.clone()
+            this_arg
         };
 
         let mut index = 0;
@@ -375,7 +375,7 @@ impl Set {
             index += 1;
         }
 
-        Ok(JsValue::Undefined)
+        Ok(JsValue::undefined())
     }
 
     /// `Map.prototype.has( key )`
@@ -399,7 +399,7 @@ impl Set {
             .and_then(|obj| {
                 obj.borrow()
                     .as_set_ref()
-                    .map(|set| set.contains(value).into())
+                    .map(|set| set.contains(&value).into())
             })
             .ok_or_else(|| context.construct_type_error("'this' is not a Set"))
     }

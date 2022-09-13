@@ -12,7 +12,7 @@ use crate::{
     environments::EnvironmentSlots,
     object::{FunctionBuilder, JsFunction, JsObject, ObjectData, PrivateElement},
     property::{DescriptorKind, PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey},
-    value::Numeric,
+    value::{JsVariant, Numeric},
     vm::{
         call_frame::CatchAddresses,
         code_block::{initialize_instance_elements, Readable},
@@ -229,17 +229,17 @@ impl Context {
                     self.vm.push(class);
                     self.vm.push(proto);
                 } else if superclass.is_null() {
-                    self.vm.push(JsValue::Null);
+                    self.vm.push(JsValue::null());
                 } else {
                     return self.throw_type_error("superclass must be a constructor");
                 }
             }
             Opcode::SetClassPrototype => {
                 let prototype_value = self.vm.pop();
-                let prototype = match &prototype_value {
-                    JsValue::Object(proto) => Some(proto.clone()),
-                    JsValue::Null => None,
-                    JsValue::Undefined => {
+                let prototype = match prototype_value.variant() {
+                    JsVariant::Object(proto) => Some(proto.clone()),
+                    JsVariant::Null => None,
+                    JsVariant::Undefined => {
                         Some(self.intrinsics().constructors().object().prototype.clone())
                     }
                     _ => unreachable!(),
@@ -484,7 +484,7 @@ impl Context {
                         .into();
                     self.global_bindings_mut().entry(key).or_insert(
                         PropertyDescriptor::builder()
-                            .value(JsValue::Undefined)
+                            .value(JsValue::undefined())
                             .writable(true)
                             .enumerable(true)
                             .configurable(true)
@@ -494,7 +494,7 @@ impl Context {
                     self.realm.environments.put_value_if_uninitialized(
                         binding_locator.environment_index(),
                         binding_locator.binding_index(),
-                        JsValue::Undefined,
+                        JsValue::undefined(),
                     );
                 }
             }
@@ -526,7 +526,7 @@ impl Context {
                 self.realm.environments.put_value(
                     binding_locator.environment_index(),
                     binding_locator.binding_index(),
-                    JsValue::Undefined,
+                    JsValue::undefined(),
                 );
             }
             Opcode::DefInitLet | Opcode::DefInitConst | Opcode::DefInitArg => {
@@ -1540,10 +1540,10 @@ impl Context {
                     if let Some(proto) = home.__get_prototype_of__(self)? {
                         self.vm.push(JsValue::from(proto));
                     } else {
-                        self.vm.push(JsValue::Null);
+                        self.vm.push(JsValue::null());
                     }
                 } else {
-                    self.vm.push(JsValue::Null);
+                    self.vm.push(JsValue::null());
                 };
             }
             Opcode::SuperCall => {
@@ -1749,8 +1749,8 @@ impl Context {
                 let func = self.vm.pop();
                 let this = self.vm.pop();
 
-                let object = match func {
-                    JsValue::Object(ref object) if object.is_callable() => object.clone(),
+                let object = match func.variant() {
+                    JsVariant::Object(object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
 
@@ -1765,7 +1765,7 @@ impl Context {
                             crate::builtins::eval::Eval::perform_eval(x, true, strict, self)?;
                         self.vm.push(result);
                     } else {
-                        self.vm.push(JsValue::Undefined);
+                        self.vm.push(JsValue::undefined());
                     }
                 } else {
                     let result = object.__call__(&this, &arguments, self)?;
@@ -1792,8 +1792,8 @@ impl Context {
                 let func = self.vm.pop();
                 let this = self.vm.pop();
 
-                let object = match func {
-                    JsValue::Object(ref object) if object.is_callable() => object.clone(),
+                let object = match func.variant() {
+                    JsVariant::Object(object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
 
@@ -1808,7 +1808,7 @@ impl Context {
                             crate::builtins::eval::Eval::perform_eval(x, true, strict, self)?;
                         self.vm.push(result);
                     } else {
-                        self.vm.push(JsValue::Undefined);
+                        self.vm.push(JsValue::undefined());
                     }
                 } else {
                     let result = object.__call__(&this, &arguments, self)?;
@@ -1829,8 +1829,8 @@ impl Context {
                 let func = self.vm.pop();
                 let this = self.vm.pop();
 
-                let object = match func {
-                    JsValue::Object(ref object) if object.is_callable() => object.clone(),
+                let object = match func.variant() {
+                    JsVariant::Object(object) if object.is_callable() => object,
                     _ => return self.throw_type_error("not a callable function"),
                 };
 
@@ -1858,8 +1858,8 @@ impl Context {
                 let func = self.vm.pop();
                 let this = self.vm.pop();
 
-                let object = match func {
-                    JsValue::Object(ref object) if object.is_callable() => object.clone(),
+                let object = match func.variant() {
+                    JsVariant::Object(object) if object.is_callable() => object.clone(),
                     _ => return self.throw_type_error("not a callable function"),
                 };
 
@@ -1882,7 +1882,7 @@ impl Context {
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, &cons, self))?;
 
                 self.vm.push(result);
             }
@@ -1907,7 +1907,7 @@ impl Context {
                 let result = func
                     .as_constructor()
                     .ok_or_else(|| self.construct_type_error("not a constructor"))
-                    .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
+                    .and_then(|cons| cons.__construct__(&arguments, &cons, self))?;
 
                 self.vm.push(result);
             }
@@ -2064,7 +2064,7 @@ impl Context {
                 let iterator = iterator.as_object().expect("iterator was not an object");
                 if !done {
                     let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
-                    iterator_record.close(Ok(JsValue::Null), self)?;
+                    iterator_record.close(Ok(JsValue::null()), self)?;
                 }
             }
             Opcode::IteratorToArray => {
@@ -2319,7 +2319,7 @@ impl Context {
                         self.vm.frame_mut().pc = done_address as usize;
                         let iterator_record =
                             IteratorRecord::new(iterator.clone(), next_method, done);
-                        iterator_record.close(Ok(JsValue::Undefined), self)?;
+                        iterator_record.close(Ok(JsValue::undefined()), self)?;
                         let error =
                             self.construct_type_error("iterator does not have a throw method");
                         return Err(error);
@@ -2592,7 +2592,7 @@ impl Context {
                 }
                 Ok(ShouldExit::False) => {}
                 Ok(ShouldExit::Yield) => {
-                    let result = self.vm.stack.pop().unwrap_or(JsValue::Undefined);
+                    let result = self.vm.stack.pop().unwrap_or(JsValue::undefined());
                     return Ok((result, ReturnType::Yield));
                 }
                 Err(e) => {

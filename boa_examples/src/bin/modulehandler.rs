@@ -46,7 +46,7 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue
     let buffer = read_to_string(libfile);
     if let Err(..) = buffer {
         println!("Error: {}", buffer.unwrap_err());
-        Ok(JsValue::Rational(-1.0))
+        Ok(JsValue::from(-1.0))
     } else {
         // Load and parse the module source
         ctx.eval(&buffer.unwrap()).unwrap();
