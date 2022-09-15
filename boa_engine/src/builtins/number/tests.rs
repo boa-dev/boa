@@ -170,7 +170,8 @@ fn to_precision() {
         String::from("\"0.333333333333333314829616256247390992939472198486328125000000\"")
     );
 
-    let expected = "Uncaught \"RangeError\": \"precision must be an integer at least 1 and no greater than 100\"";
+    let expected =
+        "Uncaught RangeError: precision must be an integer at least 1 and no greater than 100";
 
     let range_error_1 = r#"(1).toPrecision(101);"#;
     let range_error_2 = r#"(1).toPrecision(0);"#;

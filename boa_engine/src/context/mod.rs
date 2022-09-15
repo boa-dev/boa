@@ -15,6 +15,7 @@ use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    error::JsNativeError,
     job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
@@ -210,7 +211,11 @@ impl Context {
         // 2. If IsCallable(F) is false, throw a TypeError exception.
         // 3. Return ? F.[[Call]](V, argumentsList).
         f.as_callable()
-            .ok_or_else(|| self.construct_type_error("Value is not callable"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("Value is not callable")
+                    .into()
+            })
             .and_then(|f| f.call(v, arguments_list, self))
     }
 
@@ -243,179 +248,6 @@ impl Context {
             self,
         )
         .expect("Into<String> used as message")
-    }
-
-    /// Throws a `Error` with the specified message.
-    #[inline]
-    pub fn throw_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<JsString>,
-    {
-        Err(self.construct_error(message))
-    }
-
-    /// Constructs a `RangeError` with the specified message.
-    #[inline]
-    pub fn construct_range_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<JsString>,
-    {
-        crate::builtins::error::RangeError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .range_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `RangeError` with the specified message.
-    #[inline]
-    pub fn throw_range_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<JsString>,
-    {
-        Err(self.construct_range_error(message))
-    }
-
-    /// Constructs a `TypeError` with the specified message.
-    #[inline]
-    pub fn construct_type_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<JsString>,
-    {
-        crate::builtins::error::TypeError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .type_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `TypeError` with the specified message.
-    #[inline]
-    pub fn throw_type_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<JsString>,
-    {
-        Err(self.construct_type_error(message))
-    }
-
-    /// Constructs a `ReferenceError` with the specified message.
-    #[inline]
-    pub fn construct_reference_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<JsString>,
-    {
-        crate::builtins::error::ReferenceError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .reference_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `ReferenceError` with the specified message.
-    #[inline]
-    pub fn throw_reference_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<JsString>,
-    {
-        Err(self.construct_reference_error(message))
-    }
-
-    /// Constructs a `SyntaxError` with the specified message.
-    #[inline]
-    pub fn construct_syntax_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<JsString>,
-    {
-        crate::builtins::error::SyntaxError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .syntax_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `SyntaxError` with the specified message.
-    #[inline]
-    pub fn throw_syntax_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<JsString>,
-    {
-        Err(self.construct_syntax_error(message))
-    }
-
-    /// Constructs a `EvalError` with the specified message.
-    pub fn construct_eval_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<JsString>,
-    {
-        crate::builtins::error::EvalError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .eval_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Constructs a `URIError` with the specified message.
-    pub fn construct_uri_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<JsString>,
-    {
-        crate::builtins::error::UriError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .uri_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `EvalError` with the specified message.
-    pub fn throw_eval_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<JsString>,
-    {
-        Err(self.construct_eval_error(message))
-    }
-
-    /// Throws a `URIError` with the specified message.
-    pub fn throw_uri_error<M>(&mut self, message: M) -> JsResult<JsValue>
-    where
-        M: Into<JsString>,
-    {
-        Err(self.construct_uri_error(message))
     }
 
     /// Register a global native function.
@@ -657,14 +489,7 @@ impl Context {
     {
         let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
-        let parsing_result = Parser::new(src.as_ref())
-            .parse_all(self)
-            .map_err(|e| e.to_string());
-
-        let statement_list = match parsing_result {
-            Ok(statement_list) => statement_list,
-            Err(e) => return self.throw_syntax_error(e),
-        };
+        let statement_list = Parser::new(src.as_ref()).parse_all(self)?;
 
         let code_block = self.compile(&statement_list)?;
         let result = self.execute(code_block);

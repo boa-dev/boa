@@ -16,6 +16,7 @@ use crate::{
     bytecompiler::FunctionCompiler,
     context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
@@ -507,16 +508,16 @@ impl BuiltInFunctionObject {
                 {
                     Ok(parameters) => parameters,
                     Err(e) => {
-                        return context.throw_syntax_error(format!(
-                            "failed to parse function parameters: {e}"
-                        ))
+                        return Err(JsNativeError::syntax()
+                            .with_message(format!("failed to parse function parameters: {e}"))
+                            .into())
                     }
                 };
 
                 if generator && parameters.contains_yield_expression() {
-                    return context.throw_syntax_error(
+                    return Err(JsNativeError::syntax().with_message(
                             "yield expression is not allowed in formal parameter list of generator function",
-                        );
+                        ).into());
                 }
 
                 parameters
@@ -524,16 +525,16 @@ impl BuiltInFunctionObject {
 
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
             if generator && r#async && parameters.contains_yield_expression() {
-                return context.throw_syntax_error(
-                    "yield expression not allowed in async generator parameters",
-                );
+                return Err(JsNativeError::syntax()
+                    .with_message("yield expression not allowed in async generator parameters")
+                    .into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
             if generator && r#async && parameters.contains_await_expression() {
-                return context.throw_syntax_error(
-                    "await expression not allowed in async generator parameters",
-                );
+                return Err(JsNativeError::syntax()
+                    .with_message("await expression not allowed in async generator parameters")
+                    .into());
             }
 
             let body_arg = body_arg.to_string(context)?;
@@ -544,8 +545,9 @@ impl BuiltInFunctionObject {
             {
                 Ok(statement_list) => statement_list,
                 Err(e) => {
-                    return context
-                        .throw_syntax_error(format!("failed to parse function body: {e}"))
+                    return Err(JsNativeError::syntax()
+                        .with_message(format!("failed to parse function body: {e}"))
+                        .into())
                 }
             };
 
@@ -555,9 +557,9 @@ impl BuiltInFunctionObject {
                 for parameter in parameters.parameters.iter() {
                     for name in parameter.names() {
                         if name == Sym::ARGUMENTS || name == Sym::EVAL {
-                            return context.throw_syntax_error(
-                                " Unexpected 'eval' or 'arguments' in strict mode",
-                            );
+                            return Err(JsNativeError::syntax()
+                                .with_message(" Unexpected 'eval' or 'arguments' in strict mode")
+                                .into());
                         }
                     }
                 }
@@ -566,16 +568,19 @@ impl BuiltInFunctionObject {
             // Early Error: If the source code matching FormalParameters is strict mode code,
             // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
             if (body.strict()) && parameters.has_duplicates() {
-                return context
-                    .throw_syntax_error("Duplicate parameter name not allowed in this context");
+                return Err(JsNativeError::syntax()
+                    .with_message("Duplicate parameter name not allowed in this context")
+                    .into());
             }
 
             // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
             // and IsSimpleParameterList of FormalParameters is false.
             if body.strict() && !parameters.is_simple() {
-                return context.throw_syntax_error(
-                    "Illegal 'use strict' directive in function with non-simple parameter list",
-                );
+                return Err(JsNativeError::syntax()
+                    .with_message(
+                        "Illegal 'use strict' directive in function with non-simple parameter list",
+                    )
+                    .into());
             }
 
             // It is a Syntax Error if any element of the BoundNames of FormalParameters
@@ -589,10 +594,12 @@ impl BuiltInFunctionObject {
                             .iter()
                             .any(|(name, _)| *name == param_name)
                         {
-                            return context.throw_syntax_error(format!(
-                                "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(param_name.sym())
-                            ));
+                            return Err(JsNativeError::syntax()
+                                .with_message(format!(
+                                    "Redeclaration of formal parameter `{}`",
+                                    context.interner().resolve_expect(param_name.sym())
+                                ))
+                                .into());
                         }
                     }
                 }
@@ -662,7 +669,7 @@ impl BuiltInFunctionObject {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
-            context.construct_type_error(format!("{} is not a function", this.display()))
+            JsNativeError::typ().with_message(format!("{} is not a function", this.display()))
         })?;
 
         let this_arg = args.get_or_undefined(0);
@@ -702,7 +709,8 @@ impl BuiltInFunctionObject {
         // 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         let target = this.as_callable().ok_or_else(|| {
-            context.construct_type_error("cannot bind `this` without a `[[Call]]` internal method")
+            JsNativeError::typ()
+                .with_message("cannot bind `this` without a `[[Call]]` internal method")
         })?;
 
         let this_arg = args.get_or_undefined(0).clone();
@@ -781,7 +789,7 @@ impl BuiltInFunctionObject {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
-            context.construct_type_error(format!("{} is not a function", this.display()))
+            JsNativeError::typ().with_message(format!("{} is not a function", this.display()))
         })?;
         let this_arg = args.get_or_undefined(0);
 
@@ -798,7 +806,7 @@ impl BuiltInFunctionObject {
         let function = object
             .as_deref()
             .and_then(Object::as_function)
-            .ok_or_else(|| context.construct_type_error("Not a function"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("Not a function"))?;
 
         let name = {
             // Is there a case here where if there is no name field on a value

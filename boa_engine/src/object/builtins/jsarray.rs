@@ -1,5 +1,6 @@
 use crate::{
     builtins::Array,
+    error::JsNativeError,
     object::{JsFunction, JsObject, JsObjectType},
     value::IntoOrUndefined,
     Context, JsResult, JsString, JsValue,
@@ -38,11 +39,13 @@ impl JsArray {
     ///
     /// This does not clone the fields of the array, it only does a shallow clone of the object.
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_array() {
             Ok(Self { inner: object })
         } else {
-            context.throw_type_error("object is not an Array")
+            Err(JsNativeError::typ()
+                .with_message("object is not an Array")
+                .into())
         }
     }
 
@@ -112,7 +115,7 @@ impl JsArray {
             .cloned()
             .expect("Array.prototype.filter should always return object");
 
-        Self::from_object(object, context)
+        Self::from_object(object)
     }
 
     #[inline]
@@ -234,7 +237,7 @@ impl JsArray {
         .cloned()
         .expect("Array.prototype.filter should always return object");
 
-        Self::from_object(object, context)
+        Self::from_object(object)
     }
 
     #[inline]
@@ -253,7 +256,7 @@ impl JsArray {
         .cloned()
         .expect("Array.prototype.map should always return object");
 
-        Self::from_object(object, context)
+        Self::from_object(object)
     }
 
     #[inline]
@@ -319,7 +322,7 @@ impl JsArray {
         .cloned()
         .expect("Array.prototype.slice should always return object");
 
-        Self::from_object(object, context)
+        Self::from_object(object)
     }
 
     #[inline]

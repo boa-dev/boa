@@ -2,6 +2,7 @@
 use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
+    error::JsNativeError,
     object::{JsFunction, JsMapIterator, JsObject, JsObjectType, ObjectData},
     Context, JsResult, JsValue,
 };
@@ -149,7 +150,7 @@ impl JsMap {
     /// );
     ///
     /// // Create `JsMap` object with incoming object.
-    /// let js_map = JsMap::from_object(some_object, context).unwrap();
+    /// let js_map = JsMap::from_object(some_object).unwrap();
     ///
     /// ```
     ///
@@ -164,16 +165,18 @@ impl JsMap {
     ///
     /// let some_object = JsArray::new(context);
     ///
-    /// // Some object is an Array object, not a map object
-    /// assert!(JsMap::from_object(some_object.into(), context).is_err());
+    /// // `some_object` is an Array object, not a map object
+    /// assert!(JsMap::from_object(some_object.into()).is_err());
     ///
     /// ```
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_map() {
             Ok(Self { inner: object })
         } else {
-            context.throw_type_error("object is not a Map")
+            Err(JsNativeError::typ()
+                .with_message("object is not a Map")
+                .into())
         }
     }
 
@@ -192,7 +195,7 @@ impl JsMap {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
-        JsMapIterator::from_object(map_iterator_object.clone(), context)
+        JsMapIterator::from_object(map_iterator_object.clone())
     }
 
     /// Returns a new [`JsMapIterator`] object that yields the `key` for each element within the [`JsMap`] in insertion order.
@@ -201,7 +204,7 @@ impl JsMap {
         let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
-        JsMapIterator::from_object(map_iterator_object.clone(), context)
+        JsMapIterator::from_object(map_iterator_object.clone())
     }
 
     /// Inserts a new entry into the [`JsMap`] object
@@ -396,7 +399,7 @@ impl JsMap {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
-        JsMapIterator::from_object(map_iterator_object.clone(), context)
+        JsMapIterator::from_object(map_iterator_object.clone())
     }
 }
 

@@ -323,7 +323,7 @@ fn object_is_prototype_of() {
 
 #[test]
 fn object_get_own_property_names_invalid_args() {
-    let error_message = r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#;
+    let error_message = "Uncaught TypeError: cannot convert 'null' or 'undefined' to object";
 
     check_output(&[
         TestAction::TestEq("Object.getOwnPropertyNames()", error_message),
@@ -358,7 +358,7 @@ fn object_get_own_property_names() {
 
 #[test]
 fn object_get_own_property_symbols_invalid_args() {
-    let error_message = r#"Uncaught "TypeError": "cannot convert 'null' or 'undefined' to object""#;
+    let error_message = "Uncaught TypeError: cannot convert 'null' or 'undefined' to object";
 
     check_output(&[
         TestAction::TestEq("Object.getOwnPropertySymbols()", error_message),
@@ -391,7 +391,7 @@ fn object_get_own_property_symbols() {
 
 #[test]
 fn object_from_entries_invalid_args() {
-    let error_message = r#"Uncaught "TypeError": "cannot convert null or undefined to Object""#;
+    let error_message = "Uncaught TypeError: cannot convert null or undefined to Object";
 
     check_output(&[
         TestAction::TestEq("Object.fromEntries()", error_message),

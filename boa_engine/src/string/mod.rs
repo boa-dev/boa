@@ -805,6 +805,30 @@ impl<const N: usize> PartialEq<[u16; N]> for JsString {
     }
 }
 
+impl PartialEq<str> for JsString {
+    fn eq(&self, other: &str) -> bool {
+        let utf16 = self.code_points();
+        let mut utf8 = other.chars();
+
+        for lhs in utf16 {
+            if let Some(rhs) = utf8.next() {
+                match lhs {
+                    CodePoint::Unicode(lhs) if lhs == rhs => continue,
+                    _ => return false,
+                }
+            }
+            return false;
+        }
+        utf8.next().is_none()
+    }
+}
+
+impl PartialEq<JsString> for str {
+    fn eq(&self, other: &JsString) -> bool {
+        other == self
+    }
+}
+
 impl PartialOrd for JsString {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self[..].partial_cmp(other)

@@ -1,6 +1,6 @@
 use crate::{
-    environments::CompileTimeEnvironment, object::JsObject, syntax::ast::expression::Identifier,
-    Context, JsResult, JsValue,
+    environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject,
+    syntax::ast::expression::Identifier, Context, JsResult, JsValue,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 
@@ -798,10 +798,12 @@ impl BindingLocator {
     #[inline]
     pub(crate) fn throw_mutate_immutable(&self, context: &mut Context) -> JsResult<()> {
         if self.mutate_immutable {
-            context.throw_type_error(format!(
-                "cannot mutate an immutable binding '{}'",
-                context.interner().resolve_expect(self.name.sym())
-            ))
+            Err(JsNativeError::typ()
+                .with_message(format!(
+                    "cannot mutate an immutable binding '{}'",
+                    context.interner().resolve_expect(self.name.sym())
+                ))
+                .into())
         } else {
             Ok(())
         }

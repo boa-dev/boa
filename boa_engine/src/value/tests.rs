@@ -539,46 +539,64 @@ fn to_integer_or_infinity() {
     let mut context = Context::default();
 
     assert_eq!(
-        JsValue::undefined().to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
+        JsValue::undefined()
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
     assert_eq!(
-        JsValue::nan().to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
+        JsValue::nan().to_integer_or_infinity(&mut context).unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
     assert_eq!(
-        JsValue::new(0.0).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
+        JsValue::new(0.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
     assert_eq!(
-        JsValue::new(-0.0).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
-    );
-
-    assert_eq!(
-        JsValue::new(f64::INFINITY).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::PositiveInfinity)
-    );
-    assert_eq!(
-        JsValue::new(f64::NEG_INFINITY).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::NegativeInfinity)
+        JsValue::new(-0.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
 
     assert_eq!(
-        JsValue::new(10).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(10))
+        JsValue::new(f64::INFINITY)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::PositiveInfinity
     );
     assert_eq!(
-        JsValue::new(11.0).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(11))
+        JsValue::new(f64::NEG_INFINITY)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::NegativeInfinity
+    );
+
+    assert_eq!(
+        JsValue::new(10)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(10)
     );
     assert_eq!(
-        JsValue::new("12").to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(12))
+        JsValue::new(11.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(11)
     );
     assert_eq!(
-        JsValue::new(true).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(1))
+        JsValue::new("12")
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(12)
+    );
+    assert_eq!(
+        JsValue::new(true)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(1)
     );
 }
 
@@ -679,7 +697,7 @@ mod cyclic_conversions {
 
         assert_eq!(
             forward(&mut context, src),
-            r#"Uncaught "TypeError": "cyclic object value""#,
+            "Uncaught TypeError: cyclic object value",
         );
     }
 

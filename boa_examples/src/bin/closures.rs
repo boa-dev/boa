@@ -6,11 +6,11 @@ use boa_engine::{
     object::{FunctionBuilder, JsObject},
     property::{Attribute, PropertyDescriptor},
     string::utf16,
-    Context, JsString, JsValue,
+    Context, JsError, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 
-fn main() -> Result<(), JsValue> {
+fn main() -> Result<(), JsError> {
     // We create a new `Context` to create a new Javascript executor.
     let mut context = Context::default();
 

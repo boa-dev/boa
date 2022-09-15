@@ -12,6 +12,7 @@
 use crate::{
     builtins::{iterable::create_iter_result_object, BuiltIn, JsArgs},
     environments::DeclarativeEnvironmentStack,
+    error::JsNativeError,
     object::{ConstructorBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
@@ -151,7 +152,9 @@ impl Generator {
             Some(obj) if obj.is_generator() => {
                 Self::generator_resume(obj, args.get_or_undefined(0), context)
             }
-            _ => context.throw_type_error("Generator.prototype.next called on non generator"),
+            _ => Err(JsNativeError::typ()
+                .with_message("Generator.prototype.next called on non generator")
+                .into()),
         }
     }
 
@@ -195,7 +198,7 @@ impl Generator {
         // 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        Self::generator_resume_abrupt(this, Err(args.get_or_undefined(0).clone()), context)
+        Self::generator_resume_abrupt(this, Err(args.get_or_undefined(0).clone().into()), context)
     }
 
     /// `27.5.3.3 GeneratorResume ( generator, value, generatorBrand )`
@@ -212,12 +215,14 @@ impl Generator {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+            JsNativeError::typ().with_message("generator resumed on non generator object")
         })?;
         let state = generator.state;
 
         if state == GeneratorState::Executing {
-            return Err(context.construct_type_error("Generator should not be executing"));
+            return Err(JsNativeError::typ()
+                .with_message("Generator should not be executing")
+                .into());
         }
 
         // 2. If state is completed, return CreateIterResultObject(undefined, true).
@@ -314,16 +319,18 @@ impl Generator {
     ) -> JsResult<JsValue> {
         // 1. Let state be ? GeneratorValidate(generator, generatorBrand).
         let generator_obj = this.as_object().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+            JsNativeError::typ().with_message("generator resumed on non generator object")
         })?;
         let mut generator_obj_mut = generator_obj.borrow_mut();
         let generator = generator_obj_mut.as_generator_mut().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+            JsNativeError::typ().with_message("generator resumed on non generator object")
         })?;
         let mut state = generator.state;
 
         if state == GeneratorState::Executing {
-            return Err(context.construct_type_error("Generator should not be executing"));
+            return Err(JsNativeError::typ()
+                .with_message("Generator should not be executing")
+                .into());
         }
 
         // 2. If state is suspendedStart, then
@@ -379,6 +386,7 @@ impl Generator {
                 context.run()
             }
             Err(value) => {
+                let value = value.to_value(context);
                 context.vm.push(value);
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
                 context.run()

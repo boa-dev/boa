@@ -16,6 +16,7 @@
 use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -196,11 +197,15 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
-    fn this_number_value(value: &JsValue, context: &mut Context) -> JsResult<f64> {
+    fn this_number_value(value: &JsValue) -> JsResult<f64> {
         value
             .as_number()
             .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_number()))
-            .ok_or_else(|| context.construct_type_error("'this' is not a number"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("'this' is not a number")
+                    .into()
+            })
     }
 
     /// `Number.prototype.toExponential( [fractionDigits] )`
@@ -220,7 +225,7 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
-        let this_num = Self::this_number_value(this, context)?;
+        let this_num = Self::this_number_value(this)?;
         let precision = match args.get(0) {
             None | Some(JsValue::Undefined) => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
@@ -240,8 +245,9 @@ impl Number {
                 f64_to_exponential_with_precision(this_num, precision as usize)
             }
             _ => {
-                return context
-                    .throw_range_error("toExponential() argument must be between 0 and 100")
+                return Err(JsNativeError::range()
+                    .with_message("toExponential() argument must be between 0 and 100")
+                    .into())
             }
         };
         Ok(JsValue::new(this_str_num))
@@ -264,7 +270,7 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let this_num be ? thisNumberValue(this value).
-        let this_num = Self::this_number_value(this, context)?;
+        let this_num = Self::this_number_value(this)?;
 
         // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
         // 3. Assert: If fractionDigits is undefined, then f is 0.
@@ -275,7 +281,8 @@ impl Number {
             .as_integer()
             .filter(|i| (0..=100).contains(i))
             .ok_or_else(|| {
-                context.construct_range_error("toFixed() digits argument must be between 0 and 100")
+                JsNativeError::range()
+                    .with_message("toFixed() digits argument must be between 0 and 100")
             })? as usize;
 
         // 6. If x is not finite, return ! Number::toString(x).
@@ -309,9 +316,9 @@ impl Number {
     pub(crate) fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
-        let this_num = Self::this_number_value(this, context)?;
+        let this_num = Self::this_number_value(this)?;
         let this_str_num = this_num.to_string();
         Ok(JsValue::new(this_str_num))
     }
@@ -424,7 +431,7 @@ impl Number {
         let precision = args.get_or_undefined(0);
 
         // 1 & 6
-        let mut this_num = Self::this_number_value(this, context)?;
+        let mut this_num = Self::this_number_value(this)?;
         // 2
         if precision.is_undefined() {
             return Self::to_string(this, &[], context);
@@ -442,9 +449,9 @@ impl Number {
             IntegerOrInfinity::Integer(x) if (1..=100).contains(&x) => x as usize,
             _ => {
                 // 5
-                return context.throw_range_error(
-                    "precision must be an integer at least 1 and no greater than 100",
-                );
+                return Err(JsNativeError::range()
+                    .with_message("precision must be an integer at least 1 and no greater than 100")
+                    .into());
             }
         };
         let precision_i32 = precision as i32;
@@ -674,7 +681,7 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
-        let x = Self::this_number_value(this, context)?;
+        let x = Self::this_number_value(this)?;
 
         let radix = args.get_or_undefined(0);
         let radix_number = if radix.is_undefined() {
@@ -688,9 +695,8 @@ impl Number {
                 // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
                 .filter(|i| (2..=36).contains(i))
                 .ok_or_else(|| {
-                    context.construct_range_error(
-                        "radix must be an integer at least 2 and no greater than 36",
-                    )
+                    JsNativeError::range()
+                        .with_message("radix must be an integer at least 2 and no greater than 36")
                 })?
         } as u8;
 
@@ -731,12 +737,8 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Ok(JsValue::new(Self::this_number_value(this, context)?))
+    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::new(Self::this_number_value(this)?))
     }
 
     /// Builtin javascript 'parseInt(str, radix)' function.

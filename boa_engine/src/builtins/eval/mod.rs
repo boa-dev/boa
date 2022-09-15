@@ -11,9 +11,10 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
+    error::JsNativeError,
     object::FunctionBuilder,
     property::Attribute,
-    Context, JsValue,
+    Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
@@ -48,7 +49,7 @@ impl Eval {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue, JsValue> {
+    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
         Self::perform_eval(args.get_or_undefined(0), false, false, context)
     }
@@ -64,7 +65,7 @@ impl Eval {
         direct: bool,
         strict: bool,
         context: &mut Context,
-    ) -> Result<JsValue, JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Assert: If direct is false, then strictCaller is also false.
         debug_assert!(direct || !strict);
 
@@ -81,7 +82,7 @@ impl Eval {
         // Parse the script body and handle early errors (6 - 11)
         let body = match context.parse_eval(x.to_std_string_escaped().as_bytes(), direct, strict) {
             Ok(body) => body,
-            Err(e) => return context.throw_syntax_error(e.to_string()),
+            Err(e) => return Err(JsNativeError::syntax().with_message(e.to_string()).into()),
         };
 
         // 12 - 13 are implicit in the call of `Context::compile_with_new_declarative`.
@@ -107,8 +108,8 @@ impl Eval {
                 .has_lex_binding_until_function_environment(&vars)
             {
                 let name = context.interner().resolve_expect(name.sym());
-                let msg = format!("variable declaration `{name}` in eval function already exists as lexically declaration");
-                return context.throw_syntax_error(msg);
+                let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
+                return Err(JsNativeError::syntax().with_message(msg).into());
             }
 
             // Compile and execute the eval statement list.

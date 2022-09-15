@@ -13,6 +13,7 @@ use crate::{
     },
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment},
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
@@ -658,7 +659,9 @@ impl JsObject {
         let this_function_object = self.clone();
 
         if !self.is_callable() {
-            return context.throw_type_error("not a callable function");
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
         }
 
         let object = self.borrow();
@@ -696,8 +699,9 @@ impl JsObject {
                 drop(object);
 
                 if code.is_class_constructor {
-                    return context
-                        .throw_type_error("Class constructor cannot be invoked without 'new'");
+                    return Err(JsNativeError::typ()
+                        .with_message("Class constructor cannot be invoked without 'new'")
+                        .into());
                 }
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
@@ -1237,7 +1241,9 @@ impl JsObject {
         };
 
         if !self.is_constructor() {
-            return context.throw_type_error("not a constructor function");
+            return Err(JsNativeError::typ()
+                .with_message("not a constructor function")
+                .into());
         }
 
         let object = self.borrow();
@@ -1259,9 +1265,11 @@ impl JsObject {
                         if constructor.expect("hmm").is_base() || val.is_undefined() {
                             create_this(context)
                         } else {
-                            context.throw_type_error(
-                                "Derived constructor can only return an Object or undefined",
-                            )
+                            Err(JsNativeError::typ()
+                                .with_message(
+                                    "Derived constructor can only return an Object or undefined",
+                                )
+                                .into())
                         }
                     }
                 }
@@ -1283,9 +1291,11 @@ impl JsObject {
                         if constructor.expect("hmma").is_base() || val.is_undefined() {
                             create_this(context)
                         } else {
-                            context.throw_type_error(
-                                "Derived constructor can only return an Object or undefined",
-                            )
+                            Err(JsNativeError::typ()
+                                .with_message(
+                                    "Derived constructor can only return an Object or undefined",
+                                )
+                                .into())
                         }
                     }
                 }
@@ -1435,7 +1445,9 @@ impl JsObject {
                 } else if let Some(this) = this {
                     Ok(this)
                 } else if !result.is_undefined() {
-                    context.throw_type_error("Function constructor must not return non-object")
+                    Err(JsNativeError::typ()
+                        .with_message("Function constructor must not return non-object")
+                        .into())
                 } else {
                     let function_env = environment
                         .slots()
@@ -1448,8 +1460,8 @@ impl JsObject {
                             .expect("this binding must be object")
                             .clone())
                     } else {
-                        //context.throw_type_error("Function constructor must not return non-object")
-                        context.throw_reference_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor")
+                        //Err(JsNativeError::typ().with_message("Function constructor must not return non-object").into())
+                        Err(JsNativeError::reference().with_message("Must call super constructor in derived class before accessing 'this' or returning from derived constructor").into())
                     }
                 }
             }

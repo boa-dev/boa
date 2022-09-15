@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     object::JsObject,
     property::{PropertyDescriptor, PropertyKey},
     string::utf16,
@@ -127,7 +128,9 @@ fn array_set_length(
     // 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.
     #[allow(clippy::float_cmp)]
     if f64::from(new_len) != number_len {
-        return context.throw_range_error("bad length for array");
+        return Err(JsNativeError::range()
+            .with_message("bad length for array")
+            .into());
     }
 
     // 2. Let newLenDesc be a copy of Desc.

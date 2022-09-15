@@ -16,6 +16,7 @@ use super::JsArgs;
 use crate::{
     builtins::{array::Array, string, BuiltIn},
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -285,7 +286,7 @@ impl RegExp {
         //    or if it contains the same code unit more than once, throw a SyntaxError exception.
         // TODO: Should directly parse the JsString instead of converting to String
         let flags = match RegExpFlags::from_str(&f.to_std_string_escaped()) {
-            Err(msg) => return context.throw_syntax_error(msg),
+            Err(msg) => return Err(JsNativeError::syntax().with_message(msg).into()),
             Ok(result) => result,
         };
 
@@ -303,8 +304,9 @@ impl RegExp {
         let fs = f.to_std_string_escaped();
         let matcher = match Regex::with_flags(&ps, fs.as_ref()) {
             Err(error) => {
-                return context
-                    .throw_syntax_error(format!("failed to create matcher: {}", error.text));
+                return Err(JsNativeError::syntax()
+                    .with_message(format!("failed to create matcher: {}", error.text))
+                    .into());
             }
             Ok(val) => val,
         };
@@ -391,9 +393,11 @@ impl RegExp {
             _ => unreachable!(),
         };
 
-        context.throw_type_error(format!(
-            "RegExp.prototype.{name} getter called on non-RegExp object",
-        ))
+        Err(JsNativeError::typ()
+            .with_message(format!(
+                "RegExp.prototype.{name} getter called on non-RegExp object",
+            ))
+            .into())
     }
 
     /// `get RegExp.prototype.hasIndices`
@@ -588,7 +592,9 @@ impl RegExp {
             return Ok(result.into());
         }
 
-        context.throw_type_error("RegExp.prototype.flags getter called on non-object")
+        Err(JsNativeError::typ()
+            .with_message("RegExp.prototype.flags getter called on non-object")
+            .into())
     }
 
     /// `get RegExp.prototype.source`
@@ -623,9 +629,11 @@ impl RegExp {
                     ) {
                         Ok(JsValue::new("(?:)"))
                     } else {
-                        context.throw_type_error(
-                            "RegExp.prototype.source method called on incompatible value",
-                        )
+                        Err(JsNativeError::typ()
+                            .with_message(
+                                "RegExp.prototype.source method called on incompatible value",
+                            )
+                            .into())
                     }
                 }
                 // 4. Assert: R has an [[OriginalFlags]] internal slot.
@@ -640,7 +648,9 @@ impl RegExp {
                 }
             }
         } else {
-            context.throw_type_error("RegExp.prototype.source method called on incompatible value")
+            Err(JsNativeError::typ()
+                .with_message("RegExp.prototype.source method called on incompatible value")
+                .into())
         }
     }
 
@@ -690,8 +700,8 @@ impl RegExp {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         let this = this.as_object().ok_or_else(|| {
-            context
-                .construct_type_error("RegExp.prototype.test method called on incompatible value")
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.test method called on incompatible value")
         })?;
 
         // 3. Let string be ? ToString(S).
@@ -735,7 +745,7 @@ impl RegExp {
             .as_object()
             .filter(|obj| obj.is_regexp())
             .ok_or_else(|| {
-                context.construct_type_error("RegExp.prototype.exec called with invalid value")
+                JsNativeError::typ().with_message("RegExp.prototype.exec called with invalid value")
             })?;
 
         // 3. Let S be ? ToString(string).
@@ -773,7 +783,9 @@ impl RegExp {
 
             // b. If Type(result) is neither Object nor Null, throw a TypeError exception.
             if !result.is_object() && !result.is_null() {
-                return context.throw_type_error("regexp exec returned neither object nor null");
+                return Err(JsNativeError::typ()
+                    .with_message("regexp exec returned neither object nor null")
+                    .into());
             }
 
             // c. Return result.
@@ -782,7 +794,9 @@ impl RegExp {
 
         // 5. Perform ? RequireInternalSlot(R, [[RegExpMatcher]]).
         if !this.is_regexp() {
-            return context.throw_type_error("RegExpExec called with invalid value");
+            return Err(JsNativeError::typ()
+                .with_message("RegExpExec called with invalid value")
+                .into());
         }
 
         // 6. Return ? RegExpBuiltinExec(R, S).
@@ -806,7 +820,9 @@ impl RegExp {
             if let Some(rx) = obj.as_regexp() {
                 rx.clone()
             } else {
-                return context.throw_type_error("RegExpBuiltinExec called with invalid value");
+                return Err(JsNativeError::typ()
+                    .with_message("RegExpBuiltinExec called with invalid value")
+                    .into());
             }
         };
 
@@ -859,7 +875,9 @@ impl RegExp {
             let last_byte_index = match String::from_utf16(&input[..last_index as usize]) {
                 Ok(s) => s.len(),
                 Err(_) => {
-                    return Ok(None);
+                    return Err(JsNativeError::typ()
+                        .with_message("Failed to get byte index from utf16 encoded string")
+                        .into())
                 }
             };
             let r = matcher
@@ -1030,8 +1048,9 @@ impl RegExp {
         let rx = if let Some(rx) = this.as_object() {
             rx
         } else {
-            return context
-                .throw_type_error("RegExp.prototype.match method called on incompatible value");
+            return Err(JsNativeError::typ()
+                .with_message("RegExp.prototype.match method called on incompatible value")
+                .into());
         };
 
         // 3. Let S be ? ToString(string).
@@ -1118,25 +1137,23 @@ impl RegExp {
     /// [spec]: https://tc39.es/ecma262/#sec-regexp.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let (body, flags) = if let Some(object) = this.as_object() {
             let object = object.borrow();
             let regex = object.as_regexp().ok_or_else(|| {
-                context.construct_type_error(format!(
+                JsNativeError::typ().with_message(format!(
                     "Method RegExp.prototype.toString called on incompatible receiver {}",
                     this.display()
                 ))
             })?;
             (regex.original_source.clone(), regex.original_flags.clone())
         } else {
-            return context.throw_type_error(format!(
-                "Method RegExp.prototype.toString called on incompatible receiver {}",
-                this.display()
-            ));
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "Method RegExp.prototype.toString called on incompatible receiver {}",
+                    this.display()
+                ))
+                .into());
         };
         Ok(js_string!(utf16!("/"), &body, utf16!("/"), &flags).into())
     }
@@ -1159,9 +1176,8 @@ impl RegExp {
         // 1. Let R be the this value.
         // 2. If Type(R) is not Object, throw a TypeError exception.
         let regexp = this.as_object().ok_or_else(|| {
-            context.construct_type_error(
-                "RegExp.prototype.match_all method called on incompatible value",
-            )
+            JsNativeError::typ()
+                .with_message("RegExp.prototype.match_all method called on incompatible value")
         })?;
 
         // 3. Let S be ? ToString(string).
@@ -1222,9 +1238,11 @@ impl RegExp {
         let rx = if let Some(rx) = this.as_object() {
             rx
         } else {
-            return context.throw_type_error(
-                "RegExp.prototype[Symbol.replace] method called on incompatible value",
-            );
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "RegExp.prototype[Symbol.replace] method called on incompatible value",
+                )
+                .into());
         };
 
         // 3. Let S be ? ToString(string).
@@ -1442,9 +1460,9 @@ impl RegExp {
         let rx = if let Some(rx) = this.as_object() {
             rx
         } else {
-            return context.throw_type_error(
-                "RegExp.prototype[Symbol.search] method called on incompatible value",
-            );
+            return Err(JsNativeError::typ()
+                .with_message("RegExp.prototype[Symbol.search] method called on incompatible value")
+                .into());
         };
 
         // 3. Let S be ? ToString(string).
@@ -1500,8 +1518,9 @@ impl RegExp {
         let rx = if let Some(rx) = this.as_object() {
             rx
         } else {
-            return context
-                .throw_type_error("RegExp.prototype.split method called on incompatible value");
+            return Err(JsNativeError::typ()
+                .with_message("RegExp.prototype.split method called on incompatible value")
+                .into());
         };
 
         // 3. Let S be ? ToString(string).

@@ -10,6 +10,7 @@ use crate::{
         generator::GeneratorContext, iterable::create_iter_result_object,
         promise::if_abrupt_reject_promise, promise::PromiseCapability, BuiltIn, JsArgs, Promise,
     },
+    error::JsNativeError,
     object::{ConstructorBuilder, FunctionBuilder, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor},
     symbol::WellKnownSymbols,
@@ -172,13 +173,17 @@ impl AsyncGenerator {
 
         // 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
-        let generator_object = generator.as_object().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+        let generator_object: JsResult<_> = generator.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into()
         });
         if_abrupt_reject_promise!(generator_object, promise_capability, context);
         let mut generator_obj_mut = generator_object.borrow_mut();
-        let generator = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+        let generator: JsResult<_> = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into()
         });
         if_abrupt_reject_promise!(generator, promise_capability, context);
 
@@ -261,13 +266,17 @@ impl AsyncGenerator {
 
         // 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
-        let generator_object = generator.as_object().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+        let generator_object: JsResult<_> = generator.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into()
         });
         if_abrupt_reject_promise!(generator_object, promise_capability, context);
         let mut generator_obj_mut = generator_object.borrow_mut();
-        let generator = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+        let generator: JsResult<_> = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into()
         });
         if_abrupt_reject_promise!(generator, promise_capability, context);
 
@@ -345,13 +354,17 @@ impl AsyncGenerator {
 
         // 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).
         // 4. IfAbruptRejectPromise(result, promiseCapability).
-        let generator_object = generator.as_object().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+        let generator_object: JsResult<_> = generator.as_object().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into()
         });
         if_abrupt_reject_promise!(generator_object, promise_capability, context);
         let mut generator_obj_mut = generator_object.borrow_mut();
-        let generator = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
-            context.construct_type_error("generator resumed on non generator object")
+        let generator: JsResult<_> = generator_obj_mut.as_async_generator_mut().ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("generator resumed on non generator object")
+                .into()
         });
         if_abrupt_reject_promise!(generator, promise_capability, context);
 
@@ -386,7 +399,7 @@ impl AsyncGenerator {
         }
 
         // 8. Let completion be ThrowCompletion(exception).
-        let completion = (Err(args.get_or_undefined(0).clone()), false);
+        let completion = (Err(args.get_or_undefined(0).clone().into()), false);
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -456,11 +469,11 @@ impl AsyncGenerator {
         // 6. Let value be completion.[[Value]].
         match completion {
             // 7. If completion.[[Type]] is throw, then
-            Err(value) => {
+            Err(e) => {
                 // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).
                 promise_capability
                     .reject()
-                    .call(&JsValue::undefined(), &[value], context)
+                    .call(&JsValue::undefined(), &[e.to_value(context)], context)
                     .expect("cannot fail per spec");
             }
             // 8. Else,
@@ -539,6 +552,7 @@ impl AsyncGenerator {
                 }
             }
             (Err(value), _) => {
+                let value = value.to_value(context);
                 context.vm.push(value);
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
             }
@@ -655,7 +669,7 @@ impl AsyncGenerator {
                 gen.state = AsyncGeneratorState::Completed;
 
                 // b. Let result be ThrowCompletion(reason).
-                let result = Err(args.get_or_undefined(0).clone());
+                let result = Err(args.get_or_undefined(0).clone().into());
 
                 // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
                 let next = gen.queue.pop_front().expect("must have one entry");

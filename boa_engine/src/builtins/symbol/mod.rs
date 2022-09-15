@@ -21,6 +21,7 @@ mod tests;
 use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
+    error::JsNativeError,
     object::{ConstructorBuilder, FunctionBuilder},
     property::Attribute,
     symbol::{JsSymbol, WellKnownSymbols},
@@ -175,7 +176,9 @@ impl Symbol {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is not undefined, throw a TypeError exception.
         if !new_target.is_undefined() {
-            return context.throw_type_error("Symbol is not a constructor");
+            return Err(JsNativeError::typ()
+                .with_message("Symbol is not a constructor")
+                .into());
         }
 
         // 2. If description is undefined, let descString be undefined.
@@ -189,11 +192,15 @@ impl Symbol {
         Ok(JsSymbol::new(description).into())
     }
 
-    fn this_symbol_value(value: &JsValue, context: &mut Context) -> JsResult<JsSymbol> {
+    fn this_symbol_value(value: &JsValue) -> JsResult<JsSymbol> {
         value
             .as_symbol()
             .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_symbol()))
-            .ok_or_else(|| context.construct_type_error("'this' is not a Symbol"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("'this' is not a Symbol")
+                    .into()
+            })
     }
 
     /// `Symbol.prototype.toString()`
@@ -207,13 +214,9 @@ impl Symbol {
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let sym be ? thisSymbolValue(this value).
-        let symbol = Self::this_symbol_value(this, context)?;
+        let symbol = Self::this_symbol_value(this)?;
 
         // 2. Return SymbolDescriptiveString(sym).
         Ok(symbol.descriptive_string().into())
@@ -229,13 +232,9 @@ impl Symbol {
     ///
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? thisSymbolValue(this value).
-        let symbol = Self::this_symbol_value(this, context)?;
+        let symbol = Self::this_symbol_value(this)?;
         Ok(JsValue::Symbol(symbol))
     }
 
@@ -252,9 +251,9 @@ impl Symbol {
     pub(crate) fn get_description(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
-        let symbol = Self::this_symbol_value(this, context)?;
+        let symbol = Self::this_symbol_value(this)?;
         if let Some(ref description) = symbol.description() {
             Ok(description.clone().into())
         } else {
@@ -300,11 +299,7 @@ impl Symbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor
-    pub(crate) fn key_for(
-        _: &JsValue,
-        args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn key_for(_: &JsValue, args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         let sym = args.get_or_undefined(0);
         // 1. If Type(sym) is not Symbol, throw a TypeError exception.
         if let Some(sym) = sym.as_symbol() {
@@ -319,7 +314,9 @@ impl Symbol {
 
             Ok(symbol.map(JsValue::from).unwrap_or_default())
         } else {
-            context.throw_type_error("Symbol.keyFor: sym is not a symbol")
+            Err(JsNativeError::typ()
+                .with_message("Symbol.keyFor: sym is not a symbol")
+                .into())
         }
     }
 
@@ -337,9 +334,9 @@ impl Symbol {
     pub(crate) fn to_primitive(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
-        let sym = Self::this_symbol_value(this, context)?;
+        let sym = Self::this_symbol_value(this)?;
         // 1. Return ? thisSymbolValue(this value).
         Ok(sym.into())
     }

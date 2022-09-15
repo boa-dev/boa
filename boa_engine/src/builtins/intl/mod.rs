@@ -10,6 +10,7 @@
 use crate::{
     builtins::intl::date_time_format::DateTimeFormat,
     builtins::{Array, BuiltIn, JsArgs},
+    error::JsNativeError,
     object::{JsObject, ObjectInitializer},
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -458,7 +459,9 @@ fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult
             let k_value = o.get(k, context)?;
             // ii. If Type(kValue) is not String or Object, throw a TypeError exception.
             if !(k_value.is_object() || k_value.is_string()) {
-                return context.throw_type_error("locale should be a String or Object");
+                return Err(JsNativeError::typ()
+                    .with_message("locale should be a String or Object")
+                    .into());
             }
             // iii. If Type(kValue) is Object and kValue has an [[InitializedLocale]] internal slot, then
             // TODO: handle checks for InitializedLocale internal slot (there should be an if statement here)
@@ -472,7 +475,8 @@ fn canonicalize_locale_list(args: &[JsValue], context: &mut Context) -> JsResult
                 .ok()
                 .and_then(|tag| tag.parse().ok())
                 .ok_or_else(|| {
-                    context.construct_range_error("locale is not a structurally valid language tag")
+                    JsNativeError::range()
+                        .with_message("locale is not a structurally valid language tag")
                 })?;
 
             // vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).
@@ -754,7 +758,9 @@ pub(crate) fn get_option(
         GetOptionType::String => {
             let string_value = value.to_string(context)?.to_std_string_escaped();
             if !values.is_empty() && !values.contains(&string_value.as_str()) {
-                return context.throw_range_error("GetOption: values array does not contain value");
+                return Err(JsNativeError::range()
+                    .with_message("GetOption: values array does not contain value")
+                    .into());
             }
             JsValue::String(string_value.into())
         }
@@ -818,7 +824,9 @@ pub(crate) fn default_number_option(
 
     // 3. If value is NaN or less than minimum or greater than maximum, throw a RangeError exception.
     if value.is_nan() || value < minimum || value > maximum {
-        return context.throw_range_error("DefaultNumberOption: value is out of range.");
+        return Err(JsNativeError::range()
+            .with_message("DefaultNumberOption: value is out of range.")
+            .into());
     }
 
     // 4. Return floor(value).

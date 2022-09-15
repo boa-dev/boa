@@ -18,7 +18,7 @@ fn main() {
         }
         Err(e) => {
             // Pretty print the error
-            eprintln!("Uncaught {}", e.display());
+            eprintln!("Uncaught {e}");
         }
     };
 }

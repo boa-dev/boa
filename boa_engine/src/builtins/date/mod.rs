@@ -5,6 +5,7 @@ use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
@@ -49,8 +50,8 @@ fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
 
 macro_rules! getter_method {
     ($name:ident) => {{
-        fn get_value(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-            Ok(JsValue::new(this_time_value(this, context)?.$name()))
+        fn get_value(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+            Ok(JsValue::new(this_time_value(this)?.$name()))
         }
         get_value
     }};
@@ -392,7 +393,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsObject> {
         let value = &args[0];
-        let tv = match this_time_value(value, context) {
+        let tv = match this_time_value(value) {
             Ok(dt) => dt.0,
             _ => match value.to_primitive(context, PreferredType::Default)? {
                 JsValue::String(ref str) => str
@@ -510,7 +511,9 @@ impl Date {
         let o = if let Some(o) = this.as_object() {
             o
         } else {
-            return context.throw_type_error("Date.prototype[@@toPrimitive] called on non object");
+            return Err(JsNativeError::typ()
+                .with_message("Date.prototype[@@toPrimitive] called on non object")
+                .into());
         };
 
         let hint = args.get_or_undefined(0);
@@ -526,8 +529,9 @@ impl Date {
             Some(number) if number == utf16!("number") => PreferredType::Number,
             // 5. Else, throw a TypeError exception.
             _ => {
-                return context
-                    .throw_type_error("Date.prototype[@@toPrimitive] called with invalid hint")
+                return Err(JsNativeError::typ()
+                    .with_message("Date.prototype[@@toPrimitive] called with invalid hint")
+                    .into())
             }
         };
 
@@ -705,10 +709,10 @@ impl Date {
     pub fn get_timezone_offset(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let t = this_time_value(this, context)?;
+        let t = this_time_value(this)?;
 
         // 2. If t is NaN, return NaN.
         if t.0.is_none() {
@@ -854,7 +858,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate
     pub fn set_date(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let dt be ? ToNumber(date).
         let dt = args
@@ -893,7 +897,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
         if t.0.is_none() {
@@ -951,7 +955,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setHours
     pub fn set_hours(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let h be ? ToNumber(hour).
         let h = args
@@ -1010,7 +1014,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Set ms to ? ToNumber(ms).
         let ms = args
@@ -1048,7 +1052,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let m be ? ToNumber(min).
         let m = args
@@ -1096,7 +1100,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMonth
     pub fn set_month(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let m be ? ToNumber(month).
         let m = args
@@ -1141,7 +1145,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be LocalTime(? thisTimeValue(this value)).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let s be ? ToNumber(sec).
         let s = args
@@ -1182,7 +1186,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear
     pub fn set_year(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).
         if t.0.is_none() {
@@ -1239,7 +1243,7 @@ impl Date {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setTime
     pub fn set_time(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Perform ? thisTimeValue(this value).
-        this_time_value(this, context)?;
+        this_time_value(this)?;
 
         // 2. Let t be ? ToNumber(time).
         let t = if let Some(t) = args.get(0) {
@@ -1280,7 +1284,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let dt be ? ToNumber(date).
         let dt = args
@@ -1319,7 +1323,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. If t is NaN, set t to +0𝔽.
         if t.0.is_none() {
@@ -1381,7 +1385,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let h be ? ToNumber(hour).
         let h = args
@@ -1440,7 +1444,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let milli be ? ToNumber(ms).
         let ms = args
@@ -1478,7 +1482,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let m be ? ToNumber(min).
         let m = args
@@ -1534,7 +1538,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let m be ? ToNumber(month).
         let m = args
@@ -1581,7 +1585,7 @@ impl Date {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let t be ? thisTimeValue(this value).
-        let mut t = this_time_value(this, context)?;
+        let mut t = this_time_value(this)?;
 
         // 2. Let s be ? ToNumber(sec).
         let s = args
@@ -1623,14 +1627,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_date_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_date_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
-        let tv = this_time_value(this, context)?;
+        let tv = this_time_value(this)?;
 
         // 3. If tv is NaN, return "Invalid Date".
         // 4. Let t be LocalTime(tv).
@@ -1674,12 +1674,8 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_iso_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+    pub fn to_iso_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(Utc::now()
                 .timezone()
                 .from_utc_datetime(&t)
@@ -1687,7 +1683,9 @@ impl Date {
                 .to_string()
                 .into())
         } else {
-            context.throw_range_error("Invalid time value")
+            Err(JsNativeError::range()
+                .with_message("Invalid time value")
+                .into())
         }
     }
 
@@ -1732,9 +1730,9 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_string(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    pub fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let tv be ? thisTimeValue(this value).
-        let tv = this_time_value(this, context)?;
+        let tv = this_time_value(this)?;
 
         // 2. Return ToDateString(tv).
         if let Some(t) = tv.0 {
@@ -1761,14 +1759,10 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString
     #[allow(clippy::wrong_self_convention)]
-    pub fn to_time_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub fn to_time_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be this Date object.
         // 2. Let tv be ? thisTimeValue(O).
-        let tv = this_time_value(this, context)?;
+        let tv = this_time_value(this)?;
 
         // 3. If tv is NaN, return "Invalid Date".
         // 4. Let t be LocalTime(tv).
@@ -1934,9 +1928,13 @@ impl Date {
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-thistimevalue
 #[inline]
-pub fn this_time_value(value: &JsValue, context: &mut Context) -> JsResult<Date> {
+pub fn this_time_value(value: &JsValue) -> JsResult<Date> {
     value
         .as_object()
         .and_then(|obj| obj.borrow().as_date().copied())
-        .ok_or_else(|| context.construct_type_error("'this' is not a Date"))
+        .ok_or_else(|| {
+            JsNativeError::typ()
+                .with_message("'this' is not a Date")
+                .into()
+        })
 }

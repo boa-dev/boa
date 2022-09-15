@@ -1,6 +1,7 @@
 use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, JsObjectType, ObjectData,
     },
@@ -79,11 +80,13 @@ impl JsArrayBuffer {
     ///
     /// This does not clone the fields of the array buffer, it only does a shallow clone of the object.
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_array_buffer() {
             Ok(Self { inner: object })
         } else {
-            context.throw_type_error("object is not an ArrayBuffer")
+            Err(JsNativeError::typ()
+                .with_message("object is not an ArrayBuffer")
+                .into())
         }
     }
 
