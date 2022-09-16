@@ -825,6 +825,10 @@
 <span id="817">817</span>
 <span id="818">818</span>
 <span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -1575,13 +1579,17 @@
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">create_byte_data_block</span>(<span class="ident">size</span>: <span class="ident">u64</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to</span>
     <span class="comment">//    create such a Data Block, throw a RangeError exception.</span>
+    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">size</span>.<span class="ident">try_into</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
+    })<span class="question-mark">?</span>;
+
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">data_block</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="ident">data_block</span>.<span class="ident">try_reserve</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+    <span class="ident">data_block</span>.<span class="ident">try_reserve</span>(<span class="ident">size</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
         <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;couldn&#39;t allocate the data block: {e}&quot;</span>))
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Set all of the bytes of db to 0.</span>
-    <span class="ident">data_block</span>.<span class="ident">resize</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>, <span class="number">0</span>);
+    <span class="ident">data_block</span>.<span class="ident">resize</span>(<span class="ident">size</span>, <span class="number">0</span>);
 
     <span class="comment">// 3. Return db.</span>
     <span class="prelude-val">Ok</span>(<span class="ident">data_block</span>)
