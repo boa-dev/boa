@@ -3177,6 +3177,10 @@
 <span id="3169">3169</span>
 <span id="3170">3170</span>
 <span id="3171">3171</span>
+<span id="3172">3172</span>
+<span id="3173">3173</span>
+<span id="3174">3174</span>
+<span id="3175">3175</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -4332,7 +4336,11 @@
                 }
 
                 <span class="kw">if</span> <span class="ident">r#yield</span>.<span class="ident">delegate</span>() {
-                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
+                    <span class="kw">if</span> <span class="self">self</span>.<span class="ident">in_async_generator</span> {
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIteratorAsync</span>);
+                    } <span class="kw">else</span> {
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
+                    }
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                     <span class="kw">let</span> <span class="ident">start_address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
                     <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::GeneratorNextDelegate</span>);

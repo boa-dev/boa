@@ -2232,6 +2232,42 @@
 <span id="2224">2224</span>
 <span id="2225">2225</span>
 <span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
@@ -2267,6 +2303,7 @@
             <span class="ident">NativeFunctionSignature</span>,
         },
         <span class="ident">generator::Generator</span>,
+        <span class="ident">iterable::AsyncFromSyncIterator</span>,
         <span class="ident">map::map_iterator::MapIterator</span>,
         <span class="ident">map::ordered_map::OrderedMap</span>,
         <span class="ident">object::for_in_iterator::ForInIterator</span>,
@@ -2399,6 +2436,7 @@
 <span class="doccomment">/// Defines the different types of objects.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ObjectKind</span> {
+    <span class="ident">AsyncFromSyncIterator</span>(<span class="ident">AsyncFromSyncIterator</span>),
     <span class="ident">AsyncGenerator</span>(<span class="ident">AsyncGenerator</span>),
     <span class="ident">AsyncGeneratorFunction</span>(<span class="ident">Function</span>),
     <span class="ident">Array</span>,
@@ -2438,6 +2476,7 @@
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">Trace</span> <span class="kw">for</span> <span class="ident">ObjectKind</span> {
     <span class="macro">custom_trace!</span> {<span class="ident">this</span>, {
         <span class="kw">match</span> <span class="ident">this</span> {
+            <span class="ident"><span class="self">Self</span>::AsyncFromSyncIterator</span>(<span class="ident">a</span>) =&gt; <span class="ident">mark</span>(<span class="ident">a</span>),
             <span class="ident"><span class="self">Self</span>::ArrayIterator</span>(<span class="ident">i</span>) =&gt; <span class="ident">mark</span>(<span class="ident">i</span>),
             <span class="ident"><span class="self">Self</span>::ArrayBuffer</span>(<span class="ident">b</span>) =&gt; <span class="ident">mark</span>(<span class="ident">b</span>),
             <span class="ident"><span class="self">Self</span>::Map</span>(<span class="ident">m</span>) =&gt; <span class="ident">mark</span>(<span class="ident">m</span>),
@@ -2475,6 +2514,14 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectData</span> {
+    <span class="doccomment">/// Create the `AsyncFromSyncIterator` object data</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_from_sync_iterator</span>(<span class="ident">async_from_sync_iterator</span>: <span class="ident">AsyncFromSyncIterator</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::AsyncFromSyncIterator</span>(<span class="ident">async_from_sync_iterator</span>),
+            <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
+        }
+    }
+
     <span class="doccomment">/// Create the `AsyncGenerator` object data</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_generator</span>(<span class="ident">async_generator</span>: <span class="ident">AsyncGenerator</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
@@ -2770,6 +2817,7 @@
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">ObjectKind</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="ident">f</span>.<span class="ident">write_str</span>(<span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::AsyncFromSyncIterator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncFromSyncIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::AsyncGenerator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncGenerator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::AsyncGeneratorFunction</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;AsyncGeneratorFunction&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Array</span> =&gt; <span class="string">&quot;Array&quot;</span>,
@@ -2835,6 +2883,30 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">ObjectKind</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">data</span>.<span class="ident">kind</span>
+    }
+
+    <span class="doccomment">/// Checks if it&#39;s an `AsyncFromSyncIterator` object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_async_from_sync_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="macro">matches!</span>(
+            <span class="self">self</span>.<span class="ident">data</span>,
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::AsyncFromSyncIterator</span>(<span class="kw">_</span>),
+                ..
+            }
+        )
+    }
+
+    <span class="doccomment">/// Returns a reference to the `AsyncFromSyncIterator` data on the object.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_async_from_sync_iterator</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">AsyncFromSyncIterator</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::AsyncFromSyncIterator</span>(<span class="kw-2">ref</span> <span class="ident">async_from_sync_iterator</span>),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">async_from_sync_iterator</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="doccomment">/// Checks if it&#39;s an `AsyncGenerator` object.</span>

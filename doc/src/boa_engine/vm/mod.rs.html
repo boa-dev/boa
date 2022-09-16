@@ -2766,6 +2766,13 @@
 <span id="2758">2758</span>
 <span id="2759">2759</span>
 <span id="2760">2760</span>
+<span id="2761">2761</span>
+<span id="2762">2762</span>
+<span id="2763">2763</span>
+<span id="2764">2764</span>
+<span id="2765">2765</span>
+<span id="2766">2766</span>
+<span id="2767">2767</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -2774,7 +2781,7 @@
     <span class="ident">builtins</span>::{
         <span class="ident">async_generator</span>::{<span class="ident">AsyncGenerator</span>, <span class="ident">AsyncGeneratorState</span>},
         <span class="ident">function</span>::{<span class="ident">ConstructorKind</span>, <span class="ident">Function</span>},
-        <span class="ident">iterable::IteratorRecord</span>,
+        <span class="ident">iterable</span>::{<span class="ident">IteratorHint</span>, <span class="ident">IteratorRecord</span>},
         <span class="ident">Array</span>, <span class="ident">ForInIterator</span>, <span class="ident">JsArgs</span>, <span class="ident">Number</span>, <span class="ident">Promise</span>,
     },
     <span class="ident">environments::EnvironmentSlots</span>,
@@ -4792,6 +4799,13 @@
             <span class="ident">Opcode::InitIterator</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">iterator</span>().<span class="ident">clone</span>());
+                <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">next_method</span>().<span class="ident">clone</span>());
+                <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">done</span>());
+            }
+            <span class="ident">Opcode::InitIteratorAsync</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+                <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get_iterator</span>(<span class="self">self</span>, <span class="prelude-val">Some</span>(<span class="ident">IteratorHint::Async</span>), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">iterator</span>().<span class="ident">clone</span>());
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">next_method</span>().<span class="ident">clone</span>());
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>.<span class="ident">done</span>());

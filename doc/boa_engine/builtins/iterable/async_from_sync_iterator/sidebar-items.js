@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":[["create_async_from_sync_iterator_prototype","Create the `%AsyncFromSyncIteratorPrototype%` object."]],"struct":[["AsyncFromSyncIterator","The internal data for `%AsyncFromSyncIterator%` objects."]]};

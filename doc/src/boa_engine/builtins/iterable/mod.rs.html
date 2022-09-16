@@ -544,7 +544,26 @@
 <span id="536">536</span>
 <span id="537">537</span>
 <span id="538">538</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+</pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">async_from_sync_iterator</span>;
+
+<span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">regexp::regexp_string_iterator::RegExpStringIterator</span>,
         <span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">ArrayIterator</span>, <span class="ident">ForInIterator</span>, <span class="ident">MapIterator</span>,
@@ -554,7 +573,11 @@
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
+<span class="kw">use</span> <span class="ident">async_from_sync_iterator::create_async_from_sync_iterator_prototype</span>;
+<span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
+
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">async_from_sync_iterator::AsyncFromSyncIterator</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorPrototypes</span> {
@@ -562,6 +585,8 @@
     <span class="ident">iterator_prototype</span>: <span class="ident">JsObject</span>,
     <span class="doccomment">/// %AsyncIteratorPrototype%</span>
     <span class="ident">async_iterator_prototype</span>: <span class="ident">JsObject</span>,
+    <span class="doccomment">/// %AsyncFromSyncIteratorPrototype%</span>
+    <span class="ident">async_from_sync_iterator_prototype</span>: <span class="ident">JsObject</span>,
     <span class="doccomment">/// %MapIteratorPrototype%</span>
     <span class="ident">array_iterator</span>: <span class="ident">JsObject</span>,
     <span class="doccomment">/// %SetIteratorPrototype%</span>
@@ -582,6 +607,7 @@
 
         <span class="kw">let</span> <span class="ident">iterator_prototype</span> <span class="op">=</span> <span class="ident">create_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="kw">let</span> <span class="ident">async_iterator_prototype</span> <span class="op">=</span> <span class="ident">create_async_iterator_prototype</span>(<span class="ident">context</span>);
+        <span class="kw">let</span> <span class="ident">async_from_sync_iterator_prototype</span> <span class="op">=</span> <span class="ident">create_async_from_sync_iterator_prototype</span>(<span class="ident">context</span>);
         <span class="self">Self</span> {
             <span class="ident">array_iterator</span>: <span class="ident">ArrayIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
             <span class="ident">set_iterator</span>: <span class="ident">SetIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
@@ -594,6 +620,7 @@
             <span class="ident">for_in_iterator</span>: <span class="ident">ForInIterator::create_prototype</span>(<span class="ident">iterator_prototype</span>.<span class="ident">clone</span>(), <span class="ident">context</span>),
             <span class="ident">iterator_prototype</span>,
             <span class="ident">async_iterator_prototype</span>,
+            <span class="ident">async_from_sync_iterator_prototype</span>,
         }
     }
 
@@ -610,6 +637,11 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="self">self</span>.<span class="ident">async_iterator_prototype</span>.<span class="ident">clone</span>()
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">async_from_sync_iterator_prototype</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsObject</span> {
+        <span class="self">self</span>.<span class="ident">async_from_sync_iterator_prototype</span>.<span class="ident">clone</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -700,11 +732,13 @@
                     <span class="kw">let</span> <span class="ident">sync_method</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::iterator</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>
                         .<span class="ident">map_or</span>(<span class="ident"><span class="self">Self</span>::Undefined</span>, <span class="ident"><span class="self">Self</span>::from</span>);
+
                     <span class="comment">// 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).</span>
-                    <span class="kw">let</span> <span class="ident">_sync_iterator_record</span> <span class="op">=</span>
-                        <span class="self">self</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">Some</span>(<span class="ident">IteratorHint::Sync</span>), <span class="prelude-val">Some</span>(<span class="ident">sync_method</span>));
+                    <span class="kw">let</span> <span class="ident">sync_iterator_record</span> <span class="op">=</span>
+                        <span class="self">self</span>.<span class="ident">get_iterator</span>(<span class="ident">context</span>, <span class="prelude-val">Some</span>(<span class="ident">IteratorHint::Sync</span>), <span class="prelude-val">Some</span>(<span class="ident">sync_method</span>))<span class="question-mark">?</span>;
+
                     <span class="comment">// 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).</span>
-                    <span class="macro">todo!</span>(<span class="string">&quot;CreateAsyncFromSyncIterator&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">AsyncFromSyncIterator::create</span>(<span class="ident">sync_iterator_record</span>, <span class="ident">context</span>));
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// b. Otherwise, set method to ? GetMethod(obj, @@iterator).</span>
@@ -803,7 +837,7 @@
 <span class="doccomment">///  - [ECMA reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-iterator-records</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">IteratorRecord</span> {
     <span class="doccomment">/// `[[Iterator]]`</span>
     <span class="doccomment">///</span>

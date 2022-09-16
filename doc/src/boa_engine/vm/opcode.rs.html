@@ -1560,6 +1560,15 @@
 <span id="1552">1552</span>
 <span id="1553">1553</span>
 <span id="1554">1554</span>
+<span id="1555">1555</span>
+<span id="1556">1556</span>
+<span id="1557">1557</span>
+<span id="1558">1558</span>
+<span id="1559">1559</span>
+<span id="1560">1560</span>
+<span id="1561">1561</span>
+<span id="1562">1562</span>
+<span id="1563">1563</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -2610,6 +2619,13 @@
     <span class="doccomment">/// Stack: object **=&gt;** iterator, next_method, done</span>
     <span class="ident">InitIterator</span>,
 
+    <span class="doccomment">/// Initialize an async iterator.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: object **=&gt;** iterator, next_method, done</span>
+    <span class="ident">InitIteratorAsync</span>,
+
     <span class="doccomment">/// Advance the iterator by one and put the value on the stack.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
@@ -2887,6 +2903,7 @@
             <span class="ident"><span class="self">Self</span>::LoopEnd</span> =&gt; <span class="string">&quot;LoopEnd&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ForInLoopInitIterator</span> =&gt; <span class="string">&quot;ForInLoopInitIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::InitIterator</span> =&gt; <span class="string">&quot;InitIterator&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::InitIteratorAsync</span> =&gt; <span class="string">&quot;InitIteratorAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorNext</span> =&gt; <span class="string">&quot;IteratorNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorClose</span> =&gt; <span class="string">&quot;IteratorClose&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorToArray</span> =&gt; <span class="string">&quot;IteratorToArray&quot;</span>,
@@ -3030,6 +3047,7 @@
             <span class="ident"><span class="self">Self</span>::LoopEnd</span> =&gt; <span class="string">&quot;INST - LoopEnd&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ForInLoopInitIterator</span> =&gt; <span class="string">&quot;INST - ForInLoopInitIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::InitIterator</span> =&gt; <span class="string">&quot;INST - InitIterator&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::InitIteratorAsync</span> =&gt; <span class="string">&quot;INST - InitIteratorAsync&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorNext</span> =&gt; <span class="string">&quot;INST - IteratorNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorClose</span> =&gt; <span class="string">&quot;INST - IteratorClose&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorToArray</span> =&gt; <span class="string">&quot;INST - IteratorToArray&quot;</span>,
