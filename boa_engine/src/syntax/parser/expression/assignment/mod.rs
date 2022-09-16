@@ -90,7 +90,7 @@ where
 
     fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
-        cursor.set_goal(InputElement::Div);
+        cursor.set_goal(InputElement::RegExp);
 
         match cursor
             .peek(0, interner)?
@@ -104,6 +104,8 @@ where
             }
             // ArrowFunction[?In, ?Yield, ?Await] -> ArrowParameters[?Yield, ?Await] -> BindingIdentifier[?Yield, ?Await]
             TokenKind::Identifier(_) | TokenKind::Keyword((Keyword::Yield | Keyword::Await, _)) => {
+                cursor.set_goal(InputElement::Div);
+
                 // Because we already peeked the identifier token, there may be a line terminator before the identifier token.
                 // In that case we have to skip an additional token on the next peek.
                 let skip_n = if cursor
@@ -202,6 +204,8 @@ where
                     }
 
                     cursor.next(interner)?.expect("= token vanished");
+                    cursor.set_goal(InputElement::RegExp);
+
                     if let Some(target) = AssignTarget::from_node(&lhs, cursor.strict_mode()) {
                         if let AssignTarget::Identifier(ident) = target {
                             self.name = Some(ident.sym());

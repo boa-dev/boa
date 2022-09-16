@@ -1,12 +1,12 @@
 use crate::syntax::{
     ast::op::{AssignOp, BitOp, CompOp, LogOp, NumOp},
     ast::{
-        node::{BinOp, Identifier},
-        Const,
+        node::{BinOp, Call, Declaration, DeclarationList, Identifier, New},
+        Const, Node,
     },
     parser::tests::{check_invalid, check_parser},
 };
-use boa_interner::Interner;
+use boa_interner::{Interner, Sym};
 
 /// Checks numeric operations
 #[test]
@@ -78,6 +78,26 @@ fn check_numeric_operations() {
             NumOp::Div,
             Identifier::new(interner.get_or_intern_static("a")),
             Const::from(2),
+        )
+        .into()],
+        interner,
+    );
+
+    let mut interner = Interner::default();
+    check_parser(
+        "let myRegex = /=/;",
+        vec![DeclarationList::Let(
+            vec![Declaration::new_with_identifier(
+                interner.get_or_intern_static("myRegex"),
+                Node::from(New::from(Call::new(
+                    Identifier::new(Sym::REGEXP),
+                    vec![
+                        Node::from(Const::from(interner.get_or_intern_static("="))),
+                        Node::from(Const::from(Sym::EMPTY_STRING)),
+                    ],
+                ))),
+            )]
+            .into(),
         )
         .into()],
         interner,
