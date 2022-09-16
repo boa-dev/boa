@@ -1048,6 +1048,13 @@ pub enum Opcode {
     /// Stack: object **=>** iterator, next_method, done
     InitIterator,
 
+    /// Initialize an async iterator.
+    ///
+    /// Operands:
+    ///
+    /// Stack: object **=>** iterator, next_method, done
+    InitIteratorAsync,
+
     /// Advance the iterator by one and put the value on the stack.
     ///
     /// Operands:
@@ -1325,6 +1332,7 @@ impl Opcode {
             Self::LoopEnd => "LoopEnd",
             Self::ForInLoopInitIterator => "ForInLoopInitIterator",
             Self::InitIterator => "InitIterator",
+            Self::InitIteratorAsync => "InitIteratorAsync",
             Self::IteratorNext => "IteratorNext",
             Self::IteratorClose => "IteratorClose",
             Self::IteratorToArray => "IteratorToArray",
@@ -1468,6 +1476,7 @@ impl Opcode {
             Self::LoopEnd => "INST - LoopEnd",
             Self::ForInLoopInitIterator => "INST - ForInLoopInitIterator",
             Self::InitIterator => "INST - InitIterator",
+            Self::InitIteratorAsync => "INST - InitIteratorAsync",
             Self::IteratorNext => "INST - IteratorNext",
             Self::IteratorClose => "INST - IteratorClose",
             Self::IteratorToArray => "INST - IteratorToArray",

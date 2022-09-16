@@ -350,6 +350,7 @@ impl CodeBlock {
             | Opcode::LoopContinue
             | Opcode::LoopEnd
             | Opcode::InitIterator
+            | Opcode::InitIteratorAsync
             | Opcode::IteratorNext
             | Opcode::IteratorClose
             | Opcode::IteratorToArray

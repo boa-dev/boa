@@ -1153,7 +1153,11 @@ impl<'b> ByteCompiler<'b> {
                 }
 
                 if r#yield.delegate() {
-                    self.emit_opcode(Opcode::InitIterator);
+                    if self.in_async_generator {
+                        self.emit_opcode(Opcode::InitIteratorAsync);
+                    } else {
+                        self.emit_opcode(Opcode::InitIterator);
+                    }
                     self.emit_opcode(Opcode::PushUndefined);
                     let start_address = self.next_opcode_location();
                     let start = self.emit_opcode_with_operand(Opcode::GeneratorNextDelegate);

@@ -1,3 +1,5 @@
+mod async_from_sync_iterator;
+
 use crate::{
     builtins::{
         regexp::regexp_string_iterator::RegExpStringIterator,
@@ -8,7 +10,11 @@ use crate::{
     symbol::WellKnownSymbols,
     Context, JsResult, JsValue,
 };
+use async_from_sync_iterator::create_async_from_sync_iterator_prototype;
+use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
+
+pub(crate) use async_from_sync_iterator::AsyncFromSyncIterator;
 
 #[derive(Debug, Default)]
 pub struct IteratorPrototypes {
@@ -16,6 +22,8 @@ pub struct IteratorPrototypes {
     iterator_prototype: JsObject,
     /// %AsyncIteratorPrototype%
     async_iterator_prototype: JsObject,
+    /// %AsyncFromSyncIteratorPrototype%
+    async_from_sync_iterator_prototype: JsObject,
     /// %MapIteratorPrototype%
     array_iterator: JsObject,
     /// %SetIteratorPrototype%
@@ -36,6 +44,7 @@ impl IteratorPrototypes {
 
         let iterator_prototype = create_iterator_prototype(context);
         let async_iterator_prototype = create_async_iterator_prototype(context);
+        let async_from_sync_iterator_prototype = create_async_from_sync_iterator_prototype(context);
         Self {
             array_iterator: ArrayIterator::create_prototype(iterator_prototype.clone(), context),
             set_iterator: SetIterator::create_prototype(iterator_prototype.clone(), context),
@@ -48,6 +57,7 @@ impl IteratorPrototypes {
             for_in_iterator: ForInIterator::create_prototype(iterator_prototype.clone(), context),
             iterator_prototype,
             async_iterator_prototype,
+            async_from_sync_iterator_prototype,
         }
     }
 
@@ -64,6 +74,11 @@ impl IteratorPrototypes {
     #[inline]
     pub fn async_iterator_prototype(&self) -> JsObject {
         self.async_iterator_prototype.clone()
+    }
+
+    #[inline]
+    pub fn async_from_sync_iterator_prototype(&self) -> JsObject {
+        self.async_from_sync_iterator_prototype.clone()
     }
 
     #[inline]
@@ -154,11 +169,13 @@ impl JsValue {
                     let sync_method = self
                         .get_method(WellKnownSymbols::iterator(), context)?
                         .map_or(Self::Undefined, Self::from);
+
                     // 2. Let syncIteratorRecord be ? GetIterator(obj, sync, syncMethod).
-                    let _sync_iterator_record =
-                        self.get_iterator(context, Some(IteratorHint::Sync), Some(sync_method));
+                    let sync_iterator_record =
+                        self.get_iterator(context, Some(IteratorHint::Sync), Some(sync_method))?;
+
                     // 3. Return ! CreateAsyncFromSyncIterator(syncIteratorRecord).
-                    todo!("CreateAsyncFromSyncIterator");
+                    return Ok(AsyncFromSyncIterator::create(sync_iterator_record, context));
                 }
             } else {
                 // b. Otherwise, set method to ? GetMethod(obj, @@iterator).
@@ -257,7 +274,7 @@ impl IteratorResult {
 ///  - [ECMA reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-iterator-records
-#[derive(Debug)]
+#[derive(Clone, Debug, Finalize, Trace)]
 pub struct IteratorRecord {
     /// `[[Iterator]]`
     ///
