@@ -1824,7 +1824,8 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Node::Block(block) => {
-                if !block.label().is_none() {
+                let has_label = block.label().is_some();
+                if has_label {
                     let next = self.next_opcode_location();
                     self.push_labelled_block_control_info(block.label(), next);
                 }
@@ -1840,7 +1841,7 @@ impl<'b> ByteCompiler<'b> {
                 self.patch_jump_with_target(push_env.0, num_bindings as u32);
                 self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
-                if !block.label().is_none() {
+                if has_label {
                     self.pop_labelled_block_control_info();
                 }
 

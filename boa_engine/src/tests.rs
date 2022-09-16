@@ -1632,3 +1632,22 @@ fn test_empty_statement() {
     "#;
     assert_eq!(&exec(src), "10");
 }
+
+#[test]
+fn test_labelled_block() {
+    let src = r#"
+        let result = true;
+        {
+            let x = 2;
+            L: {
+                let x = 3;
+                result &&= (x === 3);
+                break L;
+                result &&= (false);
+            }
+            result &&= (x === 2);
+        }
+        result;
+    "#;
+    assert_eq!(&exec(src), "true");
+}
