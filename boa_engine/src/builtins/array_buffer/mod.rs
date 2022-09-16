@@ -748,13 +748,17 @@ impl ArrayBuffer {
 pub fn create_byte_data_block(size: u64, context: &mut Context) -> JsResult<Vec<u8>> {
     // 1. Let db be a new Data Block value consisting of size bytes. If it is impossible to
     //    create such a Data Block, throw a RangeError exception.
+    let size = size.try_into().map_err(|e| {
+        context.construct_range_error(format!("couldn't allocate the data block: {e}"))
+    })?;
+
     let mut data_block = Vec::new();
-    data_block.try_reserve(size as usize).map_err(|e| {
+    data_block.try_reserve(size).map_err(|e| {
         context.construct_range_error(format!("couldn't allocate the data block: {e}"))
     })?;
 
     // 2. Set all of the bytes of db to 0.
-    data_block.resize(size as usize, 0);
+    data_block.resize(size, 0);
 
     // 3. Return db.
     Ok(data_block)
