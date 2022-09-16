@@ -25,11 +25,12 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-#[cfg_attr(feature = "deser", serde(transparent))]
+// #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Block {
     #[cfg_attr(feature = "deser", serde(flatten))]
     statements: StatementList,
+    label: Option<Sym>,
 }
 
 impl Block {
@@ -52,6 +53,14 @@ impl Block {
             "    ".repeat(indentation)
         )
     }
+
+    pub fn label(&self) -> Option<Sym> {
+        self.label
+    }
+
+    pub fn set_label(&mut self, lable: Sym) {
+        self.label = Some(lable);
+    }
 }
 
 impl<T> From<T> for Block
@@ -61,6 +70,7 @@ where
     fn from(list: T) -> Self {
         Self {
             statements: list.into(),
+            label: None,
         }
     }
 }

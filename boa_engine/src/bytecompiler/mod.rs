@@ -57,6 +57,7 @@ enum JumpControlInfoKind {
     Loop,
     Switch,
     Try,
+    LabelledBlock,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -488,6 +489,36 @@ impl<'b> ByteCompiler<'b> {
                 jump_info.breaks.append(&mut info.breaks);
                 jump_info.try_continues.append(&mut info.try_continues);
             }
+        }
+    }
+
+    #[inline]
+    fn push_labelled_block_control_info(&mut self, label: Option<Sym>, start_address: u32) {
+        self.jump_info.push(JumpControlInfo {
+            label,
+            start_address,
+            kind: JumpControlInfoKind::LabelledBlock,
+            breaks: Vec::new(),
+            try_continues: Vec::new(),
+            in_catch: false,
+            has_finally: false,
+            finally_start: None,
+            for_of_in_loop: false,
+        });
+    }
+
+    #[inline]
+    fn pop_labelled_block_control_info(&mut self) {
+        let info = self.jump_info.pop().expect("no jump information found");
+
+        assert!(info.kind == JumpControlInfoKind::LabelledBlock);
+
+        for label in info.breaks {
+            self.patch_jump(label);
+        }
+
+        for label in info.try_continues {
+            self.patch_jump_with_target(label, info.start_address);
         }
     }
 
@@ -1793,6 +1824,9 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Node::Block(block) => {
+                let next = self.next_opcode_location();
+                self.push_labelled_block_control_info(block.label(), next);
+
                 self.context.push_compile_time_environment(false);
                 let push_env =
                     self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
@@ -1803,6 +1837,9 @@ impl<'b> ByteCompiler<'b> {
                 let index_compile_environment = self.push_compile_environment(compile_environment);
                 self.patch_jump_with_target(push_env.0, num_bindings as u32);
                 self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+
+                self.pop_labelled_block_control_info();
+
                 self.emit_opcode(Opcode::PopEnvironment);
             }
             Node::Throw(throw) => {
