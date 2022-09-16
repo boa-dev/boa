@@ -244,7 +244,8 @@ impl AsyncFromSyncIterator {
                     &JsValue::Undefined,
                     &[JsNativeError::typ()
                         .with_message("iterator return function returned non-object")
-                        .to_value(context)],
+                        .to_opaque(context)
+                        .into()],
                     context,
                 )
                 .expect("cannot fail according to spec");
@@ -343,7 +344,8 @@ impl AsyncFromSyncIterator {
                     &JsValue::Undefined,
                     &[JsNativeError::typ()
                         .with_message("iterator throw function returned non-object")
-                        .to_value(context)],
+                        .to_opaque(context)
+                        .into()],
                     context,
                 )
                 .expect("cannot fail according to spec");

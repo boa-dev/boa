@@ -2,14 +2,14 @@
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
 //! ```
-//!# use boa_engine::{
-//!#    property::Attribute,
-//!#    class::{Class, ClassBuilder},
-//!#    Context, JsResult, JsValue,
-//!#    builtins::JsArgs,
-//!# };
-//!# use boa_gc::{Finalize, Trace};
-//!#
+//! # use boa_engine::{
+//! #    property::Attribute,
+//! #    class::{Class, ClassBuilder},
+//! #    Context, JsResult, JsValue,
+//! #    builtins::JsArgs,
+//! # };
+//! # use boa_gc::{Finalize, Trace};
+//! #
 //! // This does not have to be an enum it can also be a struct.
 //! #[derive(Debug, Trace, Finalize)]
 //! enum Animal {

@@ -27,7 +27,7 @@ use std::{
 ///
 /// # Examples
 /// ```
-///# use boa_engine::symbol::WellKnownSymbols;
+/// # use boa_engine::symbol::WellKnownSymbols;
 ///
 /// let iterator = WellKnownSymbols::iterator();
 /// assert_eq!(iterator.description().unwrap().to_std_string_escaped(), "Symbol.iterator");

@@ -19,7 +19,7 @@ use crate::{
     property::{Attribute, PropertyDescriptorBuilder},
     symbol::WellKnownSymbols,
     value::JsValue,
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 use boa_gc::{Cell as GcCell, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
@@ -39,7 +39,7 @@ macro_rules! if_abrupt_reject_promise {
         let $value = match $value {
             // 1. If value is an abrupt completion, then
             Err(err) => {
-                let err = err.to_value($context);
+                let err = err.to_opaque($context);
                 // a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).
                 $context.call(
                     &$capability.reject().clone().into(),
@@ -338,7 +338,7 @@ impl Promise {
 
         // 10. If completion is an abrupt completion, then
         if let Err(e) = completion {
-            let e = e.to_value(context);
+            let e = e.to_opaque(context);
             // a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).
             context.call(&resolving_functions.reject, &JsValue::Undefined, &[e])?;
         }
@@ -1064,7 +1064,7 @@ impl Promise {
                             .expect("cannot fail per spec");
 
                         // 3. Return ThrowCompletion(error).
-                        return Err(error.into());
+                        return Err(JsError::from_opaque(error.into()));
                     }
 
                     // iv. Return resultCapability.[[Promise]].
@@ -1255,14 +1255,14 @@ impl Promise {
                     //   a. Let selfResolutionError be a newly created TypeError object.
                     let self_resolution_error = JsNativeError::typ()
                         .with_message("SameValue(resolution, promise) is true")
-                        .to_value(context);
+                        .to_opaque(context);
 
                     //   b. Perform RejectPromise(promise, selfResolutionError).
                     promise
                         .borrow_mut()
                         .as_promise_mut()
                         .expect("Expected promise to be a Promise")
-                        .reject_promise(&self_resolution_error, context);
+                        .reject_promise(&self_resolution_error.into(), context);
 
                     //   c. Return undefined.
                     return Ok(JsValue::Undefined);
@@ -1292,7 +1292,7 @@ impl Promise {
                             .borrow_mut()
                             .as_promise_mut()
                             .expect("Expected promise to be a Promise")
-                            .reject_promise(&e.to_value(context), context);
+                            .reject_promise(&e.to_opaque(context), context);
 
                         //   b. Return undefined.
                         return Ok(JsValue::Undefined);
@@ -1834,7 +1834,7 @@ impl Promise {
                         context,
                         |_this, _args, captures, _context| {
                             // 1. Return ThrowCompletion(reason).
-                            Err(captures.reason.clone().into())
+                            Err(JsError::from_opaque(captures.reason.clone()))
                         },
                         ThrowReasonCaptures {
                             reason: reason.clone(),

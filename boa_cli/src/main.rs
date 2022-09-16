@@ -118,7 +118,6 @@ impl Opt {
 #[derive(Debug, Clone, ValueEnum)]
 enum DumpFormat {
     /// The different types of format available for dumping.
-    ///
     // NOTE: This can easily support other formats just by
     // adding a field to this enum and adding the necessary
     // implementation. Example: Toml, Html, etc.

@@ -1,9 +1,7 @@
 //! Switch node.
 //!
-use crate::syntax::ast::{expression::Expression, statement::Statement};
+use crate::syntax::ast::{expression::Expression, statement::Statement, StatementList};
 use boa_interner::{Interner, ToInternedString};
-
-use crate::syntax::ast::StatementList;
 
 use super::ContainsSymbol;
 

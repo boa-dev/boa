@@ -48,9 +48,9 @@ pub use icu::BoaProvider;
 ///
 /// ```rust
 /// use boa_engine::{
-///     Context,
 ///     object::ObjectInitializer,
-///     property::{Attribute, PropertyDescriptor}
+///     property::{Attribute, PropertyDescriptor},
+///     Context,
 /// };
 ///
 /// let script = r#"
@@ -71,11 +71,7 @@ pub use icu::BoaProvider;
 /// let arg = ObjectInitializer::new(&mut context)
 ///     .property("x", 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property(
-///     "arg",
-///     arg,
-///     Attribute::all()
-/// );
+/// context.register_global_property("arg", arg, Attribute::all());
 ///
 /// let value = context.eval("test(arg)").unwrap();
 ///
@@ -422,36 +418,20 @@ impl Context {
     /// # Example
     /// ```
     /// use boa_engine::{
-    ///     Context,
+    ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
-    ///     object::ObjectInitializer
+    ///     Context,
     /// };
     ///
     /// let mut context = Context::default();
     ///
-    /// context.register_global_property(
-    ///     "myPrimitiveProperty",
-    ///     10,
-    ///     Attribute::all()
-    /// );
+    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///    .property(
-    ///         "x",
-    ///         0,
-    ///         Attribute::all()
-    ///     )
-    ///     .property(
-    ///         "y",
-    ///         1,
-    ///         Attribute::all()
-    ///     )
-    ///    .build();
-    /// context.register_global_property(
-    ///     "myObjectProperty",
-    ///     object,
-    ///     Attribute::all()
-    /// );
+    ///     .property("x", 0, Attribute::all())
+    ///     .property("y", 1, Attribute::all())
+    ///     .build();
+    /// context.register_global_property("myObjectProperty", object, Attribute::all());
     /// ```
     #[inline]
     pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
@@ -474,7 +454,7 @@ impl Context {
     ///
     /// # Examples
     /// ```
-    ///# use boa_engine::Context;
+    /// # use boa_engine::Context;
     /// let mut context = Context::default();
     ///
     /// let value = context.eval("1 + 3").unwrap();
@@ -610,7 +590,6 @@ impl Context {
 /// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
 /// the only way to create a new [`Context`], since now it requires a
 /// valid data provider for the `Intl` functionality.
-///
 #[cfg_attr(
     feature = "intl",
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"

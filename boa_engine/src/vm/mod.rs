@@ -18,7 +18,7 @@ use crate::{
         call_frame::CatchAddresses,
         code_block::{initialize_instance_elements, Readable},
     },
-    Context, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsBigInt, JsError, JsResult, JsString, JsValue,
 };
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
@@ -1477,7 +1477,7 @@ impl Context {
             }
             Opcode::Throw => {
                 let value = self.vm.pop();
-                return Err(value.into());
+                return Err(JsError::from_opaque(value));
             }
             Opcode::TryStart => {
                 let next = self.vm.read::<u32>();
@@ -1560,7 +1560,7 @@ impl Context {
                         return Ok(ShouldExit::True);
                     }
                     FinallyReturn::Err => {
-                        return Err(self.vm.pop().into());
+                        return Err(JsError::from_opaque(self.vm.pop()));
                     }
                 }
             }
@@ -2380,7 +2380,7 @@ impl Context {
                 GeneratorResumeKind::Normal => return Ok(ShouldExit::False),
                 GeneratorResumeKind::Throw => {
                     let received = self.vm.pop();
-                    return Err(received.into());
+                    return Err(JsError::from_opaque(received));
                 }
                 GeneratorResumeKind::Return => {
                     let mut finally_left = false;
@@ -2407,7 +2407,7 @@ impl Context {
                 let value = self.vm.pop();
 
                 if self.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
-                    return Err(value.into());
+                    return Err(JsError::from_opaque(value));
                 }
 
                 let completion = Ok(value);
@@ -2437,7 +2437,7 @@ impl Context {
                     if *r#return {
                         let value = match completion {
                             Ok(value) => value.clone(),
-                            Err(e) => e.clone().to_value(self),
+                            Err(e) => e.clone().to_opaque(self),
                         };
                         self.vm.push(value);
                         self.vm.push(true);
@@ -2842,14 +2842,14 @@ impl Context {
                         self.vm.frame_mut().catch.pop();
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         self.vm.frame_mut().thrown = true;
-                        let e = e.to_value(self);
+                        let e = e.to_opaque(self);
                         self.vm.push(e);
                     } else {
                         self.vm.stack.truncate(start_stack_size);
 
                         // Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
                         if let Some(promise_capability) = promise_capability {
-                            let e = e.to_value(self);
+                            let e = e.to_opaque(self);
                             promise_capability
                                 .reject()
                                 .call(&JsValue::undefined(), &[e.clone()], self)

@@ -18,7 +18,7 @@ use crate::{
     symbol::WellKnownSymbols,
     value::JsValue,
     vm::{CallFrame, GeneratorResumeKind, ReturnType},
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
@@ -198,7 +198,11 @@ impl Generator {
         // 1. Let g be the this value.
         // 2. Let C be ThrowCompletion(exception).
         // 3. Return ? GeneratorResumeAbrupt(g, C, empty).
-        Self::generator_resume_abrupt(this, Err(args.get_or_undefined(0).clone().into()), context)
+        Self::generator_resume_abrupt(
+            this,
+            Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
+            context,
+        )
     }
 
     /// `27.5.3.3 GeneratorResume ( generator, value, generatorBrand )`
@@ -386,7 +390,7 @@ impl Generator {
                 context.run()
             }
             Err(value) => {
-                let value = value.to_value(context);
+                let value = value.to_opaque(context);
                 context.vm.push(value);
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
                 context.run()

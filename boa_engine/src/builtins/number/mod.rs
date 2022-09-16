@@ -327,7 +327,6 @@ impl Number {
     ///
     /// This function traverses a string representing a number,
     /// returning the floored log10 of this number.
-    ///
     fn flt_str_to_exp(flt: &str) -> i32 {
         let mut non_zero_encountered = false;
         let mut dot_encountered = false;
@@ -361,7 +360,6 @@ impl Number {
     ///   the exponent. The string is kept at an exact length of `precision`.
     ///
     /// When this procedure returns, `digits` is exactly `precision` long.
-    ///
     fn round_to_precision(digits: &mut String, precision: usize) -> bool {
         if digits.len() > precision {
             let to_round = digits.split_off(precision);

@@ -16,7 +16,7 @@ use crate::{
     symbol::WellKnownSymbols,
     value::JsValue,
     vm::GeneratorResumeKind,
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_profiler::Profiler;
@@ -399,7 +399,10 @@ impl AsyncGenerator {
         }
 
         // 8. Let completion be ThrowCompletion(exception).
-        let completion = (Err(args.get_or_undefined(0).clone().into()), false);
+        let completion = (
+            Err(JsError::from_opaque(args.get_or_undefined(0).clone())),
+            false,
+        );
 
         // 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).
         generator.enqueue(completion.clone(), promise_capability.clone());
@@ -473,7 +476,7 @@ impl AsyncGenerator {
                 // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).
                 promise_capability
                     .reject()
-                    .call(&JsValue::undefined(), &[e.to_value(context)], context)
+                    .call(&JsValue::undefined(), &[e.to_opaque(context)], context)
                     .expect("cannot fail per spec");
             }
             // 8. Else,
@@ -552,7 +555,7 @@ impl AsyncGenerator {
                 }
             }
             (Err(value), _) => {
-                let value = value.to_value(context);
+                let value = value.to_opaque(context);
                 context.vm.push(value);
                 context.vm.frame_mut().generator_resume_kind = GeneratorResumeKind::Throw;
             }
@@ -669,7 +672,7 @@ impl AsyncGenerator {
                 gen.state = AsyncGeneratorState::Completed;
 
                 // b. Let result be ThrowCompletion(reason).
-                let result = Err(args.get_or_undefined(0).clone().into());
+                let result = Err(JsError::from_opaque(args.get_or_undefined(0).clone()));
 
                 // c. Perform AsyncGeneratorCompleteStep(generator, result, true).
                 let next = gen.queue.pop_front().expect("must have one entry");

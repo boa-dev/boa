@@ -1802,16 +1802,8 @@ impl<'context> FunctionBuilder<'context> {
 /// # use boa_engine::{Context, JsValue, object::ObjectInitializer, property::Attribute};
 /// let mut context = Context::default();
 /// let object = ObjectInitializer::new(&mut context)
-///     .property(
-///         "hello",
-///         "world",
-///         Attribute::all()
-///     )
-///     .property(
-///         1,
-///         1,
-///         Attribute::all()
-///     )
+///     .property("hello", "world", Attribute::all())
+///     .property(1, 1, Attribute::all())
 ///     .function(|_, _, _| Ok(JsValue::undefined()), "func", 0)
 ///     .build();
 /// ```

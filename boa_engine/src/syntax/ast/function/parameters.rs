@@ -237,10 +237,10 @@ impl Default for FormalParameterListFlags {
 ///
 /// In the declaration of a function, the parameters must be identifiers,
 /// not any value like numbers, strings, or objects.
-///```text
-///function foo(formalParameter1, formalParameter2) {
-///}
-///```
+/// ```text
+/// function foo(formalParameter1, formalParameter2) {
+/// }
+/// ```
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
