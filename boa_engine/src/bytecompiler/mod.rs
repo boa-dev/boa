@@ -1824,8 +1824,10 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Node::Block(block) => {
-                let next = self.next_opcode_location();
-                self.push_labelled_block_control_info(block.label(), next);
+                if !block.label().is_none() {
+                    let next = self.next_opcode_location();
+                    self.push_labelled_block_control_info(block.label(), next);
+                }
 
                 self.context.push_compile_time_environment(false);
                 let push_env =
@@ -1838,7 +1840,9 @@ impl<'b> ByteCompiler<'b> {
                 self.patch_jump_with_target(push_env.0, num_bindings as u32);
                 self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
-                self.pop_labelled_block_control_info();
+                if !block.label().is_none() {
+                    self.pop_labelled_block_control_info();
+                }
 
                 self.emit_opcode(Opcode::PopEnvironment);
             }
