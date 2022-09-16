@@ -1,10 +1,12 @@
+//! Error-related types and conversions.
+
 use crate::{
     builtins::{error::ErrorKind, Array},
     object::JsObject,
     object::ObjectData,
     property::PropertyDescriptor,
     syntax::parser,
-    Context, JsResult, JsString, JsValue,
+    Context, JsString, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use thiserror::Error;
@@ -54,6 +56,24 @@ pub struct JsError {
 enum Repr {
     Native(JsNativeError),
     Opaque(JsValue),
+}
+
+/// The error type returned by the [`JsError::try_native`] method.
+#[derive(Debug, Clone, Error)]
+pub enum TryNativeError {
+    #[error("invalid type of property `{0}`")]
+    InvalidPropertyType(&'static str),
+    #[error("property `message` cannot contain unpaired surrogates")]
+    InvalidMessageEncoding,
+    #[error("could not access property `{property}`")]
+    InaccessibleProperty {
+        property: &'static str,
+        source: JsError,
+    },
+    #[error("could not get element `{index}` of property `errors`")]
+    InvalidErrorsIndex { index: u64, source: JsError },
+    #[error("opaque error of type `{:?}` is not an Error object", .0.get_type())]
+    NotAnErrorObject(JsValue),
 }
 
 impl std::error::Error for JsError {
@@ -120,9 +140,10 @@ impl JsError {
     }
 
     /// Unwraps the inner error if this contains a native error.
-    /// Otherwise, it will inspect the opaque error and try to extract the
+    /// Otherwise, inspects the opaque error and tries to extract the
     /// necessary information to construct a native error similar to the provided
-    /// opaque error.
+    /// opaque error. If the conversion fails, returns a [`TryNativeError`]
+    /// with the cause of the failure.
     ///
     /// # Note 1
     ///
@@ -156,80 +177,95 @@ impl JsError {
     /// assert!(matches!(error.kind, JsNativeErrorKind::Type));
     /// assert_eq!(error.message(), "type error!");
     /// ```
-    // TODO: Should probably change this to return a custom error instead
-    pub fn try_native(&self, context: &mut Context) -> JsResult<JsNativeError> {
+    pub fn try_native(&self, context: &mut Context) -> Result<JsNativeError, TryNativeError> {
         match &self.inner {
             Repr::Native(e) => Ok(e.clone()),
             Repr::Opaque(val) => {
-                if let Some(obj) = val.as_object() {
-                    if let Some(error) = obj.borrow().as_error() {
-                        let message = if obj.has_property("message", context)? {
-                            obj.get("message", context)?
-                                .as_string()
-                                .map(JsString::to_std_string)
-                                .transpose()
-                                .map_err(|_| {
-                                    JsNativeError::typ().with_message(
-                                        "field `message` cannot have unpaired surrogates",
-                                    )
-                                })?
-                                .ok_or_else(|| {
-                                    JsNativeError::typ()
-                                        .with_message("invalid type for field `message`")
-                                })?
-                                .into()
-                        } else {
-                            "".into()
-                        };
+                let obj = val
+                    .as_object()
+                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
+                let error = obj
+                    .borrow()
+                    .as_error()
+                    .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
-                        let cause = obj
-                            .has_property("cause", context)?
-                            .then(|| obj.get("cause", context))
-                            .transpose()?;
+                let message_err = |e| TryNativeError::InaccessibleProperty {
+                    property: "message",
+                    source: e,
+                };
 
-                        let kind = match error {
-                            ErrorKind::Error => JsNativeErrorKind::Error,
-                            ErrorKind::Eval => JsNativeErrorKind::Eval,
-                            ErrorKind::Type => JsNativeErrorKind::Type,
-                            ErrorKind::Range => JsNativeErrorKind::Range,
-                            ErrorKind::Reference => JsNativeErrorKind::Reference,
-                            ErrorKind::Syntax => JsNativeErrorKind::Syntax,
-                            ErrorKind::Uri => JsNativeErrorKind::Uri,
-                            ErrorKind::Aggregate => {
-                                let errors = obj.get("errors", context)?;
-                                let mut error_list = Vec::new();
-                                match errors.as_object() {
-                                    Some(errors) if errors.is_array() => {
-                                        let length = errors.length_of_array_like(context)?;
-                                        for i in 0..length {
-                                            error_list.push(JsError::from_opaque(
-                                                errors.get(i, context)?,
-                                            ));
-                                        }
-                                    }
-                                    _ => {
-                                        return Err(JsNativeError::typ()
-                                            .with_message(
-                                                "field `errors` must be a valid Array object",
-                                            )
-                                            .into())
-                                    }
-                                }
+                let message = if obj.has_property("message", context).map_err(message_err)? {
+                    obj.get("message", context)
+                        .map_err(message_err)?
+                        .as_string()
+                        .map(JsString::to_std_string)
+                        .transpose()
+                        .map_err(|_| TryNativeError::InvalidMessageEncoding)?
+                        .ok_or(TryNativeError::InvalidPropertyType("message"))?
+                        .into()
+                } else {
+                    Box::default()
+                };
 
-                                JsNativeErrorKind::Aggregate(error_list)
+                let cause_err = |e| TryNativeError::InaccessibleProperty {
+                    property: "cause",
+                    source: e,
+                };
+
+                let cause = obj
+                    .has_property("cause", context)
+                    .map_err(cause_err)?
+                    .then(|| obj.get("cause", context))
+                    .transpose()
+                    .map_err(cause_err)?;
+
+                let kind = match error {
+                    ErrorKind::Error => JsNativeErrorKind::Error,
+                    ErrorKind::Eval => JsNativeErrorKind::Eval,
+                    ErrorKind::Type => JsNativeErrorKind::Type,
+                    ErrorKind::Range => JsNativeErrorKind::Range,
+                    ErrorKind::Reference => JsNativeErrorKind::Reference,
+                    ErrorKind::Syntax => JsNativeErrorKind::Syntax,
+                    ErrorKind::Uri => JsNativeErrorKind::Uri,
+                    ErrorKind::Aggregate => {
+                        let errors = obj.get("errors", context).map_err(|e| {
+                            TryNativeError::InaccessibleProperty {
+                                property: "errors",
+                                source: e,
                             }
-                        };
+                        })?;
+                        let mut error_list = Vec::new();
+                        match errors.as_object() {
+                            Some(errors) if errors.is_array() => {
+                                let length = errors.length_of_array_like(context).map_err(|e| {
+                                    TryNativeError::InaccessibleProperty {
+                                        property: "errors.length",
+                                        source: e,
+                                    }
+                                })?;
+                                for i in 0..length {
+                                    error_list.push(JsError::from_opaque(
+                                        errors.get(i, context).map_err(|e| {
+                                            TryNativeError::InvalidErrorsIndex {
+                                                index: i,
+                                                source: e,
+                                            }
+                                        })?,
+                                    ));
+                                }
+                            }
+                            _ => return Err(TryNativeError::InvalidPropertyType("errors")),
+                        }
 
-                        return Ok(JsNativeError {
-                            kind,
-                            message,
-                            cause: cause.map(|v| Box::new(JsError::from_opaque(v))),
-                        });
+                        JsNativeErrorKind::Aggregate(error_list)
                     }
-                }
-                Err(JsNativeError::typ()
-                    .with_message("failed to convert value to native error")
-                    .into())
+                };
+
+                Ok(JsNativeError {
+                    kind,
+                    message,
+                    cause: cause.map(|v| Box::new(JsError::from_opaque(v))),
+                })
             }
         }
     }
@@ -474,13 +510,6 @@ impl JsNativeError {
     }
 
     /// Appends a message to this error.
-    ///
-    /// # Note
-    ///
-    /// A static [`str`] will be stored as a simple pointer,
-    /// while a [`String`] will be converted to a [`Rc<str>`][std::rc::Rc<str>] in order
-    /// to make clones more efficient. Prefer static `str`s if you want
-    /// efficiency, and [`String`] s if you prefer descriptive error messages.
     ///
     /// # Examples
     ///
