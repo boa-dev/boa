@@ -25,7 +25,6 @@ mod tests;
 /// [spec]: https://tc39.es/ecma262/#prod-BlockStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block
 #[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
-// #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Block {
     #[cfg_attr(feature = "deser", serde(flatten))]
@@ -58,8 +57,8 @@ impl Block {
         self.label
     }
 
-    pub fn set_label(&mut self, lable: Sym) {
-        self.label = Some(lable);
+    pub fn set_label(&mut self, label: Sym) {
+        self.label = Some(label);
     }
 }
 

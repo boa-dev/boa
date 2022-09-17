@@ -493,9 +493,9 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn push_labelled_block_control_info(&mut self, label: Option<Sym>, start_address: u32) {
+    fn push_labelled_block_control_info(&mut self, label: Sym, start_address: u32) {
         self.jump_info.push(JumpControlInfo {
-            label,
+            label: Some(label),
             start_address,
             kind: JumpControlInfoKind::LabelledBlock,
             breaks: Vec::new(),
@@ -1824,10 +1824,9 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Node::Block(block) => {
-                let has_label = block.label().is_some();
-                if has_label {
+                if let Some(label) = block.label() {
                     let next = self.next_opcode_location();
-                    self.push_labelled_block_control_info(block.label(), next);
+                    self.push_labelled_block_control_info(label, next);
                 }
 
                 self.context.push_compile_time_environment(false);
@@ -1841,7 +1840,7 @@ impl<'b> ByteCompiler<'b> {
                 self.patch_jump_with_target(push_env.0, num_bindings as u32);
                 self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
 
-                if has_label {
+                if block.label().is_some() {
                     self.pop_labelled_block_control_info();
                 }
 
