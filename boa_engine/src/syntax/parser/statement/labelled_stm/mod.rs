@@ -95,6 +95,7 @@ fn set_label_for_node(node: &mut Node, name: Sym) {
         Node::ForInLoop(ref mut for_in_loop) => for_in_loop.set_label(name),
         Node::DoWhileLoop(ref mut do_while_loop) => do_while_loop.set_label(name),
         Node::WhileLoop(ref mut while_loop) => while_loop.set_label(name),
+        Node::Block(ref mut block) => block.set_label(name),
         _ => (),
     }
 }
