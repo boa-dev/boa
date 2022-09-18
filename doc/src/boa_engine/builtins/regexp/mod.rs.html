@@ -1757,6 +1757,7 @@
 <span id="1749">1749</span>
 <span id="1750">1750</span>
 <span id="1751">1751</span>
+<span id="1752">1752</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -3504,9 +3505,10 @@
     }
 
     <span class="comment">// 5. Let cp be ! CodePointAt(S, index).</span>
-    <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">offset</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span>);
+    <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span>);
 
-    <span class="ident">index</span> <span class="op">+</span> <span class="ident">u64::from</span>(<span class="ident">offset</span>)
+    <span class="comment">// 6. Return index + cp.[[CodeUnitCount]].</span>
+    <span class="ident">index</span> <span class="op">+</span> <span class="ident">u64::from</span>(<span class="ident">cp</span>.<span class="ident">code_unit_count</span>)
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.63.0 (4b91a6ea7 2022-08-08)" ></div>
