@@ -79,10 +79,34 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("ForStatement", "Parsing");
         cursor.expect((Keyword::For, false), "for statement", interner)?;
-        let init_position = cursor
-            .expect(Punctuator::OpenParen, "for statement", interner)?
-            .span()
-            .end();
+
+        let mut r#await = false;
+
+        let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+        let init_position = match next.kind() {
+            TokenKind::Punctuator(Punctuator::OpenParen) => next.span().end(),
+            TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => {
+                return Err(ParseError::unexpected(
+                    next.to_string(interner),
+                    next.span(),
+                    "for await...of is only valid in async functions or async generators",
+                ));
+            }
+            TokenKind::Keyword((Keyword::Await, _)) => {
+                r#await = true;
+                cursor
+                    .expect(Punctuator::OpenParen, "for await...of", interner)?
+                    .span()
+                    .end()
+            }
+            _ => {
+                return Err(ParseError::unexpected(
+                    next.to_string(interner),
+                    next.span(),
+                    "for statement",
+                ));
+            }
+        };
 
         let init = match cursor
             .peek(0, interner)?
@@ -233,7 +257,7 @@ where
                     }
                 }
 
-                return Ok(ForOfLoop::new(init, iterable, body).into());
+                return Ok(ForOfLoop::new(init, iterable, body, r#await).into());
             }
             (Some(Node::ConstDeclList(list)), _) => {
                 // Reject const declarations without initializers inside for loops

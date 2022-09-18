@@ -233,6 +233,11 @@ pub struct IteratorResult {
 }
 
 impl IteratorResult {
+    /// Create a new `IteratorResult`.
+    pub(crate) fn new(object: JsObject) -> Self {
+        Self { object }
+    }
+
     /// `IteratorComplete ( iterResult )`
     ///
     /// The abstract operation `IteratorComplete` takes argument `iterResult` (an `Object`) and

@@ -11,11 +11,12 @@ pub struct ForOfLoop {
     iterable: Box<Node>,
     body: Box<Node>,
     label: Option<Sym>,
+    r#await: bool,
 }
 
 impl ForOfLoop {
     /// Creates a new "for of" loop AST node.
-    pub fn new<I, B>(init: IterableLoopInitializer, iterable: I, body: B) -> Self
+    pub fn new<I, B>(init: IterableLoopInitializer, iterable: I, body: B, r#await: bool) -> Self
     where
         I: Into<Node>,
         B: Into<Node>,
@@ -25,6 +26,7 @@ impl ForOfLoop {
             iterable: Box::new(iterable.into()),
             body: Box::new(body.into()),
             label: None,
+            r#await,
         }
     }
 
@@ -46,6 +48,11 @@ impl ForOfLoop {
 
     pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
+    }
+
+    /// Returns true if this "for...of" loop is an "for await...of" loop.
+    pub(crate) fn r#await(&self) -> bool {
+        self.r#await
     }
 
     /// Converts the "for of" loop to a string with the given indentation.
