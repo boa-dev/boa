@@ -345,7 +345,8 @@ where
             // iii. If the code units at index (k + 1) and (k + 2) within string do not represent
             // hexadecimal digits, throw a URIError exception.
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-            let b = decode_hex_byte(code_units[k + 1], code_units[k + 2], context)?;
+            let b = decode_hex_byte(code_units[k + 1], code_units[k + 2])
+                .ok_or_else(|| context.construct_uri_error("invalid hexadecimal digit found"))?;
 
             // v. Set k to k + 2.
             k += 2;
@@ -396,7 +397,10 @@ where
 
                     // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-                    let b = decode_hex_byte(code_units[k + 1], code_units[k + 2], context)?;
+                    let b =
+                        decode_hex_byte(code_units[k + 1], code_units[k + 2]).ok_or_else(|| {
+                            context.construct_uri_error("invalid hexadecimal digit found")
+                        })?;
 
                     // e. Set k to k + 2.
                     k += 2;
@@ -435,32 +439,16 @@ where
 }
 
 /// Decodes a byte from two unicode code units.
-fn decode_hex_byte(high: u16, low: u16, context: &mut Context) -> JsResult<u8> {
-    match (u8::try_from(high), u8::try_from(low)) {
-        (Ok(high), Ok(low)) => {
-            let high = if (b'0'..=b'9').contains(&high) {
-                high - b'0'
-            } else if (b'A'..=b'F').contains(&high) {
-                high - b'A' + 0x0A
-            } else if (b'a'..=b'f').contains(&high) {
-                high - b'a' + 0x0a
-            } else {
-                return Err(context.construct_uri_error("invalid hexadecimal digit found"));
-            };
-
-            let low = if (b'0'..=b'9').contains(&low) {
-                low - b'0'
-            } else if (b'A'..=b'F').contains(&low) {
-                low - b'A' + 0x0A
-            } else if (b'a'..=b'f').contains(&low) {
-                low - b'a' + 0x0a
-            } else {
-                return Err(context.construct_uri_error("invalid hexadecimal digit found"));
-            };
-
-            Ok((high << 4) + low)
-        }
-        _ => Err(context.construct_uri_error("invalid hexadecimal digit found")),
+fn decode_hex_byte(high: u16, low: u16) -> Option<u8> {
+    match (
+        char::from_u32(u32::from(high)),
+        char::from_u32(u32::from(low)),
+    ) {
+        (Some(high), Some(low)) => match (high.to_digit(16), low.to_digit(16)) {
+            (Some(high), Some(low)) => Some(((high as u8) << 4) + low as u8),
+            _ => None,
+        },
+        _ => None,
     }
 }
 
@@ -524,41 +512,39 @@ mod tests {
     /// Checks that the `decode_byte()` function works as expected.
     #[test]
     fn ut_decode_byte() {
-        let mut context = Context::default();
-
         // Sunny day tests
         assert_eq!(
-            decode_hex_byte(u16::from(b'2'), u16::from(b'0'), &mut context).unwrap(),
+            decode_hex_byte(u16::from(b'2'), u16::from(b'0')).unwrap(),
             0x20
         );
         assert_eq!(
-            decode_hex_byte(u16::from(b'2'), u16::from(b'A'), &mut context).unwrap(),
+            decode_hex_byte(u16::from(b'2'), u16::from(b'A')).unwrap(),
             0x2A
         );
         assert_eq!(
-            decode_hex_byte(u16::from(b'3'), u16::from(b'C'), &mut context).unwrap(),
+            decode_hex_byte(u16::from(b'3'), u16::from(b'C')).unwrap(),
             0x3C
         );
         assert_eq!(
-            decode_hex_byte(u16::from(b'4'), u16::from(b'0'), &mut context).unwrap(),
+            decode_hex_byte(u16::from(b'4'), u16::from(b'0')).unwrap(),
             0x40
         );
         assert_eq!(
-            decode_hex_byte(u16::from(b'7'), u16::from(b'E'), &mut context).unwrap(),
+            decode_hex_byte(u16::from(b'7'), u16::from(b'E')).unwrap(),
             0x7E
         );
         assert_eq!(
-            decode_hex_byte(u16::from(b'0'), u16::from(b'0'), &mut context).unwrap(),
+            decode_hex_byte(u16::from(b'0'), u16::from(b'0')).unwrap(),
             0x00
         );
 
         // Rainy day tests
-        assert!(decode_hex_byte(u16::from(b'-'), u16::from(b'0'), &mut context).is_err());
-        assert!(decode_hex_byte(u16::from(b'f'), u16::from(b'~'), &mut context).is_err());
-        assert!(decode_hex_byte(u16::from(b'A'), 0_u16, &mut context).is_err());
-        assert!(decode_hex_byte(u16::from(b'%'), u16::from(b'&'), &mut context).is_err());
+        assert!(decode_hex_byte(u16::from(b'-'), u16::from(b'0')).is_none());
+        assert!(decode_hex_byte(u16::from(b'f'), u16::from(b'~')).is_none());
+        assert!(decode_hex_byte(u16::from(b'A'), 0_u16).is_none());
+        assert!(decode_hex_byte(u16::from(b'%'), u16::from(b'&')).is_none());
 
-        assert!(decode_hex_byte(0xFACD_u16, u16::from(b'-'), &mut context).is_err());
-        assert!(decode_hex_byte(u16::from(b'-'), 0xA0FD_u16, &mut context).is_err());
+        assert!(decode_hex_byte(0xFACD_u16, u16::from(b'-')).is_none());
+        assert!(decode_hex_byte(u16::from(b'-'), 0xA0FD_u16).is_none());
     }
 }
