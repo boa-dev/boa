@@ -6,7 +6,7 @@
 
 use crate::{
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
-    object::{GlobalPropertyMap, JsObject, ObjectData, PropertyMap, JsPrototype},
+    object::{GlobalPropertyMap, JsObject, JsPrototype, ObjectData, PropertyMap},
 };
 use boa_gc::{Cell, Gc};
 use boa_profiler::Profiler;
