@@ -1,5 +1,8 @@
 use crate::{
-    object::{InternalObjectMethods, JsObject, ORDINARY_INTERNAL_METHODS},
+    object::{
+        internal_methods::ordinary_get_prototype_of, InternalObjectMethods, JsObject, JsPrototype,
+        ORDINARY_INTERNAL_METHODS,
+    },
     property::{DescriptorKind, PropertyDescriptor, PropertyKey},
     value::JsValue,
     Context, JsResult,
@@ -13,16 +16,95 @@ use boa_profiler::Profiler;
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-global-object
 pub(crate) static GLOBAL_INTERNAL_METHODS: InternalObjectMethods = InternalObjectMethods {
-    __get_own_property__: global_get_own_property,
+    __get_prototype_of__: global_get_prototype_of,
+    __set_prototype_of__: global_set_prototype_of,
     __is_extensible__: global_is_extensible,
     __prevent_extensions__: global_prevent_extensions,
+    __get_own_property__: global_get_own_property,
     __define_own_property__: global_define_own_property,
     __has_property__: global_has_property,
     __get__: global_get,
     __set__: global_set,
     __delete__: global_delete,
+    __own_property_keys__: global_own_property_keys,
     ..ORDINARY_INTERNAL_METHODS
 };
+
+/// Abstract operation `OrdinaryGetPrototypeOf`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarygetprototypeof
+#[inline]
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn global_get_prototype_of(
+    _: &JsObject,
+    context: &mut Context,
+) -> JsResult<JsPrototype> {
+    // 1. Return O.[[Prototype]].
+    Ok(context.realm.global_prototype.clone())
+}
+
+/// Abstract operation `OrdinarySetPrototypeOf`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarysetprototypeof
+#[inline]
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn global_set_prototype_of(
+    _: &JsObject,
+    val: JsPrototype,
+    context: &mut Context,
+) -> JsResult<bool> {
+    // 1. Assert: Either Type(V) is Object or Type(V) is Null.
+    {
+        // 2. Let current be O.[[Prototype]].
+        let current = &context.realm.global_prototype;
+
+        // 3. If SameValue(V, current) is true, return true.
+        if val == *current {
+            return Ok(true);
+        }
+    }
+
+    // 4. Let extensible be O.[[Extensible]].
+    // 5. If extensible is false, return false.
+    if !context.realm.global_extensible {
+        return Ok(false);
+    }
+
+    // 6. Let p be V.
+    let mut p = val.clone();
+
+    // 7. Let done be false.
+    // 8. Repeat, while done is false,
+    // a. If p is null, set done to true.
+    while let Some(proto) = p {
+        // b. Else if SameValue(p, O) is true, return false.
+        if &proto == context.realm.global_object() {
+            return Ok(false);
+        }
+        // c. Else,
+        // i. If p.[[GetPrototypeOf]] is not the ordinary object internal method defined
+        // in 10.1.1, set done to true.
+        else if proto.borrow().data.internal_methods.__get_prototype_of__ as usize
+            != ordinary_get_prototype_of as usize
+        {
+            break;
+        }
+        // ii. Else, set p to p.[[Prototype]].
+        p = proto.prototype().clone();
+    }
+
+    // 9. Set O.[[Prototype]] to V.
+    context.realm.global_object().set_prototype(val);
+
+    // 10. Return true.
+    Ok(true)
+}
 
 /// Abstract operation `OrdinaryGetOwnProperty`.
 ///
@@ -125,7 +207,20 @@ pub(crate) fn global_has_property(
     context: &mut Context,
 ) -> JsResult<bool> {
     let _timer = Profiler::global().start_event("Object::global_has_property", "object");
-    Ok(context.realm.global_property_map.contains_key(key))
+    // 1. Assert: IsPropertyKey(P) is true.
+    // 2. Let hasOwn be ? O.[[GetOwnProperty]](P).
+    // 3. If hasOwn is not undefined, return true.
+    if context.realm.global_property_map.contains_key(key) {
+        Ok(true)
+    } else {
+        // 4. Let parent be ? O.[[GetPrototypeOf]]().
+        let parent = context.realm.global_prototype.clone();
+
+        // 5. If parent is not null, then
+        // a. Return ? parent.[[HasProperty]](P).
+        // 6. Return false.
+        parent.map_or(Ok(false), |obj| obj.__has_property__(key, context))
+    }
 }
 
 /// Abstract operation `OrdinaryGet`.
@@ -148,8 +243,15 @@ pub(crate) fn global_get(
     match global_get_own_property(obj, key, context)? {
         // If desc is undefined, then
         None => {
+            // a. Let parent be ? O.[[GetPrototypeOf]]().
+            if let Some(parent) = context.realm.global_prototype.clone() {
+                // c. Return ? parent.[[Get]](P, Receiver).
+                parent.__get__(key, receiver, context)
+            }
             // b. If parent is null, return undefined.
-            Ok(JsValue::undefined())
+            else {
+                Ok(JsValue::undefined())
+            }
         }
         Some(ref desc) => match desc.kind() {
             // 4. If IsDataDescriptor(desc) is true, return desc.[[Value]].
@@ -307,6 +409,61 @@ pub(crate) fn global_delete(
         // 3. If desc is undefined, return true.
         None => Ok(true),
     }
+}
+
+/// Abstract operation `OrdinaryOwnPropertyKeys`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinaryownpropertykeys
+#[inline]
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn global_own_property_keys(
+    _: &JsObject,
+    context: &mut Context,
+) -> JsResult<Vec<PropertyKey>> {
+    // 1. Let keys be a new empty List.
+    let mut keys = Vec::new();
+
+    let ordered_indexes = {
+        let mut indexes: Vec<_> = context
+            .realm
+            .global_property_map
+            .index_property_keys()
+            .collect();
+        indexes.sort_unstable();
+        indexes
+    };
+
+    // 2. For each own property key P of O such that P is an array index, in ascending numeric index order, do
+    // a. Add P as the last element of keys.
+    keys.extend(ordered_indexes.into_iter().map(Into::into));
+
+    // 3. For each own property key P of O such that Type(P) is String and P is not an array index, in ascending chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    keys.extend(
+        context
+            .realm
+            .global_property_map
+            .string_property_keys()
+            .cloned()
+            .map(Into::into),
+    );
+
+    // 4. For each own property key P of O such that Type(P) is Symbol, in ascending chronological order of property creation, do
+    // a. Add P as the last element of keys.
+    keys.extend(
+        context
+            .realm
+            .global_property_map
+            .symbol_property_keys()
+            .cloned()
+            .map(Into::into),
+    );
+
+    // 5. Return keys.
+    Ok(keys)
 }
 
 /// Abstract operation `ValidateAndApplyPropertyDescriptor`

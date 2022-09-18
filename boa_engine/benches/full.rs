@@ -11,7 +11,7 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 static ALLOC: jemallocator::Jemalloc = jemallocator::Jemalloc;
 
 fn create_realm(c: &mut Criterion) {
-    c.bench_function("Create Realm", move |b| b.iter(Realm::create));
+    c.bench_function("Create Realm", move |b| b.iter(|| Realm::create(None)));
 }
 
 macro_rules! full_benchmarks {

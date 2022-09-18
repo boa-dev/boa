@@ -826,12 +826,13 @@ impl ContextBuilder {
     /// Builds a new [`Context`] with the provided parameters, and defaults
     /// all missing parameters to their default values.
     pub fn build(self) -> Context {
+        let intrinsics = Intrinsics::default();
         let mut context = Context {
-            realm: Realm::create(),
+            realm: Realm::create(intrinsics.constructors().object().prototype().into()),
             interner: self.interner.unwrap_or_default(),
             #[cfg(feature = "console")]
             console: Console::default(),
-            intrinsics: Intrinsics::default(),
+            intrinsics,
             vm: Vm {
                 frames: Vec::with_capacity(16),
                 stack: Vec::with_capacity(1024),
