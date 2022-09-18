@@ -1,3 +1,4 @@
+use super::{is_leading_surrogate, is_trailing_surrogate};
 use crate::{forward, forward_val, Context};
 
 #[test]
@@ -1149,4 +1150,18 @@ fn search() {
     assert_eq!(forward(&mut context, "'aa'.search(/a/)"), "0");
     assert_eq!(forward(&mut context, "'aa'.search(/a/g)"), "0");
     assert_eq!(forward(&mut context, "'ba'.search(/a/)"), "1");
+}
+
+#[test]
+fn ut_is_leading_surrogate() {
+    for cp in 0xD800..=0xDBFF {
+        assert!(is_leading_surrogate(cp), "failed: {cp:X}");
+    }
+}
+
+#[test]
+fn ut_is_trailing_surrogate() {
+    for cp in 0xDC00..=0xDFFF {
+        assert!(is_trailing_surrogate(cp), "failed: {cp:X}");
+    }
 }

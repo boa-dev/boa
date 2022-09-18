@@ -1745,7 +1745,8 @@ fn advance_string_index(s: &JsString, index: u64, unicode: bool) -> u64 {
     }
 
     // 5. Let cp be ! CodePointAt(S, index).
-    let (_, offset, _) = crate::builtins::string::code_point_at(s, index);
+    let cp = crate::builtins::string::code_point_at(s, index);
 
-    index + u64::from(offset)
+    // 6. Return index + cp.[[CodeUnitCount]].
+    index + u64::from(cp.code_unit_count)
 }

@@ -40,29 +40,87 @@ pub(crate) enum Placement {
     End,
 }
 
-pub(crate) fn code_point_at(string: &JsString, position: u64) -> (u32, u8, bool) {
+/// Code point information for the `CodePointAt` abstract operation.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct CodePointInfo {
+    pub(crate) code_point: u32,
+    pub(crate) code_unit_count: u8,
+    pub(crate) is_unpaired_surrogate: bool,
+}
+
+/// The `CodePointAt ( string, position )` abstract operation.
+///
+/// The abstract operation `CodePointAt` takes arguments `string` (a String) and `position` (a
+/// non-negative integer) and returns a Record with fields `[[CodePoint]]` (a code point),
+/// `[[CodeUnitCount]]` (a positive integer), and `[[IsUnpairedSurrogate]]` (a Boolean). It
+/// interprets string as a sequence of UTF-16 encoded code points, as described in 6.1.4, and reads
+/// from it a single code point starting with the code unit at index `position`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-codepointat
+pub(crate) fn code_point_at(string: &JsString, position: u64) -> CodePointInfo {
     let mut encoded = string.encode_utf16();
+
+    // 1. Let size be the length of string.
     let size = encoded.clone().count() as u64;
 
+    // 2. Assert: position ≥ 0 and position < size.
+    assert!(position < size);
+
+    // 3. Let first be the code unit at index position within string.
     let first = encoded
         .nth(position as usize)
         .expect("The callers of this function must've already checked bounds.");
+
+    // 4. Let cp be the code point whose numeric value is that of first.
+    let cp = u32::from(first);
+
+    // 5. If first is not a leading surrogate or trailing surrogate, then
     if !is_leading_surrogate(first) && !is_trailing_surrogate(first) {
-        return (u32::from(first), 1, false);
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: false }.
+        return CodePointInfo {
+            code_point: cp,
+            code_unit_count: 1,
+            is_unpaired_surrogate: false,
+        };
     }
 
+    // 6. If first is a trailing surrogate or position + 1 = size, then
     if is_trailing_surrogate(first) || position + 1 == size {
-        return (u32::from(first), 1, true);
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+        return CodePointInfo {
+            code_point: cp,
+            code_unit_count: 1,
+            is_unpaired_surrogate: true,
+        };
     }
 
+    // 7. Let second be the code unit at index position + 1 within string.
     let second = encoded
         .next()
         .expect("The callers of this function must've already checked bounds.");
+
+    // 8. If second is not a trailing surrogate, then
     if !is_trailing_surrogate(second) {
-        return (u32::from(first), 1, true);
+        // a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.
+        return CodePointInfo {
+            code_point: cp,
+            code_unit_count: 1,
+            is_unpaired_surrogate: true,
+        };
     }
+
+    // 9. Set cp to UTF16SurrogatePairToCodePoint(first, second).
     let cp = (u32::from(first) - 0xD800) * 0x400 + (u32::from(second) - 0xDC00) + 0x10000;
-    (cp, 2, false)
+
+    // 10. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 2, [[IsUnpairedSurrogate]]: false }.
+    CodePointInfo {
+        code_point: cp,
+        code_unit_count: 2,
+        is_unpaired_surrogate: false,
+    }
 }
 
 /// Helper function to check if a `char` is trimmable.
@@ -86,10 +144,22 @@ pub(crate) fn is_trimmable_whitespace(c: char) -> bool {
     )
 }
 
+/// Checks if the given code unit is a leading surrogate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#leading-surrogate
 pub(crate) fn is_leading_surrogate(value: u16) -> bool {
     (0xD800..=0xDBFF).contains(&value)
 }
 
+/// Checks if the given code unit is a trailing surrogate.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#trailing-surrogate
 pub(crate) fn is_trailing_surrogate(value: u16) -> bool {
     (0xDC00..=0xDFFF).contains(&value)
 }
@@ -369,7 +439,7 @@ impl String {
         }
     }
 
-    /// `String.fromCharCode(...codePoints)`
+    /// `String.fromCharCode(...codeUnits)`
     ///
     /// Construct a `String` from one or more code points (as numbers).
     /// More information:
@@ -381,21 +451,22 @@ impl String {
         args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        // 1. Let length be the number of elements in codeUnits.
-        // 2. Let elements be a new empty List.
-        let mut elements = Vec::new();
-        // 3. For each element next of codeUnits, do
+        // 1. Let result be the empty String.
+        let mut result = Vec::new();
+
+        // 2. For each element next of codeUnits, do
         for next in args {
-            // 3a. Let nextCU be ℝ(? ToUint16(next)).
-            // 3b. Append nextCU to the end of elements.
-            elements.push(next.to_uint16(context)?);
+            // a. Let nextCU be the code unit whose numeric value is ℝ(? ToUint16(next)).
+            let next_cu = next.to_uint16(context)?;
+
+            // b. Set result to the string-concatenation of result and nextCU.
+            result.push(next_cu);
         }
 
-        // 4. Return the String value whose code units are the elements in the List elements.
-        //    If codeUnits is empty, the empty String is returned.
-
-        let s = std::string::String::from_utf16_lossy(elements.as_slice());
-        Ok(JsValue::String(JsString::new(s)))
+        // 3. Return result.
+        Ok(JsValue::String(JsString::new(
+            std::string::String::from_utf16_lossy(&result),
+        )))
     }
 
     /// `String.prototype.toString ( )`
@@ -544,7 +615,7 @@ impl String {
             IntegerOrInfinity::Integer(position) if (0..size).contains(&position) => {
                 // 6. Let cp be ! CodePointAt(S, position).
                 // 7. Return 𝔽(cp.[[CodePoint]]).
-                Ok(code_point_at(&string, position as u64).0.into())
+                Ok(code_point_at(&string, position as u64).code_point.into())
             }
             // 5. If position < 0 or position ≥ size, return undefined.
             _ => Ok(JsValue::undefined()),
