@@ -84,6 +84,15 @@
 <span id="76">76</span>
 <span id="77">77</span>
 <span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Block AST node.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Node</span>, <span class="ident">StatementList</span>};
@@ -111,11 +120,11 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BlockStatement</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/block</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">serde</span>(<span class="ident">transparent</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Block</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">serde</span>(<span class="ident">flatten</span>))]</span>
     <span class="ident">statements</span>: <span class="ident">StatementList</span>,
+    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Block</span> {
@@ -138,6 +147,14 @@
             <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>)
         )
     }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">label</span>
+    }
+
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Sym</span>) {
+        <span class="self">self</span>.<span class="ident">label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>);
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Block</span>
@@ -147,6 +164,7 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">list</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">statements</span>: <span class="ident">list</span>.<span class="ident">into</span>(),
+            <span class="ident">label</span>: <span class="prelude-val">None</span>,
         }
     }
 }
