@@ -6,7 +6,7 @@
 
 use crate::{
     environments::{CompileTimeEnvironment, DeclarativeEnvironmentStack},
-    object::{GlobalPropertyMap, JsObject, ObjectData, PropertyMap},
+    object::{GlobalPropertyMap, JsObject, JsPrototype, ObjectData, PropertyMap},
 };
 use boa_gc::{Cell, Gc};
 use boa_profiler::Profiler;
@@ -19,13 +19,14 @@ pub struct Realm {
     global_object: JsObject,
     pub(crate) global_extensible: bool,
     pub(crate) global_property_map: PropertyMap,
+    pub(crate) global_prototype: JsPrototype,
     pub(crate) environments: DeclarativeEnvironmentStack,
     pub(crate) compile_env: Gc<Cell<CompileTimeEnvironment>>,
 }
 
 impl Realm {
     #[inline]
-    pub fn create() -> Self {
+    pub fn create(global_prototype: JsPrototype) -> Self {
         let _timer = Profiler::global().start_event("Realm::create", "realm");
         // Create brand new global object
         // Global has no prototype to pass None to new_obj
@@ -38,6 +39,7 @@ impl Realm {
             global_object,
             global_extensible: true,
             global_property_map: PropertyMap::default(),
+            global_prototype,
             environments: DeclarativeEnvironmentStack::new(global_compile_environment.clone()),
             compile_env: global_compile_environment,
         }
