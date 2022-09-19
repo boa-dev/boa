@@ -863,6 +863,7 @@
 <span id="855">855</span>
 <span id="856">856</span>
 <span id="857">857</span>
+<span id="858">858</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
@@ -1691,12 +1692,13 @@
     <span class="doccomment">/// Builds a new [`Context`] with the provided parameters, and defaults</span>
     <span class="doccomment">/// all missing parameters to their default values.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">build</span>(<span class="self">self</span>) -&gt; <span class="ident">Context</span> {
+        <span class="kw">let</span> <span class="ident">intrinsics</span> <span class="op">=</span> <span class="ident">Intrinsics::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context</span> {
-            <span class="ident">realm</span>: <span class="ident">Realm::create</span>(),
+            <span class="ident">realm</span>: <span class="ident">Realm::create</span>(<span class="ident">intrinsics</span>.<span class="ident">constructors</span>().<span class="ident">object</span>().<span class="ident">prototype</span>().<span class="ident">into</span>()),
             <span class="ident">interner</span>: <span class="self">self</span>.<span class="ident">interner</span>.<span class="ident">unwrap_or_default</span>(),
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;console&quot;</span>)]</span>
             <span class="ident">console</span>: <span class="ident">Console::default</span>(),
-            <span class="ident">intrinsics</span>: <span class="ident">Intrinsics::default</span>(),
+            <span class="ident">intrinsics</span>,
             <span class="ident">vm</span>: <span class="ident">Vm</span> {
                 <span class="ident">frames</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">16</span>),
                 <span class="ident">stack</span>: <span class="ident">Vec::with_capacity</span>(<span class="number">1024</span>),
