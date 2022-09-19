@@ -3222,6 +3222,18 @@
 <span id="3214">3214</span>
 <span id="3215">3215</span>
 <span id="3216">3216</span>
+<span id="3217">3217</span>
+<span id="3218">3218</span>
+<span id="3219">3219</span>
+<span id="3220">3220</span>
+<span id="3221">3221</span>
+<span id="3222">3222</span>
+<span id="3223">3223</span>
+<span id="3224">3224</span>
+<span id="3225">3225</span>
+<span id="3226">3226</span>
+<span id="3227">3227</span>
+<span id="3228">3228</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -4802,7 +4814,11 @@
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PopEnvironment</span>);
                 }
 
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
+                <span class="kw">if</span> <span class="ident">for_of_loop</span>.<span class="ident">r#await</span>() {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIteratorAsync</span>);
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
+                }
 
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
                 <span class="kw">let</span> <span class="ident">start_address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
@@ -4812,7 +4828,15 @@
                 <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
                 <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
-                <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::ForInLoopNext</span>);
+
+                <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">for_of_loop</span>.<span class="ident">r#await</span>() {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::ForAwaitOfLoopIterate</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Await</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GeneratorNext</span>);
+                    <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::ForAwaitOfLoopNext</span>)
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::ForInLoopNext</span>)
+                };
 
                 <span class="kw">match</span> <span class="ident">for_of_loop</span>.<span class="ident">init</span>() {
                     <span class="ident">IterableLoopInitializer::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) =&gt; {

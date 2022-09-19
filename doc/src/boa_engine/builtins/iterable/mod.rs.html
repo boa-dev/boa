@@ -561,6 +561,11 @@
 <span id="553">553</span>
 <span id="554">554</span>
 <span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">async_from_sync_iterator</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -796,6 +801,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">IteratorResult</span> {
+    <span class="doccomment">/// Create a new `IteratorResult`.</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">object</span> }
+    }
+
     <span class="doccomment">/// `IteratorComplete ( iterResult )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The abstract operation `IteratorComplete` takes argument `iterResult` (an `Object`) and</span>

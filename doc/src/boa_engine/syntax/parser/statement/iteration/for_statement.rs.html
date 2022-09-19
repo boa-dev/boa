@@ -387,6 +387,30 @@
 <span id="379">379</span>
 <span id="380">380</span>
 <span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -468,10 +492,34 @@
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ForStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">expect</span>((<span class="ident">Keyword::For</span>, <span class="bool-val">false</span>), <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">init_position</span> <span class="op">=</span> <span class="ident">cursor</span>
-            .<span class="ident">expect</span>(<span class="ident">Punctuator::OpenParen</span>, <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-            .<span class="ident">span</span>()
-            .<span class="ident">end</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r#await</span> <span class="op">=</span> <span class="bool-val">false</span>;
+
+        <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">init_position</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">next</span>.<span class="ident">kind</span>() {
+            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) =&gt; <span class="ident">next</span>.<span class="ident">span</span>().<span class="ident">end</span>(),
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">allow_await</span>.<span class="number">0</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
+                    <span class="ident">next</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
+                    <span class="ident">next</span>.<span class="ident">span</span>(),
+                    <span class="string">&quot;for await...of is only valid in async functions or async generators&quot;</span>,
+                ));
+            }
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="kw">_</span>)) =&gt; {
+                <span class="ident">r#await</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <span class="ident">cursor</span>
+                    .<span class="ident">expect</span>(<span class="ident">Punctuator::OpenParen</span>, <span class="string">&quot;for await...of&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">span</span>()
+                    .<span class="ident">end</span>()
+            }
+            <span class="kw">_</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
+                    <span class="ident">next</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
+                    <span class="ident">next</span>.<span class="ident">span</span>(),
+                    <span class="string">&quot;for statement&quot;</span>,
+                ));
+            }
+        };
 
         <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>
             .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
@@ -622,7 +670,7 @@
                     }
                 }
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ForOfLoop::new</span>(<span class="ident">init</span>, <span class="ident">iterable</span>, <span class="ident">body</span>).<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ForOfLoop::new</span>(<span class="ident">init</span>, <span class="ident">iterable</span>, <span class="ident">body</span>, <span class="ident">r#await</span>).<span class="ident">into</span>());
             }
             (<span class="prelude-val">Some</span>(<span class="ident">Node::ConstDeclList</span>(<span class="ident">list</span>)), <span class="kw">_</span>) =&gt; {
                 <span class="comment">// Reject const declarations without initializers inside for loops</span>

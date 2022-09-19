@@ -1523,6 +1523,8 @@
 <span id="1515">1515</span>
 <span id="1516">1516</span>
 <span id="1517">1517</span>
+<span id="1518">1518</span>
+<span id="1519">1519</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1729,6 +1731,7 @@
             <span class="op">|</span> <span class="ident">Opcode::SuperCall</span>
             <span class="op">|</span> <span class="ident">Opcode::ForInLoopInitIterator</span>
             <span class="op">|</span> <span class="ident">Opcode::ForInLoopNext</span>
+            <span class="op">|</span> <span class="ident">Opcode::ForAwaitOfLoopNext</span>
             <span class="op">|</span> <span class="ident">Opcode::ConcatToString</span>
             <span class="op">|</span> <span class="ident">Opcode::GeneratorNextDelegate</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>).<span class="ident">to_string</span>();
@@ -1899,6 +1902,7 @@
             <span class="op">|</span> <span class="ident">Opcode::CallSpread</span>
             <span class="op">|</span> <span class="ident">Opcode::NewSpread</span>
             <span class="op">|</span> <span class="ident">Opcode::SuperCallSpread</span>
+            <span class="op">|</span> <span class="ident">Opcode::ForAwaitOfLoopIterate</span>
             <span class="op">|</span> <span class="ident">Opcode::Nop</span> =&gt; <span class="ident">String::new</span>(),
         }
     }

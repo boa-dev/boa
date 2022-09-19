@@ -1569,6 +1569,24 @@
 <span id="1561">1561</span>
 <span id="1562">1562</span>
 <span id="1563">1563</span>
+<span id="1564">1564</span>
+<span id="1565">1565</span>
+<span id="1566">1566</span>
+<span id="1567">1567</span>
+<span id="1568">1568</span>
+<span id="1569">1569</span>
+<span id="1570">1570</span>
+<span id="1571">1571</span>
+<span id="1572">1572</span>
+<span id="1573">1573</span>
+<span id="1574">1574</span>
+<span id="1575">1575</span>
+<span id="1576">1576</span>
+<span id="1577">1577</span>
+<span id="1578">1578</span>
+<span id="1579">1579</span>
+<span id="1580">1580</span>
+<span id="1581">1581</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -2656,6 +2674,20 @@
     <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, done, next_result</span>
     <span class="ident">ForInLoopNext</span>,
 
+    <span class="doccomment">/// Move to the next value in a for await..of loop.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: iterator, next_method, done **=&gt;** iterator, next_method, next_result</span>
+    <span class="ident">ForAwaitOfLoopIterate</span>,
+
+    <span class="doccomment">/// Get the value from a for await..of loop next result.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: address: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: next_result **=&gt;** done, value</span>
+    <span class="ident">ForAwaitOfLoopNext</span>,
+
     <span class="doccomment">/// Concat multiple stack objects into a string.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: value_count: `u32`</span>
@@ -2908,6 +2940,8 @@
             <span class="ident"><span class="self">Self</span>::IteratorClose</span> =&gt; <span class="string">&quot;IteratorClose&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorToArray</span> =&gt; <span class="string">&quot;IteratorToArray&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ForInLoopNext</span> =&gt; <span class="string">&quot;ForInLoopNext&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::ForAwaitOfLoopNext</span> =&gt; <span class="string">&quot;ForAwaitOfLoopNext&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::ForAwaitOfLoopIterate</span> =&gt; <span class="string">&quot;ForAwaitOfLoopIterate&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ConcatToString</span> =&gt; <span class="string">&quot;ConcatToString&quot;</span>,
             <span class="ident"><span class="self">Self</span>::RequireObjectCoercible</span> =&gt; <span class="string">&quot;RequireObjectCoercible&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ValueNotNullOrUndefined</span> =&gt; <span class="string">&quot;ValueNotNullOrUndefined&quot;</span>,
@@ -3052,6 +3086,8 @@
             <span class="ident"><span class="self">Self</span>::IteratorClose</span> =&gt; <span class="string">&quot;INST - IteratorClose&quot;</span>,
             <span class="ident"><span class="self">Self</span>::IteratorToArray</span> =&gt; <span class="string">&quot;INST - IteratorToArray&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ForInLoopNext</span> =&gt; <span class="string">&quot;INST - ForInLoopNext&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::ForAwaitOfLoopIterate</span> =&gt; <span class="string">&quot;INST - ForAwaitOfLoopIterate&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::ForAwaitOfLoopNext</span> =&gt; <span class="string">&quot;INST - ForAwaitOfLoopNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ConcatToString</span> =&gt; <span class="string">&quot;INST - ConcatToString&quot;</span>,
             <span class="ident"><span class="self">Self</span>::RequireObjectCoercible</span> =&gt; <span class="string">&quot;INST - RequireObjectCoercible&quot;</span>,
             <span class="ident"><span class="self">Self</span>::ValueNotNullOrUndefined</span> =&gt; <span class="string">&quot;INST - ValueNotNullOrUndefined&quot;</span>,
