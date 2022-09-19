@@ -1085,6 +1085,20 @@ pub enum Opcode {
     /// Stack: iterator, next_method, done **=>** iterator, next_method, done, next_result
     ForInLoopNext,
 
+    /// Move to the next value in a for await..of loop.
+    ///
+    /// Operands:
+    ///
+    /// Stack: iterator, next_method, done **=>** iterator, next_method, next_result
+    ForAwaitOfLoopIterate,
+
+    /// Get the value from a for await..of loop next result.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: next_result **=>** done, value
+    ForAwaitOfLoopNext,
+
     /// Concat multiple stack objects into a string.
     ///
     /// Operands: value_count: `u32`
@@ -1337,6 +1351,8 @@ impl Opcode {
             Self::IteratorClose => "IteratorClose",
             Self::IteratorToArray => "IteratorToArray",
             Self::ForInLoopNext => "ForInLoopNext",
+            Self::ForAwaitOfLoopNext => "ForAwaitOfLoopNext",
+            Self::ForAwaitOfLoopIterate => "ForAwaitOfLoopIterate",
             Self::ConcatToString => "ConcatToString",
             Self::RequireObjectCoercible => "RequireObjectCoercible",
             Self::ValueNotNullOrUndefined => "ValueNotNullOrUndefined",
@@ -1481,6 +1497,8 @@ impl Opcode {
             Self::IteratorClose => "INST - IteratorClose",
             Self::IteratorToArray => "INST - IteratorToArray",
             Self::ForInLoopNext => "INST - ForInLoopNext",
+            Self::ForAwaitOfLoopIterate => "INST - ForAwaitOfLoopIterate",
+            Self::ForAwaitOfLoopNext => "INST - ForAwaitOfLoopNext",
             Self::ConcatToString => "INST - ConcatToString",
             Self::RequireObjectCoercible => "INST - RequireObjectCoercible",
             Self::ValueNotNullOrUndefined => "INST - ValueNotNullOrUndefined",

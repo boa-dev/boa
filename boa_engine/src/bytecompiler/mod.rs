@@ -1578,7 +1578,11 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::PopEnvironment);
                 }
 
-                self.emit_opcode(Opcode::InitIterator);
+                if for_of_loop.r#await() {
+                    self.emit_opcode(Opcode::InitIteratorAsync);
+                } else {
+                    self.emit_opcode(Opcode::InitIterator);
+                }
 
                 self.emit_opcode(Opcode::LoopStart);
                 let start_address = self.next_opcode_location();
@@ -1588,7 +1592,15 @@ impl<'b> ByteCompiler<'b> {
                 self.context.push_compile_time_environment(false);
                 let push_env =
                     self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-                let exit = self.emit_opcode_with_operand(Opcode::ForInLoopNext);
+
+                let exit = if for_of_loop.r#await() {
+                    self.emit_opcode(Opcode::ForAwaitOfLoopIterate);
+                    self.emit_opcode(Opcode::Await);
+                    self.emit_opcode(Opcode::GeneratorNext);
+                    self.emit_opcode_with_operand(Opcode::ForAwaitOfLoopNext)
+                } else {
+                    self.emit_opcode_with_operand(Opcode::ForInLoopNext)
+                };
 
                 match for_of_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {

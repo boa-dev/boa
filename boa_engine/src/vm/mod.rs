@@ -6,7 +6,7 @@ use crate::{
     builtins::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         function::{ConstructorKind, Function},
-        iterable::{IteratorHint, IteratorRecord},
+        iterable::{IteratorHint, IteratorRecord, IteratorResult},
         Array, ForInIterator, JsArgs, Number, Promise,
     },
     environments::EnvironmentSlots,
@@ -2127,6 +2127,46 @@ impl Context {
                     self.vm.push(iterator.clone());
                     self.vm.push(next_method);
                     self.vm.push(done);
+                }
+            }
+            Opcode::ForAwaitOfLoopIterate => {
+                let _done = self
+                    .vm
+                    .pop()
+                    .as_boolean()
+                    .expect("iterator [[Done]] was not a boolean");
+                let next_method = self.vm.pop();
+                let next_method_object = if let Some(object) = next_method.as_callable() {
+                    object
+                } else {
+                    return self.throw_type_error("iterable next method not a function");
+                };
+                let iterator = self.vm.pop();
+                let next_result = next_method_object.call(&iterator, &[], self)?;
+                self.vm.push(iterator);
+                self.vm.push(next_method);
+                self.vm.push(next_result);
+            }
+            Opcode::ForAwaitOfLoopNext => {
+                let address = self.vm.read::<u32>();
+
+                let next_result = self.vm.pop();
+                let next_result = if let Some(next_result) = next_result.as_object() {
+                    IteratorResult::new(next_result.clone())
+                } else {
+                    return self.throw_type_error("next value should be an object");
+                };
+
+                if next_result.complete(self)? {
+                    self.vm.frame_mut().pc = address as usize;
+                    self.vm.frame_mut().loop_env_stack_dec();
+                    self.vm.frame_mut().try_env_stack_dec();
+                    self.realm.environments.pop();
+                    self.vm.push(true);
+                } else {
+                    self.vm.push(false);
+                    let value = next_result.value(self)?;
+                    self.vm.push(value);
                 }
             }
             Opcode::ConcatToString => {

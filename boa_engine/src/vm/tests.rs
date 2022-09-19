@@ -154,7 +154,7 @@ fn run_super_method_in_object() {
     assert_eq!(
         Context::default().eval(source.as_bytes()),
         Ok(JsValue::from("super"))
-    )
+    );
 }
 
 #[test]
@@ -180,5 +180,5 @@ fn get_reference_by_super() {
     assert_eq!(
         Context::default().eval(source.as_bytes()),
         Ok(JsValue::from("ab"))
-    )
+    );
 }

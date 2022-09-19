@@ -204,6 +204,7 @@ impl CodeBlock {
             | Opcode::SuperCall
             | Opcode::ForInLoopInitIterator
             | Opcode::ForInLoopNext
+            | Opcode::ForAwaitOfLoopNext
             | Opcode::ConcatToString
             | Opcode::GeneratorNextDelegate => {
                 let result = self.read::<u32>(*pc).to_string();
@@ -374,6 +375,7 @@ impl CodeBlock {
             | Opcode::CallSpread
             | Opcode::NewSpread
             | Opcode::SuperCallSpread
+            | Opcode::ForAwaitOfLoopIterate
             | Opcode::Nop => String::new(),
         }
     }
