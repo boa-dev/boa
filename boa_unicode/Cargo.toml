@@ -11,4 +11,4 @@ categories = ["parsing"]
 license = "Unlicense/MIT"
 
 [dependencies]
-unicode-general-category = "0.5.1"
+unicode-general-category = "0.6.0"
