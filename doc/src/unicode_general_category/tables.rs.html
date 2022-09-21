@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-general-category-0.5.1/src/tables.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tables.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_general_category/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/unicode-general-category-0.6.0/src/tables.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>tables.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../unicode_general_category/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
         </a><h2 class="location"></h2>
     </nav>
     <nav class="sidebar"><a class="sidebar-logo" href="../../unicode_general_category/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
@@ -4018,14 +4018,51 @@
 <span id="4012">4012</span>
 <span id="4013">4013</span>
 <span id="4014">4014</span>
+<span id="4015">4015</span>
+<span id="4016">4016</span>
+<span id="4017">4017</span>
+<span id="4018">4018</span>
+<span id="4019">4019</span>
+<span id="4020">4020</span>
+<span id="4021">4021</span>
+<span id="4022">4022</span>
+<span id="4023">4023</span>
+<span id="4024">4024</span>
+<span id="4025">4025</span>
+<span id="4026">4026</span>
+<span id="4027">4027</span>
+<span id="4028">4028</span>
+<span id="4029">4029</span>
+<span id="4030">4030</span>
+<span id="4031">4031</span>
+<span id="4032">4032</span>
+<span id="4033">4033</span>
+<span id="4034">4034</span>
+<span id="4035">4035</span>
+<span id="4036">4036</span>
+<span id="4037">4037</span>
+<span id="4038">4038</span>
+<span id="4039">4039</span>
+<span id="4040">4040</span>
+<span id="4041">4041</span>
+<span id="4042">4042</span>
+<span id="4043">4043</span>
+<span id="4044">4044</span>
+<span id="4045">4045</span>
+<span id="4046">4046</span>
+<span id="4047">4047</span>
+<span id="4048">4048</span>
+<span id="4049">4049</span>
+<span id="4050">4050</span>
+<span id="4051">4051</span>
+<span id="4052">4052</span>
 </pre><pre class="rust"><code><span class="comment">// DO NOT EDIT THIS FILE. IT WAS AUTOMATICALLY GENERATED BY:</span>
 <span class="comment">//</span>
-<span class="comment">//   yeslogic-ucd-generate general-category --rust-enum /home/wmoore/Downloads/ucd-14.0</span>
+<span class="comment">//   yeslogic-ucd-generate general-category --rust-enum ../ucd-generate/ucd-15.0.0</span>
 <span class="comment">//</span>
-<span class="comment">// Unicode version: 14.0.0.</span>
+<span class="comment">// Unicode version: 15.0.0.</span>
 <span class="comment">//</span>
-<span class="comment">// yeslogic-ucd-generate is available on GitHub:</span>
-<span class="comment">// https://github.com/yeslogic/ucd-generate/tree/3b21e76</span>
+<span class="comment">// yeslogic-ucd-generate 0.6.0 is available on crates.io.</span>
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">Hash</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">GeneralCategory</span> {
@@ -5091,7 +5128,8 @@
     (<span class="number">3302</span>, <span class="number">3311</span>, <span class="ident">GeneralCategory::DecimalNumber</span>),
     (<span class="number">3312</span>, <span class="number">3312</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">3313</span>, <span class="number">3314</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">3315</span>, <span class="number">3327</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">3315</span>, <span class="number">3315</span>, <span class="ident">GeneralCategory::SpacingMark</span>),
+    (<span class="number">3316</span>, <span class="number">3327</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">3328</span>, <span class="number">3329</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
     (<span class="number">3330</span>, <span class="number">3331</span>, <span class="ident">GeneralCategory::SpacingMark</span>),
     (<span class="number">3332</span>, <span class="number">3340</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -5182,8 +5220,8 @@
     (<span class="number">3781</span>, <span class="number">3781</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">3782</span>, <span class="number">3782</span>, <span class="ident">GeneralCategory::ModifierLetter</span>),
     (<span class="number">3783</span>, <span class="number">3783</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">3784</span>, <span class="number">3789</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
-    (<span class="number">3790</span>, <span class="number">3791</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">3784</span>, <span class="number">3790</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">3791</span>, <span class="number">3791</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">3792</span>, <span class="number">3801</span>, <span class="ident">GeneralCategory::DecimalNumber</span>),
     (<span class="number">3802</span>, <span class="number">3803</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">3804</span>, <span class="number">3807</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -7165,7 +7203,8 @@
     (<span class="number">69293</span>, <span class="number">69293</span>, <span class="ident">GeneralCategory::DashPunctuation</span>),
     (<span class="number">69294</span>, <span class="number">69295</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">69296</span>, <span class="number">69297</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">69298</span>, <span class="number">69375</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">69298</span>, <span class="number">69372</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">69373</span>, <span class="number">69375</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
     (<span class="number">69376</span>, <span class="number">69404</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">69405</span>, <span class="number">69414</span>, <span class="ident">GeneralCategory::OtherNumber</span>),
     (<span class="number">69415</span>, <span class="number">69415</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -7264,7 +7303,9 @@
     (<span class="number">70198</span>, <span class="number">70199</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
     (<span class="number">70200</span>, <span class="number">70205</span>, <span class="ident">GeneralCategory::OtherPunctuation</span>),
     (<span class="number">70206</span>, <span class="number">70206</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
-    (<span class="number">70207</span>, <span class="number">70271</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">70207</span>, <span class="number">70208</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">70209</span>, <span class="number">70209</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">70210</span>, <span class="number">70271</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">70272</span>, <span class="number">70278</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">70279</span>, <span class="number">70279</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">70280</span>, <span class="number">70280</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -7477,7 +7518,9 @@
     (<span class="number">72350</span>, <span class="number">72354</span>, <span class="ident">GeneralCategory::OtherPunctuation</span>),
     (<span class="number">72355</span>, <span class="number">72367</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">72368</span>, <span class="number">72440</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">72441</span>, <span class="number">72703</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">72441</span>, <span class="number">72447</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">72448</span>, <span class="number">72457</span>, <span class="ident">GeneralCategory::OtherPunctuation</span>),
+    (<span class="number">72458</span>, <span class="number">72703</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">72704</span>, <span class="number">72712</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">72713</span>, <span class="number">72713</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">72714</span>, <span class="number">72750</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -7543,7 +7586,23 @@
     (<span class="number">73459</span>, <span class="number">73460</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
     (<span class="number">73461</span>, <span class="number">73462</span>, <span class="ident">GeneralCategory::SpacingMark</span>),
     (<span class="number">73463</span>, <span class="number">73464</span>, <span class="ident">GeneralCategory::OtherPunctuation</span>),
-    (<span class="number">73465</span>, <span class="number">73647</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">73465</span>, <span class="number">73471</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">73472</span>, <span class="number">73473</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">73474</span>, <span class="number">73474</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">73475</span>, <span class="number">73475</span>, <span class="ident">GeneralCategory::SpacingMark</span>),
+    (<span class="number">73476</span>, <span class="number">73488</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">73489</span>, <span class="number">73489</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">73490</span>, <span class="number">73523</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">73524</span>, <span class="number">73525</span>, <span class="ident">GeneralCategory::SpacingMark</span>),
+    (<span class="number">73526</span>, <span class="number">73530</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">73531</span>, <span class="number">73533</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">73534</span>, <span class="number">73535</span>, <span class="ident">GeneralCategory::SpacingMark</span>),
+    (<span class="number">73536</span>, <span class="number">73536</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">73537</span>, <span class="number">73537</span>, <span class="ident">GeneralCategory::SpacingMark</span>),
+    (<span class="number">73538</span>, <span class="number">73538</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">73539</span>, <span class="number">73551</span>, <span class="ident">GeneralCategory::OtherPunctuation</span>),
+    (<span class="number">73552</span>, <span class="number">73561</span>, <span class="ident">GeneralCategory::DecimalNumber</span>),
+    (<span class="number">73562</span>, <span class="number">73647</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">73648</span>, <span class="number">73648</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">73649</span>, <span class="number">73663</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">73664</span>, <span class="number">73684</span>, <span class="ident">GeneralCategory::OtherNumber</span>),
@@ -7563,10 +7622,12 @@
     (<span class="number">77712</span>, <span class="number">77808</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">77809</span>, <span class="number">77810</span>, <span class="ident">GeneralCategory::OtherPunctuation</span>),
     (<span class="number">77811</span>, <span class="number">77823</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">77824</span>, <span class="number">78894</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">78895</span>, <span class="number">78895</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">78896</span>, <span class="number">78904</span>, <span class="ident">GeneralCategory::Format</span>),
-    (<span class="number">78905</span>, <span class="number">82943</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">77824</span>, <span class="number">78895</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">78896</span>, <span class="number">78911</span>, <span class="ident">GeneralCategory::Format</span>),
+    (<span class="number">78912</span>, <span class="number">78912</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">78913</span>, <span class="number">78918</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">78919</span>, <span class="number">78933</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">78934</span>, <span class="number">82943</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">82944</span>, <span class="number">83526</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">83527</span>, <span class="number">92159</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">92160</span>, <span class="number">92728</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -7635,9 +7696,13 @@
     (<span class="number">110589</span>, <span class="number">110590</span>, <span class="ident">GeneralCategory::ModifierLetter</span>),
     (<span class="number">110591</span>, <span class="number">110591</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">110592</span>, <span class="number">110882</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">110883</span>, <span class="number">110927</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">110883</span>, <span class="number">110897</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">110898</span>, <span class="number">110898</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">110899</span>, <span class="number">110927</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">110928</span>, <span class="number">110930</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">110931</span>, <span class="number">110947</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">110931</span>, <span class="number">110932</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">110933</span>, <span class="number">110933</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">110934</span>, <span class="number">110947</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">110948</span>, <span class="number">110951</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">110952</span>, <span class="number">110959</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">110960</span>, <span class="number">111355</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -7681,7 +7746,9 @@
     (<span class="number">119296</span>, <span class="number">119361</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">119362</span>, <span class="number">119364</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
     (<span class="number">119365</span>, <span class="number">119365</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">119366</span>, <span class="number">119519</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">119366</span>, <span class="number">119487</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">119488</span>, <span class="number">119507</span>, <span class="ident">GeneralCategory::OtherNumber</span>),
+    (<span class="number">119508</span>, <span class="number">119519</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">119520</span>, <span class="number">119539</span>, <span class="ident">GeneralCategory::OtherNumber</span>),
     (<span class="number">119540</span>, <span class="number">119551</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">119552</span>, <span class="number">119638</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
@@ -7796,7 +7863,9 @@
     (<span class="number">122624</span>, <span class="number">122633</span>, <span class="ident">GeneralCategory::LowercaseLetter</span>),
     (<span class="number">122634</span>, <span class="number">122634</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">122635</span>, <span class="number">122654</span>, <span class="ident">GeneralCategory::LowercaseLetter</span>),
-    (<span class="number">122655</span>, <span class="number">122879</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">122655</span>, <span class="number">122660</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">122661</span>, <span class="number">122666</span>, <span class="ident">GeneralCategory::LowercaseLetter</span>),
+    (<span class="number">122667</span>, <span class="number">122879</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">122880</span>, <span class="number">122886</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
     (<span class="number">122887</span>, <span class="number">122887</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">122888</span>, <span class="number">122904</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
@@ -7806,7 +7875,11 @@
     (<span class="number">122915</span>, <span class="number">122916</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
     (<span class="number">122917</span>, <span class="number">122917</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">122918</span>, <span class="number">122922</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
-    (<span class="number">122923</span>, <span class="number">123135</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">122923</span>, <span class="number">122927</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">122928</span>, <span class="number">122989</span>, <span class="ident">GeneralCategory::ModifierLetter</span>),
+    (<span class="number">122990</span>, <span class="number">123022</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">123023</span>, <span class="number">123023</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">123024</span>, <span class="number">123135</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">123136</span>, <span class="number">123180</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">123181</span>, <span class="number">123183</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">123184</span>, <span class="number">123190</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
@@ -7825,7 +7898,12 @@
     (<span class="number">123632</span>, <span class="number">123641</span>, <span class="ident">GeneralCategory::DecimalNumber</span>),
     (<span class="number">123642</span>, <span class="number">123646</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">123647</span>, <span class="number">123647</span>, <span class="ident">GeneralCategory::CurrencySymbol</span>),
-    (<span class="number">123648</span>, <span class="number">124895</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">123648</span>, <span class="number">124111</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">124112</span>, <span class="number">124138</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">124139</span>, <span class="number">124139</span>, <span class="ident">GeneralCategory::ModifierLetter</span>),
+    (<span class="number">124140</span>, <span class="number">124143</span>, <span class="ident">GeneralCategory::NonspacingMark</span>),
+    (<span class="number">124144</span>, <span class="number">124153</span>, <span class="ident">GeneralCategory::DecimalNumber</span>),
+    (<span class="number">124154</span>, <span class="number">124895</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">124896</span>, <span class="number">124902</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">124903</span>, <span class="number">124903</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">124904</span>, <span class="number">124907</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -7954,15 +8032,15 @@
     (<span class="number">127744</span>, <span class="number">127994</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">127995</span>, <span class="number">127999</span>, <span class="ident">GeneralCategory::ModifierSymbol</span>),
     (<span class="number">128000</span>, <span class="number">128727</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">128728</span>, <span class="number">128732</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">128733</span>, <span class="number">128748</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">128728</span>, <span class="number">128731</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">128732</span>, <span class="number">128748</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">128749</span>, <span class="number">128751</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">128752</span>, <span class="number">128764</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">128765</span>, <span class="number">128767</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">128768</span>, <span class="number">128883</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">128884</span>, <span class="number">128895</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">128896</span>, <span class="number">128984</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">128985</span>, <span class="number">128991</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">128768</span>, <span class="number">128886</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">128887</span>, <span class="number">128890</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">128891</span>, <span class="number">128985</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">128986</span>, <span class="number">128991</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">128992</span>, <span class="number">129003</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">129004</span>, <span class="number">129007</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">129008</span>, <span class="number">129008</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
@@ -7983,24 +8061,20 @@
     (<span class="number">129620</span>, <span class="number">129631</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">129632</span>, <span class="number">129645</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">129646</span>, <span class="number">129647</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129648</span>, <span class="number">129652</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129653</span>, <span class="number">129655</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129656</span>, <span class="number">129660</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">129648</span>, <span class="number">129660</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">129661</span>, <span class="number">129663</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129664</span>, <span class="number">129670</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129671</span>, <span class="number">129679</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129680</span>, <span class="number">129708</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129709</span>, <span class="number">129711</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129712</span>, <span class="number">129722</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129723</span>, <span class="number">129727</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129728</span>, <span class="number">129733</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129734</span>, <span class="number">129743</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129744</span>, <span class="number">129753</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129754</span>, <span class="number">129759</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129760</span>, <span class="number">129767</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129768</span>, <span class="number">129775</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">129776</span>, <span class="number">129782</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
-    (<span class="number">129783</span>, <span class="number">129791</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">129664</span>, <span class="number">129672</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">129673</span>, <span class="number">129679</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">129680</span>, <span class="number">129725</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">129726</span>, <span class="number">129726</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">129727</span>, <span class="number">129733</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">129734</span>, <span class="number">129741</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">129742</span>, <span class="number">129755</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">129756</span>, <span class="number">129759</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">129760</span>, <span class="number">129768</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">129769</span>, <span class="number">129775</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">129776</span>, <span class="number">129784</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
+    (<span class="number">129785</span>, <span class="number">129791</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">129792</span>, <span class="number">129938</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
     (<span class="number">129939</span>, <span class="number">129939</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">129940</span>, <span class="number">129994</span>, <span class="ident">GeneralCategory::OtherSymbol</span>),
@@ -8009,8 +8083,8 @@
     (<span class="number">130042</span>, <span class="number">131071</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">131072</span>, <span class="number">173791</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">173792</span>, <span class="number">173823</span>, <span class="ident">GeneralCategory::Unassigned</span>),
-    (<span class="number">173824</span>, <span class="number">177976</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">177977</span>, <span class="number">177983</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">173824</span>, <span class="number">177977</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">177978</span>, <span class="number">177983</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">177984</span>, <span class="number">178205</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">178206</span>, <span class="number">178207</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">178208</span>, <span class="number">183969</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
@@ -8020,7 +8094,9 @@
     (<span class="number">194560</span>, <span class="number">195101</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
     (<span class="number">195102</span>, <span class="number">196607</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">196608</span>, <span class="number">201546</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
-    (<span class="number">201547</span>, <span class="number">917504</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">201547</span>, <span class="number">201551</span>, <span class="ident">GeneralCategory::Unassigned</span>),
+    (<span class="number">201552</span>, <span class="number">205743</span>, <span class="ident">GeneralCategory::OtherLetter</span>),
+    (<span class="number">205744</span>, <span class="number">917504</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">917505</span>, <span class="number">917505</span>, <span class="ident">GeneralCategory::Format</span>),
     (<span class="number">917506</span>, <span class="number">917535</span>, <span class="ident">GeneralCategory::Unassigned</span>),
     (<span class="number">917536</span>, <span class="number">917631</span>, <span class="ident">GeneralCategory::Format</span>),
